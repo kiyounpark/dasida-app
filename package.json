@@ -5,6 +5,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "log:commit": "node ./scripts/log-commit.js",
+    "setup:hooks": "git config core.hooksPath .githooks",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
