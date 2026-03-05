@@ -125,12 +125,14 @@ export default function QuizPracticeScreen() {
 
   if (!activeProblem) {
     return (
-      <View style={styles.emptyScreen}>
+      <View style={styles.screen}>
         <BrandHeader compact />
-        <View style={styles.emptyCard}>
-          <Text style={styles.title}>연습 문제를 찾지 못했어요.</Text>
-          <View style={styles.buttonTopGap}>
-            <BrandButton title="결과로 돌아가기" onPress={() => router.replace('/quiz/result')} />
+        <View style={styles.emptyBody}>
+          <View style={styles.emptyCard}>
+            <Text style={styles.title}>연습 문제를 찾지 못했어요.</Text>
+            <View style={styles.buttonTopGap}>
+              <BrandButton title="결과로 돌아가기" onPress={() => router.replace('/quiz/result')} />
+            </View>
           </View>
         </View>
       </View>
@@ -150,75 +152,76 @@ export default function QuizPracticeScreen() {
       : true;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
       <BrandHeader />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+        <View style={styles.problemCard}>
+          <Text style={styles.title}>약점 기반 연습</Text>
+          <Text style={styles.subtitle}>{weaknessLabel}</Text>
+          <Text style={styles.question}>{activeProblem.question}</Text>
 
-      <View style={styles.problemCard}>
-        <Text style={styles.title}>약점 기반 연습</Text>
-        <Text style={styles.subtitle}>{weaknessLabel}</Text>
-        <Text style={styles.question}>{activeProblem.question}</Text>
-
-        <View style={styles.choicesContainer}>
-          {activeProblem.choices.map((choice, index) => {
-            const isSelected = selectedIndex === index;
-            return (
-              <Pressable
-                key={`${activeProblem.id}_${index}`}
-                style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-                onPress={() => setSelectedIndex(index)}>
-                <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>{choice}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View style={styles.buttonTopGap}>
-          <BrandButton
-            title="정답 확인"
-            onPress={handleSubmit}
-            disabled={selectedIndex === null || !!feedback}
-          />
-        </View>
-      </View>
-
-      {feedback ? (
-        <View
-          style={[
-            styles.feedbackCard,
-            feedback.kind === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong,
-          ]}>
-          <Text style={styles.feedbackTitle}>
-            {feedback.kind === 'correct' ? '정답입니다!' : '오답입니다. 힌트를 확인해 주세요.'}
-          </Text>
-          <Text style={styles.feedbackBody}>{feedback.message}</Text>
+          <View style={styles.choicesContainer}>
+            {activeProblem.choices.map((choice, index) => {
+              const isSelected = selectedIndex === index;
+              return (
+                <Pressable
+                  key={`${activeProblem.id}_${index}`}
+                  style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                  onPress={() => setSelectedIndex(index)}>
+                  <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>{choice}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
           <View style={styles.buttonTopGap}>
-            {feedback.kind === 'wrong' ? (
-              <BrandButton
-                title="다시 도전"
-                variant="danger"
-                onPress={() => {
-                  setSelectedIndex(null);
-                  setFeedback(undefined);
-                }}
-              />
-            ) : (
-              <BrandButton
-                title={
-                  activeMode === 'challenge'
-                    ? '피드백 화면으로 이동'
-                    : isLastWeakness
-                      ? '피드백 화면으로 이동'
-                      : '다음 약점 문제'
-                }
-                variant="success"
-                onPress={handleContinue}
-              />
-            )}
+            <BrandButton
+              title="정답 확인"
+              onPress={handleSubmit}
+              disabled={selectedIndex === null || !!feedback}
+            />
           </View>
         </View>
-      ) : null}
-    </ScrollView>
+
+        {feedback ? (
+          <View
+            style={[
+              styles.feedbackCard,
+              feedback.kind === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong,
+            ]}>
+            <Text style={styles.feedbackTitle}>
+              {feedback.kind === 'correct' ? '정답입니다!' : '오답입니다. 힌트를 확인해 주세요.'}
+            </Text>
+            <Text style={styles.feedbackBody}>{feedback.message}</Text>
+
+            <View style={styles.buttonTopGap}>
+              {feedback.kind === 'wrong' ? (
+                <BrandButton
+                  title="다시 도전"
+                  variant="danger"
+                  onPress={() => {
+                    setSelectedIndex(null);
+                    setFeedback(undefined);
+                  }}
+                />
+              ) : (
+                <BrandButton
+                  title={
+                    activeMode === 'challenge'
+                      ? '피드백 화면으로 이동'
+                      : isLastWeakness
+                        ? '피드백 화면으로 이동'
+                        : '다음 약점 문제'
+                  }
+                  variant="success"
+                  onPress={handleContinue}
+                />
+              )}
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -227,16 +230,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
+  scroll: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md,
     paddingBottom: BrandSpacing.xxl,
     gap: BrandSpacing.md,
   },
-  emptyScreen: {
+  emptyBody: {
     flex: 1,
-    backgroundColor: BrandColors.background,
     paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md,
   },
   emptyCard: {
     borderWidth: 1,

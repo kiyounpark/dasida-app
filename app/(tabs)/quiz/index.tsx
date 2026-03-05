@@ -76,9 +76,11 @@ export default function QuizIndexScreen() {
 
   if (!currentProblem && !state.result) {
     return (
-      <View style={styles.loadingScreen}>
+      <View style={styles.screen}>
         <BrandHeader compact />
-        <Text style={styles.loadingText}>결과를 계산 중입니다...</Text>
+        <View style={styles.loadingBody}>
+          <Text style={styles.loadingText}>결과를 계산 중입니다...</Text>
+        </View>
       </View>
     );
   }
@@ -91,75 +93,76 @@ export default function QuizIndexScreen() {
   const methodStep = pendingWrong?.methodId ? diagnosisTree[pendingWrong.methodId] : null;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
       <BrandHeader />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+        <View style={styles.surfaceCard}>
+          <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
+          <Text style={styles.progress}>{stepTitle}</Text>
+          <Text style={styles.topic}>{currentProblem.topic}</Text>
+          <Text style={styles.question}>{currentProblem.question}</Text>
 
-      <View style={styles.surfaceCard}>
-        <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
-        <Text style={styles.progress}>{stepTitle}</Text>
-        <Text style={styles.topic}>{currentProblem.topic}</Text>
-        <Text style={styles.question}>{currentProblem.question}</Text>
+          <View style={styles.choicesContainer}>
+            {currentProblem.choices.map((choice, index) => {
+              const isSelected = selectedIndex === index;
+              return (
+                <Pressable
+                  key={`${currentProblem.id}_${index}`}
+                  style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                  onPress={() => setSelectedIndex(index)}>
+                  <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
+                    {choice}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-        <View style={styles.choicesContainer}>
-          {currentProblem.choices.map((choice, index) => {
-            const isSelected = selectedIndex === index;
-            return (
-              <Pressable
-                key={`${currentProblem.id}_${index}`}
-                style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-                onPress={() => setSelectedIndex(index)}>
-                <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
-                  {choice}
-                </Text>
-              </Pressable>
-            );
-          })}
+          <View style={styles.submitContainer}>
+            <BrandButton
+              title="답 제출하기"
+              onPress={handleSubmit}
+              disabled={selectedIndex === null || pendingWrong !== null}
+            />
+          </View>
         </View>
 
-        <View style={styles.submitContainer}>
-          <BrandButton
-            title="답 제출하기"
-            onPress={handleSubmit}
-            disabled={selectedIndex === null || pendingWrong !== null}
-          />
-        </View>
-      </View>
-
-      {pendingWrong ? (
-        <View style={styles.diagnosisCard}>
-          <Text style={styles.diagnosisTitle}>오답 진단</Text>
-          {!methodStep ? (
-            <>
-              <Text style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
-              <View style={styles.diagnosisChoices}>
-                {methodOptions.map((option) => (
-                  <Pressable
-                    key={option.id}
-                    style={styles.diagnosisChoiceButton}
-                    onPress={() => handleMethodSelect(option.id)}>
-                    <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.diagnosisText}>{methodStep.prompt}</Text>
-              <View style={styles.diagnosisChoices}>
-                {methodStep.choices.map((choice) => (
-                  <Pressable
-                    key={choice.id}
-                    style={styles.diagnosisChoiceButton}
-                    onPress={() => handleWeaknessSelect(choice.weaknessId)}>
-                    <Text style={styles.diagnosisChoiceText}>{choice.text}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </>
-          )}
-        </View>
-      ) : null}
-    </ScrollView>
+        {pendingWrong ? (
+          <View style={styles.diagnosisCard}>
+            <Text style={styles.diagnosisTitle}>오답 진단</Text>
+            {!methodStep ? (
+              <>
+                <Text style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
+                <View style={styles.diagnosisChoices}>
+                  {methodOptions.map((option) => (
+                    <Pressable
+                      key={option.id}
+                      style={styles.diagnosisChoiceButton}
+                      onPress={() => handleMethodSelect(option.id)}>
+                      <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.diagnosisText}>{methodStep.prompt}</Text>
+                <View style={styles.diagnosisChoices}>
+                  {methodStep.choices.map((choice) => (
+                    <Pressable
+                      key={choice.id}
+                      style={styles.diagnosisChoiceButton}
+                      onPress={() => handleWeaknessSelect(choice.weaknessId)}>
+                      <Text style={styles.diagnosisChoiceText}>{choice.text}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -168,15 +171,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
+  scroll: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md,
     paddingBottom: BrandSpacing.xxl,
     gap: BrandSpacing.md,
   },
-  loadingScreen: {
+  loadingBody: {
     flex: 1,
-    backgroundColor: BrandColors.background,
     justifyContent: 'center',
     paddingHorizontal: BrandSpacing.lg,
   },

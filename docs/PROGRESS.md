@@ -84,6 +84,12 @@
   - `docs/STRUCTURE.md` 브랜드 UI 계층 섹션 추가
   - `docs/PROGRESS.md` 본 작업 로그 추가
 
+**AppBar 겹침/정렬 개선 완료**
+- 상태바(시간/배터리) 영역과 겹치지 않도록 `BrandHeader`를 `SafeAreaView(edges=['top'])` 기반으로 변경
+- 로고 좌측 여백을 `12px`로 축소해 유튜브 스타일의 좌측 정렬감 반영
+- `app/_layout.tsx`의 `StatusBar`를 `style='dark'`, `translucent={false}`로 명시
+- `history/profile` 화면의 외곽 패딩을 제거하고 카드에 `marginHorizontal`을 적용해 AppBar 폭/정렬 충돌 해소
+
 **다음 작업**
 - [ ] 수식 표기(예: sqrt, i, 분수) UI 렌더링 개선
 - [ ] Firebase 피드백 저장 연결

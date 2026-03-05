@@ -31,104 +31,108 @@ export default function QuizResultScreen() {
 
   if (!summary) {
     return (
-      <View style={styles.screenFallback}>
+      <View style={styles.screen}>
         <BrandHeader compact />
-        <View style={styles.cardFallback}>
-          <Text style={styles.title}>진단 결과를 찾을 수 없어요.</Text>
-          {legacyNextStep ? (
-            <>
-              <Text style={styles.legacyLabel}>호환 모드 결과</Text>
-              <Text style={styles.legacyText}>판정: {legacyNextStep}</Text>
-              <Text style={styles.legacyText}>
-                약점: {legacyWeaknessId ? diagnosisMap[legacyWeaknessId].labelKo : '없음'}
-              </Text>
+        <View style={styles.fallbackBody}>
+          <View style={styles.cardFallback}>
+            <Text style={styles.title}>진단 결과를 찾을 수 없어요.</Text>
+            {legacyNextStep ? (
+              <>
+                <Text style={styles.legacyLabel}>호환 모드 결과</Text>
+                <Text style={styles.legacyText}>판정: {legacyNextStep}</Text>
+                <Text style={styles.legacyText}>
+                  약점: {legacyWeaknessId ? diagnosisMap[legacyWeaknessId].labelKo : '없음'}
+                </Text>
+                <View style={styles.buttonGap}>
+                  {legacyNextStep === 'wrong' ? (
+                    <BrandButton
+                      title="연습문제 풀어볼게요"
+                      onPress={() =>
+                        router.push({
+                          pathname: '/quiz/practice',
+                          params: legacyPracticeParams,
+                        })
+                      }
+                    />
+                  ) : (
+                    <BrandButton title="문제로 돌아가기" onPress={() => router.replace('/quiz')} />
+                  )}
+                </View>
+              </>
+            ) : (
               <View style={styles.buttonGap}>
-                {legacyNextStep === 'wrong' ? (
-                  <BrandButton
-                    title="연습문제 풀어볼게요"
-                    onPress={() =>
-                      router.push({
-                        pathname: '/quiz/practice',
-                        params: legacyPracticeParams,
-                      })
-                    }
-                  />
-                ) : (
-                  <BrandButton title="문제로 돌아가기" onPress={() => router.replace('/quiz')} />
-                )}
+                <BrandButton
+                  title="새로 시작하기"
+                  onPress={() => {
+                    resetSession();
+                    router.replace('/quiz');
+                  }}
+                />
               </View>
-            </>
-          ) : (
-            <View style={styles.buttonGap}>
-              <BrandButton
-                title="새로 시작하기"
-                onPress={() => {
-                  resetSession();
-                  router.replace('/quiz');
-                }}
-              />
-            </View>
-          )}
+            )}
+          </View>
         </View>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
       <BrandHeader />
-      <View style={styles.summaryCard}>
-        <Text style={styles.title}>분석 결과</Text>
-        <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
-        <Text style={styles.summaryText}>정답률 {summary.accuracy}%</Text>
-      </View>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.title}>분석 결과</Text>
+          <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
+          <Text style={styles.summaryText}>정답률 {summary.accuracy}%</Text>
+        </View>
 
-      {summary.allCorrect ? (
-        <View style={styles.cardSuccess}>
-          <Text style={styles.cardTitle}>모든 문제를 맞혔어요!</Text>
-          <Text style={styles.cardBody}>축하합니다. 심화 1문제로 마무리 점검을 진행합니다.</Text>
-          <View style={styles.buttonGap}>
-            <BrandButton
-              title="심화 문제 풀기"
-              variant="success"
-              onPress={() =>
-                router.push({
-                  pathname: '/quiz/practice',
-                  params: { mode: 'challenge' },
-                })
-              }
-            />
+        {summary.allCorrect ? (
+          <View style={styles.cardSuccess}>
+            <Text style={styles.cardTitle}>모든 문제를 맞혔어요!</Text>
+            <Text style={styles.cardBody}>축하합니다. 심화 1문제로 마무리 점검을 진행합니다.</Text>
+            <View style={styles.buttonGap}>
+              <BrandButton
+                title="심화 문제 풀기"
+                variant="success"
+                onPress={() =>
+                  router.push({
+                    pathname: '/quiz/practice',
+                    params: { mode: 'challenge' },
+                  })
+                }
+              />
+            </View>
           </View>
-        </View>
-      ) : (
-        <View style={styles.cardWarning}>
-          <Text style={styles.cardTitle}>상위 약점 3개</Text>
-          {summary.topWeaknesses.map((weaknessId, index) => {
-            const info = diagnosisMap[weaknessId];
-            return (
-              <View key={weaknessId} style={styles.weaknessRow}>
-                <Text style={styles.weaknessTitle}>{index + 1}. {info.labelKo}</Text>
-                <Text style={styles.weaknessBody}>{info.desc}</Text>
-              </View>
-            );
-          })}
-          <View style={styles.buttonGap}>
-            <BrandButton
-              title="약점 연습 시작"
-              onPress={() =>
-                router.push({
-                  pathname: '/quiz/practice',
-                  params: {
-                    mode: 'weakness',
-                    weaknessId: summary.topWeaknesses[0],
-                  },
-                })
-              }
-            />
+        ) : (
+          <View style={styles.cardWarning}>
+            <Text style={styles.cardTitle}>상위 약점 3개</Text>
+            {summary.topWeaknesses.map((weaknessId, index) => {
+              const info = diagnosisMap[weaknessId];
+              return (
+                <View key={weaknessId} style={styles.weaknessRow}>
+                  <Text style={styles.weaknessTitle}>{index + 1}. {info.labelKo}</Text>
+                  <Text style={styles.weaknessBody}>{info.desc}</Text>
+                </View>
+              );
+            })}
+            <View style={styles.buttonGap}>
+              <BrandButton
+                title="약점 연습 시작"
+                onPress={() =>
+                  router.push({
+                    pathname: '/quiz/practice',
+                    params: {
+                      mode: 'weakness',
+                      weaknessId: summary.topWeaknesses[0],
+                    },
+                  })
+                }
+              />
+            </View>
           </View>
-        </View>
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -137,15 +141,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
+  scroll: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md,
     paddingBottom: BrandSpacing.xxl,
     gap: BrandSpacing.md,
   },
-  screenFallback: {
+  fallbackBody: {
     flex: 1,
-    backgroundColor: BrandColors.background,
     paddingHorizontal: BrandSpacing.lg,
     paddingBottom: BrandSpacing.lg,
   },
