@@ -134,6 +134,12 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.06 00:45
+- 해시: `f0fa590` (`f0fa590ac9bf36f707f8d20e67f87ee854760dca`)
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f0fa590ac9bf36f707f8d20e67f87ee854760dca
+- 작성자: 박기윤
+- 메시지: feat: 브랜드 로고와 전역 화면 디자인 정합화
+
 ### 커밋 2026.03.05 23:48
 - 해시: `c556083` (`c5560832ec64c7c09d02ab10300362797d97c3c9`)
 - 링크: https://github.com/kiyounpark/dasida-app/commit/c5560832ec64c7c09d02ab10300362797d97c3c9
