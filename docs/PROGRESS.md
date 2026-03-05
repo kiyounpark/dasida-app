@@ -10,8 +10,8 @@
 |------|------|------|
 | 환경 세팅 | Expo 프로젝트 생성, 기기 테스트 | ✅ 완료 |
 | 구조 정의 | 화면/파일 구조, 네비게이션 설계 | ✅ 완료 |
-| 데이터 작성 | problemData, practiceMap, diagnosisMap | ⬜ |
-| 화면 구현 | 4개 화면 (문제/결과/연습/피드백) | 🟡 뼈대 완료 |
+| 데이터 작성 | problemData, practiceMap, diagnosisMap | ✅ 1차 구현 |
+| 화면 구현 | 4개 화면 (문제/결과/연습/피드백) | ✅ 1차 구현 |
 | Firebase 연결 | Firestore 피드백 저장 | ⬜ |
 | OpenAI 연결 | AI 판정 API 호출 | ⬜ |
 | 앱스토어 준비 | 개인정보처리방침, 심사 체크리스트 | ⬜ |
@@ -19,6 +19,57 @@
 ---
 
 ## 로그
+
+### 2026.03.06
+
+**작업 시작 / 범위 고정**
+- 내부 ID 키 전략(`WeaknessId`)으로 데이터 계약 전환
+- 구현 범위: `10문제 풀이 -> 진단 트리 -> 상위 3개 약점 -> 약점/심화 연습 -> 피드백`
+- 문서 동기화 범위: `DATA/STRUCTURE/PROGRESS` 즉시 반영
+
+**내부 ID 키 전략 확정**
+- 약점 키를 한글 라벨이 아닌 내부 고정 ID(`WeaknessId`)로 분리
+- 화면 문구는 `labelKo`로 분리해 추후 문구 수정 시 로직 영향 제거
+- 기존 `weakTag`는 이행기간 fallback으로만 유지
+
+**데이터 레이어 구현 완료**
+- `data/problemData.ts` — 10문제 데이터 추가
+- `data/diagnosisMap.ts` — `id/labelKo/desc/tip` 구조 추가
+- `data/diagnosisTree.ts` — 오답 진단 2단계 트리 추가
+- `data/practiceMap.ts` — 약점별 연습문제 9개 추가
+- `data/challengeProblem.ts` — 전부 정답용 심화 문제 추가
+
+**퀴즈 로직/상태 레이어 구현 완료**
+- `features/quiz/types.ts` — 세션 타입 정의
+- `features/quiz/engine.ts` — 점수 누적/상위 3개 산정 로직
+- `features/quiz/session.tsx` — 세션 컨텍스트/리듀서 구현
+
+**화면 구현 완료**
+- `app/(tabs)/quiz/_layout.tsx` — `QuizSessionProvider` 연결
+- `app/(tabs)/quiz/index.tsx` — 10문제 풀이 + 오답 진단 트리
+- `app/(tabs)/quiz/result.tsx` — 정답률/상위 약점/심화 분기
+- `app/(tabs)/quiz/practice.tsx` — 오답 재시도 + 정답 진행 흐름
+- `app/(tabs)/quiz/feedback.tsx` — 최종 요약 + 의견 입력
+
+**문서 동기화 완료**
+- `docs/DATA.md` — ID 고정/라벨 분리 정책으로 개정
+- `docs/STRUCTURE.md` — 10문제 + 진단/연습 플로우 반영
+- `docs/PROGRESS.md` — 본 작업 로그 추가
+
+**원문 10문제 정밀 반영 완료**
+- 소스 기준: `dasida_mvp_10problems_final.md` (사용자 제공 원문)
+- 반영 파일: `data/problemData.ts`
+- 반영 내용: 문제 본문/선택지/정답 인덱스 10문항 전체 교체
+- 검증: `npm run lint`, `npx tsc --noEmit` 재통과
+
+**검증 완료**
+- `npm run lint` 통과
+- `npx tsc --noEmit` 통과
+
+**다음 작업**
+- [ ] 수식 표기(예: sqrt, i, 분수) UI 렌더링 개선
+- [ ] Firebase 피드백 저장 연결
+- [ ] OpenAI API 연동(규칙 기반 진단 보강)
 
 ### 2026.03.05
 
@@ -46,12 +97,6 @@
 - 기록 원칙: 커밋 직후 `npm run log:commit` 실행 (기본값 `HEAD`)
 - 커밋 메시지는 Conventional 형식(`type: 설명`) 유지 + `설명`은 한글 중심으로 작성
 - 커밋 메시지 검증은 `commit-msg` Git Hook으로 자동 강제
-
-**다음 작업**
-- [x] 기본 템플릿 정리 (tabs 구조 제거)
-- [x] Stack 네비게이션으로 `app/_layout.tsx` 교체
-- [ ] `data/` 폴더 생성 및 데이터 파일 작성
-- [ ] 화면 4개 상세 기능 구현 (AI/Firebase 연결 전 단계)
 
 ---
 

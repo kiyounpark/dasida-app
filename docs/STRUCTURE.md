@@ -1,134 +1,112 @@
 # DASIDA — 앱 구조 정의
 > 파일/화면 구조, 네비게이션 흐름
-> 마지막 업데이트: 2026.03.05
+> 마지막 업데이트: 2026.03.06
 
 ---
 
 ## 네비게이션 구조
-
-혼합형 구조 (Tabs + Stack). 미래 확장성(내 기록 탭 등)을 위해 **가장 바깥은 탭(Tabs) 네비게이션**을 사용하고, **문제 풀이 탭(`quiz`) 안에 스택(Stack) 네비게이션**을 넣어 선형적 흐름을 강제합니다.
+혼합형 구조 (Tabs + Stack)
+- 바깥: Tabs (`문제 풀기 / 내 기록 / 설정`)
+- 안쪽: `quiz` Stack (`index -> result -> practice -> feedback`)
 
 ### 탭 동작 규칙
-- 하단 탭은 `문제 풀기 / 내 기록 / 설정` 3개로 고정
-- `문제 풀기` 탭 안에서만 `index → result → practice → feedback` Stack 흐름 사용
-- `문제 풀기` 탭 재탭 시 현재 화면 유지 (강제 초기화하지 않음)
-- Stack 뒤로가기는 허용
+- `문제 풀기` 탭 재탭 시 현재 화면 유지
+- 탭 이동 후 복귀 시 Quiz 스택 상태 유지
+- Stack 뒤로가기 허용
 
-### 폴더 및 화면 구조
+---
+
+## 폴더 구조
 ```text
 app/
-├── _layout.tsx           ← 앱 전체 구조 (탭 네비게이션을 로드)
-├── (tabs)/               ← 탭 네비게이션 묶음
-│   ├── _layout.tsx       ← 탭 바 설정 (Quiz, History, Profile)
-│   ├── history.tsx       ← [미래 확장] 내 기록 화면
-│   ├── profile.tsx       ← [미래 확장] 설정 화면
-│   └── quiz/             ← ⭐️ [핵심] 문제 풀기 탭 (이 안에서만 Stack 작동)
-│       ├── _layout.tsx   ← Quiz용 스택 네비게이션 설정
-│       ├── index.tsx     ← [화면1] 문제 출제
-│       ├── result.tsx    ← [화면2] AI 판정 결과 + 약점 태그
-│       ├── practice.tsx  ← [화면3] 연습문제
-│       └── feedback.tsx  ← [화면4] 피드백 입력
+├── _layout.tsx
+├── (tabs)/
+│   ├── _layout.tsx
+│   ├── history.tsx
+│   ├── profile.tsx
+│   └── quiz/
+│       ├── _layout.tsx
+│       ├── index.tsx
+│       ├── result.tsx
+│       ├── practice.tsx
+│       └── feedback.tsx
+
+features/
+└── quiz/
+    ├── types.ts
+    ├── engine.ts
+    └── session.tsx
+
+data/
+├── problemData.ts
+├── diagnosisMap.ts
+├── diagnosisTree.ts
+├── practiceMap.ts
+└── challengeProblem.ts
 ```
 
 ---
 
 ## 화면별 역할
 
-### [화면1] index.tsx — 문제 출제
-- `problemData`에서 랜덤 1문제 표시
-- 객관식 선택 또는 텍스트 직접 입력
-- '제출' 버튼 → OpenAI API 호출
-- 로딩 중 스피너 표시
-- 완료 → `result.tsx`로 이동 (판정 결과 전달)
+### 1) `index.tsx` — 10문제 풀이 + 오답 진단
+- 10문제를 순차 출제
+- 제출 즉시 정오답 판정
+- 오답이면 같은 화면에서 진단 트리 진행
+  - 1차: 풀이법 선택
+  - 2차: 세부 실수 선택
+- 진단 결과로 `WeaknessId` 점수 누적
 
-### [화면2] result.tsx — AI 판정 결과
-- `correct` / `partial` / `wrong` 3분기
-  - correct: 정답 메시지 + 풀이 스타일 분석
-  - partial: 힌트 제공 + 재시도 유도
-  - wrong: 약점 태그 표시 + '연습문제 풀어볼게요' 버튼
-- wrong일 때만 `practice.tsx`로 이동
+### 2) `result.tsx` — 결과 요약
+- 총 문제수/정답수/정답률 표시
+- 오답 있음: 상위 3개 약점 표시 후 연습 시작
+- 전부 정답: 축하 결과 + 심화 1문제 시작
 
-### [화면3] practice.tsx — 연습문제
-- `practiceMap[약점태그]`에서 해당 문제 표시
-- 객관식 5지선다
-- 답 선택 → '제출' → 정답 여부 확인
-- '다음' 버튼 → `feedback.tsx`로 이동
+### 3) `practice.tsx` — 약점/심화 연습
+- 오답 있음: 상위 3개 약점을 순서대로 1문제씩 풀이
+- 전부 정답: 심화 문제 1개 풀이
+- 공통 동작: 오답 시 힌트 + 재시도, 정답 시 다음 단계 진행
 
-### [화면4] feedback.tsx — 피드백 입력
-- 약점 태그 + 완료 메시지 표시
-- 한 줄 텍스트 입력창
-- '제출하기' → Firebase Firestore 저장
-- 빈 칸 제출 방지 처리
+### 4) `feedback.tsx` — 최종 요약 + 의견 입력
+- 정답률, 약점 목록, 연습 완료 상태 표시
+- 한 줄 피드백 입력 (MVP 더미 저장)
+- 다시 시작 버튼 제공
 
 ---
 
-## 데이터 파일 구조
+## 상태 관리
+- `QuizSessionProvider`가 `quiz/_layout.tsx`에서 Stack 전체를 감쌉니다.
+- 관리 상태
+  - 현재 문제 인덱스
+  - 답안 기록
+  - 약점 점수표
+  - 상위 약점 3개
+  - 연습 진행 인덱스
+  - 심화 완료 여부
 
-```
-data/
-├── problemData.ts      ← 문제 10개 (고1 공통수학)
-├── practiceMap.ts      ← 약점별 연습문제 9개
-└── diagnosisMap.ts     ← 약점 태그 정의 (키값 변경 금지)
-```
-
----
-
-## 컴포넌트 구조
-
-```
-components/
-└── ui/
-    ├── Button.tsx          ← 공통 버튼
-    ├── ChoiceButton.tsx    ← 객관식 선택 버튼
-    └── LoadingSpinner.tsx  ← AI 호출 중 로딩
-```
+## 문제 데이터 소스
+- 10문제 본문/선택지/정답은 `data/problemData.ts`를 소스오브트루스로 사용
+- 2026.03.06 기준 `dasida_mvp_10problems_final.md` 원문 기준으로 반영
 
 ---
 
-## 상태 전달 방식 (expo-router)
+## 라우트 params 규약
+신규
+- `weaknessId`: 내부 고정 ID
+- `mode`: `weakness | challenge`
 
-화면 간 데이터는 `router.push`의 `params`로 전달.
-
-```ts
-// result.tsx로 이동할 때
-router.push({
-  pathname: '/quiz/result',
-  params: {
-    nextStep: 'wrong',       // correct | partial | wrong
-    message: 'AI 피드백',
-    weakTag: '계산 실수 반복'
-  }
-});
-
-// practice.tsx로 이동할 때
-router.push({
-  pathname: '/quiz/practice',
-  params: {
-    weakTag: '계산 실수 반복'
-  }
-});
-
-// feedback.tsx로 이동할 때
-router.push({
-  pathname: '/quiz/feedback',
-  params: {
-    weakTag: '계산 실수 반복'
-  }
-});
-```
+호환 (이행기간)
+- `weakTag`: 기존 한글 라벨
+- `weakTag`가 들어오면 `weaknessId`로 매핑 후 사용
 
 ---
 
-## 현재 상태 (2026.03.05)
-
-| 화면 | 파일 | 상태 |
+## 현재 상태 (2026.03.06)
+| 영역 | 파일 | 상태 |
 |------|------|------|
-| 문제 출제 | `app/(tabs)/quiz/index.tsx` | 🟡 뼈대 완료 |
-| AI 판정 결과 | `app/(tabs)/quiz/result.tsx` | 🟡 뼈대 완료 |
-| 연습문제 | `app/(tabs)/quiz/practice.tsx` | 🟡 뼈대 완료 |
-| 피드백 입력 | `app/(tabs)/quiz/feedback.tsx` | 🟡 뼈대 완료 |
-| 내 기록 탭 | `app/(tabs)/history.tsx` | 🟡 플레이스홀더 |
-| 설정 탭 | `app/(tabs)/profile.tsx` | 🟡 플레이스홀더 |
-| 문제 데이터 | `data/problemData.ts` | ⬜ 미작성 |
-| 연습문제 데이터 | `data/practiceMap.ts` | ⬜ 미작성 |
-| 약점 태그 | `data/diagnosisMap.ts` | ⬜ 미작성 |
+| 10문제 풀이 + 진단 | `app/(tabs)/quiz/index.tsx` | ✅ 구현 |
+| 결과 요약 | `app/(tabs)/quiz/result.tsx` | ✅ 구현 |
+| 약점/심화 연습 | `app/(tabs)/quiz/practice.tsx` | ✅ 구현 |
+| 최종 피드백 | `app/(tabs)/quiz/feedback.tsx` | ✅ 구현 |
+| 세션/엔진 | `features/quiz/*` | ✅ 구현 |
+| 데이터 레이어 | `data/*` | ✅ 구현 |
