@@ -1,130 +1,56 @@
-# DASIDA 코드베이스 전체 파악 리포트
-
-> 작성일: 2026-03-05  
-> 목적: 문서 중심으로 현재 구현 상태를 빠르게 파악하고, 실제 코드와 일치 여부를 검증하기 위한 요약
-
----
+# DASIDA 코드베이스 리뷰 (2026-03-06)
 
 ## 1) 한 줄 요약
+- 현재 저장소는 **Expo Router 기반 React Native 앱**이며, 핵심 MVP는 `10문제 진단 → 약점 분류 → 약점/심화 연습 → 피드백`의 단일 학습 플로우에 집중되어 있습니다.
 
-현재 저장소는 **Expo Router 기반 React Native 앱**으로, 핵심 구현은 `문제 풀이 -> 오답 진단 -> 약점 연습/심화 -> 최종 피드백`의 MVP 흐름에 맞춰 완성되어 있습니다.
+## 2) 실행 구조
+- 루트 레이아웃은 `(tabs)`를 anchor로 두고 스택 헤더를 숨긴 뒤 상태바를 명시적으로 고정합니다.
+- 하단 탭은 `문제 풀기 / 내 기록 / 설정` 3개이며, 퀴즈 탭 내부는 별도 Stack(`index → result → practice → feedback`)으로 분리되어 있습니다.
+- 이 구조 덕분에 탭 전환과 퀴즈 내부 단계 전환이 분리되어, 세션 상태를 유지한 채 화면 이동이 가능합니다.
 
----
+## 3) 도메인/상태 설계
+- 퀴즈 세션 상태는 `QuizSessionProvider`에서 `useReducer`로 관리합니다.
+- 세션은 아래 축으로 분리되어 있어 의도가 명확합니다.
+  - 진단 진행 상태: 현재 문제 인덱스, 답안 목록
+  - 약점 집계 상태: `weaknessScores`
+  - 결과 상태: `QuizResultSummary`(정답률, 상위 약점)
+  - 연습 진행 상태: `practiceMode`, `practiceQueue`, `practiceIndex`
+- 문제 제출 시점마다 `finalizeIfNeeded`로 종료 여부를 판단해 결과를 생성하므로, 결과 계산 책임이 한 곳으로 모여 있습니다.
 
-## 2) 기술 스택/실행
+## 4) 데이터 계층
+- 약점 분류는 `WeaknessId` enum-like 유니온 타입 + `diagnosisMap` + 고정 우선순위(`weaknessOrder`) 조합으로 관리됩니다.
+- 오답 추론은 `diagnosisTree`(풀이 방법 → 세부 실수 선택)로 이루어져, 사용자 입력만으로 약점 태깅이 가능합니다.
+- 본문 10문제(`problemData`), 약점별 연습문제(`practiceMap`), 만점자 심화문제(`challengeProblem`)가 분리되어 있어 콘텐츠 교체가 쉽습니다.
 
-- 런타임: React 19 + React Native 0.81 + Expo 54
-- 라우팅: `expo-router` (파일 기반)
-- 상태관리: React Context + `useReducer` (`features/quiz/session.tsx`)
-- 데이터: 하드코딩 타입 데이터 (`data/*`)
-- 백엔드 연동: 아직 없음 (문서상 Firebase/OpenAI 예정)
+## 5) 화면별 책임
+- `quiz/index`: 본문 문제 풀이 + 오답 진단 질문 처리
+- `quiz/result`: 진단 요약 + 상위 약점 노출 + 연습 진입
+- `quiz/practice`: 약점/심화 모드별 연습 문제 채점 + 다음 단계 이동
+- `quiz/feedback`: 최종 요약 확인 + 텍스트 피드백 더미 제출
+- `history`, `profile`: 아직 플레이스홀더 상태
 
-### 확인 명령
+## 6) UI/디자인 시스템
+- 브랜드 컬러/간격/모서리 반경을 `constants/brand.ts`로 통합했습니다.
+- 공통 컴포넌트(`BrandHeader`, `BrandButton`, `DasidaLogo`)를 통해 화면 간 톤이 일관적입니다.
+- `BrandHeader`는 SafeArea 상단 영역을 사용하여 상태바 겹침을 피하도록 구현되어 있습니다.
 
-```bash
-npm run start
-npm run lint
-```
+## 7) 좋은 점
+- 타입 경계가 명확합니다(특히 약점 ID, 세션 상태, 결과 요약).
+- 진단/연습 흐름이 명확히 분리되어 확장 포인트가 보입니다.
+- 레거시 파라미터(`weakTag`, `nextStep`) 호환 코드를 유지하여 이전 링크/화면과의 연속성을 고려했습니다.
 
----
+## 8) 리스크/개선 포인트
+- 수식 문자열이 plain text(`sqrt`, 분수 텍스트)라 렌더링 가독성 개선 여지가 큽니다.
+- `feedback`은 아직 로컬 더미 상태이며 저장 백엔드(Firebase) 연동 전입니다.
+- 진단 로직은 규칙 기반 선택 입력 중심이므로, AI 판정 연동 시 입력/출력 스키마 합의가 필요합니다.
+- 자동 테스트 코드(Jest/RTL) 부재로 회귀 검증은 수동 실행에 의존합니다.
 
-## 3) 문서와 코드의 정합성
-
-문서(`PROJECT.md`, `docs/STRUCTURE.md`, `docs/DATA.md`, `docs/PROGRESS.md`)가 현재 코드 구조와 대체로 잘 맞습니다.
-
-- 문서에서 정의한 핵심 화면 4개(`index/result/practice/feedback`)는 실제로 존재합니다.
-- `WeaknessId` 기반 내부 키 전략과 `weakTag` 호환 fallback 전략도 코드에 반영되어 있습니다.
-- 진행 로그 기준으로도 `Firebase/OpenAI`는 미연동 상태이며, 실제 코드도 동일합니다.
-
----
-
-## 4) 실제 코드 구조
-
-```text
-app/
-  (tabs)/
-    quiz/
-      index.tsx      # 10문제 풀이 + 오답 진단 트리
-      result.tsx     # 결과 요약 + 분기
-      practice.tsx   # 약점 연습/심화 문제
-      feedback.tsx   # 최종 요약 + 한 줄 피드백 입력
-
-features/quiz/
-  types.ts           # 세션 상태/결과 타입
-  engine.ts          # 약점 점수 계산, 상위 약점 추출, 결과 집계
-  session.tsx        # Context + reducer
-
-data/
-  problemData.ts     # 본문 10문제
-  diagnosisMap.ts    # 약점 ID/설명/팁 + fallback resolver
-  diagnosisTree.ts   # 오답 진단 2단계 트리
-  practiceMap.ts     # 약점별 연습 문제
-  challengeProblem.ts# 올정답 심화 문제
-```
-
----
-
-## 5) 사용자 플로우(코드 기준)
-
-1. `quiz/index.tsx`
-   - 문제를 순차 제출
-   - 정답이면 바로 다음 문제
-   - 오답이면 동일 화면에서 `방법 선택 -> 세부 실수 선택`으로 `WeaknessId` 확정
-2. `features/quiz/session.tsx`
-   - 답안 누적 및 약점 점수 누적
-   - 마지막 문제 제출 시 결과 자동 계산 (`buildQuizResult`)
-3. `quiz/result.tsx`
-   - 정답률/상위 약점 3개 표시
-   - 전부 정답이면 `challenge` 분기, 아니면 `weakness` 분기
-4. `quiz/practice.tsx`
-   - 약점 연습 또는 심화 문제 진행
-   - 오답 시 힌트, 정답 시 해설 + 다음 단계
-5. `quiz/feedback.tsx`
-   - 요약 정보 + 피드백 텍스트 입력(현재 더미 제출)
-   - 재시작 가능
-
----
-
-## 6) 강점
-
-- **타입 계약이 명확함**: `WeaknessId`/`QuizSessionState`/`PracticeProblem` 타입이 흐름을 단단히 고정함.
-- **UI-도메인 분리**: 계산 로직(`engine.ts`)과 UI 라우트 파일이 분리되어 확장에 유리함.
-- **호환성 고려**: `weaknessId` 신규 파라미터와 `weakTag` 레거시 파라미터를 모두 처리함.
-- **브랜드 일관성**: 공통 토큰(`constants/brand.ts`)과 공통 컴포넌트(`BrandHeader`, `BrandButton`) 적용.
-
----
-
-## 7) 현재 공백(문서와 동일)
-
-- Firestore 저장 미연동 (피드백 제출이 실제 저장 아님)
-- OpenAI 판정 미연동 (현재는 선택지 기반 내부 판정)
-- 기록/설정 탭 기능 미구현 (placeholder)
-- 테스트 코드 부재
-
----
-
-## 8) 다음 우선순위 제안
-
-1. **테스트 우선 도입**
-   - `features/quiz/engine.ts`에 순수 함수 단위 테스트 추가
-   - `quiz/session reducer` 상태 전이 테스트 추가
-2. **Firebase 연결**
-   - `feedback.tsx` 제출 버튼을 Firestore 쓰기로 연결
-3. **AI 연동 경계 분리**
-   - OpenAI 호출 모듈을 `features/quiz` 밖 서비스 계층으로 분리
-4. **기록 탭 실체화**
-   - 최근 결과/정답률/약점 추이 조회 화면 구현
-
----
-
-## 9) 리스크 메모
-
-- 데이터가 하드코딩이라 문제 수 확장 시 빌드/배포 의존도가 큼
-- 진단 트리 변경 시 `WeaknessId` 계약 불일치가 발생하면 연습 매핑이 깨질 수 있음
-- 세션 상태가 메모리 기반이라 앱 종료 시 진행 상태가 보존되지 않음
-
----
+## 9) 다음 우선순위 제안
+1. 수식 렌더링 계층 정리(표기 유틸 또는 컴포넌트)
+2. 피드백 저장 API/Firebase 연결
+3. AI 판정 API 연결 + 실패/재시도 UX
+4. 세션/엔진 단위 테스트 및 화면 E2E 최소 세트 구축
 
 ## 10) 결론
-
-현재 MVP 기준으로 **핵심 학습 플로우는 구현 완료 상태**이며, 다음 단계는 문서에 적힌 대로 **외부 연동(Firebase/OpenAI) + 테스트 도입**이 가장 가치가 큽니다.
+- 현재 코드는 **MVP 핵심 흐름을 빠르게 검증하기 좋은 구조**입니다.
+- 다음 단계는 데이터 저장과 AI 연동으로 “진단 정확도 + 반복 학습 경험”을 강화하는 것이 가장 효과적입니다.
