@@ -140,6 +140,12 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.06 00:56
+- 해시: `ea6fa95` (`ea6fa9533b3eb70835b7494087c4be4390dadacc`)
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ea6fa9533b3eb70835b7494087c4be4390dadacc
+- 작성자: 박기윤
+- 메시지: fix: 앱바 겹침과 로고 여백 조정
+
 ### 커밋 2026.03.06 00:45
 - 해시: `f0fa590` (`f0fa590ac9bf36f707f8d20e67f87ee854760dca`)
 - 링크: https://github.com/kiyounpark/dasida-app/commit/f0fa590ac9bf36f707f8d20e67f87ee854760dca
