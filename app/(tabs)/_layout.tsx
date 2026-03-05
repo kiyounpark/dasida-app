@@ -11,23 +11,41 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="quiz"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
-        name="index"
+        name="quiz"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: '문제 풀기',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+        }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (event) => {
+            const state = navigation.getState();
+            const currentRoute = state.routes[state.index];
+
+            if (currentRoute.key === route.key) {
+              event.preventDefault();
+            }
+          },
+        })}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: '내 기록',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="profile"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: '설정',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
     </Tabs>
