@@ -71,6 +71,12 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.05 23:48
+- 해시: `c556083` (`c5560832ec64c7c09d02ab10300362797d97c3c9`)
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c5560832ec64c7c09d02ab10300362797d97c3c9
+- 작성자: 박기윤
+- 메시지: chore: 커밋 기록 링크와 최신순 정렬 적용
+
 ### 커밋 2026.03.05 23:29
 - 해시: `a475c2b` (`a475c2b95c8055adab954aff561cc76824eb1d7e`)
 - 링크: https://github.com/kiyounpark/dasida-app/commit/a475c2b95c8055adab954aff561cc76824eb1d7e
