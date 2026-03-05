@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BrandButton } from '@/components/brand/BrandButton';
+import { BrandHeader } from '@/components/brand/BrandHeader';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -23,75 +26,98 @@ export default function QuizFeedbackScreen() {
   const mode = getSingleParam(params.mode) ?? (summary?.allCorrect ? 'challenge' : 'weakness');
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>학습 피드백</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <BrandHeader />
 
-      {summary ? (
-        <View style={styles.summaryCard}>
-          <Text style={styles.cardTitle}>이번 학습 요약</Text>
-          <Text style={styles.cardBody}>정답률: {summary.accuracy}% ({summary.correct}/{summary.total})</Text>
-          <Text style={styles.cardBody}>연습 모드: {mode === 'challenge' ? '심화 문제' : '약점 연습'}</Text>
-          {summary.allCorrect ? (
-            <Text style={styles.cardBody}>모든 본문 문제를 정답 처리했습니다.</Text>
-          ) : (
-            <View style={styles.weaknessList}>
-              {summary.topWeaknesses.map((id, index) => (
-                <Text key={id} style={styles.cardBody}>
-                  {index + 1}. {diagnosisMap[id].labelKo}
-                </Text>
-              ))}
-            </View>
-          )}
-        </View>
-      ) : (
-        <View style={styles.summaryCard}>
-          <Text style={styles.cardTitle}>호환 모드 요약</Text>
-          <Text style={styles.cardBody}>
-            약점: {fallbackWeaknessId ? diagnosisMap[fallbackWeaknessId].labelKo : '정보 없음'}
-          </Text>
-        </View>
-      )}
+      <View style={styles.mainCard}>
+        <Text style={styles.title}>학습 피드백</Text>
 
-      <Text style={styles.prompt}>이번 학습 경험을 한 줄로 남겨주세요.</Text>
-      <TextInput
-        style={styles.input}
-        value={feedback}
-        onChangeText={setFeedback}
-        placeholder="예: 오답에서 바로 약점을 잡아주는 게 좋았어요"
-        multiline
-      />
+        {summary ? (
+          <View style={styles.summaryCard}>
+            <Text style={styles.cardTitle}>이번 학습 요약</Text>
+            <Text style={styles.cardBody}>정답률: {summary.accuracy}% ({summary.correct}/{summary.total})</Text>
+            <Text style={styles.cardBody}>연습 모드: {mode === 'challenge' ? '심화 문제' : '약점 연습'}</Text>
+            {summary.allCorrect ? (
+              <Text style={styles.cardBody}>모든 본문 문제를 정답 처리했습니다.</Text>
+            ) : (
+              <View style={styles.weaknessList}>
+                {summary.topWeaknesses.map((id, index) => (
+                  <Text key={id} style={styles.cardBody}>
+                    {index + 1}. {diagnosisMap[id].labelKo}
+                  </Text>
+                ))}
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.summaryCard}>
+            <Text style={styles.cardTitle}>호환 모드 요약</Text>
+            <Text style={styles.cardBody}>
+              약점: {fallbackWeaknessId ? diagnosisMap[fallbackWeaknessId].labelKo : '정보 없음'}
+            </Text>
+          </View>
+        )}
 
-      <View style={styles.buttonGap}>
-        <Button title={submitted ? '제출 완료' : '제출하기 (MVP 더미)'} onPress={() => setSubmitted(true)} />
-      </View>
-
-      <View style={styles.buttonGap}>
-        <Button
-          title="처음부터 다시 시작"
-          onPress={() => {
-            resetSession();
-            router.replace('/quiz');
-          }}
+        <Text style={styles.prompt}>이번 학습 경험을 한 줄로 남겨주세요.</Text>
+        <TextInput
+          style={styles.input}
+          value={feedback}
+          onChangeText={setFeedback}
+          placeholder="예: 오답에서 바로 약점을 잡아주는 게 좋았어요"
+          multiline
         />
+
+        <View style={styles.buttonGap}>
+          <BrandButton
+            title={submitted ? '제출 완료' : '제출하기 (MVP 더미)'}
+            variant={submitted ? 'success' : 'primary'}
+            onPress={() => setSubmitted(true)}
+          />
+        </View>
+
+        <View style={styles.buttonGap}>
+          <BrandButton
+            title="처음부터 다시 시작"
+            variant="neutral"
+            onPress={() => {
+              resetSession();
+              router.replace('/quiz');
+            }}
+          />
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BrandColors.background,
+  },
   container: {
     flexGrow: 1,
-    padding: 20,
-    gap: 12,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.xxl,
+    gap: BrandSpacing.md,
+  },
+  mainCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.lg,
+    backgroundColor: '#fff',
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.sm,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
+    color: BrandColors.text,
   },
   summaryCard: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.md,
     padding: 14,
     gap: 8,
     backgroundColor: '#fff',
@@ -99,6 +125,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
+    color: BrandColors.text,
   },
   cardBody: {
     fontSize: 15,
@@ -111,10 +138,11 @@ const styles = StyleSheet.create({
   prompt: {
     fontSize: 16,
     marginTop: 8,
+    color: '#2D3A30',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: BrandColors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,

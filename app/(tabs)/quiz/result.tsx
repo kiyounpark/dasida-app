@@ -1,6 +1,9 @@
-import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BrandButton } from '@/components/brand/BrandButton';
+import { BrandHeader } from '@/components/brand/BrandHeader';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -28,59 +31,66 @@ export default function QuizResultScreen() {
 
   if (!summary) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.title}>진단 결과를 찾을 수 없어요.</Text>
-        {legacyNextStep ? (
-          <View style={styles.card}>
-            <Text style={styles.legacyLabel}>호환 모드 결과</Text>
-            <Text style={styles.legacyText}>판정: {legacyNextStep}</Text>
-            <Text style={styles.legacyText}>
-              약점: {legacyWeaknessId ? diagnosisMap[legacyWeaknessId].labelKo : '없음'}
-            </Text>
+      <View style={styles.screenFallback}>
+        <BrandHeader compact />
+        <View style={styles.cardFallback}>
+          <Text style={styles.title}>진단 결과를 찾을 수 없어요.</Text>
+          {legacyNextStep ? (
+            <>
+              <Text style={styles.legacyLabel}>호환 모드 결과</Text>
+              <Text style={styles.legacyText}>판정: {legacyNextStep}</Text>
+              <Text style={styles.legacyText}>
+                약점: {legacyWeaknessId ? diagnosisMap[legacyWeaknessId].labelKo : '없음'}
+              </Text>
+              <View style={styles.buttonGap}>
+                {legacyNextStep === 'wrong' ? (
+                  <BrandButton
+                    title="연습문제 풀어볼게요"
+                    onPress={() =>
+                      router.push({
+                        pathname: '/quiz/practice',
+                        params: legacyPracticeParams,
+                      })
+                    }
+                  />
+                ) : (
+                  <BrandButton title="문제로 돌아가기" onPress={() => router.replace('/quiz')} />
+                )}
+              </View>
+            </>
+          ) : (
             <View style={styles.buttonGap}>
-              {legacyNextStep === 'wrong' ? (
-                <Button
-                  title="연습문제 풀어볼게요"
-                  onPress={() =>
-                    router.push({
-                      pathname: '/quiz/practice',
-                      params: legacyPracticeParams,
-                    })
-                  }
-                />
-              ) : (
-                <Button title="문제로 돌아가기" onPress={() => router.replace('/quiz')} />
-              )}
+              <BrandButton
+                title="새로 시작하기"
+                onPress={() => {
+                  resetSession();
+                  router.replace('/quiz');
+                }}
+              />
             </View>
-          </View>
-        ) : (
-          <View style={styles.buttonGap}>
-            <Button
-              title="새로 시작하기"
-              onPress={() => {
-                resetSession();
-                router.replace('/quiz');
-              }}
-            />
-          </View>
-        )}
+          )}
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>분석 결과</Text>
-      <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
-      <Text style={styles.summaryText}>정답률 {summary.accuracy}%</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <BrandHeader />
+      <View style={styles.summaryCard}>
+        <Text style={styles.title}>분석 결과</Text>
+        <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
+        <Text style={styles.summaryText}>정답률 {summary.accuracy}%</Text>
+      </View>
 
       {summary.allCorrect ? (
         <View style={styles.cardSuccess}>
           <Text style={styles.cardTitle}>모든 문제를 맞혔어요!</Text>
           <Text style={styles.cardBody}>축하합니다. 심화 1문제로 마무리 점검을 진행합니다.</Text>
           <View style={styles.buttonGap}>
-            <Button
+            <BrandButton
               title="심화 문제 풀기"
+              variant="success"
               onPress={() =>
                 router.push({
                   pathname: '/quiz/practice',
@@ -103,7 +113,7 @@ export default function QuizResultScreen() {
             );
           })}
           <View style={styles.buttonGap}>
-            <Button
+            <BrandButton
               title="약점 연습 시작"
               onPress={() =>
                 router.push({
@@ -123,53 +133,68 @@ export default function QuizResultScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BrandColors.background,
+  },
   container: {
     flexGrow: 1,
-    padding: 20,
-    gap: 10,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.xxl,
+    gap: BrandSpacing.md,
   },
-  centerContainer: {
+  screenFallback: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    gap: 12,
+    backgroundColor: BrandColors.background,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.lg,
+  },
+  cardFallback: {
+    marginTop: BrandSpacing.md,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.xs,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
+    color: BrandColors.text,
+  },
+  summaryCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.lg,
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.xs,
+    backgroundColor: '#fff',
   },
   summaryText: {
     fontSize: 16,
-    color: '#333',
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    padding: 14,
-    gap: 8,
+    color: '#2f3a32',
   },
   cardSuccess: {
-    marginTop: 10,
     borderWidth: 1,
-    borderColor: '#bce2c5',
-    backgroundColor: '#effbf2',
-    borderRadius: 12,
-    padding: 14,
-    gap: 8,
+    borderColor: '#BFE2C7',
+    backgroundColor: '#EEF9F1',
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.xs,
   },
   cardWarning: {
-    marginTop: 10,
     borderWidth: 1,
-    borderColor: '#f4d5b8',
-    backgroundColor: '#fff8ef',
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
+    borderColor: '#E8D5BE',
+    backgroundColor: '#FFF8EF',
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.sm,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
+    color: BrandColors.text,
   },
   cardBody: {
     fontSize: 15,
@@ -195,6 +220,8 @@ const styles = StyleSheet.create({
   legacyLabel: {
     fontSize: 16,
     fontWeight: '700',
+    marginTop: 4,
+    color: BrandColors.text,
   },
   legacyText: {
     fontSize: 15,

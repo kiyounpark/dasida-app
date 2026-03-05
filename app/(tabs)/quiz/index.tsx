@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
+import { BrandButton } from '@/components/brand/BrandButton';
+import { BrandHeader } from '@/components/brand/BrandHeader';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import type { WeaknessId } from '@/data/diagnosisMap';
+import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
 import { problemData } from '@/data/problemData';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -73,8 +76,9 @@ export default function QuizIndexScreen() {
 
   if (!currentProblem && !state.result) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.title}>결과를 계산 중입니다...</Text>
+      <View style={styles.loadingScreen}>
+        <BrandHeader compact />
+        <Text style={styles.loadingText}>결과를 계산 중입니다...</Text>
       </View>
     );
   }
@@ -87,30 +91,38 @@ export default function QuizIndexScreen() {
   const methodStep = pendingWrong?.methodId ? diagnosisTree[pendingWrong.methodId] : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>10문제 약점 진단</Text>
-      <Text style={styles.progress}>{stepTitle}</Text>
-      <Text style={styles.topic}>{currentProblem.topic}</Text>
-      <Text style={styles.question}>{currentProblem.question}</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <BrandHeader />
 
-      <View style={styles.choicesContainer}>
-        {currentProblem.choices.map((choice, index) => {
-          const isSelected = selectedIndex === index;
-          return (
-            <Pressable
-              key={`${currentProblem.id}_${index}`}
-              style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-              onPress={() => setSelectedIndex(index)}>
-              <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
-                {choice}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <View style={styles.surfaceCard}>
+        <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
+        <Text style={styles.progress}>{stepTitle}</Text>
+        <Text style={styles.topic}>{currentProblem.topic}</Text>
+        <Text style={styles.question}>{currentProblem.question}</Text>
 
-      <View style={styles.submitContainer}>
-        <Button title="제출하기" onPress={handleSubmit} disabled={selectedIndex === null || pendingWrong !== null} />
+        <View style={styles.choicesContainer}>
+          {currentProblem.choices.map((choice, index) => {
+            const isSelected = selectedIndex === index;
+            return (
+              <Pressable
+                key={`${currentProblem.id}_${index}`}
+                style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                onPress={() => setSelectedIndex(index)}>
+                <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
+                  {choice}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.submitContainer}>
+          <BrandButton
+            title="답 제출하기"
+            onPress={handleSubmit}
+            disabled={selectedIndex === null || pendingWrong !== null}
+          />
+        </View>
       </View>
 
       {pendingWrong ? (
@@ -152,77 +164,104 @@ export default function QuizIndexScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BrandColors.background,
+  },
   container: {
     flexGrow: 1,
-    padding: 20,
-    gap: 10,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.xxl,
+    gap: BrandSpacing.md,
   },
-  centerContainer: {
+  loadingScreen: {
     flex: 1,
+    backgroundColor: BrandColors.background,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: BrandSpacing.lg,
   },
-  title: {
-    fontSize: 24,
+  loadingText: {
+    marginTop: BrandSpacing.lg,
+    textAlign: 'center',
+    color: BrandColors.text,
+    fontSize: 18,
     fontWeight: '700',
   },
+  surfaceCard: {
+    backgroundColor: BrandColors.card,
+    borderRadius: BrandRadius.lg,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: BrandColors.text,
+  },
   progress: {
-    fontSize: 15,
-    color: '#3b6b4c',
-    fontWeight: '600',
+    fontSize: 14,
+    color: BrandColors.primarySoft,
+    fontWeight: '700',
   },
   topic: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 6,
+    fontSize: 13,
+    color: BrandColors.mutedText,
+    marginTop: 2,
   },
   question: {
     fontSize: 20,
     lineHeight: 30,
-    marginTop: 6,
-    fontWeight: '600',
+    marginTop: 4,
+    fontWeight: '700',
+    color: '#222',
   },
   choicesContainer: {
-    marginTop: 12,
-    gap: 10,
+    marginTop: BrandSpacing.sm,
+    gap: BrandSpacing.sm,
   },
   choiceButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.sm,
+    paddingVertical: BrandSpacing.sm,
+    paddingHorizontal: BrandSpacing.md,
     backgroundColor: '#fff',
   },
   choiceButtonSelected: {
-    borderColor: '#2f7a4f',
-    backgroundColor: '#e8f4ec',
+    borderColor: BrandColors.primarySoft,
+    backgroundColor: '#ECF5EE',
   },
   choiceText: {
     fontSize: 16,
-    color: '#111',
+    color: '#222',
+    lineHeight: 22,
   },
   choiceTextSelected: {
-    color: '#1e5d38',
+    color: BrandColors.primary,
     fontWeight: '700',
   },
   submitContainer: {
-    marginTop: 14,
+    marginTop: BrandSpacing.sm,
   },
   diagnosisCard: {
-    marginTop: 20,
     borderWidth: 1,
-    borderColor: '#ffd8d8',
-    borderRadius: 12,
-    backgroundColor: '#fff5f5',
-    padding: 14,
-    gap: 10,
+    borderColor: '#E6C7C7',
+    borderRadius: BrandRadius.md,
+    backgroundColor: '#FFF4F4',
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.sm,
   },
   diagnosisTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#9a3434',
+    color: '#9A3434',
   },
   diagnosisText: {
     fontSize: 15,
@@ -230,12 +269,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   diagnosisChoices: {
-    gap: 8,
+    gap: BrandSpacing.xs,
   },
   diagnosisChoiceButton: {
     borderWidth: 1,
-    borderColor: '#f2b8b8',
-    borderRadius: 10,
+    borderColor: '#F2B8B8',
+    borderRadius: BrandRadius.sm,
     backgroundColor: '#fff',
     paddingVertical: 10,
     paddingHorizontal: 12,

@@ -12,6 +12,7 @@
 | 구조 정의 | 화면/파일 구조, 네비게이션 설계 | ✅ 완료 |
 | 데이터 작성 | problemData, practiceMap, diagnosisMap | ✅ 1차 구현 |
 | 화면 구현 | 4개 화면 (문제/결과/연습/피드백) | ✅ 1차 구현 |
+| 디자인 정합화 | 로고/브랜드 톤 앱 전역 반영 | ✅ 완료 |
 | Firebase 연결 | Firestore 피드백 저장 | ⬜ |
 | OpenAI 연결 | AI 판정 API 호출 | ⬜ |
 | 앱스토어 준비 | 개인정보처리방침, 심사 체크리스트 | ⬜ |
@@ -65,6 +66,23 @@
 **검증 완료**
 - `npm run lint` 통과
 - `npx tsc --noEmit` 통과
+
+**브랜드 디자인 정합화 완료 (index.html 기준)**
+- 확정 방향 반영: SVG 로고 유지, 앱 전역 적용(quiz/history/profile), 로고만 헤더 노출
+- `react-native-svg` 의존성 추가 및 `components/brand/*` 공통 계층 도입
+- `constants/brand.ts` 토큰 추가, `constants/theme.ts` 탭 색상 브랜드 그린 정렬
+- 화면 적용 파일:
+  - `app/(tabs)/quiz/index.tsx`
+  - `app/(tabs)/quiz/result.tsx`
+  - `app/(tabs)/quiz/practice.tsx`
+  - `app/(tabs)/quiz/feedback.tsx`
+  - `app/(tabs)/history.tsx`
+  - `app/(tabs)/profile.tsx`
+  - `app/(tabs)/quiz/_layout.tsx`
+  - `app/(tabs)/_layout.tsx`
+- 문서 동기화:
+  - `docs/STRUCTURE.md` 브랜드 UI 계층 섹션 추가
+  - `docs/PROGRESS.md` 본 작업 로그 추가
 
 **다음 작업**
 - [ ] 수식 표기(예: sqrt, i, 분수) UI 렌더링 개선

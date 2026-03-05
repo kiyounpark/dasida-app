@@ -31,6 +31,16 @@ app/
 │       ├── practice.tsx
 │       └── feedback.tsx
 
+components/
+└── brand/
+    ├── DasidaLogo.tsx
+    ├── BrandHeader.tsx
+    └── BrandButton.tsx
+
+constants/
+├── brand.ts
+└── theme.ts
+
 features/
 └── quiz/
     ├── types.ts
@@ -90,6 +100,15 @@ data/
 
 ---
 
+## 브랜드 UI 계층
+- 로고 소스: `index.html` 인라인 SVG를 `components/brand/DasidaLogo.tsx`로 분리
+- 공통 헤더: `components/brand/BrandHeader.tsx`
+- 공통 버튼: `components/brand/BrandButton.tsx`
+- 디자인 토큰: `constants/brand.ts`
+- 탭/아이콘 컬러는 `constants/theme.ts` + `app/(tabs)/_layout.tsx`에서 브랜드 그린으로 정렬
+
+---
+
 ## 라우트 params 규약
 신규
 - `weaknessId`: 내부 고정 ID
@@ -110,3 +129,4 @@ data/
 | 최종 피드백 | `app/(tabs)/quiz/feedback.tsx` | ✅ 구현 |
 | 세션/엔진 | `features/quiz/*` | ✅ 구현 |
 | 데이터 레이어 | `data/*` | ✅ 구현 |
+| 브랜드 UI 계층 | `components/brand/*`, `constants/brand.ts` | ✅ 구현 |

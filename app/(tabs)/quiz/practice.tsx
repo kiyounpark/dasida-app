@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { BrandButton } from '@/components/brand/BrandButton';
+import { BrandHeader } from '@/components/brand/BrandHeader';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
@@ -122,10 +125,13 @@ export default function QuizPracticeScreen() {
 
   if (!activeProblem) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.title}>연습 문제를 찾지 못했어요.</Text>
-        <View style={styles.buttonTopGap}>
-          <Button title="결과로 돌아가기" onPress={() => router.replace('/quiz/result')} />
+      <View style={styles.emptyScreen}>
+        <BrandHeader compact />
+        <View style={styles.emptyCard}>
+          <Text style={styles.title}>연습 문제를 찾지 못했어요.</Text>
+          <View style={styles.buttonTopGap}>
+            <BrandButton title="결과로 돌아가기" onPress={() => router.replace('/quiz/result')} />
+          </View>
         </View>
       </View>
     );
@@ -144,27 +150,35 @@ export default function QuizPracticeScreen() {
       : true;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>약점 기반 연습</Text>
-      <Text style={styles.subtitle}>{weaknessLabel}</Text>
-      <Text style={styles.question}>{activeProblem.question}</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <BrandHeader />
 
-      <View style={styles.choicesContainer}>
-        {activeProblem.choices.map((choice, index) => {
-          const isSelected = selectedIndex === index;
-          return (
-            <Pressable
-              key={`${activeProblem.id}_${index}`}
-              style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-              onPress={() => setSelectedIndex(index)}>
-              <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>{choice}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <View style={styles.problemCard}>
+        <Text style={styles.title}>약점 기반 연습</Text>
+        <Text style={styles.subtitle}>{weaknessLabel}</Text>
+        <Text style={styles.question}>{activeProblem.question}</Text>
 
-      <View style={styles.buttonTopGap}>
-        <Button title="정답 확인" onPress={handleSubmit} disabled={selectedIndex === null || !!feedback} />
+        <View style={styles.choicesContainer}>
+          {activeProblem.choices.map((choice, index) => {
+            const isSelected = selectedIndex === index;
+            return (
+              <Pressable
+                key={`${activeProblem.id}_${index}`}
+                style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                onPress={() => setSelectedIndex(index)}>
+                <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>{choice}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.buttonTopGap}>
+          <BrandButton
+            title="정답 확인"
+            onPress={handleSubmit}
+            disabled={selectedIndex === null || !!feedback}
+          />
+        </View>
       </View>
 
       {feedback ? (
@@ -180,15 +194,16 @@ export default function QuizPracticeScreen() {
 
           <View style={styles.buttonTopGap}>
             {feedback.kind === 'wrong' ? (
-              <Button
+              <BrandButton
                 title="다시 도전"
+                variant="danger"
                 onPress={() => {
                   setSelectedIndex(null);
                   setFeedback(undefined);
                 }}
               />
             ) : (
-              <Button
+              <BrandButton
                 title={
                   activeMode === 'challenge'
                     ? '피드백 화면으로 이동'
@@ -196,6 +211,7 @@ export default function QuizPracticeScreen() {
                       ? '피드백 화면으로 이동'
                       : '다음 약점 문제'
                 }
+                variant="success"
                 onPress={handleContinue}
               />
             )}
@@ -207,30 +223,53 @@ export default function QuizPracticeScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BrandColors.background,
+  },
   container: {
     flexGrow: 1,
-    padding: 20,
-    gap: 10,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.xxl,
+    gap: BrandSpacing.md,
   },
-  centerContainer: {
+  emptyScreen: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: BrandColors.background,
+    paddingHorizontal: BrandSpacing.lg,
+  },
+  emptyCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.md,
+    backgroundColor: '#fff',
+    marginTop: BrandSpacing.md,
+    padding: BrandSpacing.lg,
+  },
+  problemCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.lg,
+    backgroundColor: '#fff',
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.sm,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
+    color: BrandColors.text,
   },
   subtitle: {
     fontSize: 14,
-    color: '#3b6b4c',
-    fontWeight: '600',
+    color: BrandColors.primarySoft,
+    fontWeight: '700',
   },
   question: {
     fontSize: 20,
     lineHeight: 30,
-    marginTop: 8,
-    fontWeight: '600',
+    marginTop: 6,
+    fontWeight: '700',
+    color: '#222',
   },
   choicesContainer: {
     marginTop: 12,
@@ -238,15 +277,15 @@ const styles = StyleSheet.create({
   },
   choiceButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.sm,
     paddingVertical: 12,
     paddingHorizontal: 14,
     backgroundColor: '#fff',
   },
   choiceButtonSelected: {
-    borderColor: '#2f7a4f',
-    backgroundColor: '#e8f4ec',
+    borderColor: BrandColors.primarySoft,
+    backgroundColor: '#ECF5EE',
   },
   choiceText: {
     fontSize: 16,
@@ -254,31 +293,31 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   choiceTextSelected: {
-    color: '#1e5d38',
+    color: BrandColors.primary,
     fontWeight: '700',
   },
   buttonTopGap: {
     marginTop: 12,
   },
   feedbackCard: {
-    borderRadius: 12,
+    borderRadius: BrandRadius.md,
     padding: 14,
-    marginTop: 16,
     gap: 8,
   },
   feedbackCorrect: {
     borderWidth: 1,
-    borderColor: '#bce2c5',
-    backgroundColor: '#effbf2',
+    borderColor: '#BFE2C7',
+    backgroundColor: '#EEF9F1',
   },
   feedbackWrong: {
     borderWidth: 1,
-    borderColor: '#f2b8b8',
-    backgroundColor: '#fff5f5',
+    borderColor: '#F2B8B8',
+    backgroundColor: '#FFF4F4',
   },
   feedbackTitle: {
     fontSize: 17,
     fontWeight: '700',
+    color: BrandColors.text,
   },
   feedbackBody: {
     fontSize: 15,
