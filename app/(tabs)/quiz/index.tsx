@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
+import { MathText } from '@/components/math/MathText';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
@@ -100,7 +101,7 @@ export default function QuizIndexScreen() {
           <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
           <Text style={styles.progress}>{stepTitle}</Text>
           <Text style={styles.topic}>{currentProblem.topic}</Text>
-          <Text style={styles.question}>{currentProblem.question}</Text>
+          <MathText text={currentProblem.question} style={styles.question} />
 
           <View style={styles.choicesContainer}>
             {currentProblem.choices.map((choice, index) => {
@@ -110,9 +111,10 @@ export default function QuizIndexScreen() {
                   key={`${currentProblem.id}_${index}`}
                   style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
                   onPress={() => setSelectedIndex(index)}>
-                  <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
-                    {choice}
-                  </Text>
+                  <MathText
+                    text={choice}
+                    style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
+                  />
                 </Pressable>
               );
             })}

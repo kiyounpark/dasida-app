@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
+import { MathText } from '@/components/math/MathText';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
@@ -158,7 +159,7 @@ export default function QuizPracticeScreen() {
         <View style={styles.problemCard}>
           <Text style={styles.title}>약점 기반 연습</Text>
           <Text style={styles.subtitle}>{weaknessLabel}</Text>
-          <Text style={styles.question}>{activeProblem.question}</Text>
+          <MathText text={activeProblem.question} style={styles.question} />
 
           <View style={styles.choicesContainer}>
             {activeProblem.choices.map((choice, index) => {
@@ -168,7 +169,10 @@ export default function QuizPracticeScreen() {
                   key={`${activeProblem.id}_${index}`}
                   style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
                   onPress={() => setSelectedIndex(index)}>
-                  <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>{choice}</Text>
+                  <MathText
+                    text={choice}
+                    style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
+                  />
                 </Pressable>
               );
             })}
@@ -192,7 +196,7 @@ export default function QuizPracticeScreen() {
             <Text style={styles.feedbackTitle}>
               {feedback.kind === 'correct' ? '정답입니다!' : '오답입니다. 힌트를 확인해 주세요.'}
             </Text>
-            <Text style={styles.feedbackBody}>{feedback.message}</Text>
+            <MathText text={feedback.message} style={styles.feedbackBody} />
 
             <View style={styles.buttonTopGap}>
               {feedback.kind === 'wrong' ? (
