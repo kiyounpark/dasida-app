@@ -161,6 +161,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.07 12:36
+- 해시: `aa8c537` (`aa8c537c9f284232bc73e1409696e1d36b7a1c34`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/aa8c537c9f284232bc73e1409696e1d36b7a1c34
+- 작성자: 박기윤
+- 메시지: chore: 협업 알림과 작업 기록 규약 정리
+
 ### 커밋 2026.03.06 08:55
 - 해시: `698b564` (`698b5640e512fdf1baae92eaf0f5d92cffe07c52`)
 - 브랜치: main
