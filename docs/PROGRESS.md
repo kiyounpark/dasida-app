@@ -21,6 +21,24 @@
 
 ## 로그
 
+### 2026.03.07
+
+**AI 협업/알림 규약 정리**
+- `scripts/slack-notify.js` 추가 및 `npm run notify:*` 명령 연결
+- `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `docs/AI_COLLABORATION.md` 작성
+- 작업 시작/진행/완료/실패 시 Slack Webhook 알림 전송 규약 고정
+- 웹훅은 코드 하드코딩이 아닌 `SLACK_WEBHOOK_URL` 또는 `~/.config/dasida/slack-webhook`에서 읽도록 정리
+
+**Git 작업 마무리 규약 정리**
+- `pre-commit` 훅은 당분간 도입하지 않기로 결정
+- 작업 종료 시 `git commit -> git push origin <현재 브랜치> -> npm run log:commit` 순서 사용
+- 개발 기록 기준 문서를 `docs/PROGRESS.md`로 고정
+
+**커밋 기록 자동화 강화**
+- `scripts/log-commit.js`가 앞으로 브랜치, 원격명, 원격 URL, 커밋 링크까지 함께 기록
+- 원격 저장소 기준: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+
 ### 2026.03.06
 
 **작업 시작 / 범위 고정**
@@ -119,6 +137,8 @@
 **의사결정 기록**
 - 커밋 이력은 `docs/PROGRESS.md`에 반자동 방식(`npm run log:commit`)으로 누적 기록
 - 기록 원칙: 커밋 직후 `npm run log:commit` 실행 (기본값 `HEAD`)
+- 작업 종료 절차는 `git commit -> git push origin <현재 브랜치> -> npm run log:commit`
+- 커밋 로그에는 브랜치, 원격명, 원격 URL, 커밋 링크를 함께 남김
 - 커밋 메시지는 Conventional 형식(`type: 설명`) 유지 + `설명`은 한글 중심으로 작성
 - 커밋 메시지 검증은 `commit-msg` Git Hook으로 자동 강제
 
@@ -128,7 +148,8 @@
 > 커밋 후 아래 명령으로 최신 커밋(또는 특정 커밋)을 자동 기록합니다.
 > - `npm run log:commit`
 > - `npm run log:commit -- HEAD~1`
-> - 기록 항목: 해시, 실제 커밋 링크, 작성자, 메시지(파일 목록은 기록하지 않음)
+> - 기록 항목: 해시, 브랜치, 원격명, 원격 URL, 실제 커밋 링크, 작성자, 메시지(파일 목록은 기록하지 않음)
+> - `log:commit` 실행으로 생긴 `docs/PROGRESS.md` 변경은 별도 문서 커밋으로 반영 가능
 > - 정렬 규칙: 최신 커밋이 항상 맨 위
 
 ## 커밋 메시지 규칙 (자동 검증)
@@ -139,6 +160,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.06 08:55
+- 해시: `698b564` (`698b5640e512fdf1baae92eaf0f5d92cffe07c52`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/698b5640e512fdf1baae92eaf0f5d92cffe07c52
+- 작성자: 박기윤
+- 메시지: docs: 이동 중 브랜치 작업용 코드베이스 빠른 요약 문서 추가
 
 ### 커밋 2026.03.06 00:56
 - 해시: `ea6fa95` (`ea6fa9533b3eb70835b7494087c4be4390dadacc`)

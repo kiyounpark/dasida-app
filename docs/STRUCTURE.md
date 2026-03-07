@@ -130,3 +130,28 @@ data/
 | 세션/엔진 | `features/quiz/*` | ✅ 구현 |
 | 데이터 레이어 | `data/*` | ✅ 구현 |
 | 브랜드 UI 계층 | `components/brand/*`, `constants/brand.ts` | ✅ 구현 |
+
+---
+
+## Slack 알림 스크립트
+- 파일: `scripts/slack-notify.js`
+- 목적: 작업 시작/종료/테스트 알림을 Slack Incoming Webhook으로 전송
+- phase: `start | progress | done | fail | test`
+- 웹훅 소스: `SLACK_WEBHOOK_URL` 또는 `~/.config/dasida/slack-webhook`
+- 에이전트 이름: `AI_AGENT_NAME` 환경변수로 지정 가능
+- 실행 커맨드
+  - `npm run notify:test`
+  - `npm run notify:start -- "작업 요약"`
+  - `npm run notify:done -- "결과 요약"`
+  - `npm run notify:progress -- "중간 상태"`
+  - `npm run notify:fail -- "실패 원인"`
+- 동작 구조
+  - `npm run notify:*` 실행
+  - Node 스크립트가 메시지 텍스트를 구성
+  - Webhook URL로 `POST` 요청 전송
+  - 응답이 `ok`이면 성공, 그 외는 실패로 종료 코드 1 반환
+
+## AI 협업 규약
+- 공통 운영 문서: `docs/AI_COLLABORATION.md`
+- 에이전트별 진입 지침: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
+- 목표: Codex/Claude/Gemini 중 어떤 도구로 작업해도 동일한 Slack 알림 절차 유지

@@ -112,6 +112,9 @@ let author = '';
 let subject = '';
 let body = '';
 let commitLink = '';
+let branchName = '';
+let remoteName = 'origin';
+let remoteUrl = '';
 
 try {
   fullHash = runGit(['rev-parse', ref]);
@@ -120,8 +123,9 @@ try {
   author = runGit(['show', '-s', '--format=%an', ref]);
   subject = runGit(['show', '-s', '--format=%s', ref]);
   body = runGit(['show', '-s', '--format=%b', ref], true);
-  const originUrl = runGit(['remote', 'get-url', 'origin'], true);
-  const remoteWebUrl = toWebUrl(originUrl);
+  branchName = runGit(['rev-parse', '--abbrev-ref', ref], true);
+  remoteUrl = runGit(['remote', 'get-url', remoteName], true);
+  const remoteWebUrl = toWebUrl(remoteUrl);
   commitLink = getCommitLink(remoteWebUrl, fullHash);
 } catch (error) {
   console.error(`커밋 정보를 읽지 못했습니다: ${ref}`);
@@ -146,6 +150,9 @@ const commitBody = getSingleLine(body);
 const entryLines = [
   `### 커밋 ${date}`,
   `- 해시: \`${shortHash}\` (\`${fullHash}\`)`,
+  `- 브랜치: ${branchName || '(브랜치 정보 없음)'}`,
+  `- 원격: ${remoteName}`,
+  `- 원격 URL: ${remoteUrl || '(원격 URL 없음)'}`,
   `- 링크: ${commitLink || '(원격 URL 없음)'}`,
   `- 작성자: ${author}`,
   `- 메시지: ${subject}`,
