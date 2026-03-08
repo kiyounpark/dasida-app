@@ -159,7 +159,10 @@ data/
 ## Expo Skills 운영 방식
 - 스킬 소스오브트루스: `.agents/skills/*`
 - `Claude` 링크 경로: `.claude/skills/*`
+- `Claude` 훅 설정: `.claude/settings.json`
+- 훅 구현: `.claude/hooks/*`
 - 기본 구현은 `Codex`가 우선 수행
 - Expo 리스크가 큰 변경은 `Claude Code CLI` 검증을 권장
+- Claude Code에서는 `UserPromptSubmit`가 관련 Expo 스킬을 자동 라우팅하고 `PreToolUse`가 첫 변경/실행 전에 한 번 스킬 확인을 유도
 - `Gemini`는 보조 검토 또는 대체 검토 용도로 사용
 - 상세 운영 규칙과 검증 기준은 `docs/AI_COLLABORATION.md`를 기준으로 확인

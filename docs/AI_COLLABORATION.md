@@ -59,6 +59,29 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 - Expo 스킬 소스오브트루스는 `.agents/skills/*`입니다.
 - `Claude`는 `.claude/skills/*` 링크 경로를 통해 같은 스킬 자산을 읽습니다.
 
+## Claude 훅 운영
+- 설정 파일: `.claude/settings.json`
+- 훅 스크립트: `.claude/hooks/*`
+- 훅은 Claude Code 안에서만 동작하며, Codex나 Gemini 세션에는 적용되지 않습니다.
+- `UserPromptSubmit`: 프롬프트 키워드를 기준으로 관련 Expo 스킬을 자동 선택하고 Claude 문맥에 스킬 경로를 주입합니다.
+- `PreToolUse`: 선택된 스킬을 아직 읽지 않은 상태에서 첫 `Edit`, `MultiEdit`, `Write`, `Bash` 실행 전에 한 번 `ask`로 확인을 유도합니다.
+- `SessionEnd`: 세션 종료 시 `/tmp` 아래 임시 상태 파일을 정리합니다.
+- 이 훅 구성은 강제 차단이 아니라 부드러운 가이드 방식이며, 스킬을 먼저 읽게 유도하는 수준으로 운영합니다.
+
+## Claude 훅 파일 구조
+- `.claude/settings.json`
+- `.claude/hooks/select-expo-skill.mjs`
+- `.claude/hooks/check-expo-skill-before-tools.mjs`
+- `.claude/hooks/clear-expo-skill-state.mjs`
+- 런타임 상태는 레포 내부가 아니라 시스템 임시 디렉터리(`/tmp/dasida-claude-hooks`)에 저장합니다.
+
+## Claude 훅 사용 방법
+1. Claude Code를 이 저장소 루트에서 실행합니다.
+2. Expo 관련 프롬프트를 입력하면 `UserPromptSubmit`가 관련 스킬을 자동 라우팅합니다.
+3. Claude가 실제 변경을 시작하기 전에 관련 `SKILL.md`를 아직 읽지 않았다면 `PreToolUse`가 한 번 확인을 요청합니다.
+4. Claude 세션을 다시 열면 최신 `.claude/settings.json` 기준으로 훅이 적용됩니다.
+5. 훅 상태나 동작 확인이 필요하면 Claude Code 내부에서 `/hooks`를 확인합니다.
+
 ## Claude 검증 권장 기준
 | 작업 유형 | 권장 스킬 | 검증 포인트 |
 |------|------|------|

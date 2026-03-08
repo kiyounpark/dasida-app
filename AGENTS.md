@@ -24,6 +24,7 @@
 기본 구현 도구는 `Codex`이며, Expo/React Native 관련 요청에서는 문서 규칙에 따라 대응 `SKILL.md`를 먼저 확인합니다.
 Codex의 Expo 스킬 활용은 네이티브 자동 훅이 아니라 문서 규칙 기반입니다.
 Expo 리스크가 큰 변경은 `Claude Code CLI`로 검증하는 것을 권장하며, `Gemini`는 보조 검토 또는 대체 검토 도구로 사용합니다.
+이 저장소는 `.claude/settings.json`에 Claude 훅을 포함하며, `UserPromptSubmit`로 Expo 스킬을 자동 라우팅하고 `PreToolUse`로 첫 변경/실행 전에 스킬 확인을 한 번 유도합니다.
 
 ### 스킬 확인 규칙
 - UI 화면 구성, 라우팅, 네비게이션, 컴포넌트, 애니메이션, 레이아웃 작업: `.agents/skills/building-native-ui/SKILL.md`

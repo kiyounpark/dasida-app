@@ -41,6 +41,12 @@
 - UI 구조 변경, 네비게이션 변경, API/Firebase 연동, Expo SDK 업그레이드, 배포/EAS 변경은 Claude 검증 권장
 - 문서 수정, 단순 카피 변경, 영향 범위가 좁은 수정은 Claude 검증 생략 가능으로 정리
 
+**Claude 훅 자동 라우팅 추가**
+- `.claude/settings.json`에 `UserPromptSubmit`, `PreToolUse`, `SessionEnd` 훅 추가
+- `.claude/hooks/select-expo-skill.mjs`가 프롬프트 키워드로 관련 Expo 스킬을 자동 선택
+- `.claude/hooks/check-expo-skill-before-tools.mjs`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도
+- 임시 훅 상태는 레포 내부가 아니라 `/tmp/dasida-claude-hooks`에서 관리하도록 구성
+
 **원격 푸시 기록 (운영 모델 문서 동기화)**
 - 브랜치: `main`
 - 원격: `origin`
