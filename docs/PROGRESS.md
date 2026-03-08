@@ -41,6 +41,13 @@
 - UI 구조 변경, 네비게이션 변경, API/Firebase 연동, Expo SDK 업그레이드, 배포/EAS 변경은 Claude 검증 권장
 - 문서 수정, 단순 카피 변경, 영향 범위가 좁은 수정은 Claude 검증 생략 가능으로 정리
 
+**원격 푸시 기록 (운영 모델 문서 동기화)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `1fe14b0`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/1fe14b04f6b6db2a5fd03ba4c1936b15d083e07a`
+
 **원격 푸시 기록**
 - 브랜치: `main`
 - 원격: `origin`
@@ -187,6 +194,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.08 16:27
+- 해시: `1fe14b0` (`1fe14b08d09db993ec4d683ac5babdf08d1e71b5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1fe14b08d09db993ec4d683ac5babdf08d1e71b5
+- 작성자: 박기윤
+- 메시지: docs: 코덱스와 클로드 운영 규칙 동기화
 
 ### 커밋 2026.03.08 15:17
 - 해시: `fa9efca` (`fa9efca60c4e333c530396449e747fb59b56c70d`)
