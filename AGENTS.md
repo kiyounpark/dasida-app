@@ -21,10 +21,11 @@
 
 ## Expo Skills
 이 프로젝트는 레포 내부 `.agents/skills/`에 설치된 Expo Skills를 사용합니다.
-Expo/React Native 관련 요청이 들어오면 에이전트는 사용자 지시가 없어도 작업 유형에 맞는 `SKILL.md`를 먼저 확인해야 합니다.
-여러 스킬이 동시에 관련되면 가장 직접적인 스킬을 먼저 적용하고, 필요한 경우에만 최소 개수로 추가합니다.
+기본 구현 도구는 `Codex`이며, Expo/React Native 관련 요청에서는 문서 규칙에 따라 대응 `SKILL.md`를 먼저 확인합니다.
+Codex의 Expo 스킬 활용은 네이티브 자동 훅이 아니라 문서 규칙 기반입니다.
+Expo 리스크가 큰 변경은 `Claude Code CLI`로 검증하는 것을 권장하며, `Gemini`는 보조 검토 또는 대체 검토 도구로 사용합니다.
 
-### 자동 적용 규칙
+### 스킬 확인 규칙
 - UI 화면 구성, 라우팅, 네비게이션, 컴포넌트, 애니메이션, 레이아웃 작업: `.agents/skills/building-native-ui/SKILL.md`
 - API 호출, fetch, Firebase 연동, 로딩/에러 처리, 캐싱, 네트워크 디버깅: `.agents/skills/native-data-fetching/SKILL.md`
 - NativeWind 또는 Tailwind 스타일링 작업: `.agents/skills/expo-tailwind-setup/SKILL.md`
@@ -35,7 +36,24 @@ Expo/React Native 관련 요청이 들어오면 에이전트는 사용자 지시
 - 웹 코드를 앱 내부 웹뷰 또는 DOM 기반으로 실행하는 작업: `.agents/skills/use-dom/SKILL.md`
 - EAS Hosting API 라우트 생성 및 서버 엔드포인트 작업: `.agents/skills/expo-api-routes/SKILL.md`
 
+### Claude 검증 권장 작업
+- UI 구조 변경
+- 네비게이션 또는 라우팅 변경
+- API 호출, Firebase 연동, 캐싱, 에러 처리 변경
+- Expo SDK 업그레이드
+- 개발 빌드, TestFlight, EAS, 앱스토어 배포 설정 변경
+- 네이티브 의존성 또는 빌드 설정 변경
+
+### Claude 검증 생략 가능 작업
+- 문서 수정
+- 텍스트 또는 카피 수정
+- 영향 범위가 좁은 단순 수정
+- Expo 스킬과 무관한 운영 정리
+
 ### 적용 방식
-- 스킬을 쓰기로 판단하면 해당 `SKILL.md`를 먼저 열고, 필요한 `references/`만 추가로 확인합니다.
-- 스킬 지침과 기존 코드베이스 패턴이 충돌하면, 사용자 요구사항과 현재 저장소 구조에 맞는 쪽을 우선합니다.
+- 기본 구현은 `Codex`가 수행합니다.
+- 관련 작업에서는 대응 `SKILL.md`와 필요한 `references/`를 먼저 확인합니다.
+- `Claude` 검증은 권장 규칙이며 필수는 아닙니다.
+- `Claude` 검증이 필요한 경우에는 Expo/React Native 관점의 회귀 위험, 빌드 영향, 누락된 테스트를 중점 확인합니다.
+- `Gemini`는 보조 검토 또는 대체 검토 도구로 사용합니다.
 - 사용자가 스킬 이름을 직접 언급하면 그 스킬을 우선 적용합니다.

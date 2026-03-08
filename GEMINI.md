@@ -6,11 +6,17 @@
 웹훅은 `SLACK_WEBHOOK_URL` 또는 `~/.config/dasida/slack-webhook`에서 읽습니다.
 필요하면 `AI_AGENT_NAME=Gemini`를 지정합니다.
 
-2. 종료 알림:
+2. 역할
+- 기본 구현 도구는 `Codex`입니다.
+- Expo 스킬 검증의 권장 경로는 `Claude Code CLI`입니다.
+- Gemini는 보조 검토 또는 대체 검토 도구로 사용합니다.
+- Expo 스킬 저장소는 `.agents/skills/*`를 기준으로 확인합니다.
+
+3. 종료 알림:
 - 성공: `npm run notify:done -- "<변경/테스트 요약>"`
 - 실패: `npm run notify:fail -- "<실패 원인>"`
 
-3. 종료 절차:
+4. 종료 절차:
 - `pre-commit`은 사용하지 않음
 - 가능한 경우 `git commit -> git push origin <현재 브랜치> -> npm run log:commit`
 - 개발 기록은 `docs/PROGRESS.md` 기준으로 남김

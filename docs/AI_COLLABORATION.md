@@ -42,13 +42,58 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 ## 권장 작업 흐름
 1. 요청 파악
 2. `notify:start`
-3. 코드/문서 수정
-4. 테스트 실행
-5. `git commit`
-6. `git push origin <현재 브랜치>`
-7. `npm run log:commit`
-8. 결과 정리
-9. `notify:done` 또는 `notify:fail`
+3. 기본 구현은 `Codex`로 진행
+4. 필요한 경우 `Claude` 검증 권장
+5. 테스트 실행
+6. `git commit`
+7. `git push origin <현재 브랜치>`
+8. `npm run log:commit`
+9. 결과 정리
+10. `notify:done` 또는 `notify:fail`
+
+## Codex + Claude 운영 모델
+- `Codex`: 기본 구현 도구
+- `Claude`: Expo 스킬 기반 검증과 리뷰에 권장되는 도구
+- `Gemini`: 보조 검토 또는 대체 검토 도구
+- Codex의 Expo 스킬 활용은 네이티브 자동 훅이 아니라 저장소 문서 규칙과 스킬 파일 참조를 통해 유도합니다.
+- Expo 스킬 소스오브트루스는 `.agents/skills/*`입니다.
+- `Claude`는 `.claude/skills/*` 링크 경로를 통해 같은 스킬 자산을 읽습니다.
+
+## Claude 검증 권장 기준
+| 작업 유형 | 권장 스킬 | 검증 포인트 |
+|------|------|------|
+| UI 구조 변경, 화면 구성, 네비게이션 | `building-native-ui` | 화면 흐름, 레이아웃, 네비게이션 회귀, 플랫폼별 동작 |
+| API 호출, fetch, Firebase 연동, 캐싱, 에러 처리 | `native-data-fetching` | 네트워크 실패 처리, 상태 관리, 캐싱 전략, 누락된 오류 처리 |
+| NativeWind 또는 Tailwind 스타일링 | `expo-tailwind-setup` | 설정 충돌, 스타일 적용 범위, 기존 UI 일관성 |
+| 개발 빌드, 디바이스 테스트, TestFlight | `expo-dev-client` | 개발 빌드 필요 여부, 환경 설정, 테스트 경로 |
+| EAS, 앱스토어 제출, 배포 설정 | `expo-deployment`, `expo-cicd-workflows` | 배포 단계 누락, 설정 오류, 자동화 경로 |
+| Expo SDK 업그레이드, 의존성 정리 | `upgrading-expo` | 호환성, 마이그레이션 누락, 빌드 리스크 |
+| WebView/DOM 기반 실행 | `use-dom` | 실행 환경 적합성, 웹 코드 경계 |
+| EAS Hosting API routes | `expo-api-routes` | 라우트 구성, 서버 엔드포인트 구조 |
+
+## Claude 검증 생략 가능한 작업
+- 문서 수정
+- 단순 카피 변경
+- 영향 범위가 좁은 단순 수정
+- Expo 스킬과 무관한 운영 정리
+
+## 권장 검증 프롬프트 템플릿
+```text
+목적: 이번 변경 검증
+사용 스킬: <skill-name>
+변경 요약: <무엇을 바꿨는지>
+변경 파일: <파일 목록>
+검토 관점:
+- Expo/React Native 관점의 위험
+- 플랫폼별 회귀 가능성
+- 누락된 테스트와 검증
+```
+
+## 비용 최적화 원칙
+- 모든 작업에 `Claude`를 붙이지 않습니다.
+- 기본 구현은 `Codex`로 진행합니다.
+- Expo 리스크가 큰 변경에서만 `Claude` 검증을 선택적으로 권장합니다.
+- `Claude` 검증은 권장 규칙이며 필수는 아닙니다.
 
 ## 개발 기록 원칙
 - 개발 작업 정리 문서는 `docs/PROGRESS.md`

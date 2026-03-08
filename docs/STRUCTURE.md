@@ -155,3 +155,11 @@ data/
 - 공통 운영 문서: `docs/AI_COLLABORATION.md`
 - 에이전트별 진입 지침: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
 - 목표: Codex/Claude/Gemini 중 어떤 도구로 작업해도 동일한 Slack 알림 절차 유지
+
+## Expo Skills 운영 방식
+- 스킬 소스오브트루스: `.agents/skills/*`
+- `Claude` 링크 경로: `.claude/skills/*`
+- 기본 구현은 `Codex`가 우선 수행
+- Expo 리스크가 큰 변경은 `Claude Code CLI` 검증을 권장
+- `Gemini`는 보조 검토 또는 대체 검토 용도로 사용
+- 상세 운영 규칙과 검증 기준은 `docs/AI_COLLABORATION.md`를 기준으로 확인

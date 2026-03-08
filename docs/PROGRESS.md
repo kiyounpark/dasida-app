@@ -32,6 +32,15 @@
 - `AGENTS.md`에 작업 유형별 Expo Skills 자동 적용 규칙 추가
 - UI/네비게이션, API/Firebase, 배포, 업그레이드 등 요청 유형에 따라 먼저 열어야 할 `SKILL.md`를 명시
 
+**Codex + Claude 운영 모델 정리**
+- 기본 구현은 `Codex`, Expo 검증은 `Claude Code CLI` 권장, `Gemini`는 보조 또는 대체 검토 도구로 문서 전면 동기화
+- Codex의 Expo 스킬 활용은 네이티브 자동 훅이 아니라 문서 규칙 기반임을 명시
+- Claude 검증은 필수가 아니라 비용을 고려한 권장 규칙으로 정리
+
+**Claude 검증 권장 기준 정리**
+- UI 구조 변경, 네비게이션 변경, API/Firebase 연동, Expo SDK 업그레이드, 배포/EAS 변경은 Claude 검증 권장
+- 문서 수정, 단순 카피 변경, 영향 범위가 좁은 수정은 Claude 검증 생략 가능으로 정리
+
 **원격 푸시 기록**
 - 브랜치: `main`
 - 원격: `origin`
