@@ -21,6 +21,24 @@
 
 ## 로그
 
+### 2026.03.08
+
+**Expo 스킬 프로젝트 반영 완료**
+- `.agents/skills/*`에 Expo Skills 본문과 참고 자료 추가
+- `.agent/skills/*`, `.claude/skills/*`는 `.agents/skills/*`를 가리키는 심볼릭 링크로 정리
+- `skills-lock.json` 추가로 스킬 버전과 해시를 고정
+
+**에이전트 자동 적용 규칙 정리**
+- `AGENTS.md`에 작업 유형별 Expo Skills 자동 적용 규칙 추가
+- UI/네비게이션, API/Firebase, 배포, 업그레이드 등 요청 유형에 따라 먼저 열어야 할 `SKILL.md`를 명시
+
+**원격 푸시 기록**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `fa9efca`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/fa9efca60c4e333c530396449e747fb59b56c70d`
+
 ### 2026.03.07
 
 **AI 협업/알림 규약 정리**
@@ -160,6 +178,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.08 15:17
+- 해시: `fa9efca` (`fa9efca60c4e333c530396449e747fb59b56c70d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/fa9efca60c4e333c530396449e747fb59b56c70d
+- 작성자: 박기윤
+- 메시지: chore: 엑스포 스킬과 자동 적용 규칙 추가
 
 ### 커밋 2026.03.07 12:36
 - 해시: `aa8c537` (`aa8c537c9f284232bc73e1409696e1d36b7a1c34`)
