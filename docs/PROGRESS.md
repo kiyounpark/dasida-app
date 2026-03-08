@@ -54,6 +54,13 @@
 - `quiz/result`, `quiz/index`, `quiz/feedback`의 숫자 정보에 `tabular-nums` 정렬 적용
 - 중복되던 `getSingleParam` 헬퍼를 `utils/get-single-param.ts`로 분리해 라우트 파일의 반복 유틸 제거
 
+**원격 푸시 기록 (Expo UI 스킬 기준 코드 정리)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `7231d5c`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/7231d5cc654b212359e52015dd79fe2e15843169`
+
 **원격 푸시 기록 (Claude 훅 자동 라우팅)**
 - 브랜치: `main`
 - 원격: `origin`
@@ -214,6 +221,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.08 19:55
+- 해시: `7231d5c` (`7231d5cc654b212359e52015dd79fe2e15843169`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7231d5cc654b212359e52015dd79fe2e15843169
+- 작성자: 박기윤
+- 메시지: refactor: 엑스포 화면 스킬 기준 구조 정리
 
 ### 커밋 2026.03.08 19:33
 - 해시: `6da899c` (`6da899c63d28df35b77c7aab2b279622df3a04c4`)
