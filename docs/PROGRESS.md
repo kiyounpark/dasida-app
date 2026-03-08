@@ -47,6 +47,13 @@
 - `.claude/hooks/check-expo-skill-before-tools.mjs`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도
 - 임시 훅 상태는 레포 내부가 아니라 `/tmp/dasida-claude-hooks`에서 관리하도록 구성
 
+**원격 푸시 기록 (Claude 훅 자동 라우팅)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `6da899c`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/6da899c63d28df35b77c7aab2b279622df3a04c4`
+
 **원격 푸시 기록 (운영 모델 문서 동기화)**
 - 브랜치: `main`
 - 원격: `origin`
@@ -200,6 +207,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.08 19:33
+- 해시: `6da899c` (`6da899c63d28df35b77c7aab2b279622df3a04c4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6da899c63d28df35b77c7aab2b279622df3a04c4
+- 작성자: 박기윤
+- 메시지: feat: 클로드 훅 기반 엑스포 스킬 자동 라우팅 추가
 
 ### 커밋 2026.03.08 16:27
 - 해시: `1fe14b0` (`1fe14b08d09db993ec4d683ac5babdf08d1e71b5`)
