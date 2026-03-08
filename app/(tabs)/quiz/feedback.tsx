@@ -7,10 +7,7 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import { useQuizSession } from '@/features/quiz/session';
-
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+import { getSingleParam } from '@/utils/get-single-param';
 
 export default function QuizFeedbackScreen() {
   const { state, resetSession } = useQuizSession();
@@ -28,14 +25,20 @@ export default function QuizFeedbackScreen() {
   return (
     <View style={styles.screen}>
       <BrandHeader />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.container}>
         <View style={styles.mainCard}>
           <Text style={styles.title}>학습 피드백</Text>
 
           {summary ? (
             <View style={styles.summaryCard}>
               <Text style={styles.cardTitle}>이번 학습 요약</Text>
-              <Text style={styles.cardBody}>정답률: {summary.accuracy}% ({summary.correct}/{summary.total})</Text>
+              <Text style={styles.summaryMetric}>
+                정답률: {summary.accuracy}% ({summary.correct}/{summary.total})
+              </Text>
               <Text style={styles.cardBody}>연습 모드: {mode === 'challenge' ? '심화 문제' : '약점 연습'}</Text>
               {summary.allCorrect ? (
                 <Text style={styles.cardBody}>모든 본문 문제를 정답 처리했습니다.</Text>
@@ -136,6 +139,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 22,
+  },
+  summaryMetric: {
+    fontSize: 15,
+    color: '#333',
+    lineHeight: 22,
+    fontVariant: ['tabular-nums'],
   },
   weaknessList: {
     gap: 2,

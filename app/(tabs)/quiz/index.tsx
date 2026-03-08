@@ -95,7 +95,10 @@ export default function QuizIndexScreen() {
   return (
     <View style={styles.screen}>
       <BrandHeader />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}>
         <View style={styles.surfaceCard}>
           <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
           <Text style={styles.progress}>{stepTitle}</Text>
@@ -200,11 +203,7 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.border,
     padding: BrandSpacing.lg,
     gap: BrandSpacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 3,
+    boxShadow: '0 12px 32px rgba(41, 59, 39, 0.08)',
   },
   sectionTitle: {
     fontSize: 20,
@@ -215,6 +214,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: BrandColors.primarySoft,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   topic: {
     fontSize: 13,

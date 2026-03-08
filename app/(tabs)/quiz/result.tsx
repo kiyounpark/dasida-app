@@ -6,10 +6,7 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import { useQuizSession } from '@/features/quiz/session';
-
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+import { getSingleParam } from '@/utils/get-single-param';
 
 export default function QuizResultScreen() {
   const { state, resetSession } = useQuizSession();
@@ -79,7 +76,10 @@ export default function QuizResultScreen() {
   return (
     <View style={styles.screen}>
       <BrandHeader />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}>
         <View style={styles.summaryCard}>
           <Text style={styles.title}>분석 결과</Text>
           <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     color: '#2f3a32',
+    fontVariant: ['tabular-nums'],
   },
   cardSuccess: {
     borderWidth: 1,

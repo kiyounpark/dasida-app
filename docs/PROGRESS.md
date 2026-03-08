@@ -47,6 +47,13 @@
 - `.claude/hooks/check-expo-skill-before-tools.mjs`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도
 - 임시 훅 상태는 레포 내부가 아니라 `/tmp/dasida-claude-hooks`에서 관리하도록 구성
 
+**Expo UI 스킬 기준 코드 정리**
+- `building-native-ui` 기준으로 주요 화면 `ScrollView`에 `contentInsetAdjustmentBehavior="automatic"` 적용
+- `history`, `profile` 화면도 스크롤 기반 레이아웃으로 정리해 작은 화면과 안전 영역 대응 강화
+- `quiz/index` 카드의 레거시 `shadow/elevation` 스타일을 `boxShadow`로 교체
+- `quiz/result`, `quiz/index`, `quiz/feedback`의 숫자 정보에 `tabular-nums` 정렬 적용
+- 중복되던 `getSingleParam` 헬퍼를 `utils/get-single-param.ts`로 분리해 라우트 파일의 반복 유틸 제거
+
 **원격 푸시 기록 (Claude 훅 자동 라우팅)**
 - 브랜치: `main`
 - 원격: `origin`

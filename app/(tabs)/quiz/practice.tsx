@@ -9,10 +9,7 @@ import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
 import { useQuizSession } from '@/features/quiz/session';
-
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+import { getSingleParam } from '@/utils/get-single-param';
 
 type FeedbackState =
   | {
@@ -154,7 +151,10 @@ export default function QuizPracticeScreen() {
   return (
     <View style={styles.screen}>
       <BrandHeader />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}>
         <View style={styles.problemCard}>
           <Text style={styles.title}>약점 기반 연습</Text>
           <Text style={styles.subtitle}>{weaknessLabel}</Text>

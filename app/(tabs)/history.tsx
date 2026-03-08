@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -7,10 +7,15 @@ export default function HistoryScreen() {
   return (
     <View style={styles.screen}>
       <BrandHeader compact />
-      <View style={styles.card}>
-        <Text style={styles.title}>내 기록</Text>
-        <Text style={styles.subtitle}>준비 중인 기능입니다.</Text>
-      </View>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>내 기록</Text>
+          <Text style={styles.subtitle}>준비 중인 기능입니다.</Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -20,9 +25,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
+  scroll: {
+    flex: 1,
+  },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md,
+    paddingBottom: BrandSpacing.xxl,
+  },
   card: {
-    marginTop: BrandSpacing.md,
-    marginHorizontal: BrandSpacing.lg,
     borderWidth: 1,
     borderColor: BrandColors.border,
     borderRadius: BrandRadius.lg,
