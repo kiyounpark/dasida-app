@@ -65,6 +65,13 @@
 - `MathText`에 문제 본문 분해 로직을 넣어 설명 문장과 큰 식을 구분하고, 식 블록은 별도 박스로 강조
 - `quiz/index`, `quiz/practice`에서 공통 `ProblemStatement`를 사용하도록 맞추고 선택지 스타일도 웹 시안 톤에 가깝게 조정
 
+**원격 푸시 기록 (수식 문제 본문 가독성 개선)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `a50d1d2`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/a50d1d2ad8226615800bcb234fe7491f63d80cd4`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
@@ -265,6 +272,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.09 21:40
+- 해시: `a50d1d2` (`a50d1d2c4a50b03ba568c28e6a00fb02e2fbd0cd`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a50d1d2c4a50b03ba568c28e6a00fb02e2fbd0cd
+- 작성자: 박기윤
+- 메시지: feat: 수식 문제 본문 가독성 개선
 
 ### 커밋 2026.03.09 20:48
 - 해시: `013fde0` (`013fde0e6281389c3ee871fa11978679d2107b86`)
