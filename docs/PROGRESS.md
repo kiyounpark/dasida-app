@@ -308,6 +308,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.09 23:03
+- 해시: `0dc232c` (`0dc232cacc4e2f56a411f0f240e8b46d2eafc9db`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0dc232cacc4e2f56a411f0f240e8b46d2eafc9db
+- 작성자: 박기윤
+- 메시지: docs: 문제별 진단 방법 지원 작업 로그 추가
+
 ### 커밋 2026.03.09 22:40
 - 해시: `c5d0097` (`c5d0097f08baf0a31f4b559d42d6fa9d448b4ef4`)
 - 브랜치: main
