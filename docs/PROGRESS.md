@@ -293,6 +293,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.09 22:38
+- 해시: `0fddc1a` (`0fddc1adbda6ed3fb7d22a216972518f08fe5256`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0fddc1adbda6ed3fb7d22a216972518f08fe5256
+- 작성자: 박기윤
+- 메시지: refactor: 오답 일괄 진단 플로우 적용 및 엑스포 유아이 스킬 검토 반영
+
 ### 커밋 2026.03.09 21:40
 - 해시: `a50d1d2` (`a50d1d2c4a50b03ba568c28e6a00fb02e2fbd0cd`)
 - 브랜치: (브랜치 정보 없음)
