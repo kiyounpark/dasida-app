@@ -21,6 +21,20 @@
 
 ## 로그
 
+### 2026.03.09
+
+**수식 표기 브랜치 재정렬**
+- `codex/feat-math-notation-rendering`의 기능 커밋 중 실제 작업 커밋 `3d77738`만 분리
+- 최신 `main` 위에서 새 브랜치 `codex/feat-math-notation-rendering-main-based` 생성
+- `main`의 Expo Skills, Claude 훅, 최근 UI 정리 커밋을 유지한 상태로 수식 표기 기능을 재적용
+
+**원격 푸시 기록 (수식 표기 브랜치 재정렬)**
+- 브랜치: `codex/feat-math-notation-rendering-main-based`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `7ea8d22`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/7ea8d22f0e52a56b5adc28a8729965c4722c5aad`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
@@ -221,6 +235,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.09 20:40
+- 해시: `7ea8d22` (`7ea8d22f0e52a56b5adc28a8729965c4722c5aad`)
+- 브랜치: codex/feat-math-notation-rendering-main-based
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7ea8d22f0e52a56b5adc28a8729965c4722c5aad
+- 작성자: 박기윤
+- 메시지: feat: 수식 표기 렌더링 개선
 
 ### 커밋 2026.03.08 19:55
 - 해시: `7231d5c` (`7231d5cc654b212359e52015dd79fe2e15843169`)
