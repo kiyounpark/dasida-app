@@ -42,6 +42,13 @@
   - `x^n은 n*x^(n-1)` → `xⁿ은 n×x⁽ⁿ⁻¹⁾`
   - `sqrt(75) - 6/sqrt(3) + sqrt(48)` → `√75 - 6⁄√3 + √48`
 
+**원격 푸시 기록 (수식 표기 범위 보강)**
+- 브랜치: `codex/feat-math-notation-rendering-main-based`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `e9ad1f4`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/e9ad1f4dbedd5cd08368141ad743a67cc4b89234`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
@@ -242,6 +249,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.09 20:47
+- 해시: `e9ad1f4` (`e9ad1f4dbedd5cd08368141ad743a67cc4b89234`)
+- 브랜치: codex/feat-math-notation-rendering-main-based
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e9ad1f4dbedd5cd08368141ad743a67cc4b89234
+- 작성자: 박기윤
+- 메시지: fix: 수식 표기 지수 렌더링 범위 보강
 
 ### 커밋 2026.03.09 20:40
 - 해시: `7ea8d22` (`7ea8d22f0e52a56b5adc28a8729965c4722c5aad`)
