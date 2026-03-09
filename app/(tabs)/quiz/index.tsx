@@ -92,6 +92,8 @@ export default function QuizIndexScreen() {
   }
 
   const stepTitle = `${state.currentQuestionIndex + 1} / ${problemData.length}`;
+  const progressRatio = (state.currentQuestionIndex + 1) / problemData.length;
+  const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
   const methodStep = pendingWrong?.methodId ? diagnosisTree[pendingWrong.methodId] : null;
 
   return (
@@ -102,8 +104,16 @@ export default function QuizIndexScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
         <View style={styles.surfaceCard}>
+          <View style={styles.progressHeader}>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: progressPercent }]} />
+            </View>
+            <View style={styles.progressMeta}>
+              <Text style={styles.progressLabel}>진행률</Text>
+              <Text style={styles.progress}>{stepTitle}</Text>
+            </View>
+          </View>
           <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
-          <Text style={styles.progress}>{stepTitle}</Text>
           <Text style={styles.topic}>{currentProblem.topic}</Text>
           <ProblemStatement question={currentProblem.question} />
 
@@ -207,6 +217,31 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.lg,
     gap: BrandSpacing.sm,
     boxShadow: '0 12px 32px rgba(41, 59, 39, 0.08)',
+  },
+  progressHeader: {
+    gap: BrandSpacing.xs,
+    marginBottom: BrandSpacing.xs,
+  },
+  progressTrack: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#E3ECE2',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: BrandColors.primary,
+  },
+  progressMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: BrandColors.mutedText,
   },
   sectionTitle: {
     fontSize: 20,

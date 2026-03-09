@@ -28,6 +28,11 @@
 - `useSafeAreaInsets()`를 적용해 하단 탭바 높이와 `paddingBottom`에 안드로이드 하단 시스템 내비게이션 inset을 직접 반영
 - 3버튼 내비게이션 또는 제스처 바가 있는 기기에서 탭 버튼이 시스템 영역과 겹치지 않도록 조정
 
+**10문제 약점진단 진행률 바 추가**
+- `app/(tabs)/quiz/index.tsx` 상단에 현재 문항 진행 상태를 보여주는 진행률 트랙 추가
+- 기존 `1 / 10` 텍스트는 유지하되, 같은 상태값으로 막대가 조금씩 차오르도록 구성
+- 진단 화면 진입 시 현재 단계가 숫자뿐 아니라 시각적으로도 바로 보이도록 보강
+
 **수식 표기 브랜치 재정렬**
 - `codex/feat-math-notation-rendering`의 기능 커밋 중 실제 작업 커밋 `3d77738`만 분리
 - 최신 `main` 위에서 새 브랜치 `codex/feat-math-notation-rendering-main-based` 생성
