@@ -49,6 +49,17 @@
 - 원격 푸시 커밋: `e9ad1f4`
 - 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/e9ad1f4dbedd5cd08368141ad743a67cc4b89234`
 
+**수식 표기 기능 main 병합 완료**
+- `codex/feat-math-notation-rendering-main-based`의 수식 표기 기능과 기록 커밋을 `main`에 fast-forward 병합
+- 현재 `main`은 수식 표기 컴포넌트 추가와 지수 렌더링 보강을 포함한 상태로 정렬
+
+**원격 푸시 기록 (수식 표기 기능 main 병합)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `013fde0`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/013fde0e6281389c3ee871fa11978679d2107b86`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
@@ -249,6 +260,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.09 20:48
+- 해시: `013fde0` (`013fde0e6281389c3ee871fa11978679d2107b86`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/013fde0e6281389c3ee871fa11978679d2107b86
+- 작성자: 박기윤
+- 메시지: chore: 수식 표기 보강 푸시 기록 반영
 
 ### 커밋 2026.03.09 20:47
 - 해시: `e9ad1f4` (`e9ad1f4dbedd5cd08368141ad743a67cc4b89234`)
