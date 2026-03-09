@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { MathText } from '@/components/math/MathText';
+import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
@@ -104,7 +105,7 @@ export default function QuizIndexScreen() {
           <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
           <Text style={styles.progress}>{stepTitle}</Text>
           <Text style={styles.topic}>{currentProblem.topic}</Text>
-          <MathText text={currentProblem.question} style={styles.question} />
+          <ProblemStatement question={currentProblem.question} />
 
           <View style={styles.choicesContainer}>
             {currentProblem.choices.map((choice, index) => {
@@ -223,40 +224,33 @@ const styles = StyleSheet.create({
     color: BrandColors.mutedText,
     marginTop: 2,
   },
-  question: {
-    fontSize: 20,
-    lineHeight: 30,
-    marginTop: 4,
-    fontWeight: '700',
-    color: '#222',
-  },
   choicesContainer: {
     marginTop: BrandSpacing.sm,
     gap: BrandSpacing.sm,
   },
   choiceButton: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
     borderRadius: BrandRadius.sm,
-    paddingVertical: BrandSpacing.sm,
-    paddingHorizontal: BrandSpacing.md,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
   },
   choiceButtonSelected: {
     borderColor: BrandColors.primarySoft,
-    backgroundColor: '#ECF5EE',
+    backgroundColor: BrandColors.primarySoft,
   },
   choiceText: {
-    fontSize: 16,
-    color: '#222',
-    lineHeight: 22,
+    fontSize: 15,
+    color: '#333',
+    lineHeight: 24,
   },
   choiceTextSelected: {
-    color: BrandColors.primary,
+    color: '#fff',
     fontWeight: '700',
   },
   submitContainer: {
-    marginTop: BrandSpacing.sm,
+    marginTop: BrandSpacing.md,
   },
   diagnosisCard: {
     borderWidth: 1,

@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { MathText } from '@/components/math/MathText';
+import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
@@ -159,7 +160,7 @@ export default function QuizPracticeScreen() {
         <View style={styles.problemCard}>
           <Text style={styles.title}>약점 기반 연습</Text>
           <Text style={styles.subtitle}>{weaknessLabel}</Text>
-          <MathText text={activeProblem.question} style={styles.question} />
+          <ProblemStatement question={activeProblem.question} />
 
           <View style={styles.choicesContainer}>
             {activeProblem.choices.map((choice, index) => {
@@ -275,40 +276,33 @@ const styles = StyleSheet.create({
     color: BrandColors.primarySoft,
     fontWeight: '700',
   },
-  question: {
-    fontSize: 20,
-    lineHeight: 30,
-    marginTop: 6,
-    fontWeight: '700',
-    color: '#222',
-  },
   choicesContainer: {
     marginTop: 12,
     gap: 10,
   },
   choiceButton: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
     borderRadius: BrandRadius.sm,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
   },
   choiceButtonSelected: {
     borderColor: BrandColors.primarySoft,
-    backgroundColor: '#ECF5EE',
+    backgroundColor: BrandColors.primarySoft,
   },
   choiceText: {
-    fontSize: 16,
-    color: '#111',
-    lineHeight: 22,
+    fontSize: 15,
+    color: '#333',
+    lineHeight: 24,
   },
   choiceTextSelected: {
-    color: BrandColors.primary,
+    color: '#fff',
     fontWeight: '700',
   },
   buttonTopGap: {
-    marginTop: 12,
+    marginTop: 20,
   },
   feedbackCard: {
     borderRadius: BrandRadius.md,

@@ -60,6 +60,11 @@
 - 원격 푸시 커밋: `013fde0`
 - 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/013fde0e6281389c3ee871fa11978679d2107b86`
 
+**수식 문제 본문 가독성 개선**
+- `components/math/problem-statement.tsx`를 추가해 문제 문장과 핵심 수식을 분리 렌더링하도록 정리
+- `MathText`에 문제 본문 분해 로직을 넣어 설명 문장과 큰 식을 구분하고, 식 블록은 별도 박스로 강조
+- `quiz/index`, `quiz/practice`에서 공통 `ProblemStatement`를 사용하도록 맞추고 선택지 스타일도 웹 시안 톤에 가깝게 조정
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
