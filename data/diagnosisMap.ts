@@ -11,7 +11,17 @@ export type WeaknessId =
   | 'factoring_pattern_recall'
   | 'complex_factoring_difficulty'
   | 'quadratic_formula_memorization'
-  | 'discriminant_calculation';
+  | 'discriminant_calculation'
+  | 'radical_simplification_error'
+  | 'rationalization_error'
+  | 'expansion_sign_error'
+  | 'like_terms_error'
+  | 'imaginary_unit_confusion'
+  | 'complex_calc_error'
+  | 'remainder_substitution_error'
+  | 'simultaneous_equation_error'
+  | 'counting_method_confusion'
+  | 'counting_overcounting';
 
 export type DiagnosisItem = {
   id: WeaknessId;
@@ -34,6 +44,16 @@ export const weaknessOrder: WeaknessId[] = [
   'complex_factoring_difficulty',
   'quadratic_formula_memorization',
   'discriminant_calculation',
+  'radical_simplification_error',
+  'rationalization_error',
+  'expansion_sign_error',
+  'like_terms_error',
+  'imaginary_unit_confusion',
+  'complex_calc_error',
+  'remainder_substitution_error',
+  'simultaneous_equation_error',
+  'counting_method_confusion',
+  'counting_overcounting',
 ];
 
 export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
@@ -114,6 +134,66 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     labelKo: '판별식 계산 실수',
     desc: '근호 안의 판별식(b^2 - 4ac)을 계산하는 도중 실수가 자주 발생합니다.',
     tip: 'b^2과 4ac를 각각 따로 계산한 뒤 빼는 방식으로, 부호 실수를 방지하세요.',
+  },
+  radical_simplification_error: {
+    id: 'radical_simplification_error',
+    labelKo: '√ 간소화 실수',
+    desc: '제곱근 안의 수를 인수분해해 간소화하는 단계에서 오류가 발생했습니다.',
+    tip: '√ 안의 수를 소인수분해한 뒤 제곱 묶음을 밖으로 꺼내는 과정을 단계별로 적어보세요.',
+  },
+  rationalization_error: {
+    id: 'rationalization_error',
+    labelKo: '분모 유리화 실수',
+    desc: '분모에 √가 있을 때 유리화 과정에서 분자·분모를 잘못 처리했습니다.',
+    tip: '분모와 같은 √를 분자·분모에 곱한 뒤 약분까지 한 번에 처리하는 습관을 들이세요.',
+  },
+  expansion_sign_error: {
+    id: 'expansion_sign_error',
+    labelKo: '전개 부호 실수',
+    desc: '다항식을 전개할 때 음수 괄호 처리나 부호 분배에서 실수가 발생했습니다.',
+    tip: '괄호 앞의 부호를 강조 표시한 뒤 각 항에 분배하는 과정을 따로 적어보세요.',
+  },
+  like_terms_error: {
+    id: 'like_terms_error',
+    labelKo: '동류항 정리 실수',
+    desc: '전개 후 같은 차수의 항끼리 모아 정리하는 단계에서 누락이나 실수가 생겼습니다.',
+    tip: '전개 직후 각 차수별로 색을 달리해 표시한 뒤 한꺼번에 합산하세요.',
+  },
+  imaginary_unit_confusion: {
+    id: 'imaginary_unit_confusion',
+    labelKo: 'i² = -1 혼동',
+    desc: '허수 단위 i를 제곱할 때 -1로 치환하는 규칙을 빠뜨리거나 잘못 적용했습니다.',
+    tip: 'i²가 등장하는 즉시 -1로 바꿔 쓰는 습관을 들이면 이후 계산이 훨씬 단순해집니다.',
+  },
+  complex_calc_error: {
+    id: 'complex_calc_error',
+    labelKo: '복소수 실수부/허수부 정리 실수',
+    desc: '전개 후 실수부와 허수부를 따로 모아 정리하는 과정에서 오류가 발생했습니다.',
+    tip: '전개가 끝나면 실수항과 허수항(i 포함)을 색으로 구분한 뒤 각각 합산하세요.',
+  },
+  remainder_substitution_error: {
+    id: 'remainder_substitution_error',
+    labelKo: '나머지정리 대입 실수',
+    desc: '나머지정리에서 나눗값(x=a)을 P(x)에 대입하는 단계에서 실수가 발생했습니다.',
+    tip: '나누는 식 x-a=0에서 x=a를 먼저 구하고, 그 값을 P(x)에 괄호로 명확히 대입하세요.',
+  },
+  simultaneous_equation_error: {
+    id: 'simultaneous_equation_error',
+    labelKo: '연립방정식 설정 실수',
+    desc: '두 조건에서 연립방정식을 세우거나 풀이하는 과정에서 오류가 생겼습니다.',
+    tip: '각 조건에서 나오는 식을 번호로 정리하고, 가감법 또는 대입법 중 하나를 명확히 선택하세요.',
+  },
+  counting_method_confusion: {
+    id: 'counting_method_confusion',
+    labelKo: '경우의 수 방법 혼동',
+    desc: '순열/조합/수형도 중 어떤 방법을 써야 할지 판단이 어려운 상태입니다.',
+    tip: '순서가 중요하면 순열, 중요하지 않으면 조합을 쓴다는 기준을 먼저 체크하세요.',
+  },
+  counting_overcounting: {
+    id: 'counting_overcounting',
+    labelKo: '중복 처리 실수',
+    desc: '경우를 셀 때 같은 경우를 두 번 세거나 조건을 잘못 걸러내는 실수가 발생했습니다.',
+    tip: '수형도나 표로 경우를 직접 나열하면서 중복 여부를 하나씩 확인하세요.',
   },
 };
 

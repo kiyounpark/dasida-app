@@ -16,7 +16,7 @@ export const problemData: Problem[] = [
     choices: ['5√3', '7√3', '9√3', '11√3', '13√3'],
     answerIndex: 1,
     topic: '무리수/실수',
-    diagnosisMethods: ['unknown'],
+    diagnosisMethods: ['radical', 'unknown'],
   },
   {
     id: 'q2',
@@ -25,7 +25,7 @@ export const problemData: Problem[] = [
     choices: ['-12', '-8', '-4', '2', '6'],
     answerIndex: 1,
     topic: '다항식의 연산',
-    diagnosisMethods: ['unknown'],
+    diagnosisMethods: ['polynomial', 'unknown'],
   },
   {
     id: 'q3',
@@ -33,7 +33,7 @@ export const problemData: Problem[] = [
     choices: ['6', '8', '10', '12', '14'],
     answerIndex: 3,
     topic: '복소수',
-    diagnosisMethods: ['unknown'],
+    diagnosisMethods: ['complex_number', 'unknown'],
   },
   {
     id: 'q4',
@@ -50,7 +50,7 @@ export const problemData: Problem[] = [
     choices: ['5', '10', '12', '15', '18'],
     answerIndex: 3,
     topic: '나머지정리',
-    diagnosisMethods: ['unknown'],
+    diagnosisMethods: ['remainder_theorem', 'unknown'],
   },
   {
     id: 'q6',
@@ -68,7 +68,7 @@ export const problemData: Problem[] = [
     choices: ['24', '36', '48', '60', '72'],
     answerIndex: 3,
     topic: '경우의 수',
-    diagnosisMethods: ['unknown'],
+    diagnosisMethods: ['counting', 'unknown'],
   },
   {
     id: 'q8',
