@@ -1,5 +1,5 @@
-import type { SolveMethodId } from '@/data/diagnosisTree';
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { SolveMethodId } from '@/data/diagnosisTree';
 
 export type QuizAnswer = {
   problemId: string;
@@ -24,6 +24,11 @@ export type QuizSessionState = {
   hasStarted: boolean;
   currentQuestionIndex: number;
   answers: QuizAnswer[];
+  
+  isDiagnosing: boolean;
+  diagnosisQueue: number[];
+  currentDiagnosisIndex: number;
+
   weaknessScores: Record<WeaknessId, number>;
   result?: QuizResultSummary;
   practiceMode?: PracticeMode;

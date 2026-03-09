@@ -23,6 +23,11 @@
 
 ### 2026.03.09
 
+**오답 일괄 진단(Bulk Diagnosis) 플로우 리팩토링**
+- `features/quiz/session.tsx`에서 오답 처리 시 바로 진단 화면을 띄우지 않도록 `isDiagnosing` 및 `diagnosisQueue` 상태 도입
+- 10문제를 모두 푼 뒤, 큐에 쌓인 오답 인덱스에 대해 순차적으로 진단 트리를 진행하는 단계 분리
+- `app/(tabs)/quiz/index.tsx`에 `isDiagnosing` 렌더링 경로를 추가해, 진단 모드일 때는 오답 원인 분석 UI 우선 노출
+- Claude Code CLI 검증을 통해 Expo UI 스킬 권장 사항(`React.use`, `borderCurve: 'continuous'`, `Haptics`, `selectable`)을 반영하고 타입 검사(`tsc --noEmit`) 통과
 **안드로이드 하단 탭 안전 영역 보정**
 - `app/(tabs)/_layout.tsx`의 `tabBarStyle`이 React Navigation 기본 하단 inset 처리를 덮어쓰고 있던 문제를 확인
 - `useSafeAreaInsets()`를 적용해 하단 탭바 높이와 `paddingBottom`에 안드로이드 하단 시스템 내비게이션 inset을 직접 반영

@@ -1,6 +1,7 @@
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -12,16 +13,12 @@ import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnos
 import { problemData } from '@/data/problemData';
 import { useQuizSession } from '@/features/quiz/session';
 
-type PendingWrongState = {
-  problemId: string;
-  selectedIndex: number;
-  methodId?: SolveMethodId;
-};
-
 export default function QuizIndexScreen() {
-  const { state, startSession, submitCorrectAnswer, submitWrongAnswer } = useQuizSession();
+  const { state, startSession, submitAnswer, submitDiagnosis } = useQuizSession();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [pendingWrong, setPendingWrong] = useState<PendingWrongState | null>(null);
+
+  // 진행 중인 오답 진단의 1단계(풀이법) 선택 상태
+  const [tempMethodId, setTempMethodId] = useState<SolveMethodId | null>(null);
 
   const currentProblem = useMemo(
     () => problemData[state.currentQuestionIndex],
@@ -30,7 +27,6 @@ export default function QuizIndexScreen() {
 
   useEffect(() => {
     setSelectedIndex(null);
-    setPendingWrong(null);
   }, [state.currentQuestionIndex]);
 
   useEffect(() => {
@@ -39,44 +35,34 @@ export default function QuizIndexScreen() {
     }
   }, [state.result]);
 
+  useEffect(() => {
+    // 진단 문제가 넘어갈 때 풀이법 선택 초기화
+    setTempMethodId(null);
+  }, [state.currentDiagnosisIndex]);
+
   const handleSubmit = () => {
     if (!currentProblem || selectedIndex === null) return;
-
     const isCorrect = selectedIndex === currentProblem.answerIndex;
-
-    if (isCorrect) {
-      submitCorrectAnswer(currentProblem.id, selectedIndex);
-      return;
-    }
-
-    setPendingWrong({
-      problemId: currentProblem.id,
-      selectedIndex,
-    });
+    submitAnswer(currentProblem.id, selectedIndex, isCorrect);
   };
 
   const handleMethodSelect = (methodId: SolveMethodId) => {
-    setPendingWrong((previous) => {
-      if (!previous) return previous;
-      return {
-        ...previous,
-        methodId,
-      };
-    });
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    setTempMethodId(methodId);
   };
 
   const handleWeaknessSelect = (weaknessId: WeaknessId) => {
-    if (!pendingWrong?.methodId) return;
-
-    submitWrongAnswer(
-      pendingWrong.problemId,
-      pendingWrong.selectedIndex,
-      pendingWrong.methodId,
-      weaknessId,
-    );
+    if (!tempMethodId) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    const answerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
+    submitDiagnosis(answerIndex, tempMethodId, weaknessId);
   };
 
-  if (!currentProblem && !state.result) {
+  if (!currentProblem && !state.result && !state.isDiagnosing) {
     return (
       <View style={styles.screen}>
         <BrandHeader compact />
@@ -87,14 +73,85 @@ export default function QuizIndexScreen() {
     );
   }
 
-  if (!currentProblem) {
-    return null;
+  // --- 진단 단계(DIAGNOSING) 렌더링 ---
+  if (state.isDiagnosing) {
+    const wrongAnswerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
+    const wrongAnswer = state.answers[wrongAnswerIndex];
+    const problem = problemData.find((p) => p.id === wrongAnswer.problemId);
+
+    if (!problem) return null;
+
+    const stepTitle = `${state.currentDiagnosisIndex + 1} / ${state.diagnosisQueue.length}`;
+    const progressRatio = (state.currentDiagnosisIndex + 1) / state.diagnosisQueue.length;
+    const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
+    const methodStep = tempMethodId ? diagnosisTree[tempMethodId] : null;
+
+    return (
+      <View style={styles.screen}>
+        <BrandHeader />
+        <ScrollView
+          style={styles.scroll}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.container}>
+          <View style={styles.surfaceCard}>
+            <View style={styles.progressHeader}>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: progressPercent, backgroundColor: '#f39c12' }]} />
+              </View>
+              <View style={styles.progressMeta}>
+                <Text style={styles.progressLabel}>오답 진단 진행률</Text>
+                <Text style={[styles.progress, { color: '#e67e22' }]}>{stepTitle}</Text>
+              </View>
+            </View>
+            <View style={styles.topicRow}>
+              <Text style={styles.topicChip}>{problem.topic}</Text>
+            </View>
+            <ProblemStatement question={problem.question} />
+          </View>
+
+          <View style={styles.diagnosisCard}>
+            <Text style={styles.diagnosisTitle}>오답 원인 분석</Text>
+            {!methodStep ? (
+              <>
+                <Text selectable style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
+                <View style={styles.diagnosisChoices}>
+                  {methodOptions.map((option) => (
+                    <Pressable
+                      key={option.id}
+                      style={styles.diagnosisChoiceButton}
+                      onPress={() => handleMethodSelect(option.id)}>
+                      <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <>
+                <Text selectable style={styles.diagnosisText}>{methodStep.prompt}</Text>
+                <View style={styles.diagnosisChoices}>
+                  {methodStep.choices.map((choice) => (
+                    <Pressable
+                      key={choice.id}
+                      style={styles.diagnosisChoiceButton}
+                      onPress={() => handleWeaknessSelect(choice.weaknessId)}>
+                      <Text style={styles.diagnosisChoiceText}>{choice.text}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    );
   }
+
+  // --- 정상 문제 풀이(QUIZ) 단계 렌더링 ---
+  if (!currentProblem) return null;
 
   const stepTitle = `${state.currentQuestionIndex + 1} / ${problemData.length}`;
   const progressRatio = (state.currentQuestionIndex + 1) / problemData.length;
   const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
-  const methodStep = pendingWrong?.methodId ? diagnosisTree[pendingWrong.methodId] : null;
 
   return (
     <View style={styles.screen}>
@@ -107,7 +164,7 @@ export default function QuizIndexScreen() {
           <View style={styles.introCard}>
             <Text style={styles.introEyebrow}>진단 시작 전</Text>
             <Text style={styles.introTitle}>10문제 약점 진단</Text>
-            <Text style={styles.introBody}>
+            <Text selectable style={styles.introBody}>
               짧은 10문항으로 자주 흔들리는 단원을 찾고, 결과에서 바로 약점 연습으로
               이어집니다.
             </Text>
@@ -158,46 +215,11 @@ export default function QuizIndexScreen() {
               <BrandButton
                 title="답 제출하기"
                 onPress={handleSubmit}
-                disabled={selectedIndex === null || pendingWrong !== null}
+                disabled={selectedIndex === null}
               />
             </View>
           </View>
         )}
-
-        {pendingWrong ? (
-          <View style={styles.diagnosisCard}>
-            <Text style={styles.diagnosisTitle}>오답 진단</Text>
-            {!methodStep ? (
-              <>
-                <Text style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
-                <View style={styles.diagnosisChoices}>
-                  {methodOptions.map((option) => (
-                    <Pressable
-                      key={option.id}
-                      style={styles.diagnosisChoiceButton}
-                      onPress={() => handleMethodSelect(option.id)}>
-                      <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </>
-            ) : (
-              <>
-                <Text style={styles.diagnosisText}>{methodStep.prompt}</Text>
-                <View style={styles.diagnosisChoices}>
-                  {methodStep.choices.map((choice) => (
-                    <Pressable
-                      key={choice.id}
-                      style={styles.diagnosisChoiceButton}
-                      onPress={() => handleWeaknessSelect(choice.weaknessId)}>
-                      <Text style={styles.diagnosisChoiceText}>{choice.text}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </>
-            )}
-          </View>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -233,6 +255,7 @@ const styles = StyleSheet.create({
   surfaceCard: {
     backgroundColor: BrandColors.card,
     borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: BrandColors.border,
     padding: BrandSpacing.lg,
@@ -242,6 +265,7 @@ const styles = StyleSheet.create({
   introCard: {
     backgroundColor: BrandColors.card,
     borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: BrandColors.border,
     padding: BrandSpacing.lg,
@@ -334,6 +358,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     paddingVertical: 15,
     paddingHorizontal: 20,
     backgroundColor: '#fff',
@@ -358,6 +383,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E6C7C7',
     borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
     backgroundColor: '#FFF4F4',
     padding: BrandSpacing.md,
     gap: BrandSpacing.sm,
@@ -379,6 +405,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F2B8B8',
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     backgroundColor: '#fff',
     paddingVertical: 10,
     paddingHorizontal: 12,
