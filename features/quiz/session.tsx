@@ -11,6 +11,7 @@ import { createContext, type ReactNode, useContext, useMemo, useReducer } from '
 
 type QuizSessionContextValue = {
   state: QuizSessionState;
+  startSession: () => void;
   submitCorrectAnswer: (problemId: string, selectedIndex: number) => void;
   submitWrongAnswer: (
     problemId: string,
@@ -25,6 +26,7 @@ type QuizSessionContextValue = {
 
 type Action =
   | { type: 'RESET' }
+  | { type: 'START' }
   | { type: 'SUBMIT_CORRECT'; payload: { problemId: string; selectedIndex: number } }
   | {
       type: 'SUBMIT_WRONG';
@@ -42,6 +44,7 @@ const TOTAL_QUESTIONS = problemData.length;
 
 function createInitialState(): QuizSessionState {
   return {
+    hasStarted: false,
     currentQuestionIndex: 0,
     answers: [],
     weaknessScores: createInitialWeaknessScores(),
@@ -80,6 +83,14 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
   switch (action.type) {
     case 'RESET': {
       return createInitialState();
+    }
+
+    case 'START': {
+      if (state.hasStarted) return state;
+      return {
+        ...state,
+        hasStarted: true,
+      };
     }
 
     case 'SUBMIT_CORRECT': {
@@ -173,6 +184,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<QuizSessionContextValue>(
     () => ({
       state,
+      startSession: () => {
+        dispatch({ type: 'START' });
+      },
       submitCorrectAnswer: (problemId, selectedIndex) => {
         dispatch({
           type: 'SUBMIT_CORRECT',

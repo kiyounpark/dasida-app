@@ -21,6 +21,7 @@ export type QuizResultSummary = {
 export type PracticeMode = 'weakness' | 'challenge';
 
 export type QuizSessionState = {
+  hasStarted: boolean;
   currentQuestionIndex: number;
   answers: QuizAnswer[];
   weaknessScores: Record<WeaknessId, number>;

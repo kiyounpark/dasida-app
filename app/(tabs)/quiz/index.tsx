@@ -19,7 +19,7 @@ type PendingWrongState = {
 };
 
 export default function QuizIndexScreen() {
-  const { state, submitCorrectAnswer, submitWrongAnswer } = useQuizSession();
+  const { state, startSession, submitCorrectAnswer, submitWrongAnswer } = useQuizSession();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [pendingWrong, setPendingWrong] = useState<PendingWrongState | null>(null);
 
@@ -103,45 +103,66 @@ export default function QuizIndexScreen() {
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
-        <View style={styles.surfaceCard}>
-          <View style={styles.progressHeader}>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: progressPercent }]} />
+        {!state.hasStarted ? (
+          <View style={styles.introCard}>
+            <Text style={styles.introEyebrow}>진단 시작 전</Text>
+            <Text style={styles.introTitle}>10문제 약점 진단</Text>
+            <Text style={styles.introBody}>
+              짧은 10문항으로 자주 흔들리는 단원을 찾고, 결과에서 바로 약점 연습으로
+              이어집니다.
+            </Text>
+            <View style={styles.introMetaRow}>
+              <View style={styles.introMetaChip}>
+                <Text style={styles.introMetaText}>10문항</Text>
+              </View>
+              <View style={styles.introMetaChip}>
+                <Text style={styles.introMetaText}>약 3분</Text>
+              </View>
             </View>
-            <View style={styles.progressMeta}>
-              <Text style={styles.progressLabel}>진행률</Text>
-              <Text style={styles.progress}>{stepTitle}</Text>
+            <BrandButton title="진단 시작하기" onPress={startSession} />
+          </View>
+        ) : (
+          <View style={styles.surfaceCard}>
+            <View style={styles.progressHeader}>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: progressPercent }]} />
+              </View>
+              <View style={styles.progressMeta}>
+                <Text style={styles.progressLabel}>진행률</Text>
+                <Text style={styles.progress}>{stepTitle}</Text>
+              </View>
+            </View>
+            <View style={styles.topicRow}>
+              <Text style={styles.topicChip}>{currentProblem.topic}</Text>
+            </View>
+            <ProblemStatement question={currentProblem.question} />
+
+            <View style={styles.choicesContainer}>
+              {currentProblem.choices.map((choice, index) => {
+                const isSelected = selectedIndex === index;
+                return (
+                  <Pressable
+                    key={`${currentProblem.id}_${index}`}
+                    style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                    onPress={() => setSelectedIndex(index)}>
+                    <MathText
+                      text={choice}
+                      style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.submitContainer}>
+              <BrandButton
+                title="답 제출하기"
+                onPress={handleSubmit}
+                disabled={selectedIndex === null || pendingWrong !== null}
+              />
             </View>
           </View>
-          <Text style={styles.sectionTitle}>10문제 약점 진단</Text>
-          <Text style={styles.topic}>{currentProblem.topic}</Text>
-          <ProblemStatement question={currentProblem.question} />
-
-          <View style={styles.choicesContainer}>
-            {currentProblem.choices.map((choice, index) => {
-              const isSelected = selectedIndex === index;
-              return (
-                <Pressable
-                  key={`${currentProblem.id}_${index}`}
-                  style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-                  onPress={() => setSelectedIndex(index)}>
-                  <MathText
-                    text={choice}
-                    style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
-                  />
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <View style={styles.submitContainer}>
-            <BrandButton
-              title="답 제출하기"
-              onPress={handleSubmit}
-              disabled={selectedIndex === null || pendingWrong !== null}
-            />
-          </View>
-        </View>
+        )}
 
         {pendingWrong ? (
           <View style={styles.diagnosisCard}>
@@ -218,6 +239,48 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
     boxShadow: '0 12px 32px rgba(41, 59, 39, 0.08)',
   },
+  introCard: {
+    backgroundColor: BrandColors.card,
+    borderRadius: BrandRadius.lg,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.md,
+    boxShadow: '0 12px 32px rgba(41, 59, 39, 0.08)',
+  },
+  introEyebrow: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: BrandColors.primarySoft,
+  },
+  introTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: BrandColors.text,
+  },
+  introBody: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: BrandColors.mutedText,
+  },
+  introMetaRow: {
+    flexDirection: 'row',
+    gap: BrandSpacing.xs,
+  },
+  introMetaChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: '#F7FAF6',
+  },
+  introMetaText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: BrandColors.text,
+    fontVariant: ['tabular-nums'],
+  },
   progressHeader: {
     gap: BrandSpacing.xs,
     marginBottom: BrandSpacing.xs,
@@ -243,21 +306,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: BrandColors.mutedText,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: BrandColors.text,
-  },
   progress: {
     fontSize: 14,
     color: BrandColors.primarySoft,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
-  topic: {
-    fontSize: 13,
-    color: BrandColors.mutedText,
+  topicRow: {
     marginTop: 2,
+    marginBottom: BrandSpacing.xs,
+  },
+  topicChip: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#EEF5EC',
+    color: BrandColors.primarySoft,
+    fontSize: 12,
+    fontWeight: '700',
   },
   choicesContainer: {
     marginTop: BrandSpacing.sm,

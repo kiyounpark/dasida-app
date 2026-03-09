@@ -33,6 +33,11 @@
 - 기존 `1 / 10` 텍스트는 유지하되, 같은 상태값으로 막대가 조금씩 차오르도록 구성
 - 진단 화면 진입 시 현재 단계가 숫자뿐 아니라 시각적으로도 바로 보이도록 보강
 
+**10문제 약점진단 시작 화면 분리**
+- `features/quiz/session.tsx`와 `features/quiz/types.ts`에 `hasStarted` 세션 상태를 추가해 시작 전 인트로와 진행 중 화면을 안정적으로 분리
+- `app/(tabs)/quiz/index.tsx`에 시작 전 인트로 카드와 `진단 시작하기` 버튼을 추가
+- 진단 시작 후에는 `10문제 약점 진단` 큰 제목을 제거하고, 상단을 `진행률 바 + 단계 수 + 단원 칩`만 남기는 구조로 단순화
+
 **수식 표기 브랜치 재정렬**
 - `codex/feat-math-notation-rendering`의 기능 커밋 중 실제 작업 커밋 `3d77738`만 분리
 - 최신 `main` 위에서 새 브랜치 `codex/feat-math-notation-rendering-main-based` 생성
