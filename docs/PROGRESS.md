@@ -92,6 +92,21 @@
 - 원격 푸시 커밋: `a50d1d2`
 - 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/a50d1d2ad8226615800bcb234fe7491f63d80cd4`
 
+**문제별 맞춤형 진단 방법 지원**
+- `diagnosisMap`에 4개 새 약점 추가 (factoring_pattern_recall, complex_factoring_difficulty, quadratic_formula_memorization, discriminant_calculation)
+- `diagnosisTree`에 각 약점별 대응하는 풀이법(SolveMethodId) 추가
+- `problemData`의 각 문제에 `diagnosisMethods` 배열 할당하여 문제별 사용 가능한 진단 방법 정의
+- `practiceMap`에 4개 새 약점에 대응하는 연습문제 추가 (인수분해 패턴, 복잡한 식 인수분해, 근의공식, 판별식 계산)
+- `app/(tabs)/quiz/index.tsx`에서 화면에 보여줄 진단 옵션 버튼을 고정 4개에서 문제별 `availableMethods` 배열로 동적 렌더링으로 변경
+- `tsc --noEmit` 검증 통과
+
+**원격 푸시 기록 (문제별 맞춤형 진단 방법 지원)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `1abc79a`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/1abc79a3817cc54aa39368f523ed9dc4c6d94a94`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
