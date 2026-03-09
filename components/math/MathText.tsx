@@ -17,6 +17,33 @@ const SUPERSCRIPT_MAP: Record<string, string> = {
   '9': '⁹',
   '+': '⁺',
   '-': '⁻',
+  '(': '⁽',
+  ')': '⁾',
+  a: 'ᵃ',
+  b: 'ᵇ',
+  c: 'ᶜ',
+  d: 'ᵈ',
+  e: 'ᵉ',
+  f: 'ᶠ',
+  g: 'ᵍ',
+  h: 'ʰ',
+  i: 'ⁱ',
+  j: 'ʲ',
+  k: 'ᵏ',
+  l: 'ˡ',
+  m: 'ᵐ',
+  n: 'ⁿ',
+  o: 'ᵒ',
+  p: 'ᵖ',
+  r: 'ʳ',
+  s: 'ˢ',
+  t: 'ᵗ',
+  u: 'ᵘ',
+  v: 'ᵛ',
+  w: 'ʷ',
+  x: 'ˣ',
+  y: 'ʸ',
+  z: 'ᶻ',
 };
 
 function toSuperscript(value: string): string | null {
@@ -42,6 +69,14 @@ export function formatMathText(input: string): string {
     .replace(/(\d|[A-Za-z)\]])\s*\/\s*(\d|[A-Za-z(])/g, '$1⁄$2')
     .replace(/sqrt\s*\(/gi, '√(')
     .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
+    .replace(/(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g, (match, base: string, exponent: string) => {
+      const superscript = toSuperscript(`(${exponent})`);
+      return superscript ? `${base}${superscript}` : match;
+    })
+    .replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, (match, base: string, exponent: string) => {
+      const superscript = toSuperscript(exponent);
+      return superscript ? `${base}${superscript}` : match;
+    })
     .replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, (match, base: string, exponent: string) => {
       const superscript = toSuperscript(exponent);
       return superscript ? `${base}${superscript}` : match;

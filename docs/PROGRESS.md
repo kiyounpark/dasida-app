@@ -35,6 +35,13 @@
 - 원격 푸시 커밋: `7ea8d22`
 - 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/7ea8d22f0e52a56b5adc28a8729965c4722c5aad`
 
+**수식 표기 범위 보강**
+- `MathText`가 `x^2`는 처리하지만 `x^n`, `x^(n-1)` 같은 문자/괄호 지수는 처리하지 못하던 범위를 확인
+- `components/math/MathText.tsx`의 지수 매핑을 확장해 문자 지수와 괄호 지수를 유니코드 윗첨자로 변환하도록 보강
+- 실제 데이터 기준 샘플 확인:
+  - `x^n은 n*x^(n-1)` → `xⁿ은 n×x⁽ⁿ⁻¹⁾`
+  - `sqrt(75) - 6/sqrt(3) + sqrt(48)` → `√75 - 6⁄√3 + √48`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
