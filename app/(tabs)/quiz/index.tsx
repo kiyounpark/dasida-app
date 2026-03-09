@@ -25,6 +25,16 @@ export default function QuizIndexScreen() {
     [state.currentQuestionIndex],
   );
 
+  const availableMethods = useMemo(() => {
+    if (!state.isDiagnosing) return [];
+    const wrongAnswerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
+    if (wrongAnswerIndex === undefined) return methodOptions;
+    const wrongAnswer = state.answers[wrongAnswerIndex];
+    const problem = problemData.find((p) => p.id === wrongAnswer.problemId);
+    if (!problem?.diagnosisMethods) return methodOptions;
+    return methodOptions.filter((opt) => problem.diagnosisMethods.includes(opt.id));
+  }, [state.isDiagnosing, state.currentDiagnosisIndex, state.answers, state.diagnosisQueue]);
+
   useEffect(() => {
     setSelectedIndex(null);
   }, [state.currentQuestionIndex]);
@@ -115,7 +125,7 @@ export default function QuizIndexScreen() {
               <>
                 <Text selectable style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
                 <View style={styles.diagnosisChoices}>
-                  {methodOptions.map((option) => (
+                  {availableMethods.map((option) => (
                     <Pressable
                       key={option.id}
                       style={styles.diagnosisChoiceButton}

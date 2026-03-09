@@ -1,9 +1,12 @@
+import type { SolveMethodId } from './diagnosisTree';
+
 export type Problem = {
   id: string;
   question: string;
   choices: string[];
   answerIndex: number;
   topic: string;
+  diagnosisMethods: SolveMethodId[];
 };
 
 export const problemData: Problem[] = [
@@ -13,6 +16,7 @@ export const problemData: Problem[] = [
     choices: ['5√3', '7√3', '9√3', '11√3', '13√3'],
     answerIndex: 1,
     topic: '무리수/실수',
+    diagnosisMethods: ['unknown'],
   },
   {
     id: 'q2',
@@ -21,6 +25,7 @@ export const problemData: Problem[] = [
     choices: ['-12', '-8', '-4', '2', '6'],
     answerIndex: 1,
     topic: '다항식의 연산',
+    diagnosisMethods: ['unknown'],
   },
   {
     id: 'q3',
@@ -28,6 +33,7 @@ export const problemData: Problem[] = [
     choices: ['6', '8', '10', '12', '14'],
     answerIndex: 3,
     topic: '복소수',
+    diagnosisMethods: ['unknown'],
   },
   {
     id: 'q4',
@@ -35,6 +41,7 @@ export const problemData: Problem[] = [
     choices: ['-9/2', '-7/2', '-5/2', '5/2', '7/2'],
     answerIndex: 1,
     topic: '이차방정식',
+    diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
   },
   {
     id: 'q5',
@@ -43,6 +50,7 @@ export const problemData: Problem[] = [
     choices: ['5', '10', '12', '15', '18'],
     answerIndex: 3,
     topic: '나머지정리',
+    diagnosisMethods: ['unknown'],
   },
   {
     id: 'q6',
@@ -51,6 +59,7 @@ export const problemData: Problem[] = [
     choices: ['5', '7', '8', '9', '10'],
     answerIndex: 2,
     topic: '이차부등식',
+    diagnosisMethods: ['factoring', 'unknown'],
   },
   {
     id: 'q7',
@@ -59,6 +68,7 @@ export const problemData: Problem[] = [
     choices: ['24', '36', '48', '60', '72'],
     answerIndex: 3,
     topic: '경우의 수',
+    diagnosisMethods: ['unknown'],
   },
   {
     id: 'q8',
@@ -67,6 +77,7 @@ export const problemData: Problem[] = [
     choices: ['3', '5', '7', '8', '10'],
     answerIndex: 2,
     topic: '이차방정식',
+    diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
   },
   {
     id: 'q9',
@@ -75,6 +86,7 @@ export const problemData: Problem[] = [
     choices: ['0', '4', '8', '12', '16'],
     answerIndex: 2,
     topic: '이차함수',
+    diagnosisMethods: ['cps', 'vertex', 'diff', 'unknown'],
   },
   {
     id: 'q10',
@@ -83,5 +95,6 @@ export const problemData: Problem[] = [
     choices: ['5', '6', '7', '9', '10'],
     answerIndex: 3,
     topic: '경우의 수/이차방정식',
+    diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
   },
 ];

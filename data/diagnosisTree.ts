@@ -1,6 +1,6 @@
 import type { WeaknessId } from './diagnosisMap';
 
-export type SolveMethodId = 'cps' | 'vertex' | 'diff' | 'unknown';
+export type SolveMethodId = 'cps' | 'vertex' | 'diff' | 'unknown' | 'factoring' | 'quadratic';
 
 export type MethodOption = {
   id: SolveMethodId;
@@ -23,6 +23,8 @@ export const methodOptions: MethodOption[] = [
   { id: 'cps', labelKo: '완전제곱식' },
   { id: 'vertex', labelKo: '꼭짓점 공식' },
   { id: 'diff', labelKo: '미분' },
+  { id: 'factoring', labelKo: '인수분해' },
+  { id: 'quadratic', labelKo: '근의 공식' },
   { id: 'unknown', labelKo: '잘 모르겠어' },
 ];
 
@@ -108,6 +110,48 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'unknown_read',
         text: '최솟값/최댓값 해석이 헷갈려요.',
         weaknessId: 'min_value_read_confusion',
+      },
+    ],
+  },
+  factoring: {
+    methodId: 'factoring',
+    prompt: '인수분해 풀이에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'factoring_pattern',
+        text: '인수분해 공식 패턴을 떠올리기 어려웠어요.',
+        weaknessId: 'factoring_pattern_recall',
+      },
+      {
+        id: 'factoring_calc',
+        text: '인수분해는 했지만 계산에서 실수했어요.',
+        weaknessId: 'calc_repeated_error',
+      },
+      {
+        id: 'factoring_complex',
+        text: '복잡한 식을 묶는 게 어려웠어요.',
+        weaknessId: 'complex_factoring_difficulty',
+      },
+    ],
+  },
+  quadratic: {
+    methodId: 'quadratic',
+    prompt: '근의 공식 풀이에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'quadratic_formula',
+        text: '근의 공식 자체가 기억이 안 났어요.',
+        weaknessId: 'quadratic_formula_memorization',
+      },
+      {
+        id: 'quadratic_discriminant',
+        text: '판별식 계산에서 실수했어요.',
+        weaknessId: 'discriminant_calculation',
+      },
+      {
+        id: 'quadratic_simplify',
+        text: '근을 구한 뒤 정리에서 틀렸어요.',
+        weaknessId: 'calc_repeated_error',
       },
     ],
   },
