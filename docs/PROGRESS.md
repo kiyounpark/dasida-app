@@ -107,6 +107,21 @@
 - 원격 푸시 커밋: `1abc79a`
 - 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/1abc79a3817cc54aa39368f523ed9dc4c6d94a94`
 
+**문제 유형별 맞춤 진단 풀이법 선택지 추가**
+- `diagnosisTree`에 풀이법 5개 추가 — `radical`(무리수 계산), `polynomial`(다항식 전개), `complex_number`(복소수 계산), `remainder_theorem`(나머지정리), `counting`(경우의 수)
+- 각 풀이법마다 2~3개의 약점 분기를 `diagnosisTree`에 정의
+- `diagnosisMap`에 10개 새 약점 추가 (√간소화, 유리화, 전개부호, 동류항, i²혼동, 복소수정리, 나머지대입, 연립방정식, 경우의수방법혼동, 중복처리)
+- `practiceMap`에 신규 약점 10개에 대응하는 연습문제 추가
+- `problemData` q1(무리수), q2(다항식), q3(복소수), q5(나머지정리), q7(경우의 수)에 적절한 풀이법 할당 — 기존 `['unknown']`만 있어 '잘 모르겠어' 하나만 나오던 문제 해소
+- `tsc --noEmit` 검증 통과
+
+**원격 푸시 기록 (문제 유형별 맞춤 진단 풀이법 선택지 추가)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `21cb18b`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/21cb18bf6107dcb9d2ec34a314aa34155cbfc937`
+
 ### 2026.03.08
 
 **Expo 스킬 프로젝트 반영 완료**
@@ -307,6 +322,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.09 23:17
+- 해시: `21cb18b` (`21cb18bf6107dcb9d2ec34a314aa34155cbfc937`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/21cb18bf6107dcb9d2ec34a314aa34155cbfc937
+- 작성자: 박기윤
+- 메시지: feat: 문제 유형별 맞춤 진단 풀이법 선택지 추가
+- 본문: - diagnosisTree에 풀이법 5개 추가 (무리수계산, 다항식전개, 복소수계산, 나머지정리, 경우의수) / - diagnosisMap에 약점 10개 추가 (√간소화, 유리화, 전개부호, 동류항, i²혼동 등) / - practiceMap에 신규 약점 10개 연습문제 추가 / - problemData q1(무리수), q2(다항식), q3(복소수), q5(나머지정리), q7(경우의수)에 적절한 diagnosisMethods 할당 / - 기존 unknown만 있던 문제들에서 '잘 모르겠어' 하나만 나오던 문제 해소 / - tsc --noEmit 검증 통과 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.03.09 23:03
 - 해시: `0dc232c` (`0dc232cacc4e2f56a411f0f240e8b46d2eafc9db`)
