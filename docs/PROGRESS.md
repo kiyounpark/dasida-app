@@ -328,6 +328,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.10 22:25
+- 해시: `ddc3a8b` (`ddc3a8b0db05dc30fae60f2f6c8c6785f8066299`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ddc3a8b0db05dc30fae60f2f6c8c6785f8066299
+- 작성자: 박기윤
+- 메시지: feat: 피드백 데모 2차 라우터 흐름 추가
+
 ### 커밋 2026.03.10 18:35
 - 해시: `90299a8` (`90299a8412f1f1d475dd694142fe833677043464`)
 - 브랜치: main
