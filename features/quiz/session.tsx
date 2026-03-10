@@ -1,5 +1,4 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
-import type { SolveMethodId } from '@/data/diagnosisTree';
 import { problemData } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
 import {
@@ -7,17 +6,14 @@ import {
     createInitialWeaknessScores,
     incrementWeaknessScore,
 } from './engine';
-import type { QuizSessionState } from './types';
+import type { DiagnosisRoutingTrace, QuizSessionState } from './types';
 
 type QuizSessionContextValue = {
   state: QuizSessionState;
   startSession: () => void;
   submitAnswer: (problemId: string, selectedIndex: number, isCorrect: boolean) => void;
-  submitDiagnosis: (
-    answerIndex: number,
-    methodId: SolveMethodId,
-    weaknessId: WeaknessId,
-  ) => void;
+  confirmDiagnosisMethod: (answerIndex: number, trace: DiagnosisRoutingTrace) => void;
+  submitDiagnosisWeakness: (answerIndex: number, weaknessId: WeaknessId) => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
@@ -28,10 +24,16 @@ type Action =
   | { type: 'START' }
   | { type: 'SUBMIT_ANSWER'; payload: { problemId: string; selectedIndex: number; isCorrect: boolean } }
   | {
-      type: 'SUBMIT_DIAGNOSIS';
+      type: 'CONFIRM_DIAGNOSIS_METHOD';
       payload: {
         answerIndex: number;
-        methodId: SolveMethodId;
+        trace: DiagnosisRoutingTrace;
+      };
+    }
+  | {
+      type: 'SUBMIT_DIAGNOSIS_WEAKNESS';
+      payload: {
+        answerIndex: number;
         weaknessId: WeaknessId;
       };
     }
@@ -136,15 +138,32 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       });
     }
 
-    case 'SUBMIT_DIAGNOSIS': {
+    case 'CONFIRM_DIAGNOSIS_METHOD': {
       if (!state.isDiagnosing) return state;
 
-      const { answerIndex, methodId, weaknessId } = action.payload;
+      const { answerIndex, trace } = action.payload;
       
       const newAnswers = [...state.answers];
       newAnswers[answerIndex] = {
         ...newAnswers[answerIndex],
-        methodId,
+        methodId: trace.finalMethodId,
+        diagnosisRouting: trace,
+      };
+
+      return {
+        ...state,
+        answers: newAnswers,
+      };
+    }
+
+    case 'SUBMIT_DIAGNOSIS_WEAKNESS': {
+      if (!state.isDiagnosing) return state;
+
+      const { answerIndex, weaknessId } = action.payload;
+      
+      const newAnswers = [...state.answers];
+      newAnswers[answerIndex] = {
+        ...newAnswers[answerIndex],
         weaknessId,
       };
 
@@ -206,10 +225,16 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
           payload: { problemId, selectedIndex, isCorrect },
         });
       },
-      submitDiagnosis: (answerIndex, methodId, weaknessId) => {
+      confirmDiagnosisMethod: (answerIndex, trace) => {
         dispatch({
-          type: 'SUBMIT_DIAGNOSIS',
-          payload: { answerIndex, methodId, weaknessId },
+          type: 'CONFIRM_DIAGNOSIS_METHOD',
+          payload: { answerIndex, trace },
+        });
+      },
+      submitDiagnosisWeakness: (answerIndex, weaknessId) => {
+        dispatch({
+          type: 'SUBMIT_DIAGNOSIS_WEAKNESS',
+          payload: { answerIndex, weaknessId },
         });
       },
       advancePractice: () => {

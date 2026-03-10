@@ -21,6 +21,16 @@
 
 ## 로그
 
+### 2026.03.10
+
+**오답 진단 자유 입력 라우팅 1차 구현 (Claude Code 연동)**
+- `features/quiz/types.ts`: `DiagnosisRoutingTrace` 타입 추가 및 `QuizAnswer` 확장
+- `features/quiz/session.tsx`: 진단 액션을 `confirmDiagnosisMethod`와 `submitDiagnosisWeakness`로 분리
+- `data/diagnosis-method-routing.ts`: 11종의 풀이법 카탈로그 데이터 (키워드 매칭) 추가
+- `features/quiz/diagnosis-router.ts`: 단어 매칭 기반 mock 라우터 비동기 함수 구현
+- `app/(tabs)/quiz/index.tsx`: 진단 UI를 자유 입력 폼과 라우팅 결과(고압/저압 신뢰도 점수 기반 카드 노출)로 리팩토링
+- `PLAN.md`의 구현 단계 및 Claude Code 연계 방식 모두 적용 완료
+
 ### 2026.03.09
 
 **오답 일괄 진단(Bulk Diagnosis) 플로우 리팩토링**

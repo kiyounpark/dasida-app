@@ -1,12 +1,25 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+export type DiagnosisRoutingTrace = {
+  rawText: string;
+  predictedMethodId?: SolveMethodId;
+  confidence?: number;
+  reason?: string;
+  source: 'mock-router' | 'openai-router';
+  needsManualSelection: boolean;
+  candidateMethodIds: SolveMethodId[];
+  finalMethodId: SolveMethodId;
+  finalMethodSource: 'router' | 'manual';
+};
+
 export type QuizAnswer = {
   problemId: string;
   selectedIndex: number;
   isCorrect: boolean;
   methodId?: SolveMethodId;
   weaknessId?: WeaknessId;
+  diagnosisRouting?: DiagnosisRoutingTrace;
 };
 
 export type QuizResultSummary = {

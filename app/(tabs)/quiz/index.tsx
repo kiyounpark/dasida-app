@@ -1,24 +1,31 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { MathText } from '@/components/math/MathText';
 import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
 import { problemData } from '@/data/problemData';
+import { analyzeDiagnosisMethod, type DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 import { useQuizSession } from '@/features/quiz/session';
 
 export default function QuizIndexScreen() {
-  const { state, startSession, submitAnswer, submitDiagnosis } = useQuizSession();
+  const { state, startSession, submitAnswer, confirmDiagnosisMethod, submitDiagnosisWeakness } = useQuizSession();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // 진행 중인 오답 진단의 1단계(풀이법) 선택 상태
   const [tempMethodId, setTempMethodId] = useState<SolveMethodId | null>(null);
+  
+  // 진단 1단계 자유입력 UI 상태
+  const [diagnosisInput, setDiagnosisInput] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
 
   const currentProblem = useMemo(
     () => problemData[state.currentQuestionIndex],
@@ -46,8 +53,10 @@ export default function QuizIndexScreen() {
   }, [state.result]);
 
   useEffect(() => {
-    // 진단 문제가 넘어갈 때 풀이법 선택 초기화
+    // 진단 문제가 넘어갈 때 풀이법 선택 및 입력 상태 초기화
     setTempMethodId(null);
+    setDiagnosisInput('');
+    setRouterResult(null);
   }, [state.currentDiagnosisIndex]);
 
   const handleSubmit = () => {
@@ -56,10 +65,62 @@ export default function QuizIndexScreen() {
     submitAnswer(currentProblem.id, selectedIndex, isCorrect);
   };
 
-  const handleMethodSelect = (methodId: SolveMethodId) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
+  const handleInputChange = (text: string) => {
+    setDiagnosisInput(text);
+    setRouterResult(null); // 입력 수정 시 이전 예측 결과 무효화
+  };
+
+  const handleAnalyze = async () => {
+    if (!diagnosisInput.trim() || isAnalyzing) return;
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeDiagnosisMethod({
+        rawText: diagnosisInput,
+        allowedMethodIds: availableMethods.map(m => m.id),
+      });
+      setRouterResult(result);
+    } finally {
+      setIsAnalyzing(false);
     }
+  };
+
+  // 라우터가 예측한 고신뢰 결과(또는 사용자가 확정한 결과) 반영
+  const handleConfirmPredicted = () => {
+    if (!routerResult) return;
+    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+    
+    // CONFIRM 액션으로 trace와 함께 스토어에 전달
+    const trace = {
+      ...routerResult,
+      rawText: diagnosisInput,
+      finalMethodId: routerResult.predictedMethodId,
+      finalMethodSource: 'router' as const,
+      source: 'mock-router' as const, // 추가
+    };
+    confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
+    setTempMethodId(routerResult.predictedMethodId);
+  };
+
+  // 저신뢰/수동 선택 목록에서 사용자가 직접 고를 때
+  const handleManualSelect = (methodId: SolveMethodId) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+    const trace = routerResult ? {
+      ...routerResult,
+      rawText: diagnosisInput,
+      finalMethodId: methodId,
+      finalMethodSource: 'manual' as const,
+      source: 'mock-router' as const,
+    } : {
+      rawText: diagnosisInput,
+      predictedMethodId: 'unknown' as SolveMethodId,
+      confidence: 0,
+      source: 'mock-router' as const,
+      needsManualSelection: true,
+      candidateMethodIds: availableMethods.map(m => m.id),
+      finalMethodId: methodId,
+      finalMethodSource: 'manual' as const,
+    };
+    confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
     setTempMethodId(methodId);
   };
 
@@ -69,7 +130,7 @@ export default function QuizIndexScreen() {
       Haptics.selectionAsync();
     }
     const answerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
-    submitDiagnosis(answerIndex, tempMethodId, weaknessId);
+    submitDiagnosisWeakness(answerIndex, weaknessId);
   };
 
   if (!currentProblem && !state.result && !state.isDiagnosing) {
@@ -124,16 +185,68 @@ export default function QuizIndexScreen() {
             {!methodStep ? (
               <>
                 <Text selectable style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
-                <View style={styles.diagnosisChoices}>
-                  {availableMethods.map((option) => (
-                    <Pressable
-                      key={option.id}
-                      style={styles.diagnosisChoiceButton}
-                      onPress={() => handleMethodSelect(option.id)}>
-                      <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
+                
+                {availableMethods.length > 0 && (
+                  <Text style={styles.diagnosisHint}>
+                    예) {availableMethods.slice(0, 2).map((m) => {
+                      const ex = diagnosisMethodRoutingCatalog[m.id]?.exampleUtterances?.[0];
+                      return ex ? `"${ex}"` : '';
+                    }).filter(Boolean).join(', ')}
+                  </Text>
+                )}
+                
+                <TextInput
+                  style={styles.diagnosisInput}
+                  value={diagnosisInput}
+                  onChangeText={handleInputChange}
+                  placeholder="풀이 방법을 자유롭게 적어주세요"
+                  placeholderTextColor="#999"
+                  multiline
+                />
+                
+                <Pressable
+                  style={[styles.analyzeButton, !diagnosisInput.trim() && styles.analyzeButtonDisabled]}
+                  onPress={handleAnalyze}
+                  disabled={!diagnosisInput.trim() || isAnalyzing}>
+                  {isAnalyzing ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.analyzeButtonText}>방향 판단하기</Text>
+                  )}
+                </Pressable>
+                
+                {routerResult && !routerResult.needsManualSelection && (
+                  <View style={styles.predictionCard}>
+                    <Text style={styles.predictionLabel}>
+                      {diagnosisMethodRoutingCatalog[routerResult.predictedMethodId]?.labelKo}
+                    </Text>
+                    <Text style={styles.predictionDesc}>
+                      {diagnosisMethodRoutingCatalog[routerResult.predictedMethodId]?.summary}
+                    </Text>
+                    <Pressable style={styles.confirmButton} onPress={handleConfirmPredicted}>
+                      <Text style={styles.confirmButtonText}>이 방식으로 계속</Text>
                     </Pressable>
-                  ))}
-                </View>
+                    <Pressable style={styles.manualTrigger} onPress={() => setRouterResult({ ...routerResult, needsManualSelection: true })}>
+                      <Text style={styles.manualTriggerText}>직접 고를게요</Text>
+                    </Pressable>
+                  </View>
+                )}
+                
+                {routerResult && routerResult.needsManualSelection && (
+                  <>
+                    <Text style={styles.lowConfidenceText}>확신이 낮아요. 직접 골라주세요.</Text>
+                    <View style={styles.diagnosisChoices}>
+                      {availableMethods.map((option) => (
+                        <Pressable
+                          key={option.id}
+                          style={styles.diagnosisChoiceButton}
+                          onPress={() => handleManualSelect(option.id)}>
+                          <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -424,5 +537,82 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 20,
+  },
+  diagnosisHint: {
+    fontSize: 13,
+    color: '#888',
+    fontStyle: 'italic',
+    marginBottom: BrandSpacing.xs,
+  },
+  diagnosisInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: BrandRadius.sm,
+    padding: 12,
+    fontSize: 15,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    backgroundColor: '#fff',
+    marginBottom: BrandSpacing.sm,
+  },
+  analyzeButton: {
+    backgroundColor: '#e67e22',
+    borderRadius: BrandRadius.sm,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: BrandSpacing.md,
+  },
+  analyzeButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  analyzeButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  predictionCard: {
+    backgroundColor: '#FFF9E6',
+    borderRadius: BrandRadius.sm,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.xs,
+    borderWidth: 1,
+    borderColor: '#F5D76E',
+    marginTop: BrandSpacing.sm,
+  },
+  predictionLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#9A7D0A',
+  },
+  predictionDesc: {
+    fontSize: 14,
+    color: '#666',
+  },
+  confirmButton: {
+    backgroundColor: '#27ae60',
+    borderRadius: BrandRadius.sm,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: BrandSpacing.xs,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  manualTrigger: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  manualTriggerText: {
+    fontSize: 14,
+    color: '#666',
+    textDecorationLine: 'underline',
+  },
+  lowConfidenceText: {
+    fontSize: 14,
+    color: '#c0392b',
+    fontWeight: '600',
+    marginBottom: BrandSpacing.xs,
   },
 });
