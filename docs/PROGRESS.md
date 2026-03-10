@@ -29,6 +29,7 @@
 - `data/diagnosis-method-routing.ts`: 11종의 풀이법 카탈로그 데이터 (키워드 매칭) 추가
 - `features/quiz/diagnosis-router.ts`: 단어 매칭 기반 mock 라우터 비동기 함수 구현
 - `app/(tabs)/quiz/index.tsx`: 진단 UI를 자유 입력 폼과 라우팅 결과(고압/저압 신뢰도 점수 기반 카드 노출)로 리팩토링
+- **구현 핵심 요약 (Mock 라우터 로직)**: 학생이 오답 원인을 입력하면 현재는 OpenAI 연동 없이 미리 정의된 풀이법별 키워드 배열에 매칭해 점수를 냅니다. 상위 2개의 점수 차이가 크면(2점 이상) 확정된 풀이법으로 추천해주고, 애매하면 사용자에게 직접 고르도록 객관식 버튼을 띄우는 구조입니다. 차후 `analyzeDiagnosisMethod` 함수 내부만 OpenAI 연동으로 교체하면 실제 AI 기반 분류가 가능하도록 확장성을 확보했습니다.
 - `PLAN.md`의 구현 단계 및 Claude Code 연계 방식 모두 적용 완료
 
 ### 2026.03.09
