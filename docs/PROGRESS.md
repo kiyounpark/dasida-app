@@ -43,6 +43,11 @@
 - `app/(tabs)/quiz/index.tsx`에 시작 전 인트로 카드와 `진단 시작하기` 버튼을 추가
 - 진단 시작 후에는 `10문제 약점 진단` 큰 제목을 제거하고, 상단을 `진행률 바 + 단계 수 + 단원 칩`만 남기는 구조로 단순화
 
+**피드백 입력 방식 비교 HTML 프로토타입 추가**
+- 루트에 `feedback-input-demo.html`을 추가해 Live Server에서 기존 방식과 개선 방식을 바로 비교할 수 있도록 구성
+- 기존 방식은 `raw text만 저장`, 개선 방식은 `추천 답변 칩 + 직접 입력 + normalizedReasonId 저장` 흐름을 한 화면에서 체험 가능하게 구현
+- 자유 입력을 바로 OpenAI로 보내기 전에, 대표 표현 10~15개로 얼마나 유도/정규화할 수 있는지 확인하는 데 사용할 수 있는 데모
+
 **수식 표기 브랜치 재정렬**
 - `codex/feat-math-notation-rendering`의 기능 커밋 중 실제 작업 커밋 `3d77738`만 분리
 - 최신 `main` 위에서 새 브랜치 `codex/feat-math-notation-rendering-main-based` 생성
