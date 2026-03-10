@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DASIDA Feedback Input Demo</title>
+    <title>DASIDA Feedback Input Demo v2</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap');
 
@@ -71,7 +71,7 @@
       }
 
       .hero p {
-        max-width: 760px;
+        max-width: 820px;
         margin: 0;
         color: rgba(248, 251, 246, 0.82);
         font-size: 16px;
@@ -169,6 +169,11 @@
         line-height: 1.6;
       }
 
+      .subtle {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
       textarea {
         width: 100%;
         min-height: 116px;
@@ -185,69 +190,6 @@
       textarea:focus {
         outline: 2px solid rgba(47, 125, 87, 0.2);
         border-color: rgba(47, 125, 87, 0.35);
-      }
-
-      .chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .chip {
-        border: 1px solid rgba(47, 125, 87, 0.18);
-        background: #f7fbf8;
-        color: #35543d;
-        padding: 11px 14px;
-        border-radius: 999px;
-        font: inherit;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.18s ease;
-      }
-
-      .chip:hover {
-        transform: translateY(-1px);
-        border-color: rgba(47, 125, 87, 0.42);
-        background: var(--primary-soft);
-      }
-
-      .chip.active {
-        background: var(--primary);
-        color: #fff;
-        border-color: var(--primary);
-      }
-
-      .suggestion-wrap {
-        display: grid;
-        gap: 10px;
-      }
-
-      .suggestion-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .suggestion-head span {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--muted);
-      }
-
-      .suggestion-status {
-        font-size: 12px;
-        font-weight: 700;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: var(--warning-soft);
-        color: #80531d;
-      }
-
-      .suggestion-status.good {
-        background: var(--primary-soft);
-        color: #226344;
       }
 
       .button-row {
@@ -275,6 +217,12 @@
       .btn-secondary {
         background: #eef4ef;
         color: #2a4431;
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: #35543d;
+        border: 1px solid rgba(47, 125, 87, 0.18);
       }
 
       .btn:hover {
@@ -339,8 +287,113 @@
         color: #47604d;
       }
 
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .status-row span:first-child {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .status-pill {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--warning-soft);
+        color: #80531d;
+      }
+
+      .status-pill.good {
+        background: var(--primary-soft);
+        color: #226344;
+      }
+
+      .status-pill.danger {
+        background: var(--danger-soft);
+        color: #a33f3f;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric-card {
+        border-radius: 16px;
+        padding: 14px;
+        background: #f8fbf8;
+        border: 1px solid var(--border);
+        display: grid;
+        gap: 6px;
+      }
+
+      .metric-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .metric-value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+      }
+
+      .api-box {
+        border-radius: 16px;
+        padding: 14px;
+        background: #f6faf6;
+        border: 1px solid rgba(47, 125, 87, 0.18);
+        white-space: pre-wrap;
+      }
+
+      .option-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .option-btn {
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(47, 125, 87, 0.18);
+        background: #f7fbf8;
+        color: #35543d;
+        padding: 14px 16px;
+        border-radius: 16px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .option-btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(47, 125, 87, 0.42);
+        background: var(--primary-soft);
+      }
+
+      .option-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+
+      .hidden {
+        display: none;
+      }
+
       @media (max-width: 920px) {
-        .layout {
+        .layout,
+        .metric-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -358,17 +411,21 @@
         h1 {
           font-size: 34px;
         }
+
+        .button-row {
+          flex-direction: column;
+        }
       }
     </style>
   </head>
   <body>
     <div class="shell">
       <section class="hero">
-        <div class="eyebrow">DASIDA UX Prototype</div>
+        <div class="eyebrow">DASIDA UX Prototype v2</div>
         <h1>학습 피드백 입력 방식 비교</h1>
         <p>
-          왼쪽은 현재 방식처럼 사용자가 바로 자유 입력만 하는 흐름입니다. 오른쪽은 추천 답변으로 먼저 유도하고,
-          필요하면 직접 수정하는 방식입니다. Live Server로 열고 직접 눌러보면 차이가 바로 보입니다.
+          왼쪽은 raw text만 저장하는 현재 흐름입니다. 오른쪽 v2는 사용자가 자유롭게 적고, OpenAI API는 그 답변을
+          읽어 어떤 피드백 줄기로 보낼지만 판단합니다. 확신이 낮을 때만 확인 질문 1개를 추가합니다.
         </p>
       </section>
 
@@ -377,7 +434,7 @@
           <header class="panel-header">
             <strong>현재 방식</strong>
             <h2>자유 입력만 받기</h2>
-            <p>사용자는 바로 적을 수 있지만, 답변이 제각각이라 나중에 분류/재활용이 어려워집니다.</p>
+            <p>사용자는 바로 적을 수 있지만, 답변이 제각각이라 나중에 분류하거나 다음 분기로 이어가기 어렵습니다.</p>
           </header>
           <div class="panel-body">
             <div class="summary-card">
@@ -417,65 +474,91 @@
 
         <article class="panel">
           <header class="panel-header">
-            <strong>개선 방식</strong>
-            <h2>추천 답변 + 직접 입력</h2>
-            <p>대표 표현을 먼저 고르게 하고, 사용자가 수정한 문장과 첫 선택 기준을 함께 저장합니다.</p>
+            <strong>v2 시연</strong>
+            <h2>자유 입력 + OpenAI 방향 지정</h2>
+            <p>사용자는 자유롭게 설명하고, OpenAI는 `branchId`와 신뢰도만 반환해 다음 흐름을 정합니다.</p>
           </header>
           <div class="panel-body">
             <div class="summary-card">
               <h3>이번 학습 요약</h3>
               <div class="summary-meta">
                 <span class="meta-pill">정답률 60%</span>
-                <span class="meta-pill">약점: 계산 실수 반복</span>
-                <span class="meta-pill">10문제 완료</span>
+                <span class="meta-pill">마지막 3문제 중 2문제 오답</span>
+                <span class="meta-pill">복습 권장</span>
               </div>
-              <p>예시 상황: 비슷한 답변으로 유도하되, 사용자가 자기 표현을 유지할 수 있게 하는 입력 방식입니다.</p>
+              <p>예시 상황: 사용자는 자유롭게 쓴 뒤 바로 제출합니다. 시스템은 그 문장을 읽고 어떤 피드백 줄기로 보낼지 정합니다.</p>
             </div>
 
             <div class="block">
-              <h3>1차 분류 선택</h3>
-              <p>먼저 가장 가까운 느낌을 고르면, 뒤에 자유롭게 써도 비슷한 답변을 같은 이유 묶음으로 모으기 쉬워집니다.</p>
-              <div class="chips" id="presetChips"></div>
-            </div>
-
-            <div class="block">
-              <div class="suggestion-head">
-                <h3>직접 입력</h3>
-                <span class="suggestion-status" id="matchStatus">아직 분류 전</span>
-              </div>
-              <p>추천 문구를 그대로 쓰거나, 본인 말투로 수정해도 됩니다. 첫 선택은 분류 기준점으로 남고, 직접 입력은 확인과 보정에 쓰입니다.</p>
+              <h3>사용자 입력</h3>
+              <p>선택지를 먼저 강요하지 않습니다. 사용자가 한 줄로 적으면, 그 뒤에 OpenAI가 방향만 판단합니다.</p>
               <textarea
-                id="guidedInput"
-                placeholder="예: 공식은 기억났는데 마지막에 부호 때문에 계산이 꼬였어요"></textarea>
-
-              <div class="suggestion-wrap">
-                <div class="suggestion-head">
-                  <span>비슷한 답변 추천</span>
-                  <span id="matchedReasonText">가장 가까운 대표 표현을 아래에 보여줍니다.</span>
-                </div>
-                <div class="chips" id="suggestionChips"></div>
-              </div>
-
+                id="routerInput"
+                placeholder="예: 공식은 어렴풋이 기억났는데 마지막에 부호를 바꿔 써서 답이 이상해졌어요"></textarea>
               <div class="button-row">
-                <button class="btn btn-primary" id="guidedSubmit">제출</button>
-                <button class="btn btn-secondary" id="guidedExample">예시 넣기</button>
+                <button class="btn btn-primary" id="routerAnalyze">방향 판단하기</button>
+                <button class="btn btn-secondary" id="routerExampleClear">명확한 예시</button>
+                <button class="btn btn-secondary" id="routerExampleVague">애매한 예시</button>
+                <button class="btn btn-ghost" id="routerReset">초기화</button>
               </div>
+              <p class="subtle">이 데모는 실제 API 대신 mock router로 시연합니다. 나중에 이 위치를 실제 OpenAI API 호출로 교체하면 됩니다.</p>
+            </div>
+
+            <div class="block">
+              <div class="status-row">
+                <span>OpenAI Router 응답</span>
+                <span class="status-pill" id="routerStatus">아직 판단 전</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric-card">
+                  <span class="metric-label">Branch</span>
+                  <strong class="metric-value" id="branchLabel">미정</strong>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Confidence</span>
+                  <strong class="metric-value" id="branchConfidence">-</strong>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Next Step</span>
+                  <strong class="metric-value" id="branchNextStep">아직 없음</strong>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Source</span>
+                  <strong class="metric-value" id="branchSource">openai-router</strong>
+                </div>
+              </div>
+              <p id="branchReason">사용자 입력이 아직 없어서 방향을 정하지 않았습니다.</p>
+              <div class="api-box mono" id="apiResponse">{
+  "branchId": null,
+  "confidence": null,
+  "needsFollowup": false
+}</div>
+            </div>
+
+            <div class="block hidden" id="followupBlock">
+              <h3>확인 질문 1개</h3>
+              <p id="followupQuestion">OpenAI 확신이 낮을 때만 짧게 다시 확인합니다.</p>
+              <div class="option-grid" id="followupOptions"></div>
             </div>
 
             <div class="block">
               <h3>저장 결과</h3>
-              <p>개선 방식은 raw text, 첫 선택 기준, 최종 대표 카테고리를 함께 남깁니다.</p>
-              <div class="log-list" id="guidedLog">
+              <p>v2는 raw text와 함께 OpenAI가 고른 branch, 신뢰도, 확인 질문 응답 여부를 함께 남깁니다.</p>
+              <div class="button-row">
+                <button class="btn btn-primary" id="routerSubmit">이 결과로 저장</button>
+              </div>
+              <div class="log-list" id="routerLog">
                 <div class="log-item">
-                  <strong>아직 제출된 답변이 없습니다.</strong>
-                  <div class="mono">rawText + selectedReasonId + textMatchedReasonId + finalReasonId</div>
+                  <strong>아직 저장된 응답이 없습니다.</strong>
+                  <div class="mono">rawText + branchId + confidence + needsFollowup + finalDecision</div>
                 </div>
               </div>
             </div>
 
             <div class="block">
-              <h3>현재 깔아둔 대표 표현</h3>
-              <div class="hint-list" id="catalogList"></div>
+              <h3>OpenAI가 고를 수 있는 줄기</h3>
+              <p>실제 서비스에서는 이 줄기 목록을 고정해두고, OpenAI는 여기서 하나를 고르게 하는 편이 안전합니다.</p>
+              <div class="hint-list" id="branchCatalogList"></div>
             </div>
           </div>
         </article>
@@ -484,71 +567,54 @@
       <section class="callout">
         <h3>이 프로토타입에서 봐야 할 포인트</h3>
         <p>
-          핵심은 답변 100개를 미리 준비하는 게 아니라, 대표 표현 10~15개만 먼저 깔아두고 raw 입력을 계속
-          같이 저장하는 것입니다. 그러면 실제 사용자 문장이 쌓일수록 추천 문구와 매핑 규칙을 계속 다듬을 수 있습니다.
+          v2의 핵심은 사용자가 태그를 고르지 않아도 흐름이 끊기지 않는다는 점입니다. OpenAI는 새로운 답을 쓰는
+          역할이 아니라, 미리 정한 branch 중 어디로 보낼지 판단하는 라우터 역할만 맡습니다.
         </p>
       </section>
     </div>
 
     <script>
-      const reasonCatalog = [
+      const branchCatalog = [
         {
-          id: 'calc_repeated_error',
-          label: '계산에서 실수했어요',
-          sample: '계산하다가 마지막에 틀렸어요',
-          keywords: ['계산', '실수', '암산', '더하기', '빼기', '마지막'],
+          id: 'calculation_mistake',
+          label: '계산/부호 실수',
+          summary: '마지막 계산, 부호, 산술 정확도 문제',
+          nextStep: '계산 검산 루틴과 부호 확인 연습으로 이동',
+          followupLabel: '계산이나 부호 실수에 가까워요',
+          keywords: ['계산', '실수', '부호', '마이너스', '플러스', '음수', '부호를', '꼬였', '답이 이상', '마지막'],
         },
         {
-          id: 'sign_confusion',
-          label: '부호가 헷갈렸어요',
-          sample: '마이너스 계산에서 꼬였어요',
-          keywords: ['부호', '마이너스', '음수', '플러스', '부호 때문에'],
+          id: 'concept_recall',
+          label: '공식/개념 회상 문제',
+          summary: '공식이 떠오르지 않거나 개념이 희미함',
+          nextStep: '핵심 공식 리마인드와 짧은 개념 복습으로 이동',
+          followupLabel: '공식이나 개념이 잘 안 떠올랐어요',
+          keywords: ['공식', '개념', '기억', '생각 안', '안 떠올랐', '암기', '헷갈렸', '정의'],
         },
         {
-          id: 'formula_memory',
-          label: '공식이 바로 안 떠올랐어요',
-          sample: '공식이 생각 안 나서 막혔어요',
-          keywords: ['공식', '기억', '안 떠올랐', '생각 안', '암기'],
+          id: 'problem_start',
+          label: '시작 전략 막힘',
+          summary: '어떤 방법으로 시작할지 결정이 어려움',
+          nextStep: '첫 줄 풀이 전략과 시작 힌트 카드로 이동',
+          followupLabel: '어떻게 시작할지 막혔어요',
+          keywords: ['어떻게', '시작', '접근', '방향', '방법', '처음', '막혔', '뭘 해야', '모르겠'],
         },
         {
-          id: 'problem_understanding',
-          label: '문제를 어떻게 시작할지 몰랐어요',
-          sample: '무슨 방법으로 풀어야 할지 몰랐어요',
-          keywords: ['어떻게', '시작', '방법', '몰랐', '접근', '방향'],
+          id: 'reading_interpretation',
+          label: '문제 해석/답 읽기 혼동',
+          summary: '조건 해석이나 최종 답 읽기에서 혼동함',
+          nextStep: '조건 읽기와 답 확인 체크리스트로 이동',
+          followupLabel: '조건 해석이나 답 읽기가 헷갈렸어요',
+          keywords: ['읽', '조건', '최솟값', '최댓값', 'x값', '답을', '해석', '문장을', '의미'],
         },
         {
-          id: 'substitution_error',
-          label: '대입하는 단계에서 헷갈렸어요',
-          sample: 'x값 넣는 과정에서 틀렸어요',
-          keywords: ['대입', '넣', '치환', 'x값', 'f('],
+          id: 'different_method',
+          label: '다른 방식 시도',
+          summary: '정해진 풀이 대신 자기 방식으로 접근함',
+          nextStep: '사용자 풀이를 인정하고 공식 풀이와 비교하는 화면으로 이동',
+          followupLabel: '제가 생각한 다른 방식으로 풀었어요',
+          keywords: ['다른 방식', '제 방식', '직관', '감으로', '다르게', '제가 생각한', '다른 풀이'],
         },
-        {
-          id: 'last_step_mistake',
-          label: '거의 다 했는데 마지막에 틀렸어요',
-          sample: '풀이 방향은 맞았는데 마지막 계산에서 틀렸어요',
-          keywords: ['거의', '마지막', '끝', '마무리', '다 했는데'],
-        },
-        {
-          id: 'other_method',
-          label: '다른 방식으로 풀었어요',
-          sample: '공식 말고 제가 생각한 방식으로 풀었어요',
-          keywords: ['다른 방식', '제 방식', '직관', '감으로', '다르게'],
-        },
-        {
-          id: 'reading_confusion',
-          label: '최종 답을 읽는 부분이 헷갈렸어요',
-          sample: 'x값이랑 최솟값을 헷갈렸어요',
-          keywords: ['읽', '최솟값', '최댓값', 'x값', '답을', '헷갈'],
-        },
-      ];
-
-      const presetButtons = [
-        '계산에서 실수했어요',
-        '부호가 헷갈렸어요',
-        '공식이 바로 안 떠올랐어요',
-        '거의 다 했는데 마지막에 틀렸어요',
-        '다른 방식으로 풀었어요',
-        '문제를 어떻게 시작할지 몰랐어요',
       ];
 
       const currentInput = document.getElementById('currentInput');
@@ -556,25 +622,28 @@
       const currentSubmit = document.getElementById('currentSubmit');
       const currentExample = document.getElementById('currentExample');
 
-      const presetChips = document.getElementById('presetChips');
-      const suggestionChips = document.getElementById('suggestionChips');
-      const guidedInput = document.getElementById('guidedInput');
-      const guidedSubmit = document.getElementById('guidedSubmit');
-      const guidedExample = document.getElementById('guidedExample');
-      const guidedLog = document.getElementById('guidedLog');
-      const matchedReasonText = document.getElementById('matchedReasonText');
-      const matchStatus = document.getElementById('matchStatus');
-      const catalogList = document.getElementById('catalogList');
+      const routerInput = document.getElementById('routerInput');
+      const routerAnalyze = document.getElementById('routerAnalyze');
+      const routerExampleClear = document.getElementById('routerExampleClear');
+      const routerExampleVague = document.getElementById('routerExampleVague');
+      const routerReset = document.getElementById('routerReset');
+      const routerSubmit = document.getElementById('routerSubmit');
+      const routerStatus = document.getElementById('routerStatus');
+      const branchLabel = document.getElementById('branchLabel');
+      const branchConfidence = document.getElementById('branchConfidence');
+      const branchNextStep = document.getElementById('branchNextStep');
+      const branchSource = document.getElementById('branchSource');
+      const branchReason = document.getElementById('branchReason');
+      const apiResponse = document.getElementById('apiResponse');
+      const followupBlock = document.getElementById('followupBlock');
+      const followupQuestion = document.getElementById('followupQuestion');
+      const followupOptions = document.getElementById('followupOptions');
+      const routerLog = document.getElementById('routerLog');
+      const branchCatalogList = document.getElementById('branchCatalogList');
 
-      let activePreset = '';
-
-      function findReasonByLabel(label) {
-        return reasonCatalog.find((reason) => reason.label === label) || getMatchedReasons(label)[0] || null;
-      }
-
-      function getSelectedReason() {
-        return activePreset ? findReasonByLabel(activePreset) : null;
-      }
+      let latestRouting = null;
+      let latestInputSnapshot = '';
+      let selectedFollowupBranchId = '';
 
       function escapeHtml(value) {
         return value
@@ -592,138 +661,207 @@
         return item;
       }
 
-      function getReasonScore(reason, text) {
+      function getBranchScore(branch, text) {
         const normalized = text.trim().toLowerCase();
-        if (!normalized) return 0;
+        if (!normalized) return { score: 0, matches: [] };
 
+        const matches = [];
         let score = 0;
-        reason.keywords.forEach((keyword) => {
-          if (normalized.includes(keyword.toLowerCase())) score += 1;
+
+        branch.keywords.forEach((keyword) => {
+          if (normalized.includes(keyword.toLowerCase())) {
+            score += 1;
+            matches.push(keyword);
+          }
         });
-        if (normalized.includes(reason.label.toLowerCase())) score += 3;
-        if (normalized.includes(reason.sample.toLowerCase())) score += 2;
-        return score;
+
+        if (normalized.includes(branch.label.toLowerCase())) {
+          score += 2;
+          matches.push(branch.label);
+        }
+
+        return {
+          score,
+          matches: [...new Set(matches)],
+        };
       }
 
-      function getMatchedReasons(text) {
-        return reasonCatalog
-          .map((reason) => ({
-            ...reason,
-            score: getReasonScore(reason, text),
-          }))
-          .filter((reason) => reason.score > 0)
+      function getRankedBranches(text) {
+        return branchCatalog
+          .map((branch) => {
+            const { score, matches } = getBranchScore(branch, text);
+            return { ...branch, score, matches };
+          })
           .sort((a, b) => b.score - a.score);
       }
 
-      function renderPresetChips() {
-        presetChips.innerHTML = '';
-        presetButtons.forEach((label) => {
-          const chip = document.createElement('button');
-          chip.className = `chip${activePreset === label ? ' active' : ''}`;
-          chip.type = 'button';
-          chip.textContent = label;
-          chip.addEventListener('click', () => {
-            if (activePreset === label) {
-              activePreset = '';
-            } else {
-              activePreset = label;
-              guidedInput.value = label;
-            }
-            renderPresetChips();
-            updateGuidedSuggestions();
+      function getConfidence(bestScore, gap) {
+        if (bestScore <= 0) return 0.24;
+        const raw = 0.42 + Math.min(bestScore, 5) * 0.08 + Math.max(gap, 0) * 0.06;
+        return Math.min(raw, 0.93);
+      }
+
+      function buildReason(best, second) {
+        if (!best || best.score <= 0) {
+          return '문장 안에 분기를 고정할 만한 표현이 부족해서 기본 분기만 잡았습니다.';
+        }
+
+        const matched = best.matches.length ? best.matches.slice(0, 3).join(', ') : '직접 표현';
+        if (!second || best.score - second.score >= 2) {
+          return `"${matched}" 신호가 강해서 ${best.label} 줄기로 보내는 것이 자연스럽습니다.`;
+        }
+
+        return `${best.label} 쪽 신호가 가장 강하지만 ${second.label}와도 가까워 보여서 확인 질문이 필요합니다.`;
+      }
+
+      function simulateOpenAiRouter(text) {
+        const ranked = getRankedBranches(text);
+        const best = ranked[0];
+        const second = ranked[1];
+        const gap = (best?.score || 0) - (second?.score || 0);
+        const confidence = getConfidence(best?.score || 0, gap);
+        const needsFollowup = confidence < 0.74 || gap < 2;
+        const branch = best && best.score > 0 ? best : null;
+        const candidates = ranked
+          .filter((item) => item.score > 0)
+          .slice(0, 3)
+          .map((item) => ({
+            branchId: item.id,
+            label: item.label,
+            score: item.score,
+          }));
+
+        const fallbackCandidates =
+          candidates.length > 0
+            ? candidates
+            : branchCatalog.slice(0, 3).map((item) => ({
+                branchId: item.id,
+                label: item.label,
+                score: 0,
+              }));
+
+        return {
+          branchId: branch ? branch.id : 'unclassified',
+          branchLabel: branch ? branch.label : '미분류',
+          confidence,
+          reason: buildReason(best, second),
+          needsFollowup,
+          nextStep: branch ? branch.nextStep : '짧은 확인 질문으로 큰 줄기부터 확정',
+          source: 'mock-openai-router',
+          candidates: fallbackCandidates,
+        };
+      }
+
+      function getBranchById(branchId) {
+        return branchCatalog.find((branch) => branch.id === branchId) || null;
+      }
+
+      function resetRouterPreview() {
+        routerStatus.textContent = '아직 판단 전';
+        routerStatus.className = 'status-pill';
+        branchLabel.textContent = '미정';
+        branchConfidence.textContent = '-';
+        branchNextStep.textContent = '아직 없음';
+        branchSource.textContent = 'openai-router';
+        branchReason.textContent = '사용자 입력이 아직 없어서 방향을 정하지 않았습니다.';
+        apiResponse.textContent = `{
+  "branchId": null,
+  "confidence": null,
+  "needsFollowup": false
+}`;
+        followupBlock.classList.add('hidden');
+        followupOptions.innerHTML = '';
+      }
+
+      function renderFollowup(result) {
+        if (!result.needsFollowup) {
+          followupBlock.classList.add('hidden');
+          followupOptions.innerHTML = '';
+          return;
+        }
+
+        followupBlock.classList.remove('hidden');
+        followupQuestion.textContent = '이 답변은 어느 쪽에 더 가까운가요? OpenAI 확신이 낮을 때만 한 번 더 확인합니다.';
+        followupOptions.innerHTML = '';
+
+        result.candidates.forEach((candidate) => {
+          const branch = getBranchById(candidate.branchId);
+          if (!branch) return;
+
+          const button = document.createElement('button');
+          button.className = `option-btn${selectedFollowupBranchId === branch.id ? ' active' : ''}`;
+          button.type = 'button';
+          button.innerHTML = `${branch.followupLabel}<br /><span class="subtle">${branch.nextStep}</span>`;
+          button.addEventListener('click', () => {
+            selectedFollowupBranchId = branch.id;
+            renderRouterResult(latestRouting);
           });
-          presetChips.appendChild(chip);
+          followupOptions.appendChild(button);
         });
       }
 
-      function renderCatalog() {
-        catalogList.innerHTML = '';
-        reasonCatalog.forEach((reason) => {
+      function renderRouterResult(result) {
+        latestRouting = result;
+
+        if (!result) {
+          resetRouterPreview();
+          return;
+        }
+
+        const finalBranch = selectedFollowupBranchId ? getBranchById(selectedFollowupBranchId) : getBranchById(result.branchId);
+        const finalBranchLabel = finalBranch ? finalBranch.label : result.branchLabel;
+        const finalNextStep = finalBranch ? finalBranch.nextStep : result.nextStep;
+
+        if (selectedFollowupBranchId) {
+          routerStatus.textContent = '분기 확정';
+          routerStatus.className = 'status-pill good';
+          branchReason.textContent = `${result.reason} 확인 질문 응답으로 최종 분기를 ${finalBranchLabel}로 고정했습니다.`;
+        } else if (result.needsFollowup) {
+          routerStatus.textContent = '확인 질문 필요';
+          routerStatus.className = 'status-pill danger';
+          branchReason.textContent = result.reason;
+        } else {
+          routerStatus.textContent = '바로 분기 가능';
+          routerStatus.className = 'status-pill good';
+          branchReason.textContent = result.reason;
+        }
+
+        branchLabel.textContent = finalBranchLabel;
+        branchConfidence.textContent = `${Math.round(result.confidence * 100)}%`;
+        branchNextStep.textContent = finalNextStep;
+        branchSource.textContent = selectedFollowupBranchId ? 'openai-router + followup' : result.source;
+        apiResponse.textContent = JSON.stringify(
+          {
+            branchId: result.branchId,
+            confidence: Number(result.confidence.toFixed(2)),
+            needsFollowup: result.needsFollowup,
+            candidates: result.candidates,
+            finalBranchId: finalBranch ? finalBranch.id : result.branchId,
+          },
+          null,
+          2,
+        );
+
+        renderFollowup(result);
+      }
+
+      function analyzeInput() {
+        const value = routerInput.value.trim();
+        if (!value) return;
+
+        latestInputSnapshot = value;
+        selectedFollowupBranchId = '';
+        renderRouterResult(simulateOpenAiRouter(value));
+      }
+
+      function renderBranchCatalog() {
+        branchCatalogList.innerHTML = '';
+        branchCatalog.forEach((branch) => {
           const item = document.createElement('div');
           item.className = 'hint-item';
-          item.innerHTML = `<strong>${reason.label}</strong><br />${reason.sample}`;
-          catalogList.appendChild(item);
+          item.innerHTML = `<strong>${branch.label}</strong><br />${branch.summary}<br />다음: ${branch.nextStep}`;
+          branchCatalogList.appendChild(item);
         });
-      }
-
-      function renderSuggestionButtons(matches) {
-        suggestionChips.innerHTML = '';
-
-        if (!matches.length) {
-          reasonCatalog.slice(0, 4).forEach((reason) => {
-            const chip = document.createElement('button');
-            chip.className = 'chip';
-            chip.type = 'button';
-            chip.textContent = reason.label;
-            chip.addEventListener('click', () => {
-              guidedInput.value = reason.label;
-              activePreset = reason.label;
-              renderPresetChips();
-              updateGuidedSuggestions();
-            });
-            suggestionChips.appendChild(chip);
-          });
-          return;
-        }
-
-        matches.slice(0, 4).forEach((reason) => {
-          const chip = document.createElement('button');
-          chip.className = 'chip';
-          chip.type = 'button';
-          chip.textContent = `${reason.label}`;
-          chip.addEventListener('click', () => {
-            guidedInput.value = reason.label;
-            activePreset = reason.label;
-            renderPresetChips();
-            updateGuidedSuggestions();
-          });
-          suggestionChips.appendChild(chip);
-        });
-      }
-
-      function updateGuidedSuggestions() {
-        const text = guidedInput.value.trim();
-        const matches = getMatchedReasons(text);
-        const best = matches[0];
-        const selectedReason = getSelectedReason();
-
-        if (!text) {
-          if (selectedReason) {
-            matchedReasonText.textContent = `선택한 기준 표현: ${selectedReason.label} (${selectedReason.id})`;
-            matchStatus.textContent = '기준점 선택됨';
-            matchStatus.className = 'suggestion-status good';
-          } else {
-            matchedReasonText.textContent = '가장 가까운 대표 표현을 아래에 보여줍니다.';
-            matchStatus.textContent = '아직 분류 전';
-            matchStatus.className = 'suggestion-status';
-          }
-          renderSuggestionButtons([]);
-          return;
-        }
-
-        if (selectedReason && best && selectedReason.id === best.id) {
-          matchedReasonText.textContent = `첫 선택과 직접 입력이 같은 대표 표현으로 묶입니다: ${best.label} (${best.id})`;
-          matchStatus.textContent = '분류 일치';
-          matchStatus.className = 'suggestion-status good';
-        } else if (selectedReason && best) {
-          matchedReasonText.textContent = `첫 선택은 ${selectedReason.label}, 직접 입력은 ${best.label}로 읽힙니다. 둘을 비교해 재확인할 수 있습니다.`;
-          matchStatus.textContent = '재확인 필요';
-          matchStatus.className = 'suggestion-status';
-        } else if (best) {
-          matchedReasonText.textContent = `가장 가까운 대표 표현: ${best.label} (${best.id})`;
-          matchStatus.textContent = best.score >= 3 ? '분류 가능' : '애매함';
-          matchStatus.className = `suggestion-status${best.score >= 3 ? ' good' : ''}`;
-        } else if (selectedReason) {
-          matchedReasonText.textContent = `직접 입력은 아직 애매하지만, 첫 선택 기준은 ${selectedReason.label} (${selectedReason.id})입니다.`;
-          matchStatus.textContent = '기준점 있음';
-          matchStatus.className = 'suggestion-status good';
-        } else {
-          matchedReasonText.textContent = '아직 딱 맞는 대표 표현이 없습니다. raw text는 그대로 저장됩니다.';
-          matchStatus.textContent = '추가 검토 필요';
-          matchStatus.className = 'suggestion-status';
-        }
-
-        renderSuggestionButtons(matches);
       }
 
       currentSubmit.addEventListener('click', () => {
@@ -733,63 +871,85 @@
         currentLog.prepend(
           createLogItem(
             'rawText 저장',
-            `rawText: "${escapeHtml(value)}"<br />normalizedReasonId: 없음<br />분류는 나중에 따로 해야 함`,
+            `rawText: "${escapeHtml(value)}"<br />branchId: 없음<br />다음 줄기 연결: 불가`,
           ),
         );
         currentInput.value = '';
       });
 
       currentExample.addEventListener('click', () => {
-        currentInput.value = '공식은 알았는데 마지막 부호 때문에 계산이 꼬였어요';
+        currentInput.value = '공식은 알았는데 마지막 부호에서 틀렸어요';
       });
 
-      guidedInput.addEventListener('input', () => {
-        renderPresetChips();
-        updateGuidedSuggestions();
+      routerAnalyze.addEventListener('click', () => {
+        analyzeInput();
       });
 
-      guidedSubmit.addEventListener('click', () => {
-        const value = guidedInput.value.trim();
+      routerExampleClear.addEventListener('click', () => {
+        routerInput.value = '공식은 기억났는데 마지막에 마이너스 부호를 바꿔 써서 계산이 틀렸어요';
+        analyzeInput();
+      });
+
+      routerExampleVague.addEventListener('click', () => {
+        routerInput.value = '뭔가 알 것 같았는데 중간부터 막히고 답도 이상하게 나왔어요';
+        analyzeInput();
+      });
+
+      routerReset.addEventListener('click', () => {
+        routerInput.value = '';
+        latestRouting = null;
+        latestInputSnapshot = '';
+        selectedFollowupBranchId = '';
+        resetRouterPreview();
+      });
+
+      routerInput.addEventListener('input', () => {
+        if (!routerInput.value.trim()) {
+          latestRouting = null;
+          latestInputSnapshot = '';
+          selectedFollowupBranchId = '';
+          resetRouterPreview();
+          return;
+        }
+
+        if (latestInputSnapshot && latestInputSnapshot !== routerInput.value.trim()) {
+          latestRouting = null;
+          selectedFollowupBranchId = '';
+          resetRouterPreview();
+          routerStatus.textContent = '입력 변경됨';
+          routerStatus.className = 'status-pill';
+          branchReason.textContent = '입력이 바뀌어서 OpenAI 방향 판단을 다시 실행해야 합니다.';
+        }
+      });
+
+      routerSubmit.addEventListener('click', () => {
+        const value = routerInput.value.trim();
         if (!value) return;
 
-        const selectedReason = getSelectedReason();
-        const matches = getMatchedReasons(value);
-        const best = matches[0];
-        const finalReason = selectedReason || best || null;
-        const consistency =
-          selectedReason && best
-            ? selectedReason.id === best.id
-              ? 'aligned'
-              : 'needs_review'
-            : selectedReason
-              ? 'anchor_only'
-              : best
-                ? 'text_only'
-                : 'unclassified';
+        if (!latestRouting || latestInputSnapshot !== value) {
+          analyzeInput();
+        }
 
-        guidedLog.prepend(
+        const finalBranch = selectedFollowupBranchId ? getBranchById(selectedFollowupBranchId) : getBranchById(latestRouting.branchId);
+        const finalDecision = finalBranch ? finalBranch.id : 'unclassified';
+        const finalLabel = finalBranch ? finalBranch.label : '미분류';
+
+        routerLog.prepend(
           createLogItem(
-            'raw + selected + normalized 함께 저장',
-            `rawText: "${escapeHtml(value)}"<br />selectedReasonId: ${selectedReason ? selectedReason.id : '없음'}<br />textMatchedReasonId: ${best ? best.id : '없음'}<br />finalReasonId: ${finalReason ? finalReason.id : 'unclassified'}<br />finalLabel: ${finalReason ? finalReason.label : '미분류'}<br />classificationState: ${consistency}`,
+            'raw + branch 함께 저장',
+            `rawText: "${escapeHtml(value)}"<br />aiBranchId: ${latestRouting.branchId}<br />aiConfidence: ${Number(latestRouting.confidence.toFixed(2))}<br />needsFollowup: ${latestRouting.needsFollowup}<br />followupChoice: ${selectedFollowupBranchId || '없음'}<br />finalBranchId: ${finalDecision}<br />finalLabel: ${finalLabel}`,
           ),
         );
 
-        guidedInput.value = '';
-        activePreset = '';
-        renderPresetChips();
-        updateGuidedSuggestions();
+        routerInput.value = '';
+        latestRouting = null;
+        latestInputSnapshot = '';
+        selectedFollowupBranchId = '';
+        resetRouterPreview();
       });
 
-      guidedExample.addEventListener('click', () => {
-        guidedInput.value = '공식은 기억났는데 마지막에 부호 때문에 계산이 꼬였어요';
-        activePreset = '';
-        renderPresetChips();
-        updateGuidedSuggestions();
-      });
-
-      renderPresetChips();
-      renderCatalog();
-      updateGuidedSuggestions();
+      renderBranchCatalog();
+      resetRouterPreview();
     </script>
   </body>
 </html>
