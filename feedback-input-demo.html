@@ -419,7 +419,7 @@
           <header class="panel-header">
             <strong>개선 방식</strong>
             <h2>추천 답변 + 직접 입력</h2>
-            <p>대표 표현으로 먼저 유도하고, 사용자가 수정하면 raw text와 대표 카테고리를 함께 저장합니다.</p>
+            <p>대표 표현을 먼저 고르게 하고, 사용자가 수정한 문장과 첫 선택 기준을 함께 저장합니다.</p>
           </header>
           <div class="panel-body">
             <div class="summary-card">
@@ -433,8 +433,8 @@
             </div>
 
             <div class="block">
-              <h3>빠른 선택</h3>
-              <p>가장 가까운 느낌을 먼저 눌러보세요.</p>
+              <h3>1차 분류 선택</h3>
+              <p>먼저 가장 가까운 느낌을 고르면, 뒤에 자유롭게 써도 비슷한 답변을 같은 이유 묶음으로 모으기 쉬워집니다.</p>
               <div class="chips" id="presetChips"></div>
             </div>
 
@@ -443,7 +443,7 @@
                 <h3>직접 입력</h3>
                 <span class="suggestion-status" id="matchStatus">아직 분류 전</span>
               </div>
-              <p>추천 문구를 그대로 쓰거나, 본인 말투로 수정해도 됩니다.</p>
+              <p>추천 문구를 그대로 쓰거나, 본인 말투로 수정해도 됩니다. 첫 선택은 분류 기준점으로 남고, 직접 입력은 확인과 보정에 쓰입니다.</p>
               <textarea
                 id="guidedInput"
                 placeholder="예: 공식은 기억났는데 마지막에 부호 때문에 계산이 꼬였어요"></textarea>
@@ -464,11 +464,11 @@
 
             <div class="block">
               <h3>저장 결과</h3>
-              <p>개선 방식은 raw text와 대표 카테고리를 함께 남깁니다.</p>
+              <p>개선 방식은 raw text, 첫 선택 기준, 최종 대표 카테고리를 함께 남깁니다.</p>
               <div class="log-list" id="guidedLog">
                 <div class="log-item">
                   <strong>아직 제출된 답변이 없습니다.</strong>
-                  <div class="mono">rawText + normalizedReasonId + matchedLabel</div>
+                  <div class="mono">rawText + selectedReasonId + textMatchedReasonId + finalReasonId</div>
                 </div>
               </div>
             </div>
@@ -568,6 +568,14 @@
 
       let activePreset = '';
 
+      function findReasonByLabel(label) {
+        return reasonCatalog.find((reason) => reason.label === label) || getMatchedReasons(label)[0] || null;
+      }
+
+      function getSelectedReason() {
+        return activePreset ? findReasonByLabel(activePreset) : null;
+      }
+
       function escapeHtml(value) {
         return value
           .replace(/&/g, '&amp;')
@@ -615,8 +623,12 @@
           chip.type = 'button';
           chip.textContent = label;
           chip.addEventListener('click', () => {
-            activePreset = activePreset === label ? '' : label;
-            guidedInput.value = activePreset;
+            if (activePreset === label) {
+              activePreset = '';
+            } else {
+              activePreset = label;
+              guidedInput.value = label;
+            }
             renderPresetChips();
             updateGuidedSuggestions();
           });
@@ -673,19 +685,38 @@
         const text = guidedInput.value.trim();
         const matches = getMatchedReasons(text);
         const best = matches[0];
+        const selectedReason = getSelectedReason();
 
         if (!text) {
-          matchedReasonText.textContent = '가장 가까운 대표 표현을 아래에 보여줍니다.';
-          matchStatus.textContent = '아직 분류 전';
-          matchStatus.className = 'suggestion-status';
+          if (selectedReason) {
+            matchedReasonText.textContent = `선택한 기준 표현: ${selectedReason.label} (${selectedReason.id})`;
+            matchStatus.textContent = '기준점 선택됨';
+            matchStatus.className = 'suggestion-status good';
+          } else {
+            matchedReasonText.textContent = '가장 가까운 대표 표현을 아래에 보여줍니다.';
+            matchStatus.textContent = '아직 분류 전';
+            matchStatus.className = 'suggestion-status';
+          }
           renderSuggestionButtons([]);
           return;
         }
 
-        if (best) {
+        if (selectedReason && best && selectedReason.id === best.id) {
+          matchedReasonText.textContent = `첫 선택과 직접 입력이 같은 대표 표현으로 묶입니다: ${best.label} (${best.id})`;
+          matchStatus.textContent = '분류 일치';
+          matchStatus.className = 'suggestion-status good';
+        } else if (selectedReason && best) {
+          matchedReasonText.textContent = `첫 선택은 ${selectedReason.label}, 직접 입력은 ${best.label}로 읽힙니다. 둘을 비교해 재확인할 수 있습니다.`;
+          matchStatus.textContent = '재확인 필요';
+          matchStatus.className = 'suggestion-status';
+        } else if (best) {
           matchedReasonText.textContent = `가장 가까운 대표 표현: ${best.label} (${best.id})`;
           matchStatus.textContent = best.score >= 3 ? '분류 가능' : '애매함';
           matchStatus.className = `suggestion-status${best.score >= 3 ? ' good' : ''}`;
+        } else if (selectedReason) {
+          matchedReasonText.textContent = `직접 입력은 아직 애매하지만, 첫 선택 기준은 ${selectedReason.label} (${selectedReason.id})입니다.`;
+          matchStatus.textContent = '기준점 있음';
+          matchStatus.className = 'suggestion-status good';
         } else {
           matchedReasonText.textContent = '아직 딱 맞는 대표 표현이 없습니다. raw text는 그대로 저장됩니다.';
           matchStatus.textContent = '추가 검토 필요';
@@ -713,7 +744,6 @@
       });
 
       guidedInput.addEventListener('input', () => {
-        activePreset = '';
         renderPresetChips();
         updateGuidedSuggestions();
       });
@@ -722,15 +752,25 @@
         const value = guidedInput.value.trim();
         if (!value) return;
 
+        const selectedReason = getSelectedReason();
         const matches = getMatchedReasons(value);
         const best = matches[0];
-        const normalized = best ? best.id : 'unclassified';
-        const label = best ? best.label : '미분류';
+        const finalReason = selectedReason || best || null;
+        const consistency =
+          selectedReason && best
+            ? selectedReason.id === best.id
+              ? 'aligned'
+              : 'needs_review'
+            : selectedReason
+              ? 'anchor_only'
+              : best
+                ? 'text_only'
+                : 'unclassified';
 
         guidedLog.prepend(
           createLogItem(
-            'raw + normalized 함께 저장',
-            `rawText: "${escapeHtml(value)}"<br />normalizedReasonId: ${normalized}<br />matchedLabel: ${label}`,
+            'raw + selected + normalized 함께 저장',
+            `rawText: "${escapeHtml(value)}"<br />selectedReasonId: ${selectedReason ? selectedReason.id : '없음'}<br />textMatchedReasonId: ${best ? best.id : '없음'}<br />finalReasonId: ${finalReason ? finalReason.id : 'unclassified'}<br />finalLabel: ${finalReason ? finalReason.label : '미분류'}<br />classificationState: ${consistency}`,
           ),
         );
 
