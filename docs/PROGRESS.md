@@ -339,6 +339,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.10 23:22
+- 해시: `391ca89` (`391ca89ff0f1d62d08468b9b5cd5032b1bfcb2a8`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/391ca89ff0f1d62d08468b9b5cd5032b1bfcb2a8
+- 작성자: 박기윤
+- 메시지: docs: 오답 진단 라우팅 구현 핵심 요약 추가
+
 ### 커밋 2026.03.10 23:13
 - 해시: `45d3e80` (`45d3e809ae5c48eb4699c25520439290a45f3b7f`)
 - 브랜치: main
