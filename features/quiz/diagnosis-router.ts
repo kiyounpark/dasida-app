@@ -110,6 +110,62 @@ function parseRemoteDiagnosisResponse(
   };
 }
 
+function mergeCandidateMethodIds(
+  allowedMethodIds: SolveMethodId[],
+  results: Array<DiagnosisRouterResult | null>
+): SolveMethodId[] {
+  const merged = new Set<SolveMethodId>();
+
+  results.forEach((result) => {
+    if (!result) {
+      return;
+    }
+
+    if (result.predictedMethodId !== 'unknown') {
+      merged.add(result.predictedMethodId);
+    }
+
+    result.candidateMethodIds.forEach((candidateMethodId) => {
+      if (candidateMethodId !== 'unknown') {
+        merged.add(candidateMethodId);
+      }
+    });
+  });
+
+  const validCandidateCount = () => Array.from(merged).filter((methodId) => methodId !== 'unknown').length;
+
+  allowedMethodIds.forEach((methodId) => {
+    if (methodId !== 'unknown' && validCandidateCount() < 2) {
+      merged.add(methodId);
+    }
+  });
+
+  if (validCandidateCount() === 0) {
+    merged.add('unknown');
+  }
+
+  return Array.from(merged);
+}
+
+function buildManualSelectionResult(
+  input: DiagnosisRouterInput,
+  remoteResult: DiagnosisRouterResult | null,
+  mockResult: DiagnosisRouterResult
+): DiagnosisRouterResult {
+  const candidateMethodIds = mergeCandidateMethodIds(input.allowedMethodIds, [remoteResult, mockResult]);
+  const predictedMethodId = candidateMethodIds[0] ?? 'unknown';
+
+  return {
+    predictedMethodId,
+    confidence: Math.max(remoteResult?.confidence ?? 0, mockResult.confidence),
+    reason: remoteResult?.reason ?? mockResult.reason,
+    needsManualSelection: true,
+    candidateMethodIds,
+    source: remoteResult?.source ?? mockResult.source,
+    scores: mockResult.scores,
+  };
+}
+
 async function requestOpenAiDiagnosis(
   input: DiagnosisRouterInput
 ): Promise<DiagnosisRouterResult | null> {
@@ -155,5 +211,14 @@ export async function analyzeDiagnosisMethod(
     return remoteResult;
   }
 
-  return analyzeDiagnosisMethodWithMock(input);
+  const mockResult = await analyzeDiagnosisMethodWithMock(input);
+  if (!remoteResult) {
+    return mockResult;
+  }
+
+  if (!mockResult.needsManualSelection) {
+    return mockResult;
+  }
+
+  return buildManualSelectionResult(input, remoteResult, mockResult);
 }

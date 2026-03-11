@@ -47,6 +47,17 @@ export default function QuizIndexScreen() {
     return methodOptions.filter((option) => currentDiagnosisProblem.diagnosisMethods.includes(option.id));
   }, [currentDiagnosisProblem, state.isDiagnosing]);
 
+  const suggestedMethods = useMemo(() => {
+    if (!routerResult?.needsManualSelection) {
+      return [];
+    }
+
+    const suggestedIds = routerResult.candidateMethodIds.filter((methodId) => methodId !== 'unknown').slice(0, 2);
+    return suggestedIds
+      .map((methodId) => availableMethods.find((method) => method.id === methodId))
+      .filter((method): method is (typeof availableMethods)[number] => Boolean(method));
+  }, [availableMethods, routerResult]);
+
   useEffect(() => {
     setSelectedIndex(null);
   }, [state.currentQuestionIndex]);
@@ -234,18 +245,18 @@ export default function QuizIndexScreen() {
                 )}
 
                 <View style={styles.diagnosisInputSection}>
-                  <Text style={styles.diagnosisInputLabel}>
+                  <Text selectable style={styles.diagnosisInputLabel}>
                     선택지에 없다면, 어떤 식으로 풀었는지 짧게 적어주세요.
                   </Text>
 
-                {availableMethods.length > 0 && (
-                  <Text style={styles.diagnosisHint}>
-                    예) {availableMethods.slice(0, 2).map((m) => {
-                      const ex = diagnosisMethodRoutingCatalog[m.id]?.exampleUtterances?.[0];
-                      return ex ? `"${ex}"` : '';
-                    }).filter(Boolean).join(', ')}
-                  </Text>
-                )}
+                  {availableMethods.length > 0 && (
+                    <Text selectable style={styles.diagnosisHint}>
+                      예) {availableMethods.slice(0, 2).map((m) => {
+                        const ex = diagnosisMethodRoutingCatalog[m.id]?.exampleUtterances?.[0];
+                        return ex ? `"${ex}"` : '';
+                      }).filter(Boolean).join(', ')}
+                    </Text>
+                  )}
 
                   <TextInput
                     style={styles.diagnosisInput}
@@ -289,9 +300,42 @@ export default function QuizIndexScreen() {
                 )}
 
                 {routerResult && routerResult.needsManualSelection && (
-                  <Text selectable style={styles.lowConfidenceText}>
-                    입력한 내용만으로는 풀이 방법을 판단하기 어려워요. 위 선택지에서 고르거나 조금 더 자세히 적어주세요.
-                  </Text>
+                  <View style={styles.lowConfidenceSection}>
+                    <Text selectable style={styles.lowConfidenceText}>
+                      설명만으로는 풀이 방법이 완전히 구분되진 않았어요.
+                    </Text>
+
+                    {suggestedMethods.length > 0 && (
+                      <View style={styles.suggestedMethodsSection}>
+                        <Text selectable style={styles.suggestedMethodsTitle}>
+                          지금 설명으로는 아래 방법이 가장 가까워 보여요.
+                        </Text>
+                        <View style={styles.diagnosisChoices}>
+                          {suggestedMethods.map((method) => {
+                            const info = diagnosisMethodRoutingCatalog[method.id];
+
+                            return (
+                              <Pressable
+                                key={method.id}
+                                style={styles.suggestedMethodButton}
+                                onPress={() => handleManualSelect(method.id)}>
+                                <Text selectable style={styles.suggestedMethodLabel}>{method.labelKo}</Text>
+                                {info?.summary ? (
+                                  <Text selectable style={styles.suggestedMethodSummary}>{info.summary}</Text>
+                                ) : null}
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+
+                    <Text selectable style={styles.lowConfidenceSubtext}>
+                      {suggestedMethods.length > 0
+                        ? '위 후보를 고르거나, 더 자세히 적어주시면 다시 추천해드릴게요.'
+                        : '조금 더 자세히 적어주시면 다시 추천해드릴게요.'}
+                    </Text>
+                  </View>
                 )}
               </>
             ) : (
@@ -677,5 +721,42 @@ const styles = StyleSheet.create({
     color: BrandColors.danger,
     fontWeight: '600',
     lineHeight: 20,
+  },
+  lowConfidenceSection: {
+    gap: BrandSpacing.xs,
+  },
+  suggestedMethodsSection: {
+    gap: BrandSpacing.xs,
+  },
+  suggestedMethodsTitle: {
+    fontSize: 14,
+    color: '#7A5A5A',
+    lineHeight: 20,
+  },
+  suggestedMethodButton: {
+    borderWidth: 1,
+    borderColor: '#F0C24C',
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFF9E6',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 4,
+  },
+  suggestedMethodLabel: {
+    fontSize: 15,
+    color: '#9A7D0A',
+    lineHeight: 20,
+    fontWeight: '700',
+  },
+  suggestedMethodSummary: {
+    fontSize: 13,
+    color: '#7A6A2B',
+    lineHeight: 18,
+  },
+  lowConfidenceSubtext: {
+    fontSize: 13,
+    color: '#7A5A5A',
+    lineHeight: 19,
   },
 });
