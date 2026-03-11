@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 type DiagnosisFlowCardProps = {
   node: DiagnosisFlowNode;
   methodLabel: string;
+  disabled?: boolean;
   onChoicePress: (optionId: string) => void;
   onExplainContinue: () => void;
   onExplainDontKnow: () => void;
@@ -16,6 +17,7 @@ type DiagnosisFlowCardProps = {
 export function DiagnosisFlowCard({
   node,
   methodLabel,
+  disabled = false,
   onChoicePress,
   onExplainContinue,
   onExplainDontKnow,
@@ -45,9 +47,12 @@ export function DiagnosisFlowCard({
           {node.options.map((option) => (
             <Pressable
               key={option.id}
-              style={styles.optionButton}
-              onPress={() => onChoicePress(option.id)}>
-              <Text selectable style={styles.optionText}>
+              style={[styles.optionButton, disabled && styles.optionButtonDisabled]}
+              onPress={() => onChoicePress(option.id)}
+              accessibilityRole="button"
+              accessibilityLabel={option.text}
+              disabled={disabled}>
+              <Text style={styles.optionText}>
                 {option.text}
               </Text>
             </Pressable>
@@ -57,14 +62,24 @@ export function DiagnosisFlowCard({
 
       {node.kind === 'explain' && (
         <View style={styles.actionGroup}>
-          <Pressable style={styles.primaryButton} onPress={onExplainContinue}>
-            <Text selectable style={styles.primaryButtonText}>
+          <Pressable
+            style={[styles.primaryButton, disabled && styles.buttonDisabled]}
+            onPress={onExplainContinue}
+            accessibilityRole="button"
+            accessibilityLabel={node.primaryLabel}
+            disabled={disabled}>
+            <Text style={styles.primaryButtonText}>
               {node.primaryLabel}
             </Text>
           </Pressable>
 
-          <Pressable style={styles.secondaryButton} onPress={onExplainDontKnow}>
-            <Text selectable style={styles.secondaryButtonText}>
+          <Pressable
+            style={[styles.secondaryButton, disabled && styles.buttonDisabled]}
+            onPress={onExplainDontKnow}
+            accessibilityRole="button"
+            accessibilityLabel={node.secondaryLabel}
+            disabled={disabled}>
+            <Text style={styles.secondaryButtonText}>
               {node.secondaryLabel}
             </Text>
           </Pressable>
@@ -82,16 +97,24 @@ export function DiagnosisFlowCard({
             {node.options.map((option) => (
               <Pressable
                 key={option.id}
-                style={styles.optionButton}
-                onPress={() => onCheckPress(option.id)}>
-                <Text selectable style={styles.optionText}>
+                style={[styles.optionButton, disabled && styles.optionButtonDisabled]}
+                onPress={() => onCheckPress(option.id)}
+                accessibilityRole="button"
+                accessibilityLabel={option.text}
+                disabled={disabled}>
+                <Text style={styles.optionText}>
                   {option.text}
                 </Text>
               </Pressable>
             ))}
           </View>
-          <Pressable style={styles.secondaryButton} onPress={onCheckDontKnow}>
-            <Text selectable style={styles.secondaryButtonText}>
+          <Pressable
+            style={[styles.secondaryButton, disabled && styles.buttonDisabled]}
+            onPress={onCheckDontKnow}
+            accessibilityRole="button"
+            accessibilityLabel="모르겠습니다"
+            disabled={disabled}>
+            <Text style={styles.secondaryButtonText}>
               모르겠습니다
             </Text>
           </Pressable>
@@ -100,8 +123,13 @@ export function DiagnosisFlowCard({
 
       {node.kind === 'final' && (
         <View style={styles.actionGroup}>
-          <Pressable style={styles.primaryButton} onPress={onFinalConfirm}>
-            <Text selectable style={styles.primaryButtonText}>
+          <Pressable
+            style={[styles.primaryButton, disabled && styles.buttonDisabled]}
+            onPress={onFinalConfirm}
+            accessibilityRole="button"
+            accessibilityLabel={node.ctaLabel}
+            disabled={disabled}>
+            <Text style={styles.primaryButtonText}>
               {node.ctaLabel}
             </Text>
           </Pressable>
@@ -170,6 +198,9 @@ const styles = StyleSheet.create({
     color: BrandColors.text,
     fontWeight: '700',
   },
+  optionButtonDisabled: {
+    opacity: 0.65,
+  },
   actionGroup: {
     gap: BrandSpacing.xs,
   },
@@ -198,5 +229,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#9A3434',
+  },
+  buttonDisabled: {
+    opacity: 0.65,
   },
 });

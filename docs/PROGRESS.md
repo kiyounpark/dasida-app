@@ -35,6 +35,16 @@
 - 기존 OpenAI/Firebase 분류는 `풀이법 추정`까지만 유지하고, 상세 오답 진단은 전부 클라이언트 로컬 플로우에서 처리
 - **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 치명적 findings 없음
 
+**오답 분석 대화형 챗 UI 전환**
+- `app/(tabs)/quiz/index.tsx`: 상세 진단 단계를 현재 카드 1장 렌더링 방식에서 `AI 카드 -> 사용자 응답 -> 다음 AI 카드`가 누적되는 채팅 transcript 방식으로 전환
+- `features/quiz/components/diagnosis-chat-bubble.tsx` 추가로 사용자/보조 AI 메시지 버블 컴포넌트 분리
+- `features/quiz/components/diagnosis-flow-card.tsx`: 과거 단계 재진입 방지를 위한 비활성화 처리, 버튼 접근성 역할 추가, 버튼 텍스트 `selectable` 제거
+- `index.html`처럼 이전 대화가 계속 남고, 과거 선택지는 비활성화된 상태로 보이도록 정리
+- 설명/확인 문제 단계에서 사용자의 선택과 `모르겠습니다` 응답이 실제 채팅 말풍선으로 쌓이도록 보강
+- 확인 문제 정오답에 따라 짧은 보조 피드백 버블을 추가해 다음 설명 카드나 최종 정리 카드로 자연스럽게 이어지도록 조정
+- `ScrollView`의 `onContentSizeChange`를 이용해 새 메시지가 추가될 때마다 하단으로 자동 스크롤되도록 개선
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰 후 접근성/중복 호출/스크롤 타이밍 보완 반영
+
 **GPT-4.1 기반 오답 풀이법 분류 1차 구현**
 - `functions/`: Firebase Functions(TypeScript) 신규 추가
 - `functions/src/diagnosis-method.ts`: HTTPS 함수 `diagnoseMethod` 구현, 요청 검증, OpenAI 결과 후처리, Firestore 메타로그 저장 추가

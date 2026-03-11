@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
@@ -8,9 +8,11 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { MathText } from '@/components/math/MathText';
 import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
 import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
 import { methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
 import { problemData } from '@/data/problemData';
+import { DiagnosisChatBubble } from '@/features/quiz/components/diagnosis-chat-bubble';
 import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-card';
 import {
   advanceFromCheck,
@@ -25,6 +27,45 @@ import {
 import { analyzeDiagnosisMethod, type DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 import { useQuizSession } from '@/features/quiz/session';
 
+type DiagnosisChatEntry =
+  | {
+      id: string;
+      role: 'assistant';
+      kind: 'node';
+      node: DiagnosisFlowNode;
+      methodLabel: string;
+      interactive: boolean;
+    }
+  | {
+      id: string;
+      role: 'assistant' | 'user';
+      kind: 'bubble';
+      text: string;
+      tone?: 'neutral' | 'positive' | 'warning';
+    };
+
+function getMethodLabel(methodId: SolveMethodId, availableMethods: { id: SolveMethodId; labelKo: string }[]) {
+  return (
+    availableMethods.find((method) => method.id === methodId)?.labelKo ??
+    methodOptions.find((method) => method.id === methodId)?.labelKo ??
+    methodId
+  );
+}
+
+function getMethodSelectionText(methodId: SolveMethodId, methodLabel: string) {
+  if (methodId === 'unknown') {
+    return '잘 모르겠어요.';
+  }
+
+  return `${methodLabel}으로 풀었어요.`;
+}
+
+function freezeChatEntries(entries: DiagnosisChatEntry[]): DiagnosisChatEntry[] {
+  return entries.map((entry) =>
+    entry.kind === 'node' ? { ...entry, interactive: false } : entry,
+  );
+}
+
 export default function QuizIndexScreen() {
   const { state, startSession, submitAnswer, confirmDiagnosisMethod, submitDiagnosisWeakness } = useQuizSession();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -38,6 +79,10 @@ export default function QuizIndexScreen() {
   const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
   const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
   const [activeDiagnosisFlow, setActiveDiagnosisFlow] = useState<DiagnosisFlowDraft | null>(null);
+  const [diagnosisChatEntries, setDiagnosisChatEntries] = useState<DiagnosisChatEntry[]>([]);
+  const diagnosisScrollRef = useRef<ScrollView | null>(null);
+  const diagnosisEntrySequence = useRef(0);
+  const isAnalyzingRef = useRef(false);
 
   const currentProblem = useMemo(
     () => problemData[state.currentQuestionIndex],
@@ -80,17 +125,10 @@ export default function QuizIndexScreen() {
     );
   }, [activeDiagnosisFlow]);
 
-  const activeMethodLabel = useMemo(() => {
-    if (!tempMethodId) {
-      return '';
-    }
-
-    return (
-      availableMethods.find((method) => method.id === tempMethodId)?.labelKo ??
-      methodOptions.find((method) => method.id === tempMethodId)?.labelKo ??
-      tempMethodId
-    );
-  }, [availableMethods, tempMethodId]);
+  const activeMethodLabel = useMemo(
+    () => (tempMethodId ? getMethodLabel(tempMethodId, availableMethods) : ''),
+    [availableMethods, tempMethodId],
+  );
 
   useEffect(() => {
     setSelectedIndex(null);
@@ -109,6 +147,8 @@ export default function QuizIndexScreen() {
     setRouterResult(null);
     setAnalysisErrorMessage('');
     setActiveDiagnosisFlow(null);
+    setDiagnosisChatEntries([]);
+    diagnosisEntrySequence.current = 0;
   }, [state.currentDiagnosisIndex]);
 
   const handleSubmit = () => {
@@ -123,13 +163,71 @@ export default function QuizIndexScreen() {
     setAnalysisErrorMessage('');
   };
 
+  const createChatEntryId = (prefix: string) => {
+    diagnosisEntrySequence.current += 1;
+    return `${prefix}-${diagnosisEntrySequence.current}`;
+  };
+
+  const createBubbleEntry = (
+    role: 'assistant' | 'user',
+    text: string,
+    tone: 'neutral' | 'positive' | 'warning' = 'neutral',
+  ): DiagnosisChatEntry => ({
+    id: createChatEntryId(role),
+    role,
+    kind: 'bubble',
+    text,
+    tone,
+  });
+
+  const createNodeEntry = (
+    methodId: SolveMethodId,
+    node: DiagnosisFlowNode,
+    interactive: boolean,
+  ): DiagnosisChatEntry => ({
+    id: createChatEntryId(node.id),
+    role: 'assistant',
+    kind: 'node',
+    node,
+    methodLabel: getMethodLabel(methodId, availableMethods),
+    interactive,
+  });
+
+  const appendNextNode = (
+    draft: DiagnosisFlowDraft,
+    userText: string,
+    feedback?: {
+      text: string;
+      tone?: 'neutral' | 'positive' | 'warning';
+    },
+  ) => {
+    const nextNode = getNode(getDiagnosisFlow(draft.methodId), draft.currentNodeId);
+
+    setActiveDiagnosisFlow(draft);
+    setDiagnosisChatEntries((prev) => [
+      ...freezeChatEntries(prev),
+      createBubbleEntry('user', userText),
+      ...(feedback ? [createBubbleEntry('assistant', feedback.text, feedback.tone)] : []),
+      createNodeEntry(draft.methodId, nextNode, true),
+    ]);
+  };
+
   const startDiagnosisFlow = (methodId: SolveMethodId) => {
+    const draft = createDiagnosisFlowDraft(methodId);
+    const startNode = getNode(getDiagnosisFlow(methodId), draft.currentNodeId);
+    const methodLabel = getMethodLabel(methodId, availableMethods);
+
     setTempMethodId(methodId);
-    setActiveDiagnosisFlow(createDiagnosisFlowDraft(methodId));
+    setActiveDiagnosisFlow(draft);
+    setDiagnosisChatEntries([
+      createBubbleEntry('user', getMethodSelectionText(methodId, methodLabel)),
+      createNodeEntry(methodId, startNode, true),
+    ]);
   };
 
   const handleAnalyze = async () => {
-    if (!diagnosisInput.trim() || isAnalyzing || !currentDiagnosisProblem) return;
+    if (!diagnosisInput.trim() || isAnalyzingRef.current || !currentDiagnosisProblem) return;
+    isAnalyzingRef.current = true;
     setIsAnalyzing(true);
     setAnalysisErrorMessage('');
     try {
@@ -154,6 +252,7 @@ export default function QuizIndexScreen() {
       setRouterResult(null);
       setAnalysisErrorMessage('지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.');
     } finally {
+      isAnalyzingRef.current = false;
       setIsAnalyzing(false);
     }
   };
@@ -201,43 +300,85 @@ export default function QuizIndexScreen() {
   };
 
   const handleFlowChoice = (optionId: string) => {
-    if (!activeDiagnosisFlow) return;
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'choice') return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
-    setActiveDiagnosisFlow(advanceFromChoice(activeDiagnosisFlow, optionId));
+    const option = activeFlowNode.options.find((item) => item.id === optionId);
+    if (!option) return;
+
+    appendNextNode(advanceFromChoice(activeDiagnosisFlow, optionId), option.text);
   };
 
   const handleExplainContinue = () => {
-    if (!activeDiagnosisFlow) return;
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'explain') return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
-    setActiveDiagnosisFlow(advanceFromExplain(activeDiagnosisFlow, 'continue'));
+
+    appendNextNode(
+      advanceFromExplain(activeDiagnosisFlow, 'continue'),
+      activeFlowNode.primaryLabel,
+    );
   };
 
   const handleExplainDontKnow = () => {
-    if (!activeDiagnosisFlow) return;
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'explain') return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
-    setActiveDiagnosisFlow(advanceFromExplain(activeDiagnosisFlow, 'dont_know'));
+
+    const nextDraft = advanceFromExplain(activeDiagnosisFlow, 'dont_know');
+    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
+
+    appendNextNode(nextDraft, activeFlowNode.secondaryLabel, {
+      text:
+        nextNode.kind === 'final'
+          ? '괜찮아요. 지금은 기초부터 정리하는 쪽이 더 좋아 보여요.'
+          : '괜찮아요. 더 쉬운 설명으로 다시 이어갈게요.',
+      tone: 'neutral',
+    });
   };
 
   const handleCheckPress = (optionId: string) => {
-    if (!activeDiagnosisFlow) return;
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'check') return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
-    setActiveDiagnosisFlow(advanceFromCheck(activeDiagnosisFlow, optionId));
+    const option = activeFlowNode.options.find((item) => item.id === optionId);
+    if (!option) return;
+
+    const nextDraft = advanceFromCheck(activeDiagnosisFlow, optionId);
+    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
+
+    appendNextNode(nextDraft, option.text, {
+      text: option.isCorrect
+        ? nextNode.kind === 'final'
+          ? '좋아요. 지금까지의 흐름을 바탕으로 약점을 정리해볼게요.'
+          : '좋아요. 다음 단계로 이어갈게요.'
+        : nextNode.kind === 'final'
+          ? '이 지점이 현재 가장 큰 약점으로 보여요. 우선 여기부터 잡아볼게요.'
+          : '이 부분이 아직 흔들리고 있어요. 더 쉽게 다시 짚어볼게요.',
+      tone: option.isCorrect ? 'positive' : 'warning',
+    });
   };
 
   const handleCheckDontKnow = () => {
-    if (!activeDiagnosisFlow) return;
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'check') return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
-    setActiveDiagnosisFlow(advanceFromCheck(activeDiagnosisFlow));
+
+    const nextDraft = advanceFromCheck(activeDiagnosisFlow);
+    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
+
+    appendNextNode(nextDraft, '모르겠습니다', {
+      text:
+        nextNode.kind === 'final'
+          ? '괜찮아요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
+          : '괜찮아요. 더 쉬운 설명으로 다시 볼게요.',
+      tone: 'neutral',
+    });
   };
 
   const handleFinalizeDiagnosis = () => {
@@ -282,8 +423,14 @@ export default function QuizIndexScreen() {
       <View style={styles.screen}>
         <BrandHeader />
         <ScrollView
+          ref={diagnosisScrollRef}
           style={styles.scroll}
           contentInsetAdjustmentBehavior="automatic"
+          onContentSizeChange={() => {
+            if (diagnosisChatEntries.length > 0) {
+              diagnosisScrollRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
           contentContainerStyle={styles.container}>
           <View style={styles.surfaceCard}>
             <View style={styles.progressHeader}>
@@ -429,18 +576,40 @@ export default function QuizIndexScreen() {
             ) : (
               <>
                 <Text selectable style={styles.diagnosisFlowLabel}>
-                  선택한 풀이법: {activeMethodLabel}
+                  {activeMethodLabel} 풀이를 기준으로 대화형 진단을 이어가고 있어요.
                 </Text>
-                <DiagnosisFlowCard
-                  node={activeFlowNode}
-                  methodLabel={activeMethodLabel}
-                  onChoicePress={handleFlowChoice}
-                  onExplainContinue={handleExplainContinue}
-                  onExplainDontKnow={handleExplainDontKnow}
-                  onCheckPress={handleCheckPress}
-                  onCheckDontKnow={handleCheckDontKnow}
-                  onFinalConfirm={handleFinalizeDiagnosis}
-                />
+                <View style={styles.chatTranscript}>
+                  {diagnosisChatEntries.map((entry) => {
+                    if (entry.kind === 'bubble') {
+                      return (
+                        <DiagnosisChatBubble
+                          key={entry.id}
+                          role={entry.role}
+                          text={entry.text}
+                          tone={entry.tone}
+                        />
+                      );
+                    }
+
+                    return (
+                      <View key={entry.id} style={styles.aiNodeRow}>
+                        <View style={styles.aiNodeWrap}>
+                          <DiagnosisFlowCard
+                            node={entry.node}
+                            methodLabel={entry.methodLabel}
+                            disabled={!entry.interactive}
+                            onChoicePress={handleFlowChoice}
+                            onExplainContinue={handleExplainContinue}
+                            onExplainDontKnow={handleExplainDontKnow}
+                            onCheckPress={handleCheckPress}
+                            onCheckDontKnow={handleCheckDontKnow}
+                            onFinalConfirm={handleFinalizeDiagnosis}
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
               </>
             )}
           </View>
@@ -700,6 +869,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9A3434',
     fontWeight: '700',
+    lineHeight: 20,
+  },
+  chatTranscript: {
+    gap: BrandSpacing.sm,
+  },
+  aiNodeRow: {
+    alignItems: 'flex-start',
+  },
+  aiNodeWrap: {
+    width: '100%',
+    maxWidth: '92%',
   },
   diagnosisText: {
     fontSize: 15,
