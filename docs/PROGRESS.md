@@ -393,6 +393,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.11 23:29
+- 해시: `982743f` (`982743f93077f70c2286d89f425fc64c8fe29831`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/982743f93077f70c2286d89f425fc64c8fe29831
+- 작성자: 박기윤
+- 메시지: feat: 오답 분석 다단계 상세 플로우 도입
+
 ### 커밋 2026.03.11 22:55
 - 해시: `3b8fc6f` (`3b8fc6fc9caf9e067daba7dc3a6b14629035991b`)
 - 브랜치: main
