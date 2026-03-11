@@ -14,12 +14,27 @@
 | 화면 구현 | 4개 화면 (문제/결과/연습/피드백) | ✅ 1차 구현 |
 | 디자인 정합화 | 로고/브랜드 톤 앱 전역 반영 | ✅ 완료 |
 | Firebase 연결 | Firestore 피드백 저장 | ⬜ |
-| OpenAI 연결 | AI 판정 API 호출 | ⬜ |
+| OpenAI 연결 | AI 판정 API 호출 | 🟡 1차 구현 |
 | 앱스토어 준비 | 개인정보처리방침, 심사 체크리스트 | ⬜ |
 
 ---
 
 ## 로그
+
+### 2026.03.11
+
+**GPT-4.1 기반 오답 풀이법 분류 1차 구현**
+- `functions/`: Firebase Functions(TypeScript) 신규 추가
+- `functions/src/diagnosis-method.ts`: HTTPS 함수 `diagnoseMethod` 구현, 요청 검증, OpenAI 결과 후처리, Firestore 메타로그 저장 추가
+- `functions/src/openai-client.ts`: OpenAI `gpt-4.1` + Responses API(JSON Schema 응답) 호출 모듈 추가
+- `functions/src/firestore-log.ts`: `diagnosisMethodRuns` 컬렉션에 결과 메타데이터만 저장하도록 분리
+- `features/quiz/diagnosis-router.ts`: 원격 OpenAI 분류 우선 호출 후 실패/저신뢰 시 mock 라우터로 fallback 하도록 리팩토링
+- `features/quiz/diagnosis-router-mock.ts`: 기존 키워드 기반 mock 분류 로직 분리
+- `app/(tabs)/quiz/index.tsx`: `problemId`와 허용 풀이법 메타데이터를 함께 보내도록 연결, trace source를 `openai-router/mock-router/manual-selection` 기준으로 정리
+- `.env.example`, `constants/env.ts`: Expo 클라이언트에서 함수 URL을 읽는 환경변수 경로 추가
+- `firebase.json`, `functions/package.json`, `functions/tsconfig.json`: Firebase 함수 코드베이스와 빌드 설정 추가
+- **남은 설정**: 실제 배포 전 `OPENAI_API_KEY` secret, Firebase 프로젝트 연결, `EXPO_PUBLIC_DIAGNOSIS_ROUTER_URL` 값 주입 필요
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run lint --prefix functions`, `npm run build --prefix functions` 통과
 
 ### 2026.03.10
 

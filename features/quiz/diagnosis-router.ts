@@ -1,9 +1,21 @@
-import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
+import { diagnosisRouterTimeoutMs, diagnosisRouterUrl } from '@/constants/env';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+import type { DiagnosisRouterSource } from './types';
+import { analyzeDiagnosisMethodWithMock } from './diagnosis-router-mock';
+
+export type DiagnosisMethodDescriptor = {
+  id: SolveMethodId;
+  labelKo: string;
+  summary: string;
+  exampleUtterances: string[];
+};
+
 export type DiagnosisRouterInput = {
+  problemId: string;
   rawText: string;
   allowedMethodIds: SolveMethodId[];
+  allowedMethods: DiagnosisMethodDescriptor[];
 };
 
 export type DiagnosisRouterResult = {
@@ -12,75 +24,136 @@ export type DiagnosisRouterResult = {
   reason: string;
   needsManualSelection: boolean;
   candidateMethodIds: SolveMethodId[];
-  scores: Record<SolveMethodId, number>;
+  source: DiagnosisRouterSource;
+  scores?: Partial<Record<SolveMethodId, number>>;
 };
+
+const HIGH_CONFIDENCE_THRESHOLD = 0.74;
+
+type RemoteDiagnosisResponse = {
+  predictedMethodId: string;
+  confidence: number;
+  reason: string;
+  candidateMethodIds: string[];
+};
+
+function sanitizeMethodId(
+  candidate: unknown,
+  allowedMethodIds: SolveMethodId[]
+): SolveMethodId {
+  if (typeof candidate !== 'string') {
+    return 'unknown';
+  }
+
+  return allowedMethodIds.includes(candidate as SolveMethodId) ? (candidate as SolveMethodId) : 'unknown';
+}
+
+function sanitizeCandidateMethodIds(
+  candidateMethodIds: unknown,
+  allowedMethodIds: SolveMethodId[],
+  predictedMethodId: SolveMethodId
+): SolveMethodId[] {
+  const next = new Set<SolveMethodId>();
+
+  if (predictedMethodId !== 'unknown') {
+    next.add(predictedMethodId);
+  }
+
+  if (Array.isArray(candidateMethodIds)) {
+    candidateMethodIds.forEach((candidate) => {
+      const methodId = sanitizeMethodId(candidate, allowedMethodIds);
+      if (methodId !== 'unknown') {
+        next.add(methodId);
+      }
+    });
+  }
+
+  if (next.size === 0) {
+    next.add('unknown');
+  }
+
+  return Array.from(next);
+}
+
+function parseRemoteDiagnosisResponse(
+  payload: unknown,
+  allowedMethodIds: SolveMethodId[]
+): DiagnosisRouterResult | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const response = payload as Partial<RemoteDiagnosisResponse>;
+  const predictedMethodId = sanitizeMethodId(response.predictedMethodId, allowedMethodIds);
+  const confidence =
+    typeof response.confidence === 'number' && Number.isFinite(response.confidence)
+      ? Math.max(0, Math.min(1, response.confidence))
+      : 0;
+  const reason = typeof response.reason === 'string' && response.reason.trim()
+    ? response.reason.trim()
+    : 'OpenAI router response';
+  const candidateMethodIds = sanitizeCandidateMethodIds(
+    response.candidateMethodIds,
+    allowedMethodIds,
+    predictedMethodId
+  );
+  const needsManualSelection =
+    predictedMethodId === 'unknown' || confidence < HIGH_CONFIDENCE_THRESHOLD;
+
+  return {
+    predictedMethodId,
+    confidence,
+    reason,
+    needsManualSelection,
+    candidateMethodIds,
+    source: 'openai-router',
+  };
+}
+
+async function requestOpenAiDiagnosis(
+  input: DiagnosisRouterInput
+): Promise<DiagnosisRouterResult | null> {
+  if (!diagnosisRouterUrl) {
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), diagnosisRouterTimeoutMs);
+
+  try {
+    const response = await fetch(diagnosisRouterUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+    return parseRemoteDiagnosisResponse(payload, input.allowedMethodIds);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export async function analyzeDiagnosisMethod(
   input: DiagnosisRouterInput
 ): Promise<DiagnosisRouterResult> {
-  const { rawText, allowedMethodIds } = input;
-  const candidates = Array.from(new Set([...allowedMethodIds, 'unknown' as SolveMethodId]));
-
-  const normalizedInput = rawText.replace(/\s+/g, '').toLowerCase();
-
-  const scores: Record<SolveMethodId, number> = {} as Record<SolveMethodId, number>;
-  candidates.forEach((id) => {
-    scores[id] = 0;
-  });
-
-  if (!normalizedInput) {
-    return {
-      predictedMethodId: 'unknown',
-      confidence: 0,
-      reason: 'Empty input text',
-      needsManualSelection: true,
-      candidateMethodIds: candidates,
-      scores,
-    };
+  if (!input.rawText.trim()) {
+    return analyzeDiagnosisMethodWithMock(input);
   }
 
-  candidates.forEach(id => {
-    let score = 0;
-    const cat = diagnosisMethodRoutingCatalog[id];
-    if (cat && cat.keywords) {
-      cat.keywords.forEach(kw => {
-        const normKw = kw.replace(/\s+/g, '').toLowerCase();
-        // If the keyword matches exactly or partially
-        if (normalizedInput.includes(normKw)) {
-          score += 1; // +1 point for each keyword found
-        }
-      });
-    }
-    scores[id] = score;
-  });
-
-  const sorted = candidates
-    .map(id => ({ id, score: scores[id] }))
-    .sort((a, b) => b.score - a.score);
-
-  const top = sorted[0];
-  const second = sorted.length > 1 ? sorted[1] : { id: 'unknown' as SolveMethodId, score: 0 };
-  const gap = top.score - second.score;
-
-  // Fake confidence calculation that satisfies the PLAN requirement when gap >= 2
-  let confidence = 0;
-  if (top.score > 0) {
-    if (gap >= 2) confidence = 0.8;
-    else if (gap === 1) confidence = 0.6;
-    else confidence = 0.4;
+  const remoteResult = await requestOpenAiDiagnosis(input);
+  if (remoteResult && !remoteResult.needsManualSelection) {
+    return remoteResult;
   }
 
-  const isHighConfidence = top.id !== 'unknown' && confidence >= 0.74 && gap >= 2;
-
-  const reason = `top=${top.id}(${top.score}), 2nd=${second.id}(${second.score}), gap=${gap}, conf=${confidence.toFixed(2)}`;
-
-  // Wrap in Promise for async mock
-  return Promise.resolve({
-    predictedMethodId: top.id,
-    confidence,
-    reason,
-    needsManualSelection: !isHighConfidence,
-    candidateMethodIds: candidates,
-    scores,
-  });
+  return analyzeDiagnosisMethodWithMock(input);
 }

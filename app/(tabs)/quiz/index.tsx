@@ -26,21 +26,26 @@ export default function QuizIndexScreen() {
   const [diagnosisInput, setDiagnosisInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
+  const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
 
   const currentProblem = useMemo(
     () => problemData[state.currentQuestionIndex],
     [state.currentQuestionIndex],
   );
 
+  const currentDiagnosisProblem = useMemo(() => {
+    if (!state.isDiagnosing) return undefined;
+    const wrongAnswerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
+    if (wrongAnswerIndex === undefined) return undefined;
+    const wrongAnswer = state.answers[wrongAnswerIndex];
+    return problemData.find((problem) => problem.id === wrongAnswer.problemId);
+  }, [state.answers, state.currentDiagnosisIndex, state.diagnosisQueue, state.isDiagnosing]);
+
   const availableMethods = useMemo(() => {
     if (!state.isDiagnosing) return [];
-    const wrongAnswerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
-    if (wrongAnswerIndex === undefined) return methodOptions;
-    const wrongAnswer = state.answers[wrongAnswerIndex];
-    const problem = problemData.find((p) => p.id === wrongAnswer.problemId);
-    if (!problem?.diagnosisMethods) return methodOptions;
-    return methodOptions.filter((opt) => problem.diagnosisMethods.includes(opt.id));
-  }, [state.isDiagnosing, state.currentDiagnosisIndex, state.answers, state.diagnosisQueue]);
+    if (!currentDiagnosisProblem?.diagnosisMethods) return methodOptions;
+    return methodOptions.filter((option) => currentDiagnosisProblem.diagnosisMethods.includes(option.id));
+  }, [currentDiagnosisProblem, state.isDiagnosing]);
 
   useEffect(() => {
     setSelectedIndex(null);
@@ -57,6 +62,7 @@ export default function QuizIndexScreen() {
     setTempMethodId(null);
     setDiagnosisInput('');
     setRouterResult(null);
+    setAnalysisErrorMessage('');
   }, [state.currentDiagnosisIndex]);
 
   const handleSubmit = () => {
@@ -68,17 +74,33 @@ export default function QuizIndexScreen() {
   const handleInputChange = (text: string) => {
     setDiagnosisInput(text);
     setRouterResult(null); // 입력 수정 시 이전 예측 결과 무효화
+    setAnalysisErrorMessage('');
   };
 
   const handleAnalyze = async () => {
-    if (!diagnosisInput.trim() || isAnalyzing) return;
+    if (!diagnosisInput.trim() || isAnalyzing || !currentDiagnosisProblem) return;
     setIsAnalyzing(true);
+    setAnalysisErrorMessage('');
     try {
       const result = await analyzeDiagnosisMethod({
+        problemId: currentDiagnosisProblem.id,
         rawText: diagnosisInput,
-        allowedMethodIds: availableMethods.map(m => m.id),
+        allowedMethodIds: availableMethods.map((method) => method.id),
+        allowedMethods: availableMethods.map((method) => {
+          const info = diagnosisMethodRoutingCatalog[method.id];
+
+          return {
+            id: method.id,
+            labelKo: method.labelKo,
+            summary: info?.summary ?? method.labelKo,
+            exampleUtterances: info?.exampleUtterances ?? [],
+          };
+        }),
       });
       setRouterResult(result);
+    } catch {
+      setRouterResult(null);
+      setAnalysisErrorMessage('지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -95,9 +117,10 @@ export default function QuizIndexScreen() {
       rawText: diagnosisInput,
       finalMethodId: routerResult.predictedMethodId,
       finalMethodSource: 'router' as const,
-      source: 'mock-router' as const, // 추가
+      source: routerResult.source,
     };
     confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
+    setAnalysisErrorMessage('');
     setTempMethodId(routerResult.predictedMethodId);
   };
 
@@ -109,18 +132,19 @@ export default function QuizIndexScreen() {
       rawText: diagnosisInput,
       finalMethodId: methodId,
       finalMethodSource: 'manual' as const,
-      source: 'mock-router' as const,
+      source: routerResult.source,
     } : {
       rawText: diagnosisInput,
       predictedMethodId: 'unknown' as SolveMethodId,
       confidence: 0,
-      source: 'mock-router' as const,
+      source: 'manual-selection' as const,
       needsManualSelection: true,
-      candidateMethodIds: availableMethods.map(m => m.id),
+      candidateMethodIds: availableMethods.map((method) => method.id),
       finalMethodId: methodId,
       finalMethodSource: 'manual' as const,
     };
     confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
+    setAnalysisErrorMessage('');
     setTempMethodId(methodId);
   };
 
@@ -146,9 +170,7 @@ export default function QuizIndexScreen() {
 
   // --- 진단 단계(DIAGNOSING) 렌더링 ---
   if (state.isDiagnosing) {
-    const wrongAnswerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
-    const wrongAnswer = state.answers[wrongAnswerIndex];
-    const problem = problemData.find((p) => p.id === wrongAnswer.problemId);
+    const problem = currentDiagnosisProblem;
 
     if (!problem) return null;
 
@@ -244,6 +266,12 @@ export default function QuizIndexScreen() {
                       <Text style={styles.analyzeButtonText}>입력 내용으로 추천받기</Text>
                     )}
                   </Pressable>
+
+                  {analysisErrorMessage ? (
+                    <Text selectable style={styles.analysisErrorText}>
+                      {analysisErrorMessage}
+                    </Text>
+                  ) : null}
                 </View>
 
                 {routerResult && !routerResult.needsManualSelection && (
@@ -262,7 +290,7 @@ export default function QuizIndexScreen() {
 
                 {routerResult && routerResult.needsManualSelection && (
                   <Text selectable style={styles.lowConfidenceText}>
-                    입력만으로는 확신이 낮아요. 위 선택지에서 고르거나 다시 적어주세요.
+                    입력한 내용만으로는 풀이 방법을 판단하기 어려워요. 위 선택지에서 고르거나 조금 더 자세히 적어주세요.
                   </Text>
                 )}
               </>
@@ -607,6 +635,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+  },
+  analysisErrorText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: BrandColors.danger,
   },
   predictionCard: {
     backgroundColor: '#FFF9E6',

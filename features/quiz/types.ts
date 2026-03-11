@@ -1,12 +1,15 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+export type DiagnosisRouterSource = 'mock-router' | 'openai-router';
+export type DiagnosisTraceSource = DiagnosisRouterSource | 'manual-selection';
+
 export type DiagnosisRoutingTrace = {
   rawText: string;
   predictedMethodId?: SolveMethodId;
   confidence?: number;
   reason?: string;
-  source: 'mock-router' | 'openai-router';
+  source: DiagnosisTraceSource;
   needsManualSelection: boolean;
   candidateMethodIds: SolveMethodId[];
   finalMethodId: SolveMethodId;
