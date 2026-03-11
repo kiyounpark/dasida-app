@@ -101,7 +101,7 @@ export default function QuizIndexScreen() {
     setTempMethodId(routerResult.predictedMethodId);
   };
 
-  // 저신뢰/수동 선택 목록에서 사용자가 직접 고를 때
+  // 사용자가 풀이 방법 선택지에서 바로 고를 때
   const handleManualSelect = (methodId: SolveMethodId) => {
     if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
     const trace = routerResult ? {
@@ -167,11 +167,13 @@ export default function QuizIndexScreen() {
           <View style={styles.surfaceCard}>
             <View style={styles.progressHeader}>
               <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: progressPercent, backgroundColor: '#f39c12' }]} />
+                <View
+                  style={[styles.progressFill, { width: progressPercent, backgroundColor: BrandColors.warning }]}
+                />
               </View>
               <View style={styles.progressMeta}>
-                <Text style={styles.progressLabel}>오답 진단 진행률</Text>
-                <Text style={[styles.progress, { color: '#e67e22' }]}>{stepTitle}</Text>
+                <Text selectable style={styles.progressLabel}>오답 진단 진행률</Text>
+                <Text selectable style={[styles.progress, { color: BrandColors.warning }]}>{stepTitle}</Text>
               </View>
             </View>
             <View style={styles.topicRow}>
@@ -181,11 +183,39 @@ export default function QuizIndexScreen() {
           </View>
 
           <View style={styles.diagnosisCard}>
-            <Text style={styles.diagnosisTitle}>오답 원인 분석</Text>
+            <Text selectable style={styles.diagnosisTitle}>오답 원인 분석</Text>
             {!methodStep ? (
               <>
                 <Text selectable style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
-                
+                <Text style={styles.diagnosisHelper}>
+                  가장 가까운 방법을 고르거나, 아래 입력란에 직접 적어주세요.
+                </Text>
+
+                {availableMethods.length > 0 && (
+                  <View style={styles.diagnosisChoices}>
+                    {availableMethods.map((option) => {
+                      const info = diagnosisMethodRoutingCatalog[option.id];
+
+                      return (
+                        <Pressable
+                          key={option.id}
+                          style={styles.diagnosisChoiceButton}
+                          onPress={() => handleManualSelect(option.id)}>
+                          <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
+                          {info?.summary ? (
+                            <Text style={styles.diagnosisChoiceSummary}>{info.summary}</Text>
+                          ) : null}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
+
+                <View style={styles.diagnosisInputSection}>
+                  <Text style={styles.diagnosisInputLabel}>
+                    선택지에 없다면, 어떤 식으로 풀었는지 짧게 적어주세요.
+                  </Text>
+
                 {availableMethods.length > 0 && (
                   <Text style={styles.diagnosisHint}>
                     예) {availableMethods.slice(0, 2).map((m) => {
@@ -194,58 +224,46 @@ export default function QuizIndexScreen() {
                     }).filter(Boolean).join(', ')}
                   </Text>
                 )}
-                
-                <TextInput
-                  style={styles.diagnosisInput}
-                  value={diagnosisInput}
-                  onChangeText={handleInputChange}
-                  placeholder="풀이 방법을 자유롭게 적어주세요"
-                  placeholderTextColor="#999"
-                  multiline
-                />
-                
-                <Pressable
-                  style={[styles.analyzeButton, !diagnosisInput.trim() && styles.analyzeButtonDisabled]}
-                  onPress={handleAnalyze}
-                  disabled={!diagnosisInput.trim() || isAnalyzing}>
-                  {isAnalyzing ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.analyzeButtonText}>방향 판단하기</Text>
-                  )}
-                </Pressable>
-                
+
+                  <TextInput
+                    style={styles.diagnosisInput}
+                    value={diagnosisInput}
+                    onChangeText={handleInputChange}
+                    placeholder="예: 근의 공식으로 풀다가 판별식 계산에서 막혔어요"
+                    placeholderTextColor="#999"
+                    multiline
+                  />
+
+                  <Pressable
+                    style={[styles.analyzeButton, !diagnosisInput.trim() && styles.analyzeButtonDisabled]}
+                    onPress={handleAnalyze}
+                    disabled={!diagnosisInput.trim() || isAnalyzing}>
+                    {isAnalyzing ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.analyzeButtonText}>입력 내용으로 추천받기</Text>
+                    )}
+                  </Pressable>
+                </View>
+
                 {routerResult && !routerResult.needsManualSelection && (
                   <View style={styles.predictionCard}>
-                    <Text style={styles.predictionLabel}>
+                    <Text selectable style={styles.predictionLabel}>
                       {diagnosisMethodRoutingCatalog[routerResult.predictedMethodId]?.labelKo}
                     </Text>
-                    <Text style={styles.predictionDesc}>
-                      {diagnosisMethodRoutingCatalog[routerResult.predictedMethodId]?.summary}
+                    <Text selectable style={styles.predictionDesc}>
+                      입력 내용을 기준으로 이 풀이 방법이 가장 가까워 보여요.
                     </Text>
                     <Pressable style={styles.confirmButton} onPress={handleConfirmPredicted}>
-                      <Text style={styles.confirmButtonText}>이 방식으로 계속</Text>
-                    </Pressable>
-                    <Pressable style={styles.manualTrigger} onPress={() => setRouterResult({ ...routerResult, needsManualSelection: true })}>
-                      <Text style={styles.manualTriggerText}>직접 고를게요</Text>
+                      <Text style={styles.confirmButtonText}>이 추천으로 계속</Text>
                     </Pressable>
                   </View>
                 )}
-                
+
                 {routerResult && routerResult.needsManualSelection && (
-                  <>
-                    <Text style={styles.lowConfidenceText}>확신이 낮아요. 직접 골라주세요.</Text>
-                    <View style={styles.diagnosisChoices}>
-                      {availableMethods.map((option) => (
-                        <Pressable
-                          key={option.id}
-                          style={styles.diagnosisChoiceButton}
-                          onPress={() => handleManualSelect(option.id)}>
-                          <Text style={styles.diagnosisChoiceText}>{option.labelKo}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </>
+                  <Text selectable style={styles.lowConfidenceText}>
+                    입력만으로는 확신이 낮아요. 위 선택지에서 고르거나 다시 적어주세요.
+                  </Text>
                 )}
               </>
             ) : (
@@ -308,8 +326,8 @@ export default function QuizIndexScreen() {
                 <View style={[styles.progressFill, { width: progressPercent }]} />
               </View>
               <View style={styles.progressMeta}>
-                <Text style={styles.progressLabel}>진행률</Text>
-                <Text style={styles.progress}>{stepTitle}</Text>
+                <Text selectable style={styles.progressLabel}>진행률</Text>
+                <Text selectable style={styles.progress}>{stepTitle}</Text>
               </View>
             </View>
             <View style={styles.topicRow}>
@@ -521,6 +539,11 @@ const styles = StyleSheet.create({
     color: '#4b4b4b',
     lineHeight: 22,
   },
+  diagnosisHelper: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#7A5A5A',
+  },
   diagnosisChoices: {
     gap: BrandSpacing.xs,
   },
@@ -532,35 +555,50 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingVertical: 10,
     paddingHorizontal: 12,
+    gap: 4,
   },
   diagnosisChoiceText: {
     fontSize: 15,
     color: '#333',
     lineHeight: 20,
+    fontWeight: '700',
+  },
+  diagnosisChoiceSummary: {
+    fontSize: 13,
+    color: '#7A7A7A',
+    lineHeight: 18,
+  },
+  diagnosisInputSection: {
+    gap: BrandSpacing.xs,
+    paddingTop: BrandSpacing.xs,
+  },
+  diagnosisInputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7A5A5A',
   },
   diagnosisHint: {
     fontSize: 13,
     color: '#888',
     fontStyle: 'italic',
-    marginBottom: BrandSpacing.xs,
   },
   diagnosisInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     padding: 12,
     fontSize: 15,
     minHeight: 60,
     textAlignVertical: 'top',
     backgroundColor: '#fff',
-    marginBottom: BrandSpacing.sm,
   },
   analyzeButton: {
-    backgroundColor: '#e67e22',
+    backgroundColor: BrandColors.warning,
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     paddingVertical: 12,
     alignItems: 'center',
-    marginBottom: BrandSpacing.md,
   },
   analyzeButtonDisabled: {
     backgroundColor: '#ccc',
@@ -573,11 +611,11 @@ const styles = StyleSheet.create({
   predictionCard: {
     backgroundColor: '#FFF9E6',
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     padding: BrandSpacing.md,
     gap: BrandSpacing.xs,
     borderWidth: 1,
     borderColor: '#F5D76E',
-    marginTop: BrandSpacing.sm,
   },
   predictionLabel: {
     fontSize: 16,
@@ -589,8 +627,9 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   confirmButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: BrandColors.success,
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     paddingVertical: 10,
     alignItems: 'center',
     marginTop: BrandSpacing.xs,
@@ -600,19 +639,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  manualTrigger: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  manualTriggerText: {
-    fontSize: 14,
-    color: '#666',
-    textDecorationLine: 'underline',
-  },
   lowConfidenceText: {
     fontSize: 14,
-    color: '#c0392b',
+    color: BrandColors.danger,
     fontWeight: '600',
-    marginBottom: BrandSpacing.xs,
+    lineHeight: 20,
   },
 });
