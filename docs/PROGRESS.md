@@ -36,6 +36,33 @@
 - **남은 설정**: 실제 배포 전 `OPENAI_API_KEY` secret, Firebase 프로젝트 연결, `EXPO_PUBLIC_DIAGNOSIS_ROUTER_URL` 값 주입 필요
 - **검증**: `npm run typecheck`, `npm run lint`, `npm run lint --prefix functions`, `npm run build --prefix functions` 통과
 
+**Firebase 진단 함수 공개 호출/복구 안정화**
+- `.firebaserc` 추가로 현재 레포를 Firebase 프로젝트 `dasida-app`에 연결
+- `functions/src/diagnosis-method.ts`에 `invoker: 'public'` 적용으로 외부 호출 가능한 2nd gen HTTP 함수로 정리
+- Firestore 로그 저장 실패가 전체 진단 응답을 500으로 만들지 않도록 함수 내부에서 로그 실패를 별도 처리
+- `.gitignore`에 `firebase-debug.log` 추가로 로컬 배포 로그가 워크트리를 오염시키지 않도록 정리
+- 실제 함수 호출 기준 `200` 응답과 `openai-router` 분류 결과 반환 확인
+
+**저신뢰 오답 진단 후보 선택 UX 개선**
+- `features/quiz/diagnosis-router.ts`: 저신뢰 원격 결과를 바로 버리지 않고 mock 결과와 병합해 수동 선택 단계에서도 좁혀진 후보를 유지하도록 변경
+- `app/(tabs)/quiz/index.tsx`: 저신뢰 시 generic 경고문만 보여주지 않고 상위 후보 2개를 버튼으로 먼저 제안하도록 UI 개선
+- 애매한 입력에서도 `다시 적으세요`보다 `가까운 풀이법을 바로 고르게 하는 흐름`으로 보강
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run build --prefix functions` 재확인, Claude Code CLI 리뷰에서 치명적 findings 없음
+
+**원격 푸시 기록 (Firebase 진단 함수 공개 호출 안정화)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `dd115b7`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/dd115b72e080cc70fa2f2d5a54f0f16c145cdd9f`
+
+**원격 푸시 기록 (저신뢰 오답 진단 후보 선택 가이드)**
+- 브랜치: `main`
+- 원격: `origin`
+- 원격 URL: `https://github.com/kiyounpark/dasida-app.git`
+- 원격 푸시 커밋: `2d8540b`
+- 원격 푸시 커밋 URL: `https://github.com/kiyounpark/dasida-app/commit/2d8540b818ce5bd3039b77f7998aafedc506859b`
+
 ### 2026.03.10
 
 **오답 진단 자유 입력 라우팅 1차 구현 (Claude Code 연동)**
