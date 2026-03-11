@@ -77,6 +77,7 @@ export const diagnoseMethod = onRequest(
     region: 'asia-northeast3',
     timeoutSeconds: 30,
     cors: true,
+    invoker: 'public',
     secrets: [openAiApiKey],
   },
   async (request, response) => {
@@ -115,17 +116,21 @@ export const diagnoseMethod = onRequest(
       const needsManualSelection =
         predictedMethodId === 'unknown' || parsedResult.confidence < 0.74;
 
-      await logDiagnosisMethodRun({
-        problemId: parsedRequest.data.problemId,
-        allowedMethodIds: parsedRequest.data.allowedMethodIds,
-        predictedMethodId,
-        confidence: parsedResult.confidence,
-        candidateMethodIds,
-        reason: parsedResult.reason,
-        needsManualSelection,
-        model: openAiResponse.model,
-        responseId: openAiResponse.responseId,
-      });
+      try {
+        await logDiagnosisMethodRun({
+          problemId: parsedRequest.data.problemId,
+          allowedMethodIds: parsedRequest.data.allowedMethodIds,
+          predictedMethodId,
+          confidence: parsedResult.confidence,
+          candidateMethodIds,
+          reason: parsedResult.reason,
+          needsManualSelection,
+          model: openAiResponse.model,
+          responseId: openAiResponse.responseId,
+        });
+      } catch (logError) {
+        logger.error('diagnoseMethod log write failed', logError);
+      }
 
       response.status(200).json({
         predictedMethodId,
