@@ -1,11 +1,13 @@
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandRadius, BrandSpacing } from '@/constants/brand';
+import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type DiagnosisFlowCardProps = {
   node: DiagnosisFlowNode;
   methodLabel: string;
   disabled?: boolean;
+  variant?: 'explain' | 'check' | 'final' | 'choice';
   onChoicePress: (optionId: string) => void;
   onExplainContinue: () => void;
   onExplainDontKnow: () => void;
@@ -18,6 +20,7 @@ export function DiagnosisFlowCard({
   node,
   methodLabel,
   disabled = false,
+  variant,
   onChoicePress,
   onExplainContinue,
   onExplainDontKnow,
@@ -25,8 +28,18 @@ export function DiagnosisFlowCard({
   onCheckDontKnow,
   onFinalConfirm,
 }: DiagnosisFlowCardProps) {
+  const resolvedVariant = variant ?? node.kind;
+
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        resolvedVariant === 'choice' ? styles.choiceCard : null,
+        resolvedVariant === 'explain' ? styles.explainCard : null,
+        resolvedVariant === 'check' ? styles.checkCard : null,
+        resolvedVariant === 'final' ? styles.finalCard : null,
+        disabled ? styles.cardDisabled : null,
+      ]}>
       <View style={styles.header}>
         <Text selectable style={styles.eyebrow}>
           {methodLabel}
@@ -47,12 +60,12 @@ export function DiagnosisFlowCard({
           {node.options.map((option) => (
             <Pressable
               key={option.id}
-              style={[styles.optionButton, disabled && styles.optionButtonDisabled]}
+              style={[styles.optionButton, disabled ? styles.optionButtonDisabled : null]}
               onPress={() => onChoicePress(option.id)}
               accessibilityRole="button"
               accessibilityLabel={option.text}
               disabled={disabled}>
-              <Text style={styles.optionText}>
+              <Text selectable style={styles.optionText}>
                 {option.text}
               </Text>
             </Pressable>
@@ -63,7 +76,7 @@ export function DiagnosisFlowCard({
       {node.kind === 'explain' && (
         <View style={styles.actionGroup}>
           <Pressable
-            style={[styles.primaryButton, disabled && styles.buttonDisabled]}
+            style={[styles.primaryButton, disabled ? styles.buttonDisabled : null]}
             onPress={onExplainContinue}
             accessibilityRole="button"
             accessibilityLabel={node.primaryLabel}
@@ -74,7 +87,7 @@ export function DiagnosisFlowCard({
           </Pressable>
 
           <Pressable
-            style={[styles.secondaryButton, disabled && styles.buttonDisabled]}
+            style={[styles.secondaryButton, disabled ? styles.buttonDisabled : null]}
             onPress={onExplainDontKnow}
             accessibilityRole="button"
             accessibilityLabel={node.secondaryLabel}
@@ -97,26 +110,24 @@ export function DiagnosisFlowCard({
             {node.options.map((option) => (
               <Pressable
                 key={option.id}
-                style={[styles.optionButton, disabled && styles.optionButtonDisabled]}
+                style={[styles.optionButton, disabled ? styles.optionButtonDisabled : null]}
                 onPress={() => onCheckPress(option.id)}
                 accessibilityRole="button"
                 accessibilityLabel={option.text}
                 disabled={disabled}>
-                <Text style={styles.optionText}>
+                <Text selectable style={styles.optionText}>
                   {option.text}
                 </Text>
               </Pressable>
             ))}
           </View>
           <Pressable
-            style={[styles.secondaryButton, disabled && styles.buttonDisabled]}
+            style={[styles.secondaryButton, disabled ? styles.buttonDisabled : null]}
             onPress={onCheckDontKnow}
             accessibilityRole="button"
             accessibilityLabel="모르겠습니다"
             disabled={disabled}>
-            <Text style={styles.secondaryButtonText}>
-              모르겠습니다
-            </Text>
+            <Text style={styles.secondaryButtonText}>모르겠습니다</Text>
           </Pressable>
         </>
       )}
@@ -124,7 +135,7 @@ export function DiagnosisFlowCard({
       {node.kind === 'final' && (
         <View style={styles.actionGroup}>
           <Pressable
-            style={[styles.primaryButton, disabled && styles.buttonDisabled]}
+            style={[styles.primaryButton, disabled ? styles.buttonDisabled : null]}
             onPress={onFinalConfirm}
             accessibilityRole="button"
             accessibilityLabel={node.ctaLabel}
@@ -141,52 +152,72 @@ export function DiagnosisFlowCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFF9F6',
     borderWidth: 1,
-    borderColor: '#F0D7D7',
     borderRadius: BrandRadius.md,
     borderCurve: 'continuous',
     padding: BrandSpacing.md,
     gap: BrandSpacing.sm,
-    boxShadow: '0 12px 28px rgba(122, 90, 90, 0.08)',
+    boxShadow: '0 12px 28px rgba(36, 50, 41, 0.07)',
+  },
+  choiceCard: {
+    backgroundColor: DiagnosisTheme.panel,
+    borderColor: DiagnosisTheme.line,
+  },
+  explainCard: {
+    backgroundColor: DiagnosisTheme.panelAlt,
+    borderColor: DiagnosisTheme.line,
+  },
+  checkCard: {
+    backgroundColor: DiagnosisTheme.infoBg,
+    borderColor: DiagnosisTheme.infoBorder,
+  },
+  finalCard: {
+    backgroundColor: DiagnosisTheme.successBg,
+    borderColor: DiagnosisTheme.successBorder,
+  },
+  cardDisabled: {
+    opacity: 0.84,
+    backgroundColor: '#F3F1EB',
+    borderColor: '#DBDDD6',
   },
   header: {
-    gap: 6,
+    gap: 8,
   },
   eyebrow: {
     alignSelf: 'flex-start',
-    paddingVertical: 4,
+    paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 999,
-    backgroundColor: '#FFE7D8',
-    color: '#A5551A',
+    borderCurve: 'continuous',
+    backgroundColor: '#E7EFE5',
+    color: '#4F6953',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   title: {
     fontSize: 20,
     lineHeight: 28,
     fontWeight: '800',
-    color: '#7C2D12',
+    color: DiagnosisTheme.ink,
   },
   body: {
     fontSize: 15,
-    lineHeight: 24,
-    color: '#5F4A4A',
+    lineHeight: 25,
+    color: DiagnosisTheme.inkMuted,
   },
   prompt: {
     fontSize: 15,
     lineHeight: 22,
-    color: BrandColors.text,
-    fontWeight: '700',
+    color: DiagnosisTheme.ink,
+    fontWeight: '800',
   },
   optionGroup: {
     gap: BrandSpacing.xs,
   },
   optionButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: DiagnosisTheme.choiceBg,
     borderWidth: 1,
-    borderColor: '#F4C6C6',
+    borderColor: DiagnosisTheme.choiceBorder,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
     paddingVertical: 12,
@@ -195,17 +226,17 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 15,
     lineHeight: 21,
-    color: BrandColors.text,
+    color: DiagnosisTheme.ink,
     fontWeight: '700',
   },
   optionButtonDisabled: {
-    opacity: 0.65,
+    opacity: 0.66,
   },
   actionGroup: {
     gap: BrandSpacing.xs,
   },
   primaryButton: {
-    backgroundColor: BrandColors.warning,
+    backgroundColor: DiagnosisTheme.userBubble,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
     paddingVertical: 12,
@@ -218,19 +249,19 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: '#E8B8B8',
+    borderColor: DiagnosisTheme.line,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: '#FFF0F0',
+    backgroundColor: DiagnosisTheme.panel,
     paddingVertical: 11,
     alignItems: 'center',
   },
   secondaryButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#9A3434',
+    color: DiagnosisTheme.ink,
   },
   buttonDisabled: {
-    opacity: 0.65,
+    opacity: 0.66,
   },
 });

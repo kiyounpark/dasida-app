@@ -1,6 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 
 type DiagnosisExitConfirmModalProps = {
   visible: boolean;
@@ -22,6 +23,7 @@ export function DiagnosisExitConfirmModal({
       onRequestClose={onContinue}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
+          <View style={styles.topBand} />
           <Text selectable style={styles.title}>
             오답 분석을 그만할까요?
           </Text>
@@ -55,30 +57,40 @@ export function DiagnosisExitConfirmModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    paddingHorizontal: BrandSpacing.lg,
+    paddingHorizontal: BrandSpacing.xl,
     justifyContent: 'center',
-    backgroundColor: 'rgba(20, 28, 20, 0.42)',
+    backgroundColor: 'rgba(32, 40, 32, 0.28)',
   },
   card: {
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: DiagnosisTheme.line,
     borderRadius: BrandRadius.lg,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: DiagnosisTheme.panel,
     padding: BrandSpacing.lg,
     gap: BrandSpacing.md,
-    boxShadow: '0 18px 40px rgba(20, 28, 20, 0.18)',
+    boxShadow: '0 20px 42px rgba(24, 32, 25, 0.18)',
+  },
+  topBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 12,
+    backgroundColor: DiagnosisTheme.heroAccent,
   },
   title: {
+    marginTop: BrandSpacing.xs,
     fontSize: 22,
     lineHeight: 30,
     fontWeight: '800',
-    color: BrandColors.text,
+    color: DiagnosisTheme.ink,
   },
   body: {
     fontSize: 15,
-    lineHeight: 23,
-    color: BrandColors.mutedText,
+    lineHeight: 24,
+    color: DiagnosisTheme.inkMuted,
   },
   actions: {
     gap: BrandSpacing.xs,
@@ -97,16 +109,16 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: DiagnosisTheme.line,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: '#F6F8F5',
+    backgroundColor: '#FAF7F2',
     paddingVertical: 12,
     alignItems: 'center',
   },
   secondaryLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: BrandColors.text,
+    color: DiagnosisTheme.ink,
   },
 });

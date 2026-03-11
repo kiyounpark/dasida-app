@@ -1,30 +1,51 @@
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
+import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { StyleSheet, Text, View } from 'react-native';
 
 type DiagnosisChatBubbleProps = {
   role: 'assistant' | 'user';
   text: string;
-  tone?: 'neutral' | 'positive' | 'warning';
+  variant?: 'assistant' | 'user';
+  tone?: 'neutral' | 'positive' | 'warning' | 'info';
 };
 
 export function DiagnosisChatBubble({
   role,
   text,
+  variant,
   tone = 'neutral',
 }: DiagnosisChatBubbleProps) {
-  const isUser = role === 'user';
-  const containerStyle = isUser ? styles.userBubble : styles.aiBubble;
-  const textStyle = [
-    styles.text,
-    isUser ? styles.userText : styles.aiText,
-    !isUser && tone === 'positive' ? styles.positiveText : null,
-    !isUser && tone === 'warning' ? styles.warningText : null,
-  ];
+  const resolvedVariant = variant ?? role;
+  const isUser = resolvedVariant === 'user';
+  const hasAccent = !isUser && tone !== 'neutral';
 
   return (
-    <View style={[styles.row, isUser ? styles.userRow : styles.aiRow]}>
-      <View style={[styles.bubble, containerStyle]}>
-        <Text selectable style={textStyle}>
+    <View style={[styles.row, isUser ? styles.userRow : styles.assistantRow]}>
+      <View
+        style={[
+          styles.bubble,
+          isUser ? styles.userBubble : styles.assistantBubble,
+          !isUser && tone === 'warning' ? styles.assistantWarning : null,
+        ]}>
+        {!isUser && hasAccent ? (
+          <View
+            style={[
+              styles.accent,
+              tone === 'positive' ? styles.positiveAccent : null,
+              tone === 'warning' ? styles.warningAccent : null,
+              tone === 'info' ? styles.infoAccent : null,
+            ]}
+          />
+        ) : null}
+        <Text
+          selectable
+          style={[
+            styles.text,
+            isUser ? styles.userText : styles.assistantText,
+            !isUser && tone === 'positive' ? styles.positiveText : null,
+            !isUser && tone === 'warning' ? styles.warningText : null,
+            !isUser && tone === 'info' ? styles.infoText : null,
+          ]}>
           {text}
         </Text>
       </View>
@@ -36,47 +57,76 @@ const styles = StyleSheet.create({
   row: {
     width: '100%',
   },
-  aiRow: {
+  assistantRow: {
     alignItems: 'flex-start',
   },
   userRow: {
     alignItems: 'flex-end',
   },
   bubble: {
-    maxWidth: '86%',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 22,
+    position: 'relative',
+    borderRadius: BrandRadius.md + 4,
     borderCurve: 'continuous',
-    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.06)',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    boxShadow: '0 8px 20px rgba(36, 50, 41, 0.06)',
   },
-  aiBubble: {
-    backgroundColor: '#FFFFFF',
+  assistantBubble: {
+    maxWidth: '88%',
+    backgroundColor: DiagnosisTheme.assistantBubble,
     borderWidth: 1,
-    borderColor: '#EEE2E2',
-    borderTopLeftRadius: 8,
+    borderColor: DiagnosisTheme.assistantBubbleBorder,
+    borderTopLeftRadius: 10,
+  },
+  assistantWarning: {
+    backgroundColor: DiagnosisTheme.warningBg,
+    borderColor: DiagnosisTheme.warningBorder,
   },
   userBubble: {
-    backgroundColor: '#E8F5E9',
-    borderTopRightRadius: 8,
+    maxWidth: '76%',
+    backgroundColor: DiagnosisTheme.userBubble,
+    borderTopRightRadius: 10,
+  },
+  accent: {
+    position: 'absolute',
+    top: 12,
+    bottom: 12,
+    left: 10,
+    width: 3,
+    borderRadius: 999,
+    backgroundColor: DiagnosisTheme.choiceActiveBorder,
+  },
+  positiveAccent: {
+    backgroundColor: '#527A5F',
+  },
+  warningAccent: {
+    backgroundColor: '#C9973E',
+  },
+  infoAccent: {
+    backgroundColor: '#7B9079',
   },
   text: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
   },
-  aiText: {
-    color: '#4F4141',
+  assistantText: {
+    color: DiagnosisTheme.ink,
+    paddingLeft: 2,
   },
   userText: {
-    color: '#293B27',
+    color: DiagnosisTheme.userBubbleText,
     fontWeight: '700',
   },
   positiveText: {
-    color: '#2F6A34',
-    fontWeight: '700',
+    color: '#355B43',
+    paddingLeft: BrandSpacing.sm,
   },
   warningText: {
-    color: '#9A3434',
-    fontWeight: '700',
+    color: '#775520',
+    paddingLeft: BrandSpacing.sm,
+  },
+  infoText: {
+    color: '#4D6754',
+    paddingLeft: BrandSpacing.sm,
   },
 });

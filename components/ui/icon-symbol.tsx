@@ -19,8 +19,11 @@ const MAPPING = {
   'book.fill': 'menu-book',
   'clock.fill': 'history',
   'person.fill': 'person',
+  xmark: 'close',
+  'chevron.left': 'chevron-left',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'checkmark.circle.fill': 'check-circle',
 } as IconMapping;
 
 /**

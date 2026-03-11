@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
 import type { SolveMethodId } from '@/data/diagnosisTree';
@@ -25,7 +26,7 @@ export type DiagnosisConversationEntry =
       kind: 'bubble';
       role: 'assistant' | 'user';
       text: string;
-      tone?: 'neutral' | 'positive' | 'warning';
+      tone?: 'neutral' | 'positive' | 'warning' | 'info';
     }
   | {
       id: string;
@@ -62,6 +63,20 @@ type DiagnosisConversationPageProps = {
   onCheckDontKnow: () => void;
   onFinalConfirm: () => void;
 };
+
+function getEntryAnimation(entry: DiagnosisConversationEntry) {
+  if (entry.kind === 'bubble' && entry.role === 'user') {
+    return FadeIn.duration(180).withInitialValues({
+      opacity: 0,
+      transform: [{ scale: 0.98 }],
+    });
+  }
+
+  return FadeInDown.duration(220).withInitialValues({
+    opacity: 0,
+    transform: [{ translateY: 8 }],
+  });
+}
 
 export function DiagnosisConversationPage({
   width,
@@ -116,31 +131,45 @@ export function DiagnosisConversationPage({
               scrollRef.current?.scrollToEnd({ animated: true });
             }
           }}>
-          {chatEntries.map((entry) => {
+          {chatEntries.map((entry, entryIndex) => {
+            const isAfterProblemPrompt =
+              entry.kind === 'bubble' && entry.role === 'assistant' && entryIndex === 1;
+
             if (entry.kind === 'problem') {
               return (
-                <DiagnosisProblemBubble
+                <Animated.View
                   key={entry.id}
-                  topic={entry.topic}
-                  question={entry.question}
-                />
+                  entering={getEntryAnimation(entry)}
+                  style={styles.problemEntry}>
+                  <DiagnosisProblemBubble
+                    topic={entry.topic}
+                    question={entry.question}
+                  />
+                </Animated.View>
               );
             }
 
             if (entry.kind === 'bubble') {
               return (
-                <DiagnosisChatBubble
+                <Animated.View
                   key={entry.id}
-                  role={entry.role}
-                  text={entry.text}
-                  tone={entry.tone}
-                />
+                  entering={getEntryAnimation(entry)}
+                  style={isAfterProblemPrompt ? styles.promptEntry : null}>
+                  <DiagnosisChatBubble
+                    role={entry.role}
+                    text={entry.text}
+                    tone={entry.tone}
+                  />
+                </Animated.View>
               );
             }
 
             if (entry.kind === 'method-selector') {
               return (
-                <View key={entry.id} style={styles.assistantRow}>
+                <Animated.View
+                  key={entry.id}
+                  entering={getEntryAnimation(entry)}
+                  style={styles.assistantRow}>
                   <DiagnosisMethodSelectorCard
                     methods={methods}
                     diagnosisInput={diagnosisInput}
@@ -154,12 +183,15 @@ export function DiagnosisConversationPage({
                     onManualSelect={onManualSelect}
                     onConfirmPredicted={onConfirmPredicted}
                   />
-                </View>
+                </Animated.View>
               );
             }
 
             return (
-              <View key={entry.id} style={styles.assistantRow}>
+              <Animated.View
+                key={entry.id}
+                entering={getEntryAnimation(entry)}
+                style={styles.assistantRow}>
                 <View style={styles.flowWrap}>
                   <DiagnosisFlowCard
                     node={entry.node}
@@ -173,7 +205,7 @@ export function DiagnosisConversationPage({
                     onFinalConfirm={onFinalConfirm}
                   />
                 </View>
-              </View>
+              </Animated.View>
             );
           })}
         </ScrollView>
@@ -195,9 +227,16 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 32,
-    gap: 12,
+    paddingTop: 18,
+    paddingBottom: 40,
+    gap: 14,
+  },
+  problemEntry: {
+    marginBottom: 6,
+  },
+  promptEntry: {
+    marginTop: 4,
+    marginBottom: 2,
   },
   assistantRow: {
     width: '100%',

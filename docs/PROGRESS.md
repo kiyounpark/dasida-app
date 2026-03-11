@@ -21,6 +21,20 @@
 
 ## 로그
 
+### 2026.03.12
+
+**오답 약점 분석 디자인 리디자인**
+- `constants/diagnosis-theme.ts` 추가로 오답 분석 전용 색상 토큰을 분리하고, 전체 진단 화면을 `아이보리 캔버스 + 짙은 그린 + 차분한 잉크색` 기준으로 재정렬
+- `app/(tabs)/quiz/index.tsx`: 오답 진단 화면 전용 배경 레이어, 세션형 상단 바, 캡슐형 페이지 네비게이션으로 재구성
+- `components/ui/icon-symbol.tsx`: 진단 헤더에서 사용할 `xmark`, `chevron.left`, `checkmark.circle.fill` 심볼 매핑 추가
+- `features/quiz/components/diagnosis-problem-bubble.tsx`: 문제 카드를 `오늘 같이 볼 문제` 히어로 카드로 승격하고, 상단 밴드와 보조 문구를 추가해 첫 화면 존재감 강화
+- `features/quiz/components/diagnosis-chat-bubble.tsx`: 사용자 버블을 짙은 브랜드 그린 솔리드로, AI 버블을 백색 상담 카드형으로 재설계하고 tone별 accent 라인을 추가
+- `features/quiz/components/diagnosis-method-selector-card.tsx`: 붉은 경고 패널 느낌을 제거하고, 선택 도구 패널형 카드와 메모 입력, 추천/저신뢰 영역을 같은 디자인 언어로 통일
+- `features/quiz/components/diagnosis-flow-card.tsx`: `choice/explain/check/final` 노드 종류에 따라 카드 배경과 강조 톤을 분리하고, `모르겠습니다` 버튼도 중립적 보조 버튼으로 조정
+- `features/quiz/components/diagnosis-conversation-page.tsx`: transcript 간격과 리듬을 조정하고, 새 assistant/user 엔트리에 얕은 등장 모션을 추가
+- `features/quiz/components/diagnosis-exit-confirm-modal.tsx`: 종료 확인 모달을 진단 테마에 맞는 시트형 카드로 정리
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
 ### 2026.03.11
 
 **오답 분석 문제 포함 채팅형 스와이프 플로우 재구성**

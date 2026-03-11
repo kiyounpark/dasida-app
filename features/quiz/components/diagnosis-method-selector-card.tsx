@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 import type { DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 
@@ -19,6 +20,7 @@ type DiagnosisMethodSelectorCardProps = {
   analysisErrorMessage: string;
   isAnalyzing: boolean;
   disabled?: boolean;
+  appearance?: 'default' | 'suggested';
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
@@ -33,6 +35,7 @@ export function DiagnosisMethodSelectorCard({
   analysisErrorMessage,
   isAnalyzing,
   disabled = false,
+  appearance = 'default',
   onInputChange,
   onAnalyze,
   onManualSelect,
@@ -47,19 +50,26 @@ export function DiagnosisMethodSelectorCard({
     .join(', ');
 
   return (
-    <View style={styles.card}>
-      <Text selectable style={styles.title}>
-        가장 가까운 풀이 방법을 골라주세요
-      </Text>
-      <Text selectable style={styles.helper}>
-        선택지로 바로 고르거나, 아래에 직접 적어서 추천을 받을 수 있어요.
-      </Text>
+    <View
+      style={[
+        styles.card,
+        appearance === 'suggested' ? styles.suggestedAppearance : null,
+        disabled ? styles.cardDisabled : null,
+      ]}>
+      <View style={styles.header}>
+        <Text selectable style={styles.title}>
+          어떤 방식으로 풀었나요?
+        </Text>
+        <Text selectable style={styles.helper}>
+          선택지로 바로 고르거나, 직접 적어서 추천을 받을 수 있어요.
+        </Text>
+      </View>
 
       <View style={styles.optionGroup}>
         {methods.map((option) => (
           <Pressable
             key={option.id}
-            style={[styles.optionButton, disabled && styles.optionDisabled]}
+            style={[styles.optionButton, disabled ? styles.optionButtonDisabled : null]}
             onPress={() => onManualSelect(option.id)}
             accessibilityRole="button"
             accessibilityLabel={option.labelKo}
@@ -76,9 +86,12 @@ export function DiagnosisMethodSelectorCard({
         ))}
       </View>
 
-      <View style={styles.inputSection}>
+      <View style={styles.inputPanel}>
         <Text selectable style={styles.inputLabel}>
-          선택지에 없다면, 어떤 식으로 풀었는지 짧게 적어주세요.
+          직접 메모로 적기
+        </Text>
+        <Text selectable style={styles.inputBody}>
+          선택지에 없다면, 어떤 식으로 풀었는지 짧게 남겨주세요.
         </Text>
         {exampleText ? (
           <Text selectable style={styles.inputHint}>
@@ -86,19 +99,19 @@ export function DiagnosisMethodSelectorCard({
           </Text>
         ) : null}
         <TextInput
-          style={[styles.input, disabled && styles.inputDisabled]}
+          style={[styles.input, disabled ? styles.inputDisabled : null]}
           value={diagnosisInput}
           onChangeText={onInputChange}
           editable={!disabled}
-          placeholder="예: 근의 공식으로 풀다가 판별식 계산에서 막혔어요"
-          placeholderTextColor="#98A19A"
+          placeholder="예: 식을 바꿔보니 x=3이 보여서 넣었어요"
+          placeholderTextColor="#92A095"
           multiline
           textAlignVertical="top"
         />
         <Pressable
           style={[
             styles.analyzeButton,
-            (!diagnosisInput.trim() || disabled) && styles.analyzeButtonDisabled,
+            (!diagnosisInput.trim() || disabled || isAnalyzing) && styles.analyzeButtonDisabled,
           ]}
           onPress={onAnalyze}
           accessibilityRole="button"
@@ -118,15 +131,18 @@ export function DiagnosisMethodSelectorCard({
       </View>
 
       {routerResult && !routerResult.needsManualSelection && predictedLabel ? (
-        <View style={styles.predictionCard}>
-          <Text selectable style={styles.predictionLabel}>
+        <View style={styles.infoCard}>
+          <Text selectable style={styles.infoEyebrow}>
+            추천된 풀이법
+          </Text>
+          <Text selectable style={styles.infoTitle}>
             {predictedLabel}
           </Text>
-          <Text selectable style={styles.predictionBody}>
+          <Text selectable style={styles.infoBody}>
             입력 내용을 기준으로 이 풀이 방법이 가장 가까워 보여요.
           </Text>
           <Pressable
-            style={[styles.confirmButton, disabled && styles.optionDisabled]}
+            style={[styles.confirmButton, disabled ? styles.optionButtonDisabled : null]}
             onPress={onConfirmPredicted}
             accessibilityRole="button"
             accessibilityLabel="이 추천으로 계속"
@@ -137,7 +153,7 @@ export function DiagnosisMethodSelectorCard({
       ) : null}
 
       {routerResult?.needsManualSelection ? (
-        <View style={styles.lowConfidenceSection}>
+        <View style={styles.lowConfidenceCard}>
           <Text selectable style={styles.lowConfidenceTitle}>
             설명만으로는 풀이 방법이 완전히 구분되진 않았어요.
           </Text>
@@ -150,7 +166,7 @@ export function DiagnosisMethodSelectorCard({
                 {suggestedMethods.map((method) => (
                   <Pressable
                     key={method.id}
-                    style={[styles.suggestedButton, disabled && styles.optionDisabled]}
+                    style={[styles.suggestedButton, disabled ? styles.optionButtonDisabled : null]}
                     onPress={() => onManualSelect(method.id)}
                     accessibilityRole="button"
                     accessibilityLabel={method.labelKo}
@@ -186,89 +202,112 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.md,
     gap: BrandSpacing.sm,
     borderWidth: 1,
-    borderColor: '#E6C7C7',
+    borderColor: DiagnosisTheme.line,
     borderRadius: BrandRadius.md,
     borderCurve: 'continuous',
-    backgroundColor: '#FFF4F4',
-    boxShadow: '0 12px 28px rgba(154, 52, 52, 0.08)',
+    backgroundColor: DiagnosisTheme.panelAlt,
+    boxShadow: '0 12px 26px rgba(36, 50, 41, 0.07)',
+  },
+  suggestedAppearance: {
+    backgroundColor: DiagnosisTheme.panel,
+  },
+  cardDisabled: {
+    backgroundColor: '#F2F0EA',
+    borderColor: '#D8D8D1',
+  },
+  header: {
+    gap: 4,
   },
   title: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
-    color: '#9A3434',
+    color: DiagnosisTheme.ink,
   },
   helper: {
     fontSize: 14,
     lineHeight: 21,
-    color: '#7A5A5A',
+    color: DiagnosisTheme.inkMuted,
   },
   optionGroup: {
     gap: BrandSpacing.xs,
   },
   optionButton: {
     borderWidth: 1,
-    borderColor: '#F2B8B8',
+    borderColor: DiagnosisTheme.choiceBorder,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    backgroundColor: DiagnosisTheme.choiceBg,
+    paddingVertical: 12,
+    paddingHorizontal: 13,
     gap: 4,
   },
-  optionDisabled: {
-    opacity: 0.62,
+  optionButtonDisabled: {
+    opacity: 0.66,
   },
   optionTitle: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 21,
     fontWeight: '700',
-    color: BrandColors.text,
+    color: DiagnosisTheme.ink,
   },
   optionSummary: {
     fontSize: 13,
-    lineHeight: 18,
-    color: '#7A7A7A',
+    lineHeight: 19,
+    color: DiagnosisTheme.inkMuted,
   },
-  inputSection: {
+  inputPanel: {
     gap: BrandSpacing.xs,
+    padding: BrandSpacing.sm,
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    borderWidth: 1,
+    borderColor: DiagnosisTheme.line,
+    backgroundColor: DiagnosisTheme.panel,
   },
   inputLabel: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '800',
+    color: '#58715F',
+    letterSpacing: 0.3,
+  },
+  inputBody: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: '700',
-    color: '#7A5A5A',
+    color: DiagnosisTheme.inkMuted,
   },
   inputHint: {
     fontSize: 13,
     lineHeight: 18,
-    color: '#8C7A7A',
+    color: '#7A857B',
     fontStyle: 'italic',
   },
   input: {
-    minHeight: 84,
+    minHeight: 92,
     borderWidth: 1,
-    borderColor: '#E3D2D2',
+    borderColor: DiagnosisTheme.choiceBorder,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
     backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     paddingHorizontal: 12,
     fontSize: 15,
-    color: BrandColors.text,
+    lineHeight: 22,
+    color: DiagnosisTheme.ink,
   },
   inputDisabled: {
-    opacity: 0.72,
+    backgroundColor: '#F6F4EF',
   },
   analyzeButton: {
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: BrandColors.warning,
+    backgroundColor: DiagnosisTheme.userBubble,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   analyzeButtonDisabled: {
-    backgroundColor: '#C9C2BC',
+    backgroundColor: '#9BA79E',
   },
   analyzeButtonText: {
     fontSize: 15,
@@ -280,31 +319,38 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: BrandColors.danger,
   },
-  predictionCard: {
+  infoCard: {
     padding: BrandSpacing.md,
     gap: BrandSpacing.xs,
     borderWidth: 1,
-    borderColor: '#F5D76E',
+    borderColor: DiagnosisTheme.infoBorder,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: '#FFF9E6',
+    backgroundColor: DiagnosisTheme.infoBg,
   },
-  predictionLabel: {
-    fontSize: 16,
+  infoEyebrow: {
+    fontSize: 12,
+    lineHeight: 18,
     fontWeight: '800',
-    color: '#9A7D0A',
+    color: '#577159',
+    letterSpacing: 0.3,
   },
-  predictionBody: {
+  infoTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: DiagnosisTheme.ink,
+  },
+  infoBody: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#6F5B18',
+    color: DiagnosisTheme.inkMuted,
   },
   confirmButton: {
     marginTop: BrandSpacing.xs,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: BrandColors.success,
-    paddingVertical: 10,
+    backgroundColor: DiagnosisTheme.userBubble,
+    paddingVertical: 11,
     alignItems: 'center',
   },
   confirmButtonText: {
@@ -312,27 +358,33 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
   },
-  lowConfidenceSection: {
+  lowConfidenceCard: {
     gap: BrandSpacing.xs,
+    padding: BrandSpacing.md,
+    borderWidth: 1,
+    borderColor: DiagnosisTheme.warningBorder,
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: DiagnosisTheme.warningBg,
   },
   lowConfidenceTitle: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: '700',
-    color: BrandColors.danger,
+    fontWeight: '800',
+    color: '#7A5A20',
   },
   lowConfidenceBody: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#7A5A5A',
+    color: DiagnosisTheme.inkMuted,
   },
   suggestedButton: {
     borderWidth: 1,
-    borderColor: '#F0C24C',
+    borderColor: DiagnosisTheme.choiceActiveBorder,
     borderRadius: BrandRadius.sm,
     borderCurve: 'continuous',
-    backgroundColor: '#FFF9E6',
-    paddingVertical: 10,
+    backgroundColor: DiagnosisTheme.choiceActiveBg,
+    paddingVertical: 11,
     paddingHorizontal: 12,
     gap: 4,
   },
@@ -340,16 +392,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     fontWeight: '700',
-    color: '#9A7D0A',
+    color: DiagnosisTheme.ink,
   },
   suggestedSummary: {
     fontSize: 13,
     lineHeight: 18,
-    color: '#7A6A2B',
+    color: DiagnosisTheme.inkMuted,
   },
   lowConfidenceHint: {
     fontSize: 13,
     lineHeight: 19,
-    color: '#7A5A5A',
+    color: '#6E634A',
   },
 });

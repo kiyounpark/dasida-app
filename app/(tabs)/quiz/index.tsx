@@ -15,9 +15,11 @@ import {
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MathText } from '@/components/math/MathText';
 import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
 import { methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
@@ -311,7 +313,7 @@ export default function QuizIndexScreen() {
     answerIndex: number,
     role: 'assistant' | 'user',
     text: string,
-    tone: 'neutral' | 'positive' | 'warning' = 'neutral',
+    tone: 'neutral' | 'positive' | 'warning' | 'info' = 'neutral',
   ): DiagnosisConversationEntry => ({
     id: createChatEntryId(answerIndex, role),
     kind: 'bubble',
@@ -730,87 +732,107 @@ export default function QuizIndexScreen() {
     const stepTitle = `${activeDiagnosisPageIndex + 1} / ${Math.max(totalDiagnosisPages, 1)}`;
 
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, styles.diagnosisScreen]}>
         <BrandHeader />
         <View style={styles.diagnosisShell}>
-          <View style={styles.diagnosisHeader}>
-            <Pressable
-              style={styles.closeButton}
-              onPress={() => setIsExitModalVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="오답 분석 닫기">
-              <Text style={styles.closeButtonText}>×</Text>
-            </Pressable>
-            <View style={styles.diagnosisHeaderCopy}>
-              <Text selectable style={styles.diagnosisHeaderTitle}>
-                오답 약점 분석
-              </Text>
-              <Text selectable style={styles.diagnosisHeaderStep}>
-                {stepTitle}
-              </Text>
-            </View>
-            <View style={styles.closeSpacer} />
+          <View pointerEvents="none" style={styles.diagnosisBackdrop}>
+            <View style={styles.diagnosisBackdropGlow} />
+            <View style={styles.diagnosisBackdropBand} />
           </View>
 
-          <View style={styles.navigatorRow}>
-            <Pressable
-              style={[
-                styles.navigatorArrow,
-                activeDiagnosisPageIndex === 0 && styles.navigatorArrowDisabled,
-              ]}
-              onPress={() => scrollToDiagnosisPage(activeDiagnosisPageIndex - 1)}
-              accessibilityRole="button"
-              accessibilityLabel="이전 오답 문제"
-              disabled={activeDiagnosisPageIndex === 0}>
-              <Text style={styles.navigatorArrowText}>‹</Text>
-            </Pressable>
-
-            <View style={styles.navigatorDots}>
-              <View accessible accessibilityRole="tablist" style={styles.navigatorDotsList}>
-                {diagnosisPages.map((page, pageIndex) => {
-                  const isActive = pageIndex === activeDiagnosisPageIndex;
-                  const isCompleted = page.workspace.status === 'completed';
-
-                  return (
-                    <Pressable
-                      key={`diagnosis-page-${page.answerIndex}`}
-                      style={[
-                        styles.navigatorDot,
-                        isActive && styles.navigatorDotActive,
-                        isCompleted && styles.navigatorDotCompleted,
-                      ]}
-                    onPress={() => scrollToDiagnosisPage(pageIndex)}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: isActive }}
-                    accessibilityLabel={`${pageIndex + 1}번 오답 문제로 이동`}
-                    accessibilityHint={isCompleted ? '이 문제의 분석은 완료되었습니다' : '이 문제의 분석은 아직 진행 중입니다'}>
-                      <Text
-                        selectable
-                        style={[
-                          styles.navigatorDotText,
-                          isActive && styles.navigatorDotTextActive,
-                          isCompleted && styles.navigatorDotTextCompleted,
-                        ]}>
-                        {isCompleted ? '●' : pageIndex + 1}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+          <View style={styles.diagnosisSessionBar}>
+            <View style={styles.diagnosisHeader}>
+              <Pressable
+                style={styles.closeButton}
+                onPress={() => setIsExitModalVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="오답 분석 닫기">
+                <IconSymbol name="xmark" size={18} color={DiagnosisTheme.ink} />
+              </Pressable>
+              <View style={styles.diagnosisHeaderCopy}>
+                <Text selectable style={styles.diagnosisHeaderEyebrow}>
+                  오답 약점 분석
+                </Text>
+                <Text selectable style={styles.diagnosisHeaderStep}>
+                  {stepTitle}
+                </Text>
               </View>
+              <View style={styles.closeSpacer} />
             </View>
 
-            <Pressable
-              style={[
-                styles.navigatorArrow,
-                activeDiagnosisPageIndex >= totalDiagnosisPages - 1 &&
-                  styles.navigatorArrowDisabled,
-              ]}
-              onPress={() => scrollToDiagnosisPage(activeDiagnosisPageIndex + 1)}
-              accessibilityRole="button"
-              accessibilityLabel="다음 오답 문제"
-              disabled={activeDiagnosisPageIndex >= totalDiagnosisPages - 1}>
-              <Text style={styles.navigatorArrowText}>›</Text>
-            </Pressable>
+            <View style={styles.navigatorRow}>
+              <Pressable
+                style={[
+                  styles.navigatorArrow,
+                  activeDiagnosisPageIndex === 0 && styles.navigatorArrowDisabled,
+                ]}
+                onPress={() => scrollToDiagnosisPage(activeDiagnosisPageIndex - 1)}
+                accessibilityRole="button"
+                accessibilityLabel="이전 오답 문제"
+                disabled={activeDiagnosisPageIndex === 0}>
+                <IconSymbol name="chevron.left" size={18} color={DiagnosisTheme.ink} />
+              </Pressable>
+
+              <View style={styles.navigatorDots}>
+                <View accessible accessibilityRole="tablist" style={styles.navigatorDotsList}>
+                  {diagnosisPages.map((page, pageIndex) => {
+                    const isActive = pageIndex === activeDiagnosisPageIndex;
+                    const isCompleted = page.workspace.status === 'completed';
+
+                    return (
+                      <Pressable
+                        key={`diagnosis-page-${page.answerIndex}`}
+                        style={[
+                          styles.navigatorDot,
+                          isCompleted && styles.navigatorDotCompleted,
+                          isActive && styles.navigatorDotActive,
+                        ]}
+                        onPress={() => scrollToDiagnosisPage(pageIndex)}
+                        accessibilityRole="tab"
+                        accessibilityState={{ selected: isActive }}
+                        accessibilityLabel={`${pageIndex + 1}번 오답 문제로 이동`}
+                        accessibilityHint={
+                          isCompleted
+                            ? '이 문제의 분석은 완료되었습니다'
+                            : '이 문제의 분석은 아직 진행 중입니다'
+                        }>
+                        <View style={styles.navigatorDotInner}>
+                          {isCompleted ? (
+                            <IconSymbol
+                              name="checkmark.circle.fill"
+                              size={14}
+                              color={isActive ? '#FFFFFF' : '#4E7058'}
+                            />
+                          ) : null}
+                          <Text
+                            selectable
+                            style={[
+                              styles.navigatorDotText,
+                              isCompleted && styles.navigatorDotTextCompleted,
+                              isActive && styles.navigatorDotTextActive,
+                            ]}>
+                            {pageIndex + 1}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <Pressable
+                style={[
+                  styles.navigatorArrow,
+                  activeDiagnosisPageIndex >= totalDiagnosisPages - 1 &&
+                    styles.navigatorArrowDisabled,
+                ]}
+                onPress={() => scrollToDiagnosisPage(activeDiagnosisPageIndex + 1)}
+                accessibilityRole="button"
+                accessibilityLabel="다음 오답 문제"
+                disabled={activeDiagnosisPageIndex >= totalDiagnosisPages - 1}>
+                <IconSymbol name="chevron.right" size={18} color={DiagnosisTheme.ink} />
+              </Pressable>
+            </View>
           </View>
 
           <FlatList
@@ -976,6 +998,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
+  diagnosisScreen: {
+    backgroundColor: DiagnosisTheme.canvas,
+  },
   scroll: {
     flex: 1,
   },
@@ -1000,77 +1025,103 @@ const styles = StyleSheet.create({
   },
   diagnosisShell: {
     flex: 1,
+    overflow: 'hidden',
     paddingTop: BrandSpacing.sm,
+    backgroundColor: DiagnosisTheme.canvas,
+  },
+  diagnosisBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  diagnosisBackdropGlow: {
+    position: 'absolute',
+    top: -54,
+    left: 20,
+    right: 20,
+    height: 180,
+    borderRadius: 999,
+    backgroundColor: '#EEE6D7',
+    opacity: 0.7,
+  },
+  diagnosisBackdropBand: {
+    position: 'absolute',
+    top: 94,
+    left: -40,
+    right: -40,
+    height: 140,
+    borderRadius: 999,
+    backgroundColor: '#FAF6EF',
+    opacity: 0.9,
+  },
+  diagnosisSessionBar: {
+    marginHorizontal: BrandSpacing.lg,
+    paddingHorizontal: BrandSpacing.md,
+    paddingTop: BrandSpacing.md,
+    paddingBottom: BrandSpacing.sm,
+    borderWidth: 1,
+    borderColor: DiagnosisTheme.line,
+    borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
+    backgroundColor: DiagnosisTheme.panel,
+    boxShadow: '0 10px 24px rgba(36, 50, 41, 0.06)',
   },
   diagnosisHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: BrandSpacing.lg,
     gap: BrandSpacing.sm,
   },
   closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
     borderWidth: 1,
-    borderColor: BrandColors.border,
-  },
-  closeButtonText: {
-    fontSize: 26,
-    lineHeight: 28,
-    color: BrandColors.text,
+    borderColor: DiagnosisTheme.line,
   },
   diagnosisHeaderCopy: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
-  diagnosisHeaderTitle: {
-    fontSize: 20,
+  diagnosisHeaderEyebrow: {
+    fontSize: 12,
     fontWeight: '800',
-    color: BrandColors.text,
+    color: DiagnosisTheme.inkMuted,
+    letterSpacing: 0.4,
   },
   diagnosisHeaderStep: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: BrandColors.primarySoft,
+    fontSize: 20,
+    fontWeight: '800',
+    color: DiagnosisTheme.ink,
     fontVariant: ['tabular-nums'],
   },
   closeSpacer: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
   },
   navigatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: BrandSpacing.sm,
-    paddingHorizontal: BrandSpacing.lg,
     paddingTop: BrandSpacing.md,
-    paddingBottom: BrandSpacing.xs,
+    paddingBottom: 2,
   },
   navigatorArrow: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: DiagnosisTheme.line,
   },
   navigatorArrowDisabled: {
-    opacity: 0.36,
-  },
-  navigatorArrowText: {
-    fontSize: 26,
-    lineHeight: 28,
-    color: BrandColors.text,
+    opacity: 0.32,
   },
   navigatorDots: {
     flex: 1,
@@ -1082,39 +1133,45 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.xs,
   },
   navigatorDot: {
-    minWidth: 32,
-    height: 32,
-    paddingHorizontal: 8,
-    borderRadius: 16,
+    minWidth: 38,
+    height: 36,
+    paddingHorizontal: 10,
+    borderRadius: 18,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: DiagnosisTheme.line,
   },
   navigatorDotActive: {
-    backgroundColor: BrandColors.primary,
-    borderColor: BrandColors.primary,
+    backgroundColor: DiagnosisTheme.userBubble,
+    borderColor: DiagnosisTheme.userBubble,
   },
   navigatorDotCompleted: {
-    backgroundColor: '#E6F4EA',
-    borderColor: '#B7D9BF',
+    backgroundColor: '#EEF3EA',
+    borderColor: DiagnosisTheme.choiceActiveBorder,
+  },
+  navigatorDotInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   navigatorDotText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    color: BrandColors.mutedText,
+    color: DiagnosisTheme.inkMuted,
     fontVariant: ['tabular-nums'],
   },
   navigatorDotTextActive: {
     color: '#FFFFFF',
   },
   navigatorDotTextCompleted: {
-    color: BrandColors.success,
+    color: '#4E7058',
   },
   diagnosisPager: {
     flex: 1,
+    marginTop: BrandSpacing.sm,
   },
   surfaceCard: {
     backgroundColor: BrandColors.card,
