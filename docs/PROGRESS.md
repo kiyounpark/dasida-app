@@ -428,6 +428,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 00:34
+- 해시: `f656804` (`f6568042ca118f3af25215325663d3f7c9b0a348`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f6568042ca118f3af25215325663d3f7c9b0a348
+- 작성자: 박기윤
+- 메시지: feat: 오답 진단 화면을 튜터형으로 리디자인
+
 ### 커밋 2026.03.12 00:14
 - 해시: `724b9c4` (`724b9c4de816e53a8e124dfa5ff40199e116936b`)
 - 브랜치: main
