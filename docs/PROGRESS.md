@@ -414,6 +414,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 00:14
+- 해시: `724b9c4` (`724b9c4de816e53a8e124dfa5ff40199e116936b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/724b9c4de816e53a8e124dfa5ff40199e116936b
+- 작성자: 박기윤
+- 메시지: feat: 오답 분석을 문제 포함 스와이프 채팅으로 재구성
+
 ### 커밋 2026.03.11 23:39
 - 해시: `184a457` (`184a457c49d3abaf3b8838f2ab8ca0faecb2f00f`)
 - 브랜치: main
