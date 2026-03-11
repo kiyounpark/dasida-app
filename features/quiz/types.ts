@@ -16,6 +16,21 @@ export type DiagnosisRoutingTrace = {
   finalMethodSource: 'router' | 'manual';
 };
 
+export type DiagnosisFlowEvent =
+  | { kind: 'branch'; nodeId: string; optionId: string; weaknessId?: WeaknessId }
+  | { kind: 'explain_continue'; nodeId: string }
+  | { kind: 'dont_know'; nodeId: string }
+  | { kind: 'check'; nodeId: string; optionId: string; isCorrect: boolean; weaknessId?: WeaknessId };
+
+export type DiagnosisDetailTrace = {
+  methodId: SolveMethodId;
+  flowId: SolveMethodId;
+  visitedNodeIds: string[];
+  events: DiagnosisFlowEvent[];
+  usedDontKnow: boolean;
+  finalWeaknessId: WeaknessId;
+};
+
 export type QuizAnswer = {
   problemId: string;
   selectedIndex: number;
@@ -23,6 +38,7 @@ export type QuizAnswer = {
   methodId?: SolveMethodId;
   weaknessId?: WeaknessId;
   diagnosisRouting?: DiagnosisRoutingTrace;
+  diagnosisDetailTrace?: DiagnosisDetailTrace;
 };
 
 export type QuizResultSummary = {

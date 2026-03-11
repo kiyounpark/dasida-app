@@ -23,6 +23,18 @@
 
 ### 2026.03.11
 
+**오답 분석 다단계 상세 플로우 도입**
+- `data/detailedDiagnosisFlows.ts` 추가로 모든 `SolveMethodId`를 커버하는 상세 오답 분석 플로우 데이터 정의
+- `features/quiz/diagnosis-flow-engine.ts` 추가로 분기/설명/확인 문제/최종 약점 노드 이동을 처리하는 순수 엔진 구현
+- `features/quiz/components/diagnosis-flow-card.tsx` 추가로 오답 분석 전용 카드 UI 분리
+- `features/quiz/types.ts`: `DiagnosisFlowEvent`, `DiagnosisDetailTrace` 추가 및 `QuizAnswer`에 상세 진단 trace 저장 필드 확장
+- `features/quiz/session.tsx`: `submitDiagnosisWeakness`가 최종 약점과 함께 상세 진단 trace도 저장하도록 확장
+- `app/(tabs)/quiz/index.tsx`: 기존 `풀이법 선택 -> 약점 버튼 3개` 구조를 `풀이법 선택 -> 상세 분기 -> 설명 카드 -> 확인 문제 -> 최종 약점 기록` 구조로 교체
+- 설명 카드 진행 버튼은 `확인 문제로 넘어갈게요`로 고정하고, `이해했습니다`류 문구 없이 `모르겠습니다` 분기를 모든 설명/확인 문제 단계에 제공
+- `cps/vertex/diff/unknown`은 기존 `index.html` 흐름을 앱용으로 정리해 반영하고, 나머지 7개 풀이법은 공통 템플릿형 플로우로 구성
+- 기존 OpenAI/Firebase 분류는 `풀이법 추정`까지만 유지하고, 상세 오답 진단은 전부 클라이언트 로컬 플로우에서 처리
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 치명적 findings 없음
+
 **GPT-4.1 기반 오답 풀이법 분류 1차 구현**
 - `functions/`: Firebase Functions(TypeScript) 신규 추가
 - `functions/src/diagnosis-method.ts`: HTTPS 함수 `diagnoseMethod` 구현, 요청 검증, OpenAI 결과 후처리, Firestore 메타로그 저장 추가

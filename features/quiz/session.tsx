@@ -6,14 +6,18 @@ import {
     createInitialWeaknessScores,
     incrementWeaknessScore,
 } from './engine';
-import type { DiagnosisRoutingTrace, QuizSessionState } from './types';
+import type { DiagnosisDetailTrace, DiagnosisRoutingTrace, QuizSessionState } from './types';
 
 type QuizSessionContextValue = {
   state: QuizSessionState;
   startSession: () => void;
   submitAnswer: (problemId: string, selectedIndex: number, isCorrect: boolean) => void;
   confirmDiagnosisMethod: (answerIndex: number, trace: DiagnosisRoutingTrace) => void;
-  submitDiagnosisWeakness: (answerIndex: number, weaknessId: WeaknessId) => void;
+  submitDiagnosisWeakness: (
+    answerIndex: number,
+    weaknessId: WeaknessId,
+    detailTrace?: DiagnosisDetailTrace,
+  ) => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
@@ -35,6 +39,7 @@ type Action =
       payload: {
         answerIndex: number;
         weaknessId: WeaknessId;
+        detailTrace?: DiagnosisDetailTrace;
       };
     }
   | { type: 'ADVANCE_PRACTICE' }
@@ -159,12 +164,13 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
     case 'SUBMIT_DIAGNOSIS_WEAKNESS': {
       if (!state.isDiagnosing) return state;
 
-      const { answerIndex, weaknessId } = action.payload;
+      const { answerIndex, weaknessId, detailTrace } = action.payload;
       
       const newAnswers = [...state.answers];
       newAnswers[answerIndex] = {
         ...newAnswers[answerIndex],
         weaknessId,
+        diagnosisDetailTrace: detailTrace,
       };
 
       const weaknessScores = incrementWeaknessScore(state.weaknessScores, weaknessId);
@@ -231,10 +237,10 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
           payload: { answerIndex, trace },
         });
       },
-      submitDiagnosisWeakness: (answerIndex, weaknessId) => {
+      submitDiagnosisWeakness: (answerIndex, weaknessId, detailTrace) => {
         dispatch({
           type: 'SUBMIT_DIAGNOSIS_WEAKNESS',
-          payload: { answerIndex, weaknessId },
+          payload: { answerIndex, weaknessId, detailTrace },
         });
       },
       advancePractice: () => {

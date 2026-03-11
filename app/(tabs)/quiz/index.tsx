@@ -9,9 +9,19 @@ import { MathText } from '@/components/math/MathText';
 import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
-import type { WeaknessId } from '@/data/diagnosisMap';
-import { diagnosisTree, methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
+import { methodOptions, type SolveMethodId } from '@/data/diagnosisTree';
 import { problemData } from '@/data/problemData';
+import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-card';
+import {
+  advanceFromCheck,
+  advanceFromChoice,
+  advanceFromExplain,
+  buildDiagnosisDetailTrace,
+  createDiagnosisFlowDraft,
+  getDiagnosisFlow,
+  getNode,
+  type DiagnosisFlowDraft,
+} from '@/features/quiz/diagnosis-flow-engine';
 import { analyzeDiagnosisMethod, type DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -27,6 +37,7 @@ export default function QuizIndexScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
   const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
+  const [activeDiagnosisFlow, setActiveDiagnosisFlow] = useState<DiagnosisFlowDraft | null>(null);
 
   const currentProblem = useMemo(
     () => problemData[state.currentQuestionIndex],
@@ -58,6 +69,29 @@ export default function QuizIndexScreen() {
       .filter((method): method is (typeof availableMethods)[number] => Boolean(method));
   }, [availableMethods, routerResult]);
 
+  const activeFlowNode = useMemo(() => {
+    if (!activeDiagnosisFlow) {
+      return null;
+    }
+
+    return getNode(
+      getDiagnosisFlow(activeDiagnosisFlow.methodId),
+      activeDiagnosisFlow.currentNodeId,
+    );
+  }, [activeDiagnosisFlow]);
+
+  const activeMethodLabel = useMemo(() => {
+    if (!tempMethodId) {
+      return '';
+    }
+
+    return (
+      availableMethods.find((method) => method.id === tempMethodId)?.labelKo ??
+      methodOptions.find((method) => method.id === tempMethodId)?.labelKo ??
+      tempMethodId
+    );
+  }, [availableMethods, tempMethodId]);
+
   useEffect(() => {
     setSelectedIndex(null);
   }, [state.currentQuestionIndex]);
@@ -74,6 +108,7 @@ export default function QuizIndexScreen() {
     setDiagnosisInput('');
     setRouterResult(null);
     setAnalysisErrorMessage('');
+    setActiveDiagnosisFlow(null);
   }, [state.currentDiagnosisIndex]);
 
   const handleSubmit = () => {
@@ -86,6 +121,11 @@ export default function QuizIndexScreen() {
     setDiagnosisInput(text);
     setRouterResult(null); // 입력 수정 시 이전 예측 결과 무효화
     setAnalysisErrorMessage('');
+  };
+
+  const startDiagnosisFlow = (methodId: SolveMethodId) => {
+    setTempMethodId(methodId);
+    setActiveDiagnosisFlow(createDiagnosisFlowDraft(methodId));
   };
 
   const handleAnalyze = async () => {
@@ -109,7 +149,8 @@ export default function QuizIndexScreen() {
         }),
       });
       setRouterResult(result);
-    } catch {
+    } catch (error) {
+      console.error('diagnosis method analysis failed', error);
       setRouterResult(null);
       setAnalysisErrorMessage('지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.');
     } finally {
@@ -132,7 +173,7 @@ export default function QuizIndexScreen() {
     };
     confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
     setAnalysisErrorMessage('');
-    setTempMethodId(routerResult.predictedMethodId);
+    startDiagnosisFlow(routerResult.predictedMethodId);
   };
 
   // 사용자가 풀이 방법 선택지에서 바로 고를 때
@@ -156,16 +197,64 @@ export default function QuizIndexScreen() {
     };
     confirmDiagnosisMethod(state.diagnosisQueue[state.currentDiagnosisIndex], trace);
     setAnalysisErrorMessage('');
-    setTempMethodId(methodId);
+    startDiagnosisFlow(methodId);
   };
 
-  const handleWeaknessSelect = (weaknessId: WeaknessId) => {
-    if (!tempMethodId) return;
+  const handleFlowChoice = (optionId: string) => {
+    if (!activeDiagnosisFlow) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
+    setActiveDiagnosisFlow(advanceFromChoice(activeDiagnosisFlow, optionId));
+  };
+
+  const handleExplainContinue = () => {
+    if (!activeDiagnosisFlow) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    setActiveDiagnosisFlow(advanceFromExplain(activeDiagnosisFlow, 'continue'));
+  };
+
+  const handleExplainDontKnow = () => {
+    if (!activeDiagnosisFlow) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    setActiveDiagnosisFlow(advanceFromExplain(activeDiagnosisFlow, 'dont_know'));
+  };
+
+  const handleCheckPress = (optionId: string) => {
+    if (!activeDiagnosisFlow) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    setActiveDiagnosisFlow(advanceFromCheck(activeDiagnosisFlow, optionId));
+  };
+
+  const handleCheckDontKnow = () => {
+    if (!activeDiagnosisFlow) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+    setActiveDiagnosisFlow(advanceFromCheck(activeDiagnosisFlow));
+  };
+
+  const handleFinalizeDiagnosis = () => {
+    if (!activeDiagnosisFlow || !activeFlowNode || activeFlowNode.kind !== 'final') {
+      return;
+    }
+
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+
     const answerIndex = state.diagnosisQueue[state.currentDiagnosisIndex];
-    submitDiagnosisWeakness(answerIndex, weaknessId);
+    submitDiagnosisWeakness(
+      answerIndex,
+      activeFlowNode.weaknessId,
+      buildDiagnosisDetailTrace(activeDiagnosisFlow, activeFlowNode.weaknessId),
+    );
   };
 
   if (!currentProblem && !state.result && !state.isDiagnosing) {
@@ -188,7 +277,6 @@ export default function QuizIndexScreen() {
     const stepTitle = `${state.currentDiagnosisIndex + 1} / ${state.diagnosisQueue.length}`;
     const progressRatio = (state.currentDiagnosisIndex + 1) / state.diagnosisQueue.length;
     const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
-    const methodStep = tempMethodId ? diagnosisTree[tempMethodId] : null;
 
     return (
       <View style={styles.screen}>
@@ -217,7 +305,7 @@ export default function QuizIndexScreen() {
 
           <View style={styles.diagnosisCard}>
             <Text selectable style={styles.diagnosisTitle}>오답 원인 분석</Text>
-            {!methodStep ? (
+            {!activeFlowNode ? (
               <>
                 <Text selectable style={styles.diagnosisText}>어떤 방법으로 풀었나요?</Text>
                 <Text style={styles.diagnosisHelper}>
@@ -340,17 +428,19 @@ export default function QuizIndexScreen() {
               </>
             ) : (
               <>
-                <Text selectable style={styles.diagnosisText}>{methodStep.prompt}</Text>
-                <View style={styles.diagnosisChoices}>
-                  {methodStep.choices.map((choice) => (
-                    <Pressable
-                      key={choice.id}
-                      style={styles.diagnosisChoiceButton}
-                      onPress={() => handleWeaknessSelect(choice.weaknessId)}>
-                      <Text style={styles.diagnosisChoiceText}>{choice.text}</Text>
-                    </Pressable>
-                  ))}
-                </View>
+                <Text selectable style={styles.diagnosisFlowLabel}>
+                  선택한 풀이법: {activeMethodLabel}
+                </Text>
+                <DiagnosisFlowCard
+                  node={activeFlowNode}
+                  methodLabel={activeMethodLabel}
+                  onChoicePress={handleFlowChoice}
+                  onExplainContinue={handleExplainContinue}
+                  onExplainDontKnow={handleExplainDontKnow}
+                  onCheckPress={handleCheckPress}
+                  onCheckDontKnow={handleCheckDontKnow}
+                  onFinalConfirm={handleFinalizeDiagnosis}
+                />
               </>
             )}
           </View>
@@ -605,6 +695,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#9A3434',
+  },
+  diagnosisFlowLabel: {
+    fontSize: 14,
+    color: '#9A3434',
+    fontWeight: '700',
   },
   diagnosisText: {
     fontSize: 15,
