@@ -354,6 +354,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.11 18:08
+- 해시: `3e6959f` (`3e6959f23c9aa576cf170be18a5879254e5d7e22`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3e6959f23c9aa576cf170be18a5879254e5d7e22
+- 작성자: 박기윤
+- 메시지: feat: 오답 진단에 인공지능 풀이법 분류 경로 추가
+
 ### 커밋 2026.03.10 23:22
 - 해시: `391ca89` (`391ca89ff0f1d62d08468b9b5cd5032b1bfcb2a8`)
 - 브랜치: main
