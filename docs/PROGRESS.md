@@ -381,6 +381,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.11 22:55
+- 해시: `3b8fc6f` (`3b8fc6fc9caf9e067daba7dc3a6b14629035991b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3b8fc6fc9caf9e067daba7dc3a6b14629035991b
+- 작성자: 박기윤
+- 메시지: docs: 진단 함수 공개 호출 및 후보 선택 흐름 기록
+
 ### 커밋 2026.03.11 18:08
 - 해시: `3e6959f` (`3e6959f23c9aa576cf170be18a5879254e5d7e22`)
 - 브랜치: main
