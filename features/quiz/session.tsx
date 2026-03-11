@@ -18,6 +18,7 @@ type QuizSessionContextValue = {
     weaknessId: WeaknessId,
     detailTrace?: DiagnosisDetailTrace,
   ) => void;
+  finishDiagnosis: () => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
@@ -42,6 +43,7 @@ type Action =
         detailTrace?: DiagnosisDetailTrace;
       };
     }
+  | { type: 'FINISH_DIAGNOSIS' }
   | { type: 'ADVANCE_PRACTICE' }
   | { type: 'COMPLETE_CHALLENGE' };
 
@@ -54,11 +56,27 @@ function createInitialState(): QuizSessionState {
     answers: [],
     isDiagnosing: false,
     diagnosisQueue: [],
-    currentDiagnosisIndex: 0,
     weaknessScores: createInitialWeaknessScores(),
     result: undefined,
     practiceMode: undefined,
     practiceQueue: [],
+    practiceIndex: 0,
+    practiceCompleted: false,
+    challengeCompleted: false,
+  };
+}
+
+function finalizeQuiz(state: QuizSessionState): QuizSessionState {
+  const result = buildQuizResult(state.answers, state.weaknessScores, TOTAL_QUESTIONS);
+
+  return {
+    ...state,
+    currentQuestionIndex: TOTAL_QUESTIONS,
+    isDiagnosing: false,
+    diagnosisQueue: [],
+    result,
+    practiceMode: result.allCorrect ? 'challenge' : 'weakness',
+    practiceQueue: result.allCorrect ? [] : result.topWeaknesses,
     practiceIndex: 0,
     practiceCompleted: false,
     challengeCompleted: false,
@@ -70,44 +88,37 @@ function checkPhaseTransition(state: QuizSessionState): QuizSessionState {
     return state;
   }
 
-  // All questions answered. Determine if we need diagnosis.
-  if (!state.isDiagnosing && state.currentDiagnosisIndex === 0) {
-    const wrongIndices = state.answers
-      .map((ans, idx) => (ans.isCorrect ? -1 : idx))
-      .filter((idx) => idx !== -1);
+  if (state.result) {
+    return state;
+  }
 
+  const wrongIndices = state.answers
+    .map((answer, index) => (answer.isCorrect ? -1 : index))
+    .filter((index) => index !== -1);
+
+  if (!state.isDiagnosing) {
     if (wrongIndices.length > 0) {
       return {
         ...state,
         currentQuestionIndex: TOTAL_QUESTIONS,
         isDiagnosing: true,
         diagnosisQueue: wrongIndices,
-        currentDiagnosisIndex: 0,
       };
     }
+
+    return finalizeQuiz(state);
   }
 
-  // Check if diagnosis is complete
-  if (state.isDiagnosing) {
-    if (state.currentDiagnosisIndex < state.diagnosisQueue.length) {
-      return state;
-    }
-    // Diagnosis finished
-    state = { ...state, isDiagnosing: false };
+  const isDiagnosisComplete = state.diagnosisQueue.every((answerIndex) => {
+    const answer = state.answers[answerIndex];
+    return Boolean(answer?.weaknessId);
+  });
+
+  if (!isDiagnosisComplete) {
+    return state;
   }
 
-  const result = buildQuizResult(state.answers, state.weaknessScores, TOTAL_QUESTIONS);
-
-  return {
-    ...state,
-    currentQuestionIndex: TOTAL_QUESTIONS,
-    result,
-    practiceMode: result.allCorrect ? 'challenge' : 'weakness',
-    practiceQueue: result.allCorrect ? [] : result.topWeaknesses,
-    practiceIndex: 0,
-    practiceCompleted: false,
-    challengeCompleted: false,
-  };
+  return finalizeQuiz(state);
 }
 
 function reducer(state: QuizSessionState, action: Action): QuizSessionState {
@@ -147,6 +158,7 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       if (!state.isDiagnosing) return state;
 
       const { answerIndex, trace } = action.payload;
+      if (state.answers[answerIndex]?.weaknessId) return state;
       
       const newAnswers = [...state.answers];
       newAnswers[answerIndex] = {
@@ -165,6 +177,7 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       if (!state.isDiagnosing) return state;
 
       const { answerIndex, weaknessId, detailTrace } = action.payload;
+      if (state.answers[answerIndex]?.weaknessId) return state;
       
       const newAnswers = [...state.answers];
       newAnswers[answerIndex] = {
@@ -179,8 +192,12 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
         ...state,
         answers: newAnswers,
         weaknessScores,
-        currentDiagnosisIndex: state.currentDiagnosisIndex + 1,
       });
+    }
+
+    case 'FINISH_DIAGNOSIS': {
+      if (!state.isDiagnosing) return state;
+      return finalizeQuiz(state);
     }
 
     case 'ADVANCE_PRACTICE': {
@@ -242,6 +259,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
           type: 'SUBMIT_DIAGNOSIS_WEAKNESS',
           payload: { answerIndex, weaknessId, detailTrace },
         });
+      },
+      finishDiagnosis: () => {
+        dispatch({ type: 'FINISH_DIAGNOSIS' });
       },
       advancePractice: () => {
         dispatch({ type: 'ADVANCE_PRACTICE' });

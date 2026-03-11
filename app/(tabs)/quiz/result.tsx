@@ -103,6 +103,23 @@ export default function QuizResultScreen() {
               />
             </View>
           </View>
+        ) : summary.topWeaknesses.length === 0 ? (
+          <View style={styles.cardNeutral}>
+            <Text style={styles.cardTitle}>오답은 있었지만 약점 분석은 아직 완료되지 않았어요</Text>
+            <Text style={styles.cardBody}>
+              이번에는 추천 약점을 만들지 않았어요. 다시 풀면서 진단을 완료하면 더 구체적으로 안내할 수 있어요.
+            </Text>
+            <View style={styles.buttonGap}>
+              <BrandButton
+                title="처음부터 다시 풀기"
+                variant="neutral"
+                onPress={() => {
+                  resetSession();
+                  router.replace('/quiz');
+                }}
+              />
+            </View>
+          </View>
         ) : (
           <View style={styles.cardWarning}>
             <Text style={styles.cardTitle}>상위 약점 3개</Text>
@@ -195,6 +212,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E8D5BE',
     backgroundColor: '#FFF8EF',
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.sm,
+  },
+  cardNeutral: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: '#FFFFFF',
     borderRadius: BrandRadius.md,
     padding: BrandSpacing.md,
     gap: BrandSpacing.sm,

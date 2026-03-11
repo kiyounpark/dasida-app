@@ -59,7 +59,6 @@ export type QuizSessionState = {
   
   isDiagnosing: boolean;
   diagnosisQueue: number[];
-  currentDiagnosisIndex: number;
 
   weaknessScores: Record<WeaknessId, number>;
   result?: QuizResultSummary;

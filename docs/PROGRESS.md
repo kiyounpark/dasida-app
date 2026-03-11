@@ -23,6 +23,17 @@
 
 ### 2026.03.11
 
+**오답 분석 문제 포함 채팅형 스와이프 플로우 재구성**
+- `app/(tabs)/quiz/index.tsx`: 오답 분석 단계를 순차형 단일 채팅에서 `문제별 독립 workspace + horizontal pager` 구조로 재구성
+- 문제 카드, AI 질문, 풀이법 선택 카드, 상세 진단 카드가 한 문제당 하나의 transcript 안에 누적되도록 정리하고, 별도 상단 문제 영역 제거
+- 좌우 스와이프와 좌우 화살표, 탭 가능한 상단 진행 점/숫자를 모두 제공해 원하는 오답 문제로 자유 이동 가능하게 변경
+- 각 오답 문제의 입력값, AI 추천 결과, 상세 진단 draft, transcript를 개별 상태로 저장해 다른 문제를 보고 돌아와도 이어서 진행 가능하도록 보강
+- 완료한 페이지는 읽기 전용으로 고정하고, 마지막에 `이 문제는 분석을 마쳤어요.` 보조 버블을 남기도록 정리
+- `features/quiz/components/diagnosis-conversation-page.tsx`, `diagnosis-problem-bubble.tsx`, `diagnosis-method-selector-card.tsx`, `diagnosis-exit-confirm-modal.tsx` 추가로 채팅 페이지, 문제 카드, 선택 카드, 종료 확인 모달을 분리
+- `features/quiz/session.tsx`, `features/quiz/types.ts`: 순차 진단 인덱스를 제거하고 `finishDiagnosis()` 액션을 추가해 조기 종료 시 완료한 분석만 결과에 반영할 수 있도록 변경
+- `app/(tabs)/quiz/result.tsx`: 완료한 약점 분석이 0개인 상태로 종료했을 때를 위한 빈 결과 카드 추가
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 `FlatList pager + 페이지 ScrollView` 조합의 제스처 충돌 가능성만 비차단 잔여 리스크로 확인
+
 **오답 분석 다단계 상세 플로우 도입**
 - `data/detailedDiagnosisFlows.ts` 추가로 모든 `SolveMethodId`를 커버하는 상세 오답 분석 플로우 데이터 정의
 - `features/quiz/diagnosis-flow-engine.ts` 추가로 분기/설명/확인 문제/최종 약점 노드 이동을 처리하는 순수 엔진 구현
