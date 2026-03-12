@@ -49,6 +49,8 @@ type DiagnosisWorkspace = {
   status: 'pending' | 'in_progress' | 'completed';
   methodId: SolveMethodId | null;
   diagnosisInput: string;
+  clarifyingInput: string;
+  hasSubmittedClarifyingInput: boolean;
   routerResult: DiagnosisRouterResult | null;
   analysisErrorMessage: string;
   isAnalyzing: boolean;
@@ -154,6 +156,8 @@ function createInitialDiagnosisWorkspace(
     status: 'pending',
     methodId: null,
     diagnosisInput: '',
+    clarifyingInput: '',
+    hasSubmittedClarifyingInput: false,
     routerResult: null,
     analysisErrorMessage: '',
     isAnalyzing: false,
@@ -189,6 +193,26 @@ function getActiveFlowNode(workspace: DiagnosisWorkspace): DiagnosisFlowNode | n
     getDiagnosisFlow(workspace.flowDraft.methodId),
     workspace.flowDraft.currentNodeId,
   );
+}
+
+function buildDiagnosisAnalysisText(workspace: DiagnosisWorkspace) {
+  const rawText = workspace.diagnosisInput.trim();
+  const clarifyingText = workspace.clarifyingInput.trim();
+
+  if (!clarifyingText) {
+    return rawText;
+  }
+
+  return `${rawText}\n추가 설명: ${clarifyingText}`;
+}
+
+function buildDiagnosisMethodDescriptors(methods: DiagnosisMethodCardOption[]) {
+  return methods.map((method) => ({
+    id: method.id,
+    labelKo: method.labelKo,
+    summary: method.summary ?? method.labelKo,
+    exampleUtterances: method.exampleUtterances ?? [],
+  }));
 }
 
 export default function QuizIndexScreen() {
@@ -465,7 +489,18 @@ export default function QuizIndexScreen() {
     updateWorkspace(answerIndex, (workspace) => ({
       ...workspace,
       diagnosisInput: text,
+      clarifyingInput: '',
+      hasSubmittedClarifyingInput: false,
       routerResult: null,
+      analysisErrorMessage: '',
+    }));
+  };
+
+  const handleClarifyingInputChange = (answerIndex: number, text: string) => {
+    setDiagnosisInteracted(answerIndex);
+    updateWorkspace(answerIndex, (workspace) => ({
+      ...workspace,
+      clarifyingInput: text,
       analysisErrorMessage: '',
     }));
   };
@@ -524,10 +559,14 @@ export default function QuizIndexScreen() {
     }));
   };
 
-  const handleAnalyze = async (page: DiagnosisPage) => {
-    const { answerIndex, problem, methods, workspace } = page;
+  const runDiagnosisAnalysis = async (
+    page: DiagnosisPage,
+    rawText: string,
+    mode: 'initial' | 'clarifying',
+  ) => {
+    const { answerIndex, problem, methods } = page;
 
-    if (!workspace.diagnosisInput.trim() || workspace.status === 'completed') {
+    if (!rawText.trim()) {
       return;
     }
 
@@ -545,14 +584,9 @@ export default function QuizIndexScreen() {
     try {
       const result = await analyzeDiagnosisMethod({
         problemId: problem.id,
-        rawText: workspace.diagnosisInput,
+        rawText,
         allowedMethodIds: methods.map((method) => method.id),
-        allowedMethods: methods.map((method) => ({
-          id: method.id,
-          labelKo: method.labelKo,
-          summary: method.summary ?? method.labelKo,
-          exampleUtterances: method.exampleUtterances ?? [],
-        })),
+        allowedMethods: buildDiagnosisMethodDescriptors(methods),
       });
 
       if (!isMountedRef.current) {
@@ -565,6 +599,8 @@ export default function QuizIndexScreen() {
         routerResult: result,
         isAnalyzing: false,
         analysisErrorMessage: '',
+        hasSubmittedClarifyingInput:
+          mode === 'clarifying' ? true : current.hasSubmittedClarifyingInput,
       }));
     } catch (error) {
       console.error('diagnosis method analysis failed', error);
@@ -574,14 +610,44 @@ export default function QuizIndexScreen() {
       requestDiagnosisAutoScroll(answerIndex);
       updateWorkspace(answerIndex, (current) => ({
         ...current,
-        routerResult: null,
+        routerResult: current.routerResult,
         isAnalyzing: false,
         analysisErrorMessage:
-          '지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.',
+          mode === 'clarifying'
+            ? '지금은 추가 설명 추천을 다시 불러오지 못했어요. 위 후보를 고르거나 잠시 후 다시 시도해주세요.'
+            : '지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.',
       }));
     } finally {
       isAnalyzingRef.current[answerIndex] = false;
     }
+  };
+
+  const handleAnalyze = async (page: DiagnosisPage) => {
+    const { answerIndex, workspace } = page;
+
+    if (!workspace.diagnosisInput.trim() || workspace.status === 'completed') {
+      return;
+    }
+
+    setDiagnosisInteracted(answerIndex);
+    await runDiagnosisAnalysis(page, workspace.diagnosisInput.trim(), 'initial');
+  };
+
+  const handleAnalyzeClarifying = async (page: DiagnosisPage) => {
+    const { answerIndex, workspace } = page;
+
+    if (
+      workspace.status === 'completed' ||
+      !workspace.routerResult?.needsManualSelection ||
+      workspace.hasSubmittedClarifyingInput ||
+      !workspace.diagnosisInput.trim() ||
+      !workspace.clarifyingInput.trim()
+    ) {
+      return;
+    }
+
+    setDiagnosisInteracted(answerIndex);
+    await runDiagnosisAnalysis(page, buildDiagnosisAnalysisText(workspace), 'clarifying');
   };
 
   const handleConfirmPredicted = (page: DiagnosisPage) => {
@@ -597,7 +663,7 @@ export default function QuizIndexScreen() {
 
     confirmDiagnosisMethod(answerIndex, {
       ...workspace.routerResult,
-      rawText: workspace.diagnosisInput,
+      rawText: buildDiagnosisAnalysisText(workspace),
       finalMethodId: workspace.routerResult.predictedMethodId,
       finalMethodSource: 'router',
     });
@@ -619,12 +685,12 @@ export default function QuizIndexScreen() {
     const trace = workspace.routerResult
       ? {
           ...workspace.routerResult,
-          rawText: workspace.diagnosisInput,
+          rawText: buildDiagnosisAnalysisText(workspace),
           finalMethodId: methodId,
           finalMethodSource: 'manual' as const,
         }
       : {
-          rawText: workspace.diagnosisInput,
+          rawText: buildDiagnosisAnalysisText(workspace),
           predictedMethodId: 'unknown' as SolveMethodId,
           confidence: 0,
           reason: 'Manual selection',
@@ -914,6 +980,8 @@ export default function QuizIndexScreen() {
                 chatEntries={item.workspace.chatEntries}
                 methods={item.methods}
                 diagnosisInput={item.workspace.diagnosisInput}
+                clarifyingInput={item.workspace.clarifyingInput}
+                hasSubmittedClarifyingInput={item.workspace.hasSubmittedClarifyingInput}
                 routerResult={item.workspace.routerResult}
                 suggestedMethods={item.suggestedMethods}
                 analysisErrorMessage={item.workspace.analysisErrorMessage}
@@ -931,6 +999,10 @@ export default function QuizIndexScreen() {
                 )}
                 onInputChange={(text) => handleDiagnosisInputChange(item.answerIndex, text)}
                 onAnalyze={() => handleAnalyze(item)}
+                onClarifyingInputChange={(text) =>
+                  handleClarifyingInputChange(item.answerIndex, text)
+                }
+                onClarifyingAnalyze={() => handleAnalyzeClarifying(item)}
                 onManualSelect={(methodId) => handleManualSelect(item, methodId)}
                 onConfirmPredicted={() => handleConfirmPredicted(item)}
                 onChoicePress={(optionId) => handleFlowChoice(item, optionId)}

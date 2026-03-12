@@ -49,6 +49,8 @@ type DiagnosisConversationPageProps = {
   chatEntries: DiagnosisConversationEntry[];
   methods: DiagnosisMethodCardOption[];
   diagnosisInput: string;
+  clarifyingInput: string;
+  hasSubmittedClarifyingInput: boolean;
   routerResult: DiagnosisRouterResult | null;
   suggestedMethods: DiagnosisMethodCardOption[];
   analysisErrorMessage: string;
@@ -58,6 +60,8 @@ type DiagnosisConversationPageProps = {
   shouldAutoScrollToEnd: boolean;
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
+  onClarifyingInputChange: (text: string) => void;
+  onClarifyingAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
   onConfirmPredicted: () => void;
   onChoicePress: (optionId: string) => void;
@@ -93,6 +97,8 @@ export function DiagnosisConversationPage({
   chatEntries,
   methods,
   diagnosisInput,
+  clarifyingInput,
+  hasSubmittedClarifyingInput,
   routerResult,
   suggestedMethods,
   analysisErrorMessage,
@@ -102,6 +108,8 @@ export function DiagnosisConversationPage({
   shouldAutoScrollToEnd,
   onInputChange,
   onAnalyze,
+  onClarifyingInputChange,
+  onClarifyingAnalyze,
   onManualSelect,
   onConfirmPredicted,
   onChoicePress,
@@ -201,6 +209,8 @@ export function DiagnosisConversationPage({
                   <DiagnosisMethodSelectorCard
                     methods={methods}
                     diagnosisInput={diagnosisInput}
+                    clarifyingInput={clarifyingInput}
+                    hasSubmittedClarifyingInput={hasSubmittedClarifyingInput}
                     routerResult={routerResult}
                     suggestedMethods={suggestedMethods}
                     analysisErrorMessage={analysisErrorMessage}
@@ -208,6 +218,8 @@ export function DiagnosisConversationPage({
                     disabled={!entry.interactive || status === 'completed'}
                     onInputChange={onInputChange}
                     onAnalyze={onAnalyze}
+                    onClarifyingInputChange={onClarifyingInputChange}
+                    onClarifyingAnalyze={onClarifyingAnalyze}
                     onManualSelect={onManualSelect}
                     onConfirmPredicted={onConfirmPredicted}
                   />

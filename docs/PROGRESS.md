@@ -23,6 +23,14 @@
 
 ### 2026.03.12
 
+**오답 분석 저신뢰 시 추가 설명 입력 1차 도입**
+- `app/(tabs)/quiz/index.tsx`: 오답 분석 workspace에 `clarifyingInput`, `hasSubmittedClarifyingInput` 상태를 추가하고, 저신뢰 추천일 때만 추가 설명을 합쳐 한 번 더 AI 추천을 요청하는 흐름을 연결
+- 첫 자유 입력을 수정하면 추가 설명 상태와 저신뢰 재시도 상태를 초기화하고, 수동 선택/AI 확정 시에는 초기 입력과 추가 설명을 합친 텍스트를 진단 trace에 기록하도록 정리
+- `features/quiz/components/diagnosis-method-selector-card.tsx`: 저신뢰 카드 안에서만 열리는 `조금만 더 설명해줄래요?` 입력 패널과 `추가 설명으로 다시 추천받기` 버튼을 추가
+- `features/quiz/components/diagnosis-conversation-page.tsx`: method selector 카드에 추가 설명 입력과 재추천 액션 props를 전달
+- 목표는 `매 단계 입력`이 아니라 `AI가 처음 설명을 애매하게 본 순간에만 1회 추가 설명`을 여는 구조로 유지하는 것
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI Expo UI 리뷰에서 `No significant findings` 확인
+
 **오답 분석 페이지별 세로 스크롤 유지**
 - `app/(tabs)/quiz/index.tsx`: answerIndex 기준으로 페이지별 세로 스크롤 위치와 실제 상호작용 여부를 ref로 저장하도록 변경
 - 점 탭/가로 스와이프 후 다른 오답 문제로 돌아오면, 입력·선택·진행이 있었던 페이지에 한해 마지막으로 보던 세로 위치를 복원하도록 정리

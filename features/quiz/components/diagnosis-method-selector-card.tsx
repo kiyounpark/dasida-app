@@ -15,6 +15,8 @@ export type DiagnosisMethodCardOption = {
 type DiagnosisMethodSelectorCardProps = {
   methods: DiagnosisMethodCardOption[];
   diagnosisInput: string;
+  clarifyingInput: string;
+  hasSubmittedClarifyingInput: boolean;
   routerResult: DiagnosisRouterResult | null;
   suggestedMethods: DiagnosisMethodCardOption[];
   analysisErrorMessage: string;
@@ -23,6 +25,8 @@ type DiagnosisMethodSelectorCardProps = {
   appearance?: 'default' | 'suggested';
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
+  onClarifyingInputChange: (text: string) => void;
+  onClarifyingAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
   onConfirmPredicted: () => void;
 };
@@ -30,6 +34,8 @@ type DiagnosisMethodSelectorCardProps = {
 export function DiagnosisMethodSelectorCard({
   methods,
   diagnosisInput,
+  clarifyingInput,
+  hasSubmittedClarifyingInput,
   routerResult,
   suggestedMethods,
   analysisErrorMessage,
@@ -38,6 +44,8 @@ export function DiagnosisMethodSelectorCard({
   appearance = 'default',
   onInputChange,
   onAnalyze,
+  onClarifyingInputChange,
+  onClarifyingAnalyze,
   onManualSelect,
   onConfirmPredicted,
 }: DiagnosisMethodSelectorCardProps) {
@@ -48,6 +56,15 @@ export function DiagnosisMethodSelectorCard({
     .filter(Boolean)
     .map((example) => `"${example}"`)
     .join(', ');
+  const canShowClarifyingComposer =
+    Boolean(routerResult?.needsManualSelection) && !hasSubmittedClarifyingInput;
+  const lowConfidenceHint = hasSubmittedClarifyingInput
+    ? suggestedMethods.length > 0
+      ? '추가 설명까지 봤지만 아직 완전히 구분하긴 어려워요. 위 후보에서 고르거나 처음 설명을 바꿔서 다시 시도해보세요.'
+      : '추가 설명까지 봤지만 아직 완전히 구분하긴 어려워요. 처음 설명을 조금 바꿔서 다시 시도해보세요.'
+    : suggestedMethods.length > 0
+      ? '위 후보를 누르거나, 아래에 한 줄만 더 적어주면 한 번 더 추천해볼게요.'
+      : '아래에 한 줄만 더 적어주면 한 번 더 추천해볼게요.';
 
   return (
     <View
@@ -184,10 +201,46 @@ export function DiagnosisMethodSelectorCard({
               </View>
             </>
           ) : null}
+          {canShowClarifyingComposer ? (
+            <View style={styles.clarifyingPanel}>
+              <Text selectable style={styles.clarifyingTitle}>
+                조금만 더 설명해줄래요?
+              </Text>
+              <Text selectable style={styles.clarifyingBody}>
+                어떤 공식이나 식 변형을 썼는지 한 줄만 더 적어주면, 이 단계에서 한 번 더 추천해볼게요.
+              </Text>
+              <TextInput
+                style={[styles.clarifyingInput, disabled ? styles.inputDisabled : null]}
+                value={clarifyingInput}
+                onChangeText={onClarifyingInputChange}
+                editable={!disabled}
+                placeholder="예: 완전제곱식으로 바꾼 뒤 x=3을 넣었어요"
+                placeholderTextColor="#978B74"
+                multiline
+                textAlignVertical="top"
+              />
+              <Pressable
+                style={[
+                  styles.clarifyingButton,
+                  (!clarifyingInput.trim() || disabled || isAnalyzing) &&
+                    styles.clarifyingButtonDisabled,
+                ]}
+                onPress={onClarifyingAnalyze}
+                accessibilityRole="button"
+                accessibilityLabel="추가 설명으로 다시 추천받기"
+                disabled={!clarifyingInput.trim() || disabled || isAnalyzing}>
+                {isAnalyzing ? (
+                  <ActivityIndicator color={DiagnosisTheme.ink} />
+                ) : (
+                  <Text style={styles.clarifyingButtonText}>
+                    추가 설명으로 다시 추천받기
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          ) : null}
           <Text selectable style={styles.lowConfidenceHint}>
-            {suggestedMethods.length > 0
-              ? '위 후보를 누르거나, 조금 더 자세히 적어주시면 다시 추천해드릴게요.'
-              : '조금 더 자세히 적어주시면 다시 추천해드릴게요.'}
+            {lowConfidenceHint}
           </Text>
         </View>
       ) : null}
@@ -403,5 +456,58 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: '#6E634A',
+  },
+  clarifyingPanel: {
+    gap: BrandSpacing.xs,
+    marginTop: 2,
+    padding: BrandSpacing.sm,
+    borderWidth: 1,
+    borderColor: '#E5D3A7',
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFDF7',
+  },
+  clarifyingTitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '800',
+    color: '#6D5B25',
+  },
+  clarifyingBody: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#746A54',
+  },
+  clarifyingInput: {
+    minHeight: 76,
+    borderWidth: 1,
+    borderColor: '#E2D3AF',
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    lineHeight: 21,
+    color: DiagnosisTheme.ink,
+  },
+  clarifyingButton: {
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    borderWidth: 1,
+    borderColor: '#D3BC80',
+    backgroundColor: '#F9EDCC',
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clarifyingButtonDisabled: {
+    borderColor: '#DDCFAC',
+    backgroundColor: '#F2EAD7',
+  },
+  clarifyingButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: DiagnosisTheme.ink,
   },
 });
