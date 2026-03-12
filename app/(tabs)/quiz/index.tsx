@@ -683,8 +683,8 @@ export default function QuizIndexScreen() {
       appendNextNode(answerIndex, page.methods, fallbackDraft, '모르겠습니다', {
         text:
           nextNode.kind === 'final'
-            ? '이번 문제에서는 AI 보충 설명을 한 번 사용했어요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
-            : '이번 문제에서는 AI 보충 설명을 한 번 사용했어요. 더 쉬운 설명으로 이어갈게요.',
+            ? '괜찮아요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
+            : '괜찮아요. 더 쉬운 설명으로 이어갈게요.',
         tone: 'neutral',
       });
       return;
