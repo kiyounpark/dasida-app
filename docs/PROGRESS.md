@@ -23,6 +23,13 @@
 
 ### 2026.03.12
 
+**오답 분석 완료 후 다음 미완료 문제로 자동 이동**
+- `app/(tabs)/quiz/index.tsx`: `findNextIncompleteDiagnosisPageIndex()` 헬퍼를 추가하고, `final` 노드 확정 직후 현재 페이지 오른쪽의 다음 미완료 오답을 우선 찾고 없으면 앞쪽으로 wrap하여 자동 이동하도록 연결
+- `handleFinalizeDiagnosis()`: 약점 저장과 완료 transcript append 뒤에 `scrollToDiagnosisPage()`를 한 프레임 뒤 호출하도록 정리해, 완료 버블이 붙은 다음 자연스럽게 다음 미완료 문제로 넘어가게 조정
+- 마지막 미완료 문제까지 끝난 경우에는 추가 이동 없이 기존 세션 finalize 흐름에 맡겨 결과 화면으로 자동 전환되도록 유지
+- 기존 스와이프, 점 탭, 읽기 전용 완료 페이지, 세로 스크롤 복원 규칙은 그대로 유지
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 자동 다음 이동/스크롤 복원 충돌 없음 확인
+
 **상세 진단 `모르겠습니다`에 AI 보충 설명 도입**
 - `app/(tabs)/quiz/index.tsx`: 상세 진단 workspace에 `aiHelpUsed`, `aiHelpState`를 추가하고, `explain/check` 노드에서 `모르겠습니다`를 눌렀을 때만 AI 보충 설명 composer가 열리도록 흐름을 재구성
 - 같은 문제에서 AI 보충 설명은 1회만 허용하고, 이후 다시 `모르겠습니다`를 누르면 보충 설명 입력 없이 기존 `더 쉬운 설명` 분기로 이어지도록 제한

@@ -119,6 +119,25 @@ function getDiagnosisStepLabel(index: number) {
   return diagnosisStepLabels[index] ?? `${index + 1}번째 문제`;
 }
 
+function findNextIncompleteDiagnosisPageIndex(
+  pages: DiagnosisPage[],
+  currentIndex: number,
+): number | null {
+  for (let pageIndex = currentIndex + 1; pageIndex < pages.length; pageIndex += 1) {
+    if (pages[pageIndex]?.workspace.status !== 'completed') {
+      return pageIndex;
+    }
+  }
+
+  for (let pageIndex = 0; pageIndex < currentIndex; pageIndex += 1) {
+    if (pages[pageIndex]?.workspace.status !== 'completed') {
+      return pageIndex;
+    }
+  }
+
+  return null;
+}
+
 function freezeConversationEntries(
   entries: DiagnosisConversationEntry[],
 ): DiagnosisConversationEntry[] {
@@ -1097,6 +1116,14 @@ export default function QuizIndexScreen() {
       Haptics.selectionAsync();
     }
 
+    const currentPageIndex = diagnosisPages.findIndex(
+      (diagnosisPage) => diagnosisPage.answerIndex === answerIndex,
+    );
+    const nextPageIndex =
+      currentPageIndex === -1
+        ? null
+        : findNextIncompleteDiagnosisPageIndex(diagnosisPages, currentPageIndex);
+
     submitDiagnosisWeakness(
       answerIndex,
       activeNode.weaknessId,
@@ -1113,6 +1140,16 @@ export default function QuizIndexScreen() {
         createBubbleEntry(answerIndex, 'assistant', '이 문제는 분석을 마쳤어요.', 'positive'),
       ],
     }));
+
+    if (nextPageIndex !== null) {
+      requestAnimationFrame(() => {
+        if (!isMountedRef.current) {
+          return;
+        }
+
+        scrollToDiagnosisPage(nextPageIndex);
+      });
+    }
   };
 
   const handleExitDiagnosis = () => {
