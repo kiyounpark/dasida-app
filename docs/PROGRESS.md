@@ -23,6 +23,12 @@
 
 ### 2026.03.12
 
+**제품 전략 문서를 `PROJECT.md`로 재정렬**
+- 루트 `PROJECT.md`를 예전 MVP 기획서에서 현재 제품 전략 기준 문서로 전면 갱신
+- 핵심 메시지를 `10문제 체험 -> 매일 약점 학습 -> 실전 모의고사`로 재정의하고, 10문제는 activation funnel, 약점 학습은 retention engine, 모의고사는 credibility/expansion engine으로 역할을 분리
+- 첫 공개 버전 범위를 `10문제 체험 + 오답 약점 분석 + 매일 학습 + 알림 + 대표 모의고사 1개 묶음`으로 고정하고, 최근 3년 전체 아카이브와 리포트는 후속 단계로 분리
+- `docs/PROGRESS.md`는 실행 로그, `PROJECT.md`는 제품 전략 문서라는 운영 원칙을 명시
+
 **오답 분석 완료 후 다음 미완료 문제로 자동 이동**
 - `app/(tabs)/quiz/index.tsx`: `findNextIncompleteDiagnosisPageIndex()` 헬퍼를 추가하고, `final` 노드 확정 직후 현재 페이지 오른쪽의 다음 미완료 오답을 우선 찾고 없으면 앞쪽으로 wrap하여 자동 이동하도록 연결
 - `handleFinalizeDiagnosis()`: 약점 저장과 완료 transcript append 뒤에 `scrollToDiagnosisPage()`를 한 프레임 뒤 호출하도록 정리해, 완료 버블이 붙은 다음 자연스럽게 다음 미완료 문제로 넘어가게 조정
