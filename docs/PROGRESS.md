@@ -462,6 +462,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 18:45
+- 해시: `56b6ebf` (`56b6ebf1201a66703ce235cfbda267c457d47e17`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/56b6ebf1201a66703ce235cfbda267c457d47e17
+- 작성자: 박기윤
+- 메시지: fix: 보충 설명 제한 문구를 중립 안내로 조정
+
 ### 커밋 2026.03.12 18:34
 - 해시: `0fca03c` (`0fca03cd8ae69eb9d614895a200b9011ff7c853c`)
 - 브랜치: main
