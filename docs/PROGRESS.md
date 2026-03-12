@@ -451,6 +451,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 17:57
+- 해시: `5cf5d6d` (`5cf5d6d65baa72e6c4a5eeff5c9c420178685fc2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5cf5d6d65baa72e6c4a5eeff5c9c420178685fc2
+- 작성자: 박기윤
+- 메시지: feat: 저신뢰 진단에 추가 설명 재추천을 추가
+
 ### 커밋 2026.03.12 17:40
 - 해시: `9b3683f` (`9b3683ff11d767fb6bb49a0888a2f8c2f06fa0ff`)
 - 브랜치: main
