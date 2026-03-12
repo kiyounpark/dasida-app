@@ -475,6 +475,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 19:24
+- 해시: `7f67d02` (`7f67d02f9cd8bcd036c64a070377daa7150145cb`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7f67d02f9cd8bcd036c64a070377daa7150145cb
+- 작성자: 박기윤
+- 메시지: docs: 제품 전략 문서를 현재 방향으로 재정렬
+
 ### 커밋 2026.03.12 19:08
 - 해시: `3043ac4` (`3043ac4043618ea1d4829ef9c5d01fc60ac5cf9e`)
 - 브랜치: main
