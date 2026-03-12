@@ -443,6 +443,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 17:40
+- 해시: `9b3683f` (`9b3683ff11d767fb6bb49a0888a2f8c2f06fa0ff`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9b3683ff11d767fb6bb49a0888a2f8c2f06fa0ff
+- 작성자: 박기윤
+- 메시지: feat: 오답 진단 페이지별 세로 스크롤을 유지
+
 ### 커밋 2026.03.12 17:25
 - 해시: `d255eb5` (`d255eb52ab6c537f3bf1184e86caaa80e7b1791f`)
 - 브랜치: main
