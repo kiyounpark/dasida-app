@@ -42,6 +42,7 @@ export type DiagnosisConversationEntry =
     };
 
 type DiagnosisConversationPageProps = {
+  answerIndex: number;
   width: number;
   isActive: boolean;
   status: 'pending' | 'in_progress' | 'completed';
@@ -52,6 +53,9 @@ type DiagnosisConversationPageProps = {
   suggestedMethods: DiagnosisMethodCardOption[];
   analysisErrorMessage: string;
   isAnalyzing: boolean;
+  restoreOffset?: number;
+  shouldRestoreScroll: boolean;
+  shouldAutoScrollToEnd: boolean;
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
@@ -62,6 +66,9 @@ type DiagnosisConversationPageProps = {
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
   onFinalConfirm: () => void;
+  onScrollOffsetChange: (answerIndex: number, offsetY: number) => void;
+  onAutoScrollHandled: (answerIndex: number) => void;
+  onRestoreHandled: (answerIndex: number) => void;
 };
 
 function getEntryAnimation(entry: DiagnosisConversationEntry) {
@@ -79,6 +86,7 @@ function getEntryAnimation(entry: DiagnosisConversationEntry) {
 }
 
 export function DiagnosisConversationPage({
+  answerIndex,
   width,
   isActive,
   status,
@@ -89,6 +97,9 @@ export function DiagnosisConversationPage({
   suggestedMethods,
   analysisErrorMessage,
   isAnalyzing,
+  restoreOffset,
+  shouldRestoreScroll,
+  shouldAutoScrollToEnd,
   onInputChange,
   onAnalyze,
   onManualSelect,
@@ -99,18 +110,36 @@ export function DiagnosisConversationPage({
   onCheckPress,
   onCheckDontKnow,
   onFinalConfirm,
+  onScrollOffsetChange,
+  onAutoScrollHandled,
+  onRestoreHandled,
 }: DiagnosisConversationPageProps) {
   const scrollRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive || !shouldRestoreScroll) {
       return;
     }
 
     requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: false });
+      scrollRef.current?.scrollTo({
+        y: restoreOffset ?? 0,
+        animated: false,
+      });
+      onRestoreHandled(answerIndex);
     });
-  }, [chatEntries.length, isActive]);
+  }, [answerIndex, isActive, onRestoreHandled, restoreOffset, shouldRestoreScroll]);
+
+  useEffect(() => {
+    if (!isActive || !shouldAutoScrollToEnd) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      onAutoScrollHandled(answerIndex);
+    });
+  }, [answerIndex, isActive, onAutoScrollHandled, shouldAutoScrollToEnd]);
 
   return (
     <View style={[styles.page, { width }]}>
@@ -126,10 +155,9 @@ export function DiagnosisConversationPage({
           nestedScrollEnabled
           directionalLockEnabled
           contentContainerStyle={styles.content}
-          onContentSizeChange={() => {
-            if (isActive) {
-              scrollRef.current?.scrollToEnd({ animated: true });
-            }
+          scrollEventThrottle={16}
+          onScroll={(event) => {
+            onScrollOffsetChange(answerIndex, event.nativeEvent.contentOffset.y);
           }}>
           {chatEntries.map((entry, entryIndex) => {
             const isAfterProblemPrompt =

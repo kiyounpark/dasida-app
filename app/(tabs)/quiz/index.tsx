@@ -205,6 +205,11 @@ export default function QuizIndexScreen() {
   const diagnosisPagerRef = useRef<FlatList<DiagnosisPage> | null>(null);
   const diagnosisEntrySequence = useRef<Record<number, number>>({});
   const isAnalyzingRef = useRef<Record<number, boolean>>({});
+  const diagnosisScrollOffsetsRef = useRef<Record<number, number>>({});
+  const diagnosisHasInteractedRef = useRef<Record<number, boolean>>({});
+  const diagnosisPendingAutoScrollRef = useRef<Record<number, boolean>>({});
+  const diagnosisPendingRestoreRef = useRef<Record<number, boolean>>({});
+  const activeDiagnosisAnswerIndexRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -241,6 +246,11 @@ export default function QuizIndexScreen() {
       setActiveDiagnosisPageIndex(0);
       diagnosisEntrySequence.current = {};
       isAnalyzingRef.current = {};
+      diagnosisScrollOffsetsRef.current = {};
+      diagnosisHasInteractedRef.current = {};
+      diagnosisPendingAutoScrollRef.current = {};
+      diagnosisPendingRestoreRef.current = {};
+      activeDiagnosisAnswerIndexRef.current = null;
       return;
     }
 
@@ -320,6 +330,39 @@ export default function QuizIndexScreen() {
       .filter((page): page is DiagnosisPage => Boolean(page));
   }, [diagnosisWorkspaces, state.answers, state.diagnosisQueue, state.isDiagnosing]);
 
+  useEffect(() => {
+    activeDiagnosisAnswerIndexRef.current =
+      diagnosisPages[activeDiagnosisPageIndex]?.answerIndex ?? null;
+  }, [activeDiagnosisPageIndex, diagnosisPages]);
+
+  const hasStoredDiagnosisOffset = (answerIndex: number) =>
+    Object.prototype.hasOwnProperty.call(diagnosisScrollOffsetsRef.current, answerIndex);
+
+  const shouldRestoreDiagnosisOffset = (answerIndex: number) =>
+    diagnosisHasInteractedRef.current[answerIndex] === true &&
+    hasStoredDiagnosisOffset(answerIndex);
+
+  const setDiagnosisInteracted = (answerIndex: number) => {
+    diagnosisHasInteractedRef.current[answerIndex] = true;
+  };
+
+  const requestDiagnosisAutoScroll = (answerIndex: number) => {
+    if (activeDiagnosisAnswerIndexRef.current !== answerIndex) {
+      return;
+    }
+
+    diagnosisPendingAutoScrollRef.current[answerIndex] = true;
+  };
+
+  const requestDiagnosisRestore = (answerIndex: number) => {
+    if (shouldRestoreDiagnosisOffset(answerIndex)) {
+      diagnosisPendingRestoreRef.current[answerIndex] = true;
+      return;
+    }
+
+    delete diagnosisPendingRestoreRef.current[answerIndex];
+  };
+
   const createChatEntryId = (answerIndex: number, prefix: string) => {
     diagnosisEntrySequence.current[answerIndex] =
       (diagnosisEntrySequence.current[answerIndex] ?? 3) + 1;
@@ -380,6 +423,11 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    const targetAnswerIndex = diagnosisPages[pageIndex]?.answerIndex;
+    if (targetAnswerIndex !== undefined) {
+      requestDiagnosisRestore(targetAnswerIndex);
+    }
+
     setActiveDiagnosisPageIndex(pageIndex);
     diagnosisPagerRef.current?.scrollToIndex({
       index: pageIndex,
@@ -392,11 +440,28 @@ export default function QuizIndexScreen() {
   ) => {
     const nextPageIndex = Math.round(event.nativeEvent.contentOffset.x / diagnosisPageWidth);
     if (nextPageIndex !== activeDiagnosisPageIndex) {
+      const targetAnswerIndex = diagnosisPages[nextPageIndex]?.answerIndex;
+      if (targetAnswerIndex !== undefined) {
+        requestDiagnosisRestore(targetAnswerIndex);
+      }
       setActiveDiagnosisPageIndex(nextPageIndex);
     }
   };
 
+  const handleDiagnosisScrollOffsetChange = (answerIndex: number, offsetY: number) => {
+    diagnosisScrollOffsetsRef.current[answerIndex] = Math.max(offsetY, 0);
+  };
+
+  const handleDiagnosisAutoScrollHandled = (answerIndex: number) => {
+    delete diagnosisPendingAutoScrollRef.current[answerIndex];
+  };
+
+  const handleDiagnosisRestoreHandled = (answerIndex: number) => {
+    delete diagnosisPendingRestoreRef.current[answerIndex];
+  };
+
   const handleDiagnosisInputChange = (answerIndex: number, text: string) => {
+    setDiagnosisInteracted(answerIndex);
     updateWorkspace(answerIndex, (workspace) => ({
       ...workspace,
       diagnosisInput: text,
@@ -410,6 +475,8 @@ export default function QuizIndexScreen() {
     methodId: SolveMethodId,
     methodOptionsForProblem: DiagnosisMethodCardOption[],
   ) => {
+    setDiagnosisInteracted(answerIndex);
+    requestDiagnosisAutoScroll(answerIndex);
     const draft = createDiagnosisFlowDraft(methodId);
     const startNode = getNode(getDiagnosisFlow(methodId), draft.currentNodeId);
     const methodLabel = getMethodLabel(methodId, methodOptionsForProblem);
@@ -438,6 +505,8 @@ export default function QuizIndexScreen() {
       tone?: 'neutral' | 'positive' | 'warning';
     },
   ) => {
+    setDiagnosisInteracted(answerIndex);
+    requestDiagnosisAutoScroll(answerIndex);
     const nextNode = getNode(getDiagnosisFlow(draft.methodId), draft.currentNodeId);
 
     updateWorkspace(answerIndex, (workspace) => ({
@@ -490,6 +559,7 @@ export default function QuizIndexScreen() {
         return;
       }
 
+      requestDiagnosisAutoScroll(answerIndex);
       updateWorkspace(answerIndex, (current) => ({
         ...current,
         routerResult: result,
@@ -501,6 +571,7 @@ export default function QuizIndexScreen() {
       if (!isMountedRef.current) {
         return;
       }
+      requestDiagnosisAutoScroll(answerIndex);
       updateWorkspace(answerIndex, (current) => ({
         ...current,
         routerResult: null,
@@ -519,6 +590,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -539,6 +611,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -573,6 +646,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -597,6 +671,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -616,6 +691,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -639,6 +715,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -670,6 +747,7 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -693,6 +771,8 @@ export default function QuizIndexScreen() {
       return;
     }
 
+    setDiagnosisInteracted(answerIndex);
+    requestDiagnosisAutoScroll(answerIndex);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.selectionAsync();
     }
@@ -827,6 +907,7 @@ export default function QuizIndexScreen() {
             keyExtractor={(page) => String(page.answerIndex)}
             renderItem={({ item, index }) => (
               <DiagnosisConversationPage
+                answerIndex={item.answerIndex}
                 width={diagnosisPageWidth}
                 isActive={index === activeDiagnosisPageIndex}
                 status={item.workspace.status}
@@ -837,6 +918,17 @@ export default function QuizIndexScreen() {
                 suggestedMethods={item.suggestedMethods}
                 analysisErrorMessage={item.workspace.analysisErrorMessage}
                 isAnalyzing={item.workspace.isAnalyzing}
+                restoreOffset={
+                  hasStoredDiagnosisOffset(item.answerIndex)
+                    ? diagnosisScrollOffsetsRef.current[item.answerIndex]
+                    : undefined
+                }
+                shouldRestoreScroll={Boolean(
+                  diagnosisPendingRestoreRef.current[item.answerIndex],
+                )}
+                shouldAutoScrollToEnd={Boolean(
+                  diagnosisPendingAutoScrollRef.current[item.answerIndex],
+                )}
                 onInputChange={(text) => handleDiagnosisInputChange(item.answerIndex, text)}
                 onAnalyze={() => handleAnalyze(item)}
                 onManualSelect={(methodId) => handleManualSelect(item, methodId)}
@@ -847,6 +939,9 @@ export default function QuizIndexScreen() {
                 onCheckPress={(optionId) => handleCheckPress(item, optionId)}
                 onCheckDontKnow={() => handleCheckDontKnow(item)}
                 onFinalConfirm={() => handleFinalizeDiagnosis(item)}
+                onScrollOffsetChange={handleDiagnosisScrollOffsetChange}
+                onAutoScrollHandled={handleDiagnosisAutoScrollHandled}
+                onRestoreHandled={handleDiagnosisRestoreHandled}
               />
             )}
             style={styles.diagnosisPager}
