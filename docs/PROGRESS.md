@@ -469,6 +469,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 19:08
+- 해시: `3043ac4` (`3043ac4043618ea1d4829ef9c5d01fc60ac5cf9e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3043ac4043618ea1d4829ef9c5d01fc60ac5cf9e
+- 작성자: 박기윤
+- 메시지: feat: 오답 분석 완료 후 다음 문제 자동 이동
+
 ### 커밋 2026.03.12 18:45
 - 해시: `56b6ebf` (`56b6ebf1201a66703ce235cfbda267c457d47e17`)
 - 브랜치: main
