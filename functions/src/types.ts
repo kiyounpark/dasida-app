@@ -18,3 +18,23 @@ export type OpenAIDiagnosisResult = {
   candidateMethodIds: string[];
   reason: string;
 };
+
+export type DiagnosisExplainNodeKind = 'explain' | 'check';
+
+export type DiagnosisExplainRequest = {
+  problemId: string;
+  problemQuestion: string;
+  methodId: string;
+  methodLabelKo: string;
+  nodeKind: DiagnosisExplainNodeKind;
+  nodeId: string;
+  nodeTitle: string;
+  nodeBody?: string;
+  nodePrompt?: string;
+  nodeOptions?: string[];
+  userQuestion: string;
+};
+
+export type OpenAIDiagnosisExplainResult = {
+  replyText: string;
+};

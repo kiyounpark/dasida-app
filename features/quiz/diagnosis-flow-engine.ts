@@ -17,6 +17,7 @@ export type DiagnosisFlowDraft = {
   visitedNodeIds: string[];
   events: DiagnosisFlowEvent[];
   usedDontKnow: boolean;
+  usedAiHelp: boolean;
 };
 
 function appendVisitedNode(draft: DiagnosisFlowDraft, nodeId: string): string[] {
@@ -54,6 +55,19 @@ export function createDiagnosisFlowDraft(methodId: SolveMethodId): DiagnosisFlow
     visitedNodeIds: [flow.startNodeId],
     events: [],
     usedDontKnow: false,
+    usedAiHelp: false,
+  };
+}
+
+function appendEvent(
+  draft: DiagnosisFlowDraft,
+  event: DiagnosisFlowEvent,
+  options?: { usedAiHelp?: boolean }
+): DiagnosisFlowDraft {
+  return {
+    ...draft,
+    events: [...draft.events, event],
+    usedAiHelp: draft.usedAiHelp || Boolean(options?.usedAiHelp),
   };
 }
 
@@ -79,10 +93,12 @@ export function advanceFromChoice(
     ...draft,
     currentNodeId: option.nextNodeId,
     visitedNodeIds: appendVisitedNode(draft, option.nextNodeId),
-    events: [
-      ...draft.events,
-      { kind: 'branch', nodeId: choiceNode.id, optionId: option.id, weaknessId: option.weaknessId },
-    ],
+    events: appendEvent(draft, {
+      kind: 'branch',
+      nodeId: choiceNode.id,
+      optionId: option.id,
+      weaknessId: option.weaknessId,
+    }).events,
   };
 }
 
@@ -106,12 +122,12 @@ export function advanceFromExplain(
     currentNodeId: nextNodeId,
     visitedNodeIds: appendVisitedNode(draft, nextNodeId),
     usedDontKnow: draft.usedDontKnow || action === 'dont_know',
-    events: [
-      ...draft.events,
+    events: appendEvent(
+      draft,
       action === 'continue'
         ? { kind: 'explain_continue', nodeId: explainNode.id }
-        : { kind: 'dont_know', nodeId: explainNode.id },
-    ],
+        : { kind: 'dont_know', nodeId: explainNode.id }
+    ).events,
   };
 }
 
@@ -135,7 +151,7 @@ export function advanceFromCheck(
       currentNodeId: nextNodeId,
       visitedNodeIds: appendVisitedNode(draft, nextNodeId),
       usedDontKnow: true,
-      events: [...draft.events, { kind: 'dont_know', nodeId: checkNode.id }],
+      events: appendEvent(draft, { kind: 'dont_know', nodeId: checkNode.id }).events,
     };
   }
 
@@ -149,17 +165,42 @@ export function advanceFromCheck(
     ...draft,
     currentNodeId: option.nextNodeId,
     visitedNodeIds: appendVisitedNode(draft, option.nextNodeId),
-    events: [
-      ...draft.events,
-      {
-        kind: 'check',
-        nodeId: checkNode.id,
-        optionId: option.id,
-        isCorrect: option.isCorrect,
-        weaknessId: option.weaknessId,
-      },
-    ],
+    events: appendEvent(draft, {
+      kind: 'check',
+      nodeId: checkNode.id,
+      optionId: option.id,
+      isCorrect: option.isCorrect,
+      weaknessId: option.weaknessId,
+    }).events,
   };
+}
+
+export function appendAiHelpRequested(
+  draft: DiagnosisFlowDraft,
+  nodeId: string,
+  nodeKind: 'explain' | 'check',
+): DiagnosisFlowDraft {
+  return appendEvent(
+    draft,
+    { kind: 'ai_help_requested', nodeId, nodeKind },
+    { usedAiHelp: true },
+  );
+}
+
+export function appendAiHelpContinue(
+  draft: DiagnosisFlowDraft,
+  nodeId: string,
+  nodeKind: 'explain' | 'check',
+): DiagnosisFlowDraft {
+  return appendEvent(draft, { kind: 'ai_help_continue', nodeId, nodeKind }, { usedAiHelp: true });
+}
+
+export function appendAiHelpFallback(
+  draft: DiagnosisFlowDraft,
+  nodeId: string,
+  nodeKind: 'explain' | 'check',
+): DiagnosisFlowDraft {
+  return appendEvent(draft, { kind: 'ai_help_fallback', nodeId, nodeKind }, { usedAiHelp: true });
 }
 
 export function buildDiagnosisDetailTrace(
@@ -172,6 +213,7 @@ export function buildDiagnosisDetailTrace(
     visitedNodeIds: draft.visitedNodeIds,
     events: draft.events,
     usedDontKnow: draft.usedDontKnow,
+    usedAiHelp: draft.usedAiHelp,
     finalWeaknessId,
   };
 }

@@ -4,6 +4,8 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
 import type { SolveMethodId } from '@/data/diagnosisTree';
+import { DiagnosisAiHelpActionsCard } from '@/features/quiz/components/diagnosis-ai-help-actions-card';
+import { DiagnosisAiHelpCard } from '@/features/quiz/components/diagnosis-ai-help-card';
 import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-card';
 import type { DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 
@@ -39,6 +41,20 @@ export type DiagnosisConversationEntry =
       methodLabel: string;
       node: DiagnosisFlowNode;
       interactive: boolean;
+    }
+  | {
+      id: string;
+      kind: 'ai-help';
+      nodeId: string;
+      nodeKind: 'explain' | 'check';
+      interactive: boolean;
+    }
+  | {
+      id: string;
+      kind: 'ai-help-actions';
+      nodeId: string;
+      nodeKind: 'explain' | 'check';
+      interactive: boolean;
     };
 
 type DiagnosisConversationPageProps = {
@@ -49,19 +65,18 @@ type DiagnosisConversationPageProps = {
   chatEntries: DiagnosisConversationEntry[];
   methods: DiagnosisMethodCardOption[];
   diagnosisInput: string;
-  clarifyingInput: string;
-  hasSubmittedClarifyingInput: boolean;
   routerResult: DiagnosisRouterResult | null;
   suggestedMethods: DiagnosisMethodCardOption[];
   analysisErrorMessage: string;
   isAnalyzing: boolean;
+  aiHelpInput: string;
+  aiHelpError: string;
+  isAiHelpLoading: boolean;
   restoreOffset?: number;
   shouldRestoreScroll: boolean;
   shouldAutoScrollToEnd: boolean;
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
-  onClarifyingInputChange: (text: string) => void;
-  onClarifyingAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
   onConfirmPredicted: () => void;
   onChoicePress: (optionId: string) => void;
@@ -70,6 +85,10 @@ type DiagnosisConversationPageProps = {
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
   onFinalConfirm: () => void;
+  onAiHelpInputChange: (text: string) => void;
+  onAiHelpSubmit: () => void;
+  onAiHelpContinue: () => void;
+  onAiHelpFallback: () => void;
   onScrollOffsetChange: (answerIndex: number, offsetY: number) => void;
   onAutoScrollHandled: (answerIndex: number) => void;
   onRestoreHandled: (answerIndex: number) => void;
@@ -97,19 +116,18 @@ export function DiagnosisConversationPage({
   chatEntries,
   methods,
   diagnosisInput,
-  clarifyingInput,
-  hasSubmittedClarifyingInput,
   routerResult,
   suggestedMethods,
   analysisErrorMessage,
   isAnalyzing,
+  aiHelpInput,
+  aiHelpError,
+  isAiHelpLoading,
   restoreOffset,
   shouldRestoreScroll,
   shouldAutoScrollToEnd,
   onInputChange,
   onAnalyze,
-  onClarifyingInputChange,
-  onClarifyingAnalyze,
   onManualSelect,
   onConfirmPredicted,
   onChoicePress,
@@ -118,6 +136,10 @@ export function DiagnosisConversationPage({
   onCheckPress,
   onCheckDontKnow,
   onFinalConfirm,
+  onAiHelpInputChange,
+  onAiHelpSubmit,
+  onAiHelpContinue,
+  onAiHelpFallback,
   onScrollOffsetChange,
   onAutoScrollHandled,
   onRestoreHandled,
@@ -209,8 +231,6 @@ export function DiagnosisConversationPage({
                   <DiagnosisMethodSelectorCard
                     methods={methods}
                     diagnosisInput={diagnosisInput}
-                    clarifyingInput={clarifyingInput}
-                    hasSubmittedClarifyingInput={hasSubmittedClarifyingInput}
                     routerResult={routerResult}
                     suggestedMethods={suggestedMethods}
                     analysisErrorMessage={analysisErrorMessage}
@@ -218,11 +238,49 @@ export function DiagnosisConversationPage({
                     disabled={!entry.interactive || status === 'completed'}
                     onInputChange={onInputChange}
                     onAnalyze={onAnalyze}
-                    onClarifyingInputChange={onClarifyingInputChange}
-                    onClarifyingAnalyze={onClarifyingAnalyze}
                     onManualSelect={onManualSelect}
                     onConfirmPredicted={onConfirmPredicted}
                   />
+                </Animated.View>
+              );
+            }
+
+            if (entry.kind === 'ai-help') {
+              return (
+                <Animated.View
+                  key={entry.id}
+                  entering={getEntryAnimation(entry)}
+                  style={styles.assistantRow}>
+                  <View style={styles.flowWrap}>
+                    <DiagnosisAiHelpCard
+                      nodeKind={entry.nodeKind}
+                      value={aiHelpInput}
+                      error={aiHelpError}
+                      isLoading={isAiHelpLoading}
+                      disabled={!entry.interactive || status === 'completed'}
+                      onChangeText={onAiHelpInputChange}
+                      onSubmit={onAiHelpSubmit}
+                      onFallback={onAiHelpFallback}
+                    />
+                  </View>
+                </Animated.View>
+              );
+            }
+
+            if (entry.kind === 'ai-help-actions') {
+              return (
+                <Animated.View
+                  key={entry.id}
+                  entering={getEntryAnimation(entry)}
+                  style={styles.assistantRow}>
+                  <View style={styles.flowWrap}>
+                    <DiagnosisAiHelpActionsCard
+                      nodeKind={entry.nodeKind}
+                      disabled={!entry.interactive || status === 'completed'}
+                      onContinue={onAiHelpContinue}
+                      onFallback={onAiHelpFallback}
+                    />
+                  </View>
                 </Animated.View>
               );
             }

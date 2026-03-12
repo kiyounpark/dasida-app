@@ -34,14 +34,29 @@ import {
   advanceFromCheck,
   advanceFromChoice,
   advanceFromExplain,
+  appendAiHelpContinue,
+  appendAiHelpFallback,
+  appendAiHelpRequested,
   buildDiagnosisDetailTrace,
   createDiagnosisFlowDraft,
   getDiagnosisFlow,
   getNode,
   type DiagnosisFlowDraft,
 } from '@/features/quiz/diagnosis-flow-engine';
+import { requestDiagnosisExplanation } from '@/features/quiz/diagnosis-explainer';
 import { analyzeDiagnosisMethod, type DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 import { useQuizSession } from '@/features/quiz/session';
+
+type DiagnosisAiHelpNodeKind = 'explain' | 'check';
+
+type DiagnosisAiHelpState = {
+  nodeId: string;
+  nodeKind: DiagnosisAiHelpNodeKind;
+  input: string;
+  isLoading: boolean;
+  error: string;
+  replyText?: string;
+};
 
 type DiagnosisWorkspace = {
   answerIndex: number;
@@ -49,12 +64,12 @@ type DiagnosisWorkspace = {
   status: 'pending' | 'in_progress' | 'completed';
   methodId: SolveMethodId | null;
   diagnosisInput: string;
-  clarifyingInput: string;
-  hasSubmittedClarifyingInput: boolean;
   routerResult: DiagnosisRouterResult | null;
   analysisErrorMessage: string;
   isAnalyzing: boolean;
   flowDraft: DiagnosisFlowDraft | null;
+  aiHelpUsed: boolean;
+  aiHelpState: DiagnosisAiHelpState | null;
   chatEntries: DiagnosisConversationEntry[];
 };
 
@@ -108,7 +123,10 @@ function freezeConversationEntries(
   entries: DiagnosisConversationEntry[],
 ): DiagnosisConversationEntry[] {
   return entries.map((entry) =>
-    entry.kind === 'method-selector' || entry.kind === 'node'
+    entry.kind === 'method-selector' ||
+    entry.kind === 'node' ||
+    entry.kind === 'ai-help' ||
+    entry.kind === 'ai-help-actions'
       ? { ...entry, interactive: false }
       : entry,
   );
@@ -156,12 +174,12 @@ function createInitialDiagnosisWorkspace(
     status: 'pending',
     methodId: null,
     diagnosisInput: '',
-    clarifyingInput: '',
-    hasSubmittedClarifyingInput: false,
     routerResult: null,
     analysisErrorMessage: '',
     isAnalyzing: false,
     flowDraft: null,
+    aiHelpUsed: false,
+    aiHelpState: null,
     chatEntries: [
       {
         id: `${answerIndex}-problem`,
@@ -196,14 +214,7 @@ function getActiveFlowNode(workspace: DiagnosisWorkspace): DiagnosisFlowNode | n
 }
 
 function buildDiagnosisAnalysisText(workspace: DiagnosisWorkspace) {
-  const rawText = workspace.diagnosisInput.trim();
-  const clarifyingText = workspace.clarifyingInput.trim();
-
-  if (!clarifyingText) {
-    return rawText;
-  }
-
-  return `${rawText}\n추가 설명: ${clarifyingText}`;
+  return workspace.diagnosisInput.trim();
 }
 
 function buildDiagnosisMethodDescriptors(methods: DiagnosisMethodCardOption[]) {
@@ -420,6 +431,35 @@ export default function QuizIndexScreen() {
     interactive,
   });
 
+  const createAiHelpEntry = (
+    answerIndex: number,
+    nodeId: string,
+    nodeKind: DiagnosisAiHelpNodeKind,
+    interactive: boolean,
+  ): DiagnosisConversationEntry => ({
+    id: createChatEntryId(answerIndex, `ai-help-${nodeKind}`),
+    kind: 'ai-help',
+    nodeId,
+    nodeKind,
+    interactive,
+  });
+
+  const createAiHelpActionsEntry = (
+    answerIndex: number,
+    nodeId: string,
+    nodeKind: DiagnosisAiHelpNodeKind,
+    interactive: boolean,
+  ): DiagnosisConversationEntry => ({
+    id: createChatEntryId(answerIndex, `ai-help-actions-${nodeKind}`),
+    kind: 'ai-help-actions',
+    nodeId,
+    nodeKind,
+    interactive,
+  });
+
+  const removeAiHelpComposerEntries = (entries: DiagnosisConversationEntry[]) =>
+    entries.filter((entry) => entry.kind !== 'ai-help');
+
   const updateWorkspace = (
     answerIndex: number,
     updater: (workspace: DiagnosisWorkspace) => DiagnosisWorkspace,
@@ -489,18 +529,7 @@ export default function QuizIndexScreen() {
     updateWorkspace(answerIndex, (workspace) => ({
       ...workspace,
       diagnosisInput: text,
-      clarifyingInput: '',
-      hasSubmittedClarifyingInput: false,
       routerResult: null,
-      analysisErrorMessage: '',
-    }));
-  };
-
-  const handleClarifyingInputChange = (answerIndex: number, text: string) => {
-    setDiagnosisInteracted(answerIndex);
-    updateWorkspace(answerIndex, (workspace) => ({
-      ...workspace,
-      clarifyingInput: text,
       analysisErrorMessage: '',
     }));
   };
@@ -521,6 +550,8 @@ export default function QuizIndexScreen() {
       status: 'in_progress',
       methodId,
       flowDraft: draft,
+      aiHelpUsed: false,
+      aiHelpState: null,
       analysisErrorMessage: '',
       chatEntries: [
         ...freezeConversationEntries(workspace.chatEntries),
@@ -549,7 +580,7 @@ export default function QuizIndexScreen() {
       status: 'in_progress',
       flowDraft: draft,
       chatEntries: [
-        ...freezeConversationEntries(workspace.chatEntries),
+        ...freezeConversationEntries(removeAiHelpComposerEntries(workspace.chatEntries)),
         createBubbleEntry(answerIndex, 'user', userText),
         ...(feedback
           ? [createBubbleEntry(answerIndex, 'assistant', feedback.text, feedback.tone)]
@@ -562,7 +593,6 @@ export default function QuizIndexScreen() {
   const runDiagnosisAnalysis = async (
     page: DiagnosisPage,
     rawText: string,
-    mode: 'initial' | 'clarifying',
   ) => {
     const { answerIndex, problem, methods } = page;
 
@@ -599,8 +629,6 @@ export default function QuizIndexScreen() {
         routerResult: result,
         isAnalyzing: false,
         analysisErrorMessage: '',
-        hasSubmittedClarifyingInput:
-          mode === 'clarifying' ? true : current.hasSubmittedClarifyingInput,
       }));
     } catch (error) {
       console.error('diagnosis method analysis failed', error);
@@ -613,9 +641,7 @@ export default function QuizIndexScreen() {
         routerResult: current.routerResult,
         isAnalyzing: false,
         analysisErrorMessage:
-          mode === 'clarifying'
-            ? '지금은 추가 설명 추천을 다시 불러오지 못했어요. 위 후보를 고르거나 잠시 후 다시 시도해주세요.'
-            : '지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.',
+          '지금은 추천을 불러오지 못했어요. 위 선택지에서 고르거나 잠시 후 다시 시도해주세요.',
       }));
     } finally {
       isAnalyzingRef.current[answerIndex] = false;
@@ -630,24 +656,280 @@ export default function QuizIndexScreen() {
     }
 
     setDiagnosisInteracted(answerIndex);
-    await runDiagnosisAnalysis(page, workspace.diagnosisInput.trim(), 'initial');
+    await runDiagnosisAnalysis(page, workspace.diagnosisInput.trim());
   };
 
-  const handleAnalyzeClarifying = async (page: DiagnosisPage) => {
+  const openAiHelpComposer = (page: DiagnosisPage, nodeKind: DiagnosisAiHelpNodeKind) => {
     const { answerIndex, workspace } = page;
+    const activeNode = getActiveFlowNode(workspace);
+
+    if (!workspace.flowDraft || !activeNode || activeNode.kind !== nodeKind) {
+      return;
+    }
+
+    setDiagnosisInteracted(answerIndex);
+    requestDiagnosisAutoScroll(answerIndex);
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+
+    if (workspace.aiHelpUsed) {
+      const fallbackDraft =
+        nodeKind === 'explain'
+          ? advanceFromExplain(workspace.flowDraft, 'dont_know')
+          : advanceFromCheck(workspace.flowDraft);
+      const nextNode = getNode(getDiagnosisFlow(fallbackDraft.methodId), fallbackDraft.currentNodeId);
+
+      appendNextNode(answerIndex, page.methods, fallbackDraft, '모르겠습니다', {
+        text:
+          nextNode.kind === 'final'
+            ? '이번 문제에서는 AI 보충 설명을 한 번 사용했어요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
+            : '이번 문제에서는 AI 보충 설명을 한 번 사용했어요. 더 쉬운 설명으로 이어갈게요.',
+        tone: 'neutral',
+      });
+      return;
+    }
+
+    updateWorkspace(answerIndex, (current) => ({
+      ...current,
+      flowDraft: appendAiHelpRequested(current.flowDraft!, activeNode.id, nodeKind),
+      aiHelpUsed: true,
+      aiHelpState: {
+        nodeId: activeNode.id,
+        nodeKind,
+        input: '',
+        isLoading: false,
+        error: '',
+      },
+      chatEntries: [
+        ...freezeConversationEntries(removeAiHelpComposerEntries(current.chatEntries)),
+        createBubbleEntry(answerIndex, 'user', '모르겠습니다'),
+        createAiHelpEntry(answerIndex, activeNode.id, nodeKind, true),
+      ],
+    }));
+  };
+
+  const handleAiHelpInputChange = (answerIndex: number, text: string) => {
+    setDiagnosisInteracted(answerIndex);
+    updateWorkspace(answerIndex, (workspace) => {
+      if (!workspace.aiHelpState) {
+        return workspace;
+      }
+
+      return {
+        ...workspace,
+        aiHelpState: {
+          ...workspace.aiHelpState,
+          input: text,
+          error: '',
+        },
+      };
+    });
+  };
+
+  const handleSubmitAiHelp = async (page: DiagnosisPage) => {
+    const { answerIndex, problem, methods, workspace } = page;
+    const activeNode = getActiveFlowNode(workspace);
+    const aiHelpState = workspace.aiHelpState;
 
     if (
       workspace.status === 'completed' ||
-      !workspace.routerResult?.needsManualSelection ||
-      workspace.hasSubmittedClarifyingInput ||
-      !workspace.diagnosisInput.trim() ||
-      !workspace.clarifyingInput.trim()
+      !workspace.flowDraft ||
+      !workspace.methodId ||
+      !aiHelpState ||
+      aiHelpState.isLoading ||
+      !aiHelpState.input.trim() ||
+      !activeNode ||
+      activeNode.kind !== aiHelpState.nodeKind
     ) {
       return;
     }
 
     setDiagnosisInteracted(answerIndex);
-    await runDiagnosisAnalysis(page, buildDiagnosisAnalysisText(workspace), 'clarifying');
+    updateWorkspace(answerIndex, (current) => ({
+      ...current,
+      aiHelpState: current.aiHelpState
+        ? {
+            ...current.aiHelpState,
+            isLoading: true,
+            error: '',
+          }
+        : current.aiHelpState,
+    }));
+
+    try {
+      const methodLabelKo = getMethodLabel(workspace.methodId, methods);
+      const result = await requestDiagnosisExplanation({
+        problemId: problem.id,
+        problemQuestion: problem.question,
+        methodId: workspace.methodId,
+        methodLabelKo,
+        nodeKind: aiHelpState.nodeKind,
+        nodeId: activeNode.id,
+        nodeTitle: activeNode.title,
+        nodeBody: 'body' in activeNode ? activeNode.body : undefined,
+        nodePrompt: activeNode.kind === 'check' ? activeNode.prompt : undefined,
+        nodeOptions:
+          activeNode.kind === 'check'
+            ? activeNode.options.map((option) => option.text)
+            : undefined,
+        userQuestion: aiHelpState.input.trim(),
+      });
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      requestDiagnosisAutoScroll(answerIndex);
+      updateWorkspace(answerIndex, (current) => {
+        const currentHelpState = current.aiHelpState;
+        if (!currentHelpState) {
+          return current;
+        }
+
+        return {
+          ...current,
+          aiHelpState: null,
+          chatEntries: [
+            ...freezeConversationEntries(removeAiHelpComposerEntries(current.chatEntries)),
+            createBubbleEntry(answerIndex, 'user', currentHelpState.input.trim()),
+            createBubbleEntry(answerIndex, 'assistant', result.replyText, 'info'),
+            createAiHelpActionsEntry(
+              answerIndex,
+              currentHelpState.nodeId,
+              currentHelpState.nodeKind,
+              true,
+            ),
+          ],
+        };
+      });
+    } catch (error) {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      requestDiagnosisAutoScroll(answerIndex);
+      const errorMessage =
+        error instanceof Error && error.name === 'AbortError'
+          ? '응답이 조금 늦고 있어요. 다시 시도하거나 더 쉬운 설명으로 이어갈 수 있어요.'
+          : error instanceof Error &&
+              error.message === 'Diagnosis explain endpoint is not configured'
+            ? '지금은 AI 보충 설명을 사용할 수 없어요. 더 쉬운 설명으로 이어갈게요.'
+            : '지금은 AI 보충 설명을 불러오지 못했어요. 다시 시도하거나 더 쉬운 설명으로 이어갈 수 있어요.';
+
+      updateWorkspace(answerIndex, (current) => ({
+        ...current,
+        aiHelpState: current.aiHelpState
+          ? {
+              ...current.aiHelpState,
+              isLoading: false,
+              error: errorMessage,
+            }
+          : current.aiHelpState,
+      }));
+    }
+  };
+
+  const reopenCheckNode = (page: DiagnosisPage) => {
+    const { answerIndex, methods, workspace } = page;
+    const activeNode = getActiveFlowNode(workspace);
+
+    if (!workspace.flowDraft || !workspace.methodId || !activeNode || activeNode.kind !== 'check') {
+      return;
+    }
+
+    setDiagnosisInteracted(answerIndex);
+    requestDiagnosisAutoScroll(answerIndex);
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+
+    updateWorkspace(answerIndex, (current) => ({
+      ...current,
+      flowDraft: appendAiHelpContinue(current.flowDraft!, activeNode.id, 'check'),
+      aiHelpState: null,
+      chatEntries: [
+        ...freezeConversationEntries(removeAiHelpComposerEntries(current.chatEntries)),
+        createBubbleEntry(answerIndex, 'user', '문제를 다시 볼게요'),
+        createBubbleEntry(answerIndex, 'assistant', '좋아요. 같은 확인 문제를 다시 볼게요.', 'positive'),
+        createNodeEntry(answerIndex, workspace.methodId!, methods, activeNode, true),
+      ],
+    }));
+  };
+
+  const handleAiHelpContinue = (page: DiagnosisPage) => {
+    const activeNode = getActiveFlowNode(page.workspace);
+
+    if (!activeNode || (activeNode.kind !== 'explain' && activeNode.kind !== 'check')) {
+      return;
+    }
+
+    if (activeNode.kind === 'check') {
+      reopenCheckNode(page);
+      return;
+    }
+
+    const { answerIndex, methods, workspace } = page;
+    setDiagnosisInteracted(answerIndex);
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+
+    const nextDraft = advanceFromExplain(
+      appendAiHelpContinue(workspace.flowDraft!, activeNode.id, 'explain'),
+      'continue',
+    );
+
+    appendNextNode(
+      answerIndex,
+      methods,
+      nextDraft,
+      '확인 문제로 넘어갈게요',
+    );
+  };
+
+  const handleAiHelpFallback = (page: DiagnosisPage) => {
+    const { answerIndex, methods, workspace } = page;
+    const activeNode = getActiveFlowNode(workspace);
+
+    if (!workspace.flowDraft || !activeNode || (activeNode.kind !== 'explain' && activeNode.kind !== 'check')) {
+      return;
+    }
+
+    setDiagnosisInteracted(answerIndex);
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.selectionAsync();
+    }
+
+    if (activeNode.kind === 'explain') {
+      const nextDraft = advanceFromExplain(
+        appendAiHelpFallback(workspace.flowDraft, activeNode.id, 'explain'),
+        'dont_know',
+      );
+      const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
+
+      appendNextNode(answerIndex, methods, nextDraft, '더 쉬운 설명으로 볼게요', {
+        text:
+          nextNode.kind === 'final'
+            ? '괜찮아요. 지금은 기초부터 정리하는 쪽이 더 좋아 보여요.'
+            : '괜찮아요. 더 쉬운 설명으로 다시 이어갈게요.',
+        tone: 'neutral',
+      });
+      return;
+    }
+
+    const nextDraft = advanceFromCheck(
+      appendAiHelpFallback(workspace.flowDraft, activeNode.id, 'check'),
+    );
+    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
+
+    appendNextNode(answerIndex, methods, nextDraft, '더 쉬운 설명으로 볼게요', {
+      text:
+        nextNode.kind === 'final'
+          ? '괜찮아요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
+          : '괜찮아요. 더 쉬운 설명으로 다시 볼게요.',
+      tone: 'neutral',
+    });
   };
 
   const handleConfirmPredicted = (page: DiagnosisPage) => {
@@ -751,27 +1033,13 @@ export default function QuizIndexScreen() {
   };
 
   const handleExplainDontKnow = (page: DiagnosisPage) => {
-    const { answerIndex, methods, workspace } = page;
+    const { workspace } = page;
     const activeNode = getActiveFlowNode(workspace);
     if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'explain') {
       return;
     }
 
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const nextDraft = advanceFromExplain(workspace.flowDraft, 'dont_know');
-    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
-
-    appendNextNode(answerIndex, methods, nextDraft, activeNode.secondaryLabel, {
-      text:
-        nextNode.kind === 'final'
-          ? '괜찮아요. 지금은 기초부터 정리하는 쪽이 더 좋아 보여요.'
-          : '괜찮아요. 더 쉬운 설명으로 다시 이어갈게요.',
-      tone: 'neutral',
-    });
+    openAiHelpComposer(page, 'explain');
   };
 
   const handleCheckPress = (page: DiagnosisPage, optionId: string) => {
@@ -807,27 +1075,13 @@ export default function QuizIndexScreen() {
   };
 
   const handleCheckDontKnow = (page: DiagnosisPage) => {
-    const { answerIndex, methods, workspace } = page;
+    const { workspace } = page;
     const activeNode = getActiveFlowNode(workspace);
     if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'check') {
       return;
     }
 
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const nextDraft = advanceFromCheck(workspace.flowDraft);
-    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
-
-    appendNextNode(answerIndex, methods, nextDraft, '모르겠습니다', {
-      text:
-        nextNode.kind === 'final'
-          ? '괜찮아요. 지금은 기초부터 다시 다지는 편이 좋아 보여요.'
-          : '괜찮아요. 더 쉬운 설명으로 다시 볼게요.',
-      tone: 'neutral',
-    });
+    openAiHelpComposer(page, 'check');
   };
 
   const handleFinalizeDiagnosis = (page: DiagnosisPage) => {
@@ -852,6 +1106,7 @@ export default function QuizIndexScreen() {
     updateWorkspace(answerIndex, (current) => ({
       ...current,
       status: 'completed',
+      aiHelpState: null,
       chatEntries: [
         ...freezeConversationEntries(current.chatEntries),
         createBubbleEntry(answerIndex, 'user', activeNode.ctaLabel),
@@ -980,12 +1235,13 @@ export default function QuizIndexScreen() {
                 chatEntries={item.workspace.chatEntries}
                 methods={item.methods}
                 diagnosisInput={item.workspace.diagnosisInput}
-                clarifyingInput={item.workspace.clarifyingInput}
-                hasSubmittedClarifyingInput={item.workspace.hasSubmittedClarifyingInput}
                 routerResult={item.workspace.routerResult}
                 suggestedMethods={item.suggestedMethods}
                 analysisErrorMessage={item.workspace.analysisErrorMessage}
                 isAnalyzing={item.workspace.isAnalyzing}
+                aiHelpInput={item.workspace.aiHelpState?.input ?? ''}
+                aiHelpError={item.workspace.aiHelpState?.error ?? ''}
+                isAiHelpLoading={item.workspace.aiHelpState?.isLoading ?? false}
                 restoreOffset={
                   hasStoredDiagnosisOffset(item.answerIndex)
                     ? diagnosisScrollOffsetsRef.current[item.answerIndex]
@@ -999,10 +1255,6 @@ export default function QuizIndexScreen() {
                 )}
                 onInputChange={(text) => handleDiagnosisInputChange(item.answerIndex, text)}
                 onAnalyze={() => handleAnalyze(item)}
-                onClarifyingInputChange={(text) =>
-                  handleClarifyingInputChange(item.answerIndex, text)
-                }
-                onClarifyingAnalyze={() => handleAnalyzeClarifying(item)}
                 onManualSelect={(methodId) => handleManualSelect(item, methodId)}
                 onConfirmPredicted={() => handleConfirmPredicted(item)}
                 onChoicePress={(optionId) => handleFlowChoice(item, optionId)}
@@ -1011,6 +1263,10 @@ export default function QuizIndexScreen() {
                 onCheckPress={(optionId) => handleCheckPress(item, optionId)}
                 onCheckDontKnow={() => handleCheckDontKnow(item)}
                 onFinalConfirm={() => handleFinalizeDiagnosis(item)}
+                onAiHelpInputChange={(text) => handleAiHelpInputChange(item.answerIndex, text)}
+                onAiHelpSubmit={() => handleSubmitAiHelp(item)}
+                onAiHelpContinue={() => handleAiHelpContinue(item)}
+                onAiHelpFallback={() => handleAiHelpFallback(item)}
                 onScrollOffsetChange={handleDiagnosisScrollOffsetChange}
                 onAutoScrollHandled={handleDiagnosisAutoScrollHandled}
                 onRestoreHandled={handleDiagnosisRestoreHandled}

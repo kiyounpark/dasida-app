@@ -5,3 +5,4 @@ if (getApps().length === 0) {
 }
 
 export { diagnoseMethod } from './diagnosis-method';
+export { explainDiagnosisNode } from './explain-diagnosis-node';

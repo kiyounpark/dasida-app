@@ -20,7 +20,10 @@ export type DiagnosisFlowEvent =
   | { kind: 'branch'; nodeId: string; optionId: string; weaknessId?: WeaknessId }
   | { kind: 'explain_continue'; nodeId: string }
   | { kind: 'dont_know'; nodeId: string }
-  | { kind: 'check'; nodeId: string; optionId: string; isCorrect: boolean; weaknessId?: WeaknessId };
+  | { kind: 'check'; nodeId: string; optionId: string; isCorrect: boolean; weaknessId?: WeaknessId }
+  | { kind: 'ai_help_requested'; nodeId: string; nodeKind: 'explain' | 'check' }
+  | { kind: 'ai_help_continue'; nodeId: string; nodeKind: 'explain' | 'check' }
+  | { kind: 'ai_help_fallback'; nodeId: string; nodeKind: 'explain' | 'check' };
 
 export type DiagnosisDetailTrace = {
   methodId: SolveMethodId;
@@ -28,6 +31,7 @@ export type DiagnosisDetailTrace = {
   visitedNodeIds: string[];
   events: DiagnosisFlowEvent[];
   usedDontKnow: boolean;
+  usedAiHelp: boolean;
   finalWeaknessId: WeaknessId;
 };
 

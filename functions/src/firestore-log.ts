@@ -27,3 +27,25 @@ export async function logDiagnosisMethodRun(input: {
     responseId: input.responseId,
   });
 }
+
+export async function logDiagnosisExplainRun(input: {
+  problemId: string;
+  methodId: string;
+  nodeId: string;
+  nodeKind: 'explain' | 'check';
+  model: string;
+  responseId: string;
+}) {
+  const firestore = getFirestore();
+
+  await firestore.collection('diagnosisExplainRuns').add({
+    createdAt: FieldValue.serverTimestamp(),
+    problemId: input.problemId,
+    methodId: input.methodId,
+    nodeId: input.nodeId,
+    nodeKind: input.nodeKind,
+    source: 'openai-explainer',
+    model: input.model,
+    responseId: input.responseId,
+  });
+}
