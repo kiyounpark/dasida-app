@@ -435,6 +435,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.12 17:25
+- 해시: `d255eb5` (`d255eb52ab6c537f3bf1184e86caaa80e7b1791f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d255eb52ab6c537f3bf1184e86caaa80e7b1791f
+- 작성자: 박기윤
+- 메시지: feat: 오답 진단 상단 세션 바를 단순화
+
 ### 커밋 2026.03.12 00:34
 - 해시: `f656804` (`f6568042ca118f3af25215325663d3f7c9b0a348`)
 - 브랜치: main
