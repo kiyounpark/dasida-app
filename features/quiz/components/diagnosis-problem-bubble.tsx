@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   row: {
     width: '100%',
     alignItems: 'flex-start',
+    marginTop: 2,
   },
   card: {
     width: '100%',
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     boxShadow: '0 14px 28px rgba(36, 50, 41, 0.08)',
   },
   heroCard: {
-    paddingTop: BrandSpacing.lg,
+    paddingTop: BrandSpacing.md + 2,
   },
   heroBand: {
     position: 'absolute',

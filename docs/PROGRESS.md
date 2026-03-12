@@ -23,6 +23,13 @@
 
 ### 2026.03.12
 
+**오답 약점 분석 상단 세션 바 단순화**
+- `app/(tabs)/quiz/index.tsx`: 상단 진단 바에서 `x/x`, 숫자 캡슐, 좌우 화살표를 제거하고 `닫기 버튼 + 제목 + 자연어 메타 텍스트 + 작은 진행점` 구조로 단순화
+- 진행 상태는 `두 번째 문제` 같은 자연어 메타와 탭 가능한 작은 점 인디케이터로만 표현하고, 완료/현재/미래 상태는 점의 fill과 길이 차이로 구분하도록 재설계
+- 오답 문제 수가 6개를 넘을 때도 한 줄에서 유지되도록 compact dot 규칙을 추가하고, 이동 방식은 `점 탭 + 스와이프`만 남기도록 정리
+- `features/quiz/components/diagnosis-conversation-page.tsx`, `diagnosis-problem-bubble.tsx`: 상단 세션 바와 문제 카드가 더 자연스럽게 이어지도록 transcript top rhythm을 소폭 조정
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI Expo UI 리뷰에서 `No significant findings` 확인
+
 **오답 약점 분석 디자인 리디자인**
 - `constants/diagnosis-theme.ts` 추가로 오답 분석 전용 색상 토큰을 분리하고, 전체 진단 화면을 `아이보리 캔버스 + 짙은 그린 + 차분한 잉크색` 기준으로 재정렬
 - `app/(tabs)/quiz/index.tsx`: 오답 진단 화면 전용 배경 레이어, 세션형 상단 바, 캡슐형 페이지 네비게이션으로 재구성

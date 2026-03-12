@@ -227,12 +227,12 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 18,
+    paddingTop: 12,
     paddingBottom: 40,
     gap: 14,
   },
   problemEntry: {
-    marginBottom: 6,
+    marginBottom: 4,
   },
   promptEntry: {
     marginTop: 4,
