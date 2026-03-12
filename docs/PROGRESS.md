@@ -23,6 +23,17 @@
 
 ### 2026.03.12
 
+**상세 진단 `모르겠습니다`에 AI 보충 설명 도입**
+- `app/(tabs)/quiz/index.tsx`: 상세 진단 workspace에 `aiHelpUsed`, `aiHelpState`를 추가하고, `explain/check` 노드에서 `모르겠습니다`를 눌렀을 때만 AI 보충 설명 composer가 열리도록 흐름을 재구성
+- 같은 문제에서 AI 보충 설명은 1회만 허용하고, 이후 다시 `모르겠습니다`를 누르면 보충 설명 입력 없이 기존 `더 쉬운 설명` 분기로 이어지도록 제한
+- `features/quiz/components/diagnosis-conversation-page.tsx`: transcript entry에 `ai-help`, `ai-help-actions`를 추가하고, AI 보충 설명 카드와 후속 액션 카드를 채팅 안에 렌더링하도록 확장
+- `features/quiz/components/diagnosis-ai-help-card.tsx`, `diagnosis-ai-help-actions-card.tsx` 추가로 `어디가 막혔는지` 입력 카드와 `확인 문제로 넘어갈게요 / 문제를 다시 볼게요 / 더 쉬운 설명으로 볼게요` 액션 카드를 분리
+- `features/quiz/diagnosis-explainer.ts`, `constants/env.ts`, `.env.example`: explain 전용 클라이언트 fetch 모듈과 `EXPO_PUBLIC_DIAGNOSIS_EXPLAIN_URL` 환경변수 경로 추가
+- `functions/src/explain-diagnosis-node.ts`, `functions/src/openai-client.ts`, `functions/src/firestore-log.ts`, `functions/src/index.ts`, `functions/src/types.ts`: `gpt-4.1` 기반 설명 전용 HTTPS 함수와 `diagnosisExplainRuns` 메타 로그 경로 추가
+- `features/quiz/types.ts`, `features/quiz/diagnosis-flow-engine.ts`: `ai_help_requested / ai_help_continue / ai_help_fallback` 이벤트와 `usedAiHelp` trace 저장 추가
+- 기존에 잘못 들어갔던 `저신뢰 풀이법 분류 단계 추가 설명 입력` UI는 제거하고, 풀이법 분류 단계는 다시 `초기 자유 입력 1회 + 후보/수동 선택` 구조로 정리
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run lint --prefix functions`, `npm run build --prefix functions` 통과, Claude CLI(`building-native-ui`, `native-data-fetching`) 리뷰에서 치명적 findings 없음
+
 **오답 분석 저신뢰 시 추가 설명 입력 1차 도입**
 - `app/(tabs)/quiz/index.tsx`: 오답 분석 workspace에 `clarifyingInput`, `hasSubmittedClarifyingInput` 상태를 추가하고, 저신뢰 추천일 때만 추가 설명을 합쳐 한 번 더 AI 추천을 요청하는 흐름을 연결
 - 첫 자유 입력을 수정하면 추가 설명 상태와 저신뢰 재시도 상태를 초기화하고, 수동 선택/AI 확정 시에는 초기 입력과 추가 설명을 합친 텍스트를 진단 trace에 기록하도록 정리
@@ -450,6 +461,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.12 18:34
+- 해시: `0fca03c` (`0fca03cd8ae69eb9d614895a200b9011ff7c853c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0fca03cd8ae69eb9d614895a200b9011ff7c853c
+- 작성자: 박기윤
+- 메시지: feat: 오답 진단 모르겠습니다 보충 설명 추가
 
 ### 커밋 2026.03.12 17:57
 - 해시: `5cf5d6d` (`5cf5d6d65baa72e6c4a5eeff5c9c420178685fc2`)
