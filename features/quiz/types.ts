@@ -46,6 +46,9 @@ export type QuizAnswer = {
 };
 
 export type QuizResultSummary = {
+  attemptId: string;
+  startedAt: string;
+  completedAt: string;
   total: number;
   correct: number;
   wrong: number;
@@ -58,9 +61,11 @@ export type PracticeMode = 'weakness' | 'challenge';
 
 export type QuizSessionState = {
   hasStarted: boolean;
+  attemptId?: string;
+  startedAt?: string;
   currentQuestionIndex: number;
   answers: QuizAnswer[];
-  
+
   isDiagnosing: boolean;
   diagnosisQueue: number[];
 

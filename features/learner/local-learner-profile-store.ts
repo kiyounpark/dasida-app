@@ -35,10 +35,6 @@ export class LocalLearnerProfileStore implements LearnerProfileStore {
       grade: 'unknown',
       createdAt: timestamp,
       updatedAt: timestamp,
-      featuredExamState: {
-        examId: 'featured-mock-1',
-        status: 'not_started',
-      },
     };
 
     await this.save(profile);
@@ -56,4 +52,3 @@ export class LocalLearnerProfileStore implements LearnerProfileStore {
     await AsyncStorage.removeItem(getLearnerProfileStorageKey(accountKey));
   }
 }
-

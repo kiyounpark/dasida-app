@@ -7,7 +7,7 @@ import { diagnosisMap } from '@/data/diagnosisMap';
 import { useCurrentLearner } from '@/features/learner/provider';
 
 export default function HistoryScreen() {
-  const { isReady, profile, reviewTasks, homeState } = useCurrentLearner();
+  const { isReady, summary, homeState } = useCurrentLearner();
 
   return (
     <View style={styles.screen}>
@@ -29,14 +29,14 @@ export default function HistoryScreen() {
           <Text selectable style={styles.cardTitle}>
             최근 진단 결과
           </Text>
-          {isReady && profile?.latestDiagnosticSummary ? (
+          {isReady && summary?.latestDiagnosticSummary ? (
             <>
               <Text selectable style={styles.body}>
-                정답률 {profile.latestDiagnosticSummary.accuracy}%
+                정답률 {summary.latestDiagnosticSummary.accuracy}%
               </Text>
               <Text selectable style={styles.body}>
                 상위 약점:{' '}
-                {profile.latestDiagnosticSummary.topWeaknesses
+                {summary.latestDiagnosticSummary.topWeaknesses
                   .map((weaknessId) => diagnosisMap[weaknessId].labelKo)
                   .join(', ')}
               </Text>
@@ -52,12 +52,18 @@ export default function HistoryScreen() {
           <Text selectable style={styles.cardTitle}>
             복습 상태
           </Text>
-          {isReady && reviewTasks.length > 0 ? (
-            reviewTasks.slice(0, 3).map((task) => (
-              <Text key={task.id} selectable style={styles.body}>
-                {task.stage.toUpperCase()} · {diagnosisMap[task.weaknessId].labelKo}
+          {isReady && summary?.nextReviewTask ? (
+            <>
+              <Text selectable style={styles.body}>
+                다음 복습: {summary.nextReviewTask.stage.toUpperCase()} ·{' '}
+                {diagnosisMap[summary.nextReviewTask.weaknessId].labelKo}
               </Text>
-            ))
+              {summary.repeatedWeaknesses.slice(0, 3).map((item) => (
+                <Text key={item.weaknessId} selectable style={styles.body}>
+                  반복 약점 {item.count}회 · {diagnosisMap[item.weaknessId].labelKo}
+                </Text>
+              ))}
+            </>
           ) : (
             <Text selectable style={styles.body}>
               예정된 복습 태스크가 없습니다.

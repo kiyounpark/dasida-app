@@ -4,12 +4,17 @@ import { weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import { buildHomeLearningState, type HomeLearningState } from '@/features/learning/home-state';
 import { getPreviewPeerPresence } from '@/features/learning/peer-presence-preview';
 import type { PreviewablePeerPresenceStore } from '@/features/learning/peer-presence-store';
-import type { ReviewTask } from '@/features/learning/types';
-import type { ReviewTaskStore } from '@/features/learning/review-task-store';
+import {
+  createEmptyLearnerSummary,
+  type FinalizedAttemptInput,
+  type LearningHistoryRepository,
+} from '@/features/learning/history-repository';
+import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
+import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
 import type { LearnerProfileStore } from './profile-store';
 import type {
-  DiagnosticSummarySnapshot,
+  FeaturedExamState,
   LearnerProfile,
   PreviewSeedState,
 } from './types';
@@ -17,7 +22,7 @@ import type {
 export type CurrentLearnerSnapshot = {
   session: AuthSession;
   profile: LearnerProfile;
-  reviewTasks: ReviewTask[];
+  summary: LearnerSummaryCurrent;
   homeState: HomeLearningState;
 };
 
@@ -25,7 +30,8 @@ export type CurrentLearnerController = {
   bootstrap(): Promise<CurrentLearnerSnapshot>;
   refresh(): Promise<CurrentLearnerSnapshot>;
   updateGrade(grade: LearnerProfile['grade']): Promise<CurrentLearnerSnapshot>;
-  saveDiagnosticSummary(summary: DiagnosticSummarySnapshot): Promise<CurrentLearnerSnapshot>;
+  recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
+  saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
   resetLocalProfile(): Promise<CurrentLearnerSnapshot>;
 };
@@ -33,13 +39,9 @@ export type CurrentLearnerController = {
 type Dependencies = {
   authClient: AuthClient;
   profileStore: LearnerProfileStore;
-  reviewTaskStore: ReviewTaskStore;
+  learningHistoryRepository: LearningHistoryRepository;
   peerPresenceStore: PreviewablePeerPresenceStore;
 };
-
-function createTaskId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 async function ensureProfile(
   profileStore: LearnerProfileStore,
@@ -53,62 +55,82 @@ async function ensureProfile(
   return profileStore.createInitial(accountKey);
 }
 
-function buildPreviewSummary(topWeaknesses: WeaknessId[]): DiagnosticSummarySnapshot {
-  return {
-    completedAt: new Date().toISOString(),
-    topWeaknesses,
-    accuracy: 70,
-  };
-}
-
-function buildPreviewTask(weaknessId: WeaknessId): ReviewTask {
-  const now = new Date().toISOString();
-
-  return {
-    id: createTaskId(),
-    weaknessId,
-    source: 'diagnostic',
-    sourceId: `preview-${now}`,
-    scheduledFor: now,
-    stage: 'day1',
-    completed: false,
-    createdAt: now,
-  };
-}
-
 function getPreviewWeaknesses(): WeaknessId[] {
   return weaknessOrder.slice(0, 3);
+}
+
+function buildPreviewAttemptInput(
+  profile: LearnerProfile,
+  source: 'diagnostic' | 'featured-exam',
+  sourceEntityId: string | null = null,
+): FinalizedAttemptInput {
+  const completedAt = new Date().toISOString();
+  const attemptId = `preview-${source}-${Date.now().toString(36)}`;
+  const topWeaknesses = getPreviewWeaknesses();
+
+  return {
+    attemptId,
+    accountKey: profile.accountKey,
+    learnerId: profile.learnerId,
+    source,
+    sourceEntityId,
+    gradeSnapshot: profile.grade,
+    startedAt: completedAt,
+    completedAt,
+    questionCount: 10,
+    correctCount: 7,
+    wrongCount: 3,
+    accuracy: 70,
+    primaryWeaknessId: topWeaknesses[0] ?? null,
+    topWeaknesses,
+    questions: topWeaknesses.map((weaknessId, index) => ({
+      questionId: `preview-q${index + 1}`,
+      questionNumber: index + 1,
+      topic: '미리보기',
+      selectedIndex: index,
+      isCorrect: false,
+      finalWeaknessId: weaknessId,
+      methodId: null,
+      diagnosisSource: null,
+      finalMethodSource: null,
+      diagnosisCompleted: true,
+      usedDontKnow: index === 2,
+      usedAiHelp: index === 1,
+    })),
+  };
 }
 
 export function createCurrentLearnerController({
   authClient,
   profileStore,
-  reviewTaskStore,
+  learningHistoryRepository,
   peerPresenceStore,
 }: Dependencies): CurrentLearnerController {
   const buildSnapshot = async (
     session: AuthSession,
     profile: LearnerProfile,
-    reviewTasks: ReviewTask[],
+    summary: LearnerSummaryCurrent,
   ): Promise<CurrentLearnerSnapshot> => ({
     session,
     profile,
-    reviewTasks,
-    homeState: buildHomeLearningState(profile, reviewTasks, await peerPresenceStore.load()),
+    summary,
+    homeState: buildHomeLearningState(profile, summary, await peerPresenceStore.load()),
   });
 
   const readCurrentSnapshot = async (): Promise<CurrentLearnerSnapshot> => {
     const session = (await authClient.loadSession()) ?? (await authClient.ensureAnonymousSession());
     const profile = await ensureProfile(profileStore, session.accountKey);
-    const reviewTasks = await reviewTaskStore.load(session.accountKey);
-    return buildSnapshot(session, profile, reviewTasks);
+    const summary =
+      (await learningHistoryRepository.loadCurrentSummary(session.accountKey)) ??
+      createEmptyLearnerSummary(session.accountKey);
+    return buildSnapshot(session, profile, summary);
   };
 
   return {
     bootstrap: readCurrentSnapshot,
     refresh: readCurrentSnapshot,
     updateGrade: async (grade) => {
-      const { session, profile, reviewTasks } = await readCurrentSnapshot();
+      const { session, profile, summary } = await readCurrentSnapshot();
       const nextProfile: LearnerProfile = {
         ...profile,
         grade,
@@ -116,115 +138,62 @@ export function createCurrentLearnerController({
       };
 
       await profileStore.save(nextProfile);
-      return buildSnapshot(session, nextProfile, reviewTasks);
+      return buildSnapshot(session, nextProfile, summary);
     },
-    saveDiagnosticSummary: async (summary) => {
+    recordAttempt: async (input) => {
       const { session, profile } = await readCurrentSnapshot();
-      const reviewTask =
-        summary.topWeaknesses[0] !== undefined
-          ? {
-              id: createTaskId(),
-              weaknessId: summary.topWeaknesses[0],
-              source: 'diagnostic' as const,
-              sourceId: summary.completedAt,
-              scheduledFor: summary.completedAt,
-              stage: 'day1' as const,
-              completed: false,
-              createdAt: summary.completedAt,
-            }
-          : undefined;
-
-      const nextReviewTasks =
-        reviewTask === undefined
-          ? []
-          : [
-              reviewTask,
-              ...(await reviewTaskStore.load(session.accountKey)).filter(
-                (task) =>
-                  !(
-                    task.source === reviewTask.source &&
-                    task.sourceId === reviewTask.sourceId &&
-                    task.weaknessId === reviewTask.weaknessId &&
-                    task.stage === reviewTask.stage
-                  ),
-              ),
-            ];
-
-      const nextProfile: LearnerProfile = {
-        ...profile,
-        latestDiagnosticSummary: summary,
-        activeReviewTask: reviewTask
-          ? {
-              id: reviewTask.id,
-              weaknessId: reviewTask.weaknessId,
-              stage: reviewTask.stage,
-              scheduledFor: reviewTask.scheduledFor,
-              source: reviewTask.source,
-            }
-          : undefined,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await profileStore.save(nextProfile);
-      await reviewTaskStore.saveAll(session.accountKey, nextReviewTasks);
-      return buildSnapshot(session, nextProfile, nextReviewTasks);
+      const result = await learningHistoryRepository.recordAttempt(input);
+      return buildSnapshot(session, profile, result.summary);
+    },
+    saveFeaturedExamState: async (state) => {
+      const { session, profile } = await readCurrentSnapshot();
+      const summary = await learningHistoryRepository.saveFeaturedExamState(session.accountKey, state);
+      return buildSnapshot(session, profile, summary);
     },
     seedPreview: async (state) => {
       const { session, profile } = await readCurrentSnapshot();
-      const previewWeaknesses = getPreviewWeaknesses();
-      const diagnosticSummary =
-        state === 'fresh'
-          ? undefined
-          : buildPreviewSummary(previewWeaknesses);
 
-      const reviewTask =
-        state === 'review-available'
-          ? buildPreviewTask(previewWeaknesses[0])
-          : undefined;
+      if (learningHistoryRepository instanceof LocalLearningHistoryRepository) {
+        await learningHistoryRepository.reset(session.accountKey);
+      }
 
-      const nextProfile: LearnerProfile = {
-        ...profile,
-        latestDiagnosticSummary: diagnosticSummary,
-        activeReviewTask: reviewTask
-          ? {
-              id: reviewTask.id,
-              weaknessId: reviewTask.weaknessId,
-              stage: reviewTask.stage,
-              scheduledFor: reviewTask.scheduledFor,
-              source: reviewTask.source,
-            }
-          : undefined,
-        featuredExamState:
-          state === 'exam-in-progress'
-            ? {
-                examId: 'featured-mock-1',
-                status: 'in_progress',
-                questionIndex: 11,
-                lastOpenedAt: new Date().toISOString(),
-              }
-            : {
-                examId: 'featured-mock-1',
-                status: 'not_started',
-              },
-        updatedAt: new Date().toISOString(),
-      };
+      if (state === 'fresh') {
+        await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
+        return readCurrentSnapshot();
+      }
 
-      const nextReviewTasks = reviewTask ? [reviewTask] : [];
+      if (state === 'diagnostic-complete' || state === 'review-available') {
+        await learningHistoryRepository.recordAttempt(buildPreviewAttemptInput(profile, 'diagnostic'));
+      }
+
+      if (state === 'exam-in-progress') {
+        await learningHistoryRepository.saveFeaturedExamState(session.accountKey, {
+          examId: 'featured-mock-1',
+          status: 'in_progress',
+          questionIndex: 11,
+          lastOpenedAt: new Date().toISOString(),
+        });
+      }
+
       await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
-
-      await profileStore.save(nextProfile);
-      await reviewTaskStore.saveAll(session.accountKey, nextReviewTasks);
-      return buildSnapshot(session, nextProfile, nextReviewTasks);
+      return readCurrentSnapshot();
     },
     resetLocalProfile: async () => {
       const currentSession = await authClient.ensureAnonymousSession();
+
+      if (learningHistoryRepository instanceof LocalLearningHistoryRepository) {
+        await learningHistoryRepository.reset(currentSession.accountKey);
+      }
+
       await profileStore.reset(currentSession.accountKey);
-      await reviewTaskStore.reset(currentSession.accountKey);
       await peerPresenceStore.clearPreviewSnapshot();
       const nextSession = await authClient.signOut();
       const nextProfile = await ensureProfile(profileStore, nextSession.accountKey);
-      const nextReviewTasks = await reviewTaskStore.load(nextSession.accountKey);
-      return buildSnapshot(nextSession, nextProfile, nextReviewTasks);
+      const nextSummary =
+        (await learningHistoryRepository.loadCurrentSummary(nextSession.accountKey)) ??
+        createEmptyLearnerSummary(nextSession.accountKey);
+
+      return buildSnapshot(nextSession, nextProfile, nextSummary);
     },
   };
 }

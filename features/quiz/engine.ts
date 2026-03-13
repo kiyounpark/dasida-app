@@ -38,6 +38,9 @@ export function getTopWeaknesses(
 }
 
 export function buildQuizResult(
+  attemptId: string,
+  startedAt: string,
+  completedAt: string,
   answers: QuizAnswer[],
   weaknessScores: Record<WeaknessId, number>,
   totalQuestions: number,
@@ -49,6 +52,9 @@ export function buildQuizResult(
   const topWeaknesses = allCorrect ? [] : getTopWeaknesses(weaknessScores, 3);
 
   return {
+    attemptId,
+    startedAt,
+    completedAt,
     total: totalQuestions,
     correct,
     wrong,

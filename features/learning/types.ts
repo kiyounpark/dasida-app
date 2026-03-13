@@ -1,14 +1,92 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { SolveMethodId } from '@/data/diagnosisTree';
+import type { DiagnosisTraceSource } from '@/features/quiz/types';
+import type {
+  ActiveReviewTaskSummary,
+  DiagnosticSummarySnapshot,
+  FeaturedExamState,
+  LearnerGrade,
+} from '@/features/learner/types';
+
+import type { LearningSource, ReviewStage } from './history-types';
 
 export type ReviewTask = {
   id: string;
+  accountKey: string;
   weaknessId: WeaknessId;
-  source: 'diagnostic' | 'exam';
+  source: LearningSource;
   sourceId: string;
   scheduledFor: string;
-  stage: 'day1' | 'day3' | 'day7';
+  stage: ReviewStage;
   completed: boolean;
   createdAt: string;
+  completedAt?: string;
+};
+
+export type LearningAttempt = {
+  id: string;
+  accountKey: string;
+  learnerId: string;
+  source: LearningSource;
+  sourceEntityId: string | null;
+  gradeSnapshot: LearnerGrade;
+  startedAt: string;
+  completedAt: string;
+  questionCount: number;
+  correctCount: number;
+  wrongCount: number;
+  accuracy: number;
+  primaryWeaknessId: WeaknessId | null;
+  topWeaknesses: WeaknessId[];
+  schemaVersion: 1;
+  createdAt: string;
+};
+
+export type LearningAttemptResult = {
+  id: string;
+  attemptId: string;
+  accountKey: string;
+  source: LearningSource;
+  sourceEntityId: string | null;
+  questionId: string;
+  questionNumber: number;
+  topic: string;
+  selectedIndex: number | null;
+  isCorrect: boolean;
+  finalWeaknessId: WeaknessId | null;
+  methodId: SolveMethodId | null;
+  diagnosisSource: DiagnosisTraceSource | null;
+  finalMethodSource: 'router' | 'manual' | null;
+  diagnosisCompleted: boolean;
+  usedDontKnow: boolean;
+  usedAiHelp: boolean;
+  schemaVersion: 1;
+  resolvedAt: string;
+};
+
+export type LearnerSummaryCurrent = {
+  accountKey: string;
+  updatedAt: string;
+  lastAttemptAt?: string;
+  latestDiagnosticSummary?: DiagnosticSummarySnapshot;
+  repeatedWeaknesses: Array<{
+    weaknessId: WeaknessId;
+    count: number;
+    lastSeenAt: string;
+  }>;
+  nextReviewTask?: ActiveReviewTaskSummary;
+  featuredExamState: FeaturedExamState;
+  totals: {
+    diagnosticAttempts: number;
+    featuredExamAttempts: number;
+  };
+  recentActivity: Array<{
+    id: string;
+    kind: 'diagnostic' | 'review' | 'exam';
+    title: string;
+    subtitle: string;
+    occurredAt: string;
+  }>;
 };
 
 export type PeerPresenceItem = {

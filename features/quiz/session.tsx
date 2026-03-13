@@ -2,9 +2,9 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import { problemData } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
 import {
-    buildQuizResult,
-    createInitialWeaknessScores,
-    incrementWeaknessScore,
+  buildQuizResult,
+  createInitialWeaknessScores,
+  incrementWeaknessScore,
 } from './engine';
 import type { DiagnosisDetailTrace, DiagnosisRoutingTrace, QuizSessionState } from './types';
 
@@ -49,9 +49,15 @@ type Action =
 
 const TOTAL_QUESTIONS = problemData.length;
 
+function createAttemptId() {
+  return `attempt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function createInitialState(): QuizSessionState {
   return {
     hasStarted: false,
+    attemptId: undefined,
+    startedAt: undefined,
     currentQuestionIndex: 0,
     answers: [],
     isDiagnosing: false,
@@ -67,10 +73,22 @@ function createInitialState(): QuizSessionState {
 }
 
 function finalizeQuiz(state: QuizSessionState): QuizSessionState {
-  const result = buildQuizResult(state.answers, state.weaknessScores, TOTAL_QUESTIONS);
+  const attemptId = state.attemptId ?? createAttemptId();
+  const startedAt = state.startedAt ?? new Date().toISOString();
+  const completedAt = new Date().toISOString();
+  const result = buildQuizResult(
+    attemptId,
+    startedAt,
+    completedAt,
+    state.answers,
+    state.weaknessScores,
+    TOTAL_QUESTIONS,
+  );
 
   return {
     ...state,
+    attemptId,
+    startedAt,
     currentQuestionIndex: TOTAL_QUESTIONS,
     isDiagnosing: false,
     diagnosisQueue: [],
@@ -129,9 +147,12 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
 
     case 'START': {
       if (state.hasStarted) return state;
+      const startedAt = new Date().toISOString();
       return {
         ...state,
         hasStarted: true,
+        attemptId: createAttemptId(),
+        startedAt,
       };
     }
 

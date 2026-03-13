@@ -1,13 +1,16 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
 
-export type ReviewStage = 'day1' | 'day3' | 'day7';
 export type PreviewSeedState =
   | 'fresh'
   | 'diagnostic-complete'
   | 'review-available'
   | 'exam-in-progress';
 
+export type LearnerGrade = 'g1' | 'g2' | 'g3' | 'unknown';
+
 export type DiagnosticSummarySnapshot = {
+  attemptId: string;
   completedAt: string;
   topWeaknesses: WeaknessId[];
   accuracy: number;
@@ -18,7 +21,8 @@ export type ActiveReviewTaskSummary = {
   weaknessId: WeaknessId;
   stage: ReviewStage;
   scheduledFor: string;
-  source: 'diagnostic' | 'exam';
+  source: LearningSource;
+  sourceId: string;
 };
 
 export type FeaturedExamState = {
@@ -31,11 +35,7 @@ export type FeaturedExamState = {
 export type LearnerProfile = {
   accountKey: string;
   learnerId: string;
-  grade: 'g1' | 'g2' | 'g3' | 'unknown';
+  grade: LearnerGrade;
   createdAt: string;
   updatedAt: string;
-  latestDiagnosticSummary?: DiagnosticSummarySnapshot;
-  activeReviewTask?: ActiveReviewTaskSummary;
-  featuredExamState?: FeaturedExamState;
 };
-

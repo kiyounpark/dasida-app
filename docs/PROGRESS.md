@@ -23,6 +23,15 @@
 
 ### 2026.03.13
 
+**학습 히스토리를 `attempt + attemptResult + summary/current` 구조로 정규화**
+- `features/learner/types.ts`, `features/learning/types.ts`, `features/quiz/types.ts`, `features/quiz/engine.ts`, `features/quiz/session.tsx`: `LearnerProfile`을 안정 정보만 남기고, `LearningAttempt`, `LearningAttemptResult`, `LearnerSummaryCurrent`, 확장된 `ReviewTask`, `attemptId` 기반 `QuizResultSummary/QuizSessionState`로 타입 계약을 전환
+- `features/learning/history-repository.ts`, `local-learning-history-repository.ts`, `firebase-learning-history-repository.ts`, `create-learning-history-repository.ts`, `history-types.ts`: 앱이 `LearningHistoryRepository` 인터페이스만 보도록 저장 계층을 분리하고, AsyncStorage 기반 로컬 구현체와 HTTPS functions 기반 Firebase 구현체를 추가
+- `features/learner/current-learner-controller.ts`, `features/learner/provider.tsx`, `features/learning/home-state.ts`, `features/learner/local-learner-profile-store.ts`: 홈/결과/기록/설정 흐름이 `summary/current`를 읽고, profile은 계정/학년/생성 시각만 유지하도록 재구성
+- `features/quiz/build-finalized-attempt-input.ts`, `app/(tabs)/quiz/result.tsx`, `app/(tabs)/history.tsx`, `app/(tabs)/quiz/exams.tsx`: 결과 화면이 `recordAttempt()`를 통해 `attempt + results + summary + reviewTasks`를 한 번에 저장하고, 기록/실전 화면도 `summary.current` 기준으로 읽도록 전환
+- `functions/src/learning-history.ts`, `record-learning-attempt.ts`, `get-learner-summary.ts`, `save-featured-exam-state.ts`, `functions/src/index.ts`: Firestore `users/{accountKey}/attempts`, `attemptResults`, `reviewTasks`, `summary/current`에 맞춘 HTTPS functions와 repeated weakness/next review/totals/recent activity 집계 로직을 추가
+- `constants/env.ts`, `.env.example`, `constants/storage-keys.ts`: 학습 히스토리 functions URL과 로컬 저장 키를 분리해 v1 저장 경로를 고정
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run functions:build`, `npm run functions:lint` 통과
+
 **앱 기본 캔버스를 `#F6F2EA`로 통일**
 - `constants/brand.ts`: `BrandColors.background`를 `#F6F2EA`로 조정해 홈, 내 기록, 설정, 결과, 연습, 모의고사 목록, 피드백, 진단 화면까지 같은 종이 같은 아이보리 바탕을 공유하도록 변경
 - 기존에 `BrandColors.background`를 참조하던 공통 화면들이 별도 파일 수정 없이 같은 캔버스를 사용하게 정리하고, 화면 간 차이는 카드/버튼/히어로 위계로만 나누는 방향으로 고정

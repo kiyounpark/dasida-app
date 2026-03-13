@@ -7,12 +7,13 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import { useQuizSession } from '@/features/quiz/session';
 import { getSingleParam } from '@/utils/get-single-param';
 
 export default function QuizResultScreen() {
   const { state, resetSession } = useQuizSession();
-  const { profile, saveDiagnosticSummary } = useCurrentLearner();
+  const { profile, recordAttempt, session, summary: currentSummary } = useCurrentLearner();
   const params = useLocalSearchParams();
   const hasSavedLiveSummary = useRef(false);
 
@@ -22,7 +23,7 @@ export default function QuizResultScreen() {
     getSingleParam(params.weaknessId) ?? getSingleParam(params.weakTag),
   );
   const requestedSource = getSingleParam(params.source);
-  const storedSummary = profile?.latestDiagnosticSummary;
+  const storedSummary = currentSummary?.latestDiagnosticSummary;
   const snapshotSummary =
     requestedSource === 'snapshot' || !summary ? storedSummary : undefined;
   const legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string } = {
@@ -35,18 +36,30 @@ export default function QuizResultScreen() {
   }
 
   useEffect(() => {
-    if (!summary || hasSavedLiveSummary.current) {
+    if (!summary || !profile || !session) {
+      return;
+    }
+
+    if (storedSummary?.attemptId === summary.attemptId) {
+      hasSavedLiveSummary.current = true;
+      return;
+    }
+
+    if (hasSavedLiveSummary.current) {
       return;
     }
 
     hasSavedLiveSummary.current = true;
 
-    void saveDiagnosticSummary({
-      completedAt: new Date().toISOString(),
-      topWeaknesses: summary.topWeaknesses,
-      accuracy: summary.accuracy,
-    });
-  }, [saveDiagnosticSummary, summary]);
+    void recordAttempt(
+      buildDiagnosticAttemptInput({
+        session,
+        profile,
+        answers: state.answers,
+        result: summary,
+      }),
+    );
+  }, [profile, recordAttempt, session, state.answers, storedSummary?.attemptId, summary]);
 
   const snapshotSummaryTitle = useMemo(() => {
     if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {

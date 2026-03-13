@@ -19,10 +19,10 @@ function getFeaturedExamStatusLabel(status: 'not_started' | 'in_progress' | 'com
 }
 
 export default function FeaturedExamsScreen() {
-  const { homeState, profile } = useCurrentLearner();
+  const { homeState, summary } = useCurrentLearner();
   const featuredExamCard = homeState?.featuredExamCard ?? {
-    examId: profile?.featuredExamState?.examId ?? 'featured-mock-1',
-    status: profile?.featuredExamState?.status ?? 'not_started',
+    examId: summary?.featuredExamState?.examId ?? 'featured-mock-1',
+    status: summary?.featuredExamState?.status ?? 'not_started',
   };
 
   return (

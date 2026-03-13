@@ -1,7 +1,11 @@
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
-import type { LearnerProfile } from '@/features/learner/types';
+import type {
+  ActiveReviewTaskSummary,
+  DiagnosticSummarySnapshot,
+  LearnerProfile,
+} from '@/features/learner/types';
 
-import type { PeerPresenceSnapshot, ReviewTask } from './types';
+import type { LearnerSummaryCurrent, PeerPresenceSnapshot } from './types';
 
 export type PeerPresenceState =
   | {
@@ -21,12 +25,8 @@ export type HomeLearningState = {
   heroBody: string;
   heroMeta: string;
   peerPresence: PeerPresenceState;
-  latestDiagnosticSummary?: {
-    topWeaknesses: WeaknessId[];
-    accuracy: number;
-    completedAt: string;
-  };
-  nextReviewTask?: ReviewTask;
+  latestDiagnosticSummary?: DiagnosticSummarySnapshot;
+  nextReviewTask?: ActiveReviewTaskSummary;
   featuredExamCard: {
     examId: string;
     status: 'not_started' | 'in_progress' | 'completed';
@@ -45,18 +45,13 @@ export type HomeLearningState = {
     kind: 'diagnostic' | 'review' | 'exam';
     title: string;
     subtitle: string;
+    occurredAt: string;
   }>;
 };
 
-function sortReviewTasks(tasks: ReviewTask[]) {
-  return [...tasks].sort((left, right) =>
-    left.scheduledFor.localeCompare(right.scheduledFor),
-  );
-}
-
 function buildHeroContent(
-  profile: LearnerProfile,
-  nextReviewTask?: ReviewTask,
+  summary: LearnerSummaryCurrent,
+  nextReviewTask?: ActiveReviewTaskSummary,
 ): Pick<HomeLearningState, 'hero' | 'heroTitle' | 'heroBody' | 'heroMeta'> {
   if (nextReviewTask) {
     const weaknessLabel = diagnosisMap[nextReviewTask.weaknessId].labelKo;
@@ -68,8 +63,8 @@ function buildHeroContent(
     };
   }
 
-  if (profile.latestDiagnosticSummary?.topWeaknesses[0]) {
-    const weaknessLabel = diagnosisMap[profile.latestDiagnosticSummary.topWeaknesses[0]].labelKo;
+  if (summary.latestDiagnosticSummary?.topWeaknesses[0]) {
+    const weaknessLabel = diagnosisMap[summary.latestDiagnosticSummary.topWeaknesses[0]].labelKo;
     return {
       hero: 'diagnostic',
       heroTitle: '빠른 재진단 10문제',
@@ -146,9 +141,9 @@ function buildFeaturedExamCard(
 }
 
 function buildRecentResultCard(
-  profile: LearnerProfile,
+  summary: LearnerSummaryCurrent,
 ): HomeLearningState['recentResultCard'] {
-  const weaknessId = profile.latestDiagnosticSummary?.topWeaknesses[0];
+  const weaknessId = summary.latestDiagnosticSummary?.topWeaknesses[0];
   if (!weaknessId) {
     return {
       enabled: false,
@@ -166,76 +161,31 @@ function buildRecentResultCard(
   };
 }
 
+function buildRecentActivity(summary: LearnerSummaryCurrent): HomeLearningState['recentActivity'] {
+  return summary.recentActivity;
+}
+
 export function buildHomeLearningState(
-  profile: LearnerProfile,
-  reviewTasks: ReviewTask[],
+  _profile: LearnerProfile,
+  summary: LearnerSummaryCurrent,
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
 ): HomeLearningState {
-  const pendingTasks = sortReviewTasks(reviewTasks.filter((task) => !task.completed));
-  const nextReviewTask =
-    pendingTasks[0] ??
-    (profile.activeReviewTask
-      ? {
-          ...profile.activeReviewTask,
-          sourceId: `preview-${profile.activeReviewTask.id}`,
-          completed: false,
-          createdAt: profile.updatedAt,
-        }
-      : undefined);
-  const heroContent = buildHeroContent(profile, nextReviewTask);
+  const nextReviewTask = summary.nextReviewTask;
+  const heroContent = buildHeroContent(summary, nextReviewTask);
   const peerPresence = buildPeerPresenceState(heroContent.hero, peerPresenceSnapshot);
-  const featuredExamCard = buildFeaturedExamCard(
-    profile.featuredExamState?.status ?? 'not_started',
-  );
-  const recentResultCard = buildRecentResultCard(profile);
-
-  const recentActivity: HomeLearningState['recentActivity'] = [];
-
-  if (profile.latestDiagnosticSummary) {
-    recentActivity.push({
-      id: 'latest-diagnostic',
-      kind: 'diagnostic',
-      title: '최근 진단 결과',
-      subtitle:
-        profile.latestDiagnosticSummary.topWeaknesses.length > 0
-          ? diagnosisMap[profile.latestDiagnosticSummary.topWeaknesses[0]].labelKo
-          : '최근 정리 없음',
-    });
-  }
-
-  if (nextReviewTask) {
-    recentActivity.push({
-      id: `review-${nextReviewTask.id}`,
-      kind: 'review',
-      title: '다음 복습',
-      subtitle: diagnosisMap[nextReviewTask.weaknessId].labelKo,
-    });
-  }
-
-  if (profile.featuredExamState) {
-    recentActivity.push({
-      id: `exam-${profile.featuredExamState.examId}`,
-      kind: 'exam',
-      title: '대표 모의고사',
-      subtitle:
-        profile.featuredExamState.status === 'in_progress'
-          ? '이어 풀기 가능'
-          : profile.featuredExamState.status === 'completed'
-            ? '최근 완료'
-            : '아직 시작 전',
-    });
-  }
+  const featuredExamCard = buildFeaturedExamCard(summary.featuredExamState.status);
+  const recentResultCard = buildRecentResultCard(summary);
 
   return {
     ...heroContent,
     peerPresence,
-    latestDiagnosticSummary: profile.latestDiagnosticSummary,
+    latestDiagnosticSummary: summary.latestDiagnosticSummary,
     nextReviewTask,
     featuredExamCard: {
       ...featuredExamCard,
-      examId: profile.featuredExamState?.examId ?? featuredExamCard.examId,
+      examId: summary.featuredExamState.examId ?? featuredExamCard.examId,
     },
     recentResultCard,
-    recentActivity,
+    recentActivity: buildRecentActivity(summary),
   };
 }

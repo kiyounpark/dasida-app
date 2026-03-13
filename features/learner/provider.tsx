@@ -11,21 +11,22 @@ import { LocalAnonymousAuthClient } from '@/features/auth/local-anonymous-auth-c
 import type { AuthSession } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
+import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
+import type { FinalizedAttemptInput } from '@/features/learning/history-repository';
 import type {
-  DiagnosticSummarySnapshot,
+  FeaturedExamState,
   LearnerProfile,
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
-import type { ReviewTask } from '@/features/learning/types';
+import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const learnerController = createCurrentLearnerController({
   authClient: new LocalAnonymousAuthClient(),
   profileStore: new LocalLearnerProfileStore(),
-  reviewTaskStore: new LocalReviewTaskStore(),
+  learningHistoryRepository: createLearningHistoryRepository(),
   peerPresenceStore,
 });
 
@@ -33,11 +34,12 @@ export type CurrentLearnerContextValue = {
   isReady: boolean;
   session: AuthSession | null;
   profile: LearnerProfile | null;
-  reviewTasks: ReviewTask[];
+  summary: LearnerSummaryCurrent | null;
   homeState: HomeLearningState | null;
   refresh(): Promise<void>;
   updateGrade(grade: LearnerProfile['grade']): Promise<void>;
-  saveDiagnosticSummary(summary: DiagnosticSummarySnapshot): Promise<void>;
+  recordAttempt(input: FinalizedAttemptInput): Promise<void>;
+  saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
   resetLocalProfile(): Promise<void>;
 };
@@ -48,7 +50,7 @@ type LearnerState = {
   isReady: boolean;
   session: AuthSession | null;
   profile: LearnerProfile | null;
-  reviewTasks: ReviewTask[];
+  summary: LearnerSummaryCurrent | null;
   homeState: HomeLearningState | null;
 };
 
@@ -57,7 +59,7 @@ function createInitialLearnerState(): LearnerState {
     isReady: false,
     session: null,
     profile: null,
-    reviewTasks: [],
+    summary: null,
     homeState: null,
   };
 }
@@ -79,7 +81,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       })
@@ -108,7 +110,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       },
@@ -118,17 +120,27 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       },
-      saveDiagnosticSummary: async (summary) => {
-        const snapshot = await learnerController.saveDiagnosticSummary(summary);
+      recordAttempt: async (input) => {
+        const snapshot = await learnerController.recordAttempt(input);
         setState({
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
+          homeState: snapshot.homeState,
+        });
+      },
+      saveFeaturedExamState: async (featuredExamState) => {
+        const snapshot = await learnerController.saveFeaturedExamState(featuredExamState);
+        setState({
+          isReady: true,
+          session: snapshot.session,
+          profile: snapshot.profile,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       },
@@ -138,7 +150,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       },
@@ -148,7 +160,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           isReady: true,
           session: snapshot.session,
           profile: snapshot.profile,
-          reviewTasks: snapshot.reviewTasks,
+          summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
       },
