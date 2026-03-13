@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandTypography } from '@/constants/typography';
 import type { PeerPresenceState } from '@/features/learning/home-state';
 
 type PeerPresenceStripProps = {
@@ -130,14 +131,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   fallbackTitle: {
-    fontSize: 14,
-    fontWeight: '800',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.text,
-    lineHeight: 19,
   },
   fallbackSubtitle: {
-    fontSize: 12,
-    lineHeight: 18,
+    ...BrandTypography.meta,
     color: BrandColors.mutedText,
   },
   liveWrap: {
@@ -166,18 +164,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAF1E3',
   },
   liveBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
+    ...BrandTypography.tiny,
     color: BrandColors.primaryDark,
   },
   liveTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.text,
   },
   liveSubtitle: {
-    fontSize: 12,
-    lineHeight: 18,
+    ...BrandTypography.meta,
     color: BrandColors.mutedText,
   },
   liveScrollContent: {
@@ -213,8 +208,7 @@ const styles = StyleSheet.create({
     height: 48,
   },
   avatarInitial: {
-    fontSize: 18,
-    fontWeight: '800',
+    ...BrandTypography.cardTitle,
     color: BrandColors.primaryDark,
   },
   peerHeaderCopy: {
@@ -222,13 +216,11 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   peerName: {
-    fontSize: 15,
-    fontWeight: '800',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.text,
   },
   peerStatus: {
-    fontSize: 12,
-    lineHeight: 17,
+    ...BrandTypography.meta,
     color: BrandColors.mutedText,
   },
   peerFooter: {
@@ -247,8 +239,7 @@ const styles = StyleSheet.create({
   },
   peerFooterText: {
     flex: 1,
-    fontSize: 11,
-    fontWeight: '700',
+    ...BrandTypography.tiny,
     color: BrandColors.primarySoft,
   },
 });

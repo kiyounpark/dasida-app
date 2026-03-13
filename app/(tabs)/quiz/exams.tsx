@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandTypography } from '@/constants/typography';
 import { useCurrentLearner } from '@/features/learner/provider';
 
 function getFeaturedExamStatusLabel(status: 'not_started' | 'in_progress' | 'completed') {
@@ -32,18 +33,26 @@ export default function FeaturedExamsScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>실전 연결 축</Text>
-          <Text style={styles.title}>대표 모의고사 1세트</Text>
-          <Text style={styles.body}>
+          <Text selectable style={styles.eyebrow}>
+            실전 연결 축
+          </Text>
+          <Text selectable style={styles.title}>
+            대표 모의고사 1세트
+          </Text>
+          <Text selectable style={styles.body}>
             10문제 체험으로 약점을 찾은 뒤, 대표 실전 세트에서 같은 약점이 실제로
             어떻게 흔들리는지 확인할 수 있게 만들 예정입니다.
           </Text>
         </View>
 
         <View style={styles.statusCard}>
-          <Text style={styles.cardTitle}>현재 준비 상태</Text>
-          <Text style={styles.statusLabel}>{getFeaturedExamStatusLabel(featuredExamCard.status)}</Text>
-          <Text style={styles.cardBody}>
+          <Text selectable style={styles.cardTitle}>
+            현재 준비 상태
+          </Text>
+          <Text selectable style={styles.statusLabel}>
+            {getFeaturedExamStatusLabel(featuredExamCard.status)}
+          </Text>
+          <Text selectable style={styles.cardBody}>
             시험 풀이 화면과 오답 복기 연결은 다음 단계에서 붙일 예정입니다. 지금은 허브
             카드와 사용자 상태 구조가 먼저 준비돼 있습니다.
           </Text>
@@ -82,18 +91,15 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
   },
   eyebrow: {
-    fontSize: 12,
-    fontWeight: '700',
+    ...BrandTypography.meta,
     color: BrandColors.primarySoft,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '800',
+    ...BrandTypography.screenTitle,
     color: BrandColors.text,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 24,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   statusCard: {
@@ -105,18 +111,15 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...BrandTypography.cardTitle,
     color: BrandColors.text,
   },
   statusLabel: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.primarySoft,
   },
   cardBody: {
-    fontSize: 15,
-    lineHeight: 24,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
 });

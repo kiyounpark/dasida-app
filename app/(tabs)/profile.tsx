@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandTypography } from '@/constants/typography';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { PreviewSeedState } from '@/features/learner/types';
 
@@ -46,15 +47,19 @@ export default function ProfileScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
         <View style={styles.heroCard}>
-          <Text style={styles.title}>설정</Text>
-          <Text style={styles.subtitle}>
+          <Text selectable style={styles.title}>
+            설정
+          </Text>
+          <Text selectable style={styles.subtitle}>
             지금은 로컬 익명 프로필로 학습 상태를 관리하고, 나중에 소셜 로그인 구현체만
             바꿀 수 있게 구조를 준비합니다.
           </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>학년 설정</Text>
+          <Text selectable style={styles.cardTitle}>
+            학년 설정
+          </Text>
           <View style={styles.chipWrap}>
             {gradeOptions.map((option) => {
               const isSelected = profile?.grade === option.value;
@@ -63,7 +68,7 @@ export default function ProfileScreen() {
                   key={option.value}
                   style={[styles.chip, isSelected && styles.chipSelected]}
                   onPress={() => void updateGrade(option.value)}>
-                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  <Text selectable style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                     {option.label}
                   </Text>
                 </Pressable>
@@ -73,21 +78,33 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>현재 학습자 상태</Text>
+          <Text selectable style={styles.cardTitle}>
+            현재 학습자 상태
+          </Text>
           {isReady && session && profile ? (
             <View style={styles.infoList}>
-              <Text style={styles.body}>세션 상태: {session.status}</Text>
-              <Text style={styles.body}>계정 키: {maskAccountKey(session.accountKey)}</Text>
-              <Text style={styles.body}>허브 히어로: {homeState?.hero ?? '준비 중'}</Text>
+              <Text selectable style={styles.body}>
+                세션 상태: {session.status}
+              </Text>
+              <Text selectable style={styles.body}>
+                계정 키: {maskAccountKey(session.accountKey)}
+              </Text>
+              <Text selectable style={styles.body}>
+                허브 히어로: {homeState?.hero ?? '준비 중'}
+              </Text>
             </View>
           ) : (
-            <Text style={styles.body}>학습자 상태를 불러오는 중입니다.</Text>
+            <Text selectable style={styles.body}>
+              학습자 상태를 불러오는 중입니다.
+            </Text>
           )}
         </View>
 
         <View style={[styles.card, styles.devCard]}>
-          <Text style={styles.devLabel}>개발용 상태 미리보기</Text>
-          <Text style={styles.body}>
+          <Text selectable style={styles.devLabel}>
+            개발용 상태 미리보기
+          </Text>
+          <Text selectable style={styles.body}>
             로그인 없이도 허브 히어로와 함께 공부 중인 학생 스트립이 어떻게 보이는지
             바로 전환해볼 수 있습니다. 이 샘플 프로필은 개발용 미리보기에서만 보입니다.
           </Text>
@@ -97,12 +114,16 @@ export default function ProfileScreen() {
                 key={preview.value}
                 style={styles.previewButton}
                 onPress={() => void seedPreview(preview.value)}>
-                <Text style={styles.previewButtonText}>{preview.label}</Text>
+                <Text selectable style={styles.previewButtonText}>
+                  {preview.label}
+                </Text>
               </Pressable>
             ))}
           </View>
           <Pressable style={styles.resetButton} onPress={() => void resetLocalProfile()}>
-            <Text style={styles.resetButtonText}>로컬 상태 초기화</Text>
+            <Text selectable style={styles.resetButtonText}>
+              로컬 상태 초기화
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -142,22 +163,19 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    ...BrandTypography.screenTitle,
     color: BrandColors.text,
   },
   subtitle: {
-    fontSize: 16,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...BrandTypography.cardTitle,
     color: BrandColors.text,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 23,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   chipWrap: {
@@ -178,8 +196,7 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColors.primarySoft,
   },
   chipText: {
-    fontSize: 14,
-    fontWeight: '700',
+    ...BrandTypography.chip,
     color: BrandColors.text,
   },
   chipTextSelected: {
@@ -192,8 +209,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   devLabel: {
-    fontSize: 13,
-    fontWeight: '800',
+    ...BrandTypography.meta,
     color: BrandColors.primarySoft,
     letterSpacing: 0.2,
   },
@@ -209,8 +225,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   previewButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
+    ...BrandTypography.button,
     color: BrandColors.text,
   },
   resetButton: {
@@ -221,8 +236,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
+    ...BrandTypography.button,
     color: BrandColors.primaryDark,
   },
 });

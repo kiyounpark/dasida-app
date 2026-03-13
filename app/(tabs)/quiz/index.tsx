@@ -11,6 +11,7 @@ import {
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors, BrandSpacing } from '@/constants/brand';
+import { BrandTypography } from '@/constants/typography';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { PeerPresenceStrip } from '@/features/learning/components/peer-presence-strip';
 import { useQuizSession } from '@/features/quiz/session';
@@ -214,7 +215,9 @@ export default function QuizHubScreen() {
           <Text selectable style={styles.headerEyebrow}>
             DASIDA
           </Text>
-          <Text selectable style={styles.headerTitle}>
+          <Text
+            selectable
+            style={[styles.headerTitle, isCompactLayout && styles.headerTitleCompact]}>
             모의고사 오답을 그냥 넘기지 않게, 다시 보는 흐름까지 이어줍니다.
           </Text>
           <Text selectable style={styles.headerBody}>
@@ -386,13 +389,11 @@ const styles = StyleSheet.create({
     boxShadow: '0 18px 32px rgba(28, 44, 25, 0.06)',
   },
   loadingTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+    ...BrandTypography.sectionTitle,
     color: BrandColors.text,
   },
   loadingBody: {
-    fontSize: 15,
-    lineHeight: 24,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   retryButton: {
@@ -404,8 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColors.primary,
   },
   retryButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
+    ...BrandTypography.button,
     color: '#FFFFFF',
   },
   headerBlock: {
@@ -413,21 +413,21 @@ const styles = StyleSheet.create({
     paddingTop: BrandSpacing.xs,
   },
   headerEyebrow: {
-    fontSize: 12,
-    fontWeight: '800',
+    ...BrandTypography.meta,
     letterSpacing: 0.8,
     color: BrandColors.primarySoft,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    lineHeight: 36,
+    ...BrandTypography.screenTitle,
     color: '#203123',
+  },
+  headerTitleCompact: {
+    fontSize: 25,
+    lineHeight: 33,
   },
   headerBody: {
     maxWidth: '96%',
-    fontSize: 14,
-    lineHeight: 22,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   metaRow: {
@@ -445,8 +445,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.72)',
   },
   metaChipText: {
-    fontSize: 12,
-    fontWeight: '700',
+    ...BrandTypography.chip,
     color: BrandColors.primaryDark,
   },
   heroCard: {
@@ -497,8 +496,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
   },
   heroBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
+    ...BrandTypography.chip,
     color: 'rgba(255,255,255,0.84)',
     letterSpacing: 0.2,
   },
@@ -515,15 +513,12 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     maxWidth: '84%',
-    fontSize: 34,
-    fontWeight: '800',
-    lineHeight: 40,
+    ...BrandTypography.heroTitle,
     color: '#FFFFFF',
   },
   heroBody: {
     maxWidth: '90%',
-    fontSize: 15,
-    lineHeight: 24,
+    ...BrandTypography.body,
     color: 'rgba(255,255,255,0.88)',
   },
   heroFooter: {
@@ -531,13 +526,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   heroCta: {
-    fontSize: 16,
-    fontWeight: '800',
+    ...BrandTypography.button,
     color: '#FFFFFF',
   },
   heroMeta: {
-    fontSize: 12,
-    fontWeight: '700',
+    ...BrandTypography.meta,
     color: 'rgba(255,255,255,0.72)',
   },
   supportRow: {
@@ -583,25 +576,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF3EA',
   },
   supportCardEyebrow: {
-    fontSize: 12,
-    fontWeight: '800',
+    ...BrandTypography.meta,
     color: BrandColors.primarySoft,
   },
   supportCardTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    lineHeight: 24,
+    ...BrandTypography.cardTitle,
     color: BrandColors.text,
   },
   supportCardBody: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   supportCardCta: {
-    fontSize: 14,
-    fontWeight: '800',
+    ...BrandTypography.button,
     color: BrandColors.primarySoft,
   },
   supportCardCtaDisabled: {
@@ -621,13 +609,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   summaryTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+    ...BrandTypography.sectionTitle,
     color: BrandColors.text,
   },
   summarySubtitle: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
   summaryList: {
@@ -674,18 +660,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF3EA',
   },
   summaryBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
+    ...BrandTypography.tiny,
     color: BrandColors.primarySoft,
   },
   summaryRowTitle: {
-    fontSize: 15,
-    fontWeight: '800',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.text,
   },
   summaryRowBody: {
-    fontSize: 13,
-    lineHeight: 20,
+    ...BrandTypography.meta,
     color: BrandColors.mutedText,
   },
   summaryEmptyWrap: {
@@ -699,13 +682,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   summaryEmptyTitle: {
-    fontSize: 15,
-    fontWeight: '800',
+    ...BrandTypography.bodyStrong,
     color: BrandColors.text,
   },
   summaryEmptyBody: {
-    fontSize: 13,
-    lineHeight: 20,
+    ...BrandTypography.meta,
     color: BrandColors.mutedText,
   },
 });
