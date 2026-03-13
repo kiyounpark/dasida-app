@@ -333,7 +333,7 @@ export default function QuizHubScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F5F1E8',
+    backgroundColor: BrandColors.background,
   },
   scroll: {
     flex: 1,
