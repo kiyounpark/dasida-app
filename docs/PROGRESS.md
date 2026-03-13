@@ -536,6 +536,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 23:38
+- 해시: `2df6132` (`2df61320aa1ed77ce64227ebe25f9ecb570a19a2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2df61320aa1ed77ce64227ebe25f9ecb570a19a2
+- 작성자: 박기윤
+- 메시지: feat: 학습 히스토리 저장 구조 정규화
+
 ### 커밋 2026.03.13 22:05
 - 해시: `cc67aa7` (`cc67aa788d8c4159fee2bff843e8edf685a5c31c`)
 - 브랜치: main
