@@ -17,13 +17,16 @@ import type {
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
+import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import type { ReviewTask } from '@/features/learning/types';
 
+const peerPresenceStore = new StaticPeerPresenceStore();
 const learnerController = createCurrentLearnerController({
   authClient: new LocalAnonymousAuthClient(),
   profileStore: new LocalLearnerProfileStore(),
   reviewTaskStore: new LocalReviewTaskStore(),
+  peerPresenceStore,
 });
 
 export type CurrentLearnerContextValue = {
@@ -164,4 +167,3 @@ export function useCurrentLearner() {
 
   return context;
 }
-

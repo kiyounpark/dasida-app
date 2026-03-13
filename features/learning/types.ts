@@ -11,3 +11,15 @@ export type ReviewTask = {
   createdAt: string;
 };
 
+export type PeerPresenceItem = {
+  id: string;
+  nickname: string;
+  avatarUrl?: string;
+  avatarSeed?: string;
+  statusText: string;
+};
+
+export type PeerPresenceSnapshot = {
+  peers: PeerPresenceItem[];
+  updatedAt: string;
+};

@@ -2,6 +2,8 @@ import type { AuthClient } from '@/features/auth/auth-client';
 import type { AuthSession } from '@/features/auth/types';
 import { weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import { buildHomeLearningState, type HomeLearningState } from '@/features/learning/home-state';
+import { getPreviewPeerPresence } from '@/features/learning/peer-presence-preview';
+import type { PreviewablePeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { ReviewTask } from '@/features/learning/types';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
@@ -32,23 +34,11 @@ type Dependencies = {
   authClient: AuthClient;
   profileStore: LearnerProfileStore;
   reviewTaskStore: ReviewTaskStore;
+  peerPresenceStore: PreviewablePeerPresenceStore;
 };
 
 function createTaskId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function buildSnapshot(
-  session: AuthSession,
-  profile: LearnerProfile,
-  reviewTasks: ReviewTask[],
-): CurrentLearnerSnapshot {
-  return {
-    session,
-    profile,
-    reviewTasks,
-    homeState: buildHomeLearningState(profile, reviewTasks),
-  };
 }
 
 async function ensureProfile(
@@ -94,12 +84,23 @@ export function createCurrentLearnerController({
   authClient,
   profileStore,
   reviewTaskStore,
+  peerPresenceStore,
 }: Dependencies): CurrentLearnerController {
+  const buildSnapshot = async (
+    session: AuthSession,
+    profile: LearnerProfile,
+    reviewTasks: ReviewTask[],
+  ): Promise<CurrentLearnerSnapshot> => ({
+    session,
+    profile,
+    reviewTasks,
+    homeState: buildHomeLearningState(profile, reviewTasks, await peerPresenceStore.load()),
+  });
+
   const readCurrentSnapshot = async (): Promise<CurrentLearnerSnapshot> => {
     const session = (await authClient.loadSession()) ?? (await authClient.ensureAnonymousSession());
     const profile = await ensureProfile(profileStore, session.accountKey);
     const reviewTasks = await reviewTaskStore.load(session.accountKey);
-
     return buildSnapshot(session, profile, reviewTasks);
   };
 
@@ -166,7 +167,6 @@ export function createCurrentLearnerController({
 
       await profileStore.save(nextProfile);
       await reviewTaskStore.saveAll(session.accountKey, nextReviewTasks);
-
       return buildSnapshot(session, nextProfile, nextReviewTasks);
     },
     seedPreview: async (state) => {
@@ -210,20 +210,20 @@ export function createCurrentLearnerController({
       };
 
       const nextReviewTasks = reviewTask ? [reviewTask] : [];
+      await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
 
       await profileStore.save(nextProfile);
       await reviewTaskStore.saveAll(session.accountKey, nextReviewTasks);
-
       return buildSnapshot(session, nextProfile, nextReviewTasks);
     },
     resetLocalProfile: async () => {
       const currentSession = await authClient.ensureAnonymousSession();
       await profileStore.reset(currentSession.accountKey);
       await reviewTaskStore.reset(currentSession.accountKey);
+      await peerPresenceStore.clearPreviewSnapshot();
       const nextSession = await authClient.signOut();
       const nextProfile = await ensureProfile(profileStore, nextSession.accountKey);
       const nextReviewTasks = await reviewTaskStore.load(nextSession.accountKey);
-
       return buildSnapshot(nextSession, nextProfile, nextReviewTasks);
     },
   };

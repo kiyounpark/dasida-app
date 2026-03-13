@@ -1,11 +1,18 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { BrandColors, BrandSpacing } from '@/constants/brand';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { PeerPresenceStrip } from '@/features/learning/components/peer-presence-strip';
 import { useQuizSession } from '@/features/quiz/session';
 
 function formatGradeLabel(grade: 'g1' | 'g2' | 'g3' | 'unknown') {
@@ -21,33 +28,94 @@ function formatGradeLabel(grade: 'g1' | 'g2' | 'g3' | 'unknown') {
   }
 }
 
-function getHeroTitle(hero: 'diagnostic' | 'review') {
-  return hero === 'review' ? '오늘의 약점 학습' : '3분 체험 10문제';
+function getSessionLabel(status: 'anonymous' | 'authenticated') {
+  return status === 'anonymous' ? '로컬 익명 프로필' : '연결된 학습자';
 }
 
-function getHeroBody(
-  hero: 'diagnostic' | 'review',
-  reviewWeaknessLabel?: string,
-) {
-  if (hero === 'review') {
-    return reviewWeaknessLabel
-      ? `${reviewWeaknessLabel} 약점을 오늘 다시 짧게 점검할 차례예요.`
-      : '오늘 다시 볼 약점이 준비돼 있어요.';
+function getActivityKindLabel(kind: 'diagnostic' | 'review' | 'exam') {
+  switch (kind) {
+    case 'diagnostic':
+      return '진단';
+    case 'review':
+      return '복습';
+    case 'exam':
+      return '실전';
   }
+}
 
-  return '빠르게 약점을 찾고, 바로 복습 방향까지 이어지는 첫 체험입니다.';
+type MetaChipProps = {
+  label: string;
+};
+
+function MetaChip({ label }: MetaChipProps) {
+  return (
+    <View style={styles.metaChip}>
+      <Text selectable style={styles.metaChipText}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+type SupportCardProps = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  ctaLabel: string;
+  iconName: 'book.fill' | 'clock.fill';
+  disabled?: boolean;
+  onPress?: () => void;
+  stacked?: boolean;
+};
+
+function SupportCard({
+  eyebrow,
+  title,
+  body,
+  ctaLabel,
+  iconName,
+  disabled = false,
+  onPress,
+  stacked = false,
+}: SupportCardProps) {
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.supportCard,
+        stacked && styles.supportCardStacked,
+        disabled && styles.supportCardDisabled,
+        pressed && !disabled && styles.supportCardPressed,
+      ]}>
+      <View style={styles.supportCardTopRow}>
+        <View style={styles.supportCardIconWrap}>
+          <IconSymbol name={iconName} size={18} color={BrandColors.primaryDark} />
+        </View>
+        <Text selectable style={styles.supportCardEyebrow}>
+          {eyebrow}
+        </Text>
+      </View>
+      <Text selectable style={styles.supportCardTitle}>
+        {title}
+      </Text>
+      <Text selectable style={styles.supportCardBody}>
+        {body}
+      </Text>
+      <Text
+        selectable
+        style={[styles.supportCardCta, disabled && styles.supportCardCtaDisabled]}>
+        {ctaLabel}
+      </Text>
+    </Pressable>
+  );
 }
 
 export default function QuizHubScreen() {
+  const { width } = useWindowDimensions();
+  const isCompactLayout = width < 390;
   const { isReady, session, profile, homeState, refresh } = useCurrentLearner();
   const { resetSession } = useQuizSession();
-
-  const reviewWeaknessLabel = homeState?.nextReviewTask
-    ? diagnosisMap[homeState.nextReviewTask.weaknessId].labelKo
-    : undefined;
-  const latestWeaknessLabel = homeState?.latestDiagnosticSummary?.topWeaknesses[0]
-    ? diagnosisMap[homeState.latestDiagnosticSummary.topWeaknesses[0]].labelKo
-    : undefined;
 
   const handleStartDiagnostic = () => {
     resetSession();
@@ -73,7 +141,7 @@ export default function QuizHubScreen() {
   };
 
   const handleOpenRecentResult = () => {
-    if (!homeState?.latestDiagnosticSummary) {
+    if (!homeState?.recentResultCard.enabled) {
       return;
     }
 
@@ -90,12 +158,15 @@ export default function QuizHubScreen() {
   if (!isReady) {
     return (
       <View style={styles.screen}>
+        <View style={styles.backgroundGlowTop} />
         <BrandHeader compact />
         <View style={styles.loadingWrap}>
           <View style={styles.loadingCard}>
-            <Text style={styles.loadingTitle}>학습 허브를 준비 중이에요</Text>
-            <Text style={styles.loadingBody}>
-              현재 학습자 상태를 불러오고 있습니다.
+            <Text selectable style={styles.loadingTitle}>
+              학습 허브를 준비 중이에요
+            </Text>
+            <Text selectable style={styles.loadingBody}>
+              지금 할 일과 최근 학습 흐름을 불러오고 있습니다.
             </Text>
           </View>
         </View>
@@ -106,16 +177,21 @@ export default function QuizHubScreen() {
   if (!profile || !homeState || !session) {
     return (
       <View style={styles.screen}>
+        <View style={styles.backgroundGlowTop} />
         <BrandHeader compact />
         <View style={styles.loadingWrap}>
           <View style={styles.loadingCard}>
-            <Text style={styles.loadingTitle}>학습 허브를 다시 불러와야 해요</Text>
-            <Text style={styles.loadingBody}>
-              현재 학습자 상태를 완전히 복원하지 못했습니다. 한 번 더 불러오면 대부분 바로
-              해결됩니다.
+            <Text selectable style={styles.loadingTitle}>
+              허브 상태를 다시 불러와야 해요
+            </Text>
+            <Text selectable style={styles.loadingBody}>
+              현재 학습자 상태를 완전히 복원하지 못했습니다. 한 번 더 불러오면 대부분
+              바로 해결됩니다.
             </Text>
             <Pressable style={styles.retryButton} onPress={() => void refresh()}>
-              <Text style={styles.retryButtonText}>다시 불러오기</Text>
+              <Text selectable style={styles.retryButtonText}>
+                다시 불러오기
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -123,126 +199,137 @@ export default function QuizHubScreen() {
     );
   }
 
+  const isReviewHero = homeState.hero === 'review';
+
   return (
     <View style={styles.screen}>
-      <BrandHeader />
+      <View style={styles.backgroundGlowTop} />
+      <View style={styles.backgroundGlowBottom} />
+      <BrandHeader compact />
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
-        <View style={styles.headerCard}>
-          <Text style={styles.eyebrow}>DASIDA 학습 허브</Text>
-          <Text style={styles.headerTitle}>오늘도 약점을 줄여볼까요?</Text>
-          <Text style={styles.headerBody}>
-            10문제로 빠르게 진단하고, 다시 볼 약점과 실전 연결 흐름을 한 화면에서
-            이어갑니다.
+        <View style={styles.headerBlock}>
+          <Text selectable style={styles.headerEyebrow}>
+            DASIDA
+          </Text>
+          <Text selectable style={styles.headerTitle}>
+            모의고사 오답을 그냥 넘기지 않게, 다시 보는 흐름까지 이어줍니다.
+          </Text>
+          <Text selectable style={styles.headerBody}>
+            짧은 진단으로 약점을 먼저 찾고, 실전으로 이어질 학습 루틴을 홈에서 바로
+            이어갈 수 있어요.
           </Text>
           <View style={styles.metaRow}>
-            <View style={styles.metaChip}>
-              <Text style={styles.metaText}>{formatGradeLabel(profile.grade)}</Text>
-            </View>
-            <View style={styles.metaChip}>
-              <Text style={styles.metaText}>
-                {session.status === 'anonymous' ? '로컬 익명 프로필' : '연결된 학습자'}
-              </Text>
-            </View>
+            <MetaChip label={formatGradeLabel(profile.grade)} />
+            <MetaChip label={getSessionLabel(session.status)} />
           </View>
         </View>
 
         <Pressable
           style={({ pressed }) => [
             styles.heroCard,
+            isReviewHero ? styles.heroCardReview : styles.heroCardDiagnostic,
             pressed && styles.heroCardPressed,
           ]}
-          onPress={homeState.hero === 'review' ? handleOpenPractice : handleStartDiagnostic}>
+          onPress={isReviewHero ? handleOpenPractice : handleStartDiagnostic}>
+          <View style={styles.heroHaloPrimary} />
+          <View style={styles.heroHaloSecondary} />
           <View style={styles.heroTopRow}>
-            <Text style={styles.heroEyebrow}>
-              {homeState.hero === 'review' ? '오늘 다시 할 일' : '가장 쉬운 시작'}
-            </Text>
-            <IconSymbol name="chevron.right" size={18} color="#FFFFFF" />
-          </View>
-          <Text style={styles.heroTitle}>{getHeroTitle(homeState.hero)}</Text>
-          <Text style={styles.heroBody}>
-            {getHeroBody(homeState.hero, reviewWeaknessLabel)}
-          </Text>
-          <View style={styles.heroFooter}>
-            <Text style={styles.heroCta}>
-              {homeState.hero === 'review' ? '이어하기' : '시작하기'}
-            </Text>
-            {homeState.hero === 'review' && homeState.nextReviewTask ? (
-              <Text style={styles.heroSubMeta}>
-                {homeState.nextReviewTask.stage.toUpperCase()} · {reviewWeaknessLabel}
+            <View style={styles.heroBadge}>
+              <Text selectable style={styles.heroBadgeText}>
+                {isReviewHero ? '오늘 다시 할 일' : '가장 쉬운 시작'}
               </Text>
-            ) : (
-              <Text style={styles.heroSubMeta}>10문항 · 약 3분</Text>
-            )}
+            </View>
+            <View style={styles.heroArrowWrap}>
+              <IconSymbol name="chevron.right" size={20} color="#FFFFFF" />
+            </View>
+          </View>
+          <View style={styles.heroCopy}>
+            <Text selectable style={styles.heroTitle}>
+              {homeState.heroTitle}
+            </Text>
+            <Text selectable style={styles.heroBody}>
+              {homeState.heroBody}
+            </Text>
+          </View>
+          <View style={styles.heroFooter}>
+            <Text selectable style={styles.heroCta}>
+              {isReviewHero ? '이어하기' : '시작하기'}
+            </Text>
+            <Text selectable style={styles.heroMeta}>
+              {homeState.heroMeta}
+            </Text>
           </View>
         </Pressable>
 
-        <View style={styles.row}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryCard,
-              styles.halfCard,
-              pressed && styles.secondaryCardPressed,
-            ]}
-            onPress={handleOpenExams}>
-            <Text style={styles.secondaryEyebrow}>실전 연결</Text>
-            <Text style={styles.secondaryTitle}>대표 모의고사</Text>
-            <Text style={styles.secondaryBody}>
-              {homeState.featuredExamCard.status === 'in_progress'
-                ? '이어 풀 수 있는 실전 세트가 있어요.'
-                : homeState.featuredExamCard.status === 'completed'
-                  ? '최근에 한 번 마친 실전 세트예요.'
-                  : '실전 감각을 붙일 대표 세트를 준비해두었습니다.'}
-            </Text>
-            <Text style={styles.secondaryLink}>
-              {homeState.featuredExamCard.status === 'in_progress' ? '계속 풀기' : '보러가기'}
-            </Text>
-          </Pressable>
+        <PeerPresenceStrip state={homeState.peerPresence} />
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryCard,
-              styles.halfCard,
-              !homeState.latestDiagnosticSummary && styles.secondaryCardDisabled,
-              pressed && homeState.latestDiagnosticSummary && styles.secondaryCardPressed,
-            ]}
-            disabled={!homeState.latestDiagnosticSummary}
-            onPress={handleOpenRecentResult}>
-            <Text style={styles.secondaryEyebrow}>최근 진단</Text>
-            <Text style={styles.secondaryTitle}>최근 결과</Text>
-            <Text style={styles.secondaryBody}>
-              {homeState.latestDiagnosticSummary
-                ? `${latestWeaknessLabel ?? '진단 결과'} 중심으로 다시 볼 수 있어요.`
-                : '아직 저장된 진단 결과가 없어요.'}
-            </Text>
-            <Text
-              style={[
-                styles.secondaryLink,
-                !homeState.latestDiagnosticSummary && styles.secondaryLinkMuted,
-              ]}>
-              {homeState.latestDiagnosticSummary ? '결과 보기' : '진단 후 열림'}
-            </Text>
-          </Pressable>
+        <View style={[styles.supportRow, isCompactLayout && styles.supportRowStack]}>
+          <SupportCard
+            eyebrow="실전 연결"
+            title={homeState.featuredExamCard.title}
+            body={homeState.featuredExamCard.body}
+            ctaLabel={homeState.featuredExamCard.ctaLabel}
+            iconName="book.fill"
+            onPress={handleOpenExams}
+            stacked={isCompactLayout}
+          />
+          <SupportCard
+            eyebrow="최근 진단"
+            title={homeState.recentResultCard.title}
+            body={homeState.recentResultCard.body}
+            ctaLabel={homeState.recentResultCard.ctaLabel}
+            iconName="clock.fill"
+            disabled={!homeState.recentResultCard.enabled}
+            onPress={handleOpenRecentResult}
+            stacked={isCompactLayout}
+          />
         </View>
 
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>최근 학습 요약</Text>
+          <View style={styles.summaryHeader}>
+            <Text selectable style={styles.summaryTitle}>
+              최근 학습 기록
+            </Text>
+            <Text selectable style={styles.summarySubtitle}>
+              진단, 복습, 실전 흐름이 지금 홈 안에서 한 번에 이어집니다.
+            </Text>
+          </View>
           {homeState.recentActivity.length > 0 ? (
             <View style={styles.summaryList}>
               {homeState.recentActivity.map((activity) => (
                 <View key={activity.id} style={styles.summaryRow}>
-                  <View style={styles.summaryDot} />
-                  <View style={styles.summaryCopy}>
-                    <Text style={styles.summaryRowTitle}>{activity.title}</Text>
-                    <Text style={styles.summaryRowBody}>{activity.subtitle}</Text>
+                  <View style={styles.summaryRail}>
+                    <View style={styles.summaryDot} />
+                    <View style={styles.summaryLine} />
+                  </View>
+                  <View style={styles.summaryContent}>
+                    <View style={styles.summaryBadge}>
+                      <Text selectable style={styles.summaryBadgeText}>
+                        {getActivityKindLabel(activity.kind)}
+                      </Text>
+                    </View>
+                    <Text selectable style={styles.summaryRowTitle}>
+                      {activity.title}
+                    </Text>
+                    <Text selectable style={styles.summaryRowBody}>
+                      {activity.subtitle}
+                    </Text>
                   </View>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={styles.summaryEmpty}>최근 학습 기록이 아직 없습니다.</Text>
+            <View style={styles.summaryEmptyWrap}>
+              <Text selectable style={styles.summaryEmptyTitle}>
+                최근 학습 기록이 아직 없습니다
+              </Text>
+              <Text selectable style={styles.summaryEmptyBody}>
+                첫 진단을 시작하면 최근 결과와 다시 볼 흐름이 여기에 정리됩니다.
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -253,7 +340,25 @@ export default function QuizHubScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BrandColors.background,
+    backgroundColor: '#F5F1E8',
+  },
+  backgroundGlowTop: {
+    position: 'absolute',
+    top: -150,
+    right: -90,
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    backgroundColor: 'rgba(72, 124, 89, 0.10)',
+  },
+  backgroundGlowBottom: {
+    position: 'absolute',
+    bottom: -180,
+    left: -120,
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    backgroundColor: 'rgba(41, 59, 39, 0.05)',
   },
   scroll: {
     flex: 1,
@@ -261,7 +366,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.md,
+    paddingTop: BrandSpacing.lg,
     paddingBottom: BrandSpacing.xxl,
     gap: BrandSpacing.md,
   },
@@ -272,15 +377,17 @@ const styles = StyleSheet.create({
   },
   loadingCard: {
     borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.lg,
-    backgroundColor: '#FFFFFF',
+    borderColor: '#D8E0D5',
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFCF7',
     padding: BrandSpacing.xl,
     gap: BrandSpacing.xs,
+    boxShadow: '0 18px 32px rgba(28, 44, 25, 0.06)',
   },
   loadingTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
     color: BrandColors.text,
   },
   loadingBody: {
@@ -291,195 +398,314 @@ const styles = StyleSheet.create({
   retryButton: {
     alignSelf: 'flex-start',
     marginTop: BrandSpacing.sm,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: BrandRadius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 999,
     backgroundColor: BrandColors.primary,
   },
   retryButtonText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
   },
-  headerCard: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.lg,
-    backgroundColor: '#FAFCF8',
-    padding: BrandSpacing.xl,
-    gap: BrandSpacing.sm,
+  headerBlock: {
+    gap: BrandSpacing.xs,
+    paddingTop: BrandSpacing.xs,
   },
-  eyebrow: {
+  headerEyebrow: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.8,
     color: BrandColors.primarySoft,
-    letterSpacing: 0.2,
   },
   headerTitle: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
-    color: BrandColors.text,
     lineHeight: 36,
+    color: '#203123',
   },
   headerBody: {
-    fontSize: 15,
-    lineHeight: 24,
+    maxWidth: '96%',
+    fontSize: 14,
+    lineHeight: 22,
     color: BrandColors.mutedText,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: BrandSpacing.xs,
-    marginTop: BrandSpacing.xs,
+    marginTop: 2,
   },
   metaChip: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: '#EEF5EC',
+    borderWidth: 1,
+    borderColor: '#DDE6DB',
+    backgroundColor: 'rgba(255,255,255,0.72)',
   },
-  metaText: {
+  metaChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: BrandColors.primary,
+    color: BrandColors.primaryDark,
   },
   heroCard: {
-    backgroundColor: BrandColors.primary,
-    borderRadius: BrandRadius.lg,
+    overflow: 'hidden',
+    minHeight: 270,
+    borderRadius: 32,
+    borderCurve: 'continuous',
     padding: BrandSpacing.xl,
-    gap: BrandSpacing.md,
+    gap: BrandSpacing.lg,
+    boxShadow: '0 24px 38px rgba(27, 43, 24, 0.12)',
+  },
+  heroCardDiagnostic: {
+    backgroundColor: '#294030',
+  },
+  heroCardReview: {
+    backgroundColor: '#31503A',
   },
   heroCardPressed: {
-    backgroundColor: BrandColors.primaryDark,
+    opacity: 0.96,
+  },
+  heroHaloPrimary: {
+    position: 'absolute',
+    top: -46,
+    right: -18,
+    width: 180,
+    height: 180,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.11)',
+  },
+  heroHaloSecondary: {
+    position: 'absolute',
+    bottom: -70,
+    left: -34,
+    width: 176,
+    height: 176,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   heroTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  heroEyebrow: {
+  heroBadge: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  heroBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.72)',
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.84)',
     letterSpacing: 0.2,
   },
+  heroArrowWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  heroCopy: {
+    gap: BrandSpacing.sm,
+  },
   heroTitle: {
-    fontSize: 28,
+    maxWidth: '84%',
+    fontSize: 34,
     fontWeight: '800',
+    lineHeight: 40,
     color: '#FFFFFF',
-    lineHeight: 34,
   },
   heroBody: {
+    maxWidth: '90%',
     fontSize: 15,
     lineHeight: 24,
-    color: 'rgba(255,255,255,0.86)',
+    color: 'rgba(255,255,255,0.88)',
   },
   heroFooter: {
-    gap: 4,
+    marginTop: 'auto',
+    gap: 6,
   },
   heroCta: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
-  heroSubMeta: {
+  heroMeta: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: 'rgba(255,255,255,0.72)',
   },
-  row: {
+  supportRow: {
     flexDirection: 'row',
     gap: BrandSpacing.md,
   },
-  halfCard: {
-    flex: 1,
+  supportRowStack: {
+    flexDirection: 'column',
   },
-  secondaryCard: {
-    minHeight: 192,
+  supportCard: {
+    flex: 1,
+    minHeight: 158,
     borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.lg,
-    backgroundColor: '#FFFFFF',
+    borderColor: '#DDDCD2',
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFCF8',
     padding: BrandSpacing.lg,
     gap: BrandSpacing.sm,
+    boxShadow: '0 18px 30px rgba(29, 42, 24, 0.06)',
   },
-  secondaryCardPressed: {
-    backgroundColor: '#F8FBF7',
+  supportCardStacked: {
+    minHeight: 146,
   },
-  secondaryCardDisabled: {
-    backgroundColor: '#F6F8F5',
-    borderColor: '#E1E7DE',
+  supportCardPressed: {
+    backgroundColor: '#FBF7F1',
   },
-  secondaryEyebrow: {
+  supportCardDisabled: {
+    backgroundColor: '#F1EFE8',
+    borderColor: '#E2DFD6',
+  },
+  supportCardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  supportCardIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF3EA',
+  },
+  supportCardEyebrow: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: BrandColors.primarySoft,
   },
-  secondaryTitle: {
+  supportCardTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: BrandColors.text,
+    fontWeight: '800',
     lineHeight: 24,
+    color: BrandColors.text,
   },
-  secondaryBody: {
+  supportCardBody: {
     flex: 1,
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 21,
     color: BrandColors.mutedText,
   },
-  secondaryLink: {
+  supportCardCta: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: BrandColors.primarySoft,
   },
-  secondaryLinkMuted: {
-    color: '#8C978D',
+  supportCardCtaDisabled: {
+    color: '#98A198',
   },
   summaryCard: {
     borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.lg,
-    backgroundColor: '#FFFFFF',
+    borderColor: '#DDDCD2',
+    borderRadius: 28,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFDF9',
     padding: BrandSpacing.lg,
     gap: BrandSpacing.md,
+    boxShadow: '0 18px 30px rgba(29, 42, 24, 0.06)',
+  },
+  summaryHeader: {
+    gap: 4,
   },
   summaryTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: BrandColors.text,
+  },
+  summarySubtitle: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: BrandColors.mutedText,
   },
   summaryList: {
     gap: BrandSpacing.sm,
   },
   summaryRow: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     gap: BrandSpacing.sm,
-    alignItems: 'flex-start',
+  },
+  summaryRail: {
+    width: 16,
+    alignItems: 'center',
+    paddingTop: 8,
   },
   summaryDot: {
     width: 8,
     height: 8,
     borderRadius: 999,
     backgroundColor: BrandColors.primarySoft,
-    marginTop: 7,
   },
-  summaryCopy: {
+  summaryLine: {
+    marginTop: 6,
     flex: 1,
-    gap: 2,
+    width: 1,
+    backgroundColor: '#D9E0D4',
+  },
+  summaryContent: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#EAEEE6',
+    borderRadius: 18,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 6,
+  },
+  summaryBadge: {
+    alignSelf: 'flex-start',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#EEF3EA',
+  },
+  summaryBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: BrandColors.primarySoft,
   },
   summaryRowTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: BrandColors.text,
   },
   summaryRowBody: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 13,
+    lineHeight: 20,
     color: BrandColors.mutedText,
   },
-  summaryEmpty: {
-    fontSize: 14,
-    lineHeight: 22,
+  summaryEmptyWrap: {
+    borderWidth: 1,
+    borderColor: '#EAEEE6',
+    borderRadius: 20,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 4,
+  },
+  summaryEmptyTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: BrandColors.text,
+  },
+  summaryEmptyBody: {
+    fontSize: 13,
+    lineHeight: 20,
     color: BrandColors.mutedText,
   },
 });

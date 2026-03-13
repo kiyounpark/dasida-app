@@ -88,7 +88,8 @@ export default function ProfileScreen() {
         <View style={[styles.card, styles.devCard]}>
           <Text style={styles.devLabel}>개발용 상태 미리보기</Text>
           <Text style={styles.body}>
-            로그인 없이도 허브가 어떻게 보이는지 바로 전환해볼 수 있습니다.
+            로그인 없이도 허브 히어로와 함께 공부 중인 학생 스트립이 어떻게 보이는지
+            바로 전환해볼 수 있습니다. 이 샘플 프로필은 개발용 미리보기에서만 보입니다.
           </Text>
           <View style={styles.previewList}>
             {previewStates.map((preview) => (
