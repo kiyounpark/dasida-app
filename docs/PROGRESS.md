@@ -547,6 +547,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.14 08:09
+- 해시: `2c07b94` (`2c07b94a2fdbc42b36d0b0f7fafa082452cfaac2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2c07b94a2fdbc42b36d0b0f7fafa082452cfaac2
+- 작성자: 박기윤
+- 메시지: fix: 학습 히스토리 인증과 저장 복구 보강
+
 ### 커밋 2026.03.13 23:38
 - 해시: `2df6132` (`2df61320aa1ed77ce64227ebe25f9ecb570a19a2`)
 - 브랜치: main
