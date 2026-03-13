@@ -508,6 +508,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 21:32
+- 해시: `7f49270` (`7f4927022ecca40ce6b66075f8b10dcc531bd6db`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7f4927022ecca40ce6b66075f8b10dcc531bd6db
+- 작성자: 박기윤
+- 메시지: refactor: 홈 허브 메시지를 틀린 문제 정리 중심으로 조정
+
 ### 커밋 2026.03.13 20:41
 - 해시: `ccbff62` (`ccbff62fb5b9137d497f4b8a76cb2c7025a8f951`)
 - 브랜치: main
