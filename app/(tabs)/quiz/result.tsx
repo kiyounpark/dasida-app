@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -11,11 +11,22 @@ import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-att
 import { useQuizSession } from '@/features/quiz/session';
 import { getSingleParam } from '@/utils/get-single-param';
 
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+function getSaveErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return '결과를 저장하지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.';
+}
+
 export default function QuizResultScreen() {
   const { state, resetSession } = useQuizSession();
   const { profile, recordAttempt, session, summary: currentSummary } = useCurrentLearner();
   const params = useLocalSearchParams();
-  const hasSavedLiveSummary = useRef(false);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   const summary = state.result;
   const legacyNextStep = getSingleParam(params.nextStep);
@@ -35,31 +46,62 @@ export default function QuizResultScreen() {
     legacyPracticeParams.weakTag = diagnosisMap[legacyWeaknessId].labelKo;
   }
 
+  const persistResult = useCallback(async () => {
+    if (!summary || !profile || !session || saveState === 'saving') {
+      return;
+    }
+
+    setSaveState('saving');
+    setSaveErrorMessage(null);
+
+    try {
+      await recordAttempt(
+        buildDiagnosticAttemptInput({
+          session,
+          profile,
+          answers: state.answers,
+          result: summary,
+        }),
+      );
+      setSaveState('saved');
+    } catch (error) {
+      setSaveState('error');
+      setSaveErrorMessage(getSaveErrorMessage(error));
+    }
+  }, [profile, recordAttempt, saveState, session, state.answers, summary]);
+
+  useEffect(() => {
+    if (!summary) {
+      setSaveState('saved');
+      setSaveErrorMessage(null);
+      return;
+    }
+
+    if (storedSummary?.attemptId === summary.attemptId) {
+      setSaveState('saved');
+      setSaveErrorMessage(null);
+      return;
+    }
+
+    setSaveState('idle');
+    setSaveErrorMessage(null);
+  }, [storedSummary?.attemptId, summary, summary?.attemptId]);
+
   useEffect(() => {
     if (!summary || !profile || !session) {
       return;
     }
 
     if (storedSummary?.attemptId === summary.attemptId) {
-      hasSavedLiveSummary.current = true;
       return;
     }
 
-    if (hasSavedLiveSummary.current) {
+    if (saveState !== 'idle') {
       return;
     }
 
-    hasSavedLiveSummary.current = true;
-
-    void recordAttempt(
-      buildDiagnosticAttemptInput({
-        session,
-        profile,
-        answers: state.answers,
-        result: summary,
-      }),
-    );
-  }, [profile, recordAttempt, session, state.answers, storedSummary?.attemptId, summary]);
+    void persistResult();
+  }, [persistResult, profile, saveState, session, state.answers, storedSummary?.attemptId, summary]);
 
   const snapshotSummaryTitle = useMemo(() => {
     if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {
@@ -204,6 +246,27 @@ export default function QuizResultScreen() {
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
+        {saveState === 'saving' ? (
+          <View style={styles.saveInfoCard}>
+            <Text style={styles.saveInfoTitle}>학습 기록을 저장 중이에요</Text>
+            <Text style={styles.saveInfoBody}>
+              결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
+            </Text>
+          </View>
+        ) : null}
+
+        {saveState === 'error' ? (
+          <View style={styles.saveErrorCard}>
+            <Text style={styles.saveInfoTitle}>결과 저장이 완료되지 않았어요</Text>
+            <Text style={styles.saveInfoBody}>
+              {saveErrorMessage ?? '네트워크를 확인한 뒤 다시 시도해 주세요.'}
+            </Text>
+            <View style={styles.buttonGap}>
+              <BrandButton title="다시 저장하기" variant="danger" onPress={() => void persistResult()} />
+            </View>
+          </View>
+        ) : null}
+
         <View style={styles.summaryCard}>
           <Text style={styles.title}>분석 결과</Text>
           <Text style={styles.summaryText}>
@@ -327,6 +390,32 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.lg,
     gap: BrandSpacing.xs,
     backgroundColor: '#fff',
+  },
+  saveInfoCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.xs,
+    backgroundColor: '#fff',
+  },
+  saveErrorCard: {
+    borderWidth: 1,
+    borderColor: '#D48B7A',
+    borderRadius: BrandRadius.md,
+    padding: BrandSpacing.md,
+    gap: BrandSpacing.xs,
+    backgroundColor: '#FFF7F4',
+  },
+  saveInfoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: BrandColors.text,
+  },
+  saveInfoBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#4F5B52',
   },
   summaryText: {
     fontSize: 16,

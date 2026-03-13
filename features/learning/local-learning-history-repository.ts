@@ -385,6 +385,66 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     return readJson<LearnerSummaryCurrent | null>(getSummaryStorageKey(accountKey), null);
   }
 
+  async cacheRecord(payload: {
+    attempt: LearningAttempt;
+    results: LearningAttemptResult[];
+    summary: LearnerSummaryCurrent;
+    reviewTasks: ReviewTask[];
+  }): Promise<void> {
+    const attempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(payload.attempt.accountKey), []);
+    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+      getAttemptResultsStorageKey(payload.attempt.accountKey),
+      {},
+    );
+
+    const nextAttempts = sortAttempts([
+      payload.attempt,
+      ...attempts.filter((attempt) => attempt.id !== payload.attempt.id),
+    ]);
+    const nextResultsByAttemptId = {
+      ...resultsByAttemptId,
+      [payload.attempt.id]: payload.results,
+    };
+
+    await Promise.all([
+      writeJson(getAttemptsStorageKey(payload.attempt.accountKey), nextAttempts),
+      writeJson(getAttemptResultsStorageKey(payload.attempt.accountKey), nextResultsByAttemptId),
+      writeJson(getReviewTasksStorageKey(payload.attempt.accountKey), payload.reviewTasks),
+      writeJson(getSummaryStorageKey(payload.attempt.accountKey), payload.summary),
+    ]);
+  }
+
+  async cacheSummary(accountKey: string, summary: LearnerSummaryCurrent): Promise<void> {
+    await writeJson(getSummaryStorageKey(accountKey), summary);
+  }
+
+  async cacheAttempts(accountKey: string, attempts: LearningAttempt[]): Promise<void> {
+    const existingAttempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
+    const nextAttempts = sortAttempts([
+      ...attempts,
+      ...existingAttempts.filter(
+        (existingAttempt) => !attempts.some((attempt) => attempt.id === existingAttempt.id),
+      ),
+    ]);
+
+    await writeJson(getAttemptsStorageKey(accountKey), nextAttempts);
+  }
+
+  async cacheAttemptResults(
+    accountKey: string,
+    attemptId: string,
+    results: LearningAttemptResult[],
+  ): Promise<void> {
+    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+      getAttemptResultsStorageKey(accountKey),
+      {},
+    );
+    await writeJson(getAttemptResultsStorageKey(accountKey), {
+      ...resultsByAttemptId,
+      [attemptId]: results,
+    });
+  }
+
   async saveFeaturedExamState(
     accountKey: string,
     state: FeaturedExamState,

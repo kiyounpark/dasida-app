@@ -43,6 +43,31 @@ const weaknessOrder = [
   'counting_method_confusion',
   'counting_overcounting',
 ] as const;
+const weaknessLabels: Record<(typeof weaknessOrder)[number], string> = {
+  formula_understanding: '공식 이해 부족',
+  calc_repeated_error: '계산 실수 반복',
+  min_value_read_confusion: '최솟값 읽기 혼동',
+  vertex_formula_memorization: '공식 암기 부족',
+  coefficient_sign_confusion: '계수 구분 혼동',
+  derivative_calculation: '미분 계산 부족',
+  solving_order_confusion: '풀이 순서 혼동',
+  max_min_judgement_confusion: '최댓값/최솟값 판단 혼동',
+  basic_concept_needed: '기초 개념 학습 필요',
+  factoring_pattern_recall: '인수분해 패턴 암기 부족',
+  complex_factoring_difficulty: '복잡한 식 인수분해 어려움',
+  quadratic_formula_memorization: '근의공식 암기 부족',
+  discriminant_calculation: '판별식 계산 실수',
+  radical_simplification_error: '√ 간소화 실수',
+  rationalization_error: '분모 유리화 실수',
+  expansion_sign_error: '전개 부호 실수',
+  like_terms_error: '동류항 정리 실수',
+  imaginary_unit_confusion: 'i² = -1 혼동',
+  complex_calc_error: '복소수 실수부/허수부 정리 실수',
+  remainder_substitution_error: '나머지정리 대입 실수',
+  simultaneous_equation_error: '연립방정식 설정 실수',
+  counting_method_confusion: '경우의 수 방법 혼동',
+  counting_overcounting: '중복 처리 실수',
+};
 
 const ReviewStageSchema = z.enum(reviewStages);
 const LearningSourceSchema = z.enum(learningSources);
@@ -345,7 +370,9 @@ function buildRecentActivity(
         kind,
         title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
         subtitle:
-          attempt.topWeaknesses[0] ?? `정답률 ${attempt.accuracy}%`,
+          attempt.topWeaknesses[0] !== undefined
+            ? weaknessLabels[attempt.topWeaknesses[0]]
+            : `정답률 ${attempt.accuracy}%`,
         occurredAt: attempt.completedAt,
       };
     }),
@@ -355,7 +382,7 @@ function buildRecentActivity(
         id: `review-${task.id}`,
         kind: 'review' as const,
         title: '복습 완료',
-        subtitle: task.weaknessId,
+        subtitle: weaknessLabels[task.weaknessId],
         occurredAt: task.completedAt!,
       })),
   ];
@@ -601,6 +628,28 @@ export async function getLearnerSummary(accountKey: string) {
   );
   await getSummaryRef(accountKey).set(summary, { merge: true });
   return summary;
+}
+
+export async function listLearningAttempts(
+  accountKey: string,
+  options?: { source?: LearningAttempt['source']; limit?: number },
+) {
+  const history = await loadLearnerHistory(accountKey);
+  const filteredAttempts = options?.source
+    ? history.attempts.filter((attempt) => attempt.source === options.source)
+    : history.attempts;
+  const sortedAttempts = sortAttempts(filteredAttempts);
+
+  return typeof options?.limit === 'number'
+    ? sortedAttempts.slice(0, options.limit)
+    : sortedAttempts;
+}
+
+export async function getLearningAttemptResults(accountKey: string, attemptId: string) {
+  const history = await loadLearnerHistory(accountKey);
+  return history.results
+    .filter((result) => result.attemptId === attemptId)
+    .sort((left, right) => left.questionNumber - right.questionNumber);
 }
 
 export async function saveFeaturedExamStateSummary(

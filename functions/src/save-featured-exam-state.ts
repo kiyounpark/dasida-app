@@ -2,6 +2,7 @@ import * as logger from 'firebase-functions/logger';
 import { onRequest } from 'firebase-functions/v2/https';
 import { z } from 'zod';
 
+import { authenticateLearningHistoryRequest, LearningHistoryAuthError } from './learning-history-auth';
 import {
   FeaturedExamStateSchema,
   saveFeaturedExamStateSummary,
@@ -35,12 +36,22 @@ export const saveFeaturedExamStateHandler = onRequest(
     }
 
     try {
+      await authenticateLearningHistoryRequest(
+        request.headers as Record<string, string | string[] | undefined>,
+        parsedRequest.data.accountKey,
+      );
+
       const summary = await saveFeaturedExamStateSummary(
         parsedRequest.data.accountKey,
         parsedRequest.data.state,
       );
       response.status(200).json({ summary });
     } catch (error) {
+      if (error instanceof LearningHistoryAuthError) {
+        response.status(error.status).json({ error: error.message });
+        return;
+      }
+
       logger.error('saveFeaturedExamState failed', error);
       response.status(500).json({
         error: 'Failed to save featured exam state',

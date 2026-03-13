@@ -23,10 +23,11 @@ import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
+const authClient = new LocalAnonymousAuthClient();
 const learnerController = createCurrentLearnerController({
-  authClient: new LocalAnonymousAuthClient(),
+  authClient,
   profileStore: new LocalLearnerProfileStore(),
-  learningHistoryRepository: createLearningHistoryRepository(),
+  learningHistoryRepository: createLearningHistoryRepository(authClient),
   peerPresenceStore,
 });
 

@@ -21,6 +21,17 @@
 
 ## 로그
 
+### 2026.03.14
+
+**학습 히스토리 HTTPS functions 인증과 저장 실패 복구를 보강**
+- `features/auth/types.ts`, `features/auth/local-anonymous-auth-client.ts`, `features/learner/provider.tsx`: 익명 세션에 `requestSecret`을 추가하고, 기존 세션도 로컬에서 secret을 보완하도록 마이그레이션
+- `features/learning/firebase-learning-history-repository.ts`, `features/learning/create-learning-history-repository.ts`, `features/learning/local-learning-history-repository.ts`, `constants/env.ts`, `.env.example`: Firebase repository가 `accountKey + requestSecret` 헤더로 인증된 요청만 보내도록 수정하고, timeout/에러 분류/로컬 summary fallback/서버 응답 기반 캐시 동기화/list 결과 원격 조회를 추가
+- `functions/src/learning-history-auth.ts`, `record-learning-attempt.ts`, `get-learner-summary.ts`, `save-featured-exam-state.ts`, `list-learning-attempts.ts`, `get-learning-attempt-results.ts`, `functions/src/index.ts`: 공개 HTTPS endpoint는 유지하되 요청 헤더의 session secret을 SHA-256 hash로 검증하도록 바꾸고, 원격 list/results 조회 endpoint를 추가
+- `functions/src/learning-history.ts`: server summary의 `recentActivity.subtitle`이 클라이언트와 같은 한국어 약점 라벨을 사용하도록 맞추고, remote attempts/results 응답 정렬도 로컬 구현체와 동일하게 정리
+- `app/(tabs)/quiz/result.tsx`: 결과 저장을 fire-and-forget에서 상태 기반 저장 흐름으로 바꾸고, 저장 중 안내/저장 실패 카드/수동 재시도 버튼을 추가
+- **Claude CLI 검증**: `native-data-fetching` 기준 재리뷰에서 이전 critical/high findings(함수 인증 부재, result 저장 무음 실패, Firebase repository 캐시 불일치)가 해결된 것을 재확인
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run functions:build`, `npm run functions:lint` 통과
+
 ### 2026.03.13
 
 **학습 히스토리를 `attempt + attemptResult + summary/current` 구조로 정규화**

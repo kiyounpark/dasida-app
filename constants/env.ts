@@ -9,6 +9,12 @@ export const learningHistoryGetLearnerSummaryUrl = (
 export const learningHistorySaveFeaturedExamStateUrl = (
   process.env.EXPO_PUBLIC_SAVE_FEATURED_EXAM_STATE_URL ?? ''
 ).trim();
+export const learningHistoryListLearningAttemptsUrl = (
+  process.env.EXPO_PUBLIC_LIST_LEARNING_ATTEMPTS_URL ?? ''
+).trim();
+export const learningHistoryGetLearningAttemptResultsUrl = (
+  process.env.EXPO_PUBLIC_GET_LEARNING_ATTEMPT_RESULTS_URL ?? ''
+).trim();
 
 export const diagnosisRouterTimeoutMs = 8000;
 export const diagnosisExplainTimeoutMs = 12000;

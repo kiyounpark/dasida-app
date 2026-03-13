@@ -12,9 +12,9 @@ export type AuthSession = {
   status: AuthStatus;
   identity: AuthIdentity;
   accountKey: string;
+  requestSecret: string;
   createdAt: string;
   updatedAt: string;
 };
 
 export type SupportedAuthProvider = Exclude<AuthProviderId, 'anonymous'>;
-

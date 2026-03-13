@@ -11,6 +11,22 @@ function createRandomId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function createSessionSecret() {
+  const cryptoApi = globalThis.crypto as
+    | {
+        randomUUID?: () => string;
+      }
+    | undefined;
+
+  if (typeof cryptoApi?.randomUUID === 'function') {
+    return cryptoApi.randomUUID().replace(/-/g, '');
+  }
+
+  return Array.from({ length: 4 }, () => `${createRandomId()}${Math.random().toString(36).slice(2, 10)}`).join(
+    '',
+  );
+}
+
 function createAnonymousSession(subject = createRandomId()): AuthSession {
   const timestamp = new Date().toISOString();
 
@@ -21,6 +37,7 @@ function createAnonymousSession(subject = createRandomId()): AuthSession {
       subject,
     },
     accountKey: `anon:${subject}`,
+    requestSecret: createSessionSecret(),
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -34,7 +51,26 @@ export class LocalAnonymousAuthClient implements AuthClient {
     }
 
     try {
-      return JSON.parse(rawValue) as AuthSession;
+      const parsedSession = JSON.parse(rawValue) as Partial<AuthSession>;
+      if (
+        !parsedSession ||
+        typeof parsedSession.accountKey !== 'string' ||
+        !parsedSession.identity ||
+        typeof parsedSession.identity.subject !== 'string'
+      ) {
+        return null;
+      }
+
+      if (typeof parsedSession.requestSecret === 'string' && parsedSession.requestSecret.length > 0) {
+        return parsedSession as AuthSession;
+      }
+
+      const migratedSession: AuthSession = {
+        ...(parsedSession as Omit<AuthSession, 'requestSecret'>),
+        requestSecret: createSessionSecret(),
+      };
+      await AsyncStorage.setItem(StorageKeys.authSession, JSON.stringify(migratedSession));
+      return migratedSession;
     } catch {
       return null;
     }
@@ -65,4 +101,3 @@ export class LocalAnonymousAuthClient implements AuthClient {
     return supportedProviders;
   }
 }
-

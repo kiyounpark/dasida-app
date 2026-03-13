@@ -1,6 +1,7 @@
 import * as logger from 'firebase-functions/logger';
 import { onRequest } from 'firebase-functions/v2/https';
 
+import { authenticateLearningHistoryRequest, LearningHistoryAuthError } from './learning-history-auth';
 import { FinalizedAttemptInputSchema, recordLearningAttempt } from './learning-history';
 
 export const recordLearningAttemptHandler = onRequest(
@@ -26,9 +27,19 @@ export const recordLearningAttemptHandler = onRequest(
     }
 
     try {
+      await authenticateLearningHistoryRequest(
+        request.headers as Record<string, string | string[] | undefined>,
+        parsedRequest.data.accountKey,
+      );
+
       const result = await recordLearningAttempt(parsedRequest.data);
       response.status(200).json(result);
     } catch (error) {
+      if (error instanceof LearningHistoryAuthError) {
+        response.status(error.status).json({ error: error.message });
+        return;
+      }
+
       logger.error('recordLearningAttempt failed', error);
       response.status(500).json({
         error: 'Failed to record learning attempt',
