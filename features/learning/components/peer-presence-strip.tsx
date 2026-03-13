@@ -62,12 +62,10 @@ export function PeerPresenceStrip({ state }: PeerPresenceStripProps) {
             {state.title}
           </Text>
         </View>
-        <Text selectable style={styles.liveSubtitle}>
-          지금도 같은 방식으로 틀린 문제를 정리하고 있어요.
-        </Text>
       </View>
       <ScrollView
         horizontal
+        contentInsetAdjustmentBehavior="automatic"
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.liveScrollContent}>
         {state.peers.map((peer) => (
@@ -95,7 +93,7 @@ export function PeerPresenceStrip({ state }: PeerPresenceStripProps) {
             <View style={styles.peerFooter}>
               <View style={styles.peerDot} />
               <Text selectable style={styles.peerFooterText}>
-                같이 정리하고 있어요
+                함께 보는 중
               </Text>
             </View>
           </View>
@@ -150,7 +148,6 @@ const styles = StyleSheet.create({
   },
   liveHeader: {
     paddingHorizontal: BrandSpacing.lg,
-    gap: 6,
   },
   liveTitleRow: {
     flexDirection: 'row',
@@ -170,10 +167,6 @@ const styles = StyleSheet.create({
   liveTitle: {
     ...BrandTypography.bodyStrong,
     color: BrandColors.text,
-  },
-  liveSubtitle: {
-    ...BrandTypography.meta,
-    color: BrandColors.mutedText,
   },
   liveScrollContent: {
     paddingHorizontal: BrandSpacing.lg,

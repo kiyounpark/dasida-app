@@ -23,6 +23,14 @@
 
 ### 2026.03.13
 
+**홈 허브 슬로건을 `틀린 문제 정리, 쉽게.`로 교체하고 배경 장식을 제거**
+- `app/(tabs)/quiz/index.tsx`: 홈 상단 슬로건을 `틀린 문제 정리, 쉽게.`로 교체하고, 홈/로딩/에러 상태에서 쓰이던 원형 background glow를 모두 제거해 종이 같은 단색 배경으로 정리
+- `app/(tabs)/quiz/index.tsx`: 최근 학습 기록 카드의 부연 문구를 `지금 학습 상태를 한눈에 볼 수 있어요.`로 축약해 첫 화면 텍스트 밀도를 더 낮춤
+- `features/learning/components/peer-presence-strip.tsx`: live peer strip의 추가 설명 문장을 제거하고 footer를 `함께 보는 중`으로 줄여 히어로 아래 사회적 감각을 더 조용하게 정리
+- `features/learning/home-state.ts`: 대표 모의고사 완료 상태 문구를 더 짧고 직접적인 문장으로 다듬어 홈 보조 카드의 톤을 통일
+- `app/(tabs)/quiz/index.tsx`: 히어로 내부 halo 장식과 미사용 `headerBody` 스타일까지 제거해 홈 전체를 더 단순한 카드 위계 중심으로 정리
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 중대한 이슈 없음 확인
+
 **홈 허브 상단 메시지를 `틀린 문제 정리, 대신.` 슬로건 중심으로 축소**
 - `app/(tabs)/quiz/index.tsx`: 홈 상단을 긴 설명형 소개에서 `DASIDA / 틀린 문제 정리, 대신. / 상태 칩` 구조로 압축하고, 최근 학습 요약 카드의 부연 문구도 짧게 다듬어 첫 화면 시선을 히어로 카드로 더 빨리 떨어지게 정리
 - `features/learning/home-state.ts`: `fresh`, `review`, `빠른 재진단`, peer fallback, 대표 모의고사, 최근 진단 결과 카피를 `오답 분석` 대신 `틀린 문제 정리`, `다시 보기`, `이어가기` 중심 학생 언어로 단순화

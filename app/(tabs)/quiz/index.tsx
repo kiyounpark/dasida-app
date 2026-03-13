@@ -159,7 +159,6 @@ export default function QuizHubScreen() {
   if (!isReady) {
     return (
       <View style={styles.screen}>
-        <View style={styles.backgroundGlowTop} />
         <BrandHeader compact />
         <View style={styles.loadingWrap}>
           <View style={styles.loadingCard}>
@@ -178,7 +177,6 @@ export default function QuizHubScreen() {
   if (!profile || !homeState || !session) {
     return (
       <View style={styles.screen}>
-        <View style={styles.backgroundGlowTop} />
         <BrandHeader compact />
         <View style={styles.loadingWrap}>
           <View style={styles.loadingCard}>
@@ -204,8 +202,6 @@ export default function QuizHubScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.backgroundGlowTop} />
-      <View style={styles.backgroundGlowBottom} />
       <BrandHeader compact />
       <ScrollView
         style={styles.scroll}
@@ -218,7 +214,7 @@ export default function QuizHubScreen() {
           <Text
             selectable
             style={[styles.headerTitle, isCompactLayout && styles.headerTitleCompact]}>
-            틀린 문제 정리, 대신.
+            틀린 문제 정리, 쉽게.
           </Text>
           <View style={styles.metaRow}>
             <MetaChip label={formatGradeLabel(profile.grade)} />
@@ -233,8 +229,6 @@ export default function QuizHubScreen() {
             pressed && styles.heroCardPressed,
           ]}
           onPress={isReviewHero ? handleOpenPractice : handleStartDiagnostic}>
-          <View style={styles.heroHaloPrimary} />
-          <View style={styles.heroHaloSecondary} />
           <View style={styles.heroTopRow}>
             <View style={styles.heroBadge}>
               <Text selectable style={styles.heroBadgeText}>
@@ -293,7 +287,7 @@ export default function QuizHubScreen() {
               최근 학습 기록
             </Text>
             <Text selectable style={styles.summarySubtitle}>
-              지금 하고 있는 학습 흐름을 한눈에 볼 수 있어요.
+              지금 학습 상태를 한눈에 볼 수 있어요.
             </Text>
           </View>
           {homeState.recentActivity.length > 0 ? (
@@ -340,24 +334,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F5F1E8',
-  },
-  backgroundGlowTop: {
-    position: 'absolute',
-    top: -150,
-    right: -90,
-    width: 320,
-    height: 320,
-    borderRadius: 999,
-    backgroundColor: 'rgba(72, 124, 89, 0.10)',
-  },
-  backgroundGlowBottom: {
-    position: 'absolute',
-    bottom: -180,
-    left: -120,
-    width: 320,
-    height: 320,
-    borderRadius: 999,
-    backgroundColor: 'rgba(41, 59, 39, 0.05)',
   },
   scroll: {
     flex: 1,
@@ -421,11 +397,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     lineHeight: 33,
   },
-  headerBody: {
-    maxWidth: '96%',
-    ...BrandTypography.body,
-    color: BrandColors.mutedText,
-  },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -461,24 +432,6 @@ const styles = StyleSheet.create({
   },
   heroCardPressed: {
     opacity: 0.96,
-  },
-  heroHaloPrimary: {
-    position: 'absolute',
-    top: -46,
-    right: -18,
-    width: 180,
-    height: 180,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.11)',
-  },
-  heroHaloSecondary: {
-    position: 'absolute',
-    bottom: -70,
-    left: -34,
-    width: 176,
-    height: 176,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   heroTopRow: {
     flexDirection: 'row',

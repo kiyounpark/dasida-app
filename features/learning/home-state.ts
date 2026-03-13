@@ -131,7 +131,7 @@ function buildFeaturedExamCard(
       examId: 'featured-mock-1',
       status,
       title: '대표 모의고사',
-      body: '최근에 한 번 마친 실전 세트를 다시 살펴볼 수 있어요.',
+      body: '최근에 마친 실전 세트를 다시 볼 수 있어요.',
       ctaLabel: '다시 보기',
     };
   }
