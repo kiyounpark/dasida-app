@@ -494,6 +494,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 19:27
+- 해시: `58caac7` (`58caac7e7223910a8501fda52c43f69360e01b65`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/58caac7e7223910a8501fda52c43f69360e01b65
+- 작성자: 박기윤
+- 메시지: feat: 학습 허브와 로컬 익명 프로필 골격 추가
+
 ### 커밋 2026.03.12 19:24
 - 해시: `7f67d02` (`7f67d02f9cd8bcd036c64a070377daa7150145cb`)
 - 브랜치: main
