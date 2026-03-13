@@ -63,7 +63,7 @@ function buildHeroContent(
     return {
       hero: 'review',
       heroTitle: '오늘의 약점 학습',
-      heroBody: `${weaknessLabel}처럼 실전에서 흔들리기 쉬운 부분을 오늘 짧게 다시 붙잡아볼 차례예요.`,
+      heroBody: '이미 정리한 틀린 문제 패턴을 오늘 짧게 다시 붙잡아볼 차례예요.',
       heroMeta: `${nextReviewTask.stage.toUpperCase()} · ${weaknessLabel}`,
     };
   }
@@ -73,7 +73,7 @@ function buildHeroContent(
     return {
       hero: 'diagnostic',
       heroTitle: '빠른 재진단 10문제',
-      heroBody: `${weaknessLabel}처럼 흔들린 부분을 가볍게 다시 점검하고 다음 복습 방향까지 바로 이어볼 수 있어요.`,
+      heroBody: '흔들리는 틀린 문제부터 가볍게 다시 정리할 수 있어요.',
       heroMeta: `최근 약점 · ${weaknessLabel}`,
     };
   }
@@ -81,7 +81,7 @@ function buildHeroContent(
   return {
     hero: 'diagnostic',
     heroTitle: '3분 체험 10문제',
-    heroBody: '빠르게 약점을 찾고, 바로 복습 방향까지 보여줘요.',
+    heroBody: '흔들리는 틀린 문제부터 빠르게 정리할 수 있어요.',
     heroMeta: '10문항 · 약 3분',
   };
 }
@@ -93,7 +93,7 @@ function buildPeerPresenceState(
   if (peerPresenceSnapshot && peerPresenceSnapshot.peers.length > 0) {
     return {
       mode: 'live',
-      title: hero === 'review' ? '지금 같이 이어가는 학생들' : '이렇게 다시 보는 학생들이 있어요',
+      title: '같이 틀린 문제를 정리하는 학생들',
       peers: peerPresenceSnapshot.peers,
     };
   }
@@ -101,15 +101,15 @@ function buildPeerPresenceState(
   if (hero === 'review') {
     return {
       mode: 'fallback',
-      title: '짧게 다시 보는 습관이 실전에서 흔들림을 줄여줘요',
-      subtitle: '오늘 할 약점 1개만 다시 보면서 감각을 붙여보세요.',
+      title: '한 번 정리한 틀린 문제는 다시 볼수록 덜 흔들려요',
+      subtitle: '오늘은 약점 1개만 짧게 다시 보면 됩니다.',
     };
   }
 
   return {
     mode: 'fallback',
-    title: '틀린 문제를 그냥 넘기면 같은 실수가 반복돼요',
-    subtitle: 'DASIDA는 오답을 약점으로 정리하고 다시 보게 해줍니다.',
+    title: '귀찮은 틀린 문제 정리, 여기서 바로 이어갈 수 있어요',
+    subtitle: '답만 보고 넘기지 않게 이어줄게요.',
   };
 }
 
@@ -121,7 +121,7 @@ function buildFeaturedExamCard(
       examId: 'featured-mock-1',
       status,
       title: '대표 모의고사',
-      body: '이어 풀 수 있는 실전 세트가 준비되어 있어요.',
+      body: '이어 풀면서 틀린 문제 정리까지 연결할 수 있어요.',
       ctaLabel: '계속 풀기',
     };
   }
@@ -140,7 +140,7 @@ function buildFeaturedExamCard(
     examId: 'featured-mock-1',
     status,
     title: '대표 모의고사',
-    body: '실전 감각을 붙일 대표 세트를 준비해두었습니다.',
+    body: '실전 세트에서 정리한 흐름을 바로 써볼 수 있어요.',
     ctaLabel: '보러가기',
   };
 }
@@ -158,13 +158,13 @@ function buildRecentResultCard(
     };
   }
 
-    return {
-      enabled: true,
-      title: '최근 진단 결과',
-      body: `${diagnosisMap[weaknessId].labelKo}처럼 자주 흔들린 부분을 다시 볼 수 있어요.`,
-      ctaLabel: '결과 보기',
-    };
-  }
+  return {
+    enabled: true,
+    title: '최근 진단 결과',
+    body: '최근에 정리한 약점을 다시 확인할 수 있어요.',
+    ctaLabel: '결과 보기',
+  };
+}
 
 export function buildHomeLearningState(
   profile: LearnerProfile,
@@ -199,7 +199,7 @@ export function buildHomeLearningState(
       subtitle:
         profile.latestDiagnosticSummary.topWeaknesses.length > 0
           ? diagnosisMap[profile.latestDiagnosticSummary.topWeaknesses[0]].labelKo
-          : '오답 분석 없음',
+          : '최근 정리 없음',
     });
   }
 

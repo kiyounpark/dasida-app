@@ -218,11 +218,7 @@ export default function QuizHubScreen() {
           <Text
             selectable
             style={[styles.headerTitle, isCompactLayout && styles.headerTitleCompact]}>
-            모의고사 오답을 그냥 넘기지 않게, 다시 보는 흐름까지 이어줍니다.
-          </Text>
-          <Text selectable style={styles.headerBody}>
-            짧은 진단으로 약점을 먼저 찾고, 실전으로 이어질 학습 루틴을 홈에서 바로
-            이어갈 수 있어요.
+            틀린 문제 정리, 대신.
           </Text>
           <View style={styles.metaRow}>
             <MetaChip label={formatGradeLabel(profile.grade)} />
@@ -297,7 +293,7 @@ export default function QuizHubScreen() {
               최근 학습 기록
             </Text>
             <Text selectable style={styles.summarySubtitle}>
-              진단, 복습, 실전 흐름이 지금 홈 안에서 한 번에 이어집니다.
+              지금 하고 있는 학습 흐름을 한눈에 볼 수 있어요.
             </Text>
           </View>
           {homeState.recentActivity.length > 0 ? (
@@ -330,7 +326,7 @@ export default function QuizHubScreen() {
                 최근 학습 기록이 아직 없습니다
               </Text>
               <Text selectable style={styles.summaryEmptyBody}>
-                첫 진단을 시작하면 최근 결과와 다시 볼 흐름이 여기에 정리됩니다.
+                첫 진단을 시작하면 최근 기록이 여기에 쌓여요.
               </Text>
             </View>
           )}

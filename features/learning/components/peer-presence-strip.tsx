@@ -63,7 +63,7 @@ export function PeerPresenceStrip({ state }: PeerPresenceStripProps) {
           </Text>
         </View>
         <Text selectable style={styles.liveSubtitle}>
-          지금 앱 안에서 같은 흐름으로 공부하는 학생들이 있습니다.
+          지금도 같은 방식으로 틀린 문제를 정리하고 있어요.
         </Text>
       </View>
       <ScrollView
@@ -95,7 +95,7 @@ export function PeerPresenceStrip({ state }: PeerPresenceStripProps) {
             <View style={styles.peerFooter}>
               <View style={styles.peerDot} />
               <Text selectable style={styles.peerFooterText}>
-                같은 방식으로 다시 보고 있어요
+                같이 정리하고 있어요
               </Text>
             </View>
           </View>

@@ -23,6 +23,20 @@
 
 ### 2026.03.13
 
+**홈 허브 상단 메시지를 `틀린 문제 정리, 대신.` 슬로건 중심으로 축소**
+- `app/(tabs)/quiz/index.tsx`: 홈 상단을 긴 설명형 소개에서 `DASIDA / 틀린 문제 정리, 대신. / 상태 칩` 구조로 압축하고, 최근 학습 요약 카드의 부연 문구도 짧게 다듬어 첫 화면 시선을 히어로 카드로 더 빨리 떨어지게 정리
+- `features/learning/home-state.ts`: `fresh`, `review`, `빠른 재진단`, peer fallback, 대표 모의고사, 최근 진단 결과 카피를 `오답 분석` 대신 `틀린 문제 정리`, `다시 보기`, `이어가기` 중심 학생 언어로 단순화
+- `features/learning/components/peer-presence-strip.tsx`: live subtitle과 peer footer를 더 짧은 문장으로 조정해 사회적 감각은 유지하면서도 홈 전체 문장 밀도를 낮춤
+- 핵심 메시지를 `귀찮은 틀린 문제 정리를 대신해준다`로 고정하고, 상단은 브랜드 슬로건만 남기고 제품 설명은 히어로/peer strip/보조 카드로 분산하는 원칙을 반영
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 카피 위계 관련 `No blocking issues` 확인
+
+**홈 허브 카피를 `틀린 문제 정리` 중심 메시지로 재정렬**
+- `app/(tabs)/quiz/index.tsx`: 홈 상단 소개 문구를 긴 설명형 문장에서 `틀린 문제 정리, 대신.` 슬로건으로 축소하고, 상단에서 중복 설명을 제거
+- `features/learning/home-state.ts`: 홈 hero, peer strip fallback, 대표 모의고사 카드, 최근 진단 결과 카드 문구를 `오답 분석`보다 `틀린 문제 정리 / 다시 보기` 중심 학생 언어로 통일
+- `features/learning/components/peer-presence-strip.tsx`: live subtitle과 footer 문구를 `같은 방식으로 틀린 문제를 정리하고 있어요` 톤으로 조정해 사회적 감각과 핵심 가치가 같은 방향으로 읽히게 정리
+- 유튜브 인기 제목 패턴의 `짧음`, `즉시 이해성`, `구체 효용`만 가져오고, 과장/랭킹/자극 표현은 홈 카피에 사용하지 않도록 기준 고정
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 홈 카피 위계 관련 `No blocking issues` 확인
+
 **학습 허브 전환 1차 골격과 로컬 익명 프로필 도입**
 - `@react-native-async-storage/async-storage` 추가로 앱 설치 단위의 로컬 영속 상태 저장 기반 마련
 - `features/auth/*`: `AuthProviderId = anonymous | apple | google | kakao`, `AuthClient` 인터페이스, `LocalAnonymousAuthClient` 구현 추가
