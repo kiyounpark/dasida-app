@@ -527,6 +527,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 22:05
+- 해시: `cc67aa7` (`cc67aa788d8c4159fee2bff843e8edf685a5c31c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/cc67aa788d8c4159fee2bff843e8edf685a5c31c
+- 작성자: 박기윤
+- 메시지: style: 앱 기본 배경 캔버스를 아이보리로 통일
+
 ### 커밋 2026.03.13 21:54
 - 해시: `6c0485f` (`6c0485f1b29e34b3bc07e3770627f882108d4bbe`)
 - 브랜치: main
