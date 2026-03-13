@@ -2,7 +2,7 @@ export const BrandColors = {
   primary: '#293B27',
   primarySoft: '#4A7C59',
   primaryDark: '#1E2F20',
-  background: '#F3F6F2',
+  background: '#F6F2EA',
   card: '#FFFFFF',
   text: '#293B27',
   mutedText: '#5B6A5D',
