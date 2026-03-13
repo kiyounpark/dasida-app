@@ -21,6 +21,25 @@
 
 ## 로그
 
+### 2026.03.13
+
+**학습 허브 전환 1차 골격과 로컬 익명 프로필 도입**
+- `@react-native-async-storage/async-storage` 추가로 앱 설치 단위의 로컬 영속 상태 저장 기반 마련
+- `features/auth/*`: `AuthProviderId = anonymous | apple | google | kakao`, `AuthClient` 인터페이스, `LocalAnonymousAuthClient` 구현 추가
+- `features/learner/*`: `LearnerProfile`, `CurrentLearnerController`, `CurrentLearnerProvider`, `LocalLearnerProfileStore` 추가로 현재 사용자를 전역 컨텍스트로 읽는 구조 도입
+- `features/learning/*`: `ReviewTask`, `LocalReviewTaskStore`, `HomeLearningState` 추가로 허브가 읽는 최소 학습 상태 모델 정리
+- `constants/storage-keys.ts` 추가로 auth/profile/review/exam 저장 키 규칙을 `accountKey` 기반으로 고정
+- `app/_layout.tsx`: 전역 `CurrentLearnerProvider` 삽입
+- `app/(tabs)/quiz/index.tsx`: 기존 10문제 시작 화면을 `학습 허브`로 교체하고, hero 카드 1개 + 중간 카드 2개 + 하단 최근 학습 요약 구조 구현
+- `app/(tabs)/quiz/diagnostic.tsx` 추가 및 `features/quiz/screens/diagnostic-screen.tsx`로 기존 진단 플로우 이동, `autostart=1` 파라미터 지원 추가
+- `app/(tabs)/quiz/_layout.tsx`: `diagnostic`, `exams` 라우트 추가
+- `app/(tabs)/quiz/result.tsx`: 라이브 진단 결과를 `latestDiagnosticSummary` snapshot으로 저장하고, 결과 CTA를 `오늘의 약점 학습 시작 -> 대표 모의고사 다시 풀기` 순서로 재배치
+- `app/(tabs)/history.tsx`: 최근 진단 결과 / 복습 상태 / 대표 모의고사 상태 요약 카드로 교체
+- `app/(tabs)/profile.tsx`: 학년 설정 + 개발용 상태 미리보기(`첫 설치`, `진단 완료`, `오늘 복습 있음`, `모의고사 진행 중`) + 로컬 상태 초기화 UI 추가
+- `app/(tabs)/quiz/exams.tsx`: 대표 모의고사 1세트의 현재 준비 상태를 보여주는 placeholder 화면 추가
+- 미래 `Apple/Google/Kakao` 소셜 로그인 도입 시 `AuthClient`와 profile store 구현체만 교체하도록 인터페이스 우선 구조로 정리
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
 ### 2026.03.12
 
 **제품 전략 문서를 `PROJECT.md`로 재정렬**

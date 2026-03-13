@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -5,18 +6,25 @@ import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
+import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 import { getSingleParam } from '@/utils/get-single-param';
 
 export default function QuizResultScreen() {
   const { state, resetSession } = useQuizSession();
+  const { profile, saveDiagnosticSummary } = useCurrentLearner();
   const params = useLocalSearchParams();
+  const hasSavedLiveSummary = useRef(false);
 
   const summary = state.result;
   const legacyNextStep = getSingleParam(params.nextStep);
   const legacyWeaknessId = resolveWeaknessId(
     getSingleParam(params.weaknessId) ?? getSingleParam(params.weakTag),
   );
+  const requestedSource = getSingleParam(params.source);
+  const storedSummary = profile?.latestDiagnosticSummary;
+  const snapshotSummary =
+    requestedSource === 'snapshot' || !summary ? storedSummary : undefined;
   const legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string } = {
     mode: 'weakness',
   };
@@ -26,7 +34,29 @@ export default function QuizResultScreen() {
     legacyPracticeParams.weakTag = diagnosisMap[legacyWeaknessId].labelKo;
   }
 
-  if (!summary) {
+  useEffect(() => {
+    if (!summary || hasSavedLiveSummary.current) {
+      return;
+    }
+
+    hasSavedLiveSummary.current = true;
+
+    void saveDiagnosticSummary({
+      completedAt: new Date().toISOString(),
+      topWeaknesses: summary.topWeaknesses,
+      accuracy: summary.accuracy,
+    });
+  }, [saveDiagnosticSummary, summary]);
+
+  const snapshotSummaryTitle = useMemo(() => {
+    if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {
+      return null;
+    }
+
+    return diagnosisMap[snapshotSummary.topWeaknesses[0]].labelKo;
+  }, [snapshotSummary]);
+
+  if (!summary && !snapshotSummary) {
     return (
       <View style={styles.screen}>
         <BrandHeader compact />
@@ -73,6 +103,87 @@ export default function QuizResultScreen() {
     );
   }
 
+  if (!summary && snapshotSummary) {
+    return (
+      <View style={styles.screen}>
+        <BrandHeader />
+        <ScrollView
+          style={styles.scroll}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.container}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.title}>최근 진단 결과</Text>
+            <Text style={styles.summaryText}>정답률 {snapshotSummary.accuracy}%</Text>
+            <Text style={styles.summaryText}>
+              최근 진단 시각 {new Date(snapshotSummary.completedAt).toLocaleDateString('ko-KR')}
+            </Text>
+          </View>
+
+          {snapshotSummary.topWeaknesses.length === 0 ? (
+            <View style={styles.cardNeutral}>
+              <Text style={styles.cardTitle}>아직 저장된 약점 요약이 없어요</Text>
+              <Text style={styles.cardBody}>
+                진단을 마치면 최근 결과와 다시 볼 약점을 여기서 바로 확인할 수 있어요.
+              </Text>
+              <View style={styles.buttonGap}>
+                <BrandButton
+                  title="10문제 체험 시작"
+                  onPress={() => {
+                    resetSession();
+                    router.replace({
+                      pathname: '/quiz/diagnostic',
+                      params: { autostart: '1' },
+                    });
+                  }}
+                />
+              </View>
+            </View>
+          ) : (
+            <View style={styles.cardWarning}>
+              <Text style={styles.cardTitle}>
+                지금 가장 먼저 다시 볼 약점{snapshotSummaryTitle ? ` · ${snapshotSummaryTitle}` : ''}
+              </Text>
+              {snapshotSummary.topWeaknesses.map((weaknessId, index) => {
+                const info = diagnosisMap[weaknessId];
+                return (
+                  <View key={weaknessId} style={styles.weaknessRow}>
+                    <Text style={styles.weaknessTitle}>
+                      {index + 1}. {info.labelKo}
+                    </Text>
+                    <Text style={styles.weaknessBody}>{info.desc}</Text>
+                  </View>
+                );
+              })}
+              <View style={styles.buttonGap}>
+                <BrandButton
+                  title="오늘의 약점 학습 시작"
+                  onPress={() =>
+                    router.push({
+                      pathname: '/quiz/practice',
+                      params: {
+                        mode: 'weakness',
+                        weaknessId: snapshotSummary.topWeaknesses[0],
+                      },
+                    })
+                  }
+                />
+              </View>
+              <View style={styles.secondaryButtonGap}>
+                <BrandButton
+                  title="대표 모의고사 다시 풀기"
+                  variant="neutral"
+                  onPress={() => router.push('/quiz/exams')}
+                />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  const liveSummary = summary!;
+
   return (
     <View style={styles.screen}>
       <BrandHeader />
@@ -82,11 +193,13 @@ export default function QuizResultScreen() {
         contentContainerStyle={styles.container}>
         <View style={styles.summaryCard}>
           <Text style={styles.title}>분석 결과</Text>
-          <Text style={styles.summaryText}>총 {summary.total}문제 중 {summary.correct}문제 정답</Text>
-          <Text style={styles.summaryText}>정답률 {summary.accuracy}%</Text>
+          <Text style={styles.summaryText}>
+            총 {liveSummary.total}문제 중 {liveSummary.correct}문제 정답
+          </Text>
+          <Text style={styles.summaryText}>정답률 {liveSummary.accuracy}%</Text>
         </View>
 
-        {summary.allCorrect ? (
+        {liveSummary.allCorrect ? (
           <View style={styles.cardSuccess}>
             <Text style={styles.cardTitle}>모든 문제를 맞혔어요!</Text>
             <Text style={styles.cardBody}>축하합니다. 심화 1문제로 마무리 점검을 진행합니다.</Text>
@@ -103,7 +216,7 @@ export default function QuizResultScreen() {
               />
             </View>
           </View>
-        ) : summary.topWeaknesses.length === 0 ? (
+        ) : liveSummary.topWeaknesses.length === 0 ? (
           <View style={styles.cardNeutral}>
             <Text style={styles.cardTitle}>오답은 있었지만 약점 분석은 아직 완료되지 않았어요</Text>
             <Text style={styles.cardBody}>
@@ -123,7 +236,7 @@ export default function QuizResultScreen() {
         ) : (
           <View style={styles.cardWarning}>
             <Text style={styles.cardTitle}>상위 약점 3개</Text>
-            {summary.topWeaknesses.map((weaknessId, index) => {
+            {liveSummary.topWeaknesses.map((weaknessId, index) => {
               const info = diagnosisMap[weaknessId];
               return (
                 <View key={weaknessId} style={styles.weaknessRow}>
@@ -134,16 +247,23 @@ export default function QuizResultScreen() {
             })}
             <View style={styles.buttonGap}>
               <BrandButton
-                title="약점 연습 시작"
+                title="오늘의 약점 학습 시작"
                 onPress={() =>
                   router.push({
                     pathname: '/quiz/practice',
                     params: {
                       mode: 'weakness',
-                      weaknessId: summary.topWeaknesses[0],
+                      weaknessId: liveSummary.topWeaknesses[0],
                     },
                   })
                 }
+              />
+            </View>
+            <View style={styles.secondaryButtonGap}>
+              <BrandButton
+                title="대표 모의고사 다시 풀기"
+                variant="neutral"
+                onPress={() => router.push('/quiz/exams')}
               />
             </View>
           </View>
@@ -249,6 +369,9 @@ const styles = StyleSheet.create({
   },
   buttonGap: {
     marginTop: 10,
+  },
+  secondaryButtonGap: {
+    marginTop: 8,
   },
   legacyLabel: {
     fontSize: 16,
