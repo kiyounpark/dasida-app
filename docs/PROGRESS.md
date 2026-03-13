@@ -494,6 +494,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 19:34
+- 해시: `759227a` (`759227a728e4aa7ebeb2643d927c5a79ac2aa4bd`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/759227a728e4aa7ebeb2643d927c5a79ac2aa4bd
+- 작성자: 박기윤
+- 메시지: fix: 비동기 저장소 버전을 엑스포 호환으로 조정
+
 ### 커밋 2026.03.13 19:27
 - 해시: `58caac7` (`58caac7e7223910a8501fda52c43f69360e01b65`)
 - 브랜치: main
