@@ -521,6 +521,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 21:54
+- 해시: `6c0485f` (`6c0485f1b29e34b3bc07e3770627f882108d4bbe`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6c0485f1b29e34b3bc07e3770627f882108d4bbe
+- 작성자: 박기윤
+- 메시지: style: 문제 풀기 배경 톤을 다른 탭과 통일
+
 ### 커밋 2026.03.13 21:46
 - 해시: `9994177` (`9994177f95c41fc9a6a719e11d9b116077180552`)
 - 브랜치: main
