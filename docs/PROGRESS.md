@@ -494,6 +494,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 20:08
+- 해시: `65cc196` (`65cc1967538a41ebc39d66bf92fbae7c5cc270d4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/65cc1967538a41ebc39d66bf92fbae7c5cc270d4
+- 작성자: 박기윤
+- 메시지: feat: 홈 허브를 프로필 기반 사회적 감각으로 리디자인
+
 ### 커밋 2026.03.13 19:34
 - 해시: `759227a` (`759227a728e4aa7ebeb2643d927c5a79ac2aa4bd`)
 - 브랜치: main
