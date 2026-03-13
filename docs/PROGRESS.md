@@ -516,6 +516,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.13 21:46
+- 해시: `9994177` (`9994177f95c41fc9a6a719e11d9b116077180552`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9994177f95c41fc9a6a719e11d9b116077180552
+- 작성자: 박기윤
+- 메시지: refactor: 홈 허브 슬로건과 배경 위계를 단순화
+
 ### 커밋 2026.03.13 21:32
 - 해시: `7f49270` (`7f4927022ecca40ce6b66075f8b10dcc531bd6db`)
 - 브랜치: main
