@@ -563,6 +563,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.15 16:44
+- 해시: `3dabdf4` (`3dabdf41418e7ecc3ec2b4ce72e0098b2c96b9e6`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3dabdf41418e7ecc3ec2b4ce72e0098b2c96b9e6
+- 작성자: 박기윤
+- 메시지: refactor: 오답 진단 상위 훅 분리
+
 ### 커밋 2026.03.15 16:29
 - 해시: `14fbc36` (`14fbc367e866176961ccb6a997f4ad87de55b4ce`)
 - 브랜치: main
