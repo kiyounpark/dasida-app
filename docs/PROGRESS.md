@@ -21,6 +21,16 @@
 
 ## 로그
 
+### 2026.03.15
+
+**코드 구조 스킬 계층과 Thin Screen + Custom Hook 기본값 도입**
+- `docs/ARCHITECTURE.md`, `.agents/skills/dasida-code-structure/SKILL.md`, `.claude/skills/dasida-code-structure`: DASIDA 공식 코드 구조 기준을 `Feature-based architecture + Thin Screen + Custom Hook`로 고정하고, 로컬 구조 스킬과 Claude 링크 경로를 추가
+- `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `docs/AI_COLLABORATION.md`: 코드 구조/리팩터링/커스텀 훅 분리 작업은 `dasida-code-structure`와 `docs/ARCHITECTURE.md`를 먼저 확인하도록 공통 운영 규칙 확장
+- `.claude/hooks/expo-skill-hooks-lib.mjs`, `.claude/hooks/select-expo-skill.mjs`, `.claude/hooks/check-expo-skill-before-tools.mjs`: Claude 훅이 Expo 스킬뿐 아니라 로컬 구조 스킬도 감지/안내하도록 확장하고, `quiz 구조 리팩터링해줘 -> dasida-code-structure`, `Firebase fetch 에러 처리 -> native-data-fetching`, `새 화면 레이아웃 구성 -> building-native-ui` 분류를 확인
+- `app/(tabs)/quiz/index.tsx`, `result.tsx`, `practice.tsx`, `diagnostic.tsx`, `features/quiz/screens/*`, `features/quiz/components/*`, `features/quiz/hooks/*`: `quiz` 라우트를 thin route로 줄이고 `screen -> hook -> view` 계층으로 분리해 route/screen 파일을 80줄/200줄 기준 안으로 정리
+- `features/quiz/components/diagnostic-screen-view.tsx`, `features/quiz/hooks/use-diagnosis-pager.ts`, `use-diagnosis-workspaces.ts`, `use-diagnosis-ai-help.ts`, `diagnostic-screen-helpers.ts`: 진단 화면의 pager/workspace/ai-help 축을 커스텀 훅으로 나눠 화면 파일 책임을 줄임
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
 ### 2026.03.14
 
 **학습 히스토리 HTTPS functions 인증과 저장 실패 복구를 보강**

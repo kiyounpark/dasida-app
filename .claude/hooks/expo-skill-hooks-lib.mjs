@@ -5,6 +5,25 @@ import path from 'node:path';
 
 const SKILL_DEFINITIONS = [
   {
+    name: 'dasida-code-structure',
+    keywords: [
+      'dasida-code-structure',
+      'refactor',
+      'architecture',
+      'custom hook',
+      'hook 분리',
+      '구조 정리',
+      '가독성',
+      'thin screen',
+      'feature-based',
+      '아키텍처',
+      '리팩터링',
+      '커스텀 훅',
+      '코드 구조',
+    ],
+    reason: '코드 구조 리팩터링 또는 custom hook 분리 관련 키워드를 감지했습니다.',
+  },
+  {
     name: 'expo-api-routes',
     keywords: [
       'expo-api-routes',

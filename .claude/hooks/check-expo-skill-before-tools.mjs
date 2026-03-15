@@ -52,7 +52,7 @@ process.stdout.write(
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'ask',
-      permissionDecisionReason: `이 세션은 Expo 스킬 "${state.selectedSkill}" 대상입니다. 먼저 ${state.skillPath} 를 Read 한 뒤 변경을 시작하는 것이 권장됩니다.`,
+      permissionDecisionReason: `이 세션은 스킬 "${state.selectedSkill}" 대상입니다. 먼저 ${state.skillPath} 를 Read 한 뒤 변경을 시작하는 것이 권장됩니다.`,
     },
   })
 );

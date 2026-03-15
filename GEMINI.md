@@ -11,6 +11,7 @@
 - Expo 스킬 검증의 권장 경로는 `Claude Code CLI`입니다.
 - Gemini는 보조 검토 또는 대체 검토 도구로 사용합니다.
 - Expo 스킬 저장소는 `.agents/skills/*`를 기준으로 확인합니다.
+- 코드 구조/리팩터링/커스텀 훅 분리 작업은 `.agents/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`를 먼저 확인합니다.
 
 3. 종료 알림:
 - 성공: `npm run notify:done -- "<변경/테스트 요약>"`

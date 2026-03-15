@@ -9,10 +9,12 @@
 2. 기본 역할
 - 기본 구현 도구는 `Codex`이며, Claude는 Expo 스킬 기반 검증과 리뷰를 권장되는 방식으로 수행합니다.
 - Expo 관련 리뷰 시 `.claude/skills/*` 링크 경로를 먼저 확인하고, 실제 스킬 소스는 `.agents/skills/*`를 기준으로 봅니다.
+- 코드 구조/리팩터링/커스텀 훅 분리 작업은 `.claude/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`를 먼저 확인합니다.
 - 이 저장소에는 `.claude/settings.json` 기반 Claude 훅이 포함되어 있으며, `UserPromptSubmit`가 관련 Expo 스킬을 자동 제안하고 `PreToolUse`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도합니다.
 - 작은 문서 수정, 단순 텍스트 수정, 영향 범위가 좁은 단순 수정에는 Claude 검증을 생략할 수 있습니다.
 
 3. 검증이 권장되는 작업
+- 코드 구조 리팩터링, Thin Screen 전환, custom hook 분리
 - UI 구조 변경, 네비게이션 변경
 - API 호출, Firebase 연동, 캐싱, 에러 처리 변경
 - Expo SDK 업그레이드
@@ -40,7 +42,7 @@
 6. Claude 훅 운영
 - 설정 파일: `.claude/settings.json`
 - 훅 스크립트: `.claude/hooks/select-expo-skill.mjs`, `.claude/hooks/check-expo-skill-before-tools.mjs`
-- `UserPromptSubmit`: 프롬프트 키워드로 관련 Expo 스킬을 자동 라우팅
+- `UserPromptSubmit`: 프롬프트 키워드로 관련 Expo 또는 로컬 구조 스킬을 자동 라우팅
 - `PreToolUse`: 선택된 스킬을 아직 읽지 않은 상태에서 첫 변경/실행 시 한 번 `ask`
 - `SessionEnd`: 세션 종료 시 임시 상태를 정리
 - 훅은 Claude Code 안에서만 동작하며, 변경 후에는 Claude 세션을 다시 열어 적용 상태를 확인합니다.
