@@ -1,6 +1,3 @@
-import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -8,377 +5,66 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
 } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MathText } from '@/components/math/MathText';
 import { ProblemStatement } from '@/components/math/problem-statement';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
-import { type SolveMethodId } from '@/data/diagnosisTree';
-import { problemData } from '@/data/problemData';
-import {
-  DiagnosisConversationPage,
-} from '@/features/quiz/components/diagnosis-conversation-page';
+import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-conversation-page';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
-import {
-  advanceFromCheck,
-  advanceFromChoice,
-  advanceFromExplain,
-  buildDiagnosisDetailTrace,
-  getDiagnosisFlow,
-  getNode,
-} from '@/features/quiz/diagnosis-flow-engine';
-import {
-  buildDiagnosisAnalysisText,
-  findNextIncompleteDiagnosisPageIndex,
-  freezeConversationEntries,
-  getActiveFlowNode,
-  getDiagnosisStepLabel,
-  type DiagnosisPage,
-} from '@/features/quiz/hooks/diagnostic-screen-helpers';
-import { useDiagnosisAiHelp } from '@/features/quiz/hooks/use-diagnosis-ai-help';
-import { useDiagnosisPager } from '@/features/quiz/hooks/use-diagnosis-pager';
-import { useDiagnosisWorkspaces } from '@/features/quiz/hooks/use-diagnosis-workspaces';
-import { useQuizSession } from '@/features/quiz/session';
+import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagnostic-screen';
 
-type DiagnosticScreenViewProps = {
-  shouldAutoStart: boolean;
-};
-
-export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewProps) {
-  const {
-    state,
-    startSession,
-    submitAnswer,
-    confirmDiagnosisMethod,
-    submitDiagnosisWeakness,
-    finishDiagnosis,
-  } = useQuizSession();
-  const { width: windowWidth } = useWindowDimensions();
-  const diagnosisPageWidth = Math.max(windowWidth, 1);
-  const isMountedRef = useRef(true);
-  const [isExitModalVisible, setIsExitModalVisible] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (state.result) {
-      router.replace('/quiz/result');
-    }
-  }, [state.result]);
-
-  useEffect(() => {
-    if (shouldAutoStart && !state.hasStarted) {
-      startSession();
-    }
-  }, [shouldAutoStart, startSession, state.hasStarted]);
-
-  const {
-    appendNextNode,
-    createAiHelpActionsEntry,
-    createAiHelpEntry,
-    createBubbleEntry,
-    createNodeEntry,
-    currentProblem,
-    diagnosisPages,
-    handleAnalyze,
-    handleDiagnosisInputChange: handleDiagnosisInputChangeBase,
-    removeAiHelpComposerEntries,
-    selectedIndex,
-    setSelectedIndex,
-    startDiagnosisFlow,
-    updateWorkspace,
-  } = useDiagnosisWorkspaces({
-    isMountedRef,
-    state,
-  });
-
-  const {
-    activeDiagnosisPageIndex,
-    diagnosisPagerRef,
-    diagnosisPendingAutoScrollRef,
-    diagnosisPendingRestoreRef,
-    diagnosisScrollOffsetsRef,
-    handleDiagnosisAutoScrollHandled,
-    handleDiagnosisMomentumEnd,
-    handleDiagnosisRestoreHandled,
-    handleDiagnosisScrollOffsetChange,
-    hasStoredDiagnosisOffset,
-    requestDiagnosisAutoScroll,
-    scrollToDiagnosisPage,
-    setDiagnosisInteracted,
-  } = useDiagnosisPager({
-    diagnosisPageWidth,
-    diagnosisPages,
-    isDiagnosing: state.isDiagnosing,
-  });
-
-  const {
-    handleAiHelpContinue,
-    handleAiHelpFallback,
-    handleAiHelpInputChange,
-    handleSubmitAiHelp,
-    openAiHelpComposer,
-  } = useDiagnosisAiHelp({
-    appendNextNode: (answerIndex, methods, draft, userText, feedback) => {
-      setDiagnosisInteracted(answerIndex);
-      requestDiagnosisAutoScroll(answerIndex);
-      appendNextNode(answerIndex, methods, draft, userText, feedback);
-    },
-    createAiHelpActionsEntry,
-    createAiHelpEntry,
-    createBubbleEntry,
-    createNodeEntry,
-    isMountedRef,
-    removeAiHelpComposerEntries,
-    requestDiagnosisAutoScroll,
-    setDiagnosisInteracted,
-    updateWorkspace,
-  });
-  const handleDiagnosisInputChange = (answerIndex: number, text: string) => {
-    setDiagnosisInteracted(answerIndex);
-    handleDiagnosisInputChangeBase(answerIndex, text);
-  };
-
-  const handleAnalyzePage = async (page: DiagnosisPage) => {
-    setDiagnosisInteracted(page.answerIndex);
-    await handleAnalyze(page);
-  };
-
-  const handleConfirmPredicted = (page: DiagnosisPage) => {
-    const { answerIndex, methods, workspace } = page;
-    if (!workspace.routerResult || workspace.status === 'completed') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    confirmDiagnosisMethod(answerIndex, {
-      ...workspace.routerResult,
-      rawText: buildDiagnosisAnalysisText(workspace),
-      finalMethodId: workspace.routerResult.predictedMethodId,
-      finalMethodSource: 'router',
-    });
-
-    requestDiagnosisAutoScroll(answerIndex);
-    startDiagnosisFlow(answerIndex, workspace.routerResult.predictedMethodId, methods);
-  };
-
-  const handleManualSelect = (page: DiagnosisPage, methodId: SolveMethodId) => {
-    const { answerIndex, methods, workspace } = page;
-    if (workspace.status === 'completed') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const trace = workspace.routerResult
-      ? {
-          ...workspace.routerResult,
-          rawText: buildDiagnosisAnalysisText(workspace),
-          finalMethodId: methodId,
-          finalMethodSource: 'manual' as const,
-        }
-      : {
-          rawText: buildDiagnosisAnalysisText(workspace),
-          predictedMethodId: 'unknown' as SolveMethodId,
-          confidence: 0,
-          reason: 'Manual selection',
-          source: 'manual-selection' as const,
-          needsManualSelection: true,
-          candidateMethodIds: methods.map((method) => method.id),
-          finalMethodId: methodId,
-          finalMethodSource: 'manual' as const,
-        };
-
-    confirmDiagnosisMethod(answerIndex, trace);
-    requestDiagnosisAutoScroll(answerIndex);
-    startDiagnosisFlow(answerIndex, methodId, methods);
-  };
-
-  const handleFlowChoice = (page: DiagnosisPage, optionId: string) => {
-    const { answerIndex, methods, workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'choice') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const option = activeNode.options.find((item) => item.id === optionId);
-    if (!option) {
-      return;
-    }
-
-    requestDiagnosisAutoScroll(answerIndex);
-    appendNextNode(
-      answerIndex,
-      methods,
-      advanceFromChoice(workspace.flowDraft, optionId),
-      option.text,
-    );
-  };
-
-  const handleExplainContinue = (page: DiagnosisPage) => {
-    const { answerIndex, methods, workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'explain') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    requestDiagnosisAutoScroll(answerIndex);
-    appendNextNode(
-      answerIndex,
-      methods,
-      advanceFromExplain(workspace.flowDraft, 'continue'),
-      activeNode.primaryLabel,
-    );
-  };
-
-  const handleExplainDontKnow = (page: DiagnosisPage) => {
-    const { workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'explain') {
-      return;
-    }
-
-    openAiHelpComposer(page, 'explain');
-  };
-
-  const handleCheckPress = (page: DiagnosisPage, optionId: string) => {
-    const { answerIndex, methods, workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'check') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const option = activeNode.options.find((item) => item.id === optionId);
-    if (!option) {
-      return;
-    }
-
-    const nextDraft = advanceFromCheck(workspace.flowDraft, optionId);
-    const nextNode = getNode(getDiagnosisFlow(nextDraft.methodId), nextDraft.currentNodeId);
-
-    requestDiagnosisAutoScroll(answerIndex);
-    appendNextNode(answerIndex, methods, nextDraft, option.text, {
-      text: option.isCorrect
-        ? nextNode.kind === 'final'
-          ? '좋아요. 지금까지의 흐름을 바탕으로 약점을 정리해볼게요.'
-          : '좋아요. 다음 단계로 이어갈게요.'
-        : nextNode.kind === 'final'
-          ? '이 지점이 현재 가장 큰 약점으로 보여요. 우선 여기부터 잡아볼게요.'
-          : '이 부분이 아직 흔들리고 있어요. 더 쉽게 다시 짚어볼게요.',
-      tone: option.isCorrect ? 'positive' : 'warning',
-    });
-  };
-
-  const handleCheckDontKnow = (page: DiagnosisPage) => {
-    const { workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'check') {
-      return;
-    }
-
-    openAiHelpComposer(page, 'check');
-  };
-
-  const handleFinalizeDiagnosis = (page: DiagnosisPage) => {
-    const { answerIndex, workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'final') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    requestDiagnosisAutoScroll(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const currentPageIndex = diagnosisPages.findIndex(
-      (diagnosisPage) => diagnosisPage.answerIndex === answerIndex,
-    );
-    const nextPageIndex =
-      currentPageIndex === -1
-        ? null
-        : findNextIncompleteDiagnosisPageIndex(diagnosisPages, currentPageIndex);
-
-    submitDiagnosisWeakness(
-      answerIndex,
-      activeNode.weaknessId,
-      buildDiagnosisDetailTrace(workspace.flowDraft, activeNode.weaknessId),
-    );
-
-    updateWorkspace(answerIndex, (current) => ({
-      ...current,
-      status: 'completed',
-      aiHelpState: null,
-      chatEntries: [
-        ...freezeConversationEntries(current.chatEntries),
-        createBubbleEntry(answerIndex, 'user', activeNode.ctaLabel),
-        createBubbleEntry(answerIndex, 'assistant', '이 문제는 분석을 마쳤어요.', 'positive'),
-      ],
-    }));
-
-    if (nextPageIndex !== null) {
-      requestAnimationFrame(() => {
-        if (!isMountedRef.current) {
-          return;
-        }
-
-        scrollToDiagnosisPage(nextPageIndex);
-      });
-    }
-  };
-
-  const handleExitDiagnosis = () => {
-    setIsExitModalVisible(false);
-    finishDiagnosis();
-  };
-
-  const handleSubmit = () => {
-    if (!currentProblem || selectedIndex === null) {
-      return;
-    }
-
-    submitAnswer(
-      currentProblem.id,
-      selectedIndex,
-      selectedIndex === currentProblem.answerIndex,
-    );
-  };
-
-  if (!currentProblem && !state.result && !state.isDiagnosing) {
+export function DiagnosticScreenView({
+  activeDiagnosisPageIndex,
+  currentProblem,
+  diagnosisPageWidth,
+  diagnosisPages,
+  diagnosisPagerRef,
+  diagnosisPendingAutoScrollRef,
+  diagnosisPendingRestoreRef,
+  diagnosisScrollOffsetsRef,
+  diagnosisStepLabel,
+  handleDiagnosisAutoScrollHandled,
+  handleDiagnosisMomentumEnd,
+  handleDiagnosisRestoreHandled,
+  handleDiagnosisScrollOffsetChange,
+  hasStarted,
+  hasStoredDiagnosisOffset,
+  isCompactNavigator,
+  isDiagnosing,
+  isExitModalVisible,
+  isLoadingState,
+  onAiHelpContinue,
+  onAiHelpFallback,
+  onAiHelpInputChange,
+  onAiHelpSubmit,
+  onAnalyzePage,
+  onCheckDontKnow,
+  onCheckPress,
+  onChoicePress,
+  onCloseExitModal,
+  onConfirmPredicted,
+  onExitDiagnosis,
+  onExplainContinue,
+  onExplainDontKnow,
+  onFinalConfirm,
+  onInputChange,
+  onManualSelect,
+  onOpenExitModal,
+  onQuestionChoiceSelect,
+  onQuestionSubmit,
+  onScrollToDiagnosisPage,
+  onScrollToIndexFailed,
+  onStartSession,
+  progressPercent,
+  selectedIndex,
+  stepTitle,
+}: UseDiagnosticScreenResult) {
+  if (isLoadingState) {
     return (
       <View style={styles.screen}>
         <BrandHeader compact />
@@ -391,11 +77,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
     );
   }
 
-  if (state.isDiagnosing) {
-    const totalDiagnosisPages = diagnosisPages.length;
-    const diagnosisStepLabel = getDiagnosisStepLabel(activeDiagnosisPageIndex);
-    const isCompactNavigator = totalDiagnosisPages > 5;
-
+  if (isDiagnosing) {
     return (
       <View style={[styles.screen, styles.diagnosisScreen]}>
         <BrandHeader />
@@ -409,7 +91,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
             <View style={styles.diagnosisHeader}>
               <Pressable
                 style={styles.closeButton}
-                onPress={() => setIsExitModalVisible(true)}
+                onPress={onOpenExitModal}
                 accessibilityRole="button"
                 accessibilityLabel="오답 분석 닫기">
                 <IconSymbol name="xmark" size={18} color={DiagnosisTheme.ink} />
@@ -431,15 +113,16 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
                   {diagnosisPages.map((page, pageIndex) => {
                     const isActive = pageIndex === activeDiagnosisPageIndex;
                     const isCompleted = page.workspace.status === 'completed';
+                    const pageLabel = `${pageIndex + 1} / ${diagnosisPages.length}`;
 
                     return (
                       <Pressable
                         key={`diagnosis-page-${page.answerIndex}`}
                         style={styles.navigatorDotHitArea}
-                        onPress={() => scrollToDiagnosisPage(pageIndex)}
+                        onPress={() => onScrollToDiagnosisPage(pageIndex)}
                         accessibilityRole="tab"
                         accessibilityState={{ selected: isActive }}
-                        accessibilityLabel={`${getDiagnosisStepLabel(pageIndex)}로 이동`}
+                        accessibilityLabel={`${pageLabel}로 이동`}
                         accessibilityHint={
                           isCompleted
                             ? '이 문제의 분석은 완료되었습니다'
@@ -499,20 +182,20 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
                 shouldAutoScrollToEnd={Boolean(
                   diagnosisPendingAutoScrollRef.current[item.answerIndex],
                 )}
-                onInputChange={(text) => handleDiagnosisInputChange(item.answerIndex, text)}
-                onAnalyze={() => void handleAnalyzePage(item)}
-                onManualSelect={(methodId) => handleManualSelect(item, methodId)}
-                onConfirmPredicted={() => handleConfirmPredicted(item)}
-                onChoicePress={(optionId) => handleFlowChoice(item, optionId)}
-                onExplainContinue={() => handleExplainContinue(item)}
-                onExplainDontKnow={() => handleExplainDontKnow(item)}
-                onCheckPress={(optionId) => handleCheckPress(item, optionId)}
-                onCheckDontKnow={() => handleCheckDontKnow(item)}
-                onFinalConfirm={() => handleFinalizeDiagnosis(item)}
-                onAiHelpInputChange={(text) => handleAiHelpInputChange(item.answerIndex, text)}
-                onAiHelpSubmit={() => handleSubmitAiHelp(item)}
-                onAiHelpContinue={() => handleAiHelpContinue(item)}
-                onAiHelpFallback={() => handleAiHelpFallback(item)}
+                onInputChange={(text) => onInputChange(item.answerIndex, text)}
+                onAnalyze={() => void onAnalyzePage(item)}
+                onManualSelect={(methodId) => onManualSelect(item, methodId)}
+                onConfirmPredicted={() => onConfirmPredicted(item)}
+                onChoicePress={(optionId) => onChoicePress(item, optionId)}
+                onExplainContinue={() => onExplainContinue(item)}
+                onExplainDontKnow={() => onExplainDontKnow(item)}
+                onCheckPress={(optionId) => onCheckPress(item, optionId)}
+                onCheckDontKnow={() => onCheckDontKnow(item)}
+                onFinalConfirm={() => onFinalConfirm(item)}
+                onAiHelpInputChange={(text) => onAiHelpInputChange(item.answerIndex, text)}
+                onAiHelpSubmit={() => onAiHelpSubmit(item)}
+                onAiHelpContinue={() => onAiHelpContinue(item)}
+                onAiHelpFallback={() => onAiHelpFallback(item)}
                 onScrollOffsetChange={handleDiagnosisScrollOffsetChange}
                 onAutoScrollHandled={handleDiagnosisAutoScrollHandled}
                 onRestoreHandled={handleDiagnosisRestoreHandled}
@@ -529,21 +212,14 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
               index,
             })}
             onMomentumScrollEnd={handleDiagnosisMomentumEnd}
-            onScrollToIndexFailed={({ index }) => {
-              setTimeout(() => {
-                diagnosisPagerRef.current?.scrollToOffset({
-                  offset: diagnosisPageWidth * index,
-                  animated: false,
-                });
-              }, 120);
-            }}
+            onScrollToIndexFailed={({ index }) => onScrollToIndexFailed(index)}
           />
         </View>
 
         <DiagnosisExitConfirmModal
           visible={isExitModalVisible}
-          onContinue={() => setIsExitModalVisible(false)}
-          onExit={handleExitDiagnosis}
+          onContinue={onCloseExitModal}
+          onExit={onExitDiagnosis}
         />
       </View>
     );
@@ -553,10 +229,6 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
     return null;
   }
 
-  const stepTitle = `${state.currentQuestionIndex + 1} / ${problemData.length}`;
-  const progressRatio = (state.currentQuestionIndex + 1) / problemData.length;
-  const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
-
   return (
     <View style={styles.screen}>
       <BrandHeader />
@@ -564,7 +236,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
-        {!state.hasStarted ? (
+        {!hasStarted ? (
           <View style={styles.introCard}>
             <Text selectable style={styles.introEyebrow}>
               진단 시작 전
@@ -587,7 +259,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
                 </Text>
               </View>
             </View>
-            <BrandButton title="진단 시작하기" onPress={startSession} />
+            <BrandButton title="진단 시작하기" onPress={onStartSession} />
           </View>
         ) : (
           <View style={styles.surfaceCard}>
@@ -619,7 +291,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
                   <Pressable
                     key={`${currentProblem.id}_${index}`}
                     style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-                    onPress={() => setSelectedIndex(index)}>
+                    onPress={() => onQuestionChoiceSelect(index)}>
                     <MathText
                       text={choice}
                       style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
@@ -632,7 +304,7 @@ export function DiagnosticScreenView({ shouldAutoStart }: DiagnosticScreenViewPr
             <View style={styles.submitContainer}>
               <BrandButton
                 title="답 제출하기"
-                onPress={handleSubmit}
+                onPress={onQuestionSubmit}
                 disabled={selectedIndex === null}
               />
             </View>

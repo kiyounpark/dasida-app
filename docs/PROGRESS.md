@@ -23,6 +23,12 @@
 
 ### 2026.03.15
 
+**오답 진단 화면 오케스트레이션을 상위 hook으로 추가 분리**
+- `features/quiz/hooks/use-diagnostic-screen.ts` 추가로 `session + workspace + pager + ai-help` 조합 로직을 상위 오케스트레이션 hook으로 통합
+- `features/quiz/screens/diagnostic-screen.tsx`: 화면 파일을 `useDiagnosticScreen()` 호출 후 `DiagnosticScreenView`에 전달만 하는 thin screen으로 축소
+- `features/quiz/components/diagnostic-screen-view.tsx`: 훅/라우터/세션 의존을 제거하고 `UseDiagnosticScreenResult` 기반 표현 전용 view로 재구성해 로직 400줄 이상을 바깥으로 이동
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 리뷰에서 `No blocking issues` 확인
+
 **코드 구조 스킬 계층과 Thin Screen + Custom Hook 기본값 도입**
 - `docs/ARCHITECTURE.md`, `.agents/skills/dasida-code-structure/SKILL.md`, `.claude/skills/dasida-code-structure`: DASIDA 공식 코드 구조 기준을 `Feature-based architecture + Thin Screen + Custom Hook`로 고정하고, 로컬 구조 스킬과 Claude 링크 경로를 추가
 - `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `docs/AI_COLLABORATION.md`: 코드 구조/리팩터링/커스텀 훅 분리 작업은 `dasida-code-structure`와 `docs/ARCHITECTURE.md`를 먼저 확인하도록 공통 운영 규칙 확장
