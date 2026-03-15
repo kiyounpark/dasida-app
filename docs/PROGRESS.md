@@ -557,6 +557,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.15 16:29
+- 해시: `14fbc36` (`14fbc367e866176961ccb6a997f4ad87de55b4ce`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/14fbc367e866176961ccb6a997f4ad87de55b4ce
+- 작성자: 박기윤
+- 메시지: feat: 코드 구조 스킬 계층 도입
+
 ### 커밋 2026.03.14 08:09
 - 해시: `2c07b94` (`2c07b94a2fdbc42b36d0b0f7fafa082452cfaac2`)
 - 브랜치: main
