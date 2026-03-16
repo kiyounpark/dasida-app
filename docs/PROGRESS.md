@@ -586,6 +586,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.16 22:34
+- 해시: `fc85dbf` (`fc85dbf8628fbcf4acd8054f2eb576783acf3502`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/fc85dbf8628fbcf4acd8054f2eb576783acf3502
+- 작성자: 박기윤
+- 메시지: fix: 탭 전역 퀴즈 세션 범위 조정
+
 ### 커밋 2026.03.16 22:24
 - 해시: `413048f` (`413048f863383dca1832e9d4146b1bfce99b711a`)
 - 브랜치: main
