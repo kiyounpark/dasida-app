@@ -584,6 +584,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.16 22:14
+- 해시: `3e6b9d9` (`3e6b9d999f1998e0476bfa241a60cb208e611165`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3e6b9d999f1998e0476bfa241a60cb208e611165
+- 작성자: 박기윤
+- 메시지: feat: 내 기록 성장 화면 적용
+
 ### 커밋 2026.03.16 21:57
 - 해시: `176879e` (`176879ec8534fc94837606f8e6e632d406d3b5fa`)
 - 브랜치: main
