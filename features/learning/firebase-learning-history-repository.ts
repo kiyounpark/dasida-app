@@ -1,8 +1,14 @@
 import type { AuthClient } from '@/features/auth/auth-client';
-import type { AuthSession } from '@/features/auth/types';
 import type { FeaturedExamState } from '@/features/learner/types';
 
 import type { LearningSource } from './history-types';
+import {
+  LearningHistoryApiError,
+  createRemoteAuthHeaders,
+  readLearningHistoryApiJson,
+  shouldUseLearningHistoryCacheFallback,
+} from './firebase-learning-history-api';
+import { createEmptyLearnerSummary } from './history-repository';
 import { LocalLearningHistoryRepository } from './local-learning-history-repository';
 import type {
   FinalizedAttemptInput,
@@ -15,9 +21,6 @@ import type {
   ReviewTask,
 } from './types';
 
-const REQUEST_TIMEOUT_MS = 25000;
-const NETWORK_RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
-
 type Dependencies = {
   authClient: AuthClient;
   recordLearningAttemptUrl: string;
@@ -27,187 +30,101 @@ type Dependencies = {
   getLearningAttemptResultsUrl: string;
 };
 
-export class LearningHistoryApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly code: 'NETWORK_ERROR' | 'TIMEOUT' | 'HTTP_ERROR' | 'UNAUTHORIZED',
-  ) {
-    super(message);
-    this.name = 'LearningHistoryApiError';
-  }
-}
-
-function isRetryableError(error: unknown) {
-  return (
-    error instanceof LearningHistoryApiError &&
-    (error.code === 'NETWORK_ERROR' ||
-      error.code === 'TIMEOUT' ||
-      NETWORK_RETRYABLE_STATUS_CODES.has(error.status))
-  );
-}
-
-async function parseErrorPayload(response: Response) {
-  const payload = await response.json().catch(() => null);
-  const errorMessage =
-    payload &&
-    typeof payload === 'object' &&
-    'error' in payload &&
-    typeof payload.error === 'string' &&
-    payload.error
-      ? payload.error
-      : `Request failed (${response.status})`;
-
-  if (response.status === 401 || response.status === 403) {
-    throw new LearningHistoryApiError(errorMessage, response.status, 'UNAUTHORIZED');
-  }
-
-  throw new LearningHistoryApiError(errorMessage, response.status, 'HTTP_ERROR');
-}
-
-function createTimeoutController(timeoutMs = REQUEST_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  return {
-    controller,
-    clear: () => clearTimeout(timeoutId),
-  };
-}
-
-async function wait(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function readJson<T>(
-  url: string,
-  options: RequestInit,
-  retries = 1,
-): Promise<T> {
-  const { controller, clear } = createTimeoutController();
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      await parseErrorPayload(response);
-    }
-
-    const payload = await response.json().catch(() => null);
-    if (!payload) {
-      throw new LearningHistoryApiError('Empty response payload', response.status, 'HTTP_ERROR');
-    }
-
-    return payload as T;
-  } catch (error) {
-    if (error instanceof LearningHistoryApiError) {
-      if (retries > 0 && isRetryableError(error)) {
-        await wait(300);
-        return readJson<T>(url, options, retries - 1);
-      }
-
-      throw error;
-    }
-
-    if (error instanceof Error && error.name === 'AbortError') {
-      const timeoutError = new LearningHistoryApiError(
-        '요청 시간이 초과되었어요. 잠시 후 다시 시도해 주세요.',
-        0,
-        'TIMEOUT',
-      );
-      if (retries > 0) {
-        await wait(300);
-        return readJson<T>(url, options, retries - 1);
-      }
-      throw timeoutError;
-    }
-
-    const networkError = new LearningHistoryApiError(
-      '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
-      0,
-      'NETWORK_ERROR',
-    );
-    if (retries > 0) {
-      await wait(300);
-      return readJson<T>(url, options, retries - 1);
-    }
-    throw networkError;
-  } finally {
-    clear();
-  }
-}
-
-function createAuthHeaders(session: AuthSession) {
-  return {
-    'x-dasida-account-key': session.accountKey,
-    'x-dasida-session-secret': session.requestSecret,
-  };
-}
-
 export class FirebaseLearningHistoryRepository implements LearningHistoryRepository {
   private readonly cache = new LocalLearningHistoryRepository();
 
   constructor(private readonly dependencies: Dependencies) {}
 
-  private async getSession(accountKey?: string) {
-    const session =
-      (await this.dependencies.authClient.loadSession()) ??
-      (await this.dependencies.authClient.ensureAnonymousSession());
+  private async getRemoteAuthContext(accountKey?: string, options?: { forceRefresh?: boolean }) {
+    return this.dependencies.authClient.getRemoteAuthContext(accountKey, options);
+  }
 
-    if (accountKey && session.accountKey !== accountKey) {
-      throw new LearningHistoryApiError('학습자 세션이 일치하지 않습니다.', 403, 'UNAUTHORIZED');
+  private async withAuthorizedRequest<T>(
+    accountKey: string,
+    run: (
+      headers: Record<string, string>,
+      authContext: Awaited<ReturnType<typeof this.getRemoteAuthContext>>,
+    ) => Promise<T>,
+  ) {
+    const authContext = await this.getRemoteAuthContext(accountKey);
+
+    try {
+      return await run(createRemoteAuthHeaders(authContext), authContext);
+    } catch (error) {
+      if (
+        authContext.kind === 'firebase' &&
+        error instanceof LearningHistoryApiError &&
+        error.code === 'UNAUTHORIZED'
+      ) {
+        const refreshedAuthContext = await this.getRemoteAuthContext(accountKey, {
+          forceRefresh: true,
+        });
+        return run(createRemoteAuthHeaders(refreshedAuthContext), refreshedAuthContext);
+      }
+
+      throw error;
     }
-
-    return session;
   }
 
   async recordAttempt(input: FinalizedAttemptInput) {
-    const session = await this.getSession(input.accountKey);
-    const payload = await readJson<{
-      attempt: LearningAttempt;
-      results: LearningAttemptResult[];
-      summary: LearnerSummaryCurrent;
-      reviewTasks: ReviewTask[];
-    }>(
-      this.dependencies.recordLearningAttemptUrl,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...createAuthHeaders(session),
-        },
-        body: JSON.stringify({
-          attempt: input,
-        }),
-      },
-      1,
-    );
-    await this.cache.cacheRecord(payload);
-    return payload;
+    try {
+      const payload = await this.withAuthorizedRequest(input.accountKey, (headers) =>
+        readLearningHistoryApiJson<{
+          attempt: LearningAttempt;
+          results: LearningAttemptResult[];
+          summary: LearnerSummaryCurrent;
+          reviewTasks: ReviewTask[];
+        }>(
+          this.dependencies.recordLearningAttemptUrl,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...headers,
+            },
+            body: JSON.stringify({
+              attempt: input,
+            }),
+          },
+          1,
+        ),
+      );
+      await this.cache.cacheRecord(payload);
+      return payload;
+    } catch (error) {
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        return this.cache.recordAttempt(input);
+      }
+
+      throw error;
+    }
   }
 
   async loadCurrentSummary(accountKey: string): Promise<LearnerSummaryCurrent | null> {
-    const session = await this.getSession(accountKey);
-
     try {
-      const payload = await readJson<{ summary: LearnerSummaryCurrent | null }>(
-        `${this.dependencies.getLearnerSummaryUrl}?accountKey=${encodeURIComponent(accountKey)}`,
-        {
-          method: 'GET',
-          headers: createAuthHeaders(session),
-        },
-        1,
+      const payload = await this.withAuthorizedRequest(accountKey, (headers) =>
+        readLearningHistoryApiJson<{ summary: LearnerSummaryCurrent | null }>(
+          `${this.dependencies.getLearnerSummaryUrl}?accountKey=${encodeURIComponent(accountKey)}`,
+          {
+            method: 'GET',
+            headers,
+          },
+          1,
+        ),
       );
 
       if (payload.summary) {
         await this.cache.cacheSummary(accountKey, payload.summary);
+      } else {
+        await this.cache.cacheSummary(accountKey, createEmptyLearnerSummary(accountKey));
       }
 
       return payload.summary;
     } catch (error) {
+      if (!shouldUseLearningHistoryCacheFallback(error)) {
+        throw error;
+      }
+
       const cachedSummary = await this.cache.loadCurrentSummary(accountKey);
       if (cachedSummary) {
         return cachedSummary;
@@ -221,33 +138,40 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
     accountKey: string,
     state: FeaturedExamState,
   ): Promise<LearnerSummaryCurrent> {
-    const session = await this.getSession(accountKey);
-    const payload = await readJson<{ summary: LearnerSummaryCurrent }>(
-      this.dependencies.saveFeaturedExamStateUrl,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...createAuthHeaders(session),
-        },
-        body: JSON.stringify({
-          accountKey,
-          state,
-        }),
-      },
-      1,
-    );
+    try {
+      const payload = await this.withAuthorizedRequest(accountKey, (headers) =>
+        readLearningHistoryApiJson<{ summary: LearnerSummaryCurrent }>(
+          this.dependencies.saveFeaturedExamStateUrl,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...headers,
+            },
+            body: JSON.stringify({
+              accountKey,
+              state,
+            }),
+          },
+          1,
+        ),
+      );
 
-    await this.cache.cacheSummary(accountKey, payload.summary);
-    return payload.summary;
+      await this.cache.cacheSummary(accountKey, payload.summary);
+      return payload.summary;
+    } catch (error) {
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        return this.cache.saveFeaturedExamState(accountKey, state);
+      }
+
+      throw error;
+    }
   }
 
   async listAttempts(
     accountKey: string,
     options?: { source?: LearningSource; limit?: number },
   ): Promise<LearningAttempt[]> {
-    const session = await this.getSession(accountKey);
-
     try {
       const searchParams = new URLSearchParams({
         accountKey,
@@ -261,18 +185,24 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
         searchParams.set('limit', String(options.limit));
       }
 
-      const payload = await readJson<{ attempts: LearningAttempt[] }>(
-        `${this.dependencies.listLearningAttemptsUrl}?${searchParams.toString()}`,
-        {
-          method: 'GET',
-          headers: createAuthHeaders(session),
-        },
-        1,
+      const payload = await this.withAuthorizedRequest(accountKey, (headers) =>
+        readLearningHistoryApiJson<{ attempts: LearningAttempt[] }>(
+          `${this.dependencies.listLearningAttemptsUrl}?${searchParams.toString()}`,
+          {
+            method: 'GET',
+            headers,
+          },
+          1,
+        ),
       );
 
       await this.cache.cacheAttempts(accountKey, payload.attempts);
       return payload.attempts;
     } catch (error) {
+      if (!shouldUseLearningHistoryCacheFallback(error)) {
+        throw error;
+      }
+
       const cachedAttempts = await this.cache.listAttempts(accountKey, options);
       if (cachedAttempts.length > 0) {
         return cachedAttempts;
@@ -286,21 +216,25 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
     accountKey: string,
     attemptId: string,
   ): Promise<LearningAttemptResult[]> {
-    const session = await this.getSession(accountKey);
-
     try {
-      const payload = await readJson<{ results: LearningAttemptResult[] }>(
-        `${this.dependencies.getLearningAttemptResultsUrl}?accountKey=${encodeURIComponent(accountKey)}&attemptId=${encodeURIComponent(attemptId)}`,
-        {
-          method: 'GET',
-          headers: createAuthHeaders(session),
-        },
-        1,
+      const payload = await this.withAuthorizedRequest(accountKey, (headers) =>
+        readLearningHistoryApiJson<{ results: LearningAttemptResult[] }>(
+          `${this.dependencies.getLearningAttemptResultsUrl}?accountKey=${encodeURIComponent(accountKey)}&attemptId=${encodeURIComponent(attemptId)}`,
+          {
+            method: 'GET',
+            headers,
+          },
+          1,
+        ),
       );
 
       await this.cache.cacheAttemptResults(accountKey, attemptId, payload.results);
       return payload.results;
     } catch (error) {
+      if (!shouldUseLearningHistoryCacheFallback(error)) {
+        throw error;
+      }
+
       const cachedResults = await this.cache.listAttemptResults(accountKey, attemptId);
       if (cachedResults.length > 0) {
         return cachedResults;

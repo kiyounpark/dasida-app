@@ -7,27 +7,40 @@ import {
   useState,
 } from 'react';
 
-import { LocalAnonymousAuthClient } from '@/features/auth/local-anonymous-auth-client';
-import type { AuthSession } from '@/features/auth/types';
+import { createAuthClient } from '@/features/auth/create-auth-client';
+import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
 import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
-import type { FinalizedAttemptInput } from '@/features/learning/history-repository';
+import type {
+  FinalizedAttemptInput,
+  HistoryMigrationStatus,
+} from '@/features/learning/history-repository';
 import type {
   FeaturedExamState,
   LearnerProfile,
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
+import { LearningHistoryMigrationService } from '@/features/learning/learning-history-migration-service';
+import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
+import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-learning-history-snapshot-store';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
-const authClient = new LocalAnonymousAuthClient();
+const authClient = createAuthClient();
+const localLearningHistoryRepository = new LocalLearningHistoryRepository();
 const learnerController = createCurrentLearnerController({
   authClient,
   profileStore: new LocalLearnerProfileStore(),
   learningHistoryRepository: createLearningHistoryRepository(authClient),
+  localLearningHistoryRepository,
+  migrationService: new LearningHistoryMigrationService({
+    authClient,
+    cacheRepository: localLearningHistoryRepository,
+    snapshotStore: new LocalLearningHistorySnapshotStore(),
+  }),
   peerPresenceStore,
 });
 
@@ -37,7 +50,12 @@ export type CurrentLearnerContextValue = {
   profile: LearnerProfile | null;
   summary: LearnerSummaryCurrent | null;
   homeState: HomeLearningState | null;
+  availableAuthProviders: SupportedAuthProvider[];
   refresh(): Promise<void>;
+  signIn(provider: SupportedAuthProvider): Promise<HistoryMigrationStatus>;
+  signOut(): Promise<void>;
+  getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
+  importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<HistoryMigrationStatus>;
   updateGrade(grade: LearnerProfile['grade']): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
@@ -105,6 +123,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CurrentLearnerContextValue>(
     () => ({
       ...state,
+      availableAuthProviders: authClient.getSupportedProviders(),
       refresh: async () => {
         const snapshot = await learnerController.refresh();
         setState({
@@ -114,6 +133,41 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
+      },
+      signIn: async (provider) => {
+        const result = await learnerController.signIn(provider);
+        setState({
+          isReady: true,
+          session: result.snapshot.session,
+          profile: result.snapshot.profile,
+          summary: result.snapshot.summary,
+          homeState: result.snapshot.homeState,
+        });
+        return result.migrationStatus;
+      },
+      signOut: async () => {
+        const snapshot = await learnerController.signOut();
+        setState({
+          isReady: true,
+          session: snapshot.session,
+          profile: snapshot.profile,
+          summary: snapshot.summary,
+          homeState: snapshot.homeState,
+        });
+      },
+      getHistoryMigrationStatus: (sourceAnonymousAccountKey) => {
+        return learnerController.getHistoryMigrationStatus(sourceAnonymousAccountKey);
+      },
+      importAnonymousHistory: async (sourceAnonymousAccountKey) => {
+        const result = await learnerController.importAnonymousHistory(sourceAnonymousAccountKey);
+        setState({
+          isReady: true,
+          session: result.snapshot.session,
+          profile: result.snapshot.profile,
+          summary: result.snapshot.summary,
+          homeState: result.snapshot.homeState,
+        });
+        return result.migrationStatus;
       },
       updateGrade: async (grade) => {
         const snapshot = await learnerController.updateGrade(grade);

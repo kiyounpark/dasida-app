@@ -1,14 +1,16 @@
 import type { AuthClient } from '@/features/auth/auth-client';
-import type { AuthSession } from '@/features/auth/types';
+import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import { buildHomeLearningState, type HomeLearningState } from '@/features/learning/home-state';
 import { getPreviewPeerPresence } from '@/features/learning/peer-presence-preview';
 import type { PreviewablePeerPresenceStore } from '@/features/learning/peer-presence-store';
 import {
   createEmptyLearnerSummary,
+  type HistoryMigrationStatus,
   type FinalizedAttemptInput,
   type LearningHistoryRepository,
 } from '@/features/learning/history-repository';
+import { LearningHistoryMigrationService } from '@/features/learning/learning-history-migration-service';
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
@@ -29,6 +31,16 @@ export type CurrentLearnerSnapshot = {
 export type CurrentLearnerController = {
   bootstrap(): Promise<CurrentLearnerSnapshot>;
   refresh(): Promise<CurrentLearnerSnapshot>;
+  signIn(provider: SupportedAuthProvider): Promise<{
+    snapshot: CurrentLearnerSnapshot;
+    migrationStatus: HistoryMigrationStatus;
+  }>;
+  signOut(): Promise<CurrentLearnerSnapshot>;
+  getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
+  importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<{
+    snapshot: CurrentLearnerSnapshot;
+    migrationStatus: HistoryMigrationStatus;
+  }>;
   updateGrade(grade: LearnerProfile['grade']): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
@@ -40,6 +52,8 @@ type Dependencies = {
   authClient: AuthClient;
   profileStore: LearnerProfileStore;
   learningHistoryRepository: LearningHistoryRepository;
+  localLearningHistoryRepository: LocalLearningHistoryRepository;
+  migrationService: LearningHistoryMigrationService;
   peerPresenceStore: PreviewablePeerPresenceStore;
 };
 
@@ -104,6 +118,8 @@ export function createCurrentLearnerController({
   authClient,
   profileStore,
   learningHistoryRepository,
+  localLearningHistoryRepository,
+  migrationService,
   peerPresenceStore,
 }: Dependencies): CurrentLearnerController {
   const buildSnapshot = async (
@@ -117,8 +133,7 @@ export function createCurrentLearnerController({
     homeState: buildHomeLearningState(profile, summary, await peerPresenceStore.load()),
   });
 
-  const readCurrentSnapshot = async (): Promise<CurrentLearnerSnapshot> => {
-    const session = (await authClient.loadSession()) ?? (await authClient.ensureAnonymousSession());
+  const buildSnapshotForSession = async (session: AuthSession): Promise<CurrentLearnerSnapshot> => {
     const profile = await ensureProfile(profileStore, session.accountKey);
     const summary =
       (await learningHistoryRepository.loadCurrentSummary(session.accountKey)) ??
@@ -126,9 +141,74 @@ export function createCurrentLearnerController({
     return buildSnapshot(session, profile, summary);
   };
 
+  const readCurrentSession = async () =>
+    (await authClient.loadSession()) ?? (await authClient.ensureAnonymousSession());
+
+  const maybeResumePendingImports = async (session: AuthSession) => {
+    if (session.status !== 'authenticated') {
+      return;
+    }
+
+    try {
+      await migrationService.resumePendingImports(session.accountKey);
+    } catch (error) {
+      console.warn('Failed to resume pending learning history imports.', error);
+      // Startup should continue even when the background reconciliation cannot complete.
+    }
+  };
+
+  const readCurrentSnapshot = async (options?: {
+    resumePendingImports?: boolean;
+  }): Promise<CurrentLearnerSnapshot> => {
+    const session = await readCurrentSession();
+    if (options?.resumePendingImports) {
+      await maybeResumePendingImports(session);
+    }
+
+    return buildSnapshotForSession(session);
+  };
+
   return {
-    bootstrap: readCurrentSnapshot,
+    bootstrap: async () => {
+      return readCurrentSnapshot({
+        resumePendingImports: true,
+      });
+    },
     refresh: readCurrentSnapshot,
+    signIn: async (provider) => {
+      const { previousSession, nextSession } = await authClient.signIn(provider);
+      const migrationStatus =
+        previousSession.status === 'anonymous' && nextSession.status === 'authenticated'
+          ? await migrationService.loadStatus({
+              sourceAnonymousAccountKey: previousSession.accountKey,
+              targetAccountKey: nextSession.accountKey,
+            })
+          : {
+              state: 'empty' as const,
+              targetAccountKey: nextSession.accountKey,
+            };
+
+      return {
+        snapshot: await buildSnapshotForSession(nextSession),
+        migrationStatus,
+      };
+    },
+    signOut: async () => {
+      const nextSession = await authClient.signOut();
+      return buildSnapshotForSession(nextSession);
+    },
+    getHistoryMigrationStatus: async (sourceAnonymousAccountKey) => {
+      return migrationService.loadStatus({
+        sourceAnonymousAccountKey,
+      });
+    },
+    importAnonymousHistory: async (sourceAnonymousAccountKey) => {
+      const migrationStatus = await migrationService.importAnonymousSnapshot(sourceAnonymousAccountKey);
+      return {
+        snapshot: await readCurrentSnapshot(),
+        migrationStatus,
+      };
+    },
     updateGrade: async (grade) => {
       const { session, profile, summary } = await readCurrentSnapshot();
       const nextProfile: LearnerProfile = {
@@ -153,8 +233,8 @@ export function createCurrentLearnerController({
     seedPreview: async (state) => {
       const { session, profile } = await readCurrentSnapshot();
 
-      if (learningHistoryRepository instanceof LocalLearningHistoryRepository) {
-        await learningHistoryRepository.reset(session.accountKey);
+      if (session.status === 'anonymous') {
+        await localLearningHistoryRepository.reset(session.accountKey);
       }
 
       if (state === 'fresh') {
@@ -179,21 +259,16 @@ export function createCurrentLearnerController({
       return readCurrentSnapshot();
     },
     resetLocalProfile: async () => {
-      const currentSession = await authClient.ensureAnonymousSession();
+      const currentSession = await readCurrentSession();
 
-      if (learningHistoryRepository instanceof LocalLearningHistoryRepository) {
-        await learningHistoryRepository.reset(currentSession.accountKey);
+      if (currentSession.status === 'anonymous') {
+        await localLearningHistoryRepository.reset(currentSession.accountKey);
+        await profileStore.reset(currentSession.accountKey);
       }
 
-      await profileStore.reset(currentSession.accountKey);
       await peerPresenceStore.clearPreviewSnapshot();
       const nextSession = await authClient.signOut();
-      const nextProfile = await ensureProfile(profileStore, nextSession.accountKey);
-      const nextSummary =
-        (await learningHistoryRepository.loadCurrentSummary(nextSession.accountKey)) ??
-        createEmptyLearnerSummary(nextSession.accountKey);
-
-      return buildSnapshot(nextSession, nextProfile, nextSummary);
+      return buildSnapshotForSession(nextSession);
     },
   };
 }

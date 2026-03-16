@@ -65,6 +65,44 @@ export type LearningHistoryRepository = {
   listAttemptResults(accountKey: string, attemptId: string): Promise<LearningAttemptResult[]>;
 };
 
+export type LocalLearningHistorySnapshot = {
+  sourceAccountKey: string;
+  attempts: LearningAttempt[];
+  resultsByAttemptId: Record<string, LearningAttemptResult[]>;
+  reviewTasks: ReviewTask[];
+  summary: LearnerSummaryCurrent | null;
+  featuredExamState: FeaturedExamState;
+  recordCount: number;
+  lastUpdatedAt?: string;
+};
+
+export type HistoryMigrationStatus =
+  | {
+      state: 'empty';
+      targetAccountKey: string;
+      sourceAccountKey?: string;
+    }
+  | {
+      state: 'ready';
+      sourceAccountKey: string;
+      targetAccountKey: string;
+      recordCount: number;
+    }
+  | {
+      state: 'already_imported';
+      sourceAccountKey: string;
+      targetAccountKey: string;
+      recordCount: number;
+      summary: LearnerSummaryCurrent | null;
+    }
+  | {
+      state: 'completed';
+      sourceAccountKey: string;
+      targetAccountKey: string;
+      recordCount: number;
+      summary: LearnerSummaryCurrent;
+    };
+
 export function createDefaultFeaturedExamState(): FeaturedExamState {
   return {
     examId: DEFAULT_FEATURED_EXAM_ID,

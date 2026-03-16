@@ -1,6 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { StorageKeys } from '@/constants/storage-keys';
 import { diagnosisMap, weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import type { ActiveReviewTaskSummary, FeaturedExamState } from '@/features/learner/types';
 
@@ -17,28 +14,21 @@ import type {
   LearningAttemptResult,
   ReviewTask,
 } from './types';
+import {
+  clearLearningHistoryStorage,
+  getAttemptResultsStorageKey,
+  getAttemptsStorageKey,
+  getReviewTasksStorageKey,
+  getSummaryStorageKey,
+  readLearningHistoryJson,
+  writeLearningHistoryJson,
+} from './local-learning-history-storage';
 
 const REVIEW_STAGE_OFFSETS: Record<ReviewStage, number> = {
   day1: 1,
   day3: 3,
   day7: 7,
 };
-
-function getAttemptsStorageKey(accountKey: string) {
-  return `${StorageKeys.learningAttemptsPrefix}${accountKey}`;
-}
-
-function getAttemptResultsStorageKey(accountKey: string) {
-  return `${StorageKeys.learningAttemptResultsPrefix}${accountKey}`;
-}
-
-function getReviewTasksStorageKey(accountKey: string) {
-  return `${StorageKeys.reviewTasksPrefix}${accountKey}`;
-}
-
-function getSummaryStorageKey(accountKey: string) {
-  return `${StorageKeys.learnerSummaryCurrentPrefix}${accountKey}`;
-}
 
 function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
   return `${sourceId}__${weaknessId}__${stage}`;
@@ -181,7 +171,7 @@ function buildRecentActivity(
     .slice(0, 5);
 }
 
-function buildSummary(
+export function buildSummary(
   accountKey: string,
   attempts: LearningAttempt[],
   results: LearningAttemptResult[],
@@ -190,9 +180,24 @@ function buildSummary(
 ): LearnerSummaryCurrent {
   const sortedAttempts = sortAttempts(attempts);
   const latestDiagnosticAttempt = sortedAttempts.find((attempt) => attempt.source === 'diagnostic');
-  const featuredExamState =
-    currentSummary?.featuredExamState ?? createDefaultFeaturedExamState();
+  const latestFeaturedExamAttempt = sortedAttempts.find(
+    (attempt) => attempt.source === 'featured-exam',
+  );
+  let featuredExamState = currentSummary?.featuredExamState ?? createDefaultFeaturedExamState();
   const nextReviewTask = sortReviewTasks(reviewTasks.filter((task) => !task.completed))[0];
+
+  if (
+    latestFeaturedExamAttempt &&
+    (featuredExamState.status !== 'in_progress' ||
+      !featuredExamState.lastOpenedAt ||
+      featuredExamState.lastOpenedAt.localeCompare(latestFeaturedExamAttempt.completedAt) <= 0)
+  ) {
+    featuredExamState = {
+      examId: latestFeaturedExamAttempt.sourceEntityId ?? featuredExamState.examId,
+      status: 'completed',
+      lastOpenedAt: latestFeaturedExamAttempt.completedAt,
+    };
+  }
 
   return {
     accountKey,
@@ -303,32 +308,15 @@ function buildReviewTasks(
   return sortReviewTasks(nextTasks);
 }
 
-async function readJson<T>(key: string, fallback: T): Promise<T> {
-  const rawValue = await AsyncStorage.getItem(key);
-  if (!rawValue) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(rawValue) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeJson(key: string, value: unknown) {
-  await AsyncStorage.setItem(key, JSON.stringify(value));
-}
-
 export class LocalLearningHistoryRepository implements LearningHistoryRepository {
   async recordAttempt(input: FinalizedAttemptInput) {
     const [attempts, resultsByAttemptId, reviewTasks, currentSummary] = await Promise.all([
-      readJson<LearningAttempt[]>(getAttemptsStorageKey(input.accountKey), []),
-      readJson<Record<string, LearningAttemptResult[]>>(
+      readLearningHistoryJson<LearningAttempt[]>(getAttemptsStorageKey(input.accountKey), []),
+      readLearningHistoryJson<Record<string, LearningAttemptResult[]>>(
         getAttemptResultsStorageKey(input.accountKey),
         {},
       ),
-      readJson<ReviewTask[]>(getReviewTasksStorageKey(input.accountKey), []),
+      readLearningHistoryJson<ReviewTask[]>(getReviewTasksStorageKey(input.accountKey), []),
       this.loadCurrentSummary(input.accountKey),
     ]);
 
@@ -367,10 +355,10 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     }
 
     await Promise.all([
-      writeJson(getAttemptsStorageKey(input.accountKey), nextAttempts),
-      writeJson(getAttemptResultsStorageKey(input.accountKey), nextResultsByAttemptId),
-      writeJson(getReviewTasksStorageKey(input.accountKey), nextReviewTasks),
-      writeJson(getSummaryStorageKey(input.accountKey), nextSummary),
+      writeLearningHistoryJson(getAttemptsStorageKey(input.accountKey), nextAttempts),
+      writeLearningHistoryJson(getAttemptResultsStorageKey(input.accountKey), nextResultsByAttemptId),
+      writeLearningHistoryJson(getReviewTasksStorageKey(input.accountKey), nextReviewTasks),
+      writeLearningHistoryJson(getSummaryStorageKey(input.accountKey), nextSummary),
     ]);
 
     return {
@@ -382,7 +370,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
   }
 
   async loadCurrentSummary(accountKey: string): Promise<LearnerSummaryCurrent | null> {
-    return readJson<LearnerSummaryCurrent | null>(getSummaryStorageKey(accountKey), null);
+    return readLearningHistoryJson<LearnerSummaryCurrent | null>(getSummaryStorageKey(accountKey), null);
   }
 
   async cacheRecord(payload: {
@@ -391,8 +379,11 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     summary: LearnerSummaryCurrent;
     reviewTasks: ReviewTask[];
   }): Promise<void> {
-    const attempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(payload.attempt.accountKey), []);
-    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+    const attempts = await readLearningHistoryJson<LearningAttempt[]>(
+      getAttemptsStorageKey(payload.attempt.accountKey),
+      [],
+    );
+    const resultsByAttemptId = await readLearningHistoryJson<Record<string, LearningAttemptResult[]>>(
       getAttemptResultsStorageKey(payload.attempt.accountKey),
       {},
     );
@@ -407,19 +398,22 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     };
 
     await Promise.all([
-      writeJson(getAttemptsStorageKey(payload.attempt.accountKey), nextAttempts),
-      writeJson(getAttemptResultsStorageKey(payload.attempt.accountKey), nextResultsByAttemptId),
-      writeJson(getReviewTasksStorageKey(payload.attempt.accountKey), payload.reviewTasks),
-      writeJson(getSummaryStorageKey(payload.attempt.accountKey), payload.summary),
+      writeLearningHistoryJson(getAttemptsStorageKey(payload.attempt.accountKey), nextAttempts),
+      writeLearningHistoryJson(getAttemptResultsStorageKey(payload.attempt.accountKey), nextResultsByAttemptId),
+      writeLearningHistoryJson(getReviewTasksStorageKey(payload.attempt.accountKey), payload.reviewTasks),
+      writeLearningHistoryJson(getSummaryStorageKey(payload.attempt.accountKey), payload.summary),
     ]);
   }
 
   async cacheSummary(accountKey: string, summary: LearnerSummaryCurrent): Promise<void> {
-    await writeJson(getSummaryStorageKey(accountKey), summary);
+    await writeLearningHistoryJson(getSummaryStorageKey(accountKey), summary);
   }
 
   async cacheAttempts(accountKey: string, attempts: LearningAttempt[]): Promise<void> {
-    const existingAttempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
+    const existingAttempts = await readLearningHistoryJson<LearningAttempt[]>(
+      getAttemptsStorageKey(accountKey),
+      [],
+    );
     const nextAttempts = sortAttempts([
       ...attempts,
       ...existingAttempts.filter(
@@ -427,7 +421,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
       ),
     ]);
 
-    await writeJson(getAttemptsStorageKey(accountKey), nextAttempts);
+    await writeLearningHistoryJson(getAttemptsStorageKey(accountKey), nextAttempts);
   }
 
   async cacheAttemptResults(
@@ -435,11 +429,11 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     attemptId: string,
     results: LearningAttemptResult[],
   ): Promise<void> {
-    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+    const resultsByAttemptId = await readLearningHistoryJson<Record<string, LearningAttemptResult[]>>(
       getAttemptResultsStorageKey(accountKey),
       {},
     );
-    await writeJson(getAttemptResultsStorageKey(accountKey), {
+    await writeLearningHistoryJson(getAttemptResultsStorageKey(accountKey), {
       ...resultsByAttemptId,
       [attemptId]: results,
     });
@@ -449,12 +443,12 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     accountKey: string,
     state: FeaturedExamState,
   ): Promise<LearnerSummaryCurrent> {
-    const attempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
-    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+    const attempts = await readLearningHistoryJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
+    const resultsByAttemptId = await readLearningHistoryJson<Record<string, LearningAttemptResult[]>>(
       getAttemptResultsStorageKey(accountKey),
       {},
     );
-    const reviewTasks = await readJson<ReviewTask[]>(getReviewTasksStorageKey(accountKey), []);
+    const reviewTasks = await readLearningHistoryJson<ReviewTask[]>(getReviewTasksStorageKey(accountKey), []);
     const currentSummary = (await this.loadCurrentSummary(accountKey)) ?? createEmptyLearnerSummary(accountKey);
 
     const nextSummary = buildSummary(
@@ -471,7 +465,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     nextSummary.featuredExamState = state;
     nextSummary.recentActivity = buildRecentActivity(attempts, reviewTasks, state);
 
-    await writeJson(getSummaryStorageKey(accountKey), nextSummary);
+    await writeLearningHistoryJson(getSummaryStorageKey(accountKey), nextSummary);
     return nextSummary;
   }
 
@@ -479,7 +473,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     accountKey: string,
     options?: { source?: LearningSource; limit?: number },
   ): Promise<LearningAttempt[]> {
-    const attempts = await readJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
+    const attempts = await readLearningHistoryJson<LearningAttempt[]>(getAttemptsStorageKey(accountKey), []);
     const filteredAttempts = options?.source
       ? attempts.filter((attempt) => attempt.source === options.source)
       : attempts;
@@ -490,7 +484,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
   }
 
   async listAttemptResults(accountKey: string, attemptId: string): Promise<LearningAttemptResult[]> {
-    const resultsByAttemptId = await readJson<Record<string, LearningAttemptResult[]>>(
+    const resultsByAttemptId = await readLearningHistoryJson<Record<string, LearningAttemptResult[]>>(
       getAttemptResultsStorageKey(accountKey),
       {},
     );
@@ -498,12 +492,7 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
   }
 
   async reset(accountKey: string): Promise<void> {
-    await Promise.all([
-      AsyncStorage.removeItem(getAttemptsStorageKey(accountKey)),
-      AsyncStorage.removeItem(getAttemptResultsStorageKey(accountKey)),
-      AsyncStorage.removeItem(getReviewTasksStorageKey(accountKey)),
-      AsyncStorage.removeItem(getSummaryStorageKey(accountKey)),
-    ]);
+    await clearLearningHistoryStorage(accountKey);
   }
 
   async seedPreview(
@@ -512,8 +501,8 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     reviewTasks: ReviewTask[],
   ): Promise<void> {
     await Promise.all([
-      writeJson(getSummaryStorageKey(accountKey), state),
-      writeJson(getReviewTasksStorageKey(accountKey), reviewTasks),
+      writeLearningHistoryJson(getSummaryStorageKey(accountKey), state),
+      writeLearningHistoryJson(getReviewTasksStorageKey(accountKey), reviewTasks),
     ]);
   }
 }

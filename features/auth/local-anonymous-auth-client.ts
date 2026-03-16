@@ -1,103 +1,52 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { StorageKeys } from '@/constants/storage-keys';
-
 import type { AuthClient } from './auth-client';
+import { createAnonymousSession, loadStoredAuthSession, saveAuthSession } from './session-store';
 import type { AuthSession, SupportedAuthProvider } from './types';
-
-const supportedProviders: SupportedAuthProvider[] = ['apple', 'google', 'kakao'];
-
-function createRandomId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function createSessionSecret() {
-  const cryptoApi = globalThis.crypto as
-    | {
-        randomUUID?: () => string;
-      }
-    | undefined;
-
-  if (typeof cryptoApi?.randomUUID === 'function') {
-    return cryptoApi.randomUUID().replace(/-/g, '');
-  }
-
-  return Array.from({ length: 4 }, () => `${createRandomId()}${Math.random().toString(36).slice(2, 10)}`).join(
-    '',
-  );
-}
-
-function createAnonymousSession(subject = createRandomId()): AuthSession {
-  const timestamp = new Date().toISOString();
-
-  return {
-    status: 'anonymous',
-    identity: {
-      provider: 'anonymous',
-      subject,
-    },
-    accountKey: `anon:${subject}`,
-    requestSecret: createSessionSecret(),
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-}
 
 export class LocalAnonymousAuthClient implements AuthClient {
   async loadSession(): Promise<AuthSession | null> {
-    const rawValue = await AsyncStorage.getItem(StorageKeys.authSession);
-    if (!rawValue) {
-      return null;
-    }
-
-    try {
-      const parsedSession = JSON.parse(rawValue) as Partial<AuthSession>;
-      if (
-        !parsedSession ||
-        typeof parsedSession.accountKey !== 'string' ||
-        !parsedSession.identity ||
-        typeof parsedSession.identity.subject !== 'string'
-      ) {
-        return null;
-      }
-
-      if (typeof parsedSession.requestSecret === 'string' && parsedSession.requestSecret.length > 0) {
-        return parsedSession as AuthSession;
-      }
-
-      const migratedSession: AuthSession = {
-        ...(parsedSession as Omit<AuthSession, 'requestSecret'>),
-        requestSecret: createSessionSecret(),
-      };
-      await AsyncStorage.setItem(StorageKeys.authSession, JSON.stringify(migratedSession));
-      return migratedSession;
-    } catch {
-      return null;
-    }
+    return loadStoredAuthSession();
   }
 
   async ensureAnonymousSession(): Promise<AuthSession> {
     const existingSession = await this.loadSession();
-    if (existingSession) {
+    if (existingSession?.status === 'anonymous') {
       return existingSession;
     }
 
     const anonymousSession = createAnonymousSession();
-    await AsyncStorage.setItem(StorageKeys.authSession, JSON.stringify(anonymousSession));
+    await saveAuthSession(anonymousSession);
     return anonymousSession;
   }
 
-  async signIn(): Promise<AuthSession> {
+  async signIn(): Promise<never> {
     throw new Error('Social sign-in is not implemented yet.');
   }
 
   async signOut(): Promise<AuthSession> {
     const nextSession = createAnonymousSession();
-    await AsyncStorage.setItem(StorageKeys.authSession, JSON.stringify(nextSession));
+    await saveAuthSession(nextSession);
     return nextSession;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {
-    return supportedProviders;
+    return [];
+  }
+
+  async getRemoteAuthContext(accountKey?: string) {
+    const session = (await this.loadSession()) ?? (await this.ensureAnonymousSession());
+
+    if (session.status !== 'anonymous') {
+      throw new Error('Local anonymous auth client does not support authenticated remote access.');
+    }
+
+    if (accountKey && session.accountKey !== accountKey) {
+      throw new Error('Anonymous auth context does not match requested account.');
+    }
+
+    return {
+      kind: 'anonymous' as const,
+      accountKey: session.accountKey,
+      requestSecret: session.requestSecret,
+    };
   }
 }
