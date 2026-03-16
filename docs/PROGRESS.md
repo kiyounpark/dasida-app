@@ -32,6 +32,7 @@
 - Claude Code CLI 리뷰 지적을 반영해 `provider`의 `loadRecentAttempts()` 참조를 `useCallback`으로 고정하고, `use-history-screen.ts`의 attempts 재조회 로직을 공통 `loadAttempts()`로 합쳐 effect/refresh 중복을 제거
 - 이후 Claude 리뷰에서 확인된 `quiz/history/profile` 세션 공유 리스크를 없애기 위해 `QuizSessionProvider`는 다시 `app/(tabs)/quiz/_layout.tsx` 안으로 되돌리고, `history`는 `reset=1` 진입 파라미터만 넘긴 뒤 실제 세션 초기화는 `quiz/diagnostic` 화면 마운트 시 provider 안쪽에서 처리하도록 조정
 - `features/auth/session-store.ts`: `SecureStore`가 허용하지 않는 `/`와 `:`가 섞인 키를 쓰던 문제를 수정하기 위해 SecureStore 전용 키를 `dasida.auth.session_secret.<hex(accountKey)>` 형식으로 분리하고, SecureStore 접근 실패 시 AsyncStorage로 안전하게 폴백하도록 보강
+- `features/history/history-insights.ts`, `components/history-screen-view.tsx`: `설계/감각/낙인/메모 수준`처럼 내부 기획 언어로 들리던 문구를 사용자 관점 문장으로 정리하고, `첫 기록`, `비교 카드`, `자주 헷갈린 부분`, `최근 활동` 안내 카피를 더 자연스럽게 다듬음
 - **검증**: `npm run typecheck`, `npm run lint` 통과, Claude Code CLI 리뷰에서 `No blocking issues` 확인
 
 **내 기록 성장 화면 HTML 프로토타입 v2 리디자인**

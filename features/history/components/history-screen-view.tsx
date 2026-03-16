@@ -52,7 +52,7 @@ function TrendChart({
           첫 기록이 쌓이면 여기서 변화량을 보여 줍니다
         </SvgText>
         <SvgText x={150} y={74} textAnchor="middle" fill="#94A196" fontSize={11}>
-          점수표보다 흐름 신호가 먼저 보이게 설계
+          한 번 더 풀면 달라진 점이 더 또렷해져요
         </SvgText>
       </Svg>
     );
@@ -220,10 +220,10 @@ export function HistoryScreenView({
             DASIDA
           </Text>
           <Text selectable style={styles.headerTitle}>
-            오늘 할 일과 최근 성장 신호를 먼저 보는 화면
+            오늘 할 일과 최근 달라진 점
           </Text>
           <Text selectable style={styles.headerBody}>
-            실제 사용자 진단 기록과 요약 데이터를 바탕으로, 행동을 먼저 주고 변화량을 짧게 읽게 만듭니다.
+            오늘 바로 할 일과 최근 진단에서 달라진 점을 먼저 볼 수 있어요.
           </Text>
         </View>
 
@@ -270,7 +270,7 @@ export function HistoryScreenView({
               이번엔 얼마나 달라졌는지
             </Text>
             <Text selectable style={styles.body}>
-              정답률 그래프를 읽기 전에, 직전보다 나아졌는지부터 먼저 느끼게 합니다.
+              지난번보다 얼마나 달라졌는지 먼저 확인해 보세요.
             </Text>
           </View>
           <View style={styles.spotlightTop}>
@@ -283,7 +283,7 @@ export function HistoryScreenView({
               </Text>
               <Text selectable style={styles.body}>
                 {isSpotlightLoading
-                  ? '저장된 진단 시도를 불러온 뒤 직전 대비 변화량으로 바꿔 보여줍니다.'
+                  ? '최근 진단을 불러오는 중이에요. 잠시만 기다려 주세요.'
                   : insights.spotlight.supportingText}
               </Text>
             </View>
@@ -326,7 +326,7 @@ export function HistoryScreenView({
           </View>
           <Text selectable style={styles.body}>
             {isSpotlightLoading
-              ? '앱에 저장된 실제 시도 기록을 읽고 있습니다. 첫 표시부터 빈 상태처럼 보이지 않도록 로딩을 분리했습니다.'
+              ? '조금만 기다리면 최근 변화가 정리돼서 보여집니다.'
               : insights.spotlight.coachText}
           </Text>
         </View>
@@ -337,13 +337,13 @@ export function HistoryScreenView({
               지난번과 이번
             </Text>
             <Text selectable style={styles.body}>
-              선 그래프 대신, 사용자가 가장 빨리 이해하는 전후 비교를 바로 보여줍니다.
+              지난번과 이번이 어떻게 달라졌는지 바로 볼 수 있어요.
             </Text>
           </View>
           {isSpotlightLoading ? (
             <View style={styles.placeholderCard}>
               <Text selectable style={styles.body}>
-                지난번과 이번 비교는 실제 진단 기록을 불러온 뒤 바로 계산됩니다.
+                지난 기록을 불러오면 이번 결과와 함께 비교해 드릴게요.
               </Text>
             </View>
           ) : insights.comparison.enabled ? (
@@ -414,7 +414,7 @@ export function HistoryScreenView({
               지금 다시 잡을 유형
             </Text>
             <Text selectable style={styles.body}>
-              반복 흔들림은 낙인처럼 세지 않고, 오늘 복습과 연결되는 순서만 보여줍니다.
+              자주 헷갈렸던 부분만 가볍게 모아봤어요.
             </Text>
           </View>
           {insights.focusItems.length > 0 ? (
@@ -452,7 +452,7 @@ export function HistoryScreenView({
           ) : (
             <View style={styles.placeholderCard}>
               <Text selectable style={styles.body}>
-                반복 흔들림은 첫 진단 이후부터 쌓입니다. 지금은 시작이 더 중요합니다.
+                진단이 쌓이면 자주 헷갈리는 부분도 함께 정리해서 보여드릴게요.
               </Text>
             </View>
           )}
@@ -464,7 +464,7 @@ export function HistoryScreenView({
               짧은 메모
             </Text>
             <Text selectable style={styles.body}>
-              `최근활동`은 메인 카드에서 내리고, 맥락 확인용 메모 수준으로만 남깁니다.
+              최근에 했던 학습을 짧게 다시 볼 수 있어요.
             </Text>
           </View>
           {insights.pulseItems.length > 0 ? (
@@ -507,7 +507,7 @@ export function HistoryScreenView({
           ) : (
             <View style={styles.placeholderCard}>
               <Text selectable style={styles.body}>
-                최근 메모는 진단이나 복습이 쌓인 뒤부터 보이게 됩니다.
+                진단이나 복습이 쌓이면 최근 활동도 함께 보여드릴게요.
               </Text>
             </View>
           )}

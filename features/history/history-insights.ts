@@ -164,7 +164,7 @@ function buildHero(
         `최근 약점 · ${getWeaknessLabel(summary.latestDiagnosticSummary.topWeaknesses[0])}`,
       ],
       pointLabel: `${attempts.length || 1}회차`,
-      pointBody: '한 번 더 쌓이면 성장 신호를 더 분명하게 읽을 수 있습니다.',
+      pointBody: '한 번 더 풀면 달라진 점을 더 또렷하게 볼 수 있어요.',
       ctaLabel: '빠른 재진단 하기',
       ctaKind: 'diagnostic',
     };
@@ -172,10 +172,10 @@ function buildHero(
 
   return {
     title: '첫 진단 10문제로 내 흐름을 먼저 만들어보세요.',
-    body: '지금은 변화량보다 첫 기록이 더 중요합니다. 첫 결과 하나만 생겨도 다음부터는 “나아짐”을 계속 보여줄 수 있어요.',
+    body: '첫 결과 하나만 생겨도 다음부터는 달라진 점을 계속 확인할 수 있어요.',
     meta: ['10문항', '약 3분'],
     pointLabel: '시작',
-    pointBody: '첫 기록 전에는 숫자보다 시작 동기가 먼저 보이게 합니다.',
+    pointBody: '가볍게 한 번 시작해 보세요. 첫 기록부터 차근차근 쌓이면 됩니다.',
     ctaLabel: '첫 진단 시작하기',
     ctaKind: 'diagnostic',
   };
@@ -199,7 +199,7 @@ function buildSpotlight(
       badgeTone: 'neutral',
       coachText: attemptsErrorMessage
         ? attemptsErrorMessage
-        : '첫 기록이 생긴 뒤부터는 점수보다 “전보다 나아졌는지”를 중심으로 보여줄 수 있어요.',
+        : '첫 기록이 생기면 다음부터는 이전보다 얼마나 달라졌는지 함께 볼 수 있어요.',
       series: [],
     };
   }
@@ -221,7 +221,7 @@ function buildSpotlight(
       badgeText: '첫 기록',
       badgeTone: 'neutral',
       coachText:
-        '지금은 추세선보다 첫 출발점이 중요합니다. 두 번째 기록이 생기면 바로 전후 비교가 가능합니다.',
+        '좋아요. 다음 진단이 쌓이면 지난번과 이번을 바로 비교해 볼 수 있어요.',
       series: [series[0]],
     };
   }
@@ -240,8 +240,8 @@ function buildSpotlight(
     badgeTone: isBest || delta >= 0 ? 'positive' : 'warning',
     coachText:
       delta >= 0
-        ? '좋은 신호예요. 지금 방식이 맞고 있다는 증거로 읽히게 만들었습니다.'
-        : '내려간 날이라도 바로 낙인찍지 않고, 오늘 다시 잡을 약점으로 자연스럽게 이어지게 했습니다.',
+        ? '좋은 흐름이에요. 지금처럼 차근차근 이어가면 됩니다.'
+        : '조금 흔들려도 괜찮아요. 오늘은 이 부분만 다시 보면 됩니다.',
     series,
   };
 }
@@ -252,8 +252,7 @@ function buildComparison(attempts: LearningAttempt[]): HistoryComparisonState {
   if (sorted.length < 2) {
     return {
       enabled: false,
-      placeholder:
-        '비교 카드는 두 번째 진단부터 열립니다. 지금은 “첫 기록이 생겼다”는 감각만 주는 쪽이 더 중요합니다.',
+      placeholder: '한 번 더 진단하면 지난번과 이번을 나란히 비교해 볼 수 있어요.',
     };
   }
 
@@ -266,11 +265,11 @@ function buildComparison(attempts: LearningAttempt[]): HistoryComparisonState {
   const summaryBody =
     previousWeaknessLabel === currentWeaknessLabel
       ? delta >= 0
-        ? `${currentWeaknessLabel}는 아직 남아 있지만, 정답률은 올라가고 있어요. 같은 약점을 더 정교하게 다루는 단계로 읽을 수 있습니다.`
-        : `${currentWeaknessLabel}가 여전히 남아 있고 이번에는 조금 흔들렸어요. 그래서 다음 행동을 바로 복습으로 연결하는 흐름이 중요합니다.`
+        ? `${currentWeaknessLabel}는 아직 남아 있지만, 정답률은 올라가고 있어요. 같은 부분을 조금씩 더 잘 잡아가고 있는 흐름이에요.`
+        : `${currentWeaknessLabel}가 여전히 남아 있고 이번에는 조금 흔들렸어요. 오늘은 이 부분을 다시 보면 도움이 됩니다.`
       : delta >= 0
-        ? `대표 흔들림이 ${previousWeaknessLabel}에서 ${currentWeaknessLabel}로 좁혀졌어요. 큰 개념 흔들림에서 더 구체적인 정리 단계로 이동한 흐름으로 볼 수 있습니다.`
-        : `대표 흔들림이 ${previousWeaknessLabel}에서 ${currentWeaknessLabel}로 바뀌었고 이번엔 살짝 내려갔어요. 그래서 지금은 새로운 흔들림을 빠르게 붙잡는 쪽이 맞습니다.`;
+        ? `대표 흔들림이 ${previousWeaknessLabel}에서 ${currentWeaknessLabel}로 좁혀졌어요. 이제 더 구체적인 부분만 정리하면 됩니다.`
+        : `대표 흔들림이 ${previousWeaknessLabel}에서 ${currentWeaknessLabel}로 바뀌었어요. 이번엔 이 부분을 먼저 다시 보면 좋아요.`;
 
   return {
     enabled: true,
@@ -294,7 +293,7 @@ function buildFocusItems(summary: LearnerSummaryCurrent): HistoryFocusItem[] {
     weaknessId: item.weaknessId,
     label: getWeaknessLabel(item.weaknessId),
     countLabel: `${item.count}회`,
-    body: '반복 빈도만 조용히 보여주고, 오늘 복습과 연결될 때만 강조합니다.',
+    body: '자주 헷갈렸던 부분이에요. 가볍게 다시 보면 도움이 됩니다.',
     fillRatio: Math.min(item.count, 5) / 5,
     isLinkedToReview: summary.nextReviewTask?.weaknessId === item.weaknessId,
   }));
