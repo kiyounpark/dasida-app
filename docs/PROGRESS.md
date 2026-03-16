@@ -587,6 +587,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.16 22:47
+- 해시: `742e84f` (`742e84fb32882c179ee6537e9c8659b3a0f8f8ee`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/742e84fb32882c179ee6537e9c8659b3a0f8f8ee
+- 작성자: 박기윤
+- 메시지: fix: 인증 시크릿 저장 키 정리
+
 ### 커밋 2026.03.16 22:42
 - 해시: `c7e3916` (`c7e3916d663522522b30b064d016a028878ae83e`)
 - 브랜치: main
