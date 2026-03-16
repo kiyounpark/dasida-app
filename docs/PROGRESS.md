@@ -563,6 +563,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.16 20:55
+- 해시: `07f4d25` (`07f4d251835216d888a5d06c217fac8265aaef44`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/07f4d251835216d888a5d06c217fac8265aaef44
+- 작성자: 박기윤
+- 메시지: feat: 인증 로그인과 기록 이관 흐름 추가
+
 ### 커밋 2026.03.15 16:44
 - 해시: `3dabdf4` (`3dabdf41418e7ecc3ec2b4ce72e0098b2c96b9e6`)
 - 브랜치: main
