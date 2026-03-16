@@ -30,8 +30,8 @@
 - `features/learner/current-learner-controller.ts`, `features/learner/provider.tsx`: 현재 사용자 세션 기준으로 최근 attempts를 읽는 `loadRecentAttempts()` 인터페이스를 추가해 화면이 목데이터가 아니라 저장된 사용자 기록을 직접 사용하도록 연결
 - history 화면은 `summary.updatedAt` 변경 시와 pull-to-refresh 시 최근 진단을 다시 조회하고, 초기 로딩 동안 빈 상태가 잠깐 보이지 않도록 attempts 전용 로딩 상태를 분리
 - Claude Code CLI 리뷰 지적을 반영해 `provider`의 `loadRecentAttempts()` 참조를 `useCallback`으로 고정하고, `use-history-screen.ts`의 attempts 재조회 로직을 공통 `loadAttempts()`로 합쳐 effect/refresh 중복을 제거
-- `history` 탭에서 `useQuizSession()`을 호출할 때 provider 경계 밖 예외가 나던 문제를 해결하기 위해 `QuizSessionProvider`를 `app/(tabs)` 레벨로 올리고, `app/(tabs)/quiz/_layout.tsx`의 중복 provider 래핑을 제거
-- **검증**: `npm run typecheck`, `npm run lint` 통과
+- 이후 Claude 리뷰에서 확인된 `quiz/history/profile` 세션 공유 리스크를 없애기 위해 `QuizSessionProvider`는 다시 `app/(tabs)/quiz/_layout.tsx` 안으로 되돌리고, `history`는 `reset=1` 진입 파라미터만 넘긴 뒤 실제 세션 초기화는 `quiz/diagnostic` 화면 마운트 시 provider 안쪽에서 처리하도록 조정
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude Code CLI 리뷰에서 `No blocking issues` 확인
 
 **내 기록 성장 화면 HTML 프로토타입 v2 리디자인**
 - `history-growth-prototype.html`: 기존 v1의 `기록 대시보드` 느낌을 줄이고, `오늘 해야 할 1가지`, `직전 대비 변화량`, `지난번 vs 이번 비교`, `지금 다시 잡을 유형` 중심으로 화면 구조를 전면 재구성

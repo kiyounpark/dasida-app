@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildHistoryInsights } from '@/features/history/history-insights';
 import { useCurrentLearner } from '@/features/learner/provider';
-import { useQuizSession } from '@/features/quiz/session';
 import type { LearningAttempt } from '@/features/learning/types';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
@@ -18,7 +17,6 @@ function formatErrorMessage(error: unknown) {
 
 export function useHistoryScreen() {
   const { isReady, refresh, loadRecentAttempts, summary } = useCurrentLearner();
-  const { resetSession } = useQuizSession();
   const [recentDiagnosticAttempts, setRecentDiagnosticAttempts] = useState<LearningAttempt[]>([]);
   const [attemptsErrorMessage, setAttemptsErrorMessage] = useState<string | null>(null);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
@@ -112,10 +110,12 @@ export function useHistoryScreen() {
       return;
     }
 
-    resetSession();
     router.push({
       pathname: '/quiz/diagnostic',
-      params: { autostart: '1' },
+      params: {
+        autostart: '1',
+        reset: '1',
+      },
     });
   }
 

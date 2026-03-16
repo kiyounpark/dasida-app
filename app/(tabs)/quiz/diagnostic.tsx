@@ -6,5 +6,10 @@ import { getSingleParam } from '@/utils/get-single-param';
 export default function DiagnosticRoute() {
   const params = useLocalSearchParams();
 
-  return <DiagnosticScreen shouldAutoStart={getSingleParam(params.autostart) === '1'} />;
+  return (
+    <DiagnosticScreen
+      shouldAutoStart={getSingleParam(params.autostart) === '1'}
+      shouldResetOnMount={getSingleParam(params.reset) === '1'}
+    />
+  );
 }

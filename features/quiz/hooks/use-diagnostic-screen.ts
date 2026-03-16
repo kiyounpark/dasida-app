@@ -28,6 +28,7 @@ import { useQuizSession } from '@/features/quiz/session';
 
 type UseDiagnosticScreenParams = {
   shouldAutoStart: boolean;
+  shouldResetOnMount: boolean;
 };
 
 export type UseDiagnosticScreenResult = {
@@ -79,9 +80,11 @@ export type UseDiagnosticScreenResult = {
 
 export function useDiagnosticScreen({
   shouldAutoStart,
+  shouldResetOnMount,
 }: UseDiagnosticScreenParams): UseDiagnosticScreenResult {
   const {
     state,
+    resetSession,
     startSession,
     submitAnswer,
     confirmDiagnosisMethod,
@@ -91,7 +94,9 @@ export function useDiagnosticScreen({
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
+  const hasRequestedResetRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
+  const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
 
   useEffect(() => {
     return () => {
@@ -100,16 +105,57 @@ export function useDiagnosticScreen({
   }, []);
 
   useEffect(() => {
+    if (!shouldResetOnMount || hasRequestedResetRef.current) {
+      return;
+    }
+
+    hasRequestedResetRef.current = true;
+    resetSession();
+  }, [resetSession, shouldResetOnMount]);
+
+  useEffect(() => {
+    if (!isPreparingFreshSession) {
+      return;
+    }
+
+    const isFreshSessionState =
+      !state.hasStarted &&
+      !state.result &&
+      !state.isDiagnosing &&
+      state.currentQuestionIndex === 0 &&
+      state.answers.length === 0;
+
+    if (isFreshSessionState) {
+      setIsPreparingFreshSession(false);
+    }
+  }, [
+    isPreparingFreshSession,
+    state.answers.length,
+    state.currentQuestionIndex,
+    state.hasStarted,
+    state.isDiagnosing,
+    state.result,
+  ]);
+
+  useEffect(() => {
+    if (isPreparingFreshSession) {
+      return;
+    }
+
     if (state.result) {
       router.replace('/quiz/result');
     }
-  }, [state.result]);
+  }, [isPreparingFreshSession, state.result]);
 
   useEffect(() => {
+    if (isPreparingFreshSession) {
+      return;
+    }
+
     if (shouldAutoStart && !state.hasStarted) {
       startSession();
     }
-  }, [shouldAutoStart, startSession, state.hasStarted]);
+  }, [isPreparingFreshSession, shouldAutoStart, startSession, state.hasStarted]);
 
   const {
     appendNextNode,
@@ -430,7 +476,7 @@ export function useDiagnosticScreen({
     isCompactNavigator: diagnosisPages.length > 5,
     isDiagnosing: state.isDiagnosing,
     isExitModalVisible,
-    isLoadingState: !currentProblem && !state.result && !state.isDiagnosing,
+    isLoadingState: isPreparingFreshSession || (!currentProblem && !state.result && !state.isDiagnosing),
     onAiHelpContinue: handleAiHelpContinue,
     onAiHelpFallback: handleAiHelpFallback,
     onAiHelpInputChange: handleAiHelpInputChange,
