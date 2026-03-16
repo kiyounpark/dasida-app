@@ -3,6 +3,7 @@
 # dependencies
 node_modules/
 functions/lib/
+functions/test-lib/
 
 # Expo
 .expo/
