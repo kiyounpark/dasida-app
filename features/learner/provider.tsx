@@ -2,6 +2,7 @@ import {
   createContext,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -122,6 +123,13 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const loadRecentAttempts = useCallback(
+    (options?: { source?: LearningSource; limit?: number }) => {
+      return learnerController.loadRecentAttempts(options);
+    },
+    [],
+  );
+
   const value = useMemo<CurrentLearnerContextValue>(
     () => ({
       ...state,
@@ -136,9 +144,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           homeState: snapshot.homeState,
         });
       },
-      loadRecentAttempts: (options) => {
-        return learnerController.loadRecentAttempts(options);
-      },
+      loadRecentAttempts,
       signIn: async (provider) => {
         const result = await learnerController.signIn(provider);
         setState({
@@ -225,7 +231,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         });
       },
     }),
-    [state],
+    [loadRecentAttempts, state],
   );
 
   return <CurrentLearnerContext.Provider value={value}>{children}</CurrentLearnerContext.Provider>;

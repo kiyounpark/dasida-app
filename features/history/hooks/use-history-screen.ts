@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildHistoryInsights } from '@/features/history/history-insights';
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -23,56 +23,57 @@ export function useHistoryScreen() {
   const [attemptsErrorMessage, setAttemptsErrorMessage] = useState<string | null>(null);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    let isMounted = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    async function loadAttempts() {
-      if (!isReady || !summary?.accountKey) {
-        if (isMounted) {
-          setRecentDiagnosticAttempts([]);
-          setAttemptsErrorMessage(null);
-          setIsLoadingAttempts(false);
-        }
+  const loadAttempts = useCallback(async () => {
+    if (!isReady || !summary?.accountKey) {
+      if (!isMountedRef.current) {
         return;
       }
 
-      if (isMounted) {
-        setIsLoadingAttempts(true);
-      }
-
-      try {
-        const attempts = await loadRecentAttempts({
-          source: 'diagnostic',
-          limit: 5,
-        });
-
-        if (!isMounted) {
-          return;
-        }
-
-        setRecentDiagnosticAttempts(attempts);
-        setAttemptsErrorMessage(null);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setRecentDiagnosticAttempts([]);
-        setAttemptsErrorMessage(formatErrorMessage(error));
-      } finally {
-        if (isMounted) {
-          setIsLoadingAttempts(false);
-        }
-      }
+      setRecentDiagnosticAttempts([]);
+      setAttemptsErrorMessage(null);
+      setIsLoadingAttempts(false);
+      return;
     }
 
-    void loadAttempts();
+    setIsLoadingAttempts(true);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isReady, loadRecentAttempts, summary?.accountKey, summary?.updatedAt]);
+    try {
+      const attempts = await loadRecentAttempts({
+        source: 'diagnostic',
+        limit: 5,
+      });
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setRecentDiagnosticAttempts(attempts);
+      setAttemptsErrorMessage(null);
+    } catch (error) {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setRecentDiagnosticAttempts([]);
+      setAttemptsErrorMessage(formatErrorMessage(error));
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingAttempts(false);
+      }
+    }
+  }, [isReady, loadRecentAttempts, summary?.accountKey]);
+
+  useEffect(() => {
+    void loadAttempts();
+  }, [loadAttempts, summary?.updatedAt]);
 
   const insights = useMemo(() => {
     if (!summary) {
@@ -89,22 +90,7 @@ export function useHistoryScreen() {
 
     try {
       await refresh();
-      setIsLoadingAttempts(true);
-
-      try {
-        const attempts = await loadRecentAttempts({
-          source: 'diagnostic',
-          limit: 5,
-        });
-
-        setRecentDiagnosticAttempts(attempts);
-        setAttemptsErrorMessage(null);
-      } catch (error) {
-        setRecentDiagnosticAttempts([]);
-        setAttemptsErrorMessage(formatErrorMessage(error));
-      } finally {
-        setIsLoadingAttempts(false);
-      }
+      await loadAttempts();
     } finally {
       setIsRefreshing(false);
     }
