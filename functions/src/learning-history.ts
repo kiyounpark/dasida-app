@@ -1,6 +1,13 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
+import {
+  buildImportWriteOperations,
+  groupImportWriteOperations,
+  hashMigrationSourceAccountKey,
+  type ImportWriteOperation,
+} from './learning-history-import-ops';
+
 const reviewStages = ['day1', 'day3', 'day7'] as const;
 const learningSources = ['diagnostic', 'featured-exam'] as const;
 const learnerGrades = ['g1', 'g2', 'g3', 'unknown'] as const;
@@ -68,6 +75,8 @@ const weaknessLabels: Record<(typeof weaknessOrder)[number], string> = {
   counting_method_confusion: '경우의 수 방법 혼동',
   counting_overcounting: '중복 처리 실수',
 };
+const MAX_IMPORT_TOTAL_RESULTS = 2000;
+const MAX_IMPORT_TOTAL_WRITES = 2400;
 
 const ReviewStageSchema = z.enum(reviewStages);
 const LearningSourceSchema = z.enum(learningSources);
@@ -233,6 +242,47 @@ export const FinalizedAttemptInputSchema = z
     }
   });
 
+export const ImportLocalLearningHistoryRequestSchema = z
+  .object({
+    sourceAnonymousAccountKey: z
+      .string()
+      .min(1)
+      .max(200)
+      .refine((value) => value.startsWith('anon:'), {
+        message: 'sourceAnonymousAccountKey must start with anon:',
+      }),
+    attempts: z.array(LearningAttemptSchema).max(200),
+    resultsByAttemptId: z.record(
+      z.string().min(1).max(120),
+      z.array(LearningAttemptResultSchema).max(200),
+    ),
+    reviewTasks: z.array(ReviewTaskSchema).max(600),
+    featuredExamState: FeaturedExamStateSchema,
+  })
+  .superRefine((value, ctx) => {
+    const totalResults = Object.values(value.resultsByAttemptId).reduce(
+      (count, results) => count + results.length,
+      0,
+    );
+    const totalWrites = value.attempts.length + totalResults + value.reviewTasks.length + 1;
+
+    if (totalResults > MAX_IMPORT_TOTAL_RESULTS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultsByAttemptId'],
+        message: `resultsByAttemptId exceeds ${MAX_IMPORT_TOTAL_RESULTS} items`,
+      });
+    }
+
+    if (totalWrites > MAX_IMPORT_TOTAL_WRITES) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultsByAttemptId'],
+        message: `import payload exceeds ${MAX_IMPORT_TOTAL_WRITES} total writes`,
+      });
+    }
+  });
+
 export type FeaturedExamState = z.infer<typeof FeaturedExamStateSchema>;
 export type FinalizedAttemptInput = z.infer<typeof FinalizedAttemptInputSchema>;
 export type LearnerSummaryCurrent = z.infer<typeof LearnerSummaryCurrentSchema>;
@@ -270,6 +320,23 @@ function getSummaryRef(accountKey: string) {
   return getUserRef(accountKey).collection('summary').doc('current');
 }
 
+function getMigrationLedgerRef(accountKey: string) {
+  return getUserRef(accountKey).collection('private').doc('migrations');
+}
+
+function getImportWriteRef(targetAccountKey: string, operation: ImportWriteOperation) {
+  switch (operation.collection) {
+    case 'attempts':
+      return getAttemptRef(targetAccountKey, operation.docId);
+    case 'attemptResults':
+      return getAttemptResultsCollection(targetAccountKey).doc(operation.docId);
+    case 'reviewTasks':
+      return getReviewTasksCollection(targetAccountKey).doc(operation.docId);
+    case 'migrationLedger':
+      return getMigrationLedgerRef(targetAccountKey);
+  }
+}
+
 function addDays(timestamp: string, days: number) {
   const nextDate = new Date(timestamp);
   nextDate.setUTCDate(nextDate.getUTCDate() + days);
@@ -281,6 +348,20 @@ function createDefaultFeaturedExamState(): FeaturedExamState {
     examId: DEFAULT_FEATURED_EXAM_ID,
     status: 'not_started',
   };
+}
+
+export function createEmptyLearnerSummary(accountKey: string): LearnerSummaryCurrent {
+  return LearnerSummaryCurrentSchema.parse({
+    accountKey,
+    updatedAt: new Date().toISOString(),
+    repeatedWeaknesses: [],
+    featuredExamState: createDefaultFeaturedExamState(),
+    totals: {
+      diagnosticAttempts: 0,
+      featuredExamAttempts: 0,
+    },
+    recentActivity: [],
+  });
 }
 
 function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
@@ -477,7 +558,7 @@ function buildReviewTasks(input: FinalizedAttemptInput): ReviewTask[] {
   );
 }
 
-function buildSummary(
+export function buildSummary(
   accountKey: string,
   attempts: LearningAttempt[],
   results: LearningAttemptResult[],
@@ -535,6 +616,21 @@ function buildSummary(
     },
     recentActivity: buildRecentActivity(sortedAttempts, reviewTasks, featuredExamState),
   });
+}
+
+export function mergeImportedFeaturedExamState(
+  currentSummary: LearnerSummaryCurrent | null,
+  importedFeaturedExamState: FeaturedExamState,
+) {
+  if (
+    importedFeaturedExamState.status !== 'not_started' ||
+    importedFeaturedExamState.lastOpenedAt ||
+    typeof importedFeaturedExamState.questionIndex === 'number'
+  ) {
+    return importedFeaturedExamState;
+  }
+
+  return currentSummary?.featuredExamState ?? createDefaultFeaturedExamState();
 }
 
 export async function loadLearnerHistory(accountKey: string) {
@@ -681,4 +777,76 @@ export async function saveFeaturedExamStateSummary(
 
   await getSummaryRef(accountKey).set(nextSummary, { merge: true });
   return nextSummary;
+}
+
+export async function importLocalLearningHistory(params: {
+  targetAccountKey: string;
+  sourceAnonymousAccountKey: string;
+  attempts: LearningAttempt[];
+  resultsByAttemptId: Record<string, LearningAttemptResult[]>;
+  reviewTasks: ReviewTask[];
+  featuredExamState: FeaturedExamState;
+}) {
+  const {
+    targetAccountKey,
+    sourceAnonymousAccountKey,
+    attempts,
+    resultsByAttemptId,
+    reviewTasks,
+    featuredExamState,
+  } = params;
+  const firestore = getFirestore();
+  const migrationSourceHash = hashMigrationSourceAccountKey(sourceAnonymousAccountKey);
+  const migrationLedgerRef = getMigrationLedgerRef(targetAccountKey);
+  const migrationLedgerSnapshot = await migrationLedgerRef.get();
+  const existingMarker =
+    migrationLedgerSnapshot.exists &&
+    migrationLedgerSnapshot.data()?.markers &&
+    typeof migrationLedgerSnapshot.data()!.markers === 'object'
+      ? migrationLedgerSnapshot.data()!.markers[migrationSourceHash]
+      : undefined;
+
+  if (existingMarker) {
+    return {
+      status: 'already_imported' as const,
+      summary: (await getLearnerSummary(targetAccountKey)) ?? createEmptyLearnerSummary(targetAccountKey),
+    };
+  }
+
+  const { operations } = buildImportWriteOperations({
+    targetAccountKey,
+    sourceAnonymousAccountKey,
+    attempts,
+    resultsByAttemptId,
+    reviewTasks,
+  });
+
+  for (const batchOperations of groupImportWriteOperations(operations)) {
+    const batch = firestore.batch();
+
+    batchOperations.forEach((operation) => {
+      batch.set(getImportWriteRef(targetAccountKey, operation), operation.data, { merge: true });
+    });
+
+    await batch.commit();
+  }
+
+  const history = await loadLearnerHistory(targetAccountKey);
+  const summary = buildSummary(
+    targetAccountKey,
+    history.attempts,
+    history.results,
+    history.reviewTasks,
+    {
+      ...(history.currentSummary ?? createEmptyLearnerSummary(targetAccountKey)),
+      featuredExamState: mergeImportedFeaturedExamState(history.currentSummary, featuredExamState),
+    },
+  );
+
+  await getSummaryRef(targetAccountKey).set(summary, { merge: true });
+
+  return {
+    status: 'imported' as const,
+    summary,
+  };
 }
