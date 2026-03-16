@@ -30,34 +30,54 @@ function createSessionSecret() {
   );
 }
 
-function getAnonymousSessionSecretStorageKey(accountKey: string) {
+function getAnonymousSessionSecretAsyncStorageKey(accountKey: string) {
   return `${StorageKeys.authSessionSecretPrefix}${accountKey}`;
 }
 
-async function readAnonymousSessionSecret(accountKey: string) {
-  const storageKey = getAnonymousSessionSecretStorageKey(accountKey);
+function encodeSecureStoreKeySegment(value: string) {
+  return Array.from(value)
+    .map((character) => character.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('');
+}
 
-  if (await SecureStore.isAvailableAsync()) {
-    const secureValue = await SecureStore.getItemAsync(storageKey);
-    if (typeof secureValue === 'string' && secureValue.length > 0) {
-      return secureValue;
+function getAnonymousSessionSecretSecureStoreKey(accountKey: string) {
+  return `dasida.auth.session_secret.${encodeSecureStoreKeySegment(accountKey)}`;
+}
+
+async function readAnonymousSessionSecret(accountKey: string) {
+  const secureStorageKey = getAnonymousSessionSecretSecureStoreKey(accountKey);
+  const asyncStorageKey = getAnonymousSessionSecretAsyncStorageKey(accountKey);
+
+  try {
+    if (await SecureStore.isAvailableAsync()) {
+      const secureValue = await SecureStore.getItemAsync(secureStorageKey);
+      if (typeof secureValue === 'string' && secureValue.length > 0) {
+        return secureValue;
+      }
     }
+  } catch {
+    // Fall back to AsyncStorage if SecureStore access fails on a given platform or key format.
   }
 
-  const fallbackValue = await AsyncStorage.getItem(storageKey);
+  const fallbackValue = await AsyncStorage.getItem(asyncStorageKey);
   return typeof fallbackValue === 'string' && fallbackValue.length > 0 ? fallbackValue : null;
 }
 
 async function writeAnonymousSessionSecret(accountKey: string, requestSecret: string) {
-  const storageKey = getAnonymousSessionSecretStorageKey(accountKey);
+  const secureStorageKey = getAnonymousSessionSecretSecureStoreKey(accountKey);
+  const asyncStorageKey = getAnonymousSessionSecretAsyncStorageKey(accountKey);
 
-  if (await SecureStore.isAvailableAsync()) {
-    await SecureStore.setItemAsync(storageKey, requestSecret);
-    await AsyncStorage.removeItem(storageKey);
-    return;
+  try {
+    if (await SecureStore.isAvailableAsync()) {
+      await SecureStore.setItemAsync(secureStorageKey, requestSecret);
+      await AsyncStorage.removeItem(asyncStorageKey);
+      return;
+    }
+  } catch {
+    // Fall through to AsyncStorage if SecureStore access fails on a given platform or key format.
   }
 
-  await AsyncStorage.setItem(storageKey, requestSecret);
+  await AsyncStorage.setItem(asyncStorageKey, requestSecret);
 }
 
 function isSupportedProvider(value: unknown): value is SupportedAuthProvider {
