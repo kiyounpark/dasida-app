@@ -588,6 +588,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.16 23:07
+- 해시: `d6de34f` (`d6de34f489ab38e6bf03872baf39751b845798d8`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d6de34f489ab38e6bf03872baf39751b845798d8
+- 작성자: 박기윤
+- 메시지: fix: 내 기록 화면 문구 사용자화
+
 ### 커밋 2026.03.16 22:47
 - 해시: `742e84f` (`742e84fb32882c179ee6537e9c8659b3a0f8f8ee`)
 - 브랜치: main
