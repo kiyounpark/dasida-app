@@ -23,6 +23,14 @@
 
 ### 2026.03.16
 
+**내 기록 탭 성장 화면을 실제 사용자 데이터 기반으로 앱에 반영**
+- `app/(tabs)/history.tsx`: 라우트 파일은 화면 진입만 담당하도록 줄이고, 실제 구현은 `features/history/**`로 이동
+- `features/history/screens/history-screen.tsx`, `hooks/use-history-screen.ts`, `components/history-screen-view.tsx`, `history-insights.ts`: `오늘 해야 할 1가지`, `직전 대비 변화량`, `지난번 vs 이번`, `지금 다시 잡을 유형`, `짧은 메모` 구조의 실제 앱 화면 추가
+- `features/history/history-insights.ts`: `summary.current`와 최근 `diagnostic` 시도 최대 5개를 조합해 hero 우선순위, 변화량, 전후 비교, 반복 약점, 활동 메모를 계산하는 순수 파생 로직 분리
+- `features/learner/current-learner-controller.ts`, `features/learner/provider.tsx`: 현재 사용자 세션 기준으로 최근 attempts를 읽는 `loadRecentAttempts()` 인터페이스를 추가해 화면이 목데이터가 아니라 저장된 사용자 기록을 직접 사용하도록 연결
+- history 화면은 `summary.updatedAt` 변경 시와 pull-to-refresh 시 최근 진단을 다시 조회하고, 초기 로딩 동안 빈 상태가 잠깐 보이지 않도록 attempts 전용 로딩 상태를 분리
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
 **내 기록 성장 화면 HTML 프로토타입 v2 리디자인**
 - `history-growth-prototype.html`: 기존 v1의 `기록 대시보드` 느낌을 줄이고, `오늘 해야 할 1가지`, `직전 대비 변화량`, `지난번 vs 이번 비교`, `지금 다시 잡을 유형` 중심으로 화면 구조를 전면 재구성
 - 그래프는 축/격자 중심 sparkline 대신 `변화량 우선 + 보조 차트` 구조로 바꾸고, 점수 흐름은 area line과 회차 pill로 짧게 보조하는 형태로 재설계

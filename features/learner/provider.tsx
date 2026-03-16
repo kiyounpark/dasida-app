@@ -16,6 +16,7 @@ import type {
   FinalizedAttemptInput,
   HistoryMigrationStatus,
 } from '@/features/learning/history-repository';
+import type { LearningSource } from '@/features/learning/history-types';
 import type {
   FeaturedExamState,
   LearnerProfile,
@@ -26,7 +27,7 @@ import { LearningHistoryMigrationService } from '@/features/learning/learning-hi
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
 import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-learning-history-snapshot-store';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
-import type { LearnerSummaryCurrent } from '@/features/learning/types';
+import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
@@ -52,6 +53,7 @@ export type CurrentLearnerContextValue = {
   homeState: HomeLearningState | null;
   availableAuthProviders: SupportedAuthProvider[];
   refresh(): Promise<void>;
+  loadRecentAttempts(options?: { source?: LearningSource; limit?: number }): Promise<LearningAttempt[]>;
   signIn(provider: SupportedAuthProvider): Promise<HistoryMigrationStatus>;
   signOut(): Promise<void>;
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
@@ -133,6 +135,9 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           summary: snapshot.summary,
           homeState: snapshot.homeState,
         });
+      },
+      loadRecentAttempts: (options) => {
+        return learnerController.loadRecentAttempts(options);
       },
       signIn: async (provider) => {
         const result = await learnerController.signIn(provider);

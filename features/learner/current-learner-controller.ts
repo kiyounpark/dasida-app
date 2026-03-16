@@ -12,7 +12,8 @@ import {
 } from '@/features/learning/history-repository';
 import { LearningHistoryMigrationService } from '@/features/learning/learning-history-migration-service';
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
-import type { LearnerSummaryCurrent } from '@/features/learning/types';
+import type { LearningSource } from '@/features/learning/history-types';
+import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 
 import type { LearnerProfileStore } from './profile-store';
 import type {
@@ -31,6 +32,10 @@ export type CurrentLearnerSnapshot = {
 export type CurrentLearnerController = {
   bootstrap(): Promise<CurrentLearnerSnapshot>;
   refresh(): Promise<CurrentLearnerSnapshot>;
+  loadRecentAttempts(options?: {
+    source?: LearningSource;
+    limit?: number;
+  }): Promise<LearningAttempt[]>;
   signIn(provider: SupportedAuthProvider): Promise<{
     snapshot: CurrentLearnerSnapshot;
     migrationStatus: HistoryMigrationStatus;
@@ -175,6 +180,10 @@ export function createCurrentLearnerController({
       });
     },
     refresh: readCurrentSnapshot,
+    loadRecentAttempts: async (options) => {
+      const session = await readCurrentSession();
+      return learningHistoryRepository.listAttempts(session.accountKey, options);
+    },
     signIn: async (provider) => {
       const { previousSession, nextSession } = await authClient.signIn(provider);
       const migrationStatus =
