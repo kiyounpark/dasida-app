@@ -617,6 +617,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.18 23:53
+- 해시: `7596f1e` (`7596f1e2c982622410a4f8980a6b4ada9396e994`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7596f1e2c982622410a4f8980a6b4ada9396e994
+- 작성자: 박기윤
+- 메시지: feat: 앱 전역 소셜 로그인 필수 전환
+
 ### 커밋 2026.03.18 22:57
 - 해시: `5eaffe2` (`5eaffe228a81bdaa2e0b011adb9c00346df66bf7`)
 - 브랜치: main
