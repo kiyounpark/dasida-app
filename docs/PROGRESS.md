@@ -21,6 +21,16 @@
 
 ## 로그
 
+### 2026.03.18
+
+**약점 연습 오답 흐름을 조용한 튜터형 미니 코칭으로 확장**
+- `features/quiz/hooks/use-practice-screen.ts`: 약점 연습에서 `1차 오답 -> coaching`, `2차 오답 -> resolved`, `정답 -> correct`로 이어지는 상태 분기를 추가하고, 문제 전환 시 오답 횟수를 초기화하도록 조정
+- 같은 파일에서 심화 문제(`challenge`)는 기존 단순 재도전 흐름을 유지하되, 정오답 제출 시 iOS 전용 haptics를 공통 helper로 정리
+- `features/quiz/components/quiz-practice-screen-view.tsx`: 기존 단일 오답 카드 대신 `코칭 카드`와 `해설 카드`를 구분해 보여주고, 오답 중에는 선택지를 잠가 재입력 타이밍을 명확하게 고정
+- 피드백 카드에 `FadeInDown`, `FadeOutUp`, `LinearTransition` 기반 Reanimated 전환을 넣고, 카드/선택지에 `borderCurve: 'continuous'`를 적용해 기존 quiz UI 톤과 맞춤
+- 오답 컬러도 위험 알림보다 학습 코칭에 가까운 톤으로 완화해 `다시 혼나는 느낌`보다 `짧게 짚어주고 다시 풀게 하는 흐름`으로 정리
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude Code CLI `building-native-ui` 리뷰에서 blocking issue 없음 확인
+
 ### 2026.03.16
 
 **내 기록 탭 성장 화면을 실제 사용자 데이터 기반으로 앱에 반영**

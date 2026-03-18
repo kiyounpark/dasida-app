@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -54,6 +55,7 @@ export function QuizPracticeScreenView({
                 <Pressable
                   key={`${activeProblem.id}_${index}`}
                   style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
+                  disabled={Boolean(feedback)}
                   onPress={() => onSelectChoice(index)}>
                   <MathText
                     text={choice}
@@ -74,32 +76,56 @@ export function QuizPracticeScreenView({
         </View>
 
         {feedback ? (
-          <View
+          <Animated.View
+            key={`${activeProblem.id}_${feedback.kind}`}
+            entering={FadeInDown.duration(220)}
+            exiting={FadeOutUp.duration(180)}
+            layout={LinearTransition.duration(180)}
             style={[
               styles.feedbackCard,
               feedback.kind === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong,
             ]}>
-            <Text style={styles.feedbackTitle}>
-              {feedback.kind === 'correct' ? '정답입니다!' : '오답입니다. 힌트를 확인해 주세요.'}
-            </Text>
-            <MathText text={feedback.message} style={styles.feedbackBody} />
+            <Text style={styles.feedbackTitle}>{feedback.title}</Text>
+            <MathText text={feedback.body} style={styles.feedbackBody} />
+
+            {feedback.kind === 'coaching' ? (
+              <>
+                <View style={styles.feedbackFocusCard}>
+                  <Text style={styles.feedbackSectionLabel}>{feedback.focusTitle}</Text>
+                  <MathText text={feedback.focusBody} style={styles.feedbackFocusBody} />
+                </View>
+                <Text style={styles.feedbackSupportText}>{feedback.supportText}</Text>
+              </>
+            ) : null}
+
+            {feedback.kind === 'resolved' ? (
+              <>
+                <View style={styles.feedbackAnswerCard}>
+                  <Text style={styles.feedbackSectionLabel}>{feedback.answerLabel}</Text>
+                  <MathText text={feedback.answerText} style={styles.feedbackAnswerValue} />
+                </View>
+                <MathText text={feedback.explanation} style={styles.feedbackBody} />
+              </>
+            ) : null}
 
             <View style={styles.buttonTopGap}>
-              {feedback.kind === 'wrong' ? (
+              {feedback.kind === 'retry' || feedback.kind === 'coaching' ? (
                 <BrandButton
-                  title="다시 도전"
-                  variant="danger"
+                  title={
+                    feedback.kind === 'coaching' ? '이 포인트로 다시 풀기' : '다시 도전'
+                  }
+                  variant="primary"
                   onPress={onRetry}
                 />
               ) : (
                 <BrandButton
                   title={continueLabel}
-                  variant="success"
+                  variant={feedback.kind === 'correct' ? 'success' : 'primary'}
                   onPress={onContinue}
                 />
               )}
             </View>
-          </View>
+          </Animated.View>
         ) : null}
       </ScrollView>
     </View>
@@ -130,6 +156,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BrandColors.border,
     borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
     backgroundColor: '#fff',
     marginTop: BrandSpacing.md,
     padding: BrandSpacing.lg,
@@ -138,6 +165,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BrandColors.border,
     borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
     backgroundColor: '#fff',
     padding: BrandSpacing.lg,
     gap: BrandSpacing.sm,
@@ -160,6 +188,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
     paddingVertical: 15,
     paddingHorizontal: 20,
     backgroundColor: '#fff',
@@ -182,6 +211,7 @@ const styles = StyleSheet.create({
   },
   feedbackCard: {
     borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
     padding: 14,
     gap: 8,
   },
@@ -192,8 +222,8 @@ const styles = StyleSheet.create({
   },
   feedbackWrong: {
     borderWidth: 1,
-    borderColor: '#F2B8B8',
-    backgroundColor: '#FFF4F4',
+    borderColor: '#E7D3A8',
+    backgroundColor: '#FFF9EE',
   },
   feedbackTitle: {
     fontSize: 17,
@@ -204,5 +234,44 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#333',
+  },
+  feedbackFocusCard: {
+    borderWidth: 1,
+    borderColor: '#E7D3A8',
+    borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    gap: 6,
+  },
+  feedbackAnswerCard: {
+    borderWidth: 1,
+    borderColor: '#D9D1C2',
+    borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    gap: 6,
+  },
+  feedbackSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8A6A1E',
+  },
+  feedbackFocusBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#333',
+  },
+  feedbackSupportText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#5B584F',
+  },
+  feedbackAnswerValue: {
+    fontSize: 18,
+    lineHeight: 24,
+    color: BrandColors.text,
+    fontWeight: '700',
   },
 });

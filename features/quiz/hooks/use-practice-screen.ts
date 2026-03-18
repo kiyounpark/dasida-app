@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -13,10 +14,38 @@ export type QuizPracticeRouteParams = {
 
 type FeedbackState =
   | {
-      kind: 'correct' | 'wrong';
-      message: string;
+      kind: 'correct';
+      title: string;
+      body: string;
+    }
+  | {
+      kind: 'retry';
+      title: string;
+      body: string;
+    }
+  | {
+      kind: 'coaching';
+      title: string;
+      body: string;
+      focusTitle: string;
+      focusBody: string;
+      supportText: string;
+    }
+  | {
+      kind: 'resolved';
+      title: string;
+      body: string;
+      answerLabel: string;
+      answerText: string;
+      explanation: string;
     }
   | undefined;
+
+function triggerPracticeHaptic(type: Haptics.NotificationFeedbackType) {
+  if (process.env.EXPO_OS === 'ios') {
+    void Haptics.notificationAsync(type);
+  }
+}
 
 export type UsePracticeScreenResult = {
   activeProblem: typeof challengeProblem | (typeof practiceMap)[WeaknessId] | undefined;
@@ -39,6 +68,7 @@ export function usePracticeScreen({
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
   const activeMode = state.result?.allCorrect
@@ -67,6 +97,7 @@ export function usePracticeScreen({
   useEffect(() => {
     setSelectedIndex(null);
     setFeedback(undefined);
+    setWrongAttempts(0);
   }, [activeProblem?.id]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
@@ -90,21 +121,52 @@ export function usePracticeScreen({
     const isCorrect = selectedIndex === activeProblem.answerIndex;
 
     if (isCorrect) {
+      triggerPracticeHaptic(Haptics.NotificationFeedbackType.Success);
       setFeedback({
         kind: 'correct',
-        message: activeProblem.explanation,
+        title: '좋아요. 이번 문제는 잡혔어요.',
+        body: activeProblem.explanation,
       });
       return;
     }
 
+    if (activeMode === 'weakness') {
+      triggerPracticeHaptic(Haptics.NotificationFeedbackType.Warning);
+      if (wrongAttempts === 0) {
+        setWrongAttempts(1);
+        setFeedback({
+          kind: 'coaching',
+          title: '이 포인트만 다시 보면 풀 수 있어요.',
+          body: `${weaknessLabel}에서 자주 흔들리는 기준만 짧게 다시 잡고 갈게요.`,
+          focusTitle: '지금 다시 볼 포인트',
+          focusBody: activeProblem.hint,
+          supportText: '답을 바로 외우기보다, 이 기준 한 줄을 떠올린 뒤 다시 풀어보세요.',
+        });
+        return;
+      }
+
+      setWrongAttempts((current) => current + 1);
+      setFeedback({
+        kind: 'resolved',
+        title: '이번에는 해설까지 같이 볼게요.',
+        body: `${weaknessLabel} 약점에서 놓친 기준을 정리해두면 다음 문제에서 같은 실수를 줄일 수 있어요.`,
+        answerLabel: '정답',
+        answerText: activeProblem.choices[activeProblem.answerIndex],
+        explanation: activeProblem.explanation,
+      });
+      return;
+    }
+
+    triggerPracticeHaptic(Haptics.NotificationFeedbackType.Warning);
     setFeedback({
-      kind: 'wrong',
-      message: activeProblem.hint,
+      kind: 'retry',
+      title: '한 번 더 기준을 확인해 볼게요.',
+      body: activeProblem.hint,
     });
   };
 
   const onContinue = () => {
-    if (feedback?.kind !== 'correct') {
+    if (feedback?.kind !== 'correct' && feedback?.kind !== 'resolved') {
       return;
     }
 
