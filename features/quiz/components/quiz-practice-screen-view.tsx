@@ -12,11 +12,13 @@ export function QuizPracticeScreenView({
   activeProblem,
   continueLabel,
   feedback,
+  isPersistingAttempt,
   onContinue,
   onRetry,
   onSelectChoice,
   onSubmit,
   onViewResult,
+  persistErrorMessage,
   selectedIndex,
   weaknessLabel,
 }: UsePracticeScreenResult) {
@@ -119,12 +121,19 @@ export function QuizPracticeScreenView({
                 />
               ) : (
                 <BrandButton
-                  title={continueLabel}
+                  title={isPersistingAttempt ? '기록 저장 중...' : continueLabel}
                   variant={feedback.kind === 'correct' ? 'success' : 'primary'}
                   onPress={onContinue}
+                  disabled={isPersistingAttempt}
                 />
               )}
             </View>
+
+            {persistErrorMessage ? (
+              <Text selectable style={styles.feedbackErrorText}>
+                {persistErrorMessage}
+              </Text>
+            ) : null}
           </Animated.View>
         ) : null}
       </ScrollView>
@@ -273,5 +282,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: BrandColors.text,
     fontWeight: '700',
+  },
+  feedbackErrorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: BrandColors.danger,
   },
 });

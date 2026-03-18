@@ -5,9 +5,9 @@ import { z } from 'zod';
 import { authenticateLearningHistoryRequest, LearningHistoryAuthError } from './learning-history-auth';
 import { listLearningAttempts } from './learning-history';
 
-const ListLearningAttemptsQuerySchema = z.object({
+export const ListLearningAttemptsQuerySchema = z.object({
   accountKey: z.string().min(1).max(200),
-  source: z.enum(['diagnostic', 'featured-exam']).optional(),
+  source: z.enum(['diagnostic', 'featured-exam', 'weakness-practice']).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 

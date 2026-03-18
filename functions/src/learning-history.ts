@@ -9,7 +9,7 @@ import {
 } from './learning-history-import-ops';
 
 const reviewStages = ['day1', 'day3', 'day7'] as const;
-const learningSources = ['diagnostic', 'featured-exam'] as const;
+const learningSources = ['diagnostic', 'featured-exam', 'weakness-practice'] as const;
 const learnerGrades = ['g1', 'g2', 'g3', 'unknown'] as const;
 const solveMethodIds = [
   'cps',
@@ -169,7 +169,7 @@ const LearningAttemptSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
-const LearningAttemptResultSchema = z.object({
+export const LearningAttemptResultSchema = z.object({
   id: z.string().min(1).max(240),
   attemptId: z.string().min(1).max(120),
   accountKey: z.string().min(1).max(200),
@@ -178,6 +178,7 @@ const LearningAttemptResultSchema = z.object({
   questionId: z.string().min(1).max(120),
   questionNumber: z.number().int().min(1).max(200),
   topic: z.string().min(1).max(120),
+  firstSelectedIndex: z.number().int().min(0).max(20).nullable().optional(),
   selectedIndex: z.number().int().min(0).max(20).nullable(),
   isCorrect: z.boolean(),
   finalWeaknessId: WeaknessIdSchema.nullable(),
@@ -187,6 +188,9 @@ const LearningAttemptResultSchema = z.object({
   diagnosisCompleted: z.boolean(),
   usedDontKnow: z.boolean(),
   usedAiHelp: z.boolean(),
+  wrongAttempts: z.number().int().min(0).max(20).optional(),
+  usedCoaching: z.boolean().optional(),
+  resolvedBy: z.enum(['solved', 'answer_revealed']).nullable().optional(),
   schemaVersion: z.literal(1),
   resolvedAt: z.string().datetime(),
 });
@@ -195,6 +199,7 @@ const FinalizedAttemptQuestionInputSchema = z.object({
   questionId: z.string().min(1).max(120),
   questionNumber: z.number().int().min(1).max(200),
   topic: z.string().min(1).max(120),
+  firstSelectedIndex: z.number().int().min(0).max(20).nullable().optional(),
   selectedIndex: z.number().int().min(0).max(20).nullable(),
   isCorrect: z.boolean(),
   finalWeaknessId: WeaknessIdSchema.nullable(),
@@ -204,6 +209,9 @@ const FinalizedAttemptQuestionInputSchema = z.object({
   diagnosisCompleted: z.boolean(),
   usedDontKnow: z.boolean(),
   usedAiHelp: z.boolean(),
+  wrongAttempts: z.number().int().min(0).max(20).optional(),
+  usedCoaching: z.boolean().optional(),
+  resolvedBy: z.enum(['solved', 'answer_revealed']).nullable().optional(),
 });
 
 export const FinalizedAttemptInputSchema = z
@@ -393,7 +401,9 @@ function buildRepeatedWeaknesses(
   >();
 
   results
-    .filter((result) => result.finalWeaknessId !== null)
+    .filter(
+      (result) => result.source !== 'weakness-practice' && result.finalWeaknessId !== null,
+    )
     .sort((left, right) => right.resolvedAt.localeCompare(left.resolvedAt))
     .slice(0, 20)
     .forEach((result) => {
@@ -442,21 +452,23 @@ function buildRecentActivity(
   featuredExamState: FeaturedExamState,
 ): LearnerSummaryCurrent['recentActivity'] {
   const activity: LearnerSummaryCurrent['recentActivity'] = [
-    ...attempts.map((attempt) => {
-      const kind: 'diagnostic' | 'exam' =
-        attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
+    ...attempts
+      .filter((attempt) => attempt.source !== 'weakness-practice')
+      .map((attempt) => {
+        const kind: 'diagnostic' | 'exam' =
+          attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
 
-      return {
-        id: attempt.id,
-        kind,
-        title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
-        subtitle:
-          attempt.topWeaknesses[0] !== undefined
-            ? weaknessLabels[attempt.topWeaknesses[0]]
-            : `정답률 ${attempt.accuracy}%`,
-        occurredAt: attempt.completedAt,
-      };
-    }),
+        return {
+          id: attempt.id,
+          kind,
+          title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
+          subtitle:
+            attempt.topWeaknesses[0] !== undefined
+              ? weaknessLabels[attempt.topWeaknesses[0]]
+              : `정답률 ${attempt.accuracy}%`,
+          occurredAt: attempt.completedAt,
+        };
+      }),
     ...reviewTasks
       .filter((task) => task.completed && task.completedAt)
       .map((task) => ({
@@ -520,6 +532,7 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
       questionId: question.questionId,
       questionNumber: question.questionNumber,
       topic: question.topic,
+      firstSelectedIndex: question.firstSelectedIndex,
       selectedIndex: question.selectedIndex,
       isCorrect: question.isCorrect,
       finalWeaknessId: question.finalWeaknessId,
@@ -529,15 +542,22 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
       diagnosisCompleted: question.diagnosisCompleted,
       usedDontKnow: question.usedDontKnow,
       usedAiHelp: question.usedAiHelp,
+      wrongAttempts: question.wrongAttempts,
+      usedCoaching: question.usedCoaching,
+      resolvedBy: question.resolvedBy,
       schemaVersion: 1,
       resolvedAt: input.completedAt,
     }),
   );
 }
 
-function buildReviewTasks(input: FinalizedAttemptInput): ReviewTask[] {
+export function buildReviewTasks(input: FinalizedAttemptInput): ReviewTask[] {
   const sourceId = input.sourceEntityId ?? input.attemptId;
   const weaknessId = input.primaryWeaknessId;
+
+  if (input.source === 'weakness-practice') {
+    return [];
+  }
 
   if (!weaknessId) {
     return [];

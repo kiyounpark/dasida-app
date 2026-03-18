@@ -17,6 +17,7 @@ export type FinalizedAttemptQuestionInput = {
   questionId: string;
   questionNumber: number;
   topic: string;
+  firstSelectedIndex?: number | null;
   selectedIndex: number | null;
   isCorrect: boolean;
   finalWeaknessId: WeaknessId | null;
@@ -26,6 +27,9 @@ export type FinalizedAttemptQuestionInput = {
   diagnosisCompleted: boolean;
   usedDontKnow: boolean;
   usedAiHelp: boolean;
+  wrongAttempts?: number;
+  usedCoaching?: boolean;
+  resolvedBy?: 'solved' | 'answer_revealed' | null;
 };
 
 export type FinalizedAttemptInput = {

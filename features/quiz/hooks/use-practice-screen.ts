@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
+import { useCurrentLearner } from '@/features/learner/provider';
+import { buildWeaknessPracticeAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import { useQuizSession } from '@/features/quiz/session';
 
 export type QuizPracticeRouteParams = {
@@ -51,24 +53,33 @@ export type UsePracticeScreenResult = {
   activeProblem: typeof challengeProblem | (typeof practiceMap)[WeaknessId] | undefined;
   continueLabel: string;
   feedback: FeedbackState;
+  isPersistingAttempt: boolean;
   onContinue: () => void;
   onRetry: () => void;
   onSelectChoice: (index: number) => void;
   onSubmit: () => void;
   onViewResult: () => void;
+  persistErrorMessage: string | null;
   selectedIndex: number | null;
   weaknessLabel: string;
 };
+
+const PERSIST_ERROR_MESSAGE = '연습 기록을 저장하지 못했어요. 다시 시도해 주세요.';
 
 export function usePracticeScreen({
   fallbackWeaknessKey,
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
   const { state, advancePractice, completeChallenge } = useQuizSession();
+  const { profile, recordAttempt, session } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
   const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [problemStartedAt, setProblemStartedAt] = useState(() => new Date().toISOString());
+  const [firstSubmittedIndex, setFirstSubmittedIndex] = useState<number | null>(null);
+  const [isPersistingAttempt, setIsPersistingAttempt] = useState(false);
+  const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
   const activeMode = state.result?.allCorrect
@@ -98,6 +109,10 @@ export function usePracticeScreen({
     setSelectedIndex(null);
     setFeedback(undefined);
     setWrongAttempts(0);
+    setFirstSubmittedIndex(null);
+    setIsPersistingAttempt(false);
+    setPersistErrorMessage(null);
+    setProblemStartedAt(new Date().toISOString());
   }, [activeProblem?.id]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
@@ -116,6 +131,10 @@ export function usePracticeScreen({
   const onSubmit = () => {
     if (selectedIndex === null || !activeProblem) {
       return;
+    }
+
+    if (firstSubmittedIndex === null) {
+      setFirstSubmittedIndex(selectedIndex);
     }
 
     const isCorrect = selectedIndex === activeProblem.answerIndex;
@@ -165,7 +184,7 @@ export function usePracticeScreen({
     });
   };
 
-  const onContinue = () => {
+  const continueAfterPersistence = () => {
     if (feedback?.kind !== 'correct' && feedback?.kind !== 'resolved') {
       return;
     }
@@ -198,6 +217,64 @@ export function usePracticeScreen({
     });
   };
 
+  const persistWeaknessAttempt = async () => {
+    if (
+      activeMode !== 'weakness' ||
+      (feedback?.kind !== 'correct' && feedback?.kind !== 'resolved')
+    ) {
+      return true;
+    }
+
+    if (!session || !profile || !activeWeaknessId || !activeProblem || selectedIndex === null) {
+      setPersistErrorMessage(PERSIST_ERROR_MESSAGE);
+      return false;
+    }
+
+    const resolvedBy = feedback.kind === 'correct' ? 'solved' : 'answer_revealed';
+
+    setIsPersistingAttempt(true);
+    setPersistErrorMessage(null);
+
+    try {
+      await recordAttempt(
+        buildWeaknessPracticeAttemptInput({
+          session,
+          profile,
+          weaknessId: activeWeaknessId,
+          weaknessLabel,
+          problemId: activeProblem.id,
+          startedAt: problemStartedAt,
+          completedAt: new Date().toISOString(),
+          firstSelectedIndex: firstSubmittedIndex,
+          finalSelectedIndex: selectedIndex,
+          wrongAttempts: feedback.kind === 'correct' ? wrongAttempts : 2,
+          resolvedBy,
+        }),
+      );
+      return true;
+    } catch (error) {
+      console.warn('Failed to persist weakness-practice attempt', error);
+      setIsPersistingAttempt(false);
+      setPersistErrorMessage(PERSIST_ERROR_MESSAGE);
+      return false;
+    }
+  };
+
+  const onContinue = () => {
+    if (isPersistingAttempt) {
+      return;
+    }
+
+    void (async () => {
+      const shouldContinue = await persistWeaknessAttempt();
+      if (!shouldContinue) {
+        return;
+      }
+
+      continueAfterPersistence();
+    })();
+  };
+
   const weaknessLabel =
     activeMode === 'challenge'
       ? '심화 문제'
@@ -219,16 +296,19 @@ export function usePracticeScreen({
           ? '피드백 화면으로 이동'
           : '다음 약점 문제',
     feedback,
+    isPersistingAttempt,
     onContinue,
     onRetry: () => {
       setSelectedIndex(null);
       setFeedback(undefined);
+      setPersistErrorMessage(null);
     },
     onSelectChoice: setSelectedIndex,
     onSubmit,
     onViewResult: () => {
       router.replace('/quiz/result');
     },
+    persistErrorMessage,
     selectedIndex,
     weaknessLabel,
   };

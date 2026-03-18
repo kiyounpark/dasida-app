@@ -76,7 +76,9 @@ function buildRepeatedWeaknesses(
   >();
 
   results
-    .filter((result) => result.finalWeaknessId !== null)
+    .filter(
+      (result) => result.source !== 'weakness-practice' && result.finalWeaknessId !== null,
+    )
     .sort((left, right) => right.resolvedAt.localeCompare(left.resolvedAt))
     .slice(0, 20)
     .forEach((result) => {
@@ -125,21 +127,23 @@ function buildRecentActivity(
   featuredExamState: FeaturedExamState,
 ): LearnerSummaryCurrent['recentActivity'] {
   const activity: LearnerSummaryCurrent['recentActivity'] = [
-    ...attempts.map((attempt) => {
-      const kind: 'diagnostic' | 'exam' =
-        attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
+    ...attempts
+      .filter((attempt) => attempt.source !== 'weakness-practice')
+      .map((attempt) => {
+        const kind: 'diagnostic' | 'exam' =
+          attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
 
-      return {
-        id: attempt.id,
-        kind,
-        title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
-        subtitle:
-          attempt.topWeaknesses[0] !== undefined
-            ? diagnosisMap[attempt.topWeaknesses[0]].labelKo
-            : `정답률 ${attempt.accuracy}%`,
-        occurredAt: attempt.completedAt,
-      };
-    }),
+        return {
+          id: attempt.id,
+          kind,
+          title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
+          subtitle:
+            attempt.topWeaknesses[0] !== undefined
+              ? diagnosisMap[attempt.topWeaknesses[0]].labelKo
+              : `정답률 ${attempt.accuracy}%`,
+          occurredAt: attempt.completedAt,
+        };
+      }),
     ...reviewTasks
       .filter((task) => task.completed && task.completedAt)
       .map((task) => ({
@@ -253,6 +257,7 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
     questionId: question.questionId,
     questionNumber: question.questionNumber,
     topic: question.topic,
+    firstSelectedIndex: question.firstSelectedIndex,
     selectedIndex: question.selectedIndex,
     isCorrect: question.isCorrect,
     finalWeaknessId: question.finalWeaknessId,
@@ -262,6 +267,9 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
     diagnosisCompleted: question.diagnosisCompleted,
     usedDontKnow: question.usedDontKnow,
     usedAiHelp: question.usedAiHelp,
+    wrongAttempts: question.wrongAttempts,
+    usedCoaching: question.usedCoaching,
+    resolvedBy: question.resolvedBy,
     schemaVersion: 1,
     resolvedAt: input.completedAt,
   }));
@@ -274,6 +282,10 @@ function buildReviewTasks(
   const sourceId = input.sourceEntityId ?? input.attemptId;
   const nextTasks = [...existingTasks];
   const weaknessId = input.primaryWeaknessId;
+
+  if (input.source === 'weakness-practice') {
+    return sortReviewTasks(nextTasks);
+  }
 
   if (!weaknessId) {
     return sortReviewTasks(nextTasks);
