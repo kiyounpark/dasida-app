@@ -6,8 +6,12 @@ import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
 import { useCurrentLearner } from '@/features/learner/provider';
+import type { ActiveReviewTaskSummary } from '@/features/learner/types';
+import { formatReviewStageLabel } from '@/features/learning/review-stage';
 import { buildWeaknessPracticeAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import { useQuizSession } from '@/features/quiz/session';
+
+type ScreenMode = 'weakness' | 'challenge' | 'review';
 
 export type QuizPracticeRouteParams = {
   fallbackWeaknessKey?: string;
@@ -52,6 +56,8 @@ function triggerPracticeHaptic(type: Haptics.NotificationFeedbackType) {
 export type UsePracticeScreenResult = {
   activeProblem: typeof challengeProblem | (typeof practiceMap)[WeaknessId] | undefined;
   continueLabel: string;
+  emptyActionLabel: string;
+  emptyTitle: string;
   feedback: FeedbackState;
   isPersistingAttempt: boolean;
   onContinue: () => void;
@@ -60,6 +66,7 @@ export type UsePracticeScreenResult = {
   onSubmit: () => void;
   onViewResult: () => void;
   persistErrorMessage: string | null;
+  screenTitle: string;
   selectedIndex: number | null;
   weaknessLabel: string;
 };
@@ -71,7 +78,7 @@ export function usePracticeScreen({
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
   const { state, advancePractice, completeChallenge } = useQuizSession();
-  const { profile, recordAttempt, session } = useCurrentLearner();
+  const { profile, recordAttempt, session, summary } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
@@ -82,21 +89,41 @@ export function usePracticeScreen({
   const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
-  const activeMode = state.result?.allCorrect
-    ? 'challenge'
-    : state.result
-      ? 'weakness'
-      : requestedMode === 'challenge'
-        ? 'challenge'
-        : 'weakness';
+  const reviewQueue = useMemo<ActiveReviewTaskSummary[]>(
+    () => summary?.dueReviewTasks ?? [],
+    [summary?.dueReviewTasks],
+  );
 
+  const activeMode: ScreenMode =
+    requestedMode === 'review'
+      ? 'review'
+      : state.result?.allCorrect
+        ? 'challenge'
+        : state.result
+          ? 'weakness'
+          : requestedMode === 'challenge'
+            ? 'challenge'
+            : 'weakness';
+
+  const activeReviewTask = activeMode === 'review' ? reviewQueue[0] : undefined;
   const activeWeaknessId: WeaknessId | undefined = useMemo(() => {
+    if (activeMode === 'review') {
+      return activeReviewTask?.weaknessId;
+    }
+
     if (state.result && activeMode === 'weakness') {
       return state.practiceQueue[state.practiceIndex];
     }
 
     return fallbackWeaknessId;
-  }, [activeMode, fallbackWeaknessId, state.practiceIndex, state.practiceQueue, state.result]);
+  }, [
+    activeMode,
+    activeReviewTask?.weaknessId,
+    fallbackWeaknessId,
+    state.practiceIndex,
+    state.practiceQueue,
+    state.result,
+  ]);
 
   const activeProblem =
     activeMode === 'challenge'
@@ -113,7 +140,7 @@ export function usePracticeScreen({
     setIsPersistingAttempt(false);
     setPersistErrorMessage(null);
     setProblemStartedAt(new Date().toISOString());
-  }, [activeProblem?.id]);
+  }, [activeProblem?.id, activeReviewTask?.id]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
     if (mode === 'challenge') {
@@ -127,6 +154,9 @@ export function usePracticeScreen({
     }
     return next;
   };
+
+  const baseWeaknessLabel =
+    activeWeaknessId !== undefined ? diagnosisMap[activeWeaknessId].labelKo : '약점 연습';
 
   const onSubmit = () => {
     if (selectedIndex === null || !activeProblem) {
@@ -149,14 +179,14 @@ export function usePracticeScreen({
       return;
     }
 
-    if (activeMode === 'weakness') {
+    if (activeMode !== 'challenge') {
       triggerPracticeHaptic(Haptics.NotificationFeedbackType.Warning);
       if (wrongAttempts === 0) {
         setWrongAttempts(1);
         setFeedback({
           kind: 'coaching',
           title: '이 포인트만 다시 보면 풀 수 있어요.',
-          body: `${weaknessLabel}에서 자주 흔들리는 기준만 짧게 다시 잡고 갈게요.`,
+          body: `${baseWeaknessLabel}에서 자주 흔들리는 기준만 짧게 다시 잡고 갈게요.`,
           focusTitle: '지금 다시 볼 포인트',
           focusBody: activeProblem.hint,
           supportText: '답을 바로 외우기보다, 이 기준 한 줄을 떠올린 뒤 다시 풀어보세요.',
@@ -168,7 +198,7 @@ export function usePracticeScreen({
       setFeedback({
         kind: 'resolved',
         title: '이번에는 해설까지 같이 볼게요.',
-        body: `${weaknessLabel} 약점에서 놓친 기준을 정리해두면 다음 문제에서 같은 실수를 줄일 수 있어요.`,
+        body: `${baseWeaknessLabel} 약점에서 놓친 기준을 정리해두면 다음 문제에서 같은 실수를 줄일 수 있어요.`,
         answerLabel: '정답',
         answerText: activeProblem.choices[activeProblem.answerIndex],
         explanation: activeProblem.explanation,
@@ -198,6 +228,13 @@ export function usePracticeScreen({
       return;
     }
 
+    if (activeMode === 'review') {
+      if (reviewQueue.length <= 1) {
+        router.replace('/quiz');
+      }
+      return;
+    }
+
     if (state.result && state.practiceMode === 'weakness') {
       const isLast = state.practiceIndex >= state.practiceQueue.length - 1;
       advancePractice();
@@ -219,13 +256,18 @@ export function usePracticeScreen({
 
   const persistWeaknessAttempt = async () => {
     if (
-      activeMode !== 'weakness' ||
+      (activeMode !== 'weakness' && activeMode !== 'review') ||
       (feedback?.kind !== 'correct' && feedback?.kind !== 'resolved')
     ) {
       return true;
     }
 
     if (!session || !profile || !activeWeaknessId || !activeProblem || selectedIndex === null) {
+      setPersistErrorMessage(PERSIST_ERROR_MESSAGE);
+      return false;
+    }
+
+    if (activeMode === 'review' && !activeReviewTask) {
       setPersistErrorMessage(PERSIST_ERROR_MESSAGE);
       return false;
     }
@@ -241,7 +283,7 @@ export function usePracticeScreen({
           session,
           profile,
           weaknessId: activeWeaknessId,
-          weaknessLabel,
+          weaknessLabel: baseWeaknessLabel,
           problemId: activeProblem.id,
           startedAt: problemStartedAt,
           completedAt: new Date().toISOString(),
@@ -249,6 +291,13 @@ export function usePracticeScreen({
           finalSelectedIndex: selectedIndex,
           wrongAttempts: feedback.kind === 'correct' ? wrongAttempts : 2,
           resolvedBy,
+          reviewContext:
+            activeMode === 'review' && activeReviewTask
+              ? {
+                  reviewTaskId: activeReviewTask.id,
+                  reviewStage: activeReviewTask.stage,
+                }
+              : undefined,
         }),
       );
       return true;
@@ -278,9 +327,9 @@ export function usePracticeScreen({
   const weaknessLabel =
     activeMode === 'challenge'
       ? '심화 문제'
-      : activeWeaknessId
-        ? diagnosisMap[activeWeaknessId].labelKo
-        : '약점 연습';
+      : activeMode === 'review' && activeReviewTask
+        ? `${formatReviewStageLabel(activeReviewTask.stage)} · ${baseWeaknessLabel}`
+        : baseWeaknessLabel;
 
   const isLastWeakness =
     state.result && state.practiceMode === 'weakness'
@@ -292,9 +341,15 @@ export function usePracticeScreen({
     continueLabel:
       activeMode === 'challenge'
         ? '피드백 화면으로 이동'
-        : isLastWeakness
-          ? '피드백 화면으로 이동'
-          : '다음 약점 문제',
+        : activeMode === 'review'
+          ? reviewQueue.length > 1
+            ? '다음 복습 문제'
+            : '홈으로 돌아가기'
+          : isLastWeakness
+            ? '피드백 화면으로 이동'
+            : '다음 약점 문제',
+    emptyActionLabel: activeMode === 'review' ? '홈으로 돌아가기' : '결과로 돌아가기',
+    emptyTitle: activeMode === 'review' ? '오늘 바로 시작할 복습이 없어요.' : '연습 문제를 찾지 못했어요.',
     feedback,
     isPersistingAttempt,
     onContinue,
@@ -306,9 +361,20 @@ export function usePracticeScreen({
     onSelectChoice: setSelectedIndex,
     onSubmit,
     onViewResult: () => {
+      if (activeMode === 'review') {
+        router.replace('/quiz');
+        return;
+      }
+
       router.replace('/quiz/result');
     },
     persistErrorMessage,
+    screenTitle:
+      activeMode === 'challenge'
+        ? '심화 문제'
+        : activeMode === 'review'
+          ? '오늘 복습'
+          : '약점 기반 연습',
     selectedIndex,
     weaknessLabel,
   };

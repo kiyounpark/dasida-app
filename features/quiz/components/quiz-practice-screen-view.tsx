@@ -11,6 +11,8 @@ import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice
 export function QuizPracticeScreenView({
   activeProblem,
   continueLabel,
+  emptyActionLabel,
+  emptyTitle,
   feedback,
   isPersistingAttempt,
   onContinue,
@@ -19,6 +21,7 @@ export function QuizPracticeScreenView({
   onSubmit,
   onViewResult,
   persistErrorMessage,
+  screenTitle,
   selectedIndex,
   weaknessLabel,
 }: UsePracticeScreenResult) {
@@ -28,9 +31,9 @@ export function QuizPracticeScreenView({
         <BrandHeader compact />
         <View style={styles.emptyBody}>
           <View style={styles.emptyCard}>
-            <Text style={styles.title}>연습 문제를 찾지 못했어요.</Text>
+            <Text style={styles.title}>{emptyTitle}</Text>
             <View style={styles.buttonTopGap}>
-              <BrandButton title="결과로 돌아가기" onPress={onViewResult} />
+              <BrandButton title={emptyActionLabel} onPress={onViewResult} />
             </View>
           </View>
         </View>
@@ -46,7 +49,7 @@ export function QuizPracticeScreenView({
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
         <View style={styles.problemCard}>
-          <Text style={styles.title}>약점 기반 연습</Text>
+          <Text style={styles.title}>{screenTitle}</Text>
           <Text style={styles.subtitle}>{weaknessLabel}</Text>
           <ProblemStatement question={activeProblem.question} />
 

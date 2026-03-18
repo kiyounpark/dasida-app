@@ -23,6 +23,16 @@
 
 ### 2026.03.18
 
+**에빙하우스 기반 예약 복습 흐름과 홈 hero 진입을 앱/함수 전반에 연결**
+- `features/learning/local-learning-history-repository.ts`, `functions/src/learning-history.ts`: 진단 결과의 상위 3개 약점에 대해 `day1 -> day3 -> day7 -> day30` 계단형 review task를 생성하고, 복습 완료 시 다음 단계 하나만 이어지도록 로컬/원격 스케줄링을 정렬
+- `features/learning/history-repository.ts`, `features/learning/types.ts`, `features/learning/history-types.ts`, `features/quiz/build-finalized-attempt-input.ts`: `dueReviewTasks`, `reviewContext`, `day30` 타입 계약을 추가해 scheduled review 완료와 summary 계산이 동일한 payload를 쓰도록 확장
+- `features/learning/home-state.ts`, `features/quiz/hooks/use-quiz-hub-screen.ts`, `features/quiz/components/quiz-hub-screen-view.tsx`, `features/history/history-insights.ts`, `features/history/hooks/use-history-screen.ts`: 오늘 due 된 복습이 있을 때만 홈/히스토리 hero가 review 상태로 바뀌고 `/quiz/practice?mode=review` 로 진입하도록 연결
+- `features/quiz/hooks/use-practice-screen.ts`, `features/quiz/components/quiz-practice-screen-view.tsx`: 기존 practice 화면에 `review` mode를 추가해 due task queue를 순서대로 처리하고, 마지막 복습이면 홈으로 복귀하도록 분기
+- `data/review-content-map.ts`, `features/learning/review-stage.ts`: review hero 질문 문구와 stage label/offset 계산을 분리해 약점별 복습 카피와 단계 진행 규칙을 공통화
+- `functions/tests/learning-history-weakness-practice.test.ts`: `top 3 -> day1`, `reviewContext`, `day30`, `dueReviewTasks`를 검증하는 테스트를 추가
+- `functions/shared/timestamp-utils.js`, `functions/src/timestamp-utils.ts`: 앱/함수가 같은 timestamp 비교 구현을 보도록 공용 helper를 하나로 정리하고, ISO 문자열 비교에 의존하던 due/정렬 계산을 숫자 timestamp 비교로 교체
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run test --prefix functions`, `npm run lint --prefix functions`, `npm run build --prefix functions` 통과, Claude CLI 리뷰에서 blocking issue 없음 확인
+
 **약점 연습 오답 흐름을 조용한 튜터형 미니 코칭으로 확장**
 - `features/quiz/hooks/use-practice-screen.ts`: 약점 연습에서 `1차 오답 -> coaching`, `2차 오답 -> resolved`, `정답 -> correct`로 이어지는 상태 분기를 추가하고, 문제 전환 시 오답 횟수를 초기화하도록 조정
 - 같은 파일에서 심화 문제(`challenge`)는 기존 단순 재도전 흐름을 유지하되, 정오답 제출 시 iOS 전용 haptics를 공통 helper로 정리

@@ -7,8 +7,13 @@ import {
   hashMigrationSourceAccountKey,
   type ImportWriteOperation,
 } from './learning-history-import-ops';
+import {
+  compareTimestampsAsc,
+  compareTimestampsDesc,
+  isTimestampOnOrBefore,
+} from './timestamp-utils';
 
-const reviewStages = ['day1', 'day3', 'day7'] as const;
+const reviewStages = ['day1', 'day3', 'day7', 'day30'] as const;
 const learningSources = ['diagnostic', 'featured-exam', 'weakness-practice'] as const;
 const learnerGrades = ['g1', 'g2', 'g3', 'unknown'] as const;
 const solveMethodIds = [
@@ -121,6 +126,7 @@ const LearnerSummaryCurrentSchema = z.object({
     }),
   ),
   nextReviewTask: ActiveReviewTaskSummarySchema.optional(),
+  dueReviewTasks: z.array(ActiveReviewTaskSummarySchema).default([]),
   featuredExamState: FeaturedExamStateSchema,
   totals: z.object({
     diagnosticAttempts: z.number().int().min(0),
@@ -230,6 +236,12 @@ export const FinalizedAttemptInputSchema = z
     accuracy: z.number().int().min(0).max(100),
     primaryWeaknessId: WeaknessIdSchema.nullable(),
     topWeaknesses: z.array(WeaknessIdSchema).max(3),
+    reviewContext: z
+      .object({
+        reviewTaskId: z.string().min(1).max(240),
+        reviewStage: ReviewStageSchema,
+      })
+      .optional(),
     questions: z.array(FinalizedAttemptQuestionInputSchema).min(1).max(200),
   })
   .superRefine((value, ctx) => {
@@ -304,6 +316,7 @@ const REVIEW_STAGE_OFFSETS: Record<ReviewStage, number> = {
   day1: 1,
   day3: 3,
   day7: 7,
+  day30: 30,
 };
 
 const DEFAULT_FEATURED_EXAM_ID = 'featured-mock-1';
@@ -363,6 +376,7 @@ export function createEmptyLearnerSummary(accountKey: string): LearnerSummaryCur
     accountKey,
     updatedAt: new Date().toISOString(),
     repeatedWeaknesses: [],
+    dueReviewTasks: [],
     featuredExamState: createDefaultFeaturedExamState(),
     totals: {
       diagnosticAttempts: 0,
@@ -377,11 +391,105 @@ function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: stri
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
-  return [...attempts].sort((left, right) => right.completedAt.localeCompare(left.completedAt));
+  return [...attempts].sort((left, right) => compareTimestampsDesc(left.completedAt, right.completedAt));
 }
 
 function sortReviewTasks(tasks: ReviewTask[]) {
-  return [...tasks].sort((left, right) => left.scheduledFor.localeCompare(right.scheduledFor));
+  return [...tasks].sort((left, right) => compareTimestampsAsc(left.scheduledFor, right.scheduledFor));
+}
+
+function toReviewTaskSummary(task: ReviewTask) {
+  return {
+    id: task.id,
+    weaknessId: task.weaknessId,
+    stage: task.stage,
+    scheduledFor: task.scheduledFor,
+    source: task.source,
+    sourceId: task.sourceId,
+  };
+}
+
+function buildReviewTaskState(reviewTasks: ReviewTask[]) {
+  const pendingReviewTasks = sortReviewTasks(reviewTasks.filter((task) => !task.completed));
+  const nextReviewTask = pendingReviewTasks[0];
+  const now = new Date().toISOString();
+  const dueReviewTasks = pendingReviewTasks.filter((task) =>
+    isTimestampOnOrBefore(task.scheduledFor, now),
+  );
+
+  return {
+    nextReviewTask: nextReviewTask ? toReviewTaskSummary(nextReviewTask) : undefined,
+    dueReviewTasks: dueReviewTasks.map(toReviewTaskSummary),
+  };
+}
+
+function applyReviewTaskState(
+  summary: LearnerSummaryCurrent,
+  reviewTasks: ReviewTask[],
+): LearnerSummaryCurrent {
+  return LearnerSummaryCurrentSchema.parse({
+    ...summary,
+    ...buildReviewTaskState(reviewTasks),
+  });
+}
+
+function getNextReviewStage(stage: ReviewStage) {
+  const currentIndex = reviewStages.indexOf(stage);
+  if (currentIndex < 0 || currentIndex === reviewStages.length - 1) {
+    return null;
+  }
+
+  return reviewStages[currentIndex + 1];
+}
+
+function createReviewTask(params: {
+  accountKey: string;
+  weaknessId: WeaknessId;
+  source: FinalizedAttemptInput['source'];
+  sourceId: string;
+  scheduledFor: string;
+  stage: ReviewStage;
+  createdAt: string;
+}): ReviewTask {
+  return ReviewTaskSchema.parse({
+    id: createTaskId(params.stage, params.weaknessId, params.sourceId),
+    accountKey: params.accountKey,
+    weaknessId: params.weaknessId,
+    source: params.source,
+    sourceId: params.sourceId,
+    scheduledFor: params.scheduledFor,
+    stage: params.stage,
+    completed: false,
+    createdAt: params.createdAt,
+  });
+}
+
+function areReviewTasksEqual(left: ReviewTask, right: ReviewTask) {
+  return (
+    left.id === right.id &&
+    left.accountKey === right.accountKey &&
+    left.weaknessId === right.weaknessId &&
+    left.source === right.source &&
+    left.sourceId === right.sourceId &&
+    left.scheduledFor === right.scheduledFor &&
+    left.stage === right.stage &&
+    left.completed === right.completed &&
+    left.createdAt === right.createdAt &&
+    left.completedAt === right.completedAt
+  );
+}
+
+function diffReviewTasks(existingTasks: ReviewTask[], nextTasks: ReviewTask[]) {
+  const existingById = new Map(existingTasks.map((task) => [task.id, task]));
+  const nextById = new Map(nextTasks.map((task) => [task.id, task]));
+
+  return {
+    upserts: nextTasks.filter((task) => {
+      const existingTask = existingById.get(task.id);
+      return !existingTask || !areReviewTasksEqual(existingTask, task);
+    }),
+    deletes: existingTasks.filter((task) => !nextById.has(task.id)),
+  };
 }
 
 function buildRepeatedWeaknesses(
@@ -404,7 +512,7 @@ function buildRepeatedWeaknesses(
     .filter(
       (result) => result.source !== 'weakness-practice' && result.finalWeaknessId !== null,
     )
-    .sort((left, right) => right.resolvedAt.localeCompare(left.resolvedAt))
+    .sort((left, right) => compareTimestampsDesc(left.resolvedAt, right.resolvedAt))
     .slice(0, 20)
     .forEach((result) => {
       const weaknessId = result.finalWeaknessId;
@@ -426,7 +534,7 @@ function buildRepeatedWeaknesses(
         weaknessId,
         count: previous.count + 1,
         lastSeenAt:
-          previous.lastSeenAt.localeCompare(result.resolvedAt) >= 0
+          compareTimestampsDesc(previous.lastSeenAt, result.resolvedAt) <= 0
             ? previous.lastSeenAt
             : result.resolvedAt,
       });
@@ -437,7 +545,7 @@ function buildRepeatedWeaknesses(
       return right.count - left.count;
     }
 
-    const lastSeenOrder = right.lastSeenAt.localeCompare(left.lastSeenAt);
+    const lastSeenOrder = compareTimestampsDesc(left.lastSeenAt, right.lastSeenAt);
     if (lastSeenOrder !== 0) {
       return lastSeenOrder;
     }
@@ -496,7 +604,7 @@ function buildRecentActivity(
   }
 
   return activity
-    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .sort((left, right) => compareTimestampsDesc(left.occurredAt, right.occurredAt))
     .slice(0, 5);
 }
 
@@ -551,31 +659,89 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
   );
 }
 
-export function buildReviewTasks(input: FinalizedAttemptInput): ReviewTask[] {
-  const sourceId = input.sourceEntityId ?? input.attemptId;
-  const weaknessId = input.primaryWeaknessId;
-
+export function buildReviewTasks(
+  input: FinalizedAttemptInput,
+  existingTasks: ReviewTask[] = [],
+): ReviewTask[] {
   if (input.source === 'weakness-practice') {
-    return [];
+    if (!input.reviewContext) {
+      return sortReviewTasks(existingTasks);
+    }
+
+    const activeTask = existingTasks.find((task) => task.id === input.reviewContext?.reviewTaskId);
+    if (!activeTask) {
+      return sortReviewTasks(existingTasks);
+    }
+
+    const nextTasks = existingTasks.map((task) =>
+      task.id === activeTask.id
+        ? {
+            ...task,
+            completed: true,
+            completedAt: input.completedAt,
+          }
+        : task,
+    );
+
+    const nextStage = getNextReviewStage(activeTask.stage);
+    if (!nextStage) {
+      return sortReviewTasks(nextTasks);
+    }
+
+    const nextTaskId = createTaskId(nextStage, activeTask.weaknessId, activeTask.sourceId);
+    if (nextTasks.some((task) => task.id === nextTaskId)) {
+      return sortReviewTasks(nextTasks);
+    }
+
+    nextTasks.push(
+      createReviewTask({
+        accountKey: input.accountKey,
+        weaknessId: activeTask.weaknessId,
+        source: activeTask.source,
+        sourceId: activeTask.sourceId,
+        scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS[nextStage]),
+        stage: nextStage,
+        createdAt: input.completedAt,
+      }),
+    );
+
+    return sortReviewTasks(nextTasks);
   }
 
-  if (!weaknessId) {
-    return [];
+  if (input.source !== 'diagnostic') {
+    return sortReviewTasks(existingTasks);
   }
 
-  return reviewStages.map((stage) =>
-    ReviewTaskSchema.parse({
-      id: createTaskId(stage, weaknessId, sourceId),
-      accountKey: input.accountKey,
-      weaknessId,
-      source: input.source,
-      sourceId,
-      scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS[stage]),
-      stage,
-      completed: false,
-      createdAt: input.completedAt,
-    }),
+  const reviewWeaknesses = Array.from(new Set(input.topWeaknesses.slice(0, 3)));
+  if (reviewWeaknesses.length === 0) {
+    return sortReviewTasks(existingTasks);
+  }
+
+  const sourceId = input.sourceEntityId ?? input.attemptId;
+  const nextTasks = existingTasks.filter(
+    (task) => task.completed || !reviewWeaknesses.includes(task.weaknessId),
   );
+
+  reviewWeaknesses.forEach((weaknessId) => {
+    const taskId = createTaskId('day1', weaknessId, sourceId);
+    if (nextTasks.some((task) => task.id === taskId)) {
+      return;
+    }
+
+    nextTasks.push(
+      createReviewTask({
+        accountKey: input.accountKey,
+        weaknessId,
+        source: input.source,
+        sourceId,
+        scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS.day1),
+        stage: 'day1',
+        createdAt: input.completedAt,
+      }),
+    );
+  });
+
+  return sortReviewTasks(nextTasks);
 }
 
 export function buildSummary(
@@ -590,14 +756,14 @@ export function buildSummary(
   const latestFeaturedExamAttempt = sortedAttempts.find(
     (attempt) => attempt.source === 'featured-exam',
   );
-  const nextReviewTask = sortReviewTasks(reviewTasks.filter((task) => !task.completed))[0];
   let featuredExamState = currentSummary?.featuredExamState ?? createDefaultFeaturedExamState();
+  const reviewTaskState = buildReviewTaskState(reviewTasks);
 
   if (
     latestFeaturedExamAttempt &&
     (featuredExamState.status !== 'in_progress' ||
       !featuredExamState.lastOpenedAt ||
-      featuredExamState.lastOpenedAt.localeCompare(latestFeaturedExamAttempt.completedAt) <= 0)
+      isTimestampOnOrBefore(featuredExamState.lastOpenedAt, latestFeaturedExamAttempt.completedAt))
   ) {
     featuredExamState = {
       examId: latestFeaturedExamAttempt.sourceEntityId ?? featuredExamState.examId,
@@ -619,16 +785,8 @@ export function buildSummary(
         }
       : undefined,
     repeatedWeaknesses: buildRepeatedWeaknesses(results),
-    nextReviewTask: nextReviewTask
-      ? {
-          id: nextReviewTask.id,
-          weaknessId: nextReviewTask.weaknessId,
-          stage: nextReviewTask.stage,
-          scheduledFor: nextReviewTask.scheduledFor,
-          source: nextReviewTask.source,
-          sourceId: nextReviewTask.sourceId,
-        }
-      : undefined,
+    nextReviewTask: reviewTaskState.nextReviewTask,
+    dueReviewTasks: reviewTaskState.dueReviewTasks,
     featuredExamState,
     totals: {
       diagnosticAttempts: attempts.filter((attempt) => attempt.source === 'diagnostic').length,
@@ -679,25 +837,35 @@ export async function loadLearnerHistory(accountKey: string) {
 export async function recordLearningAttempt(input: FinalizedAttemptInput) {
   const firestore = getFirestore();
   const attemptRef = getAttemptRef(input.accountKey, input.attemptId);
-  const existingAttempt = await attemptRef.get();
+  const [existingAttempt, existingReviewTasksSnapshot] = await Promise.all([
+    attemptRef.get(),
+    getReviewTasksCollection(input.accountKey).get(),
+  ]);
   const createdAt =
     existingAttempt.exists &&
     existingAttempt.data() &&
     typeof existingAttempt.data()!.createdAt === 'string'
       ? (existingAttempt.data()!.createdAt as string)
       : input.completedAt;
+  const existingReviewTasks = existingReviewTasksSnapshot.docs.map((doc) =>
+    ReviewTaskSchema.parse(doc.data()),
+  );
 
   const attempt = buildAttempt(input, createdAt);
   const results = buildAttemptResults(input);
-  const reviewTasks = buildReviewTasks(input);
+  const nextReviewTasks = buildReviewTasks(input, existingReviewTasks);
+  const reviewTaskMutations = diffReviewTasks(existingReviewTasks, nextReviewTasks);
   const batch = firestore.batch();
 
   batch.set(attemptRef, attempt, { merge: true });
   results.forEach((result) => {
     batch.set(getAttemptResultsCollection(input.accountKey).doc(result.id), result, { merge: true });
   });
-  reviewTasks.forEach((task) => {
+  reviewTaskMutations.upserts.forEach((task) => {
     batch.set(getReviewTasksCollection(input.accountKey).doc(task.id), task, { merge: true });
+  });
+  reviewTaskMutations.deletes.forEach((task) => {
+    batch.delete(getReviewTasksCollection(input.accountKey).doc(task.id));
   });
   await batch.commit();
 
@@ -723,7 +891,13 @@ export async function recordLearningAttempt(input: FinalizedAttemptInput) {
 export async function getLearnerSummary(accountKey: string) {
   const summarySnapshot = await getSummaryRef(accountKey).get();
   if (summarySnapshot.exists) {
-    return LearnerSummaryCurrentSchema.parse(summarySnapshot.data());
+    const [summary, reviewTasksSnapshot] = await Promise.all([
+      Promise.resolve(LearnerSummaryCurrentSchema.parse(summarySnapshot.data())),
+      getReviewTasksCollection(accountKey).get(),
+    ]);
+    const reviewTasks = reviewTasksSnapshot.docs.map((doc) => ReviewTaskSchema.parse(doc.data()));
+
+    return applyReviewTaskState(summary, reviewTasks);
   }
 
   const history = await loadLearnerHistory(accountKey);
@@ -778,6 +952,7 @@ export async function saveFeaturedExamStateSummary(
       accountKey,
       updatedAt: new Date().toISOString(),
       repeatedWeaknesses: [],
+      dueReviewTasks: [],
       featuredExamState: createDefaultFeaturedExamState(),
       totals: {
         diagnosticAttempts: 0,

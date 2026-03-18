@@ -79,6 +79,7 @@ export type LearnerSummaryCurrent = {
     lastSeenAt: string;
   }>;
   nextReviewTask?: ActiveReviewTaskSummary;
+  dueReviewTasks: ActiveReviewTaskSummary[];
   featuredExamState: FeaturedExamState;
   totals: {
     diagnosticAttempts: number;

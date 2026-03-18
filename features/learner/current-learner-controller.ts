@@ -82,8 +82,8 @@ function buildPreviewAttemptInput(
   profile: LearnerProfile,
   source: 'diagnostic' | 'featured-exam',
   sourceEntityId: string | null = null,
+  completedAt = new Date().toISOString(),
 ): FinalizedAttemptInput {
-  const completedAt = new Date().toISOString();
   const attemptId = `preview-${source}-${Date.now().toString(36)}`;
   const topWeaknesses = getPreviewWeaknesses();
 
@@ -252,7 +252,13 @@ export function createCurrentLearnerController({
       }
 
       if (state === 'diagnostic-complete' || state === 'review-available') {
-        await learningHistoryRepository.recordAttempt(buildPreviewAttemptInput(profile, 'diagnostic'));
+        const previewCompletedAt =
+          state === 'review-available'
+            ? new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+            : new Date().toISOString();
+        await learningHistoryRepository.recordAttempt(
+          buildPreviewAttemptInput(profile, 'diagnostic', null, previewCompletedAt),
+        );
       }
 
       if (state === 'exam-in-progress') {

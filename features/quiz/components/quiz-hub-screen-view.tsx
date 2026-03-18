@@ -192,7 +192,7 @@ export function QuizHubScreenView({
           <View style={styles.heroTopRow}>
             <View style={styles.heroBadge}>
               <Text selectable style={styles.heroBadgeText}>
-                {isReviewHero ? '오늘 다시 할 일' : '가장 쉬운 시작'}
+                {isReviewHero ? `오늘 복습 ${homeState.todayReviewCount}개` : '가장 쉬운 시작'}
               </Text>
             </View>
             <View style={styles.heroArrowWrap}>
@@ -209,7 +209,7 @@ export function QuizHubScreenView({
           </View>
           <View style={styles.heroFooter}>
             <Text selectable style={styles.heroCta}>
-              {isReviewHero ? '이어하기' : '시작하기'}
+              {isReviewHero ? '첫 카드 열기' : '시작하기'}
             </Text>
             <Text selectable style={styles.heroMeta}>
               {homeState.heroMeta}

@@ -1,3 +1,5 @@
+import { formatReviewStageLabel } from '@/features/learning/review-stage';
+import { compareTimestampsAsc } from '@/functions/shared/timestamp-utils';
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 
@@ -133,23 +135,32 @@ function getActivityKindLabel(kind: 'diagnostic' | 'review' | 'exam') {
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
-  return [...attempts].sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+  return [...attempts].sort((left, right) => compareTimestampsAsc(left.completedAt, right.completedAt));
 }
 
 function buildHero(
   summary: LearnerSummaryCurrent,
   attempts: LearningAttempt[],
 ): HistoryHeroState {
-  if (summary.nextReviewTask) {
+  const dueReviewTasks = summary.dueReviewTasks ?? [];
+
+  if (dueReviewTasks.length > 0) {
+    const leadTask = dueReviewTasks[0];
     return {
-      title: '오늘은 약점 1개만 짧게 다시 잡아보면 됩니다.',
+      title:
+        dueReviewTasks.length > 1
+          ? `오늘은 복습 ${dueReviewTasks.length}개를 순서대로 다시 잡아보면 됩니다.`
+          : '오늘은 약점 1개만 짧게 다시 잡아보면 됩니다.',
       body: '이미 한 번 정리한 흔들림을 오늘 복습으로 묶어 두면, 다음 진단에서 훨씬 덜 흔들리는 흐름으로 이어질 수 있어요.',
       meta: [
-        `우선순위 · ${summary.nextReviewTask.stage.toUpperCase()}`,
-        `대상 · ${getWeaknessLabel(summary.nextReviewTask.weaknessId)}`,
+        `우선순위 · ${formatReviewStageLabel(leadTask.stage)}`,
+        `대상 · ${getWeaknessLabel(leadTask.weaknessId)}`,
       ],
       pointLabel: '복습',
-      pointBody: '오늘 할 일은 넓게 보지 않고 1개 약점만 다시 잡습니다.',
+      pointBody:
+        dueReviewTasks.length > 1
+          ? `대표 약점부터 시작하면 오늘 예약된 복습 ${dueReviewTasks.length}개를 차례로 정리할 수 있어요.`
+          : '오늘 할 일은 넓게 보지 않고 1개 약점만 다시 잡습니다.',
       ctaLabel: '복습하러 가기',
       ctaKind: 'review',
     };
@@ -289,13 +300,15 @@ function buildComparison(attempts: LearningAttempt[]): HistoryComparisonState {
 }
 
 function buildFocusItems(summary: LearnerSummaryCurrent): HistoryFocusItem[] {
+  const dueReviewWeaknessIds = new Set((summary.dueReviewTasks ?? []).map((task) => task.weaknessId));
+
   return summary.repeatedWeaknesses.slice(0, 2).map((item) => ({
     weaknessId: item.weaknessId,
     label: getWeaknessLabel(item.weaknessId),
     countLabel: `${item.count}회`,
     body: '자주 헷갈렸던 부분이에요. 가볍게 다시 보면 도움이 됩니다.',
     fillRatio: Math.min(item.count, 5) / 5,
-    isLinkedToReview: summary.nextReviewTask?.weaknessId === item.weaknessId,
+    isLinkedToReview: dueReviewWeaknessIds.has(item.weaknessId),
   }));
 }
 

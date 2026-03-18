@@ -2,6 +2,7 @@ import { problemData } from '@/data/problemData';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { AuthSession } from '@/features/auth/types';
 import type { FinalizedAttemptInput } from '@/features/learning/history-repository';
+import type { ReviewStage } from '@/features/learning/history-types';
 import type { LearnerProfile } from '@/features/learner/types';
 
 import type { QuizAnswer, QuizResultSummary } from './types';
@@ -80,6 +81,10 @@ export function buildWeaknessPracticeAttemptInput(params: {
   finalSelectedIndex: number | null;
   wrongAttempts: number;
   resolvedBy: 'solved' | 'answer_revealed';
+  reviewContext?: {
+    reviewTaskId: string;
+    reviewStage: ReviewStage;
+  };
 }): FinalizedAttemptInput {
   const {
     completedAt,
@@ -88,6 +93,7 @@ export function buildWeaknessPracticeAttemptInput(params: {
     problemId,
     profile,
     resolvedBy,
+    reviewContext,
     session,
     startedAt,
     weaknessId,
@@ -112,6 +118,7 @@ export function buildWeaknessPracticeAttemptInput(params: {
     accuracy: isCorrect ? 100 : 0,
     primaryWeaknessId: weaknessId,
     topWeaknesses: [weaknessId],
+    reviewContext,
     questions: [
       {
         questionId: problemId,

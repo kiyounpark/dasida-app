@@ -8,6 +8,15 @@ import {
   type FinalizedAttemptInput,
   type LearningHistoryRepository,
 } from './history-repository';
+import {
+  getNextReviewStage,
+  REVIEW_STAGE_OFFSETS,
+} from './review-stage';
+import {
+  compareTimestampsAsc,
+  compareTimestampsDesc,
+  isTimestampOnOrBefore,
+} from '@/functions/shared/timestamp-utils';
 import type {
   LearnerSummaryCurrent,
   LearningAttempt,
@@ -24,12 +33,6 @@ import {
   writeLearningHistoryJson,
 } from './local-learning-history-storage';
 
-const REVIEW_STAGE_OFFSETS: Record<ReviewStage, number> = {
-  day1: 1,
-  day3: 3,
-  day7: 7,
-};
-
 function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
   return `${sourceId}__${weaknessId}__${stage}`;
 }
@@ -41,11 +44,11 @@ function addDays(timestamp: string, days: number) {
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
-  return [...attempts].sort((left, right) => right.completedAt.localeCompare(left.completedAt));
+  return [...attempts].sort((left, right) => compareTimestampsDesc(left.completedAt, right.completedAt));
 }
 
 function sortReviewTasks(tasks: ReviewTask[]) {
-  return [...tasks].sort((left, right) => left.scheduledFor.localeCompare(right.scheduledFor));
+  return [...tasks].sort((left, right) => compareTimestampsAsc(left.scheduledFor, right.scheduledFor));
 }
 
 function toReviewTaskSummary(task: ReviewTask): ActiveReviewTaskSummary {
@@ -56,6 +59,54 @@ function toReviewTaskSummary(task: ReviewTask): ActiveReviewTaskSummary {
     scheduledFor: task.scheduledFor,
     source: task.source,
     sourceId: task.sourceId,
+  };
+}
+
+function buildReviewTaskState(reviewTasks: ReviewTask[]) {
+  const pendingReviewTasks = sortReviewTasks(reviewTasks.filter((task) => !task.completed));
+  const nextReviewTask = pendingReviewTasks[0];
+  const now = new Date().toISOString();
+  const dueReviewTasks = pendingReviewTasks.filter((task) =>
+    isTimestampOnOrBefore(task.scheduledFor, now),
+  );
+
+  return {
+    nextReviewTask: nextReviewTask ? toReviewTaskSummary(nextReviewTask) : undefined,
+    dueReviewTasks: dueReviewTasks.map(toReviewTaskSummary),
+  };
+}
+
+function applyReviewTaskState(
+  summary: LearnerSummaryCurrent,
+  reviewTasks: ReviewTask[],
+): LearnerSummaryCurrent {
+  const reviewTaskState = buildReviewTaskState(reviewTasks);
+
+  return {
+    ...summary,
+    ...reviewTaskState,
+  };
+}
+
+function createReviewTask(params: {
+  accountKey: string;
+  weaknessId: WeaknessId;
+  source: LearningSource;
+  sourceId: string;
+  scheduledFor: string;
+  stage: ReviewStage;
+  createdAt: string;
+}): ReviewTask {
+  return {
+    id: createTaskId(params.stage, params.weaknessId, params.sourceId),
+    accountKey: params.accountKey,
+    weaknessId: params.weaknessId,
+    source: params.source,
+    sourceId: params.sourceId,
+    scheduledFor: params.scheduledFor,
+    stage: params.stage,
+    completed: false,
+    createdAt: params.createdAt,
   };
 }
 
@@ -79,7 +130,7 @@ function buildRepeatedWeaknesses(
     .filter(
       (result) => result.source !== 'weakness-practice' && result.finalWeaknessId !== null,
     )
-    .sort((left, right) => right.resolvedAt.localeCompare(left.resolvedAt))
+    .sort((left, right) => compareTimestampsDesc(left.resolvedAt, right.resolvedAt))
     .slice(0, 20)
     .forEach((result) => {
       const weaknessId = result.finalWeaknessId;
@@ -101,7 +152,7 @@ function buildRepeatedWeaknesses(
         weaknessId,
         count: previous.count + 1,
         lastSeenAt:
-          previous.lastSeenAt.localeCompare(result.resolvedAt) >= 0
+          compareTimestampsDesc(previous.lastSeenAt, result.resolvedAt) <= 0
             ? previous.lastSeenAt
             : result.resolvedAt,
       });
@@ -112,7 +163,7 @@ function buildRepeatedWeaknesses(
       return right.count - left.count;
     }
 
-    const seenAtOrder = right.lastSeenAt.localeCompare(left.lastSeenAt);
+    const seenAtOrder = compareTimestampsDesc(left.lastSeenAt, right.lastSeenAt);
     if (seenAtOrder !== 0) {
       return seenAtOrder;
     }
@@ -171,7 +222,7 @@ function buildRecentActivity(
   }
 
   return activity
-    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .sort((left, right) => compareTimestampsDesc(left.occurredAt, right.occurredAt))
     .slice(0, 5);
 }
 
@@ -188,13 +239,13 @@ export function buildSummary(
     (attempt) => attempt.source === 'featured-exam',
   );
   let featuredExamState = currentSummary?.featuredExamState ?? createDefaultFeaturedExamState();
-  const nextReviewTask = sortReviewTasks(reviewTasks.filter((task) => !task.completed))[0];
+  const reviewTaskState = buildReviewTaskState(reviewTasks);
 
   if (
     latestFeaturedExamAttempt &&
     (featuredExamState.status !== 'in_progress' ||
       !featuredExamState.lastOpenedAt ||
-      featuredExamState.lastOpenedAt.localeCompare(latestFeaturedExamAttempt.completedAt) <= 0)
+      isTimestampOnOrBefore(featuredExamState.lastOpenedAt, latestFeaturedExamAttempt.completedAt))
   ) {
     featuredExamState = {
       examId: latestFeaturedExamAttempt.sourceEntityId ?? featuredExamState.examId,
@@ -216,7 +267,8 @@ export function buildSummary(
         }
       : undefined,
     repeatedWeaknesses: buildRepeatedWeaknesses(results),
-    nextReviewTask: nextReviewTask ? toReviewTaskSummary(nextReviewTask) : undefined,
+    nextReviewTask: reviewTaskState.nextReviewTask,
+    dueReviewTasks: reviewTaskState.dueReviewTasks,
     featuredExamState,
     totals: {
       diagnosticAttempts: attempts.filter((attempt) => attempt.source === 'diagnostic').length,
@@ -279,42 +331,82 @@ function buildReviewTasks(
   input: FinalizedAttemptInput,
   existingTasks: ReviewTask[],
 ): ReviewTask[] {
-  const sourceId = input.sourceEntityId ?? input.attemptId;
-  const nextTasks = [...existingTasks];
-  const weaknessId = input.primaryWeaknessId;
-
   if (input.source === 'weakness-practice') {
-    return sortReviewTasks(nextTasks);
-  }
+    if (!input.reviewContext) {
+      return sortReviewTasks(existingTasks);
+    }
 
-  if (!weaknessId) {
-    return sortReviewTasks(nextTasks);
-  }
+    const activeTask = existingTasks.find((task) => task.id === input.reviewContext?.reviewTaskId);
+    if (!activeTask) {
+      return sortReviewTasks(existingTasks);
+    }
 
-  (Object.keys(REVIEW_STAGE_OFFSETS) as ReviewStage[]).forEach((stage) => {
-    const hasExisting = nextTasks.some(
-      (task) =>
-        task.source === input.source &&
-        task.sourceId === sourceId &&
-        task.weaknessId === weaknessId &&
-        task.stage === stage,
+    const nextTasks = existingTasks.map((task) =>
+      task.id === activeTask.id
+        ? {
+            ...task,
+            completed: true,
+            completedAt: input.completedAt,
+          }
+        : task,
     );
 
-    if (hasExisting) {
+    const nextStage = getNextReviewStage(activeTask.stage);
+    if (!nextStage) {
+      return sortReviewTasks(nextTasks);
+    }
+
+    const nextTaskId = createTaskId(nextStage, activeTask.weaknessId, activeTask.sourceId);
+    if (nextTasks.some((task) => task.id === nextTaskId)) {
+      return sortReviewTasks(nextTasks);
+    }
+
+    nextTasks.push(
+      createReviewTask({
+        accountKey: input.accountKey,
+        weaknessId: activeTask.weaknessId,
+        source: activeTask.source,
+        sourceId: activeTask.sourceId,
+        scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS[nextStage]),
+        stage: nextStage,
+        createdAt: input.completedAt,
+      }),
+    );
+
+    return sortReviewTasks(nextTasks);
+  }
+
+  if (input.source !== 'diagnostic') {
+    return sortReviewTasks(existingTasks);
+  }
+
+  const reviewWeaknesses = Array.from(new Set(input.topWeaknesses.slice(0, 3)));
+  if (reviewWeaknesses.length === 0) {
+    return sortReviewTasks(existingTasks);
+  }
+
+  const sourceId = input.sourceEntityId ?? input.attemptId;
+  const nextTasks = existingTasks.filter(
+    (task) => task.completed || !reviewWeaknesses.includes(task.weaknessId),
+  );
+
+  reviewWeaknesses.forEach((weaknessId) => {
+    const taskId = createTaskId('day1', weaknessId, sourceId);
+    if (nextTasks.some((task) => task.id === taskId)) {
       return;
     }
 
-    nextTasks.push({
-      id: createTaskId(stage, weaknessId, sourceId),
-      accountKey: input.accountKey,
-      weaknessId,
-      source: input.source,
-      sourceId,
-      scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS[stage]),
-      stage,
-      completed: false,
-      createdAt: input.completedAt,
-    });
+    nextTasks.push(
+      createReviewTask({
+        accountKey: input.accountKey,
+        weaknessId,
+        source: input.source,
+        sourceId,
+        scheduledFor: addDays(input.completedAt, REVIEW_STAGE_OFFSETS.day1),
+        stage: 'day1',
+        createdAt: input.completedAt,
+      }),
+    );
   });
 
   return sortReviewTasks(nextTasks);
@@ -382,7 +474,16 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
   }
 
   async loadCurrentSummary(accountKey: string): Promise<LearnerSummaryCurrent | null> {
-    return readLearningHistoryJson<LearnerSummaryCurrent | null>(getSummaryStorageKey(accountKey), null);
+    const [summary, reviewTasks] = await Promise.all([
+      readLearningHistoryJson<LearnerSummaryCurrent | null>(getSummaryStorageKey(accountKey), null),
+      readLearningHistoryJson<ReviewTask[]>(getReviewTasksStorageKey(accountKey), []),
+    ]);
+
+    if (!summary) {
+      return null;
+    }
+
+    return applyReviewTaskState(summary, reviewTasks);
   }
 
   async cacheRecord(payload: {

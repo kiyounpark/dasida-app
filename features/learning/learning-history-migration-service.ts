@@ -17,6 +17,10 @@ import type {
 } from './history-repository';
 import { LocalLearningHistoryRepository } from './local-learning-history-repository';
 import { LocalLearningHistorySnapshotStore } from './local-learning-history-snapshot-store';
+import {
+  compareTimestampsAsc,
+  isTimestampOnOrBefore,
+} from '@/functions/shared/timestamp-utils';
 import type { LearnerSummaryCurrent } from './types';
 
 type Dependencies = {
@@ -115,7 +119,7 @@ function canAutomaticallyResumeMarker(marker: MigrationMarker) {
     return true;
   }
 
-  return marker.nextRetryAt.localeCompare(new Date().toISOString()) <= 0;
+  return isTimestampOnOrBefore(marker.nextRetryAt, new Date().toISOString());
 }
 
 async function listPendingMigrationMarkers(
@@ -139,7 +143,7 @@ async function listPendingMigrationMarkers(
     )
   ).filter((marker): marker is MigrationMarker & { storageKey: string } => Boolean(marker));
 
-  markers.sort((left, right) => left.updatedAt.localeCompare(right.updatedAt));
+  markers.sort((left, right) => compareTimestampsAsc(left.updatedAt, right.updatedAt));
   return markers;
 }
 

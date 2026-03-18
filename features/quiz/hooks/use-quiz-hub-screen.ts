@@ -33,16 +33,14 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   };
 
   const onOpenPractice = () => {
-    const weaknessId = homeState?.nextReviewTask?.weaknessId;
-    if (!weaknessId) {
+    if (!homeState || homeState.hero !== 'review' || homeState.todayReviewCount === 0) {
       return;
     }
 
     router.push({
       pathname: '/quiz/practice',
       params: {
-        mode: 'weakness',
-        weaknessId,
+        mode: 'review',
       },
     });
   };

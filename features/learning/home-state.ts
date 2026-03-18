@@ -1,9 +1,11 @@
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
+import { getReviewHeroPrompt } from '@/data/review-content-map';
 import type {
   ActiveReviewTaskSummary,
   DiagnosticSummarySnapshot,
   LearnerProfile,
 } from '@/features/learner/types';
+import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
 import type { LearnerSummaryCurrent, PeerPresenceSnapshot } from './types';
 
@@ -24,6 +26,7 @@ export type HomeLearningState = {
   heroTitle: string;
   heroBody: string;
   heroMeta: string;
+  todayReviewCount: number;
   peerPresence: PeerPresenceState;
   latestDiagnosticSummary?: DiagnosticSummarySnapshot;
   nextReviewTask?: ActiveReviewTaskSummary;
@@ -51,15 +54,21 @@ export type HomeLearningState = {
 
 function buildHeroContent(
   summary: LearnerSummaryCurrent,
-  nextReviewTask?: ActiveReviewTaskSummary,
-): Pick<HomeLearningState, 'hero' | 'heroTitle' | 'heroBody' | 'heroMeta'> {
-  if (nextReviewTask) {
-    const weaknessLabel = diagnosisMap[nextReviewTask.weaknessId].labelKo;
+  dueReviewTasks: ActiveReviewTaskSummary[],
+): Pick<HomeLearningState, 'hero' | 'heroTitle' | 'heroBody' | 'heroMeta' | 'todayReviewCount'> {
+  if (dueReviewTasks.length > 0) {
+    const leadTask = dueReviewTasks[0];
+    const weaknessLabel = diagnosisMap[leadTask.weaknessId].labelKo;
+    const todayReviewCount = dueReviewTasks.length;
     return {
       hero: 'review',
-      heroTitle: '오늘의 약점 학습',
-      heroBody: '이미 정리한 틀린 문제 패턴을 오늘 짧게 다시 붙잡아볼 차례예요.',
-      heroMeta: `${nextReviewTask.stage.toUpperCase()} · ${weaknessLabel}`,
+      heroTitle: getReviewHeroPrompt(leadTask.weaknessId),
+      heroBody:
+        todayReviewCount > 1
+          ? `${weaknessLabel}부터 시작하면 오늘 복습 ${todayReviewCount}개를 차례로 다시 볼 수 있어요.`
+          : `${weaknessLabel} 한 가지만 짧게 다시 떠올려보면 됩니다.`,
+      heroMeta: `${formatReviewStageLabel(leadTask.stage)} · 오늘 복습 ${todayReviewCount}개`,
+      todayReviewCount,
     };
   }
 
@@ -70,6 +79,7 @@ function buildHeroContent(
       heroTitle: '빠른 재진단 10문제',
       heroBody: '흔들리는 틀린 문제부터 가볍게 다시 정리할 수 있어요.',
       heroMeta: `최근 약점 · ${weaknessLabel}`,
+      todayReviewCount: 0,
     };
   }
 
@@ -78,12 +88,14 @@ function buildHeroContent(
     heroTitle: '3분 체험 10문제',
     heroBody: '흔들리는 틀린 문제부터 빠르게 정리할 수 있어요.',
     heroMeta: '10문항 · 약 3분',
+    todayReviewCount: 0,
   };
 }
 
 function buildPeerPresenceState(
   hero: HomeLearningState['hero'],
   peerPresenceSnapshot: PeerPresenceSnapshot | null,
+  todayReviewCount: number,
 ): PeerPresenceState {
   if (peerPresenceSnapshot && peerPresenceSnapshot.peers.length > 0) {
     return {
@@ -97,7 +109,10 @@ function buildPeerPresenceState(
     return {
       mode: 'fallback',
       title: '한 번 정리한 틀린 문제는 다시 볼수록 덜 흔들려요',
-      subtitle: '오늘은 약점 1개만 짧게 다시 보면 됩니다.',
+      subtitle:
+        todayReviewCount > 1
+          ? `오늘은 대표 약점부터 복습 ${todayReviewCount}개를 차례로 다시 보면 됩니다.`
+          : '오늘은 약점 1개만 짧게 다시 보면 됩니다.',
     };
   }
 
@@ -171,8 +186,13 @@ export function buildHomeLearningState(
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
 ): HomeLearningState {
   const nextReviewTask = summary.nextReviewTask;
-  const heroContent = buildHeroContent(summary, nextReviewTask);
-  const peerPresence = buildPeerPresenceState(heroContent.hero, peerPresenceSnapshot);
+  const dueReviewTasks = summary.dueReviewTasks ?? [];
+  const heroContent = buildHeroContent(summary, dueReviewTasks);
+  const peerPresence = buildPeerPresenceState(
+    heroContent.hero,
+    peerPresenceSnapshot,
+    heroContent.todayReviewCount,
+  );
   const featuredExamCard = buildFeaturedExamCard(summary.featuredExamState.status);
   const recentResultCard = buildRecentResultCard(summary);
 

@@ -8,6 +8,11 @@ import {
 } from './history-repository';
 import { buildSummary } from './local-learning-history-repository';
 import {
+  compareTimestampsAsc,
+  compareTimestampsDesc,
+  isTimestampOnOrAfter,
+} from '@/functions/shared/timestamp-utils';
+import {
   getAttemptResultsStorageKey,
   getAttemptsStorageKey,
   getReviewTasksStorageKey,
@@ -27,11 +32,13 @@ function getSnapshotSortTimestamp(snapshot: LocalLearningHistorySnapshot) {
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
-  return [...attempts].sort((left, right) => right.completedAt.localeCompare(left.completedAt));
+  return [...attempts].sort((left, right) => compareTimestampsDesc(left.completedAt, right.completedAt));
 }
 
 function sortReviewTasks(reviewTasks: ReviewTask[]) {
-  return [...reviewTasks].sort((left, right) => left.scheduledFor.localeCompare(right.scheduledFor));
+  return [...reviewTasks].sort((left, right) =>
+    compareTimestampsAsc(left.scheduledFor, right.scheduledFor),
+  );
 }
 
 function mergeAttempts(existingAttempts: LearningAttempt[], importedAttempts: LearningAttempt[]) {
@@ -70,7 +77,7 @@ function pickSummaryBase(
     return importedSummary;
   }
 
-  return existingSummary.updatedAt.localeCompare(importedSummary.updatedAt) >= 0
+  return isTimestampOnOrAfter(existingSummary.updatedAt, importedSummary.updatedAt)
     ? existingSummary
     : importedSummary;
 }
@@ -88,7 +95,7 @@ function getLastUpdatedAt(params: {
     ...params.reviewTasks.map((task) => task.completedAt ?? task.createdAt),
   ].filter((value): value is string => Boolean(value));
 
-  return timestamps.sort((left, right) => right.localeCompare(left))[0];
+  return timestamps.sort((left, right) => compareTimestampsDesc(left, right))[0];
 }
 
 function buildRecordCount(snapshot: Omit<LocalLearningHistorySnapshot, 'lastUpdatedAt' | 'recordCount'>) {
@@ -168,7 +175,7 @@ export class LocalLearningHistorySnapshotStore {
     ).filter((snapshot): snapshot is LocalLearningHistorySnapshot => Boolean(snapshot));
 
     snapshots.sort((left, right) =>
-      getSnapshotSortTimestamp(right).localeCompare(getSnapshotSortTimestamp(left)),
+      compareTimestampsDesc(getSnapshotSortTimestamp(left), getSnapshotSortTimestamp(right)),
     );
 
     return snapshots[0] ?? null;

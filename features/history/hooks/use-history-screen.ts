@@ -99,12 +99,11 @@ export function useHistoryScreen() {
       return;
     }
 
-    if (insights.hero.ctaKind === 'review' && summary.nextReviewTask?.weaknessId) {
+    if (insights.hero.ctaKind === 'review' && (summary.dueReviewTasks?.length ?? 0) > 0) {
       router.push({
         pathname: '/quiz/practice',
         params: {
-          mode: 'weakness',
-          weaknessId: summary.nextReviewTask.weaknessId,
+          mode: 'review',
         },
       });
       return;

@@ -3,7 +3,7 @@ import type { SolveMethodId } from '@/data/diagnosisTree';
 import type { FeaturedExamState, LearnerGrade } from '@/features/learner/types';
 import type { DiagnosisTraceSource } from '@/features/quiz/types';
 
-import type { LearningSource } from './history-types';
+import type { LearningSource, ReviewStage } from './history-types';
 import type {
   LearnerSummaryCurrent,
   LearningAttempt,
@@ -47,6 +47,10 @@ export type FinalizedAttemptInput = {
   accuracy: number;
   primaryWeaknessId: WeaknessId | null;
   topWeaknesses: WeaknessId[];
+  reviewContext?: {
+    reviewTaskId: string;
+    reviewStage: ReviewStage;
+  };
   questions: FinalizedAttemptQuestionInput[];
 };
 
@@ -119,6 +123,7 @@ export function createEmptyLearnerSummary(accountKey: string): LearnerSummaryCur
     accountKey,
     updatedAt: new Date().toISOString(),
     repeatedWeaknesses: [],
+    dueReviewTasks: [],
     featuredExamState: createDefaultFeaturedExamState(),
     totals: {
       diagnosticAttempts: 0,
