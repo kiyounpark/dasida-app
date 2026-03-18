@@ -608,6 +608,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.18 22:57
+- 해시: `5eaffe2` (`5eaffe228a81bdaa2e0b011adb9c00346df66bf7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5eaffe228a81bdaa2e0b011adb9c00346df66bf7
+- 작성자: 박기윤
+- 메시지: feat: 예약 복습 흐름과 복습 모드 추가
+
 ### 커밋 2026.03.18 20:22
 - 해시: `74d1ecc` (`74d1ecc92e7406d500b6918f376c6f873e20fc9e`)
 - 브랜치: main
