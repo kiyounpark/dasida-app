@@ -598,6 +598,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.18 19:46
+- 해시: `7e18f8d` (`7e18f8d501aab22aa7e91465fccb40c71784547e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7e18f8d501aab22aa7e91465fccb40c71784547e
+- 작성자: 박기윤
+- 메시지: feat: 약점 연습 오답 코칭 플로우 추가
+
 ### 커밋 2026.03.16 23:07
 - 해시: `d6de34f` (`d6de34f489ab38e6bf03872baf39751b845798d8`)
 - 브랜치: main
