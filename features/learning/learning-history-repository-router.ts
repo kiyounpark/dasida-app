@@ -23,9 +23,10 @@ export class LearningHistoryRepositoryRouter implements LearningHistoryRepositor
   constructor(private readonly dependencies: Dependencies) {}
 
   private async resolveRepository(accountKey?: string): Promise<LearningHistoryRepository> {
-    const session =
-      (await this.dependencies.authClient.loadSession()) ??
-      (await this.dependencies.authClient.ensureAnonymousSession());
+    const session = await this.dependencies.authClient.loadSession();
+    if (!session) {
+      throw new Error('Authentication is required before accessing learning history.');
+    }
 
     if (accountKey && session.accountKey !== accountKey) {
       throw new Error('Learning history repository account mismatch.');

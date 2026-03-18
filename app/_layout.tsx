@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { CurrentLearnerProvider } from '@/features/learner/provider';
+import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 void SplashScreen.preventAutoHideAsync().catch(() => {
@@ -16,6 +16,33 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+function AuthGateRedirector() {
+  const { authGateState, isReady } = useCurrentLearner();
+  const segments = useSegments();
+  const rootSegment = segments[0];
+
+  useEffect(() => {
+    if (!isReady || authGateState === 'loading') {
+      return;
+    }
+
+    const isSignInRoute = rootSegment === 'sign-in';
+
+    if (authGateState === 'required') {
+      if (!isSignInRoute) {
+        router.replace('/sign-in');
+      }
+      return;
+    }
+
+    if (isSignInRoute) {
+      router.replace('/(tabs)/quiz');
+    }
+  }, [authGateState, isReady, rootSegment]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -44,7 +71,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CurrentLearnerProvider>
+        <AuthGateRedirector />
         <Stack>
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </CurrentLearnerProvider>

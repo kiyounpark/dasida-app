@@ -1,5 +1,4 @@
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -95,19 +94,14 @@ export function ProfileScreenView({
   errorMessage,
   gradeOptions,
   homeState,
-  isAnonymousSession,
-  isImporting,
+  isGuestDevSession,
   isReady,
   manualImportCandidate,
-  migrationPrompt,
   noticeMessage,
   previewStates,
   profile,
   session,
-  showAuthSection,
   supportedAuthProviders,
-  onCloseMigrationPrompt,
-  onConfirmMigrationPrompt,
   onImportLocalHistory,
   onResetLocalProfile,
   onSeedPreview,
@@ -127,8 +121,9 @@ export function ProfileScreenView({
             설정
           </Text>
           <Text selectable style={styles.subtitle}>
-            익명 사용자는 이 기기 로컬 저장만 사용하고, 로그인 사용자는 계정 서버 기록을
-            사용합니다.
+            {isGuestDevSession
+              ? '개발용 익명 세션에서 로컬 학습 상태와 로그인 전환을 확인합니다.'
+              : '연결된 계정, 학년 설정, 이 기기 기록 가져오기를 관리합니다.'}
           </Text>
         </View>
 
@@ -148,7 +143,7 @@ export function ProfileScreenView({
                 계정 키: {maskAccountKey(session.accountKey)}
               </Text>
               <Text selectable style={styles.body}>
-                로그인 방식: {formatProviderLabel(session.provider)}
+                로그인 방식: {isGuestDevSession ? '개발용 익명' : formatProviderLabel(session.provider)}
               </Text>
               {session.status === 'authenticated' && session.email ? (
                 <Text selectable style={styles.body}>
@@ -166,66 +161,41 @@ export function ProfileScreenView({
           )}
         </View>
 
-        {showAuthSection ? (
+        {session?.status === 'authenticated' ? (
           <View style={styles.card}>
             <Text selectable style={styles.cardTitle}>
-              계정 연결
+              계정 관리
             </Text>
-            {session?.status === 'authenticated' ? (
-              <>
-                <Text selectable style={styles.body}>
-                  서버 기록과 여러 기기 동기화가 켜져 있습니다. 로그아웃하면 새 익명 세션으로
-                  전환됩니다.
+            <Text selectable style={styles.body}>
+              서버 기록과 여러 기기 동기화가 활성화되어 있습니다. 로그아웃하면 로그인 게이트로
+              돌아갑니다.
+            </Text>
+            {manualImportCandidate ? (
+              <View style={styles.importCard}>
+                <Text selectable style={styles.importTitle}>
+                  자동으로 옮기지 못한 이 기기 기록
                 </Text>
-                {manualImportCandidate ? (
-                  <View style={styles.importCard}>
-                    <Text selectable style={styles.importTitle}>
-                      이 기기의 로컬 기록 가져오기
-                    </Text>
-                    <Text selectable style={styles.body}>
-                      아직 계정으로 옮기지 않은 학습 기록 {manualImportCandidate.recordCount}건이
-                      남아 있습니다.
-                    </Text>
-                    <ActionButton
-                      label={
-                        busyAction === 'import'
-                          ? '가져오는 중...'
-                          : '이 기기의 로컬 기록 가져오기'
-                      }
-                      disabled={busyAction !== null}
-                      onPress={() => void onImportLocalHistory()}
-                    />
-                  </View>
-                ) : null}
-                <ActionButton
-                  label={busyAction === 'sign-out' ? '로그아웃 중...' : '로그아웃'}
-                  disabled={busyAction !== null}
-                  subtle
-                  onPress={() => void onSignOut()}
-                />
-              </>
-            ) : (
-              <>
                 <Text selectable style={styles.body}>
-                  로그인하면 학습 기록이 계정 서버에 저장되고, 다른 기기에서도 이어서 볼 수
+                  아직 계정으로 옮기지 않은 학습 기록 {manualImportCandidate.recordCount}건이 남아
                   있습니다.
                 </Text>
-                <View style={styles.authButtonList}>
-                  {supportedAuthProviders.map((provider) => (
-                    <ActionButton
-                      key={provider}
-                      label={
-                        busyAction === provider
-                          ? `${formatProviderLabel(provider)} 로그인 중...`
-                          : `${formatProviderLabel(provider)}로 로그인`
-                      }
-                      disabled={busyAction !== null}
-                      onPress={() => void onSignIn(provider)}
-                    />
-                  ))}
-                </View>
-              </>
-            )}
+                <ActionButton
+                  label={
+                    busyAction === 'import'
+                      ? '가져오는 중...'
+                      : '이 기기의 로컬 기록 가져오기'
+                  }
+                  disabled={busyAction !== null}
+                  onPress={() => void onImportLocalHistory()}
+                />
+              </View>
+            ) : null}
+            <ActionButton
+              label={busyAction === 'sign-out' ? '로그아웃 중...' : '로그아웃'}
+              disabled={busyAction !== null}
+              subtle
+              onPress={() => void onSignOut()}
+            />
           </View>
         ) : null}
 
@@ -250,7 +220,44 @@ export function ProfileScreenView({
           </View>
         </View>
 
-        {isAnonymousSession ? (
+        {isGuestDevSession ? (
+          <View style={styles.card}>
+            <Text selectable style={styles.cardTitle}>
+              소셜 로그인 테스트
+            </Text>
+            <Text selectable style={styles.body}>
+              개발용 익명 세션에서 실제 로그인 전환을 다시 확인할 수 있습니다.
+            </Text>
+            {supportedAuthProviders.length > 0 ? (
+              <View style={styles.authButtonList}>
+                {supportedAuthProviders.map((provider) => (
+                  <ActionButton
+                    key={provider}
+                    label={
+                      busyAction === provider
+                        ? `${formatProviderLabel(provider)} 로그인 중...`
+                        : `${formatProviderLabel(provider)}로 로그인`
+                    }
+                    disabled={busyAction !== null}
+                    onPress={() => void onSignIn(provider)}
+                  />
+                ))}
+              </View>
+            ) : (
+              <Text selectable style={styles.body}>
+                현재 빌드에는 테스트할 소셜 로그인 제공자가 설정되어 있지 않습니다.
+              </Text>
+            )}
+            <ActionButton
+              label={busyAction === 'sign-out' ? '로그인 게이트로 이동 중...' : '로그인 게이트로 돌아가기'}
+              disabled={busyAction !== null}
+              subtle
+              onPress={() => void onSignOut()}
+            />
+          </View>
+        ) : null}
+
+        {isGuestDevSession ? (
           <View style={[styles.card, styles.devCard]}>
             <Text selectable style={styles.devLabel}>
               개발용 상태 미리보기
@@ -278,34 +285,6 @@ export function ProfileScreenView({
           </View>
         ) : null}
       </ScrollView>
-
-      <Modal visible={Boolean(migrationPrompt)} animationType="fade" transparent>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text selectable style={styles.modalTitle}>
-              기록 가져오기
-            </Text>
-            <Text selectable style={styles.modalBody}>
-              {migrationPrompt
-                ? `이 기기의 학습 기록 ${migrationPrompt.recordCount}건을 계정에 저장할까요?`
-                : ''}
-            </Text>
-            <View style={styles.modalActions}>
-              <ActionButton
-                label="나중에"
-                disabled={isImporting}
-                subtle
-                onPress={onCloseMigrationPrompt}
-              />
-              <ActionButton
-                label={isImporting ? '저장 중...' : '저장하기'}
-                disabled={isImporting}
-                onPress={() => void onConfirmMigrationPrompt()}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -458,29 +437,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   previewList: {
-    gap: BrandSpacing.xs,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(18, 24, 19, 0.38)',
-    justifyContent: 'center',
-    paddingHorizontal: BrandSpacing.lg,
-  },
-  modalCard: {
-    borderRadius: BrandRadius.lg,
-    backgroundColor: '#FFFFFF',
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.md,
-  },
-  modalTitle: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  modalBody: {
-    ...BrandTypography.body,
-    color: BrandColors.mutedText,
-  },
-  modalActions: {
     gap: BrandSpacing.xs,
   },
 });

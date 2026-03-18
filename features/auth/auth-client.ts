@@ -1,7 +1,7 @@
 import type { AuthSession, SupportedAuthProvider } from './types';
 
 export type SignInResult = {
-  previousSession: AuthSession;
+  previousSession: AuthSession | null;
   nextSession: AuthSession;
   isNewAuthenticatedSession: boolean;
 };
@@ -29,7 +29,7 @@ export type AuthClient = {
   loadSession(): Promise<AuthSession | null>;
   ensureAnonymousSession(): Promise<AuthSession>;
   signIn(provider: SupportedAuthProvider): Promise<SignInResult>;
-  signOut(): Promise<AuthSession>;
+  signOut(): Promise<AuthSession | null>;
   getSupportedProviders(): SupportedAuthProvider[];
   getRemoteAuthContext(
     accountKey?: string,

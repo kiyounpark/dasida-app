@@ -104,9 +104,11 @@ function SupportCard({
 }
 
 export function QuizHubScreenView({
+  authNoticeMessage,
   homeState,
   isCompactLayout,
   isReady,
+  onDismissAuthNotice,
   onOpenExams,
   onOpenPractice,
   onOpenRecentResult,
@@ -218,6 +220,24 @@ export function QuizHubScreenView({
         </Pressable>
 
         <PeerPresenceStrip state={homeState.peerPresence} />
+
+        {authNoticeMessage ? (
+          <View style={styles.noticeCard}>
+            <View style={styles.noticeCopy}>
+              <Text selectable style={styles.noticeTitle}>
+                로그인은 완료됐어요
+              </Text>
+              <Text selectable style={styles.noticeBody}>
+                {authNoticeMessage}
+              </Text>
+            </View>
+            <Pressable onPress={onDismissAuthNotice} style={styles.noticeAction}>
+              <Text selectable style={styles.noticeActionText}>
+                닫기
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <View style={[styles.supportRow, isCompactLayout && styles.supportRowStack]}>
           <SupportCard
@@ -503,6 +523,34 @@ const styles = StyleSheet.create({
   },
   supportCardCtaDisabled: {
     color: '#98A198',
+  },
+  noticeCard: {
+    borderWidth: 1,
+    borderColor: '#D8E5D6',
+    borderRadius: 20,
+    borderCurve: 'continuous',
+    backgroundColor: '#F5FAF3',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    gap: 10,
+  },
+  noticeCopy: {
+    gap: 4,
+  },
+  noticeTitle: {
+    ...BrandTypography.bodyStrong,
+    color: BrandColors.primaryDark,
+  },
+  noticeBody: {
+    ...BrandTypography.body,
+    color: BrandColors.mutedText,
+  },
+  noticeAction: {
+    alignSelf: 'flex-start',
+  },
+  noticeActionText: {
+    ...BrandTypography.button,
+    color: BrandColors.primarySoft,
   },
   summaryCard: {
     borderWidth: 1,

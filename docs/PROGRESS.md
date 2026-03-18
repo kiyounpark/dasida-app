@@ -23,6 +23,15 @@
 
 ### 2026.03.18
 
+**앱 전역을 소셜 로그인 필수 정책으로 전환하고 dev guest 우회만 분리**
+- `features/auth/auth-policy.ts`, `features/auth/disabled-auth-client.ts`, `features/auth/create-auth-client.ts`, `features/auth/auth-client.ts`, `features/auth/session-store.ts`: 로그인 필수 정책, dev guest 허용 조건, provider 노출 순서, 비활성 auth client, 세션 삭제 API를 추가하고 `signOut()`이 더 이상 익명 세션을 다시 만들지 않도록 계약을 변경
+- `features/auth/firebase-auth-client.ts`: Apple/Google 로그인 흐름은 유지하되, 저장된 세션만 읽고 `signIn()` 직후 auto import로 넘길 이전 anonymous session을 그대로 사용하도록 조정했으며, Apple 첫 로그인에서만 내려오는 `fullName/email`도 로컬 세션에 보존하도록 보강
+- `features/learner/current-learner-controller.ts`, `features/learner/provider.tsx`, `features/learning/learning-history-repository-router.ts`, `features/learning/learning-history-migration-service.ts`: `authGateState(required/authenticated/guest-dev)` 기반 전역 상태로 확장하고, bootstrap/repository/migration 계층의 익명 자동 생성 경로를 제거했으며, 로그인 직후 anonymous snapshot 자동 import와 import 실패 notice 1회 노출 흐름을 연결
+- `app/_layout.tsx`, `app/sign-in.tsx`, `features/auth/screens/sign-in-screen.tsx`, `features/auth/hooks/use-sign-in-screen.ts`, `features/auth/components/sign-in-screen-view.tsx`: 루트 `sign-in` route와 route guard를 추가해 인증 전에는 `(tabs)`를 차단하고, iOS는 Apple -> Google, Android/Web는 Google 순서로 로그인 버튼을 노출하며 `__DEV__`에서만 `개발용 익명으로 계속`을 유지
+- `features/profile/hooks/use-profile-screen.ts`, `features/profile/components/profile-screen-view.tsx`, `features/quiz/hooks/use-quiz-hub-screen.ts`, `features/quiz/components/quiz-hub-screen-view.tsx`: 프로덕션 profile을 계정 관리 중심으로 단순화하고, `guest-dev`에서만 로그인 테스트/preview/reset 도구를 노출하며, 자동 import 실패 notice는 quiz 허브에서 한 번만 보여주도록 정리
+- 로그인 구현 관련 수정은 Apple/Google/Firebase 공식 문서 기준으로만 검토해 반영했고, Google은 PKCE/브라우저 기반 OAuth 및 Firebase ID token credential 흐름, Apple은 nonce 기반 credential 교환과 첫 로그인 user info 보존 규칙을 기준으로 유지
+- **검증**: `npm run typecheck`, `npm run lint`, `npm run test --prefix functions` 통과
+
 **에빙하우스 기반 예약 복습 흐름과 홈 hero 진입을 앱/함수 전반에 연결**
 - `features/learning/local-learning-history-repository.ts`, `functions/src/learning-history.ts`: 진단 결과의 상위 3개 약점에 대해 `day1 -> day3 -> day7 -> day30` 계단형 review task를 생성하고, 복습 완료 시 다음 단계 하나만 이어지도록 로컬/원격 스케줄링을 정렬
 - `features/learning/history-repository.ts`, `features/learning/types.ts`, `features/learning/history-types.ts`, `features/quiz/build-finalized-attempt-input.ts`: `dueReviewTasks`, `reviewContext`, `day30` 타입 계약을 추가해 scheduled review 완료와 summary 계산이 동일한 payload를 쓰도록 확장

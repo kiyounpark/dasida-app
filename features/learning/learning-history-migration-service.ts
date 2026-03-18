@@ -151,9 +151,10 @@ export class LearningHistoryMigrationService {
   constructor(private readonly dependencies: Dependencies) {}
 
   private async resolveAuthenticatedTargetAccountKey(targetAccountKey?: string) {
-    const session =
-      (await this.dependencies.authClient.loadSession()) ??
-      (await this.dependencies.authClient.ensureAnonymousSession());
+    const session = await this.dependencies.authClient.loadSession();
+    if (!session) {
+      throw new Error('Authenticated session is required for learning history import.');
+    }
 
     if (session.status !== 'authenticated') {
       throw new Error('Authenticated session is required for learning history import.');

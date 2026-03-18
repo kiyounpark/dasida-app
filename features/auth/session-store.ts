@@ -80,6 +80,21 @@ async function writeAnonymousSessionSecret(accountKey: string, requestSecret: st
   await AsyncStorage.setItem(asyncStorageKey, requestSecret);
 }
 
+export async function clearAnonymousSessionSecret(accountKey: string) {
+  const secureStorageKey = getAnonymousSessionSecretSecureStoreKey(accountKey);
+  const asyncStorageKey = getAnonymousSessionSecretAsyncStorageKey(accountKey);
+
+  try {
+    if (await SecureStore.isAvailableAsync()) {
+      await SecureStore.deleteItemAsync(secureStorageKey);
+    }
+  } catch {
+    // Always fall through to AsyncStorage cleanup when SecureStore deletion fails.
+  }
+
+  await AsyncStorage.removeItem(asyncStorageKey);
+}
+
 function isSupportedProvider(value: unknown): value is SupportedAuthProvider {
   return value === 'apple' || value === 'google';
 }
@@ -282,4 +297,18 @@ export async function saveAuthSession(session: AuthSession): Promise<void> {
   }
 
   await AsyncStorage.setItem(StorageKeys.authSession, JSON.stringify(session));
+}
+
+export async function clearStoredAuthSession(): Promise<void> {
+  const storedSession = await loadStoredAuthSession().catch(() => null);
+
+  if (storedSession?.status === 'anonymous') {
+    await Promise.all([
+      AsyncStorage.removeItem(StorageKeys.authSession),
+      clearAnonymousSessionSecret(storedSession.accountKey),
+    ]);
+    return;
+  }
+
+  await AsyncStorage.removeItem(StorageKeys.authSession);
 }

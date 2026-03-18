@@ -1,10 +1,9 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { AuthFlowCancelledError } from '@/features/auth/auth-client';
-import { isFirebaseAuthConfigured } from '@/features/auth/firebase-config';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { PreviewSeedState } from '@/features/learner/types';
-import { isLearningHistoryRemoteCrudConfigured } from '@/features/learning/create-learning-history-repository';
 
 type MigrationCandidate = {
   sourceAccountKey: string;
@@ -54,6 +53,7 @@ function isCancelledAuthError(error: unknown) {
 
 export function useProfileScreen() {
   const {
+    authGateState,
     availableAuthProviders,
     getHistoryMigrationStatus,
     homeState,
@@ -71,13 +71,8 @@ export function useProfileScreen() {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
-  const [migrationPrompt, setMigrationPrompt] = useState<MigrationCandidate | null>(null);
   const [manualImportCandidate, setManualImportCandidate] = useState<MigrationCandidate | null>(null);
-
-  const showAuthSection =
-    isFirebaseAuthConfigured() &&
-    isLearningHistoryRemoteCrudConfigured() &&
-    availableAuthProviders.length > 0;
+  const isGuestDevSession = authGateState === 'guest-dev';
 
   useEffect(() => {
     let isMounted = true;
@@ -86,7 +81,6 @@ export function useProfileScreen() {
       if (session?.status !== 'authenticated') {
         if (isMounted) {
           setManualImportCandidate(null);
-          setMigrationPrompt(null);
         }
         return;
       }
@@ -98,11 +92,10 @@ export function useProfileScreen() {
         }
 
         if (status.state === 'ready') {
-          const candidate = {
+          setManualImportCandidate({
             sourceAccountKey: status.sourceAccountKey,
             recordCount: status.recordCount,
-          };
-          setManualImportCandidate(candidate);
+          });
           return;
         }
 
@@ -127,20 +120,8 @@ export function useProfileScreen() {
     setNoticeMessage(null);
 
     try {
-      const status = await signIn(provider);
-      if (status.state === 'ready') {
-        const candidate = {
-          sourceAccountKey: status.sourceAccountKey,
-          recordCount: status.recordCount,
-        };
-        setMigrationPrompt(candidate);
-        setManualImportCandidate(candidate);
-      } else {
-        setMigrationPrompt(null);
-        if (status.state !== 'already_imported') {
-          setManualImportCandidate(null);
-        }
-      }
+      await signIn(provider);
+      router.replace('/(tabs)/quiz');
     } catch (error) {
       if (!isCancelledAuthError(error)) {
         setErrorMessage(formatErrorMessage(error));
@@ -158,7 +139,6 @@ export function useProfileScreen() {
     try {
       await signOut();
       setManualImportCandidate(null);
-      setMigrationPrompt(null);
     } catch (error) {
       setErrorMessage(formatErrorMessage(error));
     } finally {
@@ -175,11 +155,9 @@ export function useProfileScreen() {
       if (status.state === 'completed' || status.state === 'already_imported') {
         setNoticeMessage('이 기기의 기록을 계정에 저장했습니다.');
       }
-      setMigrationPrompt(null);
       setManualImportCandidate(null);
       await refresh();
     } catch (error) {
-      setMigrationPrompt(null);
       setErrorMessage(`로컬 기록 가져오기에 실패했습니다. ${formatErrorMessage(error)}`);
     } finally {
       setBusyAction(null);
@@ -199,27 +177,15 @@ export function useProfileScreen() {
     errorMessage,
     gradeOptions,
     homeState,
-    isAnonymousSession: session?.status === 'anonymous',
+    isGuestDevSession,
     isImporting: busyAction === 'import',
     isReady,
     manualImportCandidate,
-    migrationPrompt,
     noticeMessage,
     previewStates,
     profile,
     session,
-    showAuthSection,
     supportedAuthProviders: availableAuthProviders,
-    onCloseMigrationPrompt: () => {
-      setMigrationPrompt(null);
-    },
-    onConfirmMigrationPrompt: async () => {
-      if (!migrationPrompt) {
-        return;
-      }
-
-      await handleImport(migrationPrompt.sourceAccountKey);
-    },
     onImportLocalHistory: handleManualImport,
     onResetLocalProfile: async () => {
       setBusyAction('reset-local');

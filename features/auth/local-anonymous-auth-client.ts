@@ -1,5 +1,10 @@
 import type { AuthClient } from './auth-client';
-import { createAnonymousSession, loadStoredAuthSession, saveAuthSession } from './session-store';
+import {
+  clearStoredAuthSession,
+  createAnonymousSession,
+  loadStoredAuthSession,
+  saveAuthSession,
+} from './session-store';
 import type { AuthSession, SupportedAuthProvider } from './types';
 
 export class LocalAnonymousAuthClient implements AuthClient {
@@ -18,14 +23,13 @@ export class LocalAnonymousAuthClient implements AuthClient {
     return anonymousSession;
   }
 
-  async signIn(): Promise<never> {
+  async signIn(_provider: SupportedAuthProvider): Promise<never> {
     throw new Error('Social sign-in is not implemented yet.');
   }
 
-  async signOut(): Promise<AuthSession> {
-    const nextSession = createAnonymousSession();
-    await saveAuthSession(nextSession);
-    return nextSession;
+  async signOut(): Promise<null> {
+    await clearStoredAuthSession();
+    return null;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {
@@ -33,7 +37,10 @@ export class LocalAnonymousAuthClient implements AuthClient {
   }
 
   async getRemoteAuthContext(accountKey?: string) {
-    const session = (await this.loadSession()) ?? (await this.ensureAnonymousSession());
+    const session = await this.loadSession();
+    if (!session) {
+      throw new Error('Anonymous auth context is not available.');
+    }
 
     if (session.status !== 'anonymous') {
       throw new Error('Local anonymous auth client does not support authenticated remote access.');

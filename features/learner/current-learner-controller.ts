@@ -1,4 +1,12 @@
 import type { AuthClient } from '@/features/auth/auth-client';
+import {
+  canUseDevGuestAuth,
+  getAuthBlockingReason,
+  getRequiredAuthProviders,
+  type AuthBlockingReason,
+  type AuthGateState,
+} from '@/features/auth/auth-policy';
+import { isFirebaseAuthConfigured } from '@/features/auth/firebase-config';
 import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import { buildHomeLearningState, type HomeLearningState } from '@/features/learning/home-state';
@@ -22,11 +30,21 @@ import type {
   PreviewSeedState,
 } from './types';
 
+const AUTH_REQUIRED_ERROR_MESSAGE = 'Authentication is required before accessing learner data.';
+const DEV_GUEST_REQUIRED_ERROR_MESSAGE =
+  'Development guest authentication is required for preview tools.';
+const AUTO_IMPORT_FAILURE_NOTICE =
+  '이 기기 기록을 자동으로 옮기지 못했습니다. 설정에서 다시 시도할 수 있어요.';
+
 export type CurrentLearnerSnapshot = {
-  session: AuthSession;
-  profile: LearnerProfile;
-  summary: LearnerSummaryCurrent;
-  homeState: HomeLearningState;
+  authGateState: Exclude<AuthGateState, 'loading'>;
+  authBlockingReason: AuthBlockingReason;
+  canUseDevGuestAuth: boolean;
+  authNoticeMessage: string | null;
+  session: AuthSession | null;
+  profile: LearnerProfile | null;
+  summary: LearnerSummaryCurrent | null;
+  homeState: HomeLearningState | null;
 };
 
 export type CurrentLearnerController = {
@@ -36,10 +54,8 @@ export type CurrentLearnerController = {
     source?: LearningSource;
     limit?: number;
   }): Promise<LearningAttempt[]>;
-  signIn(provider: SupportedAuthProvider): Promise<{
-    snapshot: CurrentLearnerSnapshot;
-    migrationStatus: HistoryMigrationStatus;
-  }>;
+  continueAsDevGuest(): Promise<CurrentLearnerSnapshot>;
+  signIn(provider: SupportedAuthProvider): Promise<CurrentLearnerSnapshot>;
   signOut(): Promise<CurrentLearnerSnapshot>;
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<{
@@ -127,27 +143,72 @@ export function createCurrentLearnerController({
   migrationService,
   peerPresenceStore,
 }: Dependencies): CurrentLearnerController {
-  const buildSnapshot = async (
-    session: AuthSession,
-    profile: LearnerProfile,
-    summary: LearnerSummaryCurrent,
-  ): Promise<CurrentLearnerSnapshot> => ({
-    session,
-    profile,
-    summary,
-    homeState: buildHomeLearningState(profile, summary, await peerPresenceStore.load()),
+  const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
+  const devGuestEnabled = canUseDevGuestAuth();
+  const authBlockingReason = getAuthBlockingReason({
+    availableProviders: availableAuthProviders,
+    isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
   });
 
-  const buildSnapshotForSession = async (session: AuthSession): Promise<CurrentLearnerSnapshot> => {
+  const buildSnapshot = async (
+    params: {
+      authGateState: 'authenticated' | 'guest-dev';
+      authNoticeMessage?: string | null;
+      profile: LearnerProfile;
+      session: AuthSession;
+      summary: LearnerSummaryCurrent;
+    },
+  ): Promise<CurrentLearnerSnapshot> => ({
+    authGateState: params.authGateState,
+    authBlockingReason: null,
+    canUseDevGuestAuth: devGuestEnabled,
+    authNoticeMessage: params.authNoticeMessage ?? null,
+    session: params.session,
+    profile: params.profile,
+    summary: params.summary,
+    homeState: buildHomeLearningState(
+      params.profile,
+      params.summary,
+      await peerPresenceStore.load(),
+    ),
+  });
+
+  const buildRequiredSnapshot = (noticeMessage: string | null = null): CurrentLearnerSnapshot => ({
+    authGateState: 'required',
+    authBlockingReason,
+    canUseDevGuestAuth: devGuestEnabled,
+    authNoticeMessage: noticeMessage,
+    session: null,
+    profile: null,
+    summary: null,
+    homeState: null,
+  });
+
+  const buildSnapshotForSession = async (
+    session: AuthSession,
+    options?: {
+      authGateState?: 'authenticated' | 'guest-dev';
+      authNoticeMessage?: string | null;
+      summary?: LearnerSummaryCurrent | null;
+    },
+  ): Promise<CurrentLearnerSnapshot> => {
     const profile = await ensureProfile(profileStore, session.accountKey);
     const summary =
+      options?.summary ??
       (await learningHistoryRepository.loadCurrentSummary(session.accountKey)) ??
       createEmptyLearnerSummary(session.accountKey);
-    return buildSnapshot(session, profile, summary);
+
+    return buildSnapshot({
+      authGateState:
+        options?.authGateState ?? (session.status === 'authenticated' ? 'authenticated' : 'guest-dev'),
+      authNoticeMessage: options?.authNoticeMessage,
+      profile,
+      session,
+      summary,
+    });
   };
 
-  const readCurrentSession = async () =>
-    (await authClient.loadSession()) ?? (await authClient.ensureAnonymousSession());
+  const readStoredSession = async () => authClient.loadSession();
 
   const maybeResumePendingImports = async (session: AuthSession) => {
     if (session.status !== 'authenticated') {
@@ -163,14 +224,62 @@ export function createCurrentLearnerController({
   };
 
   const readCurrentSnapshot = async (options?: {
+    authNoticeMessage?: string | null;
     resumePendingImports?: boolean;
   }): Promise<CurrentLearnerSnapshot> => {
-    const session = await readCurrentSession();
-    if (options?.resumePendingImports) {
-      await maybeResumePendingImports(session);
+    const session = await readStoredSession();
+    if (!session) {
+      return buildRequiredSnapshot(options?.authNoticeMessage ?? null);
     }
 
-    return buildSnapshotForSession(session);
+    if (session.status === 'authenticated') {
+      if (options?.resumePendingImports) {
+        await maybeResumePendingImports(session);
+      }
+
+      return buildSnapshotForSession(session, {
+        authGateState: 'authenticated',
+        authNoticeMessage: options?.authNoticeMessage,
+      });
+    }
+
+    if (devGuestEnabled) {
+      return buildSnapshotForSession(session, {
+        authGateState: 'guest-dev',
+        authNoticeMessage: options?.authNoticeMessage,
+      });
+    }
+
+    return buildRequiredSnapshot(options?.authNoticeMessage ?? null);
+  };
+
+  const readAccessibleSnapshot = async () => {
+    const snapshot = await readCurrentSnapshot();
+    if (
+      snapshot.authGateState === 'required' ||
+      !snapshot.session ||
+      !snapshot.profile ||
+      !snapshot.summary
+    ) {
+      throw new Error(AUTH_REQUIRED_ERROR_MESSAGE);
+    }
+
+    return snapshot as CurrentLearnerSnapshot & {
+      authGateState: 'authenticated' | 'guest-dev';
+      homeState: HomeLearningState;
+      profile: LearnerProfile;
+      session: AuthSession;
+      summary: LearnerSummaryCurrent;
+    };
+  };
+
+  const readDevGuestSnapshot = async () => {
+    const snapshot = await readAccessibleSnapshot();
+    if (snapshot.authGateState !== 'guest-dev' || snapshot.session.status !== 'anonymous') {
+      throw new Error(DEV_GUEST_REQUIRED_ERROR_MESSAGE);
+    }
+
+    return snapshot;
   };
 
   return {
@@ -181,30 +290,56 @@ export function createCurrentLearnerController({
     },
     refresh: readCurrentSnapshot,
     loadRecentAttempts: async (options) => {
-      const session = await readCurrentSession();
+      const { session } = await readAccessibleSnapshot();
       return learningHistoryRepository.listAttempts(session.accountKey, options);
+    },
+    continueAsDevGuest: async () => {
+      if (!devGuestEnabled) {
+        throw new Error(DEV_GUEST_REQUIRED_ERROR_MESSAGE);
+      }
+
+      const session = await authClient.ensureAnonymousSession();
+      if (session.status !== 'anonymous') {
+        throw new Error(DEV_GUEST_REQUIRED_ERROR_MESSAGE);
+      }
+
+      return buildSnapshotForSession(session, {
+        authGateState: 'guest-dev',
+      });
     },
     signIn: async (provider) => {
       const { previousSession, nextSession } = await authClient.signIn(provider);
-      const migrationStatus =
-        previousSession.status === 'anonymous' && nextSession.status === 'authenticated'
-          ? await migrationService.loadStatus({
-              sourceAnonymousAccountKey: previousSession.accountKey,
-              targetAccountKey: nextSession.accountKey,
-            })
-          : {
-              state: 'empty' as const,
-              targetAccountKey: nextSession.accountKey,
-            };
+      if (previousSession?.status !== 'anonymous' || nextSession.status !== 'authenticated') {
+        return buildSnapshotForSession(nextSession, {
+          authGateState: 'authenticated',
+        });
+      }
 
-      return {
-        snapshot: await buildSnapshotForSession(nextSession),
-        migrationStatus,
-      };
+      try {
+        const migrationStatus = await migrationService.importAnonymousSnapshot(
+          previousSession.accountKey,
+          nextSession.accountKey,
+        );
+        const migratedSummary =
+          migrationStatus.state === 'completed' || migrationStatus.state === 'already_imported'
+            ? migrationStatus.summary
+            : null;
+
+        return buildSnapshotForSession(nextSession, {
+          authGateState: 'authenticated',
+          summary: migratedSummary,
+        });
+      } catch (error) {
+        console.warn('Failed to auto-import anonymous learning history after sign-in.', error);
+        return buildSnapshotForSession(nextSession, {
+          authGateState: 'authenticated',
+          authNoticeMessage: AUTO_IMPORT_FAILURE_NOTICE,
+        });
+      }
     },
     signOut: async () => {
-      const nextSession = await authClient.signOut();
-      return buildSnapshotForSession(nextSession);
+      await Promise.all([authClient.signOut(), peerPresenceStore.clearPreviewSnapshot()]);
+      return buildRequiredSnapshot();
     },
     getHistoryMigrationStatus: async (sourceAnonymousAccountKey) => {
       return migrationService.loadStatus({
@@ -213,13 +348,25 @@ export function createCurrentLearnerController({
     },
     importAnonymousHistory: async (sourceAnonymousAccountKey) => {
       const migrationStatus = await migrationService.importAnonymousSnapshot(sourceAnonymousAccountKey);
+      const migratedSummary =
+        migrationStatus.state === 'completed' || migrationStatus.state === 'already_imported'
+          ? migrationStatus.summary
+          : null;
+      const session = await readStoredSession();
+      if (!session) {
+        throw new Error(AUTH_REQUIRED_ERROR_MESSAGE);
+      }
+
       return {
-        snapshot: await readCurrentSnapshot(),
+        snapshot: await buildSnapshotForSession(session, {
+          authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+          summary: migratedSummary,
+        }),
         migrationStatus,
       };
     },
     updateGrade: async (grade) => {
-      const { session, profile, summary } = await readCurrentSnapshot();
+      const { session, profile, summary } = await readAccessibleSnapshot();
       const nextProfile: LearnerProfile = {
         ...profile,
         grade,
@@ -227,28 +374,42 @@ export function createCurrentLearnerController({
       };
 
       await profileStore.save(nextProfile);
-      return buildSnapshot(session, nextProfile, summary);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
     },
     recordAttempt: async (input) => {
-      const { session, profile } = await readCurrentSnapshot();
+      const { session, profile } = await readAccessibleSnapshot();
       const result = await learningHistoryRepository.recordAttempt(input);
-      return buildSnapshot(session, profile, result.summary);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile,
+        session,
+        summary: result.summary,
+      });
     },
     saveFeaturedExamState: async (state) => {
-      const { session, profile } = await readCurrentSnapshot();
+      const { session, profile } = await readAccessibleSnapshot();
       const summary = await learningHistoryRepository.saveFeaturedExamState(session.accountKey, state);
-      return buildSnapshot(session, profile, summary);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile,
+        session,
+        summary,
+      });
     },
     seedPreview: async (state) => {
-      const { session, profile } = await readCurrentSnapshot();
-
-      if (session.status === 'anonymous') {
-        await localLearningHistoryRepository.reset(session.accountKey);
-      }
+      const { session, profile } = await readDevGuestSnapshot();
+      await localLearningHistoryRepository.reset(session.accountKey);
 
       if (state === 'fresh') {
         await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
-        return readCurrentSnapshot();
+        return buildSnapshotForSession(session, {
+          authGateState: 'guest-dev',
+        });
       }
 
       if (state === 'diagnostic-complete' || state === 'review-available') {
@@ -271,19 +432,19 @@ export function createCurrentLearnerController({
       }
 
       await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
-      return readCurrentSnapshot();
+      return buildSnapshotForSession(session, {
+        authGateState: 'guest-dev',
+      });
     },
     resetLocalProfile: async () => {
-      const currentSession = await readCurrentSession();
+      const { session } = await readDevGuestSnapshot();
 
-      if (currentSession.status === 'anonymous') {
-        await localLearningHistoryRepository.reset(currentSession.accountKey);
-        await profileStore.reset(currentSession.accountKey);
-      }
-
+      await localLearningHistoryRepository.reset(session.accountKey);
+      await profileStore.reset(session.accountKey);
       await peerPresenceStore.clearPreviewSnapshot();
-      const nextSession = await authClient.signOut();
-      return buildSnapshotForSession(nextSession);
+      return buildSnapshotForSession(session, {
+        authGateState: 'guest-dev',
+      });
     },
   };
 }

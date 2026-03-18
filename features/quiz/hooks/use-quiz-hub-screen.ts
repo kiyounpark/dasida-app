@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -7,9 +8,11 @@ import { useQuizSession } from '@/features/quiz/session';
 type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
 export type UseQuizHubScreenResult = {
+  authNoticeMessage: string | null;
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
+  onDismissAuthNotice: () => void;
   onOpenExams: () => void;
   onOpenPractice: () => void;
   onOpenRecentResult: () => void;
@@ -21,8 +24,26 @@ export type UseQuizHubScreenResult = {
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
   const { width } = useWindowDimensions();
-  const { isReady, session, profile, homeState, refresh } = useCurrentLearner();
+  const {
+    authNoticeMessage,
+    dismissAuthNotice,
+    homeState,
+    isReady,
+    profile,
+    refresh,
+    session,
+  } = useCurrentLearner();
   const { resetSession } = useQuizSession();
+  const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authNoticeMessage) {
+      return;
+    }
+
+    setLocalAuthNoticeMessage(authNoticeMessage);
+    dismissAuthNotice();
+  }, [authNoticeMessage, dismissAuthNotice]);
 
   const onStartDiagnostic = () => {
     resetSession();
@@ -61,9 +82,13 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   };
 
   return {
+    authNoticeMessage: localAuthNoticeMessage,
     homeState,
     isCompactLayout: width < 390,
     isReady,
+    onDismissAuthNotice: () => {
+      setLocalAuthNoticeMessage(null);
+    },
     onOpenExams,
     onOpenPractice,
     onOpenRecentResult,

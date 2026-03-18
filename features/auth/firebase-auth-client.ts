@@ -15,6 +15,7 @@ import {
   onIdTokenChanged,
   signInWithCredential,
   signOut as firebaseSignOut,
+  type UserCredential,
   type User,
 } from 'firebase/auth';
 
@@ -31,6 +32,7 @@ import {
   isGoogleAuthConfigured,
 } from './firebase-config';
 import {
+  clearStoredAuthSession,
   createAnonymousSession,
   createAuthenticatedSession,
   loadStoredAuthSession,
@@ -85,11 +87,26 @@ async function createRandomNonce() {
   );
 }
 
-async function signInWithAppleCredential() {
+type AppleSignInResult = {
+  appleCredential: AppleAuthentication.AppleAuthenticationCredential;
+  signInResult: UserCredential;
+};
+
+type GoogleSignInResult = {
+  signInResult: UserCredential;
+};
+
+function isAppleSignInResult(
+  result: AppleSignInResult | GoogleSignInResult,
+): result is AppleSignInResult {
+  return 'appleCredential' in result;
+}
+
+async function signInWithAppleCredential(): Promise<AppleSignInResult> {
   try {
     const rawNonce = await createRandomNonce();
     const hashedNonce = await createSha256(rawNonce);
-    const credential = await AppleAuthentication.signInAsync({
+    const appleCredential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
@@ -97,17 +114,22 @@ async function signInWithAppleCredential() {
       nonce: hashedNonce,
     });
 
-    if (!credential.identityToken) {
+    if (!appleCredential.identityToken) {
       throw new Error('Apple identity token is missing.');
     }
 
     const provider = new OAuthProvider('apple.com');
     const firebaseCredential = provider.credential({
-      idToken: credential.identityToken,
+      idToken: appleCredential.identityToken,
       rawNonce,
     });
 
-    return signInWithCredential(getFirebaseAuthInstance(), firebaseCredential);
+    const signInResult = await signInWithCredential(getFirebaseAuthInstance(), firebaseCredential);
+
+    return {
+      appleCredential,
+      signInResult,
+    };
   } catch (error) {
     if (
       typeof error === 'object' &&
@@ -122,7 +144,7 @@ async function signInWithAppleCredential() {
   }
 }
 
-async function signInWithGoogleCredential() {
+async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
   const clientId = getGoogleClientIdForCurrentPlatform();
   if (!clientId) {
     throw new Error('Google sign-in is not configured for this platform.');
@@ -178,7 +200,12 @@ async function signInWithGoogleCredential() {
     throw new Error('Google ID token is missing.');
   }
 
-  return signInWithCredential(getFirebaseAuthInstance(), GoogleAuthProvider.credential(idToken));
+  return {
+    signInResult: await signInWithCredential(
+      getFirebaseAuthInstance(),
+      GoogleAuthProvider.credential(idToken),
+    ),
+  };
 }
 
 async function waitForFirebaseAuthReady() {
@@ -192,12 +219,29 @@ async function waitForFirebaseAuthReady() {
   });
 }
 
-function buildAuthenticatedSessionFromUser(user: User, previousSession?: AuthSession | null) {
+function formatAppleDisplayName(
+  fullName: AppleAuthentication.AppleAuthenticationFullName | null | undefined,
+) {
+  const nameParts = [fullName?.familyName, fullName?.givenName]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  return nameParts.length > 0 ? nameParts.join(' ') : undefined;
+}
+
+function buildAuthenticatedSessionFromUser(
+  user: User,
+  previousSession?: AuthSession | null,
+  overrides?: {
+    displayName?: string;
+    email?: string | null;
+  },
+) {
   return createAuthenticatedSession({
     firebaseUid: user.uid,
     provider: mapProviderId(user.providerData[0]?.providerId ?? user.providerId),
-    displayName: user.displayName,
-    email: user.email,
+    displayName: overrides?.displayName ?? user.displayName,
+    email: overrides?.email ?? user.email,
     createdAt: previousSession?.status === 'authenticated' ? previousSession.createdAt : undefined,
   });
 }
@@ -237,13 +281,22 @@ export class FirebaseAuthClient implements AuthClient {
       throw new Error('Firebase Auth is not configured for this build.');
     }
 
-    const previousSession = (await this.loadSession()) ?? (await this.ensureAnonymousSession());
+    const previousSession = await this.loadSession();
     const credentialResult =
       provider === 'apple' ? await signInWithAppleCredential() : await signInWithGoogleCredential();
+    const authResult = credentialResult.signInResult;
+    const appleOverrides =
+      isAppleSignInResult(credentialResult)
+        ? {
+            displayName: formatAppleDisplayName(credentialResult.appleCredential.fullName),
+            email: credentialResult.appleCredential.email,
+          }
+        : undefined;
 
     const nextSession = buildAuthenticatedSessionFromUser(
-      credentialResult.user,
+      authResult.user,
       previousSession,
+      appleOverrides,
     );
     await saveAuthSession(nextSession);
 
@@ -251,20 +304,19 @@ export class FirebaseAuthClient implements AuthClient {
       previousSession,
       nextSession,
       isNewAuthenticatedSession:
-        previousSession.status !== 'authenticated' ||
-        previousSession.accountKey !== nextSession.accountKey ||
-        Boolean(getAdditionalUserInfo(credentialResult)?.isNewUser),
+        previousSession?.status !== 'authenticated' ||
+        previousSession?.accountKey !== nextSession.accountKey ||
+        Boolean(getAdditionalUserInfo(authResult)?.isNewUser),
     };
   }
 
-  async signOut(): Promise<AuthSession> {
+  async signOut(): Promise<null> {
     await firebaseSignOut(getFirebaseAuthInstance()).catch(() => {
       return undefined;
     });
 
-    const nextSession = createAnonymousSession();
-    await saveAuthSession(nextSession);
-    return nextSession;
+    await clearStoredAuthSession();
+    return null;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {
@@ -289,7 +341,10 @@ export class FirebaseAuthClient implements AuthClient {
     accountKey?: string,
     options?: { forceRefresh?: boolean },
   ): Promise<RemoteAuthContext> {
-    const session = (await this.loadSession()) ?? (await this.ensureAnonymousSession());
+    const session = await this.loadSession();
+    if (!session) {
+      throw new Error('Auth session is not available.');
+    }
 
     if (accountKey && session.accountKey !== accountKey) {
       throw new Error('Remote auth context does not match the requested account.');

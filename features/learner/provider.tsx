@@ -8,6 +8,12 @@ import {
   useState,
 } from 'react';
 
+import {
+  canUseDevGuestAuth,
+  getRequiredAuthProviders,
+  type AuthBlockingReason,
+  type AuthGateState,
+} from '@/features/auth/auth-policy';
 import { createAuthClient } from '@/features/auth/create-auth-client';
 import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
@@ -33,6 +39,7 @@ import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
+const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
 const learnerController = createCurrentLearnerController({
   authClient,
   profileStore: new LocalLearnerProfileStore(),
@@ -48,14 +55,20 @@ const learnerController = createCurrentLearnerController({
 
 export type CurrentLearnerContextValue = {
   isReady: boolean;
+  authGateState: AuthGateState;
+  authBlockingReason: AuthBlockingReason;
+  canUseDevGuestAuth: boolean;
+  authNoticeMessage: string | null;
   session: AuthSession | null;
   profile: LearnerProfile | null;
   summary: LearnerSummaryCurrent | null;
   homeState: HomeLearningState | null;
   availableAuthProviders: SupportedAuthProvider[];
+  dismissAuthNotice(): void;
   refresh(): Promise<void>;
   loadRecentAttempts(options?: { source?: LearningSource; limit?: number }): Promise<LearningAttempt[]>;
-  signIn(provider: SupportedAuthProvider): Promise<HistoryMigrationStatus>;
+  continueAsDevGuest(): Promise<void>;
+  signIn(provider: SupportedAuthProvider): Promise<void>;
   signOut(): Promise<void>;
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<HistoryMigrationStatus>;
@@ -70,6 +83,10 @@ const CurrentLearnerContext = createContext<CurrentLearnerContextValue | undefin
 
 type LearnerState = {
   isReady: boolean;
+  authGateState: AuthGateState;
+  authBlockingReason: AuthBlockingReason;
+  canUseDevGuestAuth: boolean;
+  authNoticeMessage: string | null;
   session: AuthSession | null;
   profile: LearnerProfile | null;
   summary: LearnerSummaryCurrent | null;
@@ -79,10 +96,28 @@ type LearnerState = {
 function createInitialLearnerState(): LearnerState {
   return {
     isReady: false,
+    authGateState: 'loading',
+    authBlockingReason: null,
+    canUseDevGuestAuth: canUseDevGuestAuth(),
+    authNoticeMessage: null,
     session: null,
     profile: null,
     summary: null,
     homeState: null,
+  };
+}
+
+function toLearnerState(snapshot: Awaited<ReturnType<typeof learnerController.bootstrap>>): LearnerState {
+  return {
+    isReady: true,
+    authGateState: snapshot.authGateState,
+    authBlockingReason: snapshot.authBlockingReason,
+    canUseDevGuestAuth: snapshot.canUseDevGuestAuth,
+    authNoticeMessage: snapshot.authNoticeMessage,
+    session: snapshot.session,
+    profile: snapshot.profile,
+    summary: snapshot.summary,
+    homeState: snapshot.homeState,
   };
 }
 
@@ -99,13 +134,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       })
       .catch(() => {
         if (!isMounted) {
@@ -115,6 +144,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         setState((prev) => ({
           ...prev,
           isReady: true,
+          authGateState: 'required',
         }));
       });
 
@@ -133,102 +163,57 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CurrentLearnerContextValue>(
     () => ({
       ...state,
-      availableAuthProviders: authClient.getSupportedProviders(),
+      availableAuthProviders,
+      dismissAuthNotice: () => {
+        setState((prev) => ({
+          ...prev,
+          authNoticeMessage: null,
+        }));
+      },
       refresh: async () => {
         const snapshot = await learnerController.refresh();
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       loadRecentAttempts,
+      continueAsDevGuest: async () => {
+        const snapshot = await learnerController.continueAsDevGuest();
+        setState(toLearnerState(snapshot));
+      },
       signIn: async (provider) => {
-        const result = await learnerController.signIn(provider);
-        setState({
-          isReady: true,
-          session: result.snapshot.session,
-          profile: result.snapshot.profile,
-          summary: result.snapshot.summary,
-          homeState: result.snapshot.homeState,
-        });
-        return result.migrationStatus;
+        const snapshot = await learnerController.signIn(provider);
+        setState(toLearnerState(snapshot));
       },
       signOut: async () => {
         const snapshot = await learnerController.signOut();
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       getHistoryMigrationStatus: (sourceAnonymousAccountKey) => {
         return learnerController.getHistoryMigrationStatus(sourceAnonymousAccountKey);
       },
       importAnonymousHistory: async (sourceAnonymousAccountKey) => {
         const result = await learnerController.importAnonymousHistory(sourceAnonymousAccountKey);
-        setState({
-          isReady: true,
-          session: result.snapshot.session,
-          profile: result.snapshot.profile,
-          summary: result.snapshot.summary,
-          homeState: result.snapshot.homeState,
-        });
+        setState(toLearnerState(result.snapshot));
         return result.migrationStatus;
       },
       updateGrade: async (grade) => {
         const snapshot = await learnerController.updateGrade(grade);
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {
         const snapshot = await learnerController.recordAttempt(input);
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       saveFeaturedExamState: async (featuredExamState) => {
         const snapshot = await learnerController.saveFeaturedExamState(featuredExamState);
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       seedPreview: async (previewState) => {
         const snapshot = await learnerController.seedPreview(previewState);
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
       resetLocalProfile: async () => {
         const snapshot = await learnerController.resetLocalProfile();
-        setState({
-          isReady: true,
-          session: snapshot.session,
-          profile: snapshot.profile,
-          summary: snapshot.summary,
-          homeState: snapshot.homeState,
-        });
+        setState(toLearnerState(snapshot));
       },
     }),
     [loadRecentAttempts, state],
