@@ -35,6 +35,13 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
 
   constructor(private readonly dependencies: Dependencies) {}
 
+  private logCacheFallback(operation: string, error: unknown) {
+    console.warn(
+      `[FirebaseLearningHistoryRepository] Falling back to local cache for ${operation}.`,
+      error,
+    );
+  }
+
   private async getRemoteAuthContext(accountKey?: string, options?: { forceRefresh?: boolean }) {
     return this.dependencies.authClient.getRemoteAuthContext(accountKey, options);
   }
@@ -93,6 +100,7 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
       return payload;
     } catch (error) {
       if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('recordAttempt', error);
         return this.cache.recordAttempt(input);
       }
 
@@ -121,13 +129,14 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
 
       return payload.summary;
     } catch (error) {
-      if (!shouldUseLearningHistoryCacheFallback(error)) {
-        throw error;
-      }
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('loadCurrentSummary', error);
+        const cachedSummary = await this.cache.loadCurrentSummary(accountKey);
+        if (cachedSummary) {
+          return cachedSummary;
+        }
 
-      const cachedSummary = await this.cache.loadCurrentSummary(accountKey);
-      if (cachedSummary) {
-        return cachedSummary;
+        return createEmptyLearnerSummary(accountKey);
       }
 
       throw error;
@@ -161,6 +170,7 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
       return payload.summary;
     } catch (error) {
       if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('saveFeaturedExamState', error);
         return this.cache.saveFeaturedExamState(accountKey, state);
       }
 
@@ -199,13 +209,9 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
       await this.cache.cacheAttempts(accountKey, payload.attempts);
       return payload.attempts;
     } catch (error) {
-      if (!shouldUseLearningHistoryCacheFallback(error)) {
-        throw error;
-      }
-
-      const cachedAttempts = await this.cache.listAttempts(accountKey, options);
-      if (cachedAttempts.length > 0) {
-        return cachedAttempts;
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('listAttempts', error);
+        return this.cache.listAttempts(accountKey, options);
       }
 
       throw error;
@@ -231,13 +237,9 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
       await this.cache.cacheAttemptResults(accountKey, attemptId, payload.results);
       return payload.results;
     } catch (error) {
-      if (!shouldUseLearningHistoryCacheFallback(error)) {
-        throw error;
-      }
-
-      const cachedResults = await this.cache.listAttemptResults(accountKey, attemptId);
-      if (cachedResults.length > 0) {
-        return cachedResults;
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('listAttemptResults', error);
+        return this.cache.listAttemptResults(accountKey, attemptId);
       }
 
       throw error;

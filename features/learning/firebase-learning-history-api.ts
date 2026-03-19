@@ -17,9 +17,7 @@ export class LearningHistoryApiError extends Error {
 export function shouldUseLearningHistoryCacheFallback(error: unknown) {
   return (
     error instanceof LearningHistoryApiError &&
-    (error.code === 'NETWORK_ERROR' ||
-      error.code === 'TIMEOUT' ||
-      (error.code === 'HTTP_ERROR' && error.status >= 500))
+    (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT' || error.code === 'HTTP_ERROR')
   );
 }
 

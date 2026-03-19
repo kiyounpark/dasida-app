@@ -37,6 +37,7 @@ import {
   loadStoredAuthSession,
   saveAuthSession,
 } from './session-store';
+import { FIREBASE_AUTH_READY_TIMEOUT_MS } from './bootstrap-timeouts';
 import type { AuthSession, SupportedAuthProvider } from './types';
 
 const GOOGLE_DISCOVERY = {
@@ -207,24 +208,27 @@ async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
   };
 }
 
-const FIREBASE_AUTH_READY_TIMEOUT_MS = 10_000;
-
 async function waitForFirebaseAuthReady() {
   const auth = getFirebaseAuthInstance();
-  const timeout = setTimeout(() => {
-    console.warn(
-      '[FirebaseAuthClient] authStateReady timed out — continuing with current auth snapshot.',
-    );
-  }, FIREBASE_AUTH_READY_TIMEOUT_MS);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  await Promise.race([
-    auth.authStateReady().finally(() => {
-      clearTimeout(timeout);
-    }),
-    new Promise<void>((resolve) => {
-      setTimeout(resolve, FIREBASE_AUTH_READY_TIMEOUT_MS);
-    }),
-  ]);
+  try {
+    await Promise.race([
+      auth.authStateReady(),
+      new Promise<void>((resolve) => {
+        timeoutId = setTimeout(() => {
+          console.warn(
+            '[FirebaseAuthClient] authStateReady timed out — continuing with current auth snapshot.',
+          );
+          resolve();
+        }, FIREBASE_AUTH_READY_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 function formatAppleDisplayName(

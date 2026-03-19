@@ -30,16 +30,16 @@ function AuthGateRedirector() {
     }
 
     if (authGateState === 'required') {
-      if (!isSignInRoute) {
+      if (isTabsRoute) {
         router.replace('/sign-in');
       }
       return;
     }
 
-    if (segments.length > 0 && !isTabsRoute) {
+    if (isSignInRoute) {
       router.replace('/(tabs)/quiz');
     }
-  }, [authGateState, isReady, isSignInRoute, isTabsRoute, segments]);
+  }, [authGateState, isReady, isSignInRoute, isTabsRoute]);
 
   return null;
 }

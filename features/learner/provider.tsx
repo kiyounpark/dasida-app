@@ -37,6 +37,7 @@ import { LocalLearningHistoryRepository } from '@/features/learning/local-learni
 import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-learning-history-snapshot-store';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
+import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
@@ -99,8 +100,6 @@ type LearnerState = {
   homeState: HomeLearningState | null;
 };
 
-const BOOTSTRAP_TIMEOUT_MS = 15_000;
-
 function createInitialLearnerState(): LearnerState {
   return {
     isReady: false,
@@ -158,7 +157,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       didSettle = true;
       console.warn('[CurrentLearnerProvider] bootstrap timed out — falling back to auth required.');
       setState(createBootstrapFallbackLearnerState());
-    }, BOOTSTRAP_TIMEOUT_MS);
+    }, LEARNER_BOOTSTRAP_TIMEOUT_MS);
 
     learnerController
       .bootstrap()

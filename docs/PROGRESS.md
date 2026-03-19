@@ -21,6 +21,21 @@
 
 ## 로그
 
+### 2026.03.20
+
+**남은 중간 리스크 3건 정리**
+- `features/auth/bootstrap-timeouts.ts`를 추가해 Firebase Auth 초기 대기(`10초`)와 learner provider bootstrap watchdog(`15초`)의 관계를 한 파일에서 관리하도록 정리
+- `features/auth/firebase-auth-client.ts`는 공통 timeout 상수를 사용하도록 정리했고, `features/learner/provider.tsx`는 동일 상수 기반으로 provider fallback 타이밍을 맞춰 bootstrap 단계의 계층 관계를 명확히 함
+- `app/_layout.tsx`의 `AuthGateRedirector`는 `sign-in`/`(tabs)` 진입 보호만 맡기고, 루트 `/` 진입 리다이렉트는 `app/index.tsx`만 처리하도록 역할을 분리해 중복 redirect 가능성을 제거
+- `features/learning/firebase-learning-history-api.ts`는 인증 실패(`UNAUTHORIZED`)를 제외한 원격 학습 기록 API 오류를 cache fallback 대상으로 넓히고, `features/learning/firebase-learning-history-repository.ts`는 `recordAttempt`, `summary`, `featured exam`, `attempt list`, `attempt results` 전부에서 fallback 로그와 캐시 복귀 경로를 일관되게 적용
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
+**Claude 재검증**
+- Claude CLI로 `app/_layout.tsx`, `app/index.tsx`, `features/auth/bootstrap-timeouts.ts`, `features/auth/firebase-auth-client.ts`, `features/learner/provider.tsx`, `features/learning/firebase-learning-history-api.ts`, `features/learning/firebase-learning-history-repository.ts`를 다시 검토
+- 결과: `No blocking issues found`
+- 확인된 사항: timeout 10초/15초 계층 관계가 명확하고, 루트 redirect 역할 분리가 일관적이며, 인증 실패를 제외한 원격 학습 기록 오류 fallback 범위도 과도하지 않음
+- 남은 수동 검증 포인트: 빠른 auth state 전환 시 redirect 순서, 느린 네트워크/cold start에서 `authStateReady()` 10초 timeout 체감, cache fallback 이후 remote와의 동기화 공백 여부
+
 ### 2026.03.19
 
 **학습 기록 Cloud Functions 배포 및 로컬 env 연결**
