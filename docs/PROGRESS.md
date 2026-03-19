@@ -29,6 +29,13 @@
 - 로컬 [`.env`](/Users/baggiyun/Documents/dasida-app/.env)에 인증 사용자 학습 기록용 URL 6개를 채워 iOS Apple/Google 로그인 후 `Remote learning history is not configured for authenticated users.` 에러를 제거할 준비를 마침
 - **검증**: `npm --prefix functions run build`, `firebase deploy --only functions`, `curl https://asia-northeast3-dasida-app.cloudfunctions.net/getLearnerSummary` (`400` 응답으로 live endpoint 확인)
 
+**Claude Expo 검증**
+- Claude CLI로 `expo-dev-client`, `native-data-fetching`, `building-native-ui` 관점의 코드 리뷰를 수행
+- 범위: `app/_layout.tsx`, `app/index.tsx`, `app.json`, `features/auth/firebase-auth-client.ts`, `features/learner/provider.tsx`, `features/learning/create-learning-history-repository.ts`, `features/learning/learning-history-repository-router.ts`, `constants/env.ts`
+- 결과: 치명적 이슈 없음
+- 잔여 중간 리스크: Firebase auth timeout(10초)과 provider bootstrap timeout(15초)의 계층 관계, `app/index.tsx`와 `AuthGateRedirector`의 중복 리다이렉트 가능성, 인증 사용자 원격 저장 실패 시 일부 오류 처리 경로 추가 검증 필요
+- **수동 검증 포인트**: 실제 iPhone 저속 네트워크에서 cold start, 로그인 후 learning history Cloud Functions 저장 성공, 비행기 모드/오프라인 fallback, 루트 `/` 직접 진입 시 redirect flicker 여부
+
 **iOS dev client 재구성과 auth/bootstrap 안전장치 추가**
 - `app.json`: iOS `bundleIdentifier`, `usesAppleSignIn`, Android `package`를 명시해 실제 디바이스 빌드 기준 식별자를 고정
 - `package.json`, `package-lock.json`: `expo-dev-client`, `@expo/ngrok`를 추가하고 `ios/android` 스크립트를 `expo run:*` 기준으로 맞춤
