@@ -664,6 +664,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.20 00:31
+- 해시: `58cf03d` (`58cf03d0f3ede8192c55695b9ea61a002a88baa0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/58cf03d0f3ede8192c55695b9ea61a002a88baa0
+- 작성자: 박기윤
+- 메시지: fix: 설정 개발 카드 노출 정리
+
 ### 커밋 2026.03.20 00:19
 - 해시: `a80897d` (`a80897dfc687a4bf1514eb0df2b9ac22fe83ea9b`)
 - 브랜치: main
