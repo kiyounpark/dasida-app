@@ -94,6 +94,7 @@ export function ProfileScreenView({
   errorMessage,
   gradeOptions,
   homeState,
+  isDevBuild,
   isGuestDevSession,
   isReady,
   manualImportCandidate,
@@ -220,15 +221,17 @@ export function ProfileScreenView({
           </View>
         </View>
 
-        {isGuestDevSession ? (
+        {isDevBuild ? (
           <View style={styles.card}>
             <Text selectable style={styles.cardTitle}>
               소셜 로그인 테스트
             </Text>
             <Text selectable style={styles.body}>
-              개발용 익명 세션에서 실제 로그인 전환을 다시 확인할 수 있습니다.
+              {isGuestDevSession
+                ? '개발용 익명 세션에서 실제 로그인 전환을 다시 확인할 수 있습니다.'
+                : '지금은 로그인된 계정 세션입니다. 다시 테스트하려면 로그아웃 후 개발용 익명으로 계속으로 돌아오세요.'}
             </Text>
-            {supportedAuthProviders.length > 0 ? (
+            {isGuestDevSession && supportedAuthProviders.length > 0 ? (
               <View style={styles.authButtonList}>
                 {supportedAuthProviders.map((provider) => (
                   <ActionButton
@@ -243,13 +246,21 @@ export function ProfileScreenView({
                   />
                 ))}
               </View>
-            ) : (
+            ) : isGuestDevSession ? (
               <Text selectable style={styles.body}>
                 현재 빌드에는 테스트할 소셜 로그인 제공자가 설정되어 있지 않습니다.
               </Text>
-            )}
+            ) : null}
             <ActionButton
-              label={busyAction === 'sign-out' ? '로그인 게이트로 이동 중...' : '로그인 게이트로 돌아가기'}
+              label={
+                busyAction === 'sign-out'
+                  ? isGuestDevSession
+                    ? '로그인 게이트로 이동 중...'
+                    : '로그아웃 중...'
+                  : isGuestDevSession
+                    ? '로그인 게이트로 돌아가기'
+                    : '로그아웃하고 로그인 게이트로 이동'
+              }
               disabled={busyAction !== null}
               subtle
               onPress={() => void onSignOut()}
@@ -257,31 +268,46 @@ export function ProfileScreenView({
           </View>
         ) : null}
 
-        {isGuestDevSession ? (
+        {isDevBuild ? (
           <View style={[styles.card, styles.devCard]}>
             <Text selectable style={styles.devLabel}>
               개발용 상태 미리보기
             </Text>
             <Text selectable style={styles.body}>
-              익명 로컬 모드에서 허브 히어로와 리뷰 상태를 빠르게 전환합니다.
+              {isGuestDevSession
+                ? '익명 로컬 모드에서 허브 히어로와 리뷰 상태를 빠르게 전환합니다.'
+                : '이 도구는 로그인된 계정 데이터를 건드리지 않기 위해 개발용 익명 세션에서만 실행됩니다.'}
             </Text>
-            <View style={styles.previewList}>
-              {previewStates.map((preview) => (
+            {isGuestDevSession ? (
+              <>
+                <View style={styles.previewList}>
+                  {previewStates.map((preview) => (
+                    <ActionButton
+                      key={preview.value}
+                      label={preview.label}
+                      subtle
+                      disabled={busyAction !== null}
+                      onPress={() => void onSeedPreview(preview.value)}
+                    />
+                  ))}
+                </View>
                 <ActionButton
-                  key={preview.value}
-                  label={preview.label}
-                  subtle
+                  label={busyAction === 'reset-local' ? '초기화 중...' : '로컬 상태 초기화'}
                   disabled={busyAction !== null}
-                  onPress={() => void onSeedPreview(preview.value)}
+                  subtle
+                  onPress={() => void onResetLocalProfile()}
                 />
-              ))}
-            </View>
-            <ActionButton
-              label={busyAction === 'reset-local' ? '초기화 중...' : '로컬 상태 초기화'}
-              disabled={busyAction !== null}
-              subtle
-              onPress={() => void onResetLocalProfile()}
-            />
+              </>
+            ) : (
+              <View style={styles.devHintCard}>
+                <Text selectable style={styles.devHintTitle}>
+                  로그인 후에도 카드가 사라지지 않게 유지했습니다.
+                </Text>
+                <Text selectable style={styles.body}>
+                  미리보기를 다시 쓰려면 로그아웃 후 sign-in 화면에서 `개발용 익명으로 계속`을 선택하면 됩니다.
+                </Text>
+              </View>
+            )}
           </View>
         ) : null}
       </ScrollView>
@@ -425,6 +451,18 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.border,
   },
   importTitle: {
+    ...BrandTypography.cardTitle,
+    color: BrandColors.text,
+  },
+  devHintCard: {
+    gap: BrandSpacing.xs,
+    padding: BrandSpacing.md,
+    borderRadius: BrandRadius.md,
+    backgroundColor: '#F8FBF7',
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+  },
+  devHintTitle: {
     ...BrandTypography.cardTitle,
     color: BrandColors.text,
   },

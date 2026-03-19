@@ -36,6 +36,12 @@
 - 확인된 사항: timeout 10초/15초 계층 관계가 명확하고, 루트 redirect 역할 분리가 일관적이며, 인증 실패를 제외한 원격 학습 기록 오류 fallback 범위도 과도하지 않음
 - 남은 수동 검증 포인트: 빠른 auth state 전환 시 redirect 순서, 느린 네트워크/cold start에서 `authStateReady()` 10초 timeout 체감, cache fallback 이후 remote와의 동기화 공백 여부
 
+**설정 화면 개발용 카드 유지**
+- `features/profile/hooks/use-profile-screen.ts`, `features/profile/components/profile-screen-view.tsx`: 개발용 익명 세션에서만 보이던 로그인 테스트/상태 미리보기 카드를 `__DEV__` 빌드에서는 로그인 후에도 계속 보이도록 조정
+- 인증된 세션에서는 개발용 미리보기를 숨기지 않고, `왜 지금은 실행할 수 없는지`와 `로그아웃 후 개발용 익명으로 계속으로 돌아가는 경로`를 설명하는 안내 카드와 CTA를 표시
+- 목적은 로그인 직후 설정 화면에서 개발용 섹션이 통째로 사라져 혼란스러운 문제를 줄이고, 개발 중 UI 레이아웃 확인 동선을 유지하는 것
+- **검증**: `npm run typecheck`, `npm run lint` 통과, Claude CLI 재리뷰에서 `No blocking issues` 확인
+
 ### 2026.03.19
 
 **학습 기록 Cloud Functions 배포 및 로컬 env 연결**

@@ -72,6 +72,7 @@ export function useProfileScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [manualImportCandidate, setManualImportCandidate] = useState<MigrationCandidate | null>(null);
+  const isDevBuild = __DEV__;
   const isGuestDevSession = authGateState === 'guest-dev';
 
   useEffect(() => {
@@ -177,6 +178,7 @@ export function useProfileScreen() {
     errorMessage,
     gradeOptions,
     homeState,
+    isDevBuild,
     isGuestDevSession,
     isImporting: busyAction === 'import',
     isReady,
