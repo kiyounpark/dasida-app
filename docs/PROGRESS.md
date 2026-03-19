@@ -630,6 +630,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.19 23:36
+- 해시: `704a552` (`704a552b6a045a4f2c467d83d38ffdace82e3c99`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/704a552b6a045a4f2c467d83d38ffdace82e3c99
+- 작성자: 박기윤
+- 메시지: docs: 네이티브 빌드 규칙 반영
+
 ### 커밋 2026.03.19 23:32
 - 해시: `c9eb935` (`c9eb935e86bb3e91bb2b365aa2d172a14e331112`)
 - 브랜치: main
