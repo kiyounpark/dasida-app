@@ -23,6 +23,12 @@
 
 ### 2026.03.19
 
+**학습 기록 Cloud Functions 배포 및 로컬 env 연결**
+- Firebase 프로젝트 `dasida-app` 기준으로 학습 기록용 Functions를 실제 배포: `getLearningAttemptResults`, `getLearnerSummary`, `importLocalLearningHistory`, `listLearningAttempts`, `recordLearningAttempt`, `saveFeaturedExamState`
+- 배포 중 `compute.googleapis.com` 조회 403 경고는 있었지만, 최종적으로 8개 Functions 배포/업데이트가 모두 성공했고 각 학습 기록 endpoint가 `asia-northeast3-dasida-app.cloudfunctions.net` 아래에서 활성화됨
+- 로컬 [`.env`](/Users/baggiyun/Documents/dasida-app/.env)에 인증 사용자 학습 기록용 URL 6개를 채워 iOS Apple/Google 로그인 후 `Remote learning history is not configured for authenticated users.` 에러를 제거할 준비를 마침
+- **검증**: `npm --prefix functions run build`, `firebase deploy --only functions`, `curl https://asia-northeast3-dasida-app.cloudfunctions.net/getLearnerSummary` (`400` 응답으로 live endpoint 확인)
+
 **iOS dev client 재구성과 auth/bootstrap 안전장치 추가**
 - `app.json`: iOS `bundleIdentifier`, `usesAppleSignIn`, Android `package`를 명시해 실제 디바이스 빌드 기준 식별자를 고정
 - `package.json`, `package-lock.json`: `expo-dev-client`, `@expo/ngrok`를 추가하고 `ios/android` 스크립트를 `expo run:*` 기준으로 맞춤
