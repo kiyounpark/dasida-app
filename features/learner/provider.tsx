@@ -10,11 +10,13 @@ import {
 
 import {
   canUseDevGuestAuth,
+  getAuthBlockingReason,
   getRequiredAuthProviders,
   type AuthBlockingReason,
   type AuthGateState,
 } from '@/features/auth/auth-policy';
 import { createAuthClient } from '@/features/auth/create-auth-client';
+import { isFirebaseAuthConfigured } from '@/features/auth/firebase-config';
 import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
@@ -40,6 +42,10 @@ const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
 const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
+const fallbackAuthBlockingReason = getAuthBlockingReason({
+  availableProviders: availableAuthProviders,
+  isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
+});
 const learnerController = createCurrentLearnerController({
   authClient,
   profileStore: new LocalLearnerProfileStore(),
@@ -93,11 +99,27 @@ type LearnerState = {
   homeState: HomeLearningState | null;
 };
 
+const BOOTSTRAP_TIMEOUT_MS = 15_000;
+
 function createInitialLearnerState(): LearnerState {
   return {
     isReady: false,
     authGateState: 'loading',
     authBlockingReason: null,
+    canUseDevGuestAuth: canUseDevGuestAuth(),
+    authNoticeMessage: null,
+    session: null,
+    profile: null,
+    summary: null,
+    homeState: null,
+  };
+}
+
+function createBootstrapFallbackLearnerState(): LearnerState {
+  return {
+    isReady: true,
+    authGateState: 'required',
+    authBlockingReason: fallbackAuthBlockingReason,
     canUseDevGuestAuth: canUseDevGuestAuth(),
     authNoticeMessage: null,
     session: null,
@@ -126,30 +148,43 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let didSettle = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!isMounted || didSettle) {
+        return;
+      }
+
+      didSettle = true;
+      console.warn('[CurrentLearnerProvider] bootstrap timed out — falling back to auth required.');
+      setState(createBootstrapFallbackLearnerState());
+    }, BOOTSTRAP_TIMEOUT_MS);
 
     learnerController
       .bootstrap()
       .then((snapshot) => {
-        if (!isMounted) {
+        if (!isMounted || didSettle) {
           return;
         }
 
+        didSettle = true;
+        clearTimeout(timeoutId);
         setState(toLearnerState(snapshot));
       })
-      .catch(() => {
-        if (!isMounted) {
+      .catch((error) => {
+        if (!isMounted || didSettle) {
           return;
         }
 
-        setState((prev) => ({
-          ...prev,
-          isReady: true,
-          authGateState: 'required',
-        }));
+        didSettle = true;
+        clearTimeout(timeoutId);
+        console.warn('[CurrentLearnerProvider] bootstrap failed — falling back to auth required.', error);
+        setState(createBootstrapFallbackLearnerState());
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 

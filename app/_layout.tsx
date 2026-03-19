@@ -21,13 +21,13 @@ function AuthGateRedirector() {
   const { authGateState, isReady } = useCurrentLearner();
   const segments = useSegments();
   const rootSegment = segments[0];
+  const isSignInRoute = rootSegment === 'sign-in';
+  const isTabsRoute = rootSegment === '(tabs)';
 
   useEffect(() => {
     if (!isReady || authGateState === 'loading') {
       return;
     }
-
-    const isSignInRoute = rootSegment === 'sign-in';
 
     if (authGateState === 'required') {
       if (!isSignInRoute) {
@@ -36,10 +36,10 @@ function AuthGateRedirector() {
       return;
     }
 
-    if (isSignInRoute) {
+    if (segments.length > 0 && !isTabsRoute) {
       router.replace('/(tabs)/quiz');
     }
-  }, [authGateState, isReady, rootSegment]);
+  }, [authGateState, isReady, isSignInRoute, isTabsRoute, segments]);
 
   return null;
 }

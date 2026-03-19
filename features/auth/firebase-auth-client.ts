@@ -12,7 +12,6 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   getAdditionalUserInfo,
-  onIdTokenChanged,
   signInWithCredential,
   signOut as firebaseSignOut,
   type UserCredential,
@@ -208,15 +207,24 @@ async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
   };
 }
 
+const FIREBASE_AUTH_READY_TIMEOUT_MS = 10_000;
+
 async function waitForFirebaseAuthReady() {
   const auth = getFirebaseAuthInstance();
+  const timeout = setTimeout(() => {
+    console.warn(
+      '[FirebaseAuthClient] authStateReady timed out — continuing with current auth snapshot.',
+    );
+  }, FIREBASE_AUTH_READY_TIMEOUT_MS);
 
-  await new Promise<void>((resolve) => {
-    const unsubscribe = onIdTokenChanged(auth, () => {
-      unsubscribe();
-      resolve();
-    });
-  });
+  await Promise.race([
+    auth.authStateReady().finally(() => {
+      clearTimeout(timeout);
+    }),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, FIREBASE_AUTH_READY_TIMEOUT_MS);
+    }),
+  ]);
 }
 
 function formatAppleDisplayName(

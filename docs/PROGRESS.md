@@ -21,6 +21,18 @@
 
 ## 로그
 
+### 2026.03.19
+
+**iOS dev client 재구성과 auth/bootstrap 안전장치 추가**
+- `app.json`: iOS `bundleIdentifier`, `usesAppleSignIn`, Android `package`를 명시해 실제 디바이스 빌드 기준 식별자를 고정
+- `package.json`, `package-lock.json`: `expo-dev-client`, `@expo/ngrok`를 추가하고 `ios/android` 스크립트를 `expo run:*` 기준으로 맞춤
+- `features/auth/firebase-auth-client.ts`: Firebase Auth 초기 상태 대기를 `authStateReady()` + timeout 구조로 보강
+- `features/learner/provider.tsx`: bootstrap watchdog을 추가해 초기화 지연 시 sign-in gate로 안전하게 복귀하도록 조정
+- `app/_layout.tsx`, `app/index.tsx`: 루트 경로(`/`)가 빈 화면이나 unmatched route로 남지 않도록 sign-in 또는 quiz 탭으로 명시 리다이렉트
+- iPhone 실기기 디버깅 과정에서 로컬 Metro 연결은 확인됐고, dev build/라우팅 반영을 위해 패키지 추가나 네이티브 의존성 변경 후에는 `npx expo prebuild --clean -> npx expo run:ios` 순서를 사용하기로 정리
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+- **메모**: 인증 사용자용 원격 학습 기록 Functions URL은 아직 비어 있거나 404 상태라, 이후 dev fallback 또는 Functions 배포 정리가 추가로 필요
+
 ### 2026.03.18
 
 **앱 전역을 소셜 로그인 필수 정책으로 전환하고 dev guest 우회만 분리**
