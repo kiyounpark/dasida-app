@@ -3,6 +3,12 @@
 ## 목적
 - 어떤 AI가 작업해도 동일한 방식으로 Slack 알림과 작업 절차를 유지합니다.
 
+## 네이티브 빌드 필수 규칙
+- 패키지 추가/변경 후 반드시 실행: `npx expo prebuild --clean`
+- 시뮬레이터/디바이스 실행: `npx expo run:ios` (Xcode 직접 Run 사용 금지)
+- 순서: 패키지 설치 → `npx expo prebuild --clean` → `npx expo run:ios`
+- 이 규칙 미준수 시 검정화면(JS 번들 로드 실패) 발생 (2026-03-19 실제 발생)
+
 ## 필수 규칙
 - 작업 시작 직후: `npm run notify:start -- "<요청 요약>"`
 - 작업 종료 직전(성공): `npm run notify:done -- "<변경 요약>"`

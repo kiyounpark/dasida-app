@@ -13,7 +13,13 @@
 - 이 저장소에는 `.claude/settings.json` 기반 Claude 훅이 포함되어 있으며, `UserPromptSubmit`가 관련 Expo 스킬을 자동 제안하고 `PreToolUse`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도합니다.
 - 작은 문서 수정, 단순 텍스트 수정, 영향 범위가 좁은 단순 수정에는 Claude 검증을 생략할 수 있습니다.
 
-3. 검증이 권장되는 작업
+3. 네이티브 빌드 규칙 (필수)
+- **패키지 추가/변경 후에는 반드시**: `npx expo prebuild --clean`
+- **시뮬레이터 실행은**: `npx expo run:ios` (Xcode 직접 Run 금지)
+- 순서: 패키지 설치 → `npx expo prebuild --clean` → `npx expo run:ios`
+- 이 규칙을 어기면 검정화면(JS 번들 로드 실패) 발생
+
+4. 검증이 권장되는 작업
 - 코드 구조 리팩터링, Thin Screen 전환, custom hook 분리
 - UI 구조 변경, 네비게이션 변경
 - API 호출, Firebase 연동, 캐싱, 에러 처리 변경
