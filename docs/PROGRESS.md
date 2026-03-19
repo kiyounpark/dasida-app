@@ -629,6 +629,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.19 23:32
+- 해시: `c9eb935` (`c9eb935e86bb3e91bb2b365aa2d172a14e331112`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c9eb935e86bb3e91bb2b365aa2d172a14e331112
+- 작성자: 박기윤
+- 메시지: fix: 아이오에스 개발 빌드 시작 흐름 안정화
+
 ### 커밋 2026.03.18 23:53
 - 해시: `7596f1e` (`7596f1e2c982622410a4f8980a6b4ada9396e994`)
 - 브랜치: main
