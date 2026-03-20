@@ -670,6 +670,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.20 20:56
+- 해시: `df98411` (`df9841142b54597ba6c142b88e77e8c9a6b800a1`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/df9841142b54597ba6c142b88e77e8c9a6b800a1
+- 작성자: 박기윤
+- 메시지: fix: 아이폰 구글 로그인 리디렉트 주소 정렬
+
 ### 커밋 2026.03.20 00:31
 - 해시: `58cf03d` (`58cf03d0f3ede8192c55695b9ea61a002a88baa0`)
 - 브랜치: main
