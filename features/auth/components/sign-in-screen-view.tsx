@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DasidaLogo } from '@/components/brand/DasidaLogo';
@@ -16,6 +16,8 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { BrandTypography } from '@/constants/typography';
 import type { UseSignInScreenResult } from '@/features/auth/hooks/use-sign-in-screen';
 import type { SupportedAuthProvider } from '@/features/auth/types';
+
+const LOGIN_CHARACTER_SOURCE = require('../../../assets/auth/dasida-login-character.png');
 
 const GOOGLE_BUTTON_ASSET =
   process.env.EXPO_OS === 'android'
@@ -33,15 +35,33 @@ const GOOGLE_BUTTON_ASSET =
           aspectRatio: 597 / 132,
         };
 
-const LARGE_BUTTON_HEIGHT = 56;
-const COMPACT_BUTTON_HEIGHT = 52;
+const LOGIN_CHARACTER_ASPECT_RATIO = 492 / 534;
+const LARGE_BUTTON_HEIGHT = 60;
+const COMPACT_BUTTON_HEIGHT = 54;
+const MAX_BUTTON_WIDTH = 304;
+const MAX_LOGO_WIDTH = 236;
+const MAX_CHARACTER_WIDTH = 272;
 
 type SupportedProviderViewModel = UseSignInScreenResult['supportedAuthProviders'][number];
 
-function BackgroundGlow() {
+function BackgroundGlow({ height, width }: { height: number; width: number }) {
+  const centerGlowSize = Math.min(width * 0.72, 340);
+
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.glow, styles.glowTop]} />
+      <View style={[styles.glow, styles.glowTopLeft]} />
+      <View
+        style={[
+          styles.glow,
+          styles.glowCenter,
+          {
+            top: Math.round(height * 0.19),
+            left: Math.round(width / 2 - centerGlowSize / 2),
+            width: centerGlowSize,
+            height: centerGlowSize,
+          },
+        ]}
+      />
       <View style={[styles.glow, styles.glowBottom]} />
     </View>
   );
@@ -129,8 +149,8 @@ function AppleSignInButton({
       style={[styles.officialButtonWrap, { width, height }, busy && styles.buttonPressed]}>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE_OUTLINE}
-        cornerRadius={BrandRadius.lg}
+        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+        cornerRadius={999}
         onPress={onPress}
         style={styles.appleButton}
       />
@@ -193,82 +213,104 @@ export function SignInScreenView({
   const isCompactLayout = height < 760;
   const buttonHeight = isCompactLayout ? COMPACT_BUTTON_HEIGHT : LARGE_BUTTON_HEIGHT;
   const buttonWidth = Math.min(
+    MAX_BUTTON_WIDTH,
     Math.round(buttonHeight * GOOGLE_BUTTON_ASSET.aspectRatio),
-    width - BrandSpacing.xxl * 2,
+    width - BrandSpacing.xl * 2,
   );
-  const logoWidth = Math.min(isCompactLayout ? 228 : 260, Math.max(176, width - BrandSpacing.xxl * 2));
-  const contentGap = isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl;
+  const logoWidth = Math.min(
+    MAX_LOGO_WIDTH,
+    Math.max(isCompactLayout ? 188 : 204, width - BrandSpacing.xxl * 2),
+  );
+  const characterWidth = Math.min(
+    MAX_CHARACTER_WIDTH,
+    Math.max(188, Math.round(width * (isCompactLayout ? 0.52 : 0.58))),
+  );
+  const heroGap = isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl;
+  const footerGap = isCompactLayout ? BrandSpacing.md : BrandSpacing.lg;
   const containerPaddingTop = insets.top + (isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl);
   const containerPaddingBottom = insets.bottom + BrandSpacing.lg;
 
   return (
     <View style={styles.screen}>
-      <BackgroundGlow />
+      <BackgroundGlow height={height} width={width} />
       <View
         style={[
           styles.container,
           {
             paddingTop: containerPaddingTop,
             paddingBottom: containerPaddingBottom,
-            gap: contentGap,
           },
         ]}>
-        <View style={[styles.content, { gap: contentGap }]}>
-          <Animated.View entering={FadeInDown.duration(240)} style={styles.logoBlock}>
-            <DasidaLogo width={logoWidth} height={Math.round((logoWidth / 260) * 68)} />
-          </Animated.View>
-
-          <Animated.View entering={FadeInUp.duration(240).delay(60)} style={styles.actionArea}>
-            {supportedAuthProviders.length > 0 ? (
-              <View style={styles.buttonList}>
-                {supportedAuthProviders.map((provider, index) => (
-                  <Animated.View
-                    entering={FadeInUp.duration(220).delay(120 + index * 50)}
-                    key={provider.id}>
-                    <ProviderButton
-                      busyAction={busyAction}
-                      height={buttonHeight}
-                      provider={provider}
-                      width={buttonWidth}
-                      onSignIn={onSignIn}
-                    />
-                  </Animated.View>
-                ))}
-              </View>
-            ) : (
-              <Animated.View entering={FadeIn.duration(180)} style={styles.blockingCard}>
-                <Text selectable style={styles.blockingTitle}>
-                  {blockingCopy?.title ?? '로그인을 시작할 수 없어요'}
-                </Text>
-                <Text selectable style={styles.blockingBody}>
-                  {blockingCopy?.body ?? '현재 빌드 설정을 확인한 뒤 다시 시도해 주세요.'}
-                </Text>
-              </Animated.View>
-            )}
-
-            {errorMessage ? (
-              <InlineNotice color={BrandColors.danger} message={errorMessage} />
-            ) : null}
-          </Animated.View>
-
-          {canUseDevGuestAuth ? (
-            <Animated.View entering={FadeIn.duration(180).delay(180)} style={styles.devGuestWrap}>
-              <Pressable
-                accessibilityRole="button"
-                disabled={busyAction !== null}
-                onPress={() => void onContinueAsDevGuest()}
-                style={({ pressed }) => [
-                  styles.devGuestButton,
-                  (pressed || busyAction !== null) && styles.devGuestButtonPressed,
-                ]}>
-                <Text selectable style={styles.devGuestText}>
-                  {busyAction === 'dev-guest'
-                    ? '개발용 익명으로 계속하는 중...'
-                    : '개발용 익명으로 계속'}
-                </Text>
-              </Pressable>
+        <View style={styles.content}>
+          <View style={[styles.heroStack, { gap: heroGap }]}>
+            <Animated.View entering={FadeInDown.duration(220)} style={styles.logoBlock}>
+              <DasidaLogo width={logoWidth} height={Math.round((logoWidth / 260) * 68)} />
             </Animated.View>
-          ) : null}
+
+            <Animated.View
+              entering={ZoomIn.duration(260).delay(60)}
+              style={[styles.characterBlock, { width: characterWidth }]}>
+              <Image
+                source={LOGIN_CHARACTER_SOURCE}
+                contentFit="contain"
+                style={styles.characterImage}
+              />
+            </Animated.View>
+          </View>
+
+          <View style={[styles.footerBlock, { gap: footerGap }]}>
+            <Animated.View entering={FadeInUp.duration(220).delay(120)} style={styles.actionArea}>
+              {supportedAuthProviders.length > 0 ? (
+                <View style={styles.buttonList}>
+                  {supportedAuthProviders.map((provider, index) => (
+                    <Animated.View
+                      entering={FadeInUp.duration(220).delay(160 + index * 50)}
+                      key={provider.id}>
+                      <ProviderButton
+                        busyAction={busyAction}
+                        height={buttonHeight}
+                        provider={provider}
+                        width={buttonWidth}
+                        onSignIn={onSignIn}
+                      />
+                    </Animated.View>
+                  ))}
+                </View>
+              ) : (
+                <Animated.View entering={FadeIn.duration(180)} style={styles.blockingCard}>
+                  <Text selectable style={styles.blockingTitle}>
+                    {blockingCopy?.title ?? '로그인을 시작할 수 없어요'}
+                  </Text>
+                  <Text selectable style={styles.blockingBody}>
+                    {blockingCopy?.body ?? '현재 빌드 설정을 확인한 뒤 다시 시도해 주세요.'}
+                  </Text>
+                </Animated.View>
+              )}
+
+              {errorMessage ? (
+                <InlineNotice color={BrandColors.danger} message={errorMessage} />
+              ) : null}
+            </Animated.View>
+
+            {canUseDevGuestAuth ? (
+              <Animated.View entering={FadeIn.duration(180).delay(220)} style={styles.devGuestWrap}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={busyAction !== null}
+                  onPress={() => void onContinueAsDevGuest()}
+                  style={({ pressed }) => [
+                    styles.devGuestButton,
+                    (pressed || busyAction !== null) && styles.devGuestButtonPressed,
+                  ]}>
+                  <Text selectable style={styles.devGuestText}>
+                    {busyAction === 'dev-guest'
+                      ? '개발용 익명으로 계속하는 중...'
+                      : '개발용 익명으로 계속'}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            ) : null}
+          </View>
         </View>
       </View>
     </View>
@@ -286,32 +328,52 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  heroStack: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerBlock: {
+    width: '100%',
+    alignItems: 'center',
   },
   glow: {
     position: 'absolute',
     borderRadius: 999,
   },
-  glowTop: {
-    top: -72,
-    right: -48,
-    width: 220,
-    height: 220,
-    backgroundColor: 'rgba(74, 124, 89, 0.14)',
+  glowTopLeft: {
+    top: -64,
+    left: -56,
+    width: 240,
+    height: 240,
+    backgroundColor: 'rgba(245, 224, 164, 0.36)',
+  },
+  glowCenter: {
+    backgroundColor: 'rgba(255, 237, 192, 0.42)',
   },
   glowBottom: {
-    bottom: 36,
-    left: -72,
-    width: 180,
-    height: 180,
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+    bottom: -48,
+    right: -72,
+    width: 220,
+    height: 220,
+    backgroundColor: 'rgba(255, 244, 216, 0.72)',
   },
   logoBlock: {
-    flex: 1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  characterBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  characterImage: {
+    width: '100%',
+    aspectRatio: LOGIN_CHARACTER_ASPECT_RATIO,
   },
   actionArea: {
     width: '100%',
@@ -321,11 +383,13 @@ const styles = StyleSheet.create({
   buttonList: {
     width: '100%',
     alignItems: 'center',
-    gap: BrandSpacing.sm,
+    gap: 18,
   },
   officialButtonWrap: {
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 999,
+    boxShadow: '0 12px 26px rgba(37, 42, 33, 0.10)',
   },
   officialImageButton: {
     width: '100%',
@@ -336,11 +400,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   buttonPressed: {
-    opacity: 0.82,
+    opacity: 0.88,
   },
   busyOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: BrandRadius.lg,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -351,6 +415,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(246, 242, 234, 0.58)',
   },
   noticeWrap: {
+    maxWidth: 320,
     paddingHorizontal: BrandSpacing.md,
   },
   noticeText: {
@@ -359,12 +424,12 @@ const styles = StyleSheet.create({
   },
   blockingCard: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 332,
     borderRadius: BrandRadius.lg,
     borderCurve: 'continuous',
     paddingHorizontal: BrandSpacing.lg,
     paddingVertical: BrandSpacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
     borderWidth: 1,
     borderColor: 'rgba(41, 59, 39, 0.08)',
     gap: BrandSpacing.xs,
