@@ -1,5 +1,6 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Image } from 'expo-image';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import {
   ActivityIndicator,
   Pressable,
@@ -17,7 +18,7 @@ import { BrandTypography } from '@/constants/typography';
 import type { UseSignInScreenResult } from '@/features/auth/hooks/use-sign-in-screen';
 import type { SupportedAuthProvider } from '@/features/auth/types';
 
-const LOGIN_CHARACTER_SOURCE = require('../../../assets/auth/dasida-login-character.png');
+const LOGIN_CHARACTER_VIDEO_SOURCE = require('../../../assets/auth/dasida-login-character.mp4');
 
 const GOOGLE_BUTTON_ASSET =
   process.env.EXPO_OS === 'android'
@@ -35,12 +36,12 @@ const GOOGLE_BUTTON_ASSET =
           aspectRatio: 597 / 132,
         };
 
-const LOGIN_CHARACTER_ASPECT_RATIO = 492 / 534;
+const LOGIN_CHARACTER_ASPECT_RATIO = 720 / 1280;
 const LARGE_BUTTON_HEIGHT = 60;
 const COMPACT_BUTTON_HEIGHT = 54;
 const MAX_BUTTON_WIDTH = 304;
 const MAX_LOGO_WIDTH = 236;
-const MAX_CHARACTER_WIDTH = 272;
+const MAX_CHARACTER_WIDTH = 220;
 
 type SupportedProviderViewModel = UseSignInScreenResult['supportedAuthProviders'][number];
 
@@ -210,6 +211,11 @@ export function SignInScreenView({
 }: UseSignInScreenResult) {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const characterPlayer = useVideoPlayer(LOGIN_CHARACTER_VIDEO_SOURCE, (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
   const isCompactLayout = height < 760;
   const buttonHeight = isCompactLayout ? COMPACT_BUTTON_HEIGHT : LARGE_BUTTON_HEIGHT;
   const buttonWidth = Math.min(
@@ -223,7 +229,7 @@ export function SignInScreenView({
   );
   const characterWidth = Math.min(
     MAX_CHARACTER_WIDTH,
-    Math.max(188, Math.round(width * (isCompactLayout ? 0.52 : 0.58))),
+    Math.max(isCompactLayout ? 148 : 164, Math.round(width * (isCompactLayout ? 0.44 : 0.5))),
   );
   const heroGap = isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl;
   const footerGap = isCompactLayout ? BrandSpacing.md : BrandSpacing.lg;
@@ -250,10 +256,16 @@ export function SignInScreenView({
             <Animated.View
               entering={ZoomIn.duration(260).delay(60)}
               style={[styles.characterBlock, { width: characterWidth }]}>
-              <Image
-                source={LOGIN_CHARACTER_SOURCE}
+              <VideoView
+                allowsFullscreen={false}
+                allowsPictureInPicture={false}
                 contentFit="contain"
-                style={styles.characterImage}
+                nativeControls={false}
+                player={characterPlayer}
+                playsInline
+                showsTimecodes={false}
+                style={styles.characterVideo}
+                useExoShutter={false}
               />
             </Animated.View>
           </View>
@@ -371,7 +383,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  characterImage: {
+  characterVideo: {
     width: '100%',
     aspectRatio: LOGIN_CHARACTER_ASPECT_RATIO,
   },
