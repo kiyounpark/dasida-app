@@ -71,6 +71,12 @@ function mapProviderId(providerId: string | null | undefined): SupportedAuthProv
 }
 
 function createGoogleRedirectUri() {
+  if (process.env.EXPO_OS === 'ios') {
+    const bundleIdentifier = Constants.expoConfig?.ios?.bundleIdentifier;
+
+    return `${bundleIdentifier || 'com.dasida.app'}:/oauthredirect`;
+  }
+
   return makeRedirectUri({
     scheme: getAppScheme(),
     path: 'oauthredirect',

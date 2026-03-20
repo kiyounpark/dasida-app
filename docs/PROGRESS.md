@@ -23,6 +23,12 @@
 
 ### 2026.03.20
 
+**iPhone Google OAuth redirect 형식 수정**
+- `features/auth/firebase-auth-client.ts`: iOS의 Google OAuth redirect URI를 기존 `dasidaapp://oauthredirect` 대신 bundle identifier 기반 `com.dasida.app:/oauthredirect` 형식으로 분기해 Google의 `invalid_request` 차단을 피하도록 조정
+- iOS 네이티브 URL scheme에는 이미 `com.dasida.app`가 등록돼 있어 추가 네이티브 수정 없이 dev client에서 바로 검증 가능함
+- 실기기 재검증 결과 Google 계정 선택 단계 이후에는 Firebase `auth/operation-not-allowed`까지 진행되어, 다음 확인 지점이 Firebase Console의 Google provider 활성화 상태로 좁혀짐
+- **검증**: `npm run typecheck` 통과
+
 **남은 중간 리스크 3건 정리**
 - `features/auth/bootstrap-timeouts.ts`를 추가해 Firebase Auth 초기 대기(`10초`)와 learner provider bootstrap watchdog(`15초`)의 관계를 한 파일에서 관리하도록 정리
 - `features/auth/firebase-auth-client.ts`는 공통 timeout 상수를 사용하도록 정리했고, `features/learner/provider.tsx`는 동일 상수 기반으로 provider fallback 타이밍을 맞춰 bootstrap 단계의 계층 관계를 명확히 함
