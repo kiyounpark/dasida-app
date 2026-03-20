@@ -3,13 +3,13 @@ import { Image } from 'expo-image';
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DasidaLogo } from '@/components/brand/DasidaLogo';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -17,15 +17,24 @@ import { BrandTypography } from '@/constants/typography';
 import type { UseSignInScreenResult } from '@/features/auth/hooks/use-sign-in-screen';
 import type { SupportedAuthProvider } from '@/features/auth/types';
 
-const GOOGLE_BUTTON_SOURCE =
+const GOOGLE_BUTTON_ASSET =
   process.env.EXPO_OS === 'android'
-    ? require('../../../assets/auth/google-signin-light-android.png')
+    ? {
+        source: require('../../../assets/auth/google-signin-light-android.png'),
+        aspectRatio: 567 / 120,
+      }
     : process.env.EXPO_OS === 'web'
-      ? require('../../../assets/auth/google-signin-light-web.png')
-      : require('../../../assets/auth/google-signin-light-ios.png');
+      ? {
+          source: require('../../../assets/auth/google-signin-light-web.png'),
+          aspectRatio: 567 / 120,
+        }
+      : {
+          source: require('../../../assets/auth/google-signin-light-ios.png'),
+          aspectRatio: 597 / 132,
+        };
 
-const BUTTON_HEIGHT = 56;
-const BUTTON_MAX_WIDTH = 320;
+const LARGE_BUTTON_HEIGHT = 56;
+const COMPACT_BUTTON_HEIGHT = 52;
 
 type SupportedProviderViewModel = UseSignInScreenResult['supportedAuthProviders'][number];
 
@@ -67,12 +76,14 @@ function BusyOverlay({ dark = false }: { dark?: boolean }) {
 function GoogleSignInButton({
   busy,
   disabled,
+  height,
   label,
   onPress,
   width,
 }: {
   busy: boolean;
   disabled: boolean;
+  height: number;
   label: string;
   onPress: () => void;
   width: number;
@@ -85,11 +96,11 @@ function GoogleSignInButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.officialButtonWrap,
-        { width, height: BUTTON_HEIGHT },
+        { width, height },
         (pressed || disabled) && styles.buttonPressed,
       ]}>
       <Image
-        source={GOOGLE_BUTTON_SOURCE}
+        source={GOOGLE_BUTTON_ASSET.source}
         contentFit="contain"
         style={styles.officialImageButton}
       />
@@ -100,11 +111,13 @@ function GoogleSignInButton({
 
 function AppleSignInButton({
   busy,
+  height,
   label,
   onPress,
   width,
 }: {
   busy: boolean;
+  height: number;
   label: string;
   onPress: () => void;
   width: number;
@@ -113,10 +126,10 @@ function AppleSignInButton({
     <View
       accessibilityLabel={label}
       pointerEvents={busy ? 'none' : 'auto'}
-      style={[styles.officialButtonWrap, { width, height: BUTTON_HEIGHT }, busy && styles.buttonPressed]}>
+      style={[styles.officialButtonWrap, { width, height }, busy && styles.buttonPressed]}>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE_OUTLINE}
         cornerRadius={BrandRadius.lg}
         onPress={onPress}
         style={styles.appleButton}
@@ -128,11 +141,13 @@ function AppleSignInButton({
 
 function ProviderButton({
   busyAction,
+  height,
   provider,
   width,
   onSignIn,
 }: {
   busyAction: string | null;
+  height: number;
   provider: SupportedProviderViewModel;
   width: number;
   onSignIn: (provider: SupportedAuthProvider) => void;
@@ -144,6 +159,7 @@ function ProviderButton({
     return (
       <AppleSignInButton
         busy={isBusy}
+        height={height}
         label={provider.label}
         onPress={() => void onSignIn(provider.id)}
         width={width}
@@ -155,6 +171,7 @@ function ProviderButton({
     <GoogleSignInButton
       busy={isBusy}
       disabled={isDisabled}
+      height={height}
       label={provider.label}
       onPress={() => void onSignIn(provider.id)}
       width={width}
@@ -171,18 +188,32 @@ export function SignInScreenView({
   onContinueAsDevGuest,
   onSignIn,
 }: UseSignInScreenResult) {
-  const { width } = useWindowDimensions();
-  const buttonWidth = Math.min(BUTTON_MAX_WIDTH, Math.max(240, width - BrandSpacing.xl * 2));
-  const logoWidth = Math.min(260, Math.max(176, width - BrandSpacing.xxl * 2));
+  const { height, width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const isCompactLayout = height < 760;
+  const buttonHeight = isCompactLayout ? COMPACT_BUTTON_HEIGHT : LARGE_BUTTON_HEIGHT;
+  const buttonWidth = Math.min(
+    Math.round(buttonHeight * GOOGLE_BUTTON_ASSET.aspectRatio),
+    width - BrandSpacing.xxl * 2,
+  );
+  const logoWidth = Math.min(isCompactLayout ? 228 : 260, Math.max(176, width - BrandSpacing.xxl * 2));
+  const contentGap = isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl;
+  const containerPaddingTop = insets.top + (isCompactLayout ? BrandSpacing.lg : BrandSpacing.xl);
+  const containerPaddingBottom = insets.bottom + BrandSpacing.lg;
 
   return (
     <View style={styles.screen}>
       <BackgroundGlow />
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
-        <View style={styles.content}>
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: containerPaddingTop,
+            paddingBottom: containerPaddingBottom,
+            gap: contentGap,
+          },
+        ]}>
+        <View style={[styles.content, { gap: contentGap }]}>
           <Animated.View entering={FadeInDown.duration(240)} style={styles.logoBlock}>
             <DasidaLogo width={logoWidth} height={Math.round((logoWidth / 260) * 68)} />
           </Animated.View>
@@ -196,6 +227,7 @@ export function SignInScreenView({
                     key={provider.id}>
                     <ProviderButton
                       busyAction={busyAction}
+                      height={buttonHeight}
                       provider={provider}
                       width={buttonWidth}
                       onSignIn={onSignIn}
@@ -238,7 +270,7 @@ export function SignInScreenView({
             </Animated.View>
           ) : null}
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -248,21 +280,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
-  scroll: {
-    flex: 1,
-  },
   container: {
-    flexGrow: 1,
+    flex: 1,
     paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.xl,
-    paddingBottom: BrandSpacing.xxl,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: BrandSpacing.xl,
-    minHeight: 560,
   },
   glow: {
     position: 'absolute',
@@ -287,7 +312,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 220,
   },
   actionArea: {
     width: '100%',
