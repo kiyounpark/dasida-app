@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speech Bubble Preview</title>
+    <style>
+      :root {
+        --page-bg: #f6f2ea;
+        --card-bg: #fffdf8;
+        --ink: #1a1a1a;
+        --muted: #6b6b6b;
+        --shadow: rgba(26, 26, 26, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.72), transparent 38%),
+          var(--page-bg);
+        color: var(--ink);
+        font-family:
+          "SUIT", "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      }
+
+      .shell {
+        width: min(920px, calc(100vw - 32px));
+        padding: 32px;
+        border-radius: 28px;
+        background: var(--card-bg);
+        box-shadow: 0 24px 60px var(--shadow);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .stage {
+        display: grid;
+        place-items: center;
+        min-height: 360px;
+        padding: 24px;
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.35)),
+          repeating-linear-gradient(
+            90deg,
+            rgba(41, 59, 39, 0.03) 0,
+            rgba(41, 59, 39, 0.03) 1px,
+            transparent 1px,
+            transparent 32px
+          );
+      }
+
+      svg {
+        width: min(720px, 100%);
+        height: auto;
+        overflow: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>SVG 말풍선 미리보기</h1>
+      <p>아래는 요청한 비정형 말풍선을 그대로 넣은 HTML 프리뷰입니다.</p>
+
+      <section class="stage" aria-label="speech bubble preview">
+        <svg
+          width="200"
+          height="100"
+          viewBox="0 0 200 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M10 50C10 25 40 10 100 10C160 10 190 25 190 50C190 75 160 90 100 90C80 90 70 95 60 100C65 90 40 90 10 50Z"
+            stroke="#1A1A1A"
+            stroke-width="2"
+            fill="white"
+            stroke-linejoin="round" />
+          <text
+            x="50%"
+            y="50%"
+            dominant-baseline="middle"
+            text-anchor="middle"
+            font-family="sans-serif"
+            font-size="14"
+            fill="#1A1A1A">
+            첫 진단 평가를 시작할까요?
+          </text>
+        </svg>
+      </section>
+    </main>
+  </body>
+</html>

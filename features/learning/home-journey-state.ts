@@ -38,7 +38,7 @@ const stepTitles: Record<JourneyStepKey, string> = {
   diagnostic: '10문제 빠른 진단',
   analysis: '오답 약점 분석',
   review: '맞춤 연습 & 복습',
-  exam: '실전 적용',
+  exam: '완벽 마스터',
 };
 
 function hasActivityAfter(
