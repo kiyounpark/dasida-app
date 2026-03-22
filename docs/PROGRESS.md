@@ -21,6 +21,23 @@
 
 ## 로그
 
+### 2026.03.22
+
+**문제 풀기 홈을 4단계 학습 여정판으로 전환**
+- `features/learning/home-journey-state.ts`, `features/learning/home-state.ts`: 기존 `latestDiagnosticSummary`, `recentActivity`, `dueReviewTasks`, `featuredExamState`만 조합해 `진단 -> 분석 -> 복습 -> 실전 적용` 현재 단계를 계산하는 `journey` 상태를 추가
+- `features/quiz/components/journey-board.tsx`, `features/quiz/components/journey-step-node.tsx`, `features/quiz/components/quiz-hub-screen-view.tsx`, `features/quiz/hooks/use-quiz-hub-screen.ts`: 기존 홈 허브의 hero/peer/support 카드 구조를 걷고, 여정 보드 + 현재 단계 카드 + 최근 학습 흐름만 남기는 홈 구조로 교체
+- `assets/journey/step-1-diagnostic.png`, `assets/journey/step-2-analysis.png`, `assets/journey/step-3-review.png`, `assets/journey/step-4-exam.png`: 루트에 있던 `character_step*.png` 원본을 그대로 두고, 앱에서 안정적으로 참조할 수 있도록 여정 전용 자산 경로로 복사해 사용
+- `app/(tabs)/quiz/_layout.tsx`, `features/profile/hooks/use-profile-screen.ts`, `features/profile/components/profile-screen-view.tsx`: 별도 펫형 `gamification-prototype` 라우트와 설정 진입 버튼을 제거하고 실제 홈 전환 방향으로 정리
+- 핵심 원칙은 `현재 단계 1개만 크게 CTA`, `완벽 마스터 대신 실전 적용`, `게임 장식보다 학습 네비게이션`으로 고정
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
+**가벼운 게임화 데모 화면 프로토타입 추가**
+- `app/(tabs)/quiz/gamification-prototype.tsx`, `app/(tabs)/quiz/_layout.tsx`, `features/quiz/screens/gamification-prototype-screen.tsx`: `quiz` 스택 안에 별도 `게임화 프로토타입` 라우트를 추가하고, 실제 홈 허브를 건드리지 않는 독립 데모 진입점을 구성
+- `features/quiz/gamification-prototype-content.ts`, `features/quiz/hooks/use-gamification-prototype-screen.ts`, `features/quiz/components/gamification-prototype-screen-view.tsx`: `첫 진단 전 / 오늘 복습 있음 / 오늘 목표 달성` 3상태를 로컬 상태로 토글할 수 있는 귀여운 펫형 데모 화면 구현
+- 기존 `assets/auth/dasida-login-character.png`를 그대로 재사용하고, 캐릭터 `다시`, 말풍선, 오늘 미션 3단계 체크리스트, 작은 성장 카드, 프로토타입 메모 카드만 넣어 보상 시스템 없는 가벼운 게임화 분위기만 확인할 수 있게 정리
+- `features/profile/hooks/use-profile-screen.ts`, `features/profile/components/profile-screen-view.tsx`: `__DEV__` 설정 화면 개발용 카드에서 `게임화 프로토타입 보기` 버튼으로 새 데모 화면에 바로 들어갈 수 있도록 연결
+- **검증**: `npm run typecheck`, `npm run lint` 통과
+
 ### 2026.03.20
 
 **iPhone Google OAuth redirect 형식 수정**
@@ -669,6 +686,60 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.22 12:14
+- 해시: `c2f6071` (`c2f6071093b576c4b75a1828c2dfc13caa5b29c8`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c2f6071093b576c4b75a1828c2dfc13caa5b29c8
+- 작성자: 박기윤
+- 메시지: feat: 학습여정 포스터형 화면 구성
+
+### 커밋 2026.03.20 23:24
+- 해시: `e647e3e` (`e647e3e2b5928fc1a8905aedae3848040f55c083`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e647e3e2b5928fc1a8905aedae3848040f55c083
+- 작성자: 박기윤
+- 메시지: revert: 로그인 화면 비디오 제거
+
+### 커밋 2026.03.20 22:41
+- 해시: `4e3ae97` (`4e3ae97c9b976bef2e8d37038107e0d79f11829e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4e3ae97c9b976bef2e8d37038107e0d79f11829e
+- 작성자: 박기윤
+- 메시지: feat: 로그인 화면 히어로 비디오 적용
+
+### 커밋 2026.03.20 22:32
+- 해시: `a754ec0` (`a754ec0ff0a007b5f1e937381d42afa3afe3227e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a754ec0ff0a007b5f1e937381d42afa3afe3227e
+- 작성자: 박기윤
+- 메시지: feat: 로그인 화면 비주얼 홈 스타일 반영
+
+### 커밋 2026.03.20 21:23
+- 해시: `3da97b2` (`3da97b2f6e69edfc65054520633794a9641addc1`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3da97b2f6e69edfc65054520633794a9641addc1
+- 작성자: 박기윤
+- 메시지: fix: 로그인 홈 버튼 정렬과 비스크롤 레이아웃 조정
+
+### 커밋 2026.03.20 21:17
+- 해시: `14bbc9a` (`14bbc9a7949572a803ffa88f78112e0e052f9207`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/14bbc9a7949572a803ffa88f78112e0e052f9207
+- 작성자: 박기윤
+- 메시지: feat: 로그인 홈 공식 인증 버튼 적용
 
 ### 커밋 2026.03.20 20:56
 - 해시: `df98411` (`df9841142b54597ba6c142b88e77e8c9a6b800a1`)
