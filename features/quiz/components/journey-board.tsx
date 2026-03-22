@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Ellipse, Path, Text as SvgText, TSpan } from 'react-native-svg';
+import Svg, { Path, Text as SvgText, TSpan } from 'react-native-svg';
 
 import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
@@ -28,13 +28,6 @@ type JourneyAbsoluteRect = {
   width: `${number}%`;
 };
 
-type JourneyAnchor = {
-  outerRx: number;
-  outerRy: number;
-  x: number;
-  y: number;
-};
-
 type BubbleConfig = {
   path: string;
   textX: number;
@@ -49,23 +42,16 @@ type StepCopyConfig = {
 };
 
 const nodeRectStyle: Record<JourneyStepKey, JourneyAbsoluteRect> = {
-  diagnostic: { left: '9.1%', top: '11%', width: '25.5%', height: '11.1%' },
-  analysis: { left: '61.7%', top: '29.2%', width: '17.7%', height: '14.5%' },
-  review: { left: '21.6%', top: '50.6%', width: '22.4%', height: '13.1%' },
-  exam: { left: '64.1%', top: '68.3%', width: '17.2%', height: '15.2%' },
-};
-
-const stepAnchors: Record<JourneyStepKey, JourneyAnchor> = {
-  diagnostic: { x: 207, y: 501, outerRx: 128, outerRy: 111 },
-  analysis: { x: 564, y: 672, outerRx: 118, outerRy: 104 },
-  review: { x: 244, y: 916, outerRx: 114, outerRy: 100 },
-  exam: { x: 548, y: 1081, outerRx: 116, outerRy: 101 },
+  diagnostic: { left: '9%', top: '9%', width: '34%', height: '16%' },
+  analysis: { left: '60%', top: '28%', width: '21%', height: '17%' },
+  review: { left: '20%', top: '49%', width: '27%', height: '17%' },
+  exam: { left: '62%', top: '66%', width: '21%', height: '18%' },
 };
 
 const stepCopyConfig: Record<JourneyStepKey, StepCopyConfig> = {
-  diagnostic: { titleX: 92, titleY: 470, statusX: 206, statusY: 518 },
+  diagnostic: { titleX: 75, titleY: 645, statusX: 207, statusY: 692 },
   analysis: { titleX: 456, titleY: 733, statusX: 606, statusY: 778 },
-  review: { titleX: 92, titleY: 913, statusX: 245, statusY: 959 },
+  review: { titleX: 75, titleY: 920, statusX: 245, statusY: 965 },
   exam: { titleX: 487, titleY: 1139, statusX: 611, statusY: 1185 },
 };
 
@@ -99,33 +85,12 @@ const bubbleTextByStep: Record<JourneyStepKey, string[]> = {
   exam: ['와, 정말', '최고예요!'],
 };
 
-function getCompletedSegmentCount(currentStepKey: JourneyStepKey) {
-  switch (currentStepKey) {
-    case 'analysis':
-      return 1;
-    case 'review':
-      return 2;
-    case 'exam':
-      return 3;
-    default:
-      return 0;
-  }
-}
-
 function getStatusTextColor(status: HomeJourneyStep['status']) {
   if (status === 'active') {
     return BrandColors.primaryDark;
   }
 
-  if (status === 'completed') {
-    return '#4F6957';
-  }
-
-  if (status === 'pending') {
-    return '#685E51';
-  }
-
-  return '#766F64';
+  return '#1F1913';
 }
 
 export function JourneyBoard({
@@ -139,8 +104,6 @@ export function JourneyBoard({
   onPressCta: () => void;
   state: HomeJourneyState;
 }) {
-  const completedSegmentCount = getCompletedSegmentCount(state.currentStepKey);
-  const activeAnchor = stepAnchors[state.currentStepKey];
   const bubbleFontSize = isCompactLayout ? 34 : 36;
   const stepTitleFontSize = isCompactLayout ? 30 : 32;
   const statusFontSize = isCompactLayout ? 26 : 28;
@@ -154,48 +117,6 @@ export function JourneyBoard({
           viewBox={`0 ${VIEWBOX_Y} ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
           preserveAspectRatio="xMidYMid meet"
           style={StyleSheet.absoluteFill}>
-          <Ellipse
-            cx={activeAnchor.x}
-            cy={activeAnchor.y}
-            rx={activeAnchor.outerRx}
-            ry={activeAnchor.outerRy}
-            fill="rgba(83, 160, 95, 0.22)"
-          />
-          <Ellipse
-            cx={activeAnchor.x}
-            cy={activeAnchor.y}
-            rx={activeAnchor.outerRx * 0.98}
-            ry={activeAnchor.outerRy * 0.96}
-            fill="none"
-            stroke="rgba(45, 123, 72, 0.86)"
-            strokeWidth={10}
-          />
-          <Ellipse
-            cx={activeAnchor.x + 4}
-            cy={activeAnchor.y + 2}
-            rx={activeAnchor.outerRx * 0.84}
-            ry={activeAnchor.outerRy * 0.82}
-            fill="none"
-            stroke="rgba(61, 137, 79, 0.76)"
-            strokeWidth={8}
-          />
-          <Circle
-            cx={activeAnchor.x + 135}
-            cy={activeAnchor.y - 34}
-            r={24}
-            fill="rgba(83, 160, 95, 0.24)"
-            stroke="rgba(31, 25, 19, 0.7)"
-            strokeWidth={4}
-          />
-          <Circle
-            cx={activeAnchor.x + 135}
-            cy={activeAnchor.y - 34}
-            r={16}
-            fill="rgba(89, 141, 89, 0.7)"
-            stroke="rgba(31, 25, 19, 0.72)"
-            strokeWidth={2.8}
-          />
-
           <Path
             d="M 432 357 C 527 346, 618 376, 634 452 C 644 508, 614 556, 578 606"
             fill="none"
@@ -253,27 +174,6 @@ export function JourneyBoard({
             fill="none"
             stroke="#2D7B48"
             strokeWidth={10}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 342 468 C 436 424, 518 470, 564 672"
-            fill="none"
-            stroke="rgba(45, 123, 72, 0.92)"
-            strokeWidth={completedSegmentCount >= 1 ? 8 : 0}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 535 724 C 465 817, 347 885, 244 916"
-            fill="none"
-            stroke="rgba(45, 123, 72, 0.92)"
-            strokeWidth={completedSegmentCount >= 2 ? 8 : 0}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 286 956 C 392 988, 470 1035, 548 1081"
-            fill="none"
-            stroke="rgba(45, 123, 72, 0.92)"
-            strokeWidth={completedSegmentCount >= 3 ? 8 : 0}
             strokeLinecap="round"
           />
 

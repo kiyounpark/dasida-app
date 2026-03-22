@@ -19,16 +19,7 @@ type JourneyStepNodeProps = {
 };
 
 function getImageOpacity(status: HomeJourneyStep['status']) {
-  switch (status) {
-    case 'completed':
-      return 0.94;
-    case 'pending':
-      return 0.86;
-    case 'locked':
-      return 0.72;
-    default:
-      return 1;
-  }
+  return 1;
 }
 
 function getHaloStyle(status: HomeJourneyStep['status']) {
@@ -41,29 +32,11 @@ function getHaloStyle(status: HomeJourneyStep['status']) {
     };
   }
 
-  if (status === 'completed') {
-    return {
-      backgroundColor: 'rgba(83, 160, 95, 0.10)',
-      borderColor: 'rgba(91, 129, 101, 0.44)',
-      borderWidth: 2,
-      opacity: 0.88,
-    };
-  }
-
-  if (status === 'pending') {
-    return {
-      backgroundColor: 'rgba(143, 128, 99, 0.08)',
-      borderColor: 'rgba(122, 106, 85, 0.34)',
-      borderWidth: 2,
-      opacity: 0.86,
-    };
-  }
-
   return {
     backgroundColor: 'transparent',
-    borderColor: 'rgba(126, 118, 104, 0.18)',
-    borderWidth: 1.5,
-    opacity: 0.52,
+    borderColor: 'transparent',
+    borderWidth: 0,
+    opacity: 0,
   };
 }
 
@@ -100,7 +73,7 @@ export function JourneyStepNode({
       onPress={onPress}
       style={({ pressed }) => [styles.nodeWrap, style, pressed && onPress ? styles.nodePressed : null]}>
       <View style={styles.imageWrap}>
-        <Animated.View style={[styles.halo, haloTone, haloStyle]} />
+        {isActive ? <Animated.View style={[styles.halo, haloTone, haloStyle]} /> : null}
         <Image
           source={imageSource}
           contentFit="contain"
