@@ -19,7 +19,18 @@ type JourneyStepNodeProps = {
 };
 
 function getImageOpacity(status: HomeJourneyStep['status']) {
-  return 1;
+  switch (status) {
+    case 'active':
+      return 1;
+    case 'completed':
+      return 0.48;
+    case 'pending':
+      return 0.34;
+    case 'locked':
+      return 0.28;
+    default:
+      return 1;
+  }
 }
 
 function getHaloStyle(status: HomeJourneyStep['status']) {

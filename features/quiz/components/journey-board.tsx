@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path, Text as SvgText, TSpan } from 'react-native-svg';
+import { StyleSheet, View } from 'react-native';
+import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
 import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
@@ -8,11 +8,14 @@ import type {
   HomeJourneyStep,
   JourneyStepKey,
 } from '@/features/learning/home-journey-state';
+import { JourneyActiveBubble } from '@/features/quiz/components/journey-active-bubble';
+import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 import { JourneyStepNode } from '@/features/quiz/components/journey-step-node';
 
 const VIEWBOX_Y = 280;
 const VIEWBOX_WIDTH = 768;
 const VIEWBOX_HEIGHT = 960;
+const JOURNEY_DASH_PATTERN = '20 18';
 
 const journeyImageSources: Record<JourneyStepKey, number> = {
   diagnostic: require('../../../assets/journey/step-1-diagnostic.png'),
@@ -28,10 +31,9 @@ type JourneyAbsoluteRect = {
   width: `${number}%`;
 };
 
-type BubbleConfig = {
-  path: string;
-  textX: number;
-  textY: number;
+type Point = {
+  x: number;
+  y: number;
 };
 
 type StepCopyConfig = {
@@ -43,54 +45,90 @@ type StepCopyConfig = {
 
 const nodeRectStyle: Record<JourneyStepKey, JourneyAbsoluteRect> = {
   diagnostic: { left: '9%', top: '9%', width: '34%', height: '16%' },
-  analysis: { left: '60%', top: '28%', width: '21%', height: '17%' },
-  review: { left: '20%', top: '49%', width: '27%', height: '17%' },
-  exam: { left: '62%', top: '66%', width: '21%', height: '18%' },
+  analysis: { left: '60%', top: '29.5%', width: '20%', height: '16.5%' },
+  review: { left: '19%', top: '49%', width: '25%', height: '16%' },
+  exam: { left: '59%', top: '60.5%', width: '21%', height: '17%' },
 };
 
 const stepCopyConfig: Record<JourneyStepKey, StepCopyConfig> = {
-  diagnostic: { titleX: 75, titleY: 645, statusX: 207, statusY: 692 },
-  analysis: { titleX: 456, titleY: 733, statusX: 606, statusY: 778 },
-  review: { titleX: 75, titleY: 920, statusX: 245, statusY: 965 },
-  exam: { titleX: 487, titleY: 1139, statusX: 611, statusY: 1185 },
+  diagnostic: { titleX: 75, titleY: 586, statusX: 207, statusY: 630 },
+  analysis: { titleX: 456, titleY: 742, statusX: 606, statusY: 787 },
+  review: { titleX: 75, titleY: 918, statusX: 235, statusY: 962 },
+  exam: { titleX: 486, titleY: 1068, statusX: 602, statusY: 1113 },
 };
 
-const bubbleConfig: Record<JourneyStepKey, BubbleConfig> = {
-  diagnostic: {
-    path: 'M398 362C398 337 428 322 488 322C548 322 578 337 578 362C578 387 548 402 488 402C468 402 458 407 448 412C453 402 428 402 398 362Z',
-    textX: 489,
-    textY: 356,
-  },
-  analysis: {
-    path: 'M591 557C591 529 627 515 681 515C729 515 761 529 761 557C761 583 731 599 681 599C661 599 650 607 637 613C643 602 617 600 591 557Z',
-    textX: 678,
-    textY: 555,
-  },
-  review: {
-    path: 'M34 783C34 755 64 741 110 741C154 741 186 755 186 783C186 809 156 825 110 825C94 825 84 833 74 839C78 829 55 826 34 783Z',
-    textX: 110,
-    textY: 783,
-  },
-  exam: {
-    path: 'M612 930C612 902 642 888 688 888C732 888 764 902 764 930C764 956 734 972 688 972C672 972 662 980 652 986C656 976 633 973 612 930Z',
-    textX: 688,
-    textY: 928,
-  },
+const nodeVisualBias: Record<JourneyStepKey, Point> = {
+  diagnostic: { x: 0.02, y: 0 },
+  analysis: { x: 0.01, y: 0.02 },
+  review: { x: 0.04, y: 0 },
+  exam: { x: 0.01, y: 0.02 },
 };
 
-const bubbleTextByStep: Record<JourneyStepKey, string[]> = {
-  diagnostic: ['반가워요!', '첫 진단 평가를', '시작해볼까요?'],
-  analysis: ['내 약점을 분석', '중이에요...'],
-  review: ['이제 연습할', '시간!'],
-  exam: ['와, 정말', '최고예요!'],
-};
+function percentToNumber(percent: `${number}%`) {
+  return Number.parseFloat(percent) / 100;
+}
+
+function getNodeAnchor(stepKey: JourneyStepKey, offset: Point = { x: 0, y: 0 }): Point {
+  const rect = nodeRectStyle[stepKey];
+  const bias = nodeVisualBias[stepKey];
+  const width = VIEWBOX_WIDTH * percentToNumber(rect.width);
+  const height = VIEWBOX_HEIGHT * percentToNumber(rect.height);
+  const left = VIEWBOX_WIDTH * percentToNumber(rect.left);
+  const top = VIEWBOX_Y + VIEWBOX_HEIGHT * percentToNumber(rect.top);
+
+  return {
+    x: left + width / 2 + width * (bias.x + offset.x),
+    y: top + height / 2 + height * (bias.y + offset.y),
+  };
+}
+
+function offsetPoint(point: Point, dx: number, dy: number): Point {
+  return {
+    x: point.x + dx,
+    y: point.y + dy,
+  };
+}
+
+function formatPoint(point: Point) {
+  return `${Math.round(point.x * 10) / 10} ${Math.round(point.y * 10) / 10}`;
+}
+
+function createCurvePath(start: Point, controlA: Point, controlB: Point, end: Point) {
+  return `M ${formatPoint(start)} C ${formatPoint(controlA)}, ${formatPoint(controlB)}, ${formatPoint(end)}`;
+}
+
+function DashedGuide({ d }: { d: string }) {
+  return (
+    <Path
+      d={d}
+      fill="none"
+      stroke="rgba(94, 86, 73, 0.34)"
+      strokeWidth={3.2}
+      strokeDasharray={JOURNEY_DASH_PATTERN}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  );
+}
 
 function getStatusTextColor(status: HomeJourneyStep['status']) {
   if (status === 'active') {
     return BrandColors.primaryDark;
   }
 
-  return '#1F1913';
+  if (status === 'completed') {
+    return 'rgba(72, 67, 58, 0.48)';
+  }
+
+  if (status === 'pending') {
+    return 'rgba(72, 67, 58, 0.4)';
+  }
+
+  return 'rgba(72, 67, 58, 0.34)';
+}
+
+function getStepTitleColor(status: HomeJourneyStep['status']) {
+  return status === 'active' ? '#111111' : 'rgba(72, 67, 58, 0.5)';
 }
 
 export function JourneyBoard({
@@ -104,146 +142,50 @@ export function JourneyBoard({
   onPressCta: () => void;
   state: HomeJourneyState;
 }) {
-  const bubbleFontSize = isCompactLayout ? 34 : 36;
   const stepTitleFontSize = isCompactLayout ? 30 : 32;
   const statusFontSize = isCompactLayout ? 26 : 28;
+  const topGuideStart = getNodeAnchor('diagnostic', { x: 0.56, y: -0.12 });
+  const topGuideEnd = getNodeAnchor('analysis', { x: -0.62, y: -0.28 });
+  const middleGuideStart = getNodeAnchor('analysis', { x: -0.52, y: 0.26 });
+  const middleGuideEnd = getNodeAnchor('review', { x: 0.32, y: -0.34 });
+  const bottomGuideStart = getNodeAnchor('review', { x: 0.48, y: 0.16 });
+  const bottomGuideEnd = getNodeAnchor('exam', { x: -0.36, y: -0.36 });
+  const topGuidePath = createCurvePath(
+    topGuideStart,
+    offsetPoint(topGuideStart, 148, -12),
+    offsetPoint(topGuideEnd, -118, -82),
+    topGuideEnd,
+  );
+  const middleGuidePath = createCurvePath(
+    middleGuideStart,
+    offsetPoint(middleGuideStart, -108, 26),
+    offsetPoint(middleGuideEnd, 118, -74),
+    middleGuideEnd,
+  );
+  const bottomGuidePath = createCurvePath(
+    bottomGuideStart,
+    offsetPoint(bottomGuideStart, 104, 6),
+    offsetPoint(bottomGuideEnd, -42, -112),
+    bottomGuideEnd,
+  );
 
   return (
     <View style={styles.wrap}>
       <View style={[styles.board, isCompactLayout && styles.boardCompact]}>
         <View pointerEvents="none" style={styles.textureOverlay} />
+        <JourneyActiveBubble
+          bubbleText={state.currentBubbleText}
+          isCompactLayout={isCompactLayout}
+          stepKey={state.currentStepKey}
+        />
         <Svg
           pointerEvents="none"
           viewBox={`0 ${VIEWBOX_Y} ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
           preserveAspectRatio="xMidYMid meet"
           style={StyleSheet.absoluteFill}>
-          <Path
-            d="M 432 357 C 527 346, 618 376, 634 452 C 644 508, 614 556, 578 606"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.76)"
-            strokeWidth={5}
-            strokeDasharray="18 16"
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 428 378 C 510 366, 606 392, 608 458 C 610 520, 572 565, 512 606 C 473 633, 458 654, 456 685"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.88)"
-            strokeWidth={8}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 422 372 C 506 360, 602 388, 604 454 C 606 516, 569 559, 510 600 C 470 627, 452 649, 448 682"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.72)"
-            strokeWidth={4}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 248 607 C 182 628, 146 675, 155 730 C 166 788, 226 800, 286 779"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.76)"
-            strokeWidth={5}
-            strokeDasharray="18 16"
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 313 901 C 428 884, 508 823, 539 766 C 566 716, 592 690, 643 699"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.76)"
-            strokeWidth={5}
-            strokeDasharray="18 16"
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 280 996 C 398 1032, 446 1045, 478 1098"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.88)"
-            strokeWidth={8}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 274 991 C 390 1028, 438 1041, 472 1091"
-            fill="none"
-            stroke="rgba(31, 25, 19, 0.72)"
-            strokeWidth={4}
-            strokeLinecap="round"
-          />
-          <Path
-            d="M 95 875 C 72 987, 103 1090, 184 1170"
-            fill="none"
-            stroke="#2D7B48"
-            strokeWidth={10}
-            strokeLinecap="round"
-          />
-
-          {state.currentStepKey === 'diagnostic' ? (
-            <>
-              <SvgText
-                x={90}
-                y={530}
-                fill="#1F1913"
-                fontFamily={FontFamilies.medium}
-                fontSize={28}
-                textAnchor="start">
-                여기를
-              </SvgText>
-              <SvgText
-                x={78}
-                y={565}
-                fill="#1F1913"
-                fontFamily={FontFamilies.medium}
-                fontSize={28}
-                textAnchor="start">
-                눌러보세요
-              </SvgText>
-              <Path
-                d="M60 485 C 24 485, 24 430, 56 414"
-                fill="none"
-                stroke="rgba(31, 25, 19, 0.92)"
-                strokeWidth={5}
-                strokeLinecap="round"
-              />
-              <Path
-                d="M86 515 C 50 517, 49 469, 81 456"
-                fill="none"
-                stroke="rgba(31, 25, 19, 0.92)"
-                strokeWidth={5}
-                strokeLinecap="round"
-              />
-            </>
-          ) : null}
-
-          {(Object.entries(bubbleConfig) as Array<[JourneyStepKey, BubbleConfig]>).map(
-            ([stepKey, bubble]) => (
-              <Path
-                key={`${stepKey}-bubble`}
-                d={bubble.path}
-                fill="rgba(255, 250, 242, 0.98)"
-                stroke={stepKey === state.currentStepKey ? 'rgba(31, 25, 19, 0.95)' : 'rgba(31, 25, 19, 0.72)'}
-                strokeWidth={stepKey === state.currentStepKey ? 4.5 : 3.5}
-              />
-            ),
-          )}
-
-          {(Object.entries(bubbleConfig) as Array<[JourneyStepKey, BubbleConfig]>).map(
-            ([stepKey, bubble]) => (
-              <SvgText
-                key={`${stepKey}-bubble-text`}
-                x={bubble.textX}
-                y={bubble.textY}
-                fill="#16120E"
-                fontFamily={FontFamilies.medium}
-                fontSize={bubbleFontSize}
-                textAnchor="middle">
-                {bubbleTextByStep[stepKey].map((line, index) => (
-                  <TSpan key={`${stepKey}-${line}`} x={bubble.textX} dy={index === 0 ? 0 : 40}>
-                    {line}
-                  </TSpan>
-                ))}
-              </SvgText>
-            ),
-          )}
+          <DashedGuide d={topGuidePath} />
+          <DashedGuide d={middleGuidePath} />
+          <DashedGuide d={bottomGuidePath} />
 
           {state.steps.map((step) => {
             const copy = stepCopyConfig[step.key];
@@ -252,7 +194,7 @@ export function JourneyBoard({
                 key={`${step.key}-title`}
                 x={copy.titleX}
                 y={copy.titleY}
-                fill="#111111"
+                fill={getStepTitleColor(step.status)}
                 fontFamily={FontFamilies.bold}
                 fontSize={stepTitleFontSize}
                 textAnchor="start">
@@ -288,22 +230,13 @@ export function JourneyBoard({
           />
         ))}
 
-        <Pressable
+        <JourneyCtaButton
+          accessibilityLabel={state.ctaLabel}
+          compact={isCompactLayout}
+          label={state.ctaLabel}
           onPress={onPressCta}
-          style={({ pressed }) => [
-            styles.ctaButton,
-            isCompactLayout && styles.ctaButtonCompact,
-            pressed && styles.ctaButtonPressed,
-          ]}>
-          <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.84}
-            numberOfLines={1}
-            selectable
-            style={[styles.ctaLabel, isCompactLayout && styles.ctaLabelCompact]}>
-            {state.ctaLabel}
-          </Text>
-        </Pressable>
+          style={[styles.ctaButton, isCompactLayout && styles.ctaButtonCompact]}
+        />
       </View>
     </View>
   );
@@ -311,17 +244,17 @@ export function JourneyBoard({
 
 const styles = StyleSheet.create({
   wrap: {
-    flex: 1,
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    flexShrink: 1,
   },
   board: {
     width: '100%',
     maxWidth: 470,
     aspectRatio: VIEWBOX_WIDTH / VIEWBOX_HEIGHT,
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'visible',
+    marginTop: 10,
   },
   boardCompact: {
     maxWidth: 430,
@@ -333,36 +266,13 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     position: 'absolute',
-    left: '14%',
-    right: '14%',
-    bottom: '4.2%',
-    minHeight: 62,
-    borderRadius: 999,
-    borderCurve: 'continuous',
-    borderWidth: 2.6,
-    borderColor: 'rgba(31, 25, 19, 0.94)',
-    backgroundColor: '#2D7B48',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 18,
-    boxShadow: '0 18px 30px rgba(45, 123, 72, 0.22)',
+    left: '17%',
+    width: '66%',
+    bottom: '-2%',
   },
   ctaButtonCompact: {
-    minHeight: 56,
-  },
-  ctaButtonPressed: {
-    opacity: 0.88,
-  },
-  ctaLabel: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 22,
-    lineHeight: 28,
-    color: '#FFFFFF',
-    letterSpacing: -0.4,
-    textAlign: 'center',
-  },
-  ctaLabelCompact: {
-    fontSize: 19,
-    lineHeight: 24,
+    left: '14%',
+    width: '72%',
+    bottom: '-4.5%',
   },
 });

@@ -1,25 +1,32 @@
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DasidaLogo } from '@/components/brand/DasidaLogo';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 
-const LOGO_BASE_WIDTH = 260;
-const LOGO_BASE_HEIGHT = 68;
+const HERO_FRAME_SOURCE = require('./frame_note_with_stamp_transparent_cropped.png');
+const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
 
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
-  const logoWidth = isCompactLayout ? 220 : 252;
-  const logoHeight = Math.round((logoWidth / LOGO_BASE_WIDTH) * LOGO_BASE_HEIGHT);
-
   return (
     <View style={styles.heroBlock}>
-      <Text selectable style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact]}>
-        다시다 학습 여정
-      </Text>
-      <DasidaLogo width={logoWidth} height={logoHeight} />
+      <View
+        style={[
+          styles.heroFrameWrap,
+          styles.heroFrameWrapRaised,
+          isCompactLayout && styles.heroFrameWrapCompact,
+          isCompactLayout && styles.heroFrameWrapRaisedCompact,
+        ]}>
+        <Image contentFit="contain" source={HERO_FRAME_SOURCE} style={styles.heroFrameImage} transition={0} />
+        <View style={styles.heroFrameContent}>
+          <Text selectable style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact]}>
+            학습 여정
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -93,8 +100,8 @@ export function QuizHubScreenView({
   session,
 }: UseQuizHubScreenResult) {
   const insets = useSafeAreaInsets();
-  const topPadding = insets.top + (isCompactLayout ? 10 : 16);
-  const bottomPadding = isCompactLayout ? 10 : 14;
+  const topPadding = insets.top + (isCompactLayout ? 14 : 24);
+  const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
 
   if (!isReady) {
     return (
@@ -157,7 +164,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 14,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 14,
   },
   feedbackScreen: {
     flex: 1,
@@ -169,19 +177,46 @@ const styles = StyleSheet.create({
   heroBlock: {
     width: '100%',
     alignItems: 'center',
-    gap: 4,
+  },
+  heroFrameWrap: {
+    width: '100%',
+    maxWidth: 430,
+    aspectRatio: HERO_FRAME_ASPECT_RATIO,
+    position: 'relative',
+  },
+  heroFrameWrapRaised: {
+    transform: [{ translateY: -32 }],
+  },
+  heroFrameWrapCompact: {
+    maxWidth: 390,
+  },
+  heroFrameWrapRaisedCompact: {
+    transform: [{ translateY: -24 }],
+  },
+  heroFrameImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroFrameContent: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: '13%',
+    paddingRight: '17%',
+    paddingBottom: '3%',
   },
   heroTitle: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.8,
-    color: '#111111',
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.9,
+    color: BrandColors.primaryDark,
     textAlign: 'center',
+    transform: [{ translateX: 4 }],
   },
   heroTitleCompact: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 28,
+    lineHeight: 34,
   },
   noticePill: {
     width: '100%',
