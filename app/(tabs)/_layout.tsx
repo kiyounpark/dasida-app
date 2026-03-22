@@ -4,15 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BrandColors } from '@/constants/brand';
+import { FontFamilies } from '@/constants/typography';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
-  const tabBarPaddingBottom = 8 + insets.bottom;
+  const tabBarHeight = 66 + insets.bottom;
+  const tabBarPaddingBottom = 9 + insets.bottom;
 
   return (
     <Tabs
@@ -21,15 +21,15 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: BrandColors.border,
+          backgroundColor: '#FFFEF8',
+          borderTopColor: 'rgba(41, 59, 39, 0.08)',
           height: tabBarHeight,
           paddingBottom: tabBarPaddingBottom,
-          paddingTop: 6,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
+          fontSize: 11,
+          fontFamily: FontFamilies.medium,
         },
         headerShown: false,
         tabBarButton: HapticTab,
@@ -38,7 +38,9 @@ export default function TabLayout() {
         name="quiz"
         options={{
           title: '문제 풀기',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="doc.text.magnifyingglass" color={color} />
+          ),
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (event) => {
@@ -55,14 +57,14 @@ export default function TabLayout() {
         name="history"
         options={{
           title: '내 기록',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="note.text" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: '설정',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gearshape.fill" color={color} />,
         }}
       />
     </Tabs>

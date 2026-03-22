@@ -1,10 +1,14 @@
-import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
+import { diagnosisMap } from '@/data/diagnosisMap';
 import { getReviewHeroPrompt } from '@/data/review-content-map';
 import type {
   ActiveReviewTaskSummary,
   DiagnosticSummarySnapshot,
   LearnerProfile,
 } from '@/features/learner/types';
+import {
+  buildHomeJourneyState,
+  type HomeJourneyState,
+} from '@/features/learning/home-journey-state';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
 import type { LearnerSummaryCurrent, PeerPresenceSnapshot } from './types';
@@ -27,6 +31,7 @@ export type HomeLearningState = {
   heroBody: string;
   heroMeta: string;
   todayReviewCount: number;
+  journey: HomeJourneyState;
   peerPresence: PeerPresenceState;
   latestDiagnosticSummary?: DiagnosticSummarySnapshot;
   nextReviewTask?: ActiveReviewTaskSummary;
@@ -198,6 +203,7 @@ export function buildHomeLearningState(
 
   return {
     ...heroContent,
+    journey: buildHomeJourneyState(summary),
     peerPresence,
     latestDiagnosticSummary: summary.latestDiagnosticSummary,
     nextReviewTask,

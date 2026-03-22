@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
+import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -12,10 +13,12 @@ export type UseQuizHubScreenResult = {
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
+  journey: HomeJourneyState | null;
   onDismissAuthNotice: () => void;
   onOpenExams: () => void;
   onOpenPractice: () => void;
   onOpenRecentResult: () => void;
+  onPressJourneyCta: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
@@ -23,7 +26,7 @@ export type UseQuizHubScreenResult = {
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
-  const { width } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const {
     authNoticeMessage,
     dismissAuthNotice,
@@ -81,17 +84,41 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/quiz/exams');
   };
 
+  const onPressJourneyCta = () => {
+    const action = homeState?.journey.ctaAction;
+
+    if (!action) {
+      return;
+    }
+
+    switch (action) {
+      case 'open_result':
+        onOpenRecentResult();
+        return;
+      case 'open_review':
+        onOpenPractice();
+        return;
+      case 'open_exam':
+        onOpenExams();
+        return;
+      default:
+        onStartDiagnostic();
+    }
+  };
+
   return {
     authNoticeMessage: localAuthNoticeMessage,
     homeState,
-    isCompactLayout: width < 390,
+    isCompactLayout: width < 390 || height < 780,
     isReady,
+    journey: homeState?.journey ?? null,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
     onOpenExams,
     onOpenPractice,
     onOpenRecentResult,
+    onPressJourneyCta,
     onRefresh: refresh,
     onStartDiagnostic,
     profile,
