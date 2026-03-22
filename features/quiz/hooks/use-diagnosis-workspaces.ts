@@ -54,8 +54,8 @@ export function useDiagnosisWorkspaces({
   );
 
   useEffect(() => {
-    setSelectedIndex(null);
-  }, [state.currentQuestionIndex]);
+    setSelectedIndex(state.answers[state.currentQuestionIndex]?.selectedIndex ?? null);
+  }, [state.answers, state.currentQuestionIndex]);
 
   useEffect(() => {
     if (!state.isDiagnosing) {

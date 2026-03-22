@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import type { SolveMethodId } from '@/data/diagnosisTree';
-import { problemData } from '@/data/problemData';
+import { problemData, type Problem } from '@/data/problemData';
 import {
   advanceFromCheck,
   advanceFromChoice,
@@ -31,9 +31,26 @@ type UseDiagnosticScreenParams = {
   shouldResetOnMount: boolean;
 };
 
+export type DiagnosticQuizStageModel = {
+  problem: Problem;
+  currentQuestionNumber: number;
+  questionCount: number;
+  stepLabel: string;
+  progressPercent: `${number}%`;
+  selectedIndex: number | null;
+  canGoPrevious: boolean;
+  isNextDisabled: boolean;
+  isExitModalVisible: boolean;
+  onSelectChoice: (index: number) => void;
+  onPreviousQuestion: () => void;
+  onNextQuestion: () => void;
+  onOpenExitModal: () => void;
+  onCloseExitModal: () => void;
+  onConfirmExit: () => void;
+};
+
 export type UseDiagnosticScreenResult = {
   activeDiagnosisPageIndex: number;
-  currentProblem: ReturnType<typeof useDiagnosisWorkspaces>['currentProblem'];
   diagnosisPageWidth: number;
   diagnosisPages: DiagnosisPage[];
   diagnosisPagerRef: ReturnType<typeof useDiagnosisPager>['diagnosisPagerRef'];
@@ -51,6 +68,7 @@ export type UseDiagnosticScreenResult = {
   isDiagnosing: boolean;
   isExitModalVisible: boolean;
   isLoadingState: boolean;
+  quizStage: DiagnosticQuizStageModel | null;
   onAiHelpContinue: (page: DiagnosisPage) => void;
   onAiHelpFallback: (page: DiagnosisPage) => void;
   onAiHelpInputChange: (answerIndex: number, text: string) => void;
@@ -68,14 +86,9 @@ export type UseDiagnosticScreenResult = {
   onInputChange: (answerIndex: number, text: string) => void;
   onManualSelect: (page: DiagnosisPage, methodId: SolveMethodId) => void;
   onOpenExitModal: () => void;
-  onQuestionChoiceSelect: (index: number) => void;
-  onQuestionSubmit: () => void;
   onScrollToDiagnosisPage: (pageIndex: number) => void;
   onScrollToIndexFailed: (index: number) => void;
   onStartSession: () => void;
-  progressPercent: `${number}%`;
-  selectedIndex: number | null;
-  stepTitle: string;
 };
 
 export function useDiagnosticScreen({
@@ -86,6 +99,7 @@ export function useDiagnosticScreen({
     state,
     resetSession,
     startSession,
+    goToPreviousQuestion,
     submitAnswer,
     confirmDiagnosisMethod,
     submitDiagnosisWeakness,
@@ -96,6 +110,7 @@ export function useDiagnosticScreen({
   const isMountedRef = useRef(true);
   const hasRequestedResetRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
+  const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
 
   useEffect(() => {
@@ -453,13 +468,54 @@ export function useDiagnosticScreen({
     );
   };
 
-  const stepTitle = `${state.currentQuestionIndex + 1} / ${problemData.length}`;
-  const progressRatio = (state.currentQuestionIndex + 1) / problemData.length;
-  const progressPercent = `${Math.max(progressRatio * 100, 8)}%` as `${number}%`;
+  const currentQuestionNumber = Math.min(state.currentQuestionIndex + 1, problemData.length);
+  const questionCount = problemData.length;
+  const progressRatio = currentQuestionNumber / questionCount;
+  const progressPercent = `${progressRatio * 100}%` as `${number}%`;
+  const stepLabel = `${String(currentQuestionNumber).padStart(2, '0')} / ${String(questionCount).padStart(2, '0')}`;
+
+  const quizStage =
+    state.hasStarted && !state.isDiagnosing && currentProblem
+      ? {
+          problem: currentProblem,
+          currentQuestionNumber,
+          questionCount,
+          stepLabel,
+          progressPercent,
+          selectedIndex,
+          canGoPrevious: state.currentQuestionIndex > 0,
+          isNextDisabled: selectedIndex === null,
+          isExitModalVisible: isSolveExitModalVisible,
+          onSelectChoice: (index: number) => {
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.selectionAsync();
+            }
+            setSelectedIndex(index);
+          },
+          onPreviousQuestion: () => {
+            if (state.currentQuestionIndex <= 0) {
+              return;
+            }
+
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.selectionAsync();
+            }
+
+            goToPreviousQuestion();
+          },
+          onNextQuestion: onQuestionSubmit,
+          onOpenExitModal: () => setIsSolveExitModalVisible(true),
+          onCloseExitModal: () => setIsSolveExitModalVisible(false),
+          onConfirmExit: () => {
+            setIsSolveExitModalVisible(false);
+            resetSession();
+            router.replace('/quiz');
+          },
+        }
+      : null;
 
   return {
     activeDiagnosisPageIndex,
-    currentProblem,
     diagnosisPageWidth,
     diagnosisPages,
     diagnosisPagerRef,
@@ -477,6 +533,7 @@ export function useDiagnosticScreen({
     isDiagnosing: state.isDiagnosing,
     isExitModalVisible,
     isLoadingState: isPreparingFreshSession || (!currentProblem && !state.result && !state.isDiagnosing),
+    quizStage,
     onAiHelpContinue: handleAiHelpContinue,
     onAiHelpFallback: handleAiHelpFallback,
     onAiHelpInputChange: handleAiHelpInputChange,
@@ -494,8 +551,6 @@ export function useDiagnosticScreen({
     onInputChange,
     onManualSelect,
     onOpenExitModal: () => setIsExitModalVisible(true),
-    onQuestionChoiceSelect: setSelectedIndex,
-    onQuestionSubmit,
     onScrollToDiagnosisPage: scrollToDiagnosisPage,
     onScrollToIndexFailed: (index: number) => {
       setTimeout(() => {
@@ -506,8 +561,5 @@ export function useDiagnosticScreen({
       }, 120);
     },
     onStartSession: startSession,
-    progressPercent,
-    selectedIndex,
-    stepTitle,
   };
 }

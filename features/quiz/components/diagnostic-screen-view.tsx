@@ -9,18 +9,16 @@ import {
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
-import { MathText } from '@/components/math/MathText';
-import { ProblemStatement } from '@/components/math/problem-statement';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-conversation-page';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
+import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
 import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 export function DiagnosticScreenView({
   activeDiagnosisPageIndex,
-  currentProblem,
   diagnosisPageWidth,
   diagnosisPages,
   diagnosisPagerRef,
@@ -38,6 +36,7 @@ export function DiagnosticScreenView({
   isDiagnosing,
   isExitModalVisible,
   isLoadingState,
+  quizStage,
   onAiHelpContinue,
   onAiHelpFallback,
   onAiHelpInputChange,
@@ -55,14 +54,9 @@ export function DiagnosticScreenView({
   onInputChange,
   onManualSelect,
   onOpenExitModal,
-  onQuestionChoiceSelect,
-  onQuestionSubmit,
   onScrollToDiagnosisPage,
   onScrollToIndexFailed,
   onStartSession,
-  progressPercent,
-  selectedIndex,
-  stepTitle,
 }: UseDiagnosticScreenResult) {
   if (isLoadingState) {
     return (
@@ -225,92 +219,44 @@ export function DiagnosticScreenView({
     );
   }
 
-  if (!currentProblem) {
-    return null;
-  }
-
   return (
     <View style={styles.screen}>
-      <BrandHeader />
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
-        {!hasStarted ? (
-          <View style={styles.introCard}>
-            <Text selectable style={styles.introEyebrow}>
-              진단 시작 전
-            </Text>
-            <Text selectable style={styles.introTitle}>
-              10문제 약점 진단
-            </Text>
-            <Text selectable style={styles.introBody}>
-              짧은 10문항으로 자주 흔들리는 단원을 찾고, 결과에서 바로 약점 연습으로 이어집니다.
-            </Text>
-            <View style={styles.introMetaRow}>
-              <View style={styles.introMetaChip}>
-                <Text selectable style={styles.introMetaText}>
-                  10문항
-                </Text>
-              </View>
-              <View style={styles.introMetaChip}>
-                <Text selectable style={styles.introMetaText}>
-                  약 3분
-                </Text>
-              </View>
-            </View>
-            <BrandButton title="진단 시작하기" onPress={onStartSession} />
-          </View>
-        ) : (
-          <View style={styles.surfaceCard}>
-            <View style={styles.progressHeader}>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: progressPercent }]} />
-              </View>
-              <View style={styles.progressMeta}>
-                <Text selectable style={styles.progressLabel}>
-                  진행률
-                </Text>
-                <Text selectable style={styles.progress}>
-                  {stepTitle}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.topicRow}>
-              <Text selectable style={styles.topicChip}>
-                {currentProblem.topic}
+      {!hasStarted ? (
+        <>
+          <BrandHeader />
+          <ScrollView
+            style={styles.scroll}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={styles.container}>
+            <View style={styles.introCard}>
+              <Text selectable style={styles.introEyebrow}>
+                진단 시작 전
               </Text>
+              <Text selectable style={styles.introTitle}>
+                10문제 약점 진단
+              </Text>
+              <Text selectable style={styles.introBody}>
+                짧은 10문항으로 자주 흔들리는 단원을 찾고, 결과에서 바로 약점 연습으로 이어집니다.
+              </Text>
+              <View style={styles.introMetaRow}>
+                <View style={styles.introMetaChip}>
+                  <Text selectable style={styles.introMetaText}>
+                    10문항
+                  </Text>
+                </View>
+                <View style={styles.introMetaChip}>
+                  <Text selectable style={styles.introMetaText}>
+                    약 3분
+                  </Text>
+                </View>
+              </View>
+              <BrandButton title="진단 시작하기" onPress={onStartSession} />
             </View>
-            <ProblemStatement question={currentProblem.question} />
-
-            <View style={styles.choicesContainer}>
-              {currentProblem.choices.map((choice, index) => {
-                const isSelected = selectedIndex === index;
-
-                return (
-                  <Pressable
-                    key={`${currentProblem.id}_${index}`}
-                    style={[styles.choiceButton, isSelected && styles.choiceButtonSelected]}
-                    onPress={() => onQuestionChoiceSelect(index)}>
-                    <MathText
-                      text={choice}
-                      style={[styles.choiceText, isSelected && styles.choiceTextSelected]}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.submitContainer}>
-              <BrandButton
-                title="답 제출하기"
-                onPress={onQuestionSubmit}
-                disabled={selectedIndex === null}
-              />
-            </View>
-          </View>
-        )}
-      </ScrollView>
+          </ScrollView>
+        </>
+      ) : quizStage ? (
+        <DiagnosticQuizStage quizStage={quizStage} />
+      ) : null}
     </View>
   );
 }
@@ -483,16 +429,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 6,
   },
-  surfaceCard: {
-    backgroundColor: BrandColors.card,
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.sm,
-    boxShadow: '0 12px 32px rgba(41, 59, 39, 0.08)',
-  },
   introCard: {
     backgroundColor: BrandColors.card,
     borderRadius: BrandRadius.lg,
@@ -535,79 +471,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: BrandColors.text,
     fontVariant: ['tabular-nums'],
-  },
-  progressHeader: {
-    gap: BrandSpacing.xs,
-    marginBottom: BrandSpacing.xs,
-  },
-  progressTrack: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: '#E3ECE2',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: BrandColors.primary,
-  },
-  progressMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: BrandColors.mutedText,
-  },
-  progress: {
-    fontSize: 14,
-    color: BrandColors.primarySoft,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  topicRow: {
-    marginTop: 2,
-    marginBottom: BrandSpacing.xs,
-  },
-  topicChip: {
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: '#EEF5EC',
-    color: BrandColors.primarySoft,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  choicesContainer: {
-    marginTop: BrandSpacing.sm,
-    gap: BrandSpacing.sm,
-  },
-  choiceButton: {
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderRadius: BrandRadius.sm,
-    borderCurve: 'continuous',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-  },
-  choiceButtonSelected: {
-    borderColor: BrandColors.primarySoft,
-    backgroundColor: BrandColors.primarySoft,
-  },
-  choiceText: {
-    fontSize: 15,
-    color: '#333333',
-    lineHeight: 24,
-  },
-  choiceTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  submitContainer: {
-    marginTop: BrandSpacing.md,
   },
 });

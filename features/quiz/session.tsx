@@ -11,6 +11,7 @@ import type { DiagnosisDetailTrace, DiagnosisRoutingTrace, QuizSessionState } fr
 type QuizSessionContextValue = {
   state: QuizSessionState;
   startSession: () => void;
+  goToPreviousQuestion: () => void;
   submitAnswer: (problemId: string, selectedIndex: number, isCorrect: boolean) => void;
   confirmDiagnosisMethod: (answerIndex: number, trace: DiagnosisRoutingTrace) => void;
   submitDiagnosisWeakness: (
@@ -27,6 +28,7 @@ type QuizSessionContextValue = {
 type Action =
   | { type: 'RESET' }
   | { type: 'START' }
+  | { type: 'GO_TO_PREVIOUS_QUESTION' }
   | { type: 'SUBMIT_ANSWER'; payload: { problemId: string; selectedIndex: number; isCorrect: boolean } }
   | {
       type: 'CONFIRM_DIAGNOSIS_METHOD';
@@ -156,17 +158,24 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       };
     }
 
+    case 'GO_TO_PREVIOUS_QUESTION': {
+      if (state.isDiagnosing || state.currentQuestionIndex <= 0) return state;
+
+      return {
+        ...state,
+        currentQuestionIndex: state.currentQuestionIndex - 1,
+      };
+    }
+
     case 'SUBMIT_ANSWER': {
       if (state.currentQuestionIndex >= TOTAL_QUESTIONS) return state;
 
-      const answers = [
-        ...state.answers,
-        {
-          problemId: action.payload.problemId,
-          selectedIndex: action.payload.selectedIndex,
-          isCorrect: action.payload.isCorrect,
-        },
-      ];
+      const answers = [...state.answers];
+      answers[state.currentQuestionIndex] = {
+        problemId: action.payload.problemId,
+        selectedIndex: action.payload.selectedIndex,
+        isCorrect: action.payload.isCorrect,
+      };
 
       return checkPhaseTransition({
         ...state,
@@ -262,6 +271,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
       state,
       startSession: () => {
         dispatch({ type: 'START' });
+      },
+      goToPreviousQuestion: () => {
+        dispatch({ type: 'GO_TO_PREVIOUS_QUESTION' });
       },
       submitAnswer: (problemId, selectedIndex, isCorrect) => {
         dispatch({
