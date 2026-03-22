@@ -687,6 +687,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.23 00:41
+- 해시: `ce54d98` (`ce54d985634b5791a171937e82693ec2383f2598`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ce54d985634b5791a171937e82693ec2383f2598
+- 작성자: 박기윤
+- 메시지: feat: 학습 여정판 비주얼 다듬기
+
 ### 커밋 2026.03.22 14:12
 - 해시: `8815558` (`88155582fbd78d9d74791da68b540aba97fbaf7d`)
 - 브랜치: (브랜치 정보 없음)
