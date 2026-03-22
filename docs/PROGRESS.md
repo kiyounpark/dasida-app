@@ -687,6 +687,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.22 14:06
+- 해시: `55eb256` (`55eb2566b5fc93c0413bd6182087d00eadc09db7`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/55eb2566b5fc93c0413bd6182087d00eadc09db7
+- 작성자: 박기윤
+- 메시지: fix: 학습여정 단계 강조 단순화
+
 ### 커밋 2026.03.22 12:14
 - 해시: `c2f6071` (`c2f6071093b576c4b75a1828c2dfc13caa5b29c8`)
 - 브랜치: main
