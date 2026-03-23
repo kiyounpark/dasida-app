@@ -62,21 +62,21 @@ export function DiagnosticChoiceCard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 72,
+    minHeight: 68,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    gap: 16,
     borderRadius: 20,
     borderCurve: 'continuous',
-    paddingHorizontal: 22,
+    paddingHorizontal: 18,
     paddingVertical: 12,
     boxShadow: '0 10px 24px rgba(36, 52, 38, 0.06)',
   },
   cardCompact: {
-    minHeight: 68,
-    gap: 16,
+    minHeight: 64,
+    gap: 14,
     borderRadius: 18,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
   },
   cardIdle: {
     borderWidth: 1,
@@ -89,16 +89,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF8EE',
   },
   indexBadge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
   },
   indexBadgeCompact: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
   },
   indexBadgeIdle: {
     borderWidth: 1,
@@ -110,12 +110,12 @@ const styles = StyleSheet.create({
   },
   indexText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 21,
-    lineHeight: 26,
-  },
-  indexTextCompact: {
     fontSize: 19,
     lineHeight: 24,
+  },
+  indexTextCompact: {
+    fontSize: 18,
+    lineHeight: 22,
   },
   indexTextIdle: {
     color: '#948E83',
@@ -125,14 +125,14 @@ const styles = StyleSheet.create({
   },
   choiceText: {
     flex: 1,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 28,
     color: '#1B1A17',
     textAlign: 'left',
   },
   choiceTextCompact: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 26,
   },
   choiceTextSelected: {
     color: '#111111',

@@ -33,7 +33,7 @@ export function DiagnosticQuestionCard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 250,
+    minHeight: 200,
     borderWidth: 1,
     borderColor: 'rgba(41, 59, 39, 0.08)',
     borderRadius: 28,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     boxShadow: '0 18px 36px rgba(36, 52, 38, 0.10)',
   },
   cardCompact: {
-    minHeight: 220,
+    minHeight: 180,
     borderRadius: 24,
     paddingHorizontal: 22,
     paddingVertical: 28,

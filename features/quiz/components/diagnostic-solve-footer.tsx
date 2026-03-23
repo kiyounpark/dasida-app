@@ -72,21 +72,20 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     gap: 14,
-    paddingHorizontal: 18,
-    paddingTop: 14,
-    backgroundColor: BrandColors.background,
+    paddingTop: 12,
+    backgroundColor: 'transparent',
   },
   button: {
     flex: 1,
-    minHeight: 72,
-    borderRadius: 20,
+    minHeight: 60,
+    borderRadius: 18,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonCompact: {
-    minHeight: 66,
-    borderRadius: 18,
+    minHeight: 56,
+    borderRadius: 16,
   },
   primaryButton: {
     backgroundColor: BrandColors.primaryDark,

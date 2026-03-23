@@ -1,11 +1,11 @@
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { BrandColors } from '@/constants/brand';
-import { DiagnosticChoiceCard } from '@/features/quiz/components/diagnostic-choice-card';
 import { DiagnosticQuestionCard } from '@/features/quiz/components/diagnostic-question-card';
+import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnostic-solve-bottom-panel';
 import { DiagnosticSolveExitModal } from '@/features/quiz/components/diagnostic-solve-exit-modal';
-import { DiagnosticSolveFooter } from '@/features/quiz/components/diagnostic-solve-footer';
 import { DiagnosticSolveHeader } from '@/features/quiz/components/diagnostic-solve-header';
+import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 type DiagnosticQuizStageProps = {
@@ -18,43 +18,37 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
 
   return (
     <View style={styles.screen}>
-      <DiagnosticSolveHeader
-        currentQuestionNumber={quizStage.currentQuestionNumber}
-        isCompactLayout={isCompactLayout}
-        onBackPress={quizStage.onOpenExitModal}
-        progressPercent={quizStage.progressPercent}
-        questionCount={quizStage.questionCount}
-      />
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[styles.content, isCompactLayout && styles.contentCompact]}
-        contentInsetAdjustmentBehavior="automatic">
-        <DiagnosticQuestionCard
-          isCompactLayout={isCompactLayout}
-          question={quizStage.problem.question}
-        />
-
-        <View style={styles.choices}>
-          {quizStage.problem.choices.map((choice, index) => (
-            <DiagnosticChoiceCard
-              key={`${quizStage.problem.id}-${index}`}
-              index={index}
-              isCompactLayout={isCompactLayout}
-              isSelected={quizStage.selectedIndex === index}
-              onPress={() => quizStage.onSelectChoice(index)}
-              text={choice}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      <DiagnosticSolveFooter
-        canGoPrevious={quizStage.canGoPrevious}
-        isCompactLayout={isCompactLayout}
-        isNextDisabled={quizStage.isNextDisabled}
-        onNextPress={quizStage.onNextQuestion}
-        onPreviousPress={quizStage.onPreviousQuestion}
+      <QuizSolveLayout
+        body={
+          <DiagnosticQuestionCard
+            isCompactLayout={isCompactLayout}
+            question={quizStage.problem.question}
+          />
+        }
+        bodyContentContainerStyle={[styles.content, isCompactLayout ? styles.contentCompact : null]}
+        footer={
+          <DiagnosticSolveBottomPanel
+            canGoPrevious={quizStage.canGoPrevious}
+            choices={quizStage.problem.choices}
+            isCompactLayout={isCompactLayout}
+            isNextDisabled={quizStage.isNextDisabled}
+            onNextPress={quizStage.onNextQuestion}
+            onPreviousPress={quizStage.onPreviousQuestion}
+            onSelectChoice={quizStage.onSelectChoice}
+            problemId={quizStage.problem.id}
+            selectedIndex={quizStage.selectedIndex}
+          />
+        }
+        header={
+          <DiagnosticSolveHeader
+            currentQuestionNumber={quizStage.currentQuestionNumber}
+            isCompactLayout={isCompactLayout}
+            onBackPress={quizStage.onOpenExitModal}
+            progressPercent={quizStage.progressPercent}
+            questionCount={quizStage.questionCount}
+          />
+        }
+        screenBackgroundColor={BrandColors.background}
       />
 
       <DiagnosticSolveExitModal
@@ -71,9 +65,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
-  scroll: {
-    flex: 1,
-  },
   content: {
     paddingHorizontal: 18,
     paddingTop: 18,
@@ -83,9 +74,6 @@ const styles = StyleSheet.create({
   contentCompact: {
     paddingTop: 16,
     paddingBottom: 20,
-    gap: 16,
-  },
-  choices: {
     gap: 16,
   },
 });
