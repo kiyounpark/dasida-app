@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { FontFamilies } from '@/constants/typography';
+import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
 
 type DiagnosticProgressRingProps = {
   color: string;
@@ -26,6 +27,7 @@ export function DiagnosticProgressRing({
   const strokeDashoffset = circumference * (1 - progress);
   const currentLabel = String(current).padStart(2, '0');
   const totalLabel = String(total).padStart(2, '0');
+  const sketchStrokeWidth = Math.max(strokeWidth - 1.2, 3);
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
@@ -38,8 +40,24 @@ export function DiagnosticProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
+          stroke={DiagnosticSketchColors.inkSoft}
+          strokeWidth={1.4}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           stroke={trackColor}
-          strokeWidth={strokeWidth}
+          strokeWidth={sketchStrokeWidth}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius - 0.8}
+          stroke="rgba(255, 255, 255, 0.55)"
+          strokeWidth={0.8}
           fill="none"
         />
         <Circle
@@ -47,9 +65,20 @@ export function DiagnosticProgressRing({
           cy={size / 2}
           r={radius}
           stroke={color}
-          strokeWidth={strokeWidth}
+          strokeWidth={sketchStrokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={DiagnosticSketchColors.greenSoft}
+          strokeWidth={0.9}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset + circumference * 0.012}
           strokeLinecap="round"
           fill="none"
         />
@@ -57,11 +86,11 @@ export function DiagnosticProgressRing({
 
       <View pointerEvents="none" style={styles.content}>
         <View style={styles.labelRow}>
-          <Text selectable style={styles.currentLabel}>
+          <Text style={styles.currentLabel}>
             {currentLabel}
           </Text>
-          <Text selectable style={styles.totalLabel}>
-            {` / ${totalLabel}`}
+          <Text style={styles.totalLabel}>
+            {`/${totalLabel}`}
           </Text>
         </View>
       </View>
@@ -89,14 +118,14 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.extrabold,
     fontSize: 18,
     lineHeight: 22,
-    color: '#293B27',
+    color: DiagnosticSketchColors.ink,
     fontVariant: ['tabular-nums'],
   },
   totalLabel: {
     fontFamily: FontFamilies.medium,
-    fontSize: 12,
+    fontSize: 13,
     lineHeight: 16,
-    color: '#778276',
+    color: DiagnosticSketchColors.mutedInk,
     fontVariant: ['tabular-nums'],
   },
 });
