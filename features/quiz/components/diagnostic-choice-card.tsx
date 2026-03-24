@@ -64,19 +64,19 @@ export function DiagnosticChoiceCard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 86,
+    minHeight: 76,
     position: 'relative',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 18,
-  },
-  cardCompact: {
-    minHeight: 72,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     paddingVertical: 14,
   },
+  cardCompact: {
+    minHeight: 64,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
   cardHalfWidth: {
-    width: '48.8%',
+    width: '48.4%',
   },
   cardFullWidth: {
     width: '100%',
@@ -94,20 +94,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
   },
   indexText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 23,
-    lineHeight: 30,
+    fontSize: 21,
+    lineHeight: 26,
     color: DiagnosticSketchColors.ink,
     textAlign: 'center',
-    width: 26,
+    width: 22,
   },
   indexTextCompact: {
-    fontSize: 20,
-    lineHeight: 26,
-    width: 24,
+    fontSize: 18,
+    lineHeight: 22,
+    width: 18,
   },
   textWrap: {
     flex: 1,
@@ -116,17 +116,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   trailingSpacer: {
-    width: 26,
+    width: 22,
   },
   choiceText: {
     fontFamily: FontFamilies.medium,
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 24,
     color: DiagnosticSketchColors.ink,
     textAlign: 'center',
   },
   choiceTextCompact: {
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 20,
   },
 });

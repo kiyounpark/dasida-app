@@ -28,13 +28,13 @@ export function DiagnosticSolveHeader({
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={[styles.wrap, isCompactLayout && styles.wrapCompact]}>
-        <View style={styles.topRow}>
+        <View style={[styles.topRow, isCompactLayout && styles.topRowCompact]}>
           <Pressable
             accessibilityHint="현재 진단을 나갈지 선택합니다"
             accessibilityLabel="뒤로가기"
             accessibilityRole="button"
             onPress={onBackPress}
-            style={styles.backButton}>
+            style={[styles.backButton, isCompactLayout && styles.backButtonCompact]}>
             <IconSymbol
               color={DiagnosticSketchColors.ink}
               name="chevron.left"
@@ -45,11 +45,15 @@ export function DiagnosticSolveHeader({
             </Text>
           </Pressable>
 
-          <Text numberOfLines={1} style={[styles.title, isCompactLayout && styles.titleCompact]}>
+          <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+            numberOfLines={1}
+            style={[styles.title, isCompactLayout && styles.titleCompact]}>
             10문제 약점 진단
           </Text>
 
-          <View style={styles.ringWrap}>
+          <View style={[styles.ringWrap, isCompactLayout && styles.ringWrapCompact]}>
             <DiagnosticProgressRing
               color={DiagnosticSketchColors.green}
               current={currentQuestionNumber}
@@ -94,10 +98,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  topRowCompact: {
+    gap: 6,
+  },
   backButton: {
     width: 112,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 2,
+  },
+  backButtonCompact: {
+    width: 78,
     gap: 2,
   },
   backLabel: {
@@ -107,8 +118,8 @@ const styles = StyleSheet.create({
     color: DiagnosticSketchColors.ink,
   },
   backLabelCompact: {
-    fontSize: 19,
-    lineHeight: 24,
+    fontSize: 18,
+    lineHeight: 22,
   },
   title: {
     flex: 1,
@@ -120,12 +131,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   titleCompact: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 19,
+    lineHeight: 23,
     letterSpacing: -0.8,
   },
   ringWrap: {
     width: 112,
     alignItems: 'flex-end',
+  },
+  ringWrapCompact: {
+    width: 74,
   },
 });

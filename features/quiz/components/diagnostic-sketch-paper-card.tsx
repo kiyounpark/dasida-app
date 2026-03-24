@@ -102,20 +102,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 42,
     paddingTop: 46,
     paddingBottom: 34,
-    gap: 28,
+    gap: 24,
   },
   contentCompact: {
-    paddingHorizontal: 28,
-    paddingTop: 34,
-    paddingBottom: 26,
-    gap: 22,
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    paddingBottom: 24,
+    gap: 18,
   },
   questionWrap: {
-    width: '100%',
-    paddingRight: '10%',
+    width: '74%',
   },
   questionWrapCompact: {
-    paddingRight: 0,
+    width: '84%',
   },
   questionText: {
     fontFamily: FontFamilies.medium,
@@ -136,11 +135,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    columnGap: 18,
-    rowGap: 18,
+    alignItems: 'flex-start',
+    rowGap: 16,
   },
   choiceGridCompact: {
-    columnGap: 12,
     rowGap: 12,
   },
 });
