@@ -62,6 +62,7 @@ export type UseDiagnosticScreenResult = {
   handleDiagnosisMomentumEnd: ReturnType<typeof useDiagnosisPager>['handleDiagnosisMomentumEnd'];
   handleDiagnosisRestoreHandled: ReturnType<typeof useDiagnosisPager>['handleDiagnosisRestoreHandled'];
   handleDiagnosisScrollOffsetChange: ReturnType<typeof useDiagnosisPager>['handleDiagnosisScrollOffsetChange'];
+  hasSeenDiagnosisIntro: boolean;
   hasStarted: boolean;
   hasStoredDiagnosisOffset: ReturnType<typeof useDiagnosisPager>['hasStoredDiagnosisOffset'];
   isCompactNavigator: boolean;
@@ -88,6 +89,7 @@ export type UseDiagnosticScreenResult = {
   onOpenExitModal: () => void;
   onScrollToDiagnosisPage: (pageIndex: number) => void;
   onScrollToIndexFailed: (index: number) => void;
+  onStartDiagnosisIntro: () => void;
   onStartSession: () => void;
 };
 
@@ -112,6 +114,13 @@ export function useDiagnosticScreen({
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
+  const [hasSeenDiagnosisIntro, setHasSeenDiagnosisIntro] = useState(false);
+
+  useEffect(() => {
+    if (!state.hasStarted) {
+      setHasSeenDiagnosisIntro(false);
+    }
+  }, [state.hasStarted]);
 
   useEffect(() => {
     return () => {
@@ -527,6 +536,7 @@ export function useDiagnosticScreen({
     handleDiagnosisMomentumEnd,
     handleDiagnosisRestoreHandled,
     handleDiagnosisScrollOffsetChange,
+    hasSeenDiagnosisIntro,
     hasStarted: state.hasStarted,
     hasStoredDiagnosisOffset,
     isCompactNavigator: diagnosisPages.length > 5,
@@ -560,6 +570,7 @@ export function useDiagnosticScreen({
         });
       }, 120);
     },
+    onStartDiagnosisIntro: () => setHasSeenDiagnosisIntro(true),
     onStartSession: startSession,
   };
 }
