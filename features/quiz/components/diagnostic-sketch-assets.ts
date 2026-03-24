@@ -13,5 +13,4 @@ export const DiagnosticSketchColors = {
   green: '#92C56E',
   greenSoft: '#C8E7A7',
   paperShadow: 'rgba(78, 62, 42, 0.18)',
-  track: '#FBF8EF',
 } as const;

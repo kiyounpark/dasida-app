@@ -3,6 +3,11 @@ import Svg, { Circle } from 'react-native-svg';
 
 import { FontFamilies } from '@/constants/typography';
 import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
+import {
+  DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT,
+  DIAGNOSTIC_PROGRESS_OUTLINE_COLOR,
+  DIAGNOSTIC_PROGRESS_RING_INNER_GLOW,
+} from '@/features/quiz/components/diagnostic-progress-theme';
 
 type DiagnosticProgressRingProps = {
   color: string;
@@ -40,7 +45,7 @@ export function DiagnosticProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={DiagnosticSketchColors.inkSoft}
+          stroke={DIAGNOSTIC_PROGRESS_OUTLINE_COLOR}
           strokeWidth={1.4}
           fill="none"
         />
@@ -56,7 +61,7 @@ export function DiagnosticProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius - 0.8}
-          stroke="rgba(255, 255, 255, 0.55)"
+          stroke={DIAGNOSTIC_PROGRESS_RING_INNER_GLOW}
           strokeWidth={0.8}
           fill="none"
         />
@@ -75,7 +80,7 @@ export function DiagnosticProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={DiagnosticSketchColors.greenSoft}
+          stroke={DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT}
           strokeWidth={0.9}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset + circumference * 0.012}

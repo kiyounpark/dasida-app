@@ -1,7 +1,16 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
+import {
+  DIAGNOSTIC_PROGRESS_BAR_HEIGHT,
+  DIAGNOSTIC_PROGRESS_BAR_STROKE,
+  DIAGNOSTIC_PROGRESS_FILL_COLOR,
+  DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT,
+  DIAGNOSTIC_PROGRESS_HIGHLIGHT_OPACITY,
+  DIAGNOSTIC_PROGRESS_OUTLINE_COLOR,
+  DIAGNOSTIC_PROGRESS_SURFACE_HIGHLIGHT,
+  DIAGNOSTIC_PROGRESS_TRACK_COLOR,
+} from '@/features/quiz/components/diagnostic-progress-theme';
 
 export type DiagnosticSketchProgressBarProps = {
   current: number;
@@ -19,59 +28,73 @@ export function DiagnosticSketchProgressBar({
   const numericPercent = Number.parseFloat(progressPercent.replace('%', ''));
   const progress = Number.isFinite(numericPercent) ? Math.min(Math.max(numericPercent, 0), 100) / 100 : 0;
   const isComplete = total > 0 && current >= total;
-  const accentWidth = progress > 0 ? (isComplete ? 0.045 : Math.max(0.04, Math.min(0.08, 1 / Math.max(total, 1)))) : 0;
-  const accentStart = Math.max(0.015, progress - accentWidth);
-  const sketchInset = isCompactLayout ? 0.8 : 0.6;
+  const barHeight = isCompactLayout ? DIAGNOSTIC_PROGRESS_BAR_HEIGHT.compact : DIAGNOSTIC_PROGRESS_BAR_HEIGHT.regular;
+  const trackStroke = isCompactLayout ? DIAGNOSTIC_PROGRESS_BAR_STROKE.compact : DIAGNOSTIC_PROGRESS_BAR_STROKE.regular;
+  const innerX = 2;
+  const innerWidth = 96;
+  const innerY = (12 - trackStroke) / 2;
+  const outlineY = innerY - 1.2;
+  const outlineHeight = trackStroke + 2.4;
+  const progressWidth = innerWidth * progress;
+  const highlightHeight = Math.max(1.7, trackStroke * 0.42);
+  const highlightY = innerY + 0.6;
+  const highlightWidth = progress > 0
+    ? (isComplete ? Math.max(0, progressWidth - 0.7) : Math.max(0, progressWidth - 1.1))
+    : 0;
 
   return (
-    <View style={[styles.wrap, isCompactLayout && styles.wrapCompact]}>
+    <View style={[styles.wrap, { height: barHeight }]}>
       <Svg
         width="100%"
         height="100%"
         preserveAspectRatio="none"
-        viewBox="0 0 100 10">
+        viewBox="0 0 100 12">
         <Rect
           x="0.8"
-          y="1.7"
-          width="98.6"
-          height="5.6"
-          rx="2.8"
-          fill={DiagnosticSketchColors.track}
-          stroke={DiagnosticSketchColors.inkSoft}
-          strokeWidth="0.7"
+          y={outlineY}
+          width="98.4"
+          height={outlineHeight}
+          rx={outlineHeight / 2}
+          fill="none"
+          stroke={DIAGNOSTIC_PROGRESS_OUTLINE_COLOR}
+          strokeWidth="1.1"
         />
         <Rect
-          x="1.4"
-          y="2.2"
-          width={97.2 * progress}
-          height="4.6"
-          rx="2.3"
-          fill={DiagnosticSketchColors.green}
+          x={innerX}
+          y={innerY}
+          width={innerWidth}
+          height={trackStroke}
+          rx={trackStroke / 2}
+          fill={DIAGNOSTIC_PROGRESS_TRACK_COLOR}
+        />
+        <Path
+          d={`M ${innerX + 1.2} ${innerY + 1.05} C 18 1.9, 36 2.25, 55 2.05 S 77 1.95, ${innerX + innerWidth - 1.2} ${innerY + 1.05}`}
+          stroke={DIAGNOSTIC_PROGRESS_SURFACE_HIGHLIGHT}
+          strokeWidth="0.55"
+          fill="none"
+          strokeLinecap="round"
         />
         {progress > 0 ? (
           <Rect
-            x={1.4 + 97.2 * accentStart}
-            y="2.15"
-            width={Math.min(97.2 * accentWidth, 97.2 * progress)}
-            height="4.7"
-            rx="2.35"
-            fill={DiagnosticSketchColors.inkSoft}
+            x={innerX}
+            y={innerY}
+            width={progressWidth}
+            height={trackStroke}
+            rx={trackStroke / 2}
+            fill={DIAGNOSTIC_PROGRESS_FILL_COLOR}
           />
         ) : null}
-        <Path
-          d={`M 1.8 ${8.2 - sketchInset} C 13 7.6, 28 8.7, 43 8.1 S 77 7.2, 98.1 ${7.9 - sketchInset}`}
-          stroke="rgba(55, 44, 35, 0.28)"
-          strokeWidth="0.45"
-          fill="none"
-          strokeLinecap="round"
-        />
-        <Path
-          d={`M 2.4 ${2.35 + sketchInset} C 18 1.6, 35 2.8, 56 2.2 S 79 1.4, 97.5 ${2.5 + sketchInset}`}
-          stroke="rgba(255, 255, 255, 0.55)"
-          strokeWidth="0.34"
-          fill="none"
-          strokeLinecap="round"
-        />
+        {highlightWidth > 0 ? (
+          <Rect
+            x={innerX + 0.55}
+            y={highlightY}
+            width={highlightWidth}
+            height={highlightHeight}
+            rx={highlightHeight / 2}
+            fill={DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT}
+            opacity={DIAGNOSTIC_PROGRESS_HIGHLIGHT_OPACITY}
+          />
+        ) : null}
       </Svg>
     </View>
   );
@@ -80,9 +103,5 @@ export function DiagnosticSketchProgressBar({
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
-    height: 18,
-  },
-  wrapCompact: {
-    height: 16,
   },
 });

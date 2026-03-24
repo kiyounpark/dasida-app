@@ -5,6 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { FontFamilies } from '@/constants/typography';
 import { DiagnosticProgressRing } from '@/features/quiz/components/diagnostic-progress-ring';
 import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
+import { DIAGNOSTIC_PROGRESS_TRACK_COLOR } from '@/features/quiz/components/diagnostic-progress-theme';
 import { DiagnosticSketchProgressBar } from '@/features/quiz/components/diagnostic-sketch-progress-bar';
 
 type DiagnosticSolveHeaderProps = {
@@ -60,7 +61,7 @@ export function DiagnosticSolveHeader({
               size={ringSize}
               strokeWidth={strokeWidth}
               total={questionCount}
-              trackColor="#EEE7D5"
+              trackColor={DIAGNOSTIC_PROGRESS_TRACK_COLOR}
             />
           </View>
         </View>
