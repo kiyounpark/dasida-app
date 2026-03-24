@@ -7,7 +7,8 @@ import { BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 
-const CHARACTER_SOURCE = require('../../../assets/Gemini_Generated_Image_kki6qfkki6qfkki6.png');
+const CHARACTER_SOURCE = require('../../../assets/quiz/diagnostic-intro-character-transparent.png');
+const CHARACTER_ASPECT_RATIO = 1718 / 1053;
 const PAPER_TEXTURE_SOURCE = require('../../../assets/quiz/diagnostic-sketch/paper_uniform_white_transparent.png');
 
 function HandDrawnSpeechBubble({
@@ -72,7 +73,7 @@ export function DiagnosisIntroScreen({
   const isCompactLayout = width < 390;
   const bubbleWidth = Math.min(width - 28, 520);
   const bubbleHeight = isCompactLayout ? 212 : 238;
-  const characterWidth = Math.min(width - 52, isCompactLayout ? 324 : 420);
+  const characterWidth = Math.min(width - (isCompactLayout ? 36 : 56), isCompactLayout ? 332 : 440);
 
   return (
     <View style={styles.screen}>
@@ -98,12 +99,7 @@ export function DiagnosisIntroScreen({
         />
 
         <View style={[styles.characterBlock, { width: characterWidth }]}>
-          <View style={[styles.characterGlow, styles.characterGlowLarge]} />
-          <View style={[styles.characterGlow, styles.characterGlowSmall]} />
-
-          <View style={styles.characterCrop}>
-            <Image contentFit="fill" source={CHARACTER_SOURCE} style={styles.characterImage} transition={0} />
-          </View>
+          <Image contentFit="contain" source={CHARACTER_SOURCE} style={styles.characterImage} transition={0} />
         </View>
 
         <View style={styles.footer}>
@@ -128,18 +124,18 @@ export function DiagnosisIntroScreen({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F8F5E4',
+    backgroundColor: '#FBFAF2',
   },
   backgroundLayer: {
     ...StyleSheet.absoluteFillObject,
   },
   backgroundBase: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#F8F5E4',
+    backgroundColor: '#FBFAF2',
   },
   backgroundTexture: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.36,
+    opacity: 0.2,
   },
   scroll: {
     flex: 1,
@@ -216,39 +212,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -8,
-  },
-  characterGlow: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: 'rgba(255, 220, 120, 0.24)',
-  },
-  characterGlowLarge: {
-    width: '74%',
-    aspectRatio: 1,
-  },
-  characterGlowSmall: {
-    width: '46%',
-    aspectRatio: 1,
-    transform: [{ translateY: 18 }],
-    backgroundColor: 'rgba(216, 233, 165, 0.22)',
-  },
-  characterCrop: {
-    width: '100%',
-    aspectRatio: 1.16,
-    overflow: 'hidden',
-    alignItems: 'center',
+    marginTop: -4,
   },
   characterImage: {
     width: '100%',
-    aspectRatio: 1,
-    transform: [{ translateY: -16 }],
+    aspectRatio: CHARACTER_ASPECT_RATIO,
   },
   footer: {
     width: '100%',
     alignItems: 'center',
     gap: BrandSpacing.sm,
-    marginTop: -10,
+    marginTop: -4,
     paddingHorizontal: BrandSpacing.lg,
     paddingBottom: BrandSpacing.sm,
   },
