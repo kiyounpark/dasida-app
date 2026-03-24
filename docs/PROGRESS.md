@@ -21,6 +21,16 @@
 
 ## 로그
 
+### 2026.03.24
+
+**Claude 최근 변경 검토 훅 강화**
+- `.claude/hooks/expo-skill-hooks-lib.mjs`: 프롬프트 키워드뿐 아니라 현재 워크트리 또는 최신 커밋의 변경 파일도 읽어 최근 수정 검토 문맥을 만들고, 최근 변경 파일 경로를 기준으로 `building-native-ui`, `native-data-fetching`, `dasida-code-structure` 같은 스킬을 함께 추론하도록 확장
+- `.claude/hooks/select-expo-skill.mjs`: 단일 스킬 안내 대신 다중 스킬 목록, 각 스킬 `SKILL.md` 경로, 최근 변경 파일 요약, `findings/회귀/누락 테스트 우선` 검토 규칙을 Claude 문맥에 주입하도록 변경
+- `.claude/hooks/check-expo-skill-before-tools.mjs`: 스킬 1개만 읽었는지 보던 방식에서, 선택된 스킬들 중 아직 읽지 않은 `SKILL.md`만 남겨 다시 읽도록 유도하는 다중 스킬 추적 방식으로 변경
+- `docs/AI_COLLABORATION.md`: `최근 수정`, `최근 변경`, `review`, `검토`, `검증` 프롬프트에서 Expo 스킬과 `dasida-code-structure`를 함께 적용하는 방식과 권장 검토 프롬프트를 운영 문서에 반영
+- 샘플 검증에서는 `최근 수정한 화면 검토해줘. expo skills와 dasida-code-structure 기준으로 review 해줘` 입력 시 최신 커밋의 `features/quiz/components/diagnosis-intro-screen.tsx`가 최근 변경 파일로 잡히고, `building-native-ui + dasida-code-structure`가 함께 선택되는 것을 확인
+- **검증**: `node --check .claude/hooks/expo-skill-hooks-lib.mjs`, `node --check .claude/hooks/select-expo-skill.mjs`, `node --check .claude/hooks/check-expo-skill-before-tools.mjs`, 샘플 `UserPromptSubmit`/`PreToolUse` 실행으로 최근 변경 문맥과 다중 스킬 읽기 유도 동작 확인
+
 ### 2026.03.22
 
 **문제 풀기 홈을 4단계 학습 여정판으로 전환**
@@ -686,6 +696,69 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.03.24 20:35
+- 해시: `2f729ba` (`2f729ba37c6fd9a8b138939f1f376b4199cf736b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2f729ba37c6fd9a8b138939f1f376b4199cf736b
+- 작성자: 박기윤
+- 메시지: feat: 약점 분석 인트로 화면 추가 (10문제 진단 직후)
+
+### 커밋 2026.03.24 19:59
+- 해시: `9ffd345` (`9ffd3450656f5e6f0d6c744ab3810fbc765c8d6a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9ffd3450656f5e6f0d6c744ab3810fbc765c8d6a
+- 작성자: 박기윤
+- 메시지: fix: 진단 진행 레이어 정렬
+
+### 커밋 2026.03.24 19:32
+- 해시: `3329747` (`3329747abb7bc551556a3736e24f8b549bf2b507`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3329747abb7bc551556a3736e24f8b549bf2b507
+- 작성자: 박기윤
+- 메시지: fix: 진단 진행 바 디자인 통일
+
+### 커밋 2026.03.24 18:49
+- 해시: `0ccd72a` (`0ccd72afdaf178c8e44c4290ffc71397d5db2850`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0ccd72afdaf178c8e44c4290ffc71397d5db2850
+- 작성자: 박기윤
+- 메시지: fix: 진단 문제 영역 빈 공간 축소
+
+### 커밋 2026.03.24 18:46
+- 해시: `20fc99c` (`20fc99cb272a43995e251098a67f1393fb00046a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/20fc99cb272a43995e251098a67f1393fb00046a
+- 작성자: 박기윤
+- 메시지: fix: 진단 손그림 화면 그리드와 헤더 보정
+
+### 커밋 2026.03.24 18:28
+- 해시: `c6f7af1` (`c6f7af1bda20a75a075389e36def92ceeb19e695`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c6f7af1bda20a75a075389e36def92ceeb19e695
+- 작성자: 박기윤
+- 메시지: feat: 진단 풀이 화면 손그림 스타일 적용
+
+### 커밋 2026.03.23 23:43
+- 해시: `b5d7aff` (`b5d7aff19be0082596d385538d6e9b929c3754e3`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b5d7aff19be0082596d385538d6e9b929c3754e3
+- 작성자: 박기윤
+- 메시지: refactor: 문항 풀이 화면 하단 패널 고정 구조로 변경
 
 ### 커밋 2026.03.23 01:18
 - 해시: `ca7bd14` (`ca7bd141dbd168a60da445404734eb0c677b3acc`)
