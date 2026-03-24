@@ -111,10 +111,10 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   questionWrap: {
-    width: '74%',
+    width: '92%',
   },
   questionWrapCompact: {
-    width: '84%',
+    width: '100%',
   },
   questionText: {
     fontFamily: FontFamilies.medium,
