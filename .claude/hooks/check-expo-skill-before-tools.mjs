@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 import {
-  isSkillFilePath,
+  findSkillNameForPath,
+  getUnreadSkillEntries,
+  hasReadAllSkills,
+  markSkillAsRead,
   readHookInput,
   readState,
   resolveProjectDir,
@@ -14,19 +17,22 @@ const sessionId = String(input.session_id || '');
 const toolName = String(input.tool_name || '');
 const state = readState(projectDir, sessionId);
 
-if (!state?.selectedSkill) {
+if (!state?.selectedSkill && (!Array.isArray(state?.selectedSkills) || state.selectedSkills.length === 0)) {
   process.exit(0);
 }
 
 if (toolName === 'Read') {
   const filePath = input.tool_input?.file_path;
+  const skillName = findSkillNameForPath(filePath, state, projectDir);
 
-  if (isSkillFilePath(filePath, state, projectDir) && state.skillRead !== true) {
+  if (skillName) {
+    const nextState = markSkillAsRead(state, skillName);
+
     writeState(projectDir, sessionId, {
-      ...state,
-      skillRead: true,
+      ...nextState,
       promptedOnce: false,
       lastReadAt: new Date().toISOString(),
+      lastReadSkill: skillName,
     });
   }
 
@@ -37,9 +43,11 @@ if (!['Edit', 'MultiEdit', 'Write', 'Bash'].includes(toolName)) {
   process.exit(0);
 }
 
-if (state.skillRead === true || state.promptedOnce === true) {
+if (hasReadAllSkills(state) || state.promptedOnce === true) {
   process.exit(0);
 }
+
+const unreadSkillEntries = getUnreadSkillEntries(state);
 
 writeState(projectDir, sessionId, {
   ...state,
@@ -52,7 +60,7 @@ process.stdout.write(
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'ask',
-      permissionDecisionReason: `이 세션은 스킬 "${state.selectedSkill}" 대상입니다. 먼저 ${state.skillPath} 를 Read 한 뒤 변경을 시작하는 것이 권장됩니다.`,
+      permissionDecisionReason: `이 세션은 스킬 검토 대상입니다. 먼저 ${unreadSkillEntries.map((entry) => entry.skillPath).join(', ')} 를 Read 한 뒤 변경 또는 실행을 시작하는 것이 권장됩니다.`,
     },
   })
 );

@@ -1,7 +1,37 @@
+import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+
+const REVIEW_KEYWORDS = [
+  'review',
+  'verify',
+  'verification',
+  'validate',
+  'validation',
+  'check',
+  '검토',
+  '검증',
+  '리뷰',
+  '확인',
+  '최근 수정',
+  '최근 변경',
+  '방금 수정',
+  '최근에 수정',
+];
+
+const PRODUCT_CODE_PREFIXES = [
+  'app/',
+  'features/',
+  'components/',
+  'constants/',
+  'data/',
+  'functions/src/',
+  'hooks/',
+  'providers/',
+  'utils/',
+];
 
 const SKILL_DEFINITIONS = [
   {
@@ -165,36 +195,308 @@ export function resolveProjectDir(input = {}) {
   return process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
 }
 
-export function detectSkill(prompt) {
-  const normalizedPrompt = String(prompt || '').trim();
+function runGit(projectDir, args, allowFailure = false) {
+  try {
+    return execFileSync('git', args, {
+      cwd: projectDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch (error) {
+    if (allowFailure) {
+      return '';
+    }
 
-  if (!normalizedPrompt) {
-    return null;
+    throw error;
+  }
+}
+
+function parseGitFileList(value) {
+  return String(value || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function dedupeStrings(values) {
+  return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
+}
+
+function isOperationalOnlyFile(filePath) {
+  const normalized = String(filePath || '').replace(/\\/g, '/');
+
+  if (!normalized) {
+    return true;
   }
 
-  const loweredPrompt = normalizedPrompt.toLowerCase();
-  const directMatch = SKILL_DEFINITIONS.find((skill) => loweredPrompt.includes(skill.name));
+  return normalized === 'docs/PROGRESS.md' || normalized.endsWith('.md');
+}
 
-  if (directMatch) {
+function hasProductCodeChanges(files) {
+  return files.some((filePath) => PRODUCT_CODE_PREFIXES.some((prefix) => filePath.startsWith(prefix)));
+}
+
+function pickMeaningfulFiles(files) {
+  const uniqueFiles = dedupeStrings(files);
+  const productFiles = uniqueFiles.filter((filePath) => !isOperationalOnlyFile(filePath));
+
+  return productFiles.length > 0 ? productFiles : uniqueFiles;
+}
+
+function getSkillByName(name) {
+  return SKILL_DEFINITIONS.find((skill) => skill.name === name) || null;
+}
+
+function addSkillSelection(selectionMap, skillName, reason) {
+  const skill = getSkillByName(skillName);
+
+  if (!skill) {
+    return;
+  }
+
+  const existing = selectionMap.get(skill.name) ?? { skill, reasons: new Set() };
+
+  if (reason) {
+    existing.reasons.add(reason);
+  }
+
+  selectionMap.set(skill.name, existing);
+}
+
+function inferSkillsFromFiles(files) {
+  const selections = new Map();
+
+  for (const filePath of files) {
+    const normalized = String(filePath || '').replace(/\\/g, '/');
+    const lowered = normalized.toLowerCase();
+
+    if (
+      normalized.startsWith('app/') ||
+      /features\/[^/]+\/components\//.test(normalized) ||
+      /features\/[^/]+\/screens\//.test(normalized)
+    ) {
+      addSkillSelection(
+        selections,
+        'building-native-ui',
+        `최근 변경 파일 ${normalized} 이(가) UI/화면 계층에 속합니다.`
+      );
+    }
+
+    if (
+      normalized.startsWith('app/') ||
+      /features\/[^/]+\/screens\//.test(normalized) ||
+      /features\/[^/]+\/hooks\/use-.*-screen\.ts$/.test(normalized) ||
+      normalized === 'docs/ARCHITECTURE.md'
+    ) {
+      addSkillSelection(
+        selections,
+        'dasida-code-structure',
+        `최근 변경 파일 ${normalized} 이(가) route/screen/hook 구조 검토 대상입니다.`
+      );
+    }
+
+    if (
+      lowered.includes('firebase') ||
+      lowered.includes('fetch') ||
+      lowered.includes('repository') ||
+      lowered.includes('provider') ||
+      lowered.includes('api') ||
+      lowered.startsWith('functions/src/')
+    ) {
+      addSkillSelection(
+        selections,
+        'native-data-fetching',
+        `최근 변경 파일 ${normalized} 이(가) 네트워크/저장소 계층과 관련됩니다.`
+      );
+    }
+
+    if (lowered.includes('tailwind') || lowered.includes('nativewind')) {
+      addSkillSelection(
+        selections,
+        'expo-tailwind-setup',
+        `최근 변경 파일 ${normalized} 이(가) Tailwind/NativeWind 설정과 관련됩니다.`
+      );
+    }
+
+    if (lowered.startsWith('.eas/workflows/') || lowered.includes('workflow')) {
+      addSkillSelection(
+        selections,
+        'expo-cicd-workflows',
+        `최근 변경 파일 ${normalized} 이(가) CI/CD 워크플로우와 관련됩니다.`
+      );
+    }
+
+    if (lowered.includes('webview') || lowered.includes('dom')) {
+      addSkillSelection(
+        selections,
+        'use-dom',
+        `최근 변경 파일 ${normalized} 이(가) DOM/WebView 실행과 관련됩니다.`
+      );
+    }
+  }
+
+  return [...selections.values()].map((entry) => ({
+    ...entry.skill,
+    reason: [...entry.reasons].join(' / ') || entry.skill.reason,
+  }));
+}
+
+export function isReviewPrompt(prompt) {
+  const loweredPrompt = String(prompt || '').trim().toLowerCase();
+
+  if (!loweredPrompt) {
+    return false;
+  }
+
+  return REVIEW_KEYWORDS.some((keyword) => loweredPrompt.includes(keyword.toLowerCase()));
+}
+
+export function getRecentChangeInfo(projectDir) {
+  const stagedFiles = parseGitFileList(runGit(projectDir, ['diff', '--cached', '--name-only'], true));
+  const unstagedFiles = parseGitFileList(runGit(projectDir, ['diff', '--name-only'], true));
+  const untrackedFiles = parseGitFileList(
+    runGit(projectDir, ['ls-files', '--others', '--exclude-standard'], true)
+  );
+  const workingTreeFiles = dedupeStrings([...stagedFiles, ...unstagedFiles, ...untrackedFiles]);
+  const meaningfulWorkingTreeFiles = pickMeaningfulFiles(workingTreeFiles);
+
+  if (meaningfulWorkingTreeFiles.length > 0 && hasProductCodeChanges(meaningfulWorkingTreeFiles)) {
     return {
-      ...directMatch,
-      reason: '프롬프트에 스킬 이름이 직접 언급되었습니다.',
+      source: 'working-tree',
+      label: '현재 워크트리 변경',
+      files: meaningfulWorkingTreeFiles,
+      totalFiles: meaningfulWorkingTreeFiles.length,
+      hasProductCodeChanges: true,
     };
   }
 
-  return (
-    SKILL_DEFINITIONS.find((skill) =>
-      skill.keywords.some((keyword) => loweredPrompt.includes(keyword.toLowerCase()))
-    ) || null
+  const latestCommitFiles = pickMeaningfulFiles(
+    parseGitFileList(runGit(projectDir, ['show', '--pretty=format:', '--name-only', 'HEAD'], true))
   );
+
+  if (latestCommitFiles.length === 0) {
+    return null;
+  }
+
+  const shortHash = runGit(projectDir, ['rev-parse', '--short', 'HEAD'], true);
+  const subject = runGit(projectDir, ['show', '-s', '--format=%s', 'HEAD'], true);
+
+  return {
+    source: 'latest-commit',
+    label: `최신 커밋 ${shortHash}${subject ? ` · ${subject}` : ''}`,
+    files: latestCommitFiles,
+    totalFiles: latestCommitFiles.length,
+    hasProductCodeChanges: hasProductCodeChanges(latestCommitFiles),
+  };
 }
 
-export function buildSkillState(projectDir, selection) {
+export function summarizeRecentChangeInfo(changeInfo, maxFiles = 8) {
+  if (!changeInfo) {
+    return [];
+  }
+
+  const lines = [
+    `- 최근 변경 기준: ${changeInfo.label}`,
+    `- 검토 파일 수: ${changeInfo.totalFiles}`,
+  ];
+
+  for (const filePath of changeInfo.files.slice(0, maxFiles)) {
+    lines.push(`- 변경 파일: ${filePath}`);
+  }
+
+  if (changeInfo.files.length > maxFiles) {
+    lines.push(`- 나머지 파일: ${changeInfo.files.length - maxFiles}개 더 있음`);
+  }
+
+  return lines;
+}
+
+export function detectSkills(prompt, projectDir) {
+  const normalizedPrompt = String(prompt || '').trim();
+
+  if (!normalizedPrompt) {
+    return {
+      skills: [],
+      reviewMode: false,
+      recentChangeInfo: null,
+    };
+  }
+
+  const loweredPrompt = normalizedPrompt.toLowerCase();
+  const selectionMap = new Map();
+
+  for (const skill of SKILL_DEFINITIONS) {
+    if (loweredPrompt.includes(skill.name)) {
+      addSkillSelection(selectionMap, skill.name, '프롬프트에 스킬 이름이 직접 언급되었습니다.');
+    }
+  }
+
+  for (const skill of SKILL_DEFINITIONS) {
+    const matchedKeyword = skill.keywords.find((keyword) => loweredPrompt.includes(keyword.toLowerCase()));
+
+    if (matchedKeyword) {
+      addSkillSelection(selectionMap, skill.name, skill.reason);
+    }
+  }
+
+  const reviewMode = isReviewPrompt(normalizedPrompt);
+  const recentChangeInfo = reviewMode ? getRecentChangeInfo(projectDir) : null;
+
+  if (recentChangeInfo) {
+    for (const skill of inferSkillsFromFiles(recentChangeInfo.files)) {
+      addSkillSelection(selectionMap, skill.name, skill.reason);
+    }
+  }
+
+  const hasExpoOrFeatureSkill = [...selectionMap.keys()].some((name) => name !== 'dasida-code-structure');
+
+  if (recentChangeInfo?.hasProductCodeChanges && (reviewMode || hasExpoOrFeatureSkill)) {
+    addSkillSelection(
+      selectionMap,
+      'dasida-code-structure',
+      '최근 변경 검토에서는 Expo 스킬과 함께 DASIDA 구조 기준도 함께 확인합니다.'
+    );
+  }
+
+  const orderedSkills = SKILL_DEFINITIONS
+    .filter((skill) => selectionMap.has(skill.name))
+    .map((skill) => {
+      const selection = selectionMap.get(skill.name);
+
+      return {
+        ...selection.skill,
+        reason: [...selection.reasons].join(' / ') || selection.skill.reason,
+      };
+    });
+
   return {
-    selectedSkill: selection.name,
-    skillPath: path.join(projectDir, '.claude', 'skills', selection.name, 'SKILL.md'),
-    sourcePath: path.join(projectDir, '.agents', 'skills', selection.name, 'SKILL.md'),
-    reason: selection.reason,
+    skills: orderedSkills,
+    reviewMode,
+    recentChangeInfo,
+  };
+}
+
+function buildSkillEntry(projectDir, skill) {
+  return {
+    name: skill.name,
+    reason: skill.reason,
+    skillPath: path.join(projectDir, '.claude', 'skills', skill.name, 'SKILL.md'),
+    sourcePath: path.join(projectDir, '.agents', 'skills', skill.name, 'SKILL.md'),
+  };
+}
+
+export function buildSkillState(projectDir, selectionBundle) {
+  const skillEntries = selectionBundle.skills.map((skill) => buildSkillEntry(projectDir, skill));
+
+  return {
+    selectedSkill: skillEntries[0]?.name ?? '',
+    selectedSkills: skillEntries.map((entry) => entry.name),
+    skillPath: skillEntries[0]?.skillPath ?? '',
+    sourcePath: skillEntries[0]?.sourcePath ?? '',
+    reason: skillEntries.map((entry) => `${entry.name}: ${entry.reason}`).join(' / '),
+    skillEntries,
+    reviewMode: selectionBundle.reviewMode === true,
+    recentChangeInfo: selectionBundle.recentChangeInfo ?? null,
   };
 }
 
@@ -239,18 +541,76 @@ export function clearState(projectDir, sessionId) {
   fs.rmSync(getStatePath(projectDir, sessionId), { force: true });
 }
 
-export function isSkillFilePath(candidatePath, state, projectDir) {
-  if (!candidatePath || !state?.skillPath || !state?.sourcePath) {
-    return false;
+export function getSkillEntries(state) {
+  if (Array.isArray(state?.skillEntries) && state.skillEntries.length > 0) {
+    return state.skillEntries;
+  }
+
+  if (!state?.selectedSkill || !state?.skillPath || !state?.sourcePath) {
+    return [];
+  }
+
+  return [
+    {
+      name: state.selectedSkill,
+      reason: state.reason ?? '',
+      skillPath: state.skillPath,
+      sourcePath: state.sourcePath,
+    },
+  ];
+}
+
+export function getUnreadSkillEntries(state) {
+  const skillEntries = getSkillEntries(state);
+
+  if (skillEntries.length === 0) {
+    return [];
+  }
+
+  const legacySingleSkillRead = skillEntries.length === 1 && state?.skillRead === true;
+  const skillReadMap = state?.skillReadMap ?? {};
+
+  return skillEntries.filter((entry) => !legacySingleSkillRead && skillReadMap[entry.name] !== true);
+}
+
+export function hasReadAllSkills(state) {
+  return getUnreadSkillEntries(state).length === 0;
+}
+
+export function markSkillAsRead(state, skillName) {
+  const nextState = {
+    ...state,
+    skillReadMap: {
+      ...(state?.skillReadMap ?? {}),
+      [skillName]: true,
+    },
+  };
+
+  return {
+    ...nextState,
+    skillRead: hasReadAllSkills(nextState),
+  };
+}
+
+export function findSkillNameForPath(candidatePath, state, projectDir) {
+  if (!candidatePath) {
+    return null;
   }
 
   const resolvedCandidate = path.resolve(projectDir, candidatePath);
-  const resolvedSkillPath = path.resolve(state.skillPath);
-  const resolvedSourcePath = path.resolve(state.sourcePath);
 
-  return (
-    resolvedCandidate === resolvedSkillPath ||
-    resolvedCandidate === resolvedSourcePath ||
-    resolvedCandidate.endsWith(`/${state.selectedSkill}/SKILL.md`)
-  );
+  for (const skillEntry of getSkillEntries(state)) {
+    const resolvedSkillPath = path.resolve(skillEntry.skillPath);
+    const resolvedSourcePath = path.resolve(skillEntry.sourcePath);
+
+    if (
+      resolvedCandidate === resolvedSkillPath ||
+      resolvedCandidate === resolvedSourcePath ||
+      resolvedCandidate.endsWith(`/${skillEntry.name}/SKILL.md`)
+    ) {
+      return skillEntry.name;
+    }
+  }
+
+  return null;
 }

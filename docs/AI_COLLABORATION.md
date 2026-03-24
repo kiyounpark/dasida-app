@@ -70,8 +70,9 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 - 설정 파일: `.claude/settings.json`
 - 훅 스크립트: `.claude/hooks/*`
 - 훅은 Claude Code 안에서만 동작하며, Codex나 Gemini 세션에는 적용되지 않습니다.
-- `UserPromptSubmit`: 프롬프트 키워드를 기준으로 관련 Expo 스킬 또는 로컬 코드 구조 스킬을 자동 선택하고 Claude 문맥에 스킬 경로를 주입합니다.
-- `PreToolUse`: 선택된 스킬을 아직 읽지 않은 상태에서 첫 `Edit`, `MultiEdit`, `Write`, `Bash` 실행 전에 한 번 `ask`로 확인을 유도합니다.
+- `UserPromptSubmit`: 프롬프트 키워드와 최근 변경 파일을 기준으로 관련 Expo 스킬과 로컬 코드 구조 스킬을 함께 선택하고 Claude 문맥에 스킬 경로를 주입합니다.
+- `UserPromptSubmit`: `최근 수정`, `최근 변경`, `review`, `검토`, `검증` 같은 프롬프트에서는 현재 워크트리 또는 최신 커밋 기준 변경 파일 요약도 함께 주입합니다.
+- `PreToolUse`: 선택된 스킬들 중 아직 읽지 않은 `SKILL.md`가 있으면 첫 `Edit`, `MultiEdit`, `Write`, `Bash` 실행 전에 한 번 `ask`로 확인을 유도합니다.
 - `SessionEnd`: 세션 종료 시 `/tmp` 아래 임시 상태 파일을 정리합니다.
 - 이 훅 구성은 강제 차단이 아니라 부드러운 가이드 방식이며, 스킬을 먼저 읽게 유도하는 수준으로 운영합니다.
 
@@ -85,9 +86,10 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 ## Claude 훅 사용 방법
 1. Claude Code를 이 저장소 루트에서 실행합니다.
 2. Expo 관련 프롬프트나 코드 구조/리팩터링 프롬프트를 입력하면 `UserPromptSubmit`가 관련 스킬을 자동 라우팅합니다.
-3. Claude가 실제 변경을 시작하기 전에 관련 `SKILL.md`를 아직 읽지 않았다면 `PreToolUse`가 한 번 확인을 요청합니다.
-4. Claude 세션을 다시 열면 최신 `.claude/settings.json` 기준으로 훅이 적용됩니다.
-5. 훅 상태나 동작 확인이 필요하면 Claude Code 내부에서 `/hooks`를 확인합니다.
+3. 최근 수정 검토 프롬프트를 입력하면 현재 워크트리 또는 최신 커밋 파일 목록과 함께 관련 Expo 스킬 + `dasida-code-structure`가 같이 안내됩니다.
+4. Claude가 실제 변경을 시작하기 전에 관련 `SKILL.md`를 아직 읽지 않았다면 `PreToolUse`가 한 번 확인을 요청합니다.
+5. Claude 세션을 다시 열면 최신 `.claude/settings.json` 기준으로 훅이 적용됩니다.
+6. 훅 상태나 동작 확인이 필요하면 Claude Code 내부에서 `/hooks`를 확인합니다.
 
 ## Claude 검증 권장 기준
 | 작업 유형 | 권장 스킬 | 검증 포인트 |
@@ -118,6 +120,13 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 - Expo/React Native 관점의 위험
 - 플랫폼별 회귀 가능성
 - 누락된 테스트와 검증
+```
+
+## 최근 수정 검토 기본 프롬프트
+```text
+최근 수정한 내용 검토해줘.
+Expo Skills와 dasida-code-structure 기준을 같이 적용해서,
+최근 변경 파일 중심으로 위험, 회귀, 누락 테스트를 먼저 봐줘.
 ```
 
 ## 비용 최적화 원칙
