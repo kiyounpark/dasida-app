@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Rect } from 'react-native-svg';
 
 import {
   DIAGNOSTIC_PROGRESS_BAR_HEIGHT,
@@ -7,8 +7,8 @@ import {
   DIAGNOSTIC_PROGRESS_FILL_COLOR,
   DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT,
   DIAGNOSTIC_PROGRESS_HIGHLIGHT_OPACITY,
+  DIAGNOSTIC_PROGRESS_INNER_GLOW_COLOR,
   DIAGNOSTIC_PROGRESS_OUTLINE_COLOR,
-  DIAGNOSTIC_PROGRESS_SURFACE_HIGHLIGHT,
   DIAGNOSTIC_PROGRESS_TRACK_COLOR,
 } from '@/features/quiz/components/diagnostic-progress-theme';
 
@@ -36,6 +36,8 @@ export function DiagnosticSketchProgressBar({
   const outlineY = innerY - 1.2;
   const outlineHeight = trackStroke + 2.4;
   const progressWidth = innerWidth * progress;
+  const innerGlowHeight = Math.max(1.6, trackStroke * 0.38);
+  const innerGlowY = innerY + 0.45;
   const highlightHeight = Math.max(1.7, trackStroke * 0.42);
   const highlightY = innerY + 0.6;
   const highlightWidth = progress > 0
@@ -67,12 +69,14 @@ export function DiagnosticSketchProgressBar({
           rx={trackStroke / 2}
           fill={DIAGNOSTIC_PROGRESS_TRACK_COLOR}
         />
-        <Path
-          d={`M ${innerX + 1.2} ${innerY + 1.05} C 18 1.9, 36 2.25, 55 2.05 S 77 1.95, ${innerX + innerWidth - 1.2} ${innerY + 1.05}`}
-          stroke={DIAGNOSTIC_PROGRESS_SURFACE_HIGHLIGHT}
-          strokeWidth="0.55"
-          fill="none"
-          strokeLinecap="round"
+        <Rect
+          x={innerX + 0.55}
+          y={innerGlowY}
+          width={innerWidth - 1.1}
+          height={innerGlowHeight}
+          rx={innerGlowHeight / 2}
+          fill={DIAGNOSTIC_PROGRESS_INNER_GLOW_COLOR}
+          opacity={0.9}
         />
         {progress > 0 ? (
           <Rect
