@@ -74,6 +74,7 @@ export function DiagnosisIntroScreen({
   const bubbleWidth = Math.min(width - 28, 520);
   const bubbleHeight = isCompactLayout ? 212 : 238;
   const characterWidth = Math.min(width - (isCompactLayout ? 36 : 56), isCompactLayout ? 332 : 440);
+  const characterOffsetX = Math.round(characterWidth * -0.075);
 
   return (
     <View style={styles.screen}>
@@ -99,7 +100,12 @@ export function DiagnosisIntroScreen({
         />
 
         <View style={[styles.characterBlock, { width: characterWidth }]}>
-          <Image contentFit="contain" source={CHARACTER_SOURCE} style={styles.characterImage} transition={0} />
+          <Image
+            contentFit="contain"
+            source={CHARACTER_SOURCE}
+            style={[styles.characterImage, { transform: [{ translateX: characterOffsetX }] }]}
+            transition={0}
+          />
         </View>
 
         <View style={styles.footer}>
@@ -110,7 +116,6 @@ export function DiagnosisIntroScreen({
           />
 
           <View style={styles.footerCopyWrap}>
-            <View style={styles.footerHighlight} />
             <Text selectable style={[styles.footerText, isCompactLayout && styles.footerTextCompact]}>
               방금 푼 10문제를 바탕으로 나만의 약점을 찾아볼게요.
             </Text>
@@ -235,17 +240,7 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
     paddingHorizontal: BrandSpacing.sm,
-  },
-  footerHighlight: {
-    position: 'absolute',
-    left: '18%',
-    right: '5%',
-    bottom: 2,
-    height: 14,
-    borderRadius: 999,
-    backgroundColor: 'rgba(194, 214, 146, 0.42)',
   },
   footerText: {
     fontFamily: FontFamilies.bold,
