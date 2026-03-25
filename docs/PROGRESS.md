@@ -697,6 +697,24 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.26 00:10
+- 해시: `465ccef` (`465ccef4b7f406007320ce236d4a14697879ffee`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/465ccef4b7f406007320ce236d4a14697879ffee
+- 작성자: 박기윤
+- 메시지: style: 리포트 배너 여백 정리
+
+### 커밋 2026.03.26 00:06
+- 해시: `88ebc33` (`88ebc339ec343861b27d3d5ba6372a90fda508a4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/88ebc339ec343861b27d3d5ba6372a90fda508a4
+- 작성자: 박기윤
+- 메시지: refactor: 공통 배너 규칙 통일
+
 ### 커밋 2026.03.25 23:53
 - 해시: `b2f7b5c` (`b2f7b5cd06e2c20a9b610f1fd2cc223acb1d069a`)
 - 브랜치: main
