@@ -15,6 +15,7 @@ import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-conversation-page';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
 import { DiagnosisIntroScreen } from '@/features/quiz/components/diagnosis-intro-screen';
+import { DiagnosisProgressDots } from '@/features/quiz/components/diagnosis-progress-dots';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
 import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagnostic-screen';
 
@@ -110,39 +111,25 @@ export function DiagnosticScreenView({
 
             <View style={styles.navigatorRow}>
               <View style={styles.navigatorDots}>
-                <View accessible accessibilityRole="tablist" style={styles.navigatorDotsList}>
-                  {diagnosisPages.map((page, pageIndex) => {
+                <DiagnosisProgressDots
+                  isCompactLayout={isCompactNavigator}
+                  items={diagnosisPages.map((page, pageIndex) => {
                     const isActive = pageIndex === activeDiagnosisPageIndex;
                     const isCompleted = page.workspace.status === 'completed';
                     const pageLabel = `${pageIndex + 1} / ${diagnosisPages.length}`;
 
-                    return (
-                      <Pressable
-                        key={`diagnosis-page-${page.answerIndex}`}
-                        style={styles.navigatorDotHitArea}
-                        onPress={() => onScrollToDiagnosisPage(pageIndex)}
-                        accessibilityRole="tab"
-                        accessibilityState={{ selected: isActive }}
-                        accessibilityLabel={`${pageLabel}로 이동`}
-                        accessibilityHint={
-                          isCompleted
-                            ? '이 문제의 분석은 완료되었습니다'
-                            : '이 문제의 분석은 아직 진행 중입니다'
-                        }>
-                        <View
-                          style={[
-                            styles.navigatorDot,
-                            isCompactNavigator ? styles.navigatorDotCompact : styles.navigatorDotRegular,
-                            isCompleted ? styles.navigatorDotCompleted : styles.navigatorDotUpcoming,
-                            isActive && styles.navigatorDotActive,
-                            isActive && isCompactNavigator && styles.navigatorDotActiveCompact,
-                            isActive && !isCompactNavigator && styles.navigatorDotActiveRegular,
-                          ]}
-                        />
-                      </Pressable>
-                    );
+                    return {
+                      accessibilityHint: isCompleted
+                        ? '이 문제의 분석은 완료되었습니다'
+                        : '이 문제의 분석은 아직 진행 중입니다',
+                      accessibilityLabel: `${pageLabel}로 이동`,
+                      isActive,
+                      isCompleted,
+                      key: `diagnosis-page-${page.answerIndex}`,
+                      onPress: () => onScrollToDiagnosisPage(pageIndex),
+                    };
                   })}
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -383,54 +370,6 @@ const styles = StyleSheet.create({
   },
   navigatorDots: {
     alignSelf: 'stretch',
-  },
-  navigatorDotsList: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-  },
-  navigatorDotHitArea: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navigatorDot: {
-    borderCurve: 'continuous',
-    borderWidth: 1,
-  },
-  navigatorDotRegular: {
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-  },
-  navigatorDotCompact: {
-    width: 8,
-    height: 8,
-    borderRadius: 999,
-  },
-  navigatorDotActive: {
-    backgroundColor: DiagnosisTheme.userBubble,
-    borderColor: DiagnosisTheme.userBubble,
-  },
-  navigatorDotActiveRegular: {
-    width: 24,
-    height: 10,
-    borderRadius: 999,
-  },
-  navigatorDotActiveCompact: {
-    width: 20,
-    height: 8,
-    borderRadius: 999,
-  },
-  navigatorDotCompleted: {
-    backgroundColor: '#73896E',
-    borderColor: '#73896E',
-  },
-  navigatorDotUpcoming: {
-    backgroundColor: 'transparent',
-    borderColor: '#B4BCAF',
   },
   diagnosisPager: {
     flex: 1,

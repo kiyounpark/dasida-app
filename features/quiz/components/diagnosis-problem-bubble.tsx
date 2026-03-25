@@ -27,9 +27,6 @@ export function DiagnosisProblemBubble({
         <View style={styles.problemPanel}>
           <ProblemStatement question={question} />
         </View>
-        <Text selectable style={styles.helper}>
-          이 문제를 어떻게 풀었는지부터 같이 볼게요.
-        </Text>
       </View>
     </View>
   );
@@ -90,11 +87,5 @@ const styles = StyleSheet.create({
     borderRadius: BrandRadius.md,
     borderCurve: 'continuous',
     backgroundColor: DiagnosisTheme.panel,
-  },
-  helper: {
-    paddingTop: 2,
-    fontSize: 14,
-    lineHeight: 20,
-    color: DiagnosisTheme.inkMuted,
   },
 });
