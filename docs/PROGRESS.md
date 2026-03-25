@@ -697,6 +697,24 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.25 19:15
+- 해시: `93aecea` (`93aecea0f2f0664612f12a425072d6b2df9add60`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/93aecea0f2f0664612f12a425072d6b2df9add60
+- 작성자: 박기윤
+- 메시지: revert: 오답 약점 분석 화면 스케치 요소 제거
+
+### 커밋 2026.03.25 18:33
+- 해시: `2979057` (`2979057f4e1ff9302fb8420d12821dd4f247cd07`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2979057f4e1ff9302fb8420d12821dd4f247cd07
+- 작성자: 박기윤
+- 메시지: feat: 오답 약점 분석 화면에 스케치 포인트 반영
+
 ### 커밋 2026.03.24 22:42
 - 해시: `51ae2fb` (`51ae2fb838f79d155e37ca12e6062edb9a85da07`)
 - 브랜치: main
