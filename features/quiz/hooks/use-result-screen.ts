@@ -12,7 +12,7 @@ export type QuizResultRouteParams = {
   requestedSource?: string;
 };
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 function getSaveErrorMessage(error: unknown) {
   if (error instanceof Error && error.message.trim()) {
@@ -27,6 +27,7 @@ export type UseResultScreenResult = {
   legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string };
   legacyWeaknessId: ReturnType<typeof resolveWeaknessId>;
   liveSummary: ReturnType<typeof useQuizSession>['state']['result'];
+  onCloseReport: () => void;
   onOpenChallengePractice: () => void;
   onOpenExams: () => void;
   onOpenLegacyPractice: () => void;
@@ -36,7 +37,7 @@ export type UseResultScreenResult = {
   onRestartQuiz: () => void;
   persistResult: () => Promise<void>;
   saveErrorMessage: string | null;
-  saveState: SaveState;
+  saveState: ResultSaveState;
   snapshotSummary: ReturnType<typeof useCurrentLearner>['summary'] extends infer Summary
     ? Summary extends { latestDiagnosticSummary?: infer Snapshot }
       ? Snapshot | undefined
@@ -52,7 +53,7 @@ export function useResultScreen({
 }: QuizResultRouteParams): UseResultScreenResult {
   const { state, resetSession } = useQuizSession();
   const { profile, recordAttempt, session, summary: currentSummary } = useCurrentLearner();
-  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   const liveSummary = state.result;
@@ -139,6 +140,9 @@ export function useResultScreen({
     legacyPracticeParams,
     legacyWeaknessId,
     liveSummary,
+    onCloseReport: () => {
+      router.replace('/quiz');
+    },
     onOpenChallengePractice: () => {
       router.push({
         pathname: '/quiz/practice',

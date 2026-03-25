@@ -5,11 +5,13 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
+import { QuizResultReportView } from '@/features/quiz/components/quiz-result-report-view';
 
 export function QuizResultScreenView({
   legacyNextStep,
   legacyWeaknessId,
   liveSummary,
+  onCloseReport,
   onOpenChallengePractice,
   onOpenExams,
   onOpenLegacyPractice,
@@ -115,6 +117,20 @@ export function QuizResultScreenView({
   }
 
   const summary = liveSummary!;
+
+  if (!summary.allCorrect && summary.topWeaknesses.length > 0) {
+    return (
+      <QuizResultReportView
+        onClose={onCloseReport}
+        onOpenExams={onOpenExams}
+        onOpenWeaknessPractice={onOpenWeaknessPractice}
+        persistResult={persistResult}
+        saveErrorMessage={saveErrorMessage}
+        saveState={saveState}
+        summary={summary}
+      />
+    );
+  }
 
   return (
     <View style={styles.screen}>
