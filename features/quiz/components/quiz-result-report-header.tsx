@@ -30,7 +30,9 @@ export function QuizResultReportHeader({
         </Pressable>
       </View>
 
-      <PosterTitleBanner isCompactLayout={isCompactLayout} title="나의 약점 분석 리포트" />
+      <View style={styles.bannerWrap}>
+        <PosterTitleBanner isCompactLayout={isCompactLayout} title="나의 약점 분석 리포트" />
+      </View>
     </SafeAreaView>
   );
 }
@@ -43,6 +45,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 4,
     zIndex: 2,
+  },
+  bannerWrap: {
+    paddingHorizontal: 14,
   },
   backButton: {
     width: 38,
