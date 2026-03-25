@@ -1,8 +1,13 @@
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+
+const HERO_FRAME_SOURCE = require('./frame_note_with_stamp_transparent_cropped.png');
+const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
 
 type QuizResultReportHeaderProps = {
   isCompactLayout: boolean;
@@ -30,15 +35,25 @@ export function QuizResultReportHeader({
         </Pressable>
       </View>
 
-      <View style={[styles.ribbonWrap, isCompactLayout && styles.ribbonWrapCompact]}>
-        <View style={[styles.ribbonTail, styles.ribbonTailLeft]} />
-        <View style={[styles.ribbonTail, styles.ribbonTailRight]} />
-
-        <View style={[styles.ribbon, isCompactLayout && styles.ribbonCompact]}>
-          <View style={[styles.ribbonHighlight, isCompactLayout && styles.ribbonHighlightCompact]} />
-          <Text selectable style={[styles.title, isCompactLayout && styles.titleCompact]}>
-            나의 약점 분석 리포트
-          </Text>
+      <View style={styles.heroBlock}>
+        <View
+          style={[
+            styles.heroFrameWrap,
+            styles.heroFrameWrapRaised,
+            isCompactLayout && styles.heroFrameWrapCompact,
+            isCompactLayout && styles.heroFrameWrapRaisedCompact,
+          ]}>
+          <Image
+            contentFit="contain"
+            source={HERO_FRAME_SOURCE}
+            style={styles.heroFrameImage}
+            transition={0}
+          />
+          <View style={styles.heroFrameContent}>
+            <Text selectable style={[styles.title, isCompactLayout && styles.titleCompact]}>
+              나의 약점 분석 리포트
+            </Text>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -52,6 +67,7 @@ const styles = StyleSheet.create({
   topRow: {
     paddingHorizontal: 20,
     paddingTop: 4,
+    zIndex: 2,
   },
   backButton: {
     width: 38,
@@ -73,83 +89,48 @@ const styles = StyleSheet.create({
   backButtonPressed: {
     opacity: 0.84,
   },
-  ribbonWrap: {
-    paddingHorizontal: 22,
-    paddingTop: 10,
-    paddingBottom: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ribbonWrapCompact: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  ribbon: {
-    minHeight: 84,
+  heroBlock: {
     width: '100%',
-    maxWidth: 620,
+    alignItems: 'center',
+  },
+  heroFrameWrap: {
+    width: '100%',
+    maxWidth: 430,
+    aspectRatio: HERO_FRAME_ASPECT_RATIO,
+    position: 'relative',
+  },
+  heroFrameWrapRaised: {
+    transform: [{ translateY: -24 }],
+  },
+  heroFrameWrapCompact: {
+    maxWidth: 388,
+  },
+  heroFrameWrapRaisedCompact: {
+    transform: [{ translateY: -18 }],
+  },
+  heroFrameImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroFrameContent: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 18,
-    borderRadius: 18,
-    borderCurve: 'continuous',
-    borderWidth: 2,
-    borderColor: '#2B2520',
-    backgroundColor: '#FFFDF8',
-    boxShadow: '0 10px 24px rgba(36, 31, 25, 0.10)',
-  },
-  ribbonCompact: {
-    minHeight: 72,
-    paddingHorizontal: 22,
-    paddingVertical: 16,
-    borderRadius: 16,
-  },
-  ribbonTail: {
-    position: 'absolute',
-    top: 40,
-    width: 52,
-    height: 22,
-    backgroundColor: '#FFFDF8',
-    borderWidth: 2,
-    borderColor: '#2B2520',
-  },
-  ribbonTailLeft: {
-    left: 8,
-    transform: [{ rotate: '-26deg' }],
-    borderTopRightRadius: 6,
-    borderBottomLeftRadius: 8,
-  },
-  ribbonTailRight: {
-    right: 8,
-    transform: [{ rotate: '26deg' }],
-    borderTopLeftRadius: 6,
-    borderBottomRightRadius: 8,
-  },
-  ribbonHighlight: {
-    position: 'absolute',
-    bottom: 20,
-    width: 210,
-    height: 16,
-    borderRadius: 999,
-    backgroundColor: 'rgba(183, 218, 150, 0.50)',
-  },
-  ribbonHighlightCompact: {
-    width: 160,
-    height: 14,
-    bottom: 18,
+    paddingLeft: '13%',
+    paddingRight: '17%',
+    paddingBottom: '3%',
   },
   title: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -1.1,
-    color: '#1E1A17',
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.9,
+    color: BrandColors.primaryDark,
     textAlign: 'center',
+    transform: [{ translateX: 4 }],
   },
   titleCompact: {
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.8,
+    fontSize: 26,
+    lineHeight: 32,
   },
 });

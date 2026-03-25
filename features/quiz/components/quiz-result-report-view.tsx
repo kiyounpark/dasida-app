@@ -58,13 +58,13 @@ export function QuizResultReportView({
         />
 
         {saveState === 'saving' ? (
-        <View style={styles.statusCard}>
-          <Text selectable style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
-          <Text selectable style={styles.statusBody}>
-            결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
-          </Text>
-        </View>
-      ) : null}
+          <View style={styles.statusCard}>
+            <Text selectable style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
+            <Text selectable style={styles.statusBody}>
+              결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
+            </Text>
+          </View>
+        ) : null}
 
         {saveState === 'error' ? (
           <View style={[styles.statusCard, styles.errorCard]}>
@@ -79,14 +79,13 @@ export function QuizResultReportView({
         ) : null}
 
         <View style={styles.cardList}>
-          {visibleWeaknesses.map((weaknessId, index) => {
+          {visibleWeaknesses.map((weaknessId) => {
             const info = diagnosisMap[weaknessId];
 
             return (
               <QuizResultReportCard
                 key={weaknessId}
                 description={info.desc}
-                index={index}
                 isCompactLayout={isCompactLayout}
                 tip={info.tip}
                 title={info.labelKo}
