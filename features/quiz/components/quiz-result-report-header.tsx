@@ -1,13 +1,8 @@
-import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BrandColors } from '@/constants/brand';
-import { FontFamilies } from '@/constants/typography';
-
-const HERO_FRAME_SOURCE = require('./frame_note_with_stamp_transparent_cropped.png');
-const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
 
 type QuizResultReportHeaderProps = {
   isCompactLayout: boolean;
@@ -35,27 +30,7 @@ export function QuizResultReportHeader({
         </Pressable>
       </View>
 
-      <View style={styles.heroBlock}>
-        <View
-          style={[
-            styles.heroFrameWrap,
-            styles.heroFrameWrapRaised,
-            isCompactLayout && styles.heroFrameWrapCompact,
-            isCompactLayout && styles.heroFrameWrapRaisedCompact,
-          ]}>
-          <Image
-            contentFit="contain"
-            source={HERO_FRAME_SOURCE}
-            style={styles.heroFrameImage}
-            transition={0}
-          />
-          <View style={styles.heroFrameContent}>
-            <Text selectable style={[styles.title, isCompactLayout && styles.titleCompact]}>
-              나의 약점 분석 리포트
-            </Text>
-          </View>
-        </View>
-      </View>
+      <PosterTitleBanner isCompactLayout={isCompactLayout} title="나의 약점 분석 리포트" />
     </SafeAreaView>
   );
 }
@@ -88,49 +63,5 @@ const styles = StyleSheet.create({
   },
   backButtonPressed: {
     opacity: 0.84,
-  },
-  heroBlock: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  heroFrameWrap: {
-    width: '100%',
-    maxWidth: 430,
-    aspectRatio: HERO_FRAME_ASPECT_RATIO,
-    position: 'relative',
-  },
-  heroFrameWrapRaised: {
-    transform: [{ translateY: -24 }],
-  },
-  heroFrameWrapCompact: {
-    maxWidth: 388,
-  },
-  heroFrameWrapRaisedCompact: {
-    transform: [{ translateY: -18 }],
-  },
-  heroFrameImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroFrameContent: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: '13%',
-    paddingRight: '17%',
-    paddingBottom: '3%',
-  },
-  title: {
-    fontFamily: FontFamilies.extrabold,
-    fontSize: 30,
-    lineHeight: 36,
-    letterSpacing: -0.9,
-    color: BrandColors.primaryDark,
-    textAlign: 'center',
-    transform: [{ translateX: 4 }],
-  },
-  titleCompact: {
-    fontSize: 26,
-    lineHeight: 32,
   },
 });

@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -6,29 +5,10 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
-
-const HERO_FRAME_SOURCE = require('./frame_note_with_stamp_transparent_cropped.png');
-const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
+import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
-  return (
-    <View style={styles.heroBlock}>
-      <View
-        style={[
-          styles.heroFrameWrap,
-          styles.heroFrameWrapRaised,
-          isCompactLayout && styles.heroFrameWrapCompact,
-          isCompactLayout && styles.heroFrameWrapRaisedCompact,
-        ]}>
-        <Image contentFit="contain" source={HERO_FRAME_SOURCE} style={styles.heroFrameImage} transition={0} />
-        <View style={styles.heroFrameContent}>
-          <Text selectable style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact]}>
-            학습 여정
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+  return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
 }
 
 function FeedbackCard({
@@ -173,50 +153,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: BrandSpacing.lg,
-  },
-  heroBlock: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  heroFrameWrap: {
-    width: '100%',
-    maxWidth: 430,
-    aspectRatio: HERO_FRAME_ASPECT_RATIO,
-    position: 'relative',
-  },
-  heroFrameWrapRaised: {
-    transform: [{ translateY: -32 }],
-  },
-  heroFrameWrapCompact: {
-    maxWidth: 390,
-  },
-  heroFrameWrapRaisedCompact: {
-    transform: [{ translateY: -24 }],
-  },
-  heroFrameImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroFrameContent: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: '13%',
-    paddingRight: '17%',
-    paddingBottom: '3%',
-  },
-  heroTitle: {
-    fontFamily: FontFamilies.extrabold,
-    fontSize: 32,
-    lineHeight: 38,
-    letterSpacing: -0.9,
-    color: BrandColors.primaryDark,
-    textAlign: 'center',
-    transform: [{ translateX: 4 }],
-  },
-  heroTitleCompact: {
-    fontSize: 28,
-    lineHeight: 34,
   },
   noticePill: {
     width: '100%',
