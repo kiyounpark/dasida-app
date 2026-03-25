@@ -2,12 +2,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { FontFamilies } from '@/constants/typography';
-import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
-import {
-  DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT,
-  DIAGNOSTIC_PROGRESS_INNER_GLOW_COLOR,
-  DIAGNOSTIC_PROGRESS_OUTLINE_COLOR,
-} from '@/features/quiz/components/diagnostic-progress-theme';
 
 type DiagnosticProgressRingProps = {
   color: string;
@@ -30,10 +24,8 @@ export function DiagnosticProgressRing({
   const circumference = 2 * Math.PI * radius;
   const progress = total > 0 ? Math.min(current / total, 1) : 0;
   const strokeDashoffset = circumference * (1 - progress);
-  const shouldRenderHighlight = progress > 0;
   const currentLabel = String(current).padStart(2, '0');
   const totalLabel = String(total).padStart(2, '0');
-  const sketchStrokeWidth = Math.max(strokeWidth - 1.2, 3);
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
@@ -46,24 +38,8 @@ export function DiagnosticProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={DIAGNOSTIC_PROGRESS_OUTLINE_COLOR}
-          strokeWidth={1.4}
-          fill="none"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
           stroke={trackColor}
-          strokeWidth={sketchStrokeWidth}
-          fill="none"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius - 0.8}
-          stroke={DIAGNOSTIC_PROGRESS_INNER_GLOW_COLOR}
-          strokeWidth={0.8}
+          strokeWidth={strokeWidth}
           fill="none"
         />
         <Circle
@@ -71,34 +47,21 @@ export function DiagnosticProgressRing({
           cy={size / 2}
           r={radius}
           stroke={color}
-          strokeWidth={sketchStrokeWidth}
+          strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           fill="none"
         />
-        {shouldRenderHighlight ? (
-          <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={DIAGNOSTIC_PROGRESS_FILL_HIGHLIGHT}
-            strokeWidth={0.9}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset + circumference * 0.012}
-            strokeLinecap="round"
-            fill="none"
-          />
-        ) : null}
       </Svg>
 
       <View pointerEvents="none" style={styles.content}>
         <View style={styles.labelRow}>
-          <Text style={styles.currentLabel}>
+          <Text selectable style={styles.currentLabel}>
             {currentLabel}
           </Text>
-          <Text style={styles.totalLabel}>
-            {`/${totalLabel}`}
+          <Text selectable style={styles.totalLabel}>
+            {` / ${totalLabel}`}
           </Text>
         </View>
       </View>
@@ -126,14 +89,14 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.extrabold,
     fontSize: 18,
     lineHeight: 22,
-    color: DiagnosticSketchColors.ink,
+    color: '#293B27',
     fontVariant: ['tabular-nums'],
   },
   totalLabel: {
     fontFamily: FontFamilies.medium,
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 16,
-    color: DiagnosticSketchColors.mutedInk,
+    color: '#778276',
     fontVariant: ['tabular-nums'],
   },
 });

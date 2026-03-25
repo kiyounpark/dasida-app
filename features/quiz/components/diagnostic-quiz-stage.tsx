@@ -1,11 +1,11 @@
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { BrandColors } from '@/constants/brand';
+import { DiagnosticQuestionCard } from '@/features/quiz/components/diagnostic-question-card';
+import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnostic-solve-bottom-panel';
 import { DiagnosticSolveExitModal } from '@/features/quiz/components/diagnostic-solve-exit-modal';
 import { DiagnosticSolveHeader } from '@/features/quiz/components/diagnostic-solve-header';
-import { DiagnosticSketchNavButtons } from '@/features/quiz/components/diagnostic-sketch-nav-buttons';
-import { DiagnosticSketchPaperCard } from '@/features/quiz/components/diagnostic-sketch-paper-card';
-import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
+import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 type DiagnosticQuizStageProps = {
@@ -13,46 +13,43 @@ type DiagnosticQuizStageProps = {
 };
 
 export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
-  const { height, width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
   const isCompactLayout = width < 390 || height < 780;
 
   return (
     <View style={styles.screen}>
-      <DiagnosticSolveHeader
-        currentQuestionNumber={quizStage.currentQuestionNumber}
-        isCompactLayout={isCompactLayout}
-        onBackPress={quizStage.onOpenExitModal}
-        progressPercent={quizStage.progressPercent}
-        questionCount={quizStage.questionCount}
-      />
-
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          isCompactLayout ? styles.contentCompact : null,
-          { paddingBottom: Math.max(insets.bottom + 24, 36) },
-        ]}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.stage}>
-          <DiagnosticSketchPaperCard
-            key={quizStage.problem.id}
-            choices={quizStage.problem.choices}
+      <QuizSolveLayout
+        body={
+          <DiagnosticQuestionCard
             isCompactLayout={isCompactLayout}
-            onSelectChoice={quizStage.onSelectChoice}
             question={quizStage.problem.question}
-            selectedIndex={quizStage.selectedIndex}
           />
-
-          <DiagnosticSketchNavButtons
+        }
+        bodyContentContainerStyle={[styles.content, isCompactLayout ? styles.contentCompact : null]}
+        footer={
+          <DiagnosticSolveBottomPanel
             canGoPrevious={quizStage.canGoPrevious}
+            choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             isNextDisabled={quizStage.isNextDisabled}
             onNextPress={quizStage.onNextQuestion}
             onPreviousPress={quizStage.onPreviousQuestion}
+            onSelectChoice={quizStage.onSelectChoice}
+            problemId={quizStage.problem.id}
+            selectedIndex={quizStage.selectedIndex}
           />
-        </View>
-      </ScrollView>
+        }
+        header={
+          <DiagnosticSolveHeader
+            currentQuestionNumber={quizStage.currentQuestionNumber}
+            isCompactLayout={isCompactLayout}
+            onBackPress={quizStage.onOpenExitModal}
+            progressPercent={quizStage.progressPercent}
+            questionCount={quizStage.questionCount}
+          />
+        }
+        screenBackgroundColor={BrandColors.background}
+      />
 
       <DiagnosticSolveExitModal
         onClose={quizStage.onCloseExitModal}
@@ -66,24 +63,17 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: DiagnosticSketchColors.background,
+    backgroundColor: BrandColors.background,
   },
   content: {
-    flexGrow: 1,
     paddingHorizontal: 18,
-    paddingTop: 8,
-    gap: 22,
-  },
-  contentCompact: {
-    paddingHorizontal: 14,
-    paddingTop: 4,
+    paddingTop: 18,
+    paddingBottom: 24,
     gap: 18,
   },
-  stage: {
-    width: '100%',
-    maxWidth: 1120,
-    alignSelf: 'center',
-    alignItems: 'center',
-    gap: 22,
+  contentCompact: {
+    paddingTop: 16,
+    paddingBottom: 20,
+    gap: 16,
   },
 });

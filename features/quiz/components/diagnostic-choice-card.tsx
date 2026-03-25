@@ -1,17 +1,11 @@
-import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
+import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import {
-  DIAGNOSTIC_SKETCH_CHOICE_IDLE_SOURCE,
-  DIAGNOSTIC_SKETCH_CHOICE_SELECTED_SOURCE,
-  DiagnosticSketchColors,
-} from '@/features/quiz/components/diagnostic-sketch-assets';
 
 type DiagnosticChoiceCardProps = {
   index: number;
-  isFullWidth?: boolean;
   isCompactLayout: boolean;
   isSelected: boolean;
   onPress: () => void;
@@ -20,7 +14,6 @@ type DiagnosticChoiceCardProps = {
 
 export function DiagnosticChoiceCard({
   index,
-  isFullWidth = false,
   isCompactLayout,
   isSelected,
   onPress,
@@ -32,101 +25,116 @@ export function DiagnosticChoiceCard({
       accessibilityRole="radio"
       accessibilityState={{ selected: isSelected }}
       onPress={onPress}
-      style={({ pressed }) => [
+      style={[
         styles.card,
-        isFullWidth ? styles.cardFullWidth : styles.cardHalfWidth,
         isCompactLayout && styles.cardCompact,
-        pressed ? styles.cardPressed : null,
+        isSelected ? styles.cardSelected : styles.cardIdle,
       ]}>
-      <View pointerEvents="none" style={styles.background}>
-        <Image
-          contentFit="fill"
-          source={isSelected ? DIAGNOSTIC_SKETCH_CHOICE_SELECTED_SOURCE : DIAGNOSTIC_SKETCH_CHOICE_IDLE_SOURCE}
-          style={styles.backgroundImage}
-          transition={0}
-        />
-      </View>
-
-      <View style={styles.content}>
-        <Text style={[styles.indexText, isCompactLayout && styles.indexTextCompact]}>
+      <View
+        style={[
+          styles.indexBadge,
+          isCompactLayout && styles.indexBadgeCompact,
+          isSelected ? styles.indexBadgeSelected : styles.indexBadgeIdle,
+        ]}>
+        <Text
+          selectable
+          style={[
+            styles.indexText,
+            isCompactLayout && styles.indexTextCompact,
+            isSelected ? styles.indexTextSelected : styles.indexTextIdle,
+          ]}>
           {index + 1}
         </Text>
-
-        <View style={styles.textWrap}>
-          <MathText text={text} style={[styles.choiceText, isCompactLayout && styles.choiceTextCompact]} />
-        </View>
-
-        <View style={styles.trailingSpacer} />
       </View>
+
+      <MathText
+        selectable
+        text={text}
+        style={[
+          styles.choiceText,
+          isCompactLayout && styles.choiceTextCompact,
+          isSelected && styles.choiceTextSelected,
+        ]}
+      />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 76,
-    position: 'relative',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    minHeight: 68,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderRadius: 20,
+    borderCurve: 'continuous',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    boxShadow: '0 10px 24px rgba(36, 52, 38, 0.06)',
   },
   cardCompact: {
     minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    gap: 14,
+    borderRadius: 18,
+    paddingHorizontal: 16,
   },
-  cardHalfWidth: {
-    width: '48.4%',
+  cardIdle: {
+    borderWidth: 1,
+    borderColor: '#D7D4CD',
+    backgroundColor: '#FFFFFF',
   },
-  cardFullWidth: {
-    width: '100%',
+  cardSelected: {
+    borderWidth: 3,
+    borderColor: BrandColors.primaryDark,
+    backgroundColor: '#EEF8EE',
   },
-  cardPressed: {
-    opacity: 0.9,
-  },
-  background: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    flexDirection: 'row',
+  indexBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
+    justifyContent: 'center',
+  },
+  indexBadgeCompact: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+  },
+  indexBadgeIdle: {
+    borderWidth: 1,
+    borderColor: '#D1CEC7',
+    backgroundColor: '#FFFFFF',
+  },
+  indexBadgeSelected: {
+    backgroundColor: BrandColors.primaryDark,
   },
   indexText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 21,
-    lineHeight: 26,
-    color: DiagnosticSketchColors.ink,
-    textAlign: 'center',
-    width: 22,
+    fontSize: 19,
+    lineHeight: 24,
   },
   indexTextCompact: {
     fontSize: 18,
     lineHeight: 22,
-    width: 18,
   },
-  textWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 0,
+  indexTextIdle: {
+    color: '#948E83',
   },
-  trailingSpacer: {
-    width: 22,
+  indexTextSelected: {
+    color: '#FFFFFF',
   },
   choiceText: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 18,
-    lineHeight: 24,
-    color: DiagnosticSketchColors.ink,
-    textAlign: 'center',
+    flex: 1,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1B1A17',
+    textAlign: 'left',
   },
   choiceTextCompact: {
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  choiceTextSelected: {
+    color: '#111111',
   },
 });

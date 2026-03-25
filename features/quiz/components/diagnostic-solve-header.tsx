@@ -2,11 +2,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { DiagnosticProgressRing } from '@/features/quiz/components/diagnostic-progress-ring';
-import { DiagnosticSketchColors } from '@/features/quiz/components/diagnostic-sketch-assets';
-import { DIAGNOSTIC_PROGRESS_TRACK_COLOR } from '@/features/quiz/components/diagnostic-progress-theme';
-import { DiagnosticSketchProgressBar } from '@/features/quiz/components/diagnostic-sketch-progress-bar';
 
 type DiagnosticSolveHeaderProps = {
   currentQuestionNumber: number;
@@ -23,55 +21,44 @@ export function DiagnosticSolveHeader({
   progressPercent,
   questionCount,
 }: DiagnosticSolveHeaderProps) {
-  const ringSize = isCompactLayout ? 74 : 90;
-  const strokeWidth = isCompactLayout ? 7 : 8.5;
+  const ringSize = isCompactLayout ? 68 : 76;
+  const strokeWidth = isCompactLayout ? 6 : 7;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <View style={[styles.wrap, isCompactLayout && styles.wrapCompact]}>
-        <View style={[styles.topRow, isCompactLayout && styles.topRowCompact]}>
+      <View style={styles.wrap}>
+        <View style={styles.topRow}>
           <Pressable
             accessibilityHint="현재 진단을 나갈지 선택합니다"
             accessibilityLabel="뒤로가기"
             accessibilityRole="button"
             onPress={onBackPress}
-            style={[styles.backButton, isCompactLayout && styles.backButtonCompact]}>
-            <IconSymbol
-              color={DiagnosticSketchColors.ink}
-              name="chevron.left"
-              size={isCompactLayout ? 28 : 32}
-            />
-            <Text style={[styles.backLabel, isCompactLayout && styles.backLabelCompact]}>
+            style={styles.backButton}>
+            <IconSymbol color={BrandColors.primaryDark} name="chevron.left" size={isCompactLayout ? 24 : 28} />
+            <Text selectable style={[styles.backLabel, isCompactLayout && styles.backLabelCompact]}>
               Back
             </Text>
           </Pressable>
 
-          <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
-            numberOfLines={1}
-            style={[styles.title, isCompactLayout && styles.titleCompact]}>
+          <Text selectable numberOfLines={1} style={[styles.title, isCompactLayout && styles.titleCompact]}>
             10문제 약점 진단
           </Text>
 
-          <View style={[styles.ringWrap, isCompactLayout && styles.ringWrapCompact]}>
+          <View style={styles.ringWrap}>
             <DiagnosticProgressRing
-              color={DiagnosticSketchColors.green}
+              color={BrandColors.primaryDark}
               current={currentQuestionNumber}
               size={ringSize}
               strokeWidth={strokeWidth}
               total={questionCount}
-              trackColor={DIAGNOSTIC_PROGRESS_TRACK_COLOR}
+              trackColor="#E6E4DE"
             />
           </View>
         </View>
 
-        <DiagnosticSketchProgressBar
-          current={currentQuestionNumber}
-          isCompactLayout={isCompactLayout}
-          progressPercent={progressPercent}
-          total={questionCount}
-        />
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: progressPercent }]} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -79,68 +66,63 @@ export function DiagnosticSolveHeader({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: DiagnosticSketchColors.background,
+    backgroundColor: '#FFFFFF',
   },
   wrap: {
-    width: '100%',
-    maxWidth: 1120,
-    alignSelf: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 4,
-    paddingBottom: 12,
-    gap: 12,
-    backgroundColor: DiagnosticSketchColors.background,
-  },
-  wrapCompact: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 18,
+    gap: 18,
+    backgroundColor: '#FFFFFF',
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  topRowCompact: {
-    gap: 6,
+    gap: 10,
   },
   backButton: {
-    width: 112,
+    width: 92,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
   },
-  backButtonCompact: {
-    width: 78,
-    gap: 2,
-  },
   backLabel: {
     fontFamily: FontFamilies.medium,
-    fontSize: 21,
-    lineHeight: 27,
-    color: DiagnosticSketchColors.ink,
+    fontSize: 22,
+    lineHeight: 28,
+    color: BrandColors.primaryDark,
   },
   backLabelCompact: {
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 26,
   },
   title: {
     flex: 1,
     fontFamily: FontFamilies.extrabold,
-    fontSize: 30,
-    lineHeight: 37,
-    letterSpacing: -1.4,
-    color: DiagnosticSketchColors.ink,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.6,
+    color: BrandColors.primaryDark,
     textAlign: 'center',
   },
   titleCompact: {
-    fontSize: 19,
-    lineHeight: 23,
-    letterSpacing: -0.8,
+    fontSize: 22,
+    lineHeight: 28,
   },
   ringWrap: {
-    width: 112,
+    width: 92,
     alignItems: 'flex-end',
   },
-  ringWrapCompact: {
-    width: 74,
+  progressTrack: {
+    width: '100%',
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: '#E8E6E0',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: BrandColors.primaryDark,
   },
 });
