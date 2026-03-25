@@ -168,7 +168,7 @@ export function createInitialDiagnosisWorkspace(
         id: `${answerIndex}-prompt`,
         kind: 'bubble',
         role: 'assistant',
-        text: '첫 번째 문제예요. 가장 가까운 풀이를 하나 골라주세요.',
+        text: '이 문제는 어떻게 풀었나요?',
       },
       {
         id: `${answerIndex}-method-selector`,

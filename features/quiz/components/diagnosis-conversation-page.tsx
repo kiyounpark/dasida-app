@@ -10,7 +10,6 @@ import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-car
 import type { DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
 
 import { DiagnosisChatBubble } from './diagnosis-chat-bubble';
-import { DiagnosisPromptBubble } from './diagnosis-prompt-bubble';
 import {
   DiagnosisMethodSelectorCard,
   type DiagnosisMethodCardOption,
@@ -146,7 +145,6 @@ export function DiagnosisConversationPage({
   onRestoreHandled,
 }: DiagnosisConversationPageProps) {
   const scrollRef = useRef<ScrollView | null>(null);
-  const isCompactLayout = width < 390;
 
   useEffect(() => {
     if (!isActive || !shouldRestoreScroll) {
@@ -215,18 +213,11 @@ export function DiagnosisConversationPage({
                   key={entry.id}
                   entering={getEntryAnimation(entry)}
                   style={isAfterProblemPrompt ? styles.promptEntry : null}>
-                  {isAfterProblemPrompt && entry.role === 'assistant' ? (
-                    <DiagnosisPromptBubble
-                      isCompactLayout={isCompactLayout}
-                      text={entry.text}
-                    />
-                  ) : (
-                    <DiagnosisChatBubble
-                      role={entry.role}
-                      text={entry.text}
-                      tone={entry.tone}
-                    />
-                  )}
+                  <DiagnosisChatBubble
+                    role={entry.role}
+                    text={entry.text}
+                    tone={entry.tone}
+                  />
                 </Animated.View>
               );
             }

@@ -56,13 +56,12 @@ export function DiagnosisMethodSelectorCard({
         appearance === 'suggested' ? styles.suggestedAppearance : null,
         disabled ? styles.cardDisabled : null,
       ]}>
-      <View style={styles.headerAccent} />
       <View style={styles.header}>
         <Text selectable style={styles.title}>
-          가장 가까운 풀이 선택
+          어떤 방식으로 풀었나요?
         </Text>
         <Text selectable style={styles.helper}>
-          바로 고르거나, 선택지에 없다면 메모를 남겨 추천을 받을 수 있어요.
+          선택지로 바로 고르거나, 직접 적어서 추천을 받을 수 있어요.
         </Text>
       </View>
 
@@ -219,14 +218,8 @@ const styles = StyleSheet.create({
   header: {
     gap: 4,
   },
-  headerAccent: {
-    width: 54,
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: 'rgba(133, 167, 120, 0.24)',
-  },
   title: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     color: DiagnosisTheme.ink,
   },
