@@ -697,6 +697,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.25 22:15
+- 해시: `7e7e973` (`7e7e9731eb0602c282f0c94008add88f65550bf5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7e7e9731eb0602c282f0c94008add88f65550bf5
+- 작성자: 박기윤
+- 메시지: revert: 풀이 화면 정보형 화면으로 복귀
+
 ### 커밋 2026.03.25 19:15
 - 해시: `93aecea` (`93aecea0f2f0664612f12a425072d6b2df9add60`)
 - 브랜치: main
