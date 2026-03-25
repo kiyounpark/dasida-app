@@ -697,6 +697,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.25 23:53
+- 해시: `b2f7b5c` (`b2f7b5cd06e2c20a9b610f1fd2cc223acb1d069a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b2f7b5cd06e2c20a9b610f1fd2cc223acb1d069a
+- 작성자: 박기윤
+- 메시지: style: 약점 분석 리포트 화면 정리
+
 ### 커밋 2026.03.25 23:08
 - 해시: `b2fda94` (`b2fda9485fd61b47b04ce55a959ad19829f2c89c`)
 - 브랜치: main
