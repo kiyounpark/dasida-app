@@ -131,9 +131,9 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 36,
-    gap: 20,
+    paddingTop: 4,
+    paddingBottom: 24,
+    gap: 12,
   },
   containerCompact: {
     paddingHorizontal: 14,
@@ -182,17 +182,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cardList: {
-    gap: 18,
+    gap: 12,
   },
   ctaWrap: {
-    gap: 14,
-    paddingTop: 8,
+    gap: 10,
+    paddingTop: 4,
   },
   primaryCta: {
-    minHeight: 62,
+    minHeight: 50,
     borderRadius: 999,
     borderCurve: 'continuous',
-    paddingVertical: 18,
+    paddingVertical: 12,
     boxShadow: '0 14px 28px rgba(26, 38, 28, 0.12)',
   },
 });
