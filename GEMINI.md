@@ -7,7 +7,7 @@
 필요하면 `AI_AGENT_NAME=Gemini`를 지정합니다.
 
 2. 역할
-- 기본 구현 도구는 `Codex`입니다.
+- 기본 구현 도구는 `Claude`입니다.
 - Expo 스킬 검증의 권장 경로는 `Claude Code CLI`입니다.
 - Gemini는 보조 검토 또는 대체 검토 도구로 사용합니다.
 - Expo 스킬 저장소는 `.agents/skills/*`를 기준으로 확인합니다.

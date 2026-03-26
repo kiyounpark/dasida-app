@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-이 저장소에서 Claude는 Expo/React Native 변경의 검증과 리뷰를 우선 담당합니다.
+이 저장소에서 Claude는 기본 구현 도구이며, Expo/React Native 전문 스킬 기반으로 구현과 검증을 수행합니다.
 
 1. 시작 알림: `npm run notify:start -- "<요청 요약>"`
 웹훅은 `SLACK_WEBHOOK_URL` 또는 `~/.config/dasida/slack-webhook`에서 읽습니다.
 필요하면 `AI_AGENT_NAME=Claude`를 지정합니다.
 
 2. 기본 역할
-- 기본 구현 도구는 `Codex`이며, Claude는 Expo 스킬 기반 검증과 리뷰를 권장되는 방식으로 수행합니다.
+- Claude는 기본 구현 도구이며, Expo 스킬 기반으로 구현과 검증을 수행합니다. `Codex`는 필요시 보조 도구로 활용할 수 있습니다.
 - Expo 관련 리뷰 시 `.claude/skills/*` 링크 경로를 먼저 확인하고, 실제 스킬 소스는 `.agents/skills/*`를 기준으로 봅니다.
 - 코드 구조/리팩터링/커스텀 훅 분리 작업은 `.claude/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`를 먼저 확인합니다.
 - 이 저장소에는 `.claude/settings.json` 기반 Claude 훅이 포함되어 있으며, `UserPromptSubmit`가 관련 Expo 스킬을 자동 제안하고 `PreToolUse`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도합니다.
@@ -19,7 +19,7 @@
 - 순서: 패키지 설치 → `npx expo prebuild --clean` → `npx expo run:ios`
 - 이 규칙을 어기면 검정화면(JS 번들 로드 실패) 발생
 
-4. 검증이 권장되는 작업
+4. Claude 구현 및 검증 범위
 - 코드 구조 리팩터링, Thin Screen 전환, custom hook 분리
 - UI 구조 변경, 네비게이션 변경
 - API 호출, Firebase 연동, 캐싱, 에러 처리 변경
