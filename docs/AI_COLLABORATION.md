@@ -1,4 +1,4 @@
-# AI 협업 운영 규약 (Codex / Claude / Gemini 공통)
+# AI 협업 운영 규약 (Claude / Codex / Gemini 공통)
 
 ## 목적
 - 어떤 AI가 작업해도 동일한 방식으로 Slack 알림과 작업 절차를 유지합니다.
@@ -30,7 +30,7 @@
 1. 환경변수 방식
 ```bash
 echo 'export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."' >> ~/.zshrc
-echo 'export AI_AGENT_NAME="Codex"' >> ~/.zshrc
+echo 'export AI_AGENT_NAME="Claude"' >> ~/.zshrc
 source ~/.zshrc
 ```
 2. 머신 전역 설정 파일 방식
@@ -48,8 +48,8 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 ## 권장 작업 흐름
 1. 요청 파악
 2. `notify:start`
-3. 기본 구현은 `Codex`로 진행
-4. 필요한 경우 `Claude` 검증 권장
+3. 기본 구현은 `Claude`로 진행
+4. 필요한 경우 `Codex`를 보조 도구로 활용
 5. 테스트 실행
 6. `git commit`
 7. `git push origin <현재 브랜치>`
@@ -57,11 +57,10 @@ AI_AGENT_NAME=Gemini npm run notify:done -- "작업 완료"
 9. 결과 정리
 10. `notify:done` 또는 `notify:fail`
 
-## Codex + Claude 운영 모델
-- `Codex`: 기본 구현 도구
-- `Claude`: Expo 스킬 기반 검증과 리뷰에 권장되는 도구
+## Claude + Codex 운영 모델
+- `Claude`: 기본 구현 도구 (Expo 스킬 기반 구현 + 검증)
+- `Codex`: 보조 또는 대체 구현 도구 (필요시 활용)
 - `Gemini`: 보조 검토 또는 대체 검토 도구
-- Codex의 Expo 스킬 활용은 네이티브 자동 훅이 아니라 저장소 문서 규칙과 스킬 파일 참조를 통해 유도합니다.
 - Expo 스킬 소스오브트루스는 `.agents/skills/*`입니다.
 - 코드 구조 스킬 소스오브트루스는 `.agents/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`입니다.
 - `Claude`는 `.claude/skills/*` 링크 경로를 통해 같은 스킬 자산을 읽습니다.
@@ -130,11 +129,11 @@ Expo Skills와 dasida-code-structure 기준을 같이 적용해서,
 ```
 
 ## 비용 최적화 원칙
-- 모든 작업에 `Claude`를 붙이지 않습니다.
-- 기본 구현은 `Codex`로 진행합니다.
-- Expo 리스크가 큰 변경에서만 `Claude` 검증을 선택적으로 권장합니다.
-- `Claude` 검증은 권장 규칙이며 필수는 아닙니다.
-- 코드 구조 리팩터링은 `docs/ARCHITECTURE.md`와 로컬 구조 스킬을 기본 기준으로 삼고, 필요할 때만 Claude 검증을 추가합니다.
+- 기본 구현은 `Claude`로 진행합니다.
+- 단순 수정, 문서 변경, 영향 범위가 좁은 작업에는 스킬 확인을 생략할 수 있습니다.
+- 스킬 확인은 권장 규칙이며 필수는 아닙니다.
+- 코드 구조 리팩터링은 `docs/ARCHITECTURE.md`와 로컬 구조 스킬을 기본 기준으로 삼습니다.
+- `Codex`는 필요시 보조 또는 대체 구현 도구로 활용할 수 있습니다.
 
 ## 개발 기록 원칙
 - 개발 작업 정리 문서는 `docs/PROGRESS.md`
