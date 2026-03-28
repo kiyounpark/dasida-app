@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { BrandTypography } from '@/constants/typography';
 import type { ExamCategory, ExamCatalogItem } from '@/features/quiz/data/exam-catalog';
@@ -27,9 +27,12 @@ function ExamCard({
       <Text selectable style={styles.examEyebrow}>
         {item.year}년 {item.month}월
       </Text>
-      <Text selectable style={styles.examTitle}>
-        {item.title}
-      </Text>
+      <View style={styles.examTitleWrap}>
+        <View style={styles.examTitleHighlight} />
+        <Text selectable style={styles.examTitle}>
+          {item.title}
+        </Text>
+      </View>
       <Text selectable style={styles.examSubtitle}>
         {item.questionCount}문제
       </Text>
@@ -45,15 +48,18 @@ export function ExamSelectionScreenView({
   examItems,
   onSelectExam,
 }: UseExamSelectionScreenResult) {
+  const insets = useSafeAreaInsets();
+  const topPadding = insets.top + (isCompactLayout ? 38 : 42);
+
   return (
     <View style={styles.screen}>
-      <BrandHeader compact />
+      <View style={[styles.bannerWrap, { paddingTop: topPadding }]}>
+        <PosterTitleBanner title="시험 선택" isCompactLayout={isCompactLayout} />
+      </View>
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
-        <PosterTitleBanner title="시험 선택" isCompactLayout={isCompactLayout} />
-
+        contentContainerStyle={[styles.container, isCompactLayout && styles.containerCompact]}>
         {showCategoryToggle ? (
           <View style={styles.chipWrap}>
             {CATEGORY_OPTIONS.map((option) => {
@@ -96,12 +102,19 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
+  bannerWrap: {
+    paddingHorizontal: 14,
+    backgroundColor: BrandColors.background,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.md,
+    paddingTop: BrandSpacing.xs,
     paddingBottom: BrandSpacing.xxl,
     gap: BrandSpacing.md,
+  },
+  containerCompact: {
+    paddingTop: 4,
   },
   chipWrap: {
     flexDirection: 'row',
@@ -141,6 +154,18 @@ const styles = StyleSheet.create({
   },
   examCardPressed: {
     backgroundColor: '#F2F6F1',
+  },
+  examTitleWrap: {
+    position: 'relative',
+  },
+  examTitleHighlight: {
+    position: 'absolute',
+    top: 4,
+    left: 0,
+    width: 130,
+    height: 18,
+    borderRadius: 999,
+    backgroundColor: 'rgba(183, 218, 150, 0.46)',
   },
   examEyebrow: {
     ...BrandTypography.meta,
