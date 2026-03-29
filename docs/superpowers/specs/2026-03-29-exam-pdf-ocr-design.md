@@ -6,7 +6,16 @@
 
 ## 목표
 
-수능/모의고사 기출 PDF(스캔 이미지)에서 문제 메타데이터를 추출하고, 앱에서 실제 시험지처럼 풀 수 있는 데이터 파이프라인을 만든다.
+수능/모의고사 기출 PDF(스캔 이미지)에서 문제 메타데이터와 해설 데이터를 추출하고, 앱에서 실제 시험지처럼 풀 수 있는 데이터 파이프라인을 만든다.
+
+---
+
+## PDF 소스
+
+| PDF | 내용 | 형태 |
+|------|------|------|
+| **시험지 PDF** | 문제 (스캔 이미지) | 텍스트 레이어 없음 |
+| **해설 PDF** | 정답 + `[출제의도]` + 풀이 (텍스트 레이어 있음, 수식만 깨짐) | 텍스트 부분 추출 가능 |
 
 ---
 
@@ -14,9 +23,10 @@
 
 | 담당 | 역할 |
 |------|------|
-| **claude.ai 코워크** | PDF 읽기 → 문제별 메타데이터 추출 → JSON 저장 |
-| **Claude Code 스크립트** | PDF → 페이지 이미지 변환 |
+| **claude.ai 코워크** | 시험지 PDF → 문제 메타데이터 추출 / 해설 PDF → 해설 텍스트+수식 추출 |
+| **Claude Code 스크립트** | 시험지 PDF → 페이지 이미지 변환 / 해설 PDF → 정답 자동 파싱 |
 | **Claude Code 검증** | JSON 구조 유효성 검사 + PDF 대조 검증 |
+| **앱 AI** | 해설 JSON을 내부 컨텍스트로 활용 → 사용자에게 설명 (출처 언급 없이) |
 | **앱** | 페이지 이미지 표시 → 정오 판단 → 틀리면 진단 플로우 |
 
 ---
@@ -27,9 +37,12 @@
 data/
   pdfs/                          # 원본 PDF (gitignore 대상)
     mock-2025-10.pdf
-  problems/                      # 코워크 추출 결과 JSON
+    mock-2025-10-explanation.pdf
+  problems/                      # 코워크 추출 결과 JSON (시험지 메타)
     mock-2025-10.json
-  images/                        # PDF → 페이지 이미지 변환 결과
+  explanations/                  # 코워크 추출 결과 JSON (해설)
+    mock-2025-10.json
+  images/                        # 시험지 PDF → 페이지 이미지
     mock-2025-10/
       page-01.png
       page-02.png
@@ -76,6 +89,48 @@ data/
 
 `cps` · `vertex` · `diff` · `unknown` · `factoring` · `quadratic` · `radical` · `polynomial` · `complex_number` · `remainder_theorem` · `counting`
 
+---
+
+## 해설 JSON 스키마
+
+### 파일 구조 (`data/explanations/<examId>.json`)
+
+```json
+{
+  "examId": "mock-2025-10",
+  "extractedAt": "2026-03-29T00:00:00Z",
+  "explanations": [
+    {
+      "number": 1,
+      "intent": "근호를 포함한 식의 값을 계산한다.",
+      "text": "√75 = 5√3으로 변환하면...",
+      "formulas": ["\\sqrt{75} = 5\\sqrt{3}", "\\frac{6}{\\sqrt{3}} = 2\\sqrt{3}"]
+    }
+  ]
+}
+```
+
+### 필드 정의
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `number` | number | 문제 번호 |
+| `intent` | string | `[출제의도]` 텍스트 → `topic`/`diagnosisMethods` 자동 태깅에 활용 |
+| `text` | string | 풀이 서술 텍스트 |
+| `formulas` | string[] | LaTeX 수식 목록 |
+
+### 해설 데이터 활용 방식
+
+**A. AI 설명 생성 (출처 언급 없이)**
+- 문제 틀림 → AI가 `explanations[number]`를 내부 컨텍스트로 읽고 풀이 설명 생성
+- "EBS 해설" 언급 없이 자체 설명처럼 제공
+
+**C. `[출제의도]` → 자동 태깅**
+- `intent` 텍스트를 읽고 `topic`, `diagnosisMethods` 자동 추론
+- 코워크 추출 시 `problems.json`에 반영
+
+---
+
 ### 향후 확장 필드 (MVP 이후)
 
 ```json
@@ -102,18 +157,19 @@ data/
 
 ## 만들 것
 
-### 1. 코워크용 추출 프롬프트 (`docs/prompts/extract-exam-pdf.md`)
-코워크 세션에 붙여넣어 쓰는 표준 추출 지시문. 다음을 추출하도록 안내:
-- 문제 번호, 페이지, 유형, 배점, 정답, 단원, diagnosisMethods
+### 1. 코워크용 추출 프롬프트 2종 (`docs/prompts/`)
+- `extract-exam-pdf.md` — 시험지 PDF용: 문제 번호/페이지/유형/배점/정답/topic/diagnosisMethods 추출
+- `extract-explanation-pdf.md` — 해설 PDF용: `[출제의도]`/풀이 텍스트/수식 추출
 
 ### 2. TypeScript 타입 정의 (`scripts/types/exam-problem.ts`)
-JSON 스키마에 대응하는 타입. 검증 스크립트와 향후 앱 연동에 사용.
+`ExamProblemFile`, `ExamProblem`, `ExamExplanationFile`, `ExamExplanation` 타입 정의.
 
 ### 3. 구조 유효성 검사 스크립트 (`scripts/validate-problems.ts`)
-- 필수 필드 누락 체크
+- 필수 필드 누락 체크 (problems + explanations 모두)
 - `diagnosisMethods` 값이 유효한 `SolveMethodId`인지 확인
 - 문제 수가 `exam-catalog.ts`의 `questionCount`와 일치하는지 확인
 - 이미지 파일 존재 여부 확인 (`data/images/<examId>/page-XX.png`)
+- `problems[n].number`와 `explanations[n].number` 1:1 매칭 확인
 
 ### 4. PDF → 이미지 변환 스크립트 (`scripts/pdf-to-images.ts`)
 `data/pdfs/<examId>.pdf` → `data/images/<examId>/page-XX.png` 변환.
@@ -131,3 +187,4 @@ Claude Code가 동일 PDF를 Read한 후 추출된 JSON과 대조할 때 쓰는 
 - 문제 텍스트/수식 전문 추출 (페이지 이미지로 표시하므로 불필요)
 - 이미지 크롭 (boundingBox MVP 이후)
 - 진단 플로우 신규 `SolveMethodId` 추가 (별도 작업)
+- 해설 정답 자동 파싱 스크립트 (텍스트 레이어 확인 후 별도 작업)
