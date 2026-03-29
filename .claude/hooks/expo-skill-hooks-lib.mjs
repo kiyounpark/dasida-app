@@ -157,6 +157,26 @@ const SKILL_DEFINITIONS = [
     reason: 'API, Firebase, 네트워크 또는 캐싱 관련 키워드를 감지했습니다.',
   },
   {
+    name: 'dasida-exam-extraction',
+    keywords: [
+      'dasida-exam-extraction',
+      'pdf 추출',
+      '기출 추출',
+      '시험지 추출',
+      '해설 추출',
+      'ocr',
+      'exam extraction',
+      '문제 추출',
+      '해설 데이터',
+      'problems.json',
+      'explanations.json',
+      'diagnosisMethods',
+      '기출 pdf',
+      '모의고사 pdf',
+    ],
+    reason: '기출 PDF 추출 또는 해설 데이터 관련 키워드를 감지했습니다.',
+  },
+  {
     name: 'building-native-ui',
     keywords: [
       'building-native-ui',
