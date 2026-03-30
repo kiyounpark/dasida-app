@@ -3,14 +3,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { BrandTypography } from '@/constants/typography';
-import type { ExamCategory, ExamCatalogItem } from '@/features/quiz/data/exam-catalog';
+import type { ExamCatalogItem, ExamSubject, ExamType } from '@/features/quiz/data/exam-catalog';
 import type { UseExamSelectionScreenResult } from '@/features/quiz/hooks/use-exam-selection-screen';
 
 import { PosterTitleBanner } from './poster-title-banner';
 
-const CATEGORY_OPTIONS: { label: string; value: ExamCategory }[] = [
-  { label: '모의고사', value: 'mock_exam' },
-  { label: '학력평가', value: 'academic_assessment' },
+const TYPE_OPTIONS: { label: string; value: ExamType }[] = [
+  { label: '수능', value: 'csat' },
+  { label: '모의고사', value: 'mock' },
+  { label: '학력평가', value: 'academic' },
+];
+
+const SUBJECT_OPTIONS: { label: string; value: ExamSubject }[] = [
+  { label: '확통', value: 'stats' },
+  { label: '미적분', value: 'calc' },
+  { label: '기하', value: 'geom' },
 ];
 
 function ExamCard({
@@ -20,12 +27,14 @@ function ExamCard({
   item: ExamCatalogItem;
   onPress: () => void;
 }) {
+  const eyebrow = item.month ? `${item.year}년 ${item.month}월` : `${item.year}년`;
+
   return (
     <Pressable
       style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
       onPress={onPress}>
       <Text selectable style={styles.examEyebrow}>
-        {item.year}년 {item.month}월
+        {eyebrow}
       </Text>
       <View style={styles.examTitleWrap}>
         <View style={styles.examTitleHighlight} />
@@ -42,9 +51,11 @@ function ExamCard({
 
 export function ExamSelectionScreenView({
   isCompactLayout,
-  showCategoryToggle,
-  selectedCategory,
-  onSelectCategory,
+  showTypeToggle,
+  selectedType,
+  selectedSubject,
+  onSelectType,
+  onSelectSubject,
   examItems,
   onSelectExam,
 }: UseExamSelectionScreenResult) {
@@ -60,32 +71,53 @@ export function ExamSelectionScreenView({
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.container, isCompactLayout && styles.containerCompact]}>
-        {showCategoryToggle ? (
-          <View style={styles.chipWrap}>
-            {CATEGORY_OPTIONS.map((option) => {
-              const isSelected = selectedCategory === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[styles.chip, isSelected && styles.chipSelected]}
-                  onPress={() => onSelectCategory(option.value)}>
-                  <Text
-                    selectable
-                    style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+        {showTypeToggle ? (
+          <>
+            <View style={styles.chipWrap}>
+              {TYPE_OPTIONS.map((opt) => {
+                const isSelected = selectedType === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    style={[styles.chip, isSelected && styles.chipSelected]}
+                    onPress={() => onSelectType(opt.value)}>
+                    <Text
+                      selectable
+                      style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {selectedType !== 'csat' && (
+              <View style={styles.chipWrap}>
+                {SUBJECT_OPTIONS.map((opt) => {
+                  const isSelected = selectedSubject === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      style={[styles.chip, isSelected && styles.chipSelected]}
+                      onPress={() => onSelectSubject(opt.value)}>
+                      <Text
+                        selectable
+                        style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </>
         ) : null}
 
         <View style={styles.examList}>
           {examItems.map((item) => (
             <ExamCard
-              key={item.id}
+              key={item.examId}
               item={item}
-              onPress={() => onSelectExam(item.id)}
+              onPress={() => onSelectExam(item.examId)}
             />
           ))}
         </View>
