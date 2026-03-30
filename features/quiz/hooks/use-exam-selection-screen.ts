@@ -31,7 +31,9 @@ export function useExamSelectionScreen(): UseExamSelectionScreenResult {
   const { width } = useWindowDimensions();
   const isCompactLayout = width < 390;
 
-  const grade = (profile?.grade as 'g1' | 'g2' | 'g3' | undefined) ?? 'g3';
+  const rawGrade = profile?.grade;
+  const grade: 'g1' | 'g2' | 'g3' =
+    rawGrade === 'g1' || rawGrade === 'g2' || rawGrade === 'g3' ? rawGrade : 'g3';
   const isG3 = grade === 'g3';
 
   const [selectedType, setSelectedType] = useState<ExamTypeFilter>(
