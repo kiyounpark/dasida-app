@@ -697,6 +697,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.03.31 01:38
+- 해시: `5ab0676` (`5ab067662e4deb0b0d7ce535f23e802b1617f917`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5ab067662e4deb0b0d7ce535f23e802b1617f917
+- 작성자: 박기윤
+- 메시지: feat: 기출 풀기 기능 구현
+- 본문: - ExamSessionProvider: useReducer 기반 독립 세션 (DiagnosticSession과 분리) / - 풀기 화면: 객관식(1-5) + 단답형(숫자 키보드), 이미지 기반 문제 표시 / - 결과 화면: 획득점수/만점/정답률, Firebase 자동 저장 (source: 'exam') / - 결과 저장 후 약점 분석(진단) 또는 홈 이동 CTA / - 버그픽스: resetExam으로 stale isFinished 방지, 비동기 저장 재시도, 단답형 중복 저장 제거 / - 라우트: app/(tabs)/quiz/exam/ (solve, result, _layout) / - LearningSource에 'exam' 추가 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.03.26 00:10
 - 해시: `465ccef` (`465ccef4b7f406007320ce236d4a14697879ffee`)
 - 브랜치: main
