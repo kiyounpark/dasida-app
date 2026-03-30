@@ -1,0 +1,516 @@
+{
+  "examId": "g3-stats-mock-2024-06",
+  "extractedAt": "2026-03-29T15:58:34.000Z",
+  "problems": [
+    {
+      "number": 1,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/1.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.208,
+        "yEnd": 0.537
+      }
+    },
+    {
+      "number": 2,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/2.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.517,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 3,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/3.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.168,
+        "yEnd": 0.453
+      }
+    },
+    {
+      "number": 4,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "limit"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/4.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.433,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 5,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/5.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.104,
+        "yEnd": 0.479
+      }
+    },
+    {
+      "number": 6,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/6.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.459,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 7,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/7.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 8,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/8.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.493
+      }
+    },
+    {
+      "number": 9,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "limit"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/9.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.473,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 10,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/10.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 11,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/11.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 12,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/12.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.103,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 13,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/13.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 14,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/14.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.11,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 15,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/15.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 16,
+      "page": 6,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 7,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/16.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.142,
+        "yEnd": 0.516
+      }
+    },
+    {
+      "number": 17,
+      "page": 6,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 23,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/17.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.496,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 18,
+      "page": 7,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/18.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.106,
+        "yEnd": 0.434
+      }
+    },
+    {
+      "number": 19,
+      "page": 7,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 16,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/19.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.414,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 20,
+      "page": 7,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 24,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/20.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.111,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 21,
+      "page": 8,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 15,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/21.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 22,
+      "page": 8,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 231,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/22.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 23,
+      "page": 9,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "permutation"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/23.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.202,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 24,
+      "page": 9,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/24.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.164,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 25,
+      "page": 10,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "polynomial"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/25.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 26,
+      "page": 10,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/26.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 27,
+      "page": 11,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "permutation"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/27.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 28,
+      "page": 11,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/28.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 29,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 6,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/29.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.143,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 30,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 108,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "permutation"
+      ],
+      "imageKey": "assets/exam/g3-stats-mock-2024-06/problems/30.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    }
+  ]
+}

@@ -1,0 +1,516 @@
+{
+  "examId": "g3-stats-csat-2023",
+  "extractedAt": "2026-03-29T15:58:33.000Z",
+  "problems": [
+    {
+      "number": 1,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/1.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.201,
+        "yEnd": 0.536
+      }
+    },
+    {
+      "number": 2,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/2.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.516,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 3,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/3.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.163,
+        "yEnd": 0.519
+      }
+    },
+    {
+      "number": 4,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "limit"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/4.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.499,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 5,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/5.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.109,
+        "yEnd": 0.504
+      }
+    },
+    {
+      "number": 6,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/6.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.484,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 7,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/7.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 8,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/8.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.519
+      }
+    },
+    {
+      "number": 9,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/9.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.499,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 10,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/10.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 11,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/11.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.11,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 12,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "integral"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/12.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 13,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/13.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 14,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "function"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/14.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 15,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/15.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 16,
+      "page": 6,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/16.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.143,
+        "yEnd": 0.541
+      }
+    },
+    {
+      "number": 17,
+      "page": 6,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 8,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/17.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.521,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 18,
+      "page": 7,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 9,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "sequence"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/18.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.512
+      }
+    },
+    {
+      "number": 19,
+      "page": 7,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 32,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/19.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.492,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 20,
+      "page": 7,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 25,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/20.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.101,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 21,
+      "page": 8,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 10,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "log_exp"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/21.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 22,
+      "page": 8,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 483,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/22.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 23,
+      "page": 9,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "permutation"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/23.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.202,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 24,
+      "page": 9,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "permutation"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/24.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.164,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 25,
+      "page": 10,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/25.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 26,
+      "page": 10,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/26.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.105,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 27,
+      "page": 11,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "probability"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/27.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 28,
+      "page": 11,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 4,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "statistics"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/28.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 29,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 196,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "statistics"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/29.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.143,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 30,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 673,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "statistics"
+      ],
+      "imageKey": "assets/exam/g3-stats-csat-2023/problems/30.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.104,
+        "yEnd": 0.93
+      }
+    }
+  ]
+}

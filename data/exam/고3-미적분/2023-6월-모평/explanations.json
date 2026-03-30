@@ -1,0 +1,216 @@
+{
+  "examId": "g3-calc-mock-2023-06",
+  "extractedAt": "2026-03-29T15:58:37.000Z",
+  "explanations": [
+    {
+      "number": 1,
+      "intent": "지수법칙을 이용하여 식의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 2,
+      "intent": "다항함수의 미분과 미분계 수의 정의를 이해하고 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 3,
+      "intent": "합의 기호 의 성질을 이해하고 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 4,
+      "intent": "함수가 연속일 조건을 이 용하여 함숫값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 5,
+      "intent": "함수의 곱의 미분법을 이 용하여 미분계수를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 6,
+      "intent": "삼각함수 사이의 관계를 이해하여 사인함수의 값을 구할 수 있는 가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 7,
+      "intent": "로그함수의 점근선을 이용 하여 선분의 길이를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 8,
+      "intent": "함수의 그래프의 개형을 이용하여 두 곡선이 두 점에서 만나도록 하는 조건을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 9,
+      "intent": "주어진 조건을 이용하여 분수꼴로 나타낸 수열의 합을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 10,
+      "intent": "정적분을 이용하여 곡선 과 좌표축으로 둘러싸인 두 영역의 넓이 를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 11,
+      "intent": "도함수를 활용하여 문제 를 해결할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 12,
+      "intent": "등차수열의 정의와 성질 을 이용하여 주어진 조건을 만족시키는 등차수열의 특정한 항의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 13,
+      "intent": "사인법칙, 코사인법칙과 삼각형의 넓이를 이용하여 조건을 만족 시키는 사각형의 변의 길이를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 14,
+      "intent": "정적분을 활용하여 위치 의 변화량의 최댓값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 15,
+      "intent": "귀납적으로 정의된 수열 을 이해하고 주어진 조건을 만족시키는 수열의 항을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 16,
+      "intent": "지수부등식을 만족시키는 자연수의 합을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 17,
+      "intent": "부정적분을 이용하여 함 숫값을 구할 수 있는가? 10",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 18,
+      "intent": "도함수를 활용하여 함수 의 극댓값과 극솟값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 19,
+      "intent": "사인함수의 최댓값, 최솟 값 및 주기를 이해하고, 그래프를 이용 하여 문제를 해결할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 20,
+      "intent": "정적분의 성질을 활용하 여 함숫값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 21,
+      "intent": "지수함수와 로그함수의 그래프를 이해하고 활용할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 22,
+      "intent": "도함수를 활용하고 함수 의 극대, 극소를 고려하여 조건을 만족 시키는 삼차함수를 찾아 미분계수를 구 할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 23,
+      "intent": "수열의 극한값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 24,
+      "intent": "매개변수로 나타내어진 함수의 미분계수를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 25,
+      "intent": "지수함수의 극한값을 구 할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 26,
+      "intent": "미분법을 이용하여 방정 식이 서로 다른 실근의 개수가 2일 조건 을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 27,
+      "intent": "두 직선이 이루는 예각 의 크기를 이용하여 함수의 극한값을 구 할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 28,
+      "intent": "함수의 그래프의 개형을 이용하여 에 대한 관계식을 구한 후, 상수 의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 29,
+      "intent": "음함수의 미분법을 이용 하여 주어진 조건을 만족시키는 상수의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 30,
+      "intent": "조건을 만족시키는 급수 의 합을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    }
+  ]
+}

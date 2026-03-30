@@ -1,0 +1,464 @@
+{
+  "generatedAt": "2026-03-29T16:16:01.000Z",
+  "total": 57,
+  "ok": 53,
+  "warnings": 4,
+  "summary": [
+    {
+      "examId": "g1-academic-2024-03",
+      "subject": "고1-공통",
+      "exam": "2024-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g1-academic-2025-03",
+      "subject": "고1-공통",
+      "exam": "2025-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g1-academic-2026-03",
+      "subject": "고1-공통",
+      "exam": "2026-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g2-academic-2024-03",
+      "subject": "고2-공통",
+      "exam": "2024-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g2-academic-2025-03",
+      "subject": "고2-공통",
+      "exam": "2025-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g2-academic-2026-03",
+      "subject": "고2-공통",
+      "exam": "2026-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-academic-2022-03",
+      "subject": "고3-기하",
+      "exam": "2022-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2022-06",
+      "subject": "고3-기하",
+      "exam": "2022-6월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2022-09",
+      "subject": "고3-기하",
+      "exam": "2022-9월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-csat-2022",
+      "subject": "고3-기하",
+      "exam": "2022-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-academic-2023-03",
+      "subject": "고3-기하",
+      "exam": "2023-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2023-06",
+      "subject": "고3-기하",
+      "exam": "2023-6월-모평",
+      "answers": 22,
+      "intents": 0,
+      "ok": false
+    },
+    {
+      "examId": "g3-geom-mock-2023-09",
+      "subject": "고3-기하",
+      "exam": "2023-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-csat-2023",
+      "subject": "고3-기하",
+      "exam": "2023-수능",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-academic-2024-03",
+      "subject": "고3-기하",
+      "exam": "2024-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2024-06",
+      "subject": "고3-기하",
+      "exam": "2024-6월-모평",
+      "answers": 28,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2024-09",
+      "subject": "고3-기하",
+      "exam": "2024-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-csat-2024",
+      "subject": "고3-기하",
+      "exam": "2024-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-academic-2025-03",
+      "subject": "고3-기하",
+      "exam": "2025-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2025-06",
+      "subject": "고3-기하",
+      "exam": "2025-6월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-mock-2025-09",
+      "subject": "고3-기하",
+      "exam": "2025-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-geom-csat-2025",
+      "subject": "고3-기하",
+      "exam": "2025-수능",
+      "answers": 22,
+      "intents": 0,
+      "ok": false
+    },
+    {
+      "examId": "g3-geom-academic-2026-03",
+      "subject": "고3-기하",
+      "exam": "2026-3월-학평--기하",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-academic-2022-03",
+      "subject": "고3-미적분",
+      "exam": "2022-3월-학평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2022-06",
+      "subject": "고3-미적분",
+      "exam": "2022-6월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2022-09",
+      "subject": "고3-미적분",
+      "exam": "2022-9월-모평",
+      "answers": 25,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-csat-2022",
+      "subject": "고3-미적분",
+      "exam": "2022-수능",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-academic-2023-03",
+      "subject": "고3-미적분",
+      "exam": "2023-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2023-06",
+      "subject": "고3-미적분",
+      "exam": "2023-6월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2023-09",
+      "subject": "고3-미적분",
+      "exam": "2023-9월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-csat-2023",
+      "subject": "고3-미적분",
+      "exam": "2023-수능",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-academic-2024-03",
+      "subject": "고3-미적분",
+      "exam": "2024-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2024-06",
+      "subject": "고3-미적분",
+      "exam": "2024-6월-모평",
+      "answers": 28,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2024-09",
+      "subject": "고3-미적분",
+      "exam": "2024-9월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-csat-2024",
+      "subject": "고3-미적분",
+      "exam": "2024-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-academic-2025-03",
+      "subject": "고3-미적분",
+      "exam": "2025-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-mock-2025-06",
+      "subject": "고3-미적분",
+      "exam": "2025-6월-모평",
+      "answers": 22,
+      "intents": 0,
+      "ok": false
+    },
+    {
+      "examId": "g3-calc-mock-2025-09",
+      "subject": "고3-미적분",
+      "exam": "2025-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-csat-2025",
+      "subject": "고3-미적분",
+      "exam": "2025-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-calc-academic-2026-03",
+      "subject": "고3-미적분",
+      "exam": "2026-3월-학평",
+      "answers": 0,
+      "intents": 0,
+      "ok": false
+    },
+    {
+      "examId": "g3-stats-academic-2022-03",
+      "subject": "고3-확률과통계",
+      "exam": "2022-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2022-06",
+      "subject": "고3-확률과통계",
+      "exam": "2022-6월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2022-09",
+      "subject": "고3-확률과통계",
+      "exam": "2022-9월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-csat-2022",
+      "subject": "고3-확률과통계",
+      "exam": "2022-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2023-06",
+      "subject": "고3-확률과통계",
+      "exam": "2023-6월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2023-09",
+      "subject": "고3-확률과통계",
+      "exam": "2023-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-csat-2023",
+      "subject": "고3-확률과통계",
+      "exam": "2023-수능",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-academic-2023-03",
+      "subject": "고3-확률과통계",
+      "exam": "2023-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-academic-2024-03",
+      "subject": "고3-확률과통계",
+      "exam": "2024-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2024-06",
+      "subject": "고3-확률과통계",
+      "exam": "2024-6월-모평",
+      "answers": 30,
+      "intents": 0,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2024-09",
+      "subject": "고3-확률과통계",
+      "exam": "2024-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-csat-2024",
+      "subject": "고3-확률과통계",
+      "exam": "2024-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-academic-2025-03",
+      "subject": "고3-확률과통계",
+      "exam": "2025-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2025-06",
+      "subject": "고3-확률과통계",
+      "exam": "2025-6월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-mock-2025-09",
+      "subject": "고3-확률과통계",
+      "exam": "2025-9월-모평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-csat-2025",
+      "subject": "고3-확률과통계",
+      "exam": "2025-수능",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    },
+    {
+      "examId": "g3-stats-academic-2026-03",
+      "subject": "고3-확률과통계",
+      "exam": "2026-3월-학평",
+      "answers": 30,
+      "intents": 30,
+      "ok": true
+    }
+  ]
+}

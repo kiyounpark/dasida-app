@@ -1,0 +1,518 @@
+{
+  "examId": "g2-academic-2025-03",
+  "extractedAt": "2026-03-29T15:58:32.000Z",
+  "problems": [
+    {
+      "number": 1,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 4,
+      "topic": "다항식",
+      "diagnosisMethods": [
+        "polynomial"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/1.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.163,
+        "yEnd": 0.496
+      }
+    },
+    {
+      "number": 2,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 3,
+      "topic": "기타",
+      "diagnosisMethods": [
+        "complex_number"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/2.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.466,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 3,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 5,
+      "topic": "순열/조합",
+      "diagnosisMethods": [
+        "counting"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/3.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.128,
+        "yEnd": 0.502
+      }
+    },
+    {
+      "number": 4,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/4.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.472,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 5,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "function"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/5.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.475
+      }
+    },
+    {
+      "number": 6,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 3,
+      "topic": "이차방정식",
+      "diagnosisMethods": [
+        "quadratic"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/6.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.445,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 7,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/7.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 8,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "부등식",
+      "diagnosisMethods": [
+        "linear_eq"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/8.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.471
+      }
+    },
+    {
+      "number": 9,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/9.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.441,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 10,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/10.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.084,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 11,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 4,
+      "topic": "무리수/실수",
+      "diagnosisMethods": [
+        "complex_number"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/11.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 12,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/12.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 13,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/13.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.093,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 14,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/14.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.088,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 15,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "무리수/실수",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/15.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 16,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 5,
+      "topic": "순열/조합",
+      "diagnosisMethods": [
+        "counting"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/16.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 17,
+      "page": 7,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/17.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 18,
+      "page": 7,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 4,
+      "topic": "순열/조합",
+      "diagnosisMethods": [
+        "remainder_theorem",
+        "counting"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/18.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 19,
+      "page": 8,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 2,
+      "topic": "다항식",
+      "diagnosisMethods": [
+        "remainder_theorem"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/19.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 20,
+      "page": 8,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "집합",
+      "diagnosisMethods": [
+        "set"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/20.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 21,
+      "page": 9,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 2,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/21.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 22,
+      "page": 9,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 23,
+      "topic": "집합",
+      "diagnosisMethods": [
+        "set"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/22.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.123,
+        "yEnd": 0.473
+      }
+    },
+    {
+      "number": 23,
+      "page": 9,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 145,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/23.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.443,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 24,
+      "page": 10,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 25,
+      "topic": "이차방정식",
+      "diagnosisMethods": [
+        "complex_number"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/24.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.463
+      }
+    },
+    {
+      "number": 25,
+      "page": 10,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 8,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "function"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/25.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.433,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 26,
+      "page": 10,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 27,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/26.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 27,
+      "page": 11,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 3,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "diff"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/27.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 28,
+      "page": 11,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 29,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "trig"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/28.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 29,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 38,
+      "topic": "순열/조합",
+      "diagnosisMethods": [
+        "remainder_theorem",
+        "counting"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/29.webp",
+      "bbox": {
+        "column": "left",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    },
+    {
+      "number": 30,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 68,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "proposition"
+      ],
+      "imageKey": "assets/exam/g2-academic-2025-03/problems/30.webp",
+      "bbox": {
+        "column": "right",
+        "yStart": 0.089,
+        "yEnd": 0.93
+      }
+    }
+  ]
+}

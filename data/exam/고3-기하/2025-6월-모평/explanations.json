@@ -1,0 +1,216 @@
+{
+  "examId": "g3-geom-mock-2025-06",
+  "extractedAt": "2026-03-29T15:58:36.000Z",
+  "explanations": [
+    {
+      "number": 1,
+      "intent": "지수법칙을 이용하여 식의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 2,
+      "intent": "미분계수를 이용하여 극한 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 3,
+      "intent": "시그마의 정의를 이용하여 합을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 4,
+      "intent": "함수의 연속의 정의를 이 용하여 미지수의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 5,
+      "intent": "정적분의 값을 구할 수 있 2 는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 6,
+      "intent": "삼각함수의 그래프의 최댓 값과 주기를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 7,
+      "intent": "함수의 곱의 미분법을 이 용하여 미분계수를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 8,
+      "intent": "삼각함수의 성질과 삼각함 수 사이의 관계를 이용하여 삼각함수의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 9,
+      "intent": "정적분의 성질을 이용하여 주어진 식을 만족시키는 함수의 미정계 수를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 10,
+      "intent": "로그의 성질과 로그방정 식을 이용하여 미지수의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 11,
+      "intent": "위치, 속도, 가속도 사이 의 관계 및 미분을 이용하여 가속도를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 12,
+      "intent": "수열의 귀납적 정의를 이용하여 수열의 특정한 항의 최댓값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 13,
+      "intent": "정적분과 넓이의 관계를 이용하여 주어진 조건을 만족시키는 상 수 의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 14,
+      "intent": "사인법칙과 코사인법칙을 활용하여 삼각형의 외접원의 넓이를 구 할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 15,
+      "intent": "미분을 이용하여 상수와 함숫값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 16,
+      "intent": "로그에 미지수가 포함된 방정식의 해를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 17,
+      "intent": "다항함수의 부정적분을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 18,
+      "intent": "의 성질을 이용하여 식의 값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 19,
+      "intent": "함수의 그래프를 이용하 여 극솟값을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 20,
+      "intent": "주기함수를 이해하고 등 차수열의 일반항을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 21,
+      "intent": "함수의 극한의 성질을 이용하여 주어진 조건을 만족시키는 함 수를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 22,
+      "intent": "지수함수의 그래프를 이 용하여 문제를 해결할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 23,
+      "intent": "성분으로 나타낸 평면벡 터의 연산을 할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 24,
+      "intent": "확률의 덧셈정리와 배반 사건, 여사건의 확률을 이용하여 확률을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 25,
+      "intent": "급수와 수열의 극한값 사이의 관계를 이용하여 미지수를 구한 후 급수의 합을 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 26,
+      "intent": "역함수의 미분법을 이용 하여 문제를 해결할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 27,
+      "intent": "벡터의 내적을 이용하여 삼각형의 넓이를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 28,
+      "intent": "타원의 정의와 도형의 성질을 이용하여 타원의 장축의 길이를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 29,
+      "intent": "쌍곡선의 정의와 도형의 성질을 이용하여 쌍곡선의 주축의 길이 를 구할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    },
+    {
+      "number": 30,
+      "intent": "도함수를 활용하여 문제 를 해결할 수 있는가?",
+      "text": "[풀이 텍스트 추출 필요]",
+      "formulas": [],
+      "imageKey": null
+    }
+  ]
+}

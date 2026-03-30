@@ -1,0 +1,336 @@
+{
+  "examId": "g3-geom-mock-2025-09",
+  "extractedAt": "2026-03-29T15:58:36.000Z",
+  "problems": [
+    {
+      "number": 1,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 4,
+      "topic": "지수함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 2,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 2,
+      "answer": 4,
+      "topic": "미분",
+      "diagnosisMethods": [
+        "diff"
+      ]
+    },
+    {
+      "number": 3,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "수열",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 4,
+      "page": 1,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "극한/연속",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 5,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 2,
+      "topic": "미분",
+      "diagnosisMethods": [
+        "diff"
+      ]
+    },
+    {
+      "number": 6,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 5,
+      "topic": "삼각함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 7,
+      "page": 2,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 1,
+      "topic": "미분",
+      "diagnosisMethods": [
+        "diff"
+      ]
+    },
+    {
+      "number": 8,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 3,
+      "topic": "로그함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 9,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 2,
+      "topic": "미분",
+      "diagnosisMethods": [
+        "diff"
+      ]
+    },
+    {
+      "number": 10,
+      "page": 3,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "수열",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 11,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 5,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 12,
+      "page": 4,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 1,
+      "topic": "지수함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 13,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 4,
+      "topic": "극한/연속",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 14,
+      "page": 5,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 3,
+      "topic": "삼각함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 15,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 5,
+      "topic": "함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 16,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 8,
+      "topic": "수열",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 17,
+      "page": 6,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 17,
+      "topic": "적분",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 18,
+      "page": 7,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 30,
+      "topic": "수열",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 19,
+      "page": 7,
+      "type": "multiple_choice",
+      "score": 3,
+      "answer": 10,
+      "topic": "함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 20,
+      "page": 7,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 12,
+      "topic": "삼각함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 21,
+      "page": 8,
+      "type": "multiple_choice",
+      "score": 4,
+      "answer": 296,
+      "topic": "미분",
+      "diagnosisMethods": [
+        "diff"
+      ]
+    },
+    {
+      "number": 22,
+      "page": 8,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 73,
+      "topic": "로그함수",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 23,
+      "page": 9,
+      "type": "short_answer",
+      "score": 2,
+      "answer": 2,
+      "topic": "이차곡선",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 24,
+      "page": 9,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 4,
+      "topic": "벡터",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 25,
+      "page": 10,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 1,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 26,
+      "page": 10,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 1,
+      "topic": "명제",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 27,
+      "page": 11,
+      "type": "short_answer",
+      "score": 3,
+      "answer": 2,
+      "topic": "이차곡선",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 28,
+      "page": 11,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 4,
+      "topic": "방정식",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 29,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 396,
+      "topic": "이차곡선",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    },
+    {
+      "number": 30,
+      "page": 12,
+      "type": "short_answer",
+      "score": 4,
+      "answer": 69,
+      "topic": "벡터",
+      "diagnosisMethods": [
+        "unknown"
+      ]
+    }
+  ]
+}
