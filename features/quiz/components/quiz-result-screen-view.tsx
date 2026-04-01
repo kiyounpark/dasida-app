@@ -337,9 +337,6 @@ const styles = StyleSheet.create({
   buttonGap: {
     marginTop: 10,
   },
-  secondaryButtonGap: {
-    marginTop: 8,
-  },
   legacyLabel: {
     fontSize: 16,
     fontWeight: '700',
