@@ -697,6 +697,35 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.02 00:32
+- 해시: `43b5df5` (`43b5df52635108aad9a18f5c1e17ab0b10aa8eed`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/43b5df52635108aad9a18f5c1e17ab0b10aa8eed
+- 작성자: 박기윤
+- 메시지: feat: 설정 화면에서 온보딩 화면 진입 버튼 추가 (개발용)
+- 본문: 소셜 로그인 후 온보딩 플로우 테스트를 위해 설정 화면에 / 온보딩 화면 이동 버튼을 추가. __DEV__ 빌드에서만 노출. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.02 00:28
+- 해시: `6c2111b` (`6c2111b4a3ae962a3f6603fdc388acb123865a27`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6c2111b4a3ae962a3f6603fdc388acb123865a27
+- 작성자: 박기윤
+- 메시지: Merge branch 'fix/firestore-permission-denied'
+
+### 커밋 2026.04.01 21:33
+- 해시: `e809037` (`e80903748328dd91411fe6b25563a3ea1ebc2a59`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e80903748328dd91411fe6b25563a3ea1ebc2a59
+- 작성자: 박기윤
+- 메시지: fix: 온보딩 submit 에러 처리 추가, 미인증 접근 가드 추가
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.01 19:06
 - 해시: `9fbc672` (`9fbc672d768607811a824012a8eb7bec94775c0b`)
 - 브랜치: main
