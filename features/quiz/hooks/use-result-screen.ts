@@ -29,7 +29,6 @@ export type UseResultScreenResult = {
   liveSummary: ReturnType<typeof useQuizSession>['state']['result'];
   onCloseReport: () => void;
   onOpenChallengePractice: () => void;
-  onOpenExams: () => void;
   onOpenLegacyPractice: () => void;
   onOpenSnapshotDiagnostic: () => void;
   onOpenSnapshotPractice: (weaknessId: string) => void;
@@ -148,9 +147,6 @@ export function useResultScreen({
         pathname: '/quiz/practice',
         params: { mode: 'challenge' },
       });
-    },
-    onOpenExams: () => {
-      router.push('/quiz/exams');
     },
     onOpenLegacyPractice: () => {
       router.push({
