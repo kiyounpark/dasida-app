@@ -35,6 +35,7 @@ export type FeaturedExamState = {
 export type LearnerProfile = {
   accountKey: string;
   learnerId: string;
+  nickname: string;
   grade: LearnerGrade;
   createdAt: string;
   updatedAt: string;

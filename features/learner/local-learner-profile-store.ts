@@ -32,6 +32,7 @@ export class LocalLearnerProfileStore implements LearnerProfileStore {
     const profile: LearnerProfile = {
       accountKey,
       learnerId: createRandomId(),
+      nickname: '',
       grade: 'unknown',
       createdAt: timestamp,
       updatedAt: timestamp,
