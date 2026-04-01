@@ -51,3 +51,4 @@ app-example
 .claude/settings.local.json
 
 .superpowers/
+.worktrees/
