@@ -23,6 +23,7 @@ function AuthGateRedirector() {
   const rootSegment = segments[0];
   const isSignInRoute = rootSegment === 'sign-in';
   const isTabsRoute = rootSegment === '(tabs)';
+  const isOnboardingRoute = rootSegment === 'onboarding';
 
   useEffect(() => {
     if (!isReady || authGateState === 'loading') {
@@ -30,7 +31,7 @@ function AuthGateRedirector() {
     }
 
     if (authGateState === 'required') {
-      if (isTabsRoute) {
+      if (isTabsRoute || isOnboardingRoute) {
         router.replace('/sign-in');
       }
       return;
@@ -39,7 +40,7 @@ function AuthGateRedirector() {
     if (isSignInRoute) {
       router.replace('/(tabs)/quiz');
     }
-  }, [authGateState, isReady, isSignInRoute, isTabsRoute]);
+  }, [authGateState, isReady, isOnboardingRoute, isSignInRoute, isTabsRoute]);
 
   return null;
 }

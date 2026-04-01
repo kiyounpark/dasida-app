@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  FadeIn,
   FadeInDown,
   FadeInUp,
   useAnimatedStyle,
@@ -93,6 +94,7 @@ export function OnboardingScreenView({
   grade,
   isBusy,
   isReady,
+  errorMessage,
   onChangeNickname,
   onSelectGrade,
   onSubmit,
@@ -178,6 +180,11 @@ export function OnboardingScreenView({
                 </Text>
               )}
             </Pressable>
+            {errorMessage ? (
+              <Animated.View entering={FadeIn.duration(180)}>
+                <Text selectable style={styles.errorText}>{errorMessage}</Text>
+              </Animated.View>
+            ) : null}
           </Animated.View>
 
         </View>
@@ -343,5 +350,12 @@ const styles = StyleSheet.create({
   },
   ctaTextDisabled: {
     color: 'rgba(30,47,32,0.28)',
+  },
+  errorText: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,
+    color: BrandColors.danger,
+    textAlign: 'center',
+    marginTop: BrandSpacing.xs,
   },
 });
