@@ -63,6 +63,10 @@ export type CurrentLearnerController = {
     migrationStatus: HistoryMigrationStatus;
   }>;
   updateGrade(grade: LearnerProfile['grade']): Promise<CurrentLearnerSnapshot>;
+  updateOnboardingProfile(
+    nickname: string,
+    grade: Exclude<LearnerProfile['grade'], 'unknown'>,
+  ): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
@@ -373,6 +377,22 @@ export function createCurrentLearnerController({
         updatedAt: new Date().toISOString(),
       };
 
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    updateOnboardingProfile: async (nickname, grade) => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        nickname,
+        grade,
+        updatedAt: new Date().toISOString(),
+      };
       await profileStore.save(nextProfile);
       return buildSnapshot({
         authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',

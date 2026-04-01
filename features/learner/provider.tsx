@@ -19,6 +19,7 @@ import { createAuthClient } from '@/features/auth/create-auth-client';
 import { isFirebaseAuthConfigured } from '@/features/auth/firebase-config';
 import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
+import { FirestoreLearnerProfileStore } from '@/features/learner/firestore-learner-profile-store';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
 import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
 import type {
@@ -47,9 +48,15 @@ const fallbackAuthBlockingReason = getAuthBlockingReason({
   availableProviders: availableAuthProviders,
   isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
 });
+// Firestore가 설정된 경우 원격 store 사용 (기기 간 동기화)
+// 설정 안 된 경우 로컬 store로 폴백 (개발/Expo Go 환경)
+const profileStore = isFirebaseAuthConfigured()
+  ? new FirestoreLearnerProfileStore()
+  : new LocalLearnerProfileStore();
+
 const learnerController = createCurrentLearnerController({
   authClient,
-  profileStore: new LocalLearnerProfileStore(),
+  profileStore,
   learningHistoryRepository: createLearningHistoryRepository(authClient),
   localLearningHistoryRepository,
   migrationService: new LearningHistoryMigrationService({
@@ -80,6 +87,10 @@ export type CurrentLearnerContextValue = {
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<HistoryMigrationStatus>;
   updateGrade(grade: LearnerProfile['grade']): Promise<void>;
+  updateOnboardingProfile(
+    nickname: string,
+    grade: Exclude<LearnerProfile['grade'], 'unknown'>,
+  ): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
@@ -231,6 +242,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       updateGrade: async (grade) => {
         const snapshot = await learnerController.updateGrade(grade);
+        setState(toLearnerState(snapshot));
+      },
+      updateOnboardingProfile: async (nickname, grade) => {
+        const snapshot = await learnerController.updateOnboardingProfile(nickname, grade);
         setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {
