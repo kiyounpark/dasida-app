@@ -74,6 +74,7 @@ export default function RootLayout() {
         <AuthGateRedirector />
         <Stack>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </CurrentLearnerProvider>
