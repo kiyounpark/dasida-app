@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
@@ -48,6 +48,10 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     },
     []
   );
+
+  useEffect(() => {
+    setImageAspectRatio(undefined);
+  }, [imageKey]);
 
   if (!currentProblem) return null;
 
