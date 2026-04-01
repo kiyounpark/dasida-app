@@ -65,17 +65,22 @@ function GradeCard({
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.gradeCardWrap}>
+    <Pressable
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} 선택`}
+      accessibilityState={{ selected }}
+      style={styles.gradeCardWrap}>
       <Animated.View
         style={[
           styles.gradeCard,
           selected && styles.gradeCardSelected,
           animatedStyle,
         ]}>
-        <Text selectable style={[styles.gradeLabel, selected && styles.gradeLabelSelected]}>
+        <Text style={[styles.gradeLabel, selected && styles.gradeLabelSelected]}>
           {label}
         </Text>
-        <Text selectable style={[styles.gradeSub, selected && styles.gradeSubSelected]}>
+        <Text style={[styles.gradeSub, selected && styles.gradeSubSelected]}>
           {sub}
         </Text>
       </Animated.View>
@@ -157,6 +162,9 @@ export function OnboardingScreenView({
             <Pressable
               onPress={() => void onSubmit()}
               disabled={!isReady || isBusy}
+              accessibilityRole="button"
+              accessibilityLabel="다시다 시작하기"
+              accessibilityState={{ disabled: !isReady || isBusy }}
               style={({ pressed }) => [
                 styles.ctaButton,
                 isReady ? styles.ctaButtonActive : styles.ctaButtonDisabled,
