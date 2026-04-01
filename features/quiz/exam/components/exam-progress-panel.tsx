@@ -115,8 +115,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   dot: {
-    width: '8%',
-    aspectRatio: 1,
+    width: 22,
+    height: 22,
     borderRadius: 999,
     backgroundColor: '#E0DDD7',
   },
