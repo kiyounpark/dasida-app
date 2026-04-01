@@ -1,0 +1,72 @@
+import { getApp } from 'firebase/app';
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+} from 'firebase/firestore';
+
+import type { LearnerProfileStore } from './profile-store';
+import type { LearnerProfile } from './types';
+
+function createRandomId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export class FirestoreLearnerProfileStore implements LearnerProfileStore {
+  private get db() {
+    return getFirestore(getApp());
+  }
+
+  private profileRef(accountKey: string) {
+    // accountKey는 Firebase Auth uid와 동일
+    return doc(this.db, 'users', accountKey, 'profile', 'data');
+  }
+
+  async load(accountKey: string): Promise<LearnerProfile | null> {
+    try {
+      const snap = await getDoc(this.profileRef(accountKey));
+      if (!snap.exists()) {
+        return null;
+      }
+      return snap.data() as LearnerProfile;
+    } catch {
+      return null;
+    }
+  }
+
+  async createInitial(accountKey: string): Promise<LearnerProfile> {
+    const timestamp = new Date().toISOString();
+    const profile: LearnerProfile = {
+      accountKey,
+      learnerId: createRandomId(),
+      nickname: '',
+      grade: 'unknown',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    await this.save(profile);
+    return profile;
+  }
+
+  async save(profile: LearnerProfile): Promise<void> {
+    await setDoc(this.profileRef(profile.accountKey), {
+      ...profile,
+      _updatedAt: serverTimestamp(),
+    });
+  }
+
+  async reset(accountKey: string): Promise<void> {
+    const timestamp = new Date().toISOString();
+    await setDoc(this.profileRef(accountKey), {
+      accountKey,
+      learnerId: createRandomId(),
+      nickname: '',
+      grade: 'unknown',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      _updatedAt: serverTimestamp(),
+    });
+  }
+}
