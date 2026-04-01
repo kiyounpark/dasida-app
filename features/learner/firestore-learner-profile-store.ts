@@ -1,5 +1,6 @@
 import { getApp } from 'firebase/app';
 import {
+  deleteDoc,
   doc,
   getDoc,
   getFirestore,
@@ -25,15 +26,11 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
   }
 
   async load(accountKey: string): Promise<LearnerProfile | null> {
-    try {
-      const snap = await getDoc(this.profileRef(accountKey));
-      if (!snap.exists()) {
-        return null;
-      }
-      return snap.data() as LearnerProfile;
-    } catch {
+    const snap = await getDoc(this.profileRef(accountKey));
+    if (!snap.exists()) {
       return null;
     }
+    return snap.data() as LearnerProfile;
   }
 
   async createInitial(accountKey: string): Promise<LearnerProfile> {
@@ -58,15 +55,6 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
   }
 
   async reset(accountKey: string): Promise<void> {
-    const timestamp = new Date().toISOString();
-    await setDoc(this.profileRef(accountKey), {
-      accountKey,
-      learnerId: createRandomId(),
-      nickname: '',
-      grade: 'unknown',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      _updatedAt: serverTimestamp(),
-    });
+    await deleteDoc(this.profileRef(accountKey));
   }
 }
