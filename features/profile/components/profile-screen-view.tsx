@@ -103,6 +103,7 @@ export function ProfileScreenView({
   profile,
   session,
   supportedAuthProviders,
+  onGoToOnboarding,
   onImportLocalHistory,
   onResetLocalProfile,
   onSeedPreview,
@@ -264,6 +265,21 @@ export function ProfileScreenView({
               disabled={busyAction !== null}
               subtle
               onPress={() => void onSignOut()}
+            />
+          </View>
+        ) : null}
+
+        {isDevBuild ? (
+          <View style={styles.card}>
+            <Text selectable style={styles.cardTitle}>
+              온보딩
+            </Text>
+            <Text selectable style={styles.body}>
+              닉네임과 학년을 입력하는 온보딩 화면으로 이동합니다.
+            </Text>
+            <ActionButton
+              label="온보딩 화면으로 이동"
+              onPress={onGoToOnboarding}
             />
           </View>
         ) : null}

@@ -214,6 +214,7 @@ export function useProfileScreen() {
         setBusyAction(null);
       }
     },
+    onGoToOnboarding: () => router.push('/onboarding'),
     onSignIn: handleSignIn,
     onSignOut: handleSignOut,
     onUpdateGrade: async (grade: (typeof gradeOptions)[number]['value']) => {
