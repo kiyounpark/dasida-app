@@ -21,8 +21,9 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
   }
 
   private profileRef(accountKey: string) {
-    // accountKey는 Firebase Auth uid와 동일
-    return doc(this.db, 'users', accountKey, 'profile', 'data');
+    // accountKey는 "user:{firebaseUid}" 형태. Firestore 경로에는 순수 UID만 사용한다.
+    const uid = accountKey.startsWith('user:') ? accountKey.slice(5) : accountKey;
+    return doc(this.db, 'users', uid, 'profile', 'data');
   }
 
   async load(accountKey: string): Promise<LearnerProfile | null> {
