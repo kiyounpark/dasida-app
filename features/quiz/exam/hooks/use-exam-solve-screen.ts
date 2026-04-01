@@ -69,12 +69,6 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
   const currentProblem = state.problems[state.currentIndex] ?? null;
   const currentAnswer = state.answers[state.currentIndex] ?? null;
   const answeredCount = state.answers.filter((a) => a !== null).length;
-  const totalScore = state.answers.reduce<number>((sum, ans, i) => {
-    const problem = state.problems[i];
-    if (!problem || ans === null) return sum;
-    return sum + (ans === problem.answer ? problem.score : 0);
-  }, 0);
-
   const handleNext = () => {
     const isLast = state.currentIndex === state.problems.length - 1;
 
