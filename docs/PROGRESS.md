@@ -697,6 +697,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.01 19:06
+- 해시: `9fbc672` (`9fbc672d768607811a824012a8eb7bec94775c0b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9fbc672d768607811a824012a8eb7bec94775c0b
+- 작성자: 박기윤
+- 메시지: fix: imageKey 변경 시 imageAspectRatio 리셋 추가
+
 ### 커밋 2026.03.31 01:44
 - 해시: `63b319a` (`63b319a9dbfebd08d8f24f25f0a947a34097c489`)
 - 브랜치: main
