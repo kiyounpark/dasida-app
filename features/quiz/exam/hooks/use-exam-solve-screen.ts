@@ -45,6 +45,7 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     const problems = getExamProblems(examId);
     if (problems.length === 0) return;
     initExam(examId, problems);
+    setBookmarkedIndices([]);
     initialized.current = true;
   }, [examId, initExam, state.examId]);
 
