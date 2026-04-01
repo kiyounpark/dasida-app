@@ -10,12 +10,15 @@ import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice
 
 export function QuizPracticeScreenView({
   activeProblem,
+  canGraduate,
   continueLabel,
   emptyActionLabel,
   emptyTitle,
   feedback,
+  isGraduating,
   isPersistingAttempt,
   onContinue,
+  onGraduate,
   onRetry,
   onSelectChoice,
   onSubmit,
@@ -73,6 +76,16 @@ export function QuizPracticeScreenView({
         header={<BrandHeader />}
         screenBackgroundColor={BrandColors.background}
       />
+      {canGraduate ? (
+        <View style={styles.graduateBar}>
+          <BrandButton
+            title={isGraduating ? '저장 중...' : '약점 연습 완료하기'}
+            variant="neutral"
+            onPress={onGraduate}
+            disabled={isGraduating}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -124,5 +137,11 @@ const styles = StyleSheet.create({
   },
   buttonTopGap: {
     marginTop: 20,
+  },
+  graduateBar: {
+    paddingHorizontal: BrandSpacing.lg,
+    paddingBottom: BrandSpacing.lg,
+    paddingTop: BrandSpacing.sm,
+    backgroundColor: BrandColors.background,
   },
 });

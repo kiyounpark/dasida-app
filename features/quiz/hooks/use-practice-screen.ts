@@ -60,7 +60,10 @@ export type UsePracticeScreenResult = {
   emptyTitle: string;
   feedback: FeedbackState;
   isPersistingAttempt: boolean;
+  canGraduate: boolean;
+  isGraduating: boolean;
   onContinue: () => void;
+  onGraduate: () => void;
   onRetry: () => void;
   onSelectChoice: (index: number) => void;
   onSubmit: () => void;
@@ -78,7 +81,7 @@ export function usePracticeScreen({
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
   const { state, advancePractice, completeChallenge } = useQuizSession();
-  const { profile, recordAttempt, session, summary } = useCurrentLearner();
+  const { graduateToPractice, profile, recordAttempt, session, summary } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
@@ -87,6 +90,8 @@ export function usePracticeScreen({
   const [firstSubmittedIndex, setFirstSubmittedIndex] = useState<number | null>(null);
   const [isPersistingAttempt, setIsPersistingAttempt] = useState(false);
   const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
+  const [solvedCount, setSolvedCount] = useState(0);
+  const [isGraduating, setIsGraduating] = useState(false);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
   const reviewQueue = useMemo<ActiveReviewTaskSummary[]>(
@@ -218,6 +223,8 @@ export function usePracticeScreen({
     if (feedback?.kind !== 'correct' && feedback?.kind !== 'resolved') {
       return;
     }
+
+    setSolvedCount((c) => c + 1);
 
     if (activeMode === 'challenge') {
       completeChallenge();
@@ -367,6 +374,21 @@ export function usePracticeScreen({
       }
 
       router.replace('/quiz/result');
+    },
+    canGraduate: activeMode === 'weakness' && solvedCount > 0 && !profile?.practiceGraduatedAt,
+    isGraduating,
+    onGraduate: () => {
+      if (isGraduating) {
+        return;
+      }
+      setIsGraduating(true);
+      void graduateToPractice()
+        .then(() => {
+          router.replace('/(tabs)/quiz');
+        })
+        .catch(() => {
+          setIsGraduating(false);
+        });
     },
     persistErrorMessage,
     screenTitle:
