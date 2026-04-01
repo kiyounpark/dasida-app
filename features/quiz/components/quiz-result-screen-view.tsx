@@ -13,7 +13,6 @@ export function QuizResultScreenView({
   liveSummary,
   onCloseReport,
   onOpenChallengePractice,
-  onOpenExams,
   onOpenLegacyPractice,
   onOpenSnapshotDiagnostic,
   onOpenSnapshotPractice,
@@ -106,9 +105,6 @@ export function QuizResultScreenView({
                   onPress={() => onOpenSnapshotPractice(snapshotSummary.topWeaknesses[0])}
                 />
               </View>
-              <View style={styles.secondaryButtonGap}>
-                <BrandButton title="대표 모의고사 다시 풀기" variant="neutral" onPress={onOpenExams} />
-              </View>
             </View>
           )}
         </ScrollView>
@@ -122,7 +118,6 @@ export function QuizResultScreenView({
     return (
       <QuizResultReportView
         onClose={onCloseReport}
-        onOpenExams={onOpenExams}
         onOpenWeaknessPractice={onOpenWeaknessPractice}
         persistResult={persistResult}
         saveErrorMessage={saveErrorMessage}
@@ -211,9 +206,6 @@ export function QuizResultScreenView({
                 title="오늘의 약점 학습 시작"
                 onPress={() => onOpenWeaknessPractice(summary.topWeaknesses[0])}
               />
-            </View>
-            <View style={styles.secondaryButtonGap}>
-              <BrandButton title="대표 모의고사 다시 풀기" variant="neutral" onPress={onOpenExams} />
             </View>
           </View>
         )}
@@ -344,9 +336,6 @@ const styles = StyleSheet.create({
   },
   buttonGap: {
     marginTop: 10,
-  },
-  secondaryButtonGap: {
-    marginTop: 8,
   },
   legacyLabel: {
     fontSize: 16,

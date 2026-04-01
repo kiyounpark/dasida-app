@@ -39,4 +39,5 @@ export type LearnerProfile = {
   grade: LearnerGrade;
   createdAt: string;
   updatedAt: string;
+  practiceGraduatedAt?: string; // ISO 타임스탬프. 약점 연습 완료 버튼을 처음 누른 시각.
 };

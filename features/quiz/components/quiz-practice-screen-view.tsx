@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -10,12 +11,15 @@ import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice
 
 export function QuizPracticeScreenView({
   activeProblem,
+  canGraduate,
   continueLabel,
   emptyActionLabel,
   emptyTitle,
   feedback,
+  isGraduating,
   isPersistingAttempt,
   onContinue,
+  onGraduate,
   onRetry,
   onSelectChoice,
   onSubmit,
@@ -26,6 +30,7 @@ export function QuizPracticeScreenView({
   weaknessLabel,
 }: UsePracticeScreenResult) {
   const { height, width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isCompactLayout = width < 390 || height < 780;
 
   if (!activeProblem) {
@@ -73,6 +78,16 @@ export function QuizPracticeScreenView({
         header={<BrandHeader />}
         screenBackgroundColor={BrandColors.background}
       />
+      {canGraduate ? (
+        <View style={[styles.graduateBar, { paddingBottom: insets.bottom + BrandSpacing.lg }]}>
+          <BrandButton
+            title={isGraduating ? '저장 중...' : '약점 연습 완료하기'}
+            variant="neutral"
+            onPress={onGraduate}
+            disabled={isGraduating}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -124,5 +139,10 @@ const styles = StyleSheet.create({
   },
   buttonTopGap: {
     marginTop: 20,
+  },
+  graduateBar: {
+    paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing.sm,
+    backgroundColor: BrandColors.background,
   },
 });

@@ -91,6 +91,7 @@ export type CurrentLearnerContextValue = {
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
   ): Promise<void>;
+  graduateToPractice(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
@@ -246,6 +247,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       updateOnboardingProfile: async (nickname, grade) => {
         const snapshot = await learnerController.updateOnboardingProfile(nickname, grade);
+        setState(toLearnerState(snapshot));
+      },
+      graduateToPractice: async () => {
+        const snapshot = await learnerController.graduateToPractice();
         setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {

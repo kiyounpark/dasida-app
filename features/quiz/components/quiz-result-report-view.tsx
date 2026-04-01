@@ -12,7 +12,6 @@ import { QuizResultReportHero } from './quiz-result-report-hero';
 
 type QuizResultReportViewProps = {
   onClose: () => void;
-  onOpenExams: () => void;
   onOpenWeaknessPractice: (weaknessId: string) => void;
   persistResult: () => Promise<void>;
   saveErrorMessage: string | null;
@@ -22,7 +21,6 @@ type QuizResultReportViewProps = {
 
 export function QuizResultReportView({
   onClose,
-  onOpenExams,
   onOpenWeaknessPractice,
   persistResult,
   saveErrorMessage,
@@ -95,12 +93,6 @@ export function QuizResultReportView({
         </View>
 
         <View style={styles.ctaWrap}>
-          <BrandButton
-            title="모의고사로 내 약점 더 자세히 분석하기"
-            variant="neutral"
-            onPress={onOpenExams}
-            style={styles.primaryCta}
-          />
           <BrandButton
             title="약점 기반 연습문제 풀러가기"
             variant="neutral"

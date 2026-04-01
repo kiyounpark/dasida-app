@@ -67,6 +67,7 @@ export type CurrentLearnerController = {
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
   ): Promise<CurrentLearnerSnapshot>;
+  graduateToPractice(): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
@@ -391,6 +392,21 @@ export function createCurrentLearnerController({
         ...profile,
         nickname,
         grade,
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    graduateToPractice: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        practiceGraduatedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await profileStore.save(nextProfile);
