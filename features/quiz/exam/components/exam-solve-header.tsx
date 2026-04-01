@@ -8,7 +8,8 @@ type ExamSolveHeaderProps = {
   currentNumber: number;
   totalCount: number;
   answeredCount: number;
-  score: number;
+  isBookmarked: boolean;
+  onToggleBookmark: () => void;
   onExit: () => void;
   isCompactLayout: boolean;
 };
@@ -17,7 +18,8 @@ export function ExamSolveHeader({
   currentNumber,
   totalCount,
   answeredCount,
-  score,
+  isBookmarked,
+  onToggleBookmark,
   onExit,
   isCompactLayout,
 }: ExamSolveHeaderProps) {
@@ -40,11 +42,13 @@ export function ExamSolveHeader({
         </Text>
       </View>
 
-      <View style={styles.scoreWrap}>
-        <Text selectable style={styles.scoreValue}>
-          {score}점
-        </Text>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={isBookmarked ? '북마크 해제' : '북마크 추가'}
+        onPress={onToggleBookmark}
+        style={[styles.bookmarkButton, isBookmarked && styles.bookmarkButtonActive]}>
+        <Text style={styles.bookmarkIcon}>🔖</Text>
+      </Pressable>
     </View>
   );
 }
@@ -88,14 +92,22 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: '#AEAAA2',
   },
-  scoreWrap: {
-    minWidth: 48,
-    alignItems: 'flex-end',
+  bookmarkButton: {
+    minWidth: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderCurve: 'continuous',
+    backgroundColor: '#F5F4F1',
+    borderWidth: 1,
+    borderColor: '#E0DDD7',
   },
-  scoreValue: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 15,
-    lineHeight: 20,
-    color: BrandColors.primarySoft,
+  bookmarkButtonActive: {
+    backgroundColor: '#FFF8EC',
+    borderColor: '#F5DFA0',
+  },
+  bookmarkIcon: {
+    fontSize: 16,
   },
 });
