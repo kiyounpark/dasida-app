@@ -12,13 +12,16 @@ export type UseExamSolveScreenResult = {
   currentIndex: number;
   totalCount: number;
   answeredCount: number;
-  totalScore: number;
+  answeredIndices: number[];
   currentAnswer: number | null;
   shortAnswerText: string;
   isCompactLayout: boolean;
   canGoPrev: boolean;
   isLast: boolean;
   imageKey: string;
+  bookmarkedIndices: number[];
+  isCurrentBookmarked: boolean;
+  onToggleBookmark: () => void;
   onSelectChoice: (n: number) => void;
   onChangeShortAnswer: (text: string) => void;
   onPrev: () => void;
@@ -34,6 +37,7 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
 
   // 단답형 입력 로컬 상태 (문자열)
   const [shortAnswerText, setShortAnswerText] = useState('');
+  const [bookmarkedIndices, setBookmarkedIndices] = useState<number[]>([]);
 
   // 초기화: examId가 바뀌면 exam 로드
   useEffect(() => {
@@ -111,6 +115,20 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     ]);
   };
 
+  const answeredIndices = state.answers
+    .map((a, i) => (a !== null ? i : null))
+    .filter((i): i is number => i !== null);
+
+  const isCurrentBookmarked = bookmarkedIndices.includes(state.currentIndex);
+
+  const handleToggleBookmark = () => {
+    setBookmarkedIndices((prev) =>
+      prev.includes(state.currentIndex)
+        ? prev.filter((i) => i !== state.currentIndex)
+        : [...prev, state.currentIndex]
+    );
+  };
+
   const imageKey = currentProblem
     ? `${state.examId}/${currentProblem.number}`
     : '';
@@ -121,13 +139,16 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     currentIndex: state.currentIndex,
     totalCount: state.problems.length,
     answeredCount,
-    totalScore,
+    answeredIndices,
     currentAnswer,
     shortAnswerText,
     isCompactLayout,
     canGoPrev: state.currentIndex > 0,
     isLast: state.currentIndex === state.problems.length - 1,
     imageKey,
+    bookmarkedIndices,
+    isCurrentBookmarked,
+    onToggleBookmark: handleToggleBookmark,
     onSelectChoice: handleSelectChoice,
     onChangeShortAnswer: (text) => {
       setShortAnswerText(text);
