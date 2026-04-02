@@ -195,6 +195,9 @@ function getCurrentStepBody(
       return `${getWeaknessLabel(summary)}부터 확인하면 다음 복습 단계가 더 빨리 열립니다.`;
     case 'review': {
       const dueCount = summary.dueReviewTasks?.length ?? 0;
+      if (dueCount === 0) {
+        return '약점 연습을 마치면 모의고사가 열립니다.';
+      }
       return dueCount > 1
         ? `오늘은 복습 ${dueCount}개를 차례로 정리하면 됩니다.`
         : '오늘은 약점 1개만 짧게 다시 잡으면 됩니다.';
