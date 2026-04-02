@@ -72,9 +72,13 @@ export default function QuizFeedbackScreen() {
 
           <View style={styles.buttonGap}>
             <BrandButton
-              title={submitted ? '제출 완료' : '제출하기 (MVP 더미)'}
+              title={submitted ? '제출 완료' : '제출하기'}
               variant={submitted ? 'success' : 'primary'}
-              onPress={() => setSubmitted(true)}
+              onPress={() => {
+                setSubmitted(true);
+                resetSession();
+                router.replace('/(tabs)/quiz');
+              }}
             />
           </View>
 
