@@ -697,6 +697,33 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.03 00:41
+- 해시: `0f90885` (`0f90885a8b958fff4653d12097090a1e331dcbc9`)
+- 브랜치: fix/web-local-profile-store
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0f90885a8b958fff4653d12097090a1e331dcbc9
+- 작성자: 박기윤
+- 메시지: fix: exam 잠금 해제 의도 주석 추가, 경로 표기 통일
+
+### 커밋 2026.04.03 00:12
+- 해시: `c49eb23` (`c49eb23e7f1e19c7924de069ef7ed31ab068612d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c49eb23e7f1e19c7924de069ef7ed31ab068612d
+- 작성자: 박기윤
+- 메시지: fix: getCurrentStepBody에서 복습 완료(dueCount=0) 상태 텍스트 수정
+
+### 커밋 2026.04.02 00:45
+- 해시: `58c5bdd` (`58c5bdd33013391fc6d795d8c833549db501e3aa`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/58c5bdd33013391fc6d795d8c833549db501e3aa
+- 작성자: 박기윤
+- 메시지: Merge branch 'feat/mock-exam-graduation'
+
 ### 커밋 2026.04.02 00:32
 - 해시: `43b5df5` (`43b5df52635108aad9a18f5c1e17ab0b10aa8eed`)
 - 브랜치: main
