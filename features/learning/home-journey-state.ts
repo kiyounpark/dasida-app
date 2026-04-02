@@ -80,7 +80,8 @@ function getCurrentStep(summary: LearnerSummaryCurrent): JourneyStepKey {
   const hasDueReviews = (summary.dueReviewTasks?.length ?? 0) > 0;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
 
-  // 약점 연습 1회 이상 완료 → exam 단계 해제
+  // 의도된 설계: 약점 연습 1회 완료 시점에 dueReviewTasks가 남아있어도
+  // exam 단계로 바로 해제한다. 남은 복습은 exam과 병행할 수 있다.
   if (hasReviewAfterLatestDiagnostic) {
     return 'exam';
   }

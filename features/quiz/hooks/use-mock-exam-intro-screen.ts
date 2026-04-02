@@ -6,7 +6,7 @@ export type UseMockExamIntroScreenResult = {
 
 export function useMockExamIntroScreen(): UseMockExamIntroScreenResult {
   const onStartExam = () => {
-    router.push('/quiz/exams');
+    router.push('/(tabs)/quiz/exams');
   };
 
   return { onStartExam };

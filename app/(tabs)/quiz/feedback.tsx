@@ -89,7 +89,7 @@ export default function QuizFeedbackScreen() {
               variant="neutral"
               onPress={() => {
                 resetSession();
-                router.replace('/quiz');
+                router.replace('/(tabs)/quiz');
               }}
             />
           </View>
