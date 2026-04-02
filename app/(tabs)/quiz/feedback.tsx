@@ -74,6 +74,7 @@ export default function QuizFeedbackScreen() {
             <BrandButton
               title={submitted ? '제출 완료' : '제출하기'}
               variant={submitted ? 'success' : 'primary'}
+              disabled={submitted}
               onPress={() => {
                 setSubmitted(true);
                 resetSession();
