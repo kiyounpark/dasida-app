@@ -143,14 +143,6 @@ function getStepDetail(
     return '약점을 다시 잡는 단계';
   }
 
-  if (summary.featuredExamState.status === 'in_progress') {
-    return '대표 세트 이어 풀기';
-  }
-
-  if (summary.featuredExamState.status === 'completed') {
-    return '최근 실전 완료';
-  }
-
   return '복습 뒤 실전에 적용';
 }
 
