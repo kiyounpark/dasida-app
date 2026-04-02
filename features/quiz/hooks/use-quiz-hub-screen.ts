@@ -93,6 +93,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       case 'open_review':
         onOpenPractice();
         return;
+      case 'open_exam':
+        router.push('/(tabs)/quiz/exams');
+        return;
       default:
         onStartDiagnostic();
     }
