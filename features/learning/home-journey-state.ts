@@ -7,7 +7,8 @@ export type JourneyStepStatus = 'completed' | 'active' | 'pending' | 'locked';
 export type JourneyCtaAction =
   | 'start_diagnostic'
   | 'open_result'
-  | 'open_review';
+  | 'open_review'
+  | 'open_exam';
 
 export type HomeJourneyStep = {
   key: JourneyStepKey;
@@ -79,7 +80,12 @@ function getCurrentStep(summary: LearnerSummaryCurrent): JourneyStepKey {
   const hasDueReviews = (summary.dueReviewTasks?.length ?? 0) > 0;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
 
-  if (hasDueReviews || hasReviewAfterLatestDiagnostic) {
+  // 약점 연습 1회 이상 완료 → exam 단계 해제
+  if (hasReviewAfterLatestDiagnostic) {
+    return 'exam';
+  }
+
+  if (hasDueReviews) {
     return 'review';
   }
 
@@ -110,12 +116,19 @@ function getStepStatus(
     return step === 'review' ? 'pending' : 'locked';
   }
 
-  // currentStep === 'review' (현재 여정 보드의 최대 단계)
-  if (step === 'diagnostic' || step === 'analysis') {
-    return 'completed';
+  if (currentStep === 'review') {
+    if (step === 'diagnostic' || step === 'analysis') {
+      return 'completed';
+    }
+
+    return step === 'review' ? 'active' : 'pending';
   }
 
-  return step === 'review' ? 'active' : 'pending';
+  // currentStep === 'exam'
+  if (step === 'exam') {
+    return 'active';
+  }
+  return 'completed';
 }
 
 function getStepDetail(
@@ -181,6 +194,8 @@ function getCurrentBubbleText(currentStep: JourneyStepKey) {
       return '내 약점을 분석 중이에요...';
     case 'review':
       return '이제 연습할 시간!';
+    case 'exam':
+      return '실전에 도전할 시간이에요!';
     default:
       return '반가워요! 첫 진단 평가를 시작해볼까요?';
   }
@@ -202,6 +217,8 @@ function getCurrentStepBody(
         ? `오늘은 복습 ${dueCount}개를 차례로 정리하면 됩니다.`
         : '오늘은 약점 1개만 짧게 다시 잡으면 됩니다.';
     }
+    case 'exam':
+      return '모의고사로 지금까지 정리한 약점을 실전에서 확인해보세요.';
     default:
       return '첫 기록만 생기면 분석, 복습, 실전 적용까지 한 줄로 이어집니다.';
   }
@@ -237,6 +254,14 @@ function getCtaState(
         dueCount > 1
           ? '대표 약점부터 순서대로 다시 보면 됩니다.'
           : '오늘 해야 할 복습 한 가지만 먼저 열어보세요.',
+    };
+  }
+
+  if (currentStep === 'exam') {
+    return {
+      ctaAction: 'open_exam',
+      ctaLabel: '대표 세트 열기',
+      ctaBody: '지금까지 정리한 약점을 실전 문제에서 바로 확인할 수 있어요.',
     };
   }
 
