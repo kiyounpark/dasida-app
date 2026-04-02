@@ -49,10 +49,12 @@ const fallbackAuthBlockingReason = getAuthBlockingReason({
   isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
 });
 // Firestore가 설정된 경우 원격 store 사용 (기기 간 동기화)
-// 설정 안 된 경우 로컬 store로 폴백 (개발/Expo Go 환경)
-const profileStore = isFirebaseAuthConfigured()
-  ? new FirestoreLearnerProfileStore()
-  : new LocalLearnerProfileStore();
+// 웹에서는 Firebase 설정 여부와 무관하게 로컬 store 사용
+// (웹 dev-guest 세션은 Firebase 인증 없이 Firestore 접근 불가)
+const profileStore =
+  isFirebaseAuthConfigured() && process.env.EXPO_OS !== 'web'
+    ? new FirestoreLearnerProfileStore()
+    : new LocalLearnerProfileStore();
 
 const learnerController = createCurrentLearnerController({
   authClient,
