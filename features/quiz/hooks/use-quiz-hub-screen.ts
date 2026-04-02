@@ -15,7 +15,6 @@ export type UseQuizHubScreenResult = {
   isReady: CurrentLearnerSnapshot['isReady'];
   journey: HomeJourneyState | null;
   onDismissAuthNotice: () => void;
-  onOpenExams: () => void;
   onOpenPractice: () => void;
   onOpenRecentResult: () => void;
   onPressJourneyCta: () => void;
@@ -57,16 +56,16 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   };
 
   const onOpenPractice = () => {
-    if (!homeState || homeState.hero !== 'review' || homeState.todayReviewCount === 0) {
+    if (!homeState) {
       return;
     }
 
-    router.push({
-      pathname: '/quiz/practice',
-      params: {
-        mode: 'review',
-      },
-    });
+    if (homeState.todayReviewCount > 0) {
+      router.push({ pathname: '/quiz/practice', params: { mode: 'review' } });
+      return;
+    }
+
+    router.push({ pathname: '/quiz/practice', params: { mode: 'weakness' } });
   };
 
   const onOpenRecentResult = () => {
@@ -78,10 +77,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       pathname: '/quiz/result',
       params: { source: 'snapshot' },
     });
-  };
-
-  const onOpenExams = () => {
-    router.push('/quiz/exams');
   };
 
   const onPressJourneyCta = () => {
@@ -98,9 +93,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       case 'open_review':
         onOpenPractice();
         return;
-      case 'open_exam':
-        onOpenExams();
-        return;
       default:
         onStartDiagnostic();
     }
@@ -115,7 +107,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
-    onOpenExams,
     onOpenPractice,
     onOpenRecentResult,
     onPressJourneyCta,
