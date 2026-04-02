@@ -7,8 +7,7 @@ export type JourneyStepStatus = 'completed' | 'active' | 'pending' | 'locked';
 export type JourneyCtaAction =
   | 'start_diagnostic'
   | 'open_result'
-  | 'open_review'
-  | 'open_exam';
+  | 'open_review';
 
 export type HomeJourneyStep = {
   key: JourneyStepKey;
@@ -80,13 +79,6 @@ function getCurrentStep(summary: LearnerSummaryCurrent): JourneyStepKey {
   const hasDueReviews = (summary.dueReviewTasks?.length ?? 0) > 0;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
 
-  if (
-    summary.featuredExamState.status !== 'not_started' ||
-    (hasLatestDiagnostic && hasReviewAfterLatestDiagnostic && !hasDueReviews)
-  ) {
-    return 'exam';
-  }
-
   if (hasDueReviews || hasReviewAfterLatestDiagnostic) {
     return 'review';
   }
@@ -118,19 +110,12 @@ function getStepStatus(
     return step === 'review' ? 'pending' : 'locked';
   }
 
-  if (currentStep === 'review') {
-    if (step === 'diagnostic' || step === 'analysis') {
-      return 'completed';
-    }
-
-    return step === 'review' ? 'active' : 'pending';
+  // currentStep === 'review' (현재 여정 보드의 최대 단계)
+  if (step === 'diagnostic' || step === 'analysis') {
+    return 'completed';
   }
 
-  if (step === 'exam') {
-    return 'active';
-  }
-
-  return 'completed';
+  return step === 'review' ? 'active' : 'pending';
 }
 
 function getStepDetail(
@@ -195,16 +180,6 @@ function getStepStatusLabel(
     return dueCount > 0 ? `복습 ${dueCount}개` : '활성화';
   }
 
-  if (step === 'exam') {
-    if (summary.featuredExamState.status === 'completed') {
-      return '완료';
-    }
-
-    if (summary.featuredExamState.status === 'in_progress') {
-      return '진행 중';
-    }
-  }
-
   return '활성화';
 }
 
@@ -214,8 +189,6 @@ function getCurrentBubbleText(currentStep: JourneyStepKey) {
       return '내 약점을 분석 중이에요...';
     case 'review':
       return '이제 연습할 시간!';
-    case 'exam':
-      return '이제 실전에 써볼 차례예요!';
     default:
       return '반가워요! 첫 진단 평가를 시작해볼까요?';
   }
@@ -234,10 +207,6 @@ function getCurrentStepBody(
         ? `오늘은 복습 ${dueCount}개를 차례로 정리하면 됩니다.`
         : '오늘은 약점 1개만 짧게 다시 잡으면 됩니다.';
     }
-    case 'exam':
-      return summary.featuredExamState.status === 'completed'
-        ? '실전 세트를 한 번 마쳤습니다. 다시 보면 흐름이 더 선명해집니다.'
-        : '복습 뒤 바로 실전에 연결하는 단계입니다.';
     default:
       return '첫 기록만 생기면 분석, 복습, 실전 적용까지 한 줄로 이어집니다.';
   }
@@ -257,6 +226,15 @@ function getCtaState(
 
   if (currentStep === 'review') {
     const dueCount = summary.dueReviewTasks?.length ?? 0;
+
+    if (dueCount === 0) {
+      return {
+        ctaAction: 'open_review',
+        ctaLabel: '약점 연습 시작하기',
+        ctaBody: '약점 연습을 마치면 모의고사가 열립니다.',
+      };
+    }
+
     return {
       ctaAction: 'open_review',
       ctaLabel: dueCount > 1 ? `복습 ${dueCount}개 시작하기` : '복습 시작하기',
@@ -264,30 +242,6 @@ function getCtaState(
         dueCount > 1
           ? '대표 약점부터 순서대로 다시 보면 됩니다.'
           : '오늘 해야 할 복습 한 가지만 먼저 열어보세요.',
-    };
-  }
-
-  if (currentStep === 'exam') {
-    if (summary.featuredExamState.status === 'completed') {
-      return {
-        ctaAction: 'open_exam',
-        ctaLabel: '대표 세트 다시 보기',
-        ctaBody: '최근에 마친 실전 세트를 다시 확인할 수 있습니다.',
-      };
-    }
-
-    if (summary.featuredExamState.status === 'in_progress') {
-      return {
-        ctaAction: 'open_exam',
-        ctaLabel: '실전 이어 풀기',
-        ctaBody: '대표 세트를 이어 풀면서 실제 흔들림을 확인합니다.',
-      };
-    }
-
-    return {
-      ctaAction: 'open_exam',
-      ctaLabel: '대표 세트 열기',
-      ctaBody: '복습 뒤 바로 실전에 적용하는 단계입니다.',
     };
   }
 
