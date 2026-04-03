@@ -10,6 +10,7 @@ async function loginAndGoToOnboarding(page: import('@playwright/test').Page) {
   await expect(page.getByPlaceholder('불러드릴 이름을 입력해주세요')).toBeVisible({ timeout: 8000 });
 }
 
+
 test.describe('온보딩 — 학년/트랙 선택 UI', () => {
   test('고1 선택 시 트랙 선택 섹션이 표시되지 않는다', async ({ page }) => {
     await loginAndGoToOnboarding(page);
@@ -68,5 +69,16 @@ test.describe('온보딩 — 학년/트랙 선택 UI', () => {
 
     const ctaButton = page.getByRole('button', { name: '다시다 시작하기' });
     await expect(ctaButton).toBeEnabled();
+  });
+
+  test('고3 + 미적분 온보딩 완료 후 퀴즈 홈으로 이동한다', async ({ page }) => {
+    await loginAndGoToOnboarding(page);
+
+    await page.locator('[placeholder="불러드릴 이름을 입력해주세요"]').fill('테스터');
+    await page.getByRole('button', { name: '고3 선택' }).click();
+    await page.getByRole('button', { name: '미적분 선택' }).click();
+    await page.getByRole('button', { name: '다시다 시작하기' }).click();
+
+    await expect(page).toHaveURL(/quiz/, { timeout: 8000 });
   });
 });
