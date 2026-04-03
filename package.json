@@ -21,7 +21,9 @@
     "functions:install": "npm install --prefix functions",
     "functions:build": "npm run build --prefix functions",
     "functions:lint": "npm run lint --prefix functions",
-    "functions:test": "npm run test --prefix functions"
+    "functions:test": "npm run test --prefix functions",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
