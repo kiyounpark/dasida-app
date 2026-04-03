@@ -1,6 +1,7 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
-import { problemData } from '@/data/problemData';
+import { getDiagnosticProblems } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
+import { useCurrentLearner } from '@/features/learner/provider';
 import {
   buildQuizResult,
   createInitialWeaknessScores,
@@ -27,7 +28,7 @@ type QuizSessionContextValue = {
 
 type Action =
   | { type: 'RESET' }
-  | { type: 'START' }
+  | { type: 'START'; payload: { totalQuestions: number } }
   | { type: 'GO_TO_PREVIOUS_QUESTION' }
   | { type: 'SUBMIT_ANSWER'; payload: { problemId: string; selectedIndex: number; isCorrect: boolean } }
   | {
@@ -49,8 +50,6 @@ type Action =
   | { type: 'ADVANCE_PRACTICE' }
   | { type: 'COMPLETE_CHALLENGE' };
 
-const TOTAL_QUESTIONS = problemData.length;
-
 function createAttemptId() {
   return `attempt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -58,6 +57,7 @@ function createAttemptId() {
 function createInitialState(): QuizSessionState {
   return {
     hasStarted: false,
+    totalQuestions: 10, // 실제값은 START 액션에서 주입됨
     attemptId: undefined,
     startedAt: undefined,
     currentQuestionIndex: 0,
@@ -84,14 +84,14 @@ function finalizeQuiz(state: QuizSessionState): QuizSessionState {
     completedAt,
     state.answers,
     state.weaknessScores,
-    TOTAL_QUESTIONS,
+    state.totalQuestions,
   );
 
   return {
     ...state,
     attemptId,
     startedAt,
-    currentQuestionIndex: TOTAL_QUESTIONS,
+    currentQuestionIndex: state.totalQuestions,
     isDiagnosing: false,
     diagnosisQueue: [],
     result,
@@ -104,7 +104,7 @@ function finalizeQuiz(state: QuizSessionState): QuizSessionState {
 }
 
 function checkPhaseTransition(state: QuizSessionState): QuizSessionState {
-  if (state.currentQuestionIndex < TOTAL_QUESTIONS) {
+  if (state.currentQuestionIndex < state.totalQuestions) {
     return state;
   }
 
@@ -120,7 +120,7 @@ function checkPhaseTransition(state: QuizSessionState): QuizSessionState {
     if (wrongIndices.length > 0) {
       return {
         ...state,
-        currentQuestionIndex: TOTAL_QUESTIONS,
+        currentQuestionIndex: state.totalQuestions,
         isDiagnosing: true,
         diagnosisQueue: wrongIndices,
       };
@@ -153,6 +153,7 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       return {
         ...state,
         hasStarted: true,
+        totalQuestions: action.payload.totalQuestions,
         attemptId: createAttemptId(),
         startedAt,
       };
@@ -168,7 +169,7 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
     }
 
     case 'SUBMIT_ANSWER': {
-      if (state.currentQuestionIndex >= TOTAL_QUESTIONS) return state;
+      if (state.currentQuestionIndex >= state.totalQuestions) return state;
 
       const answers = [...state.answers];
       answers[state.currentQuestionIndex] = {
@@ -264,13 +265,17 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
 const QuizSessionContext = createContext<QuizSessionContextValue | undefined>(undefined);
 
 export function QuizSessionProvider({ children }: { children: ReactNode }) {
+  const { profile } = useCurrentLearner();
+  const problems = getDiagnosticProblems(profile?.grade ?? 'unknown', profile?.track);
+  const totalQuestions = problems.length;
+
   const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
 
   const value = useMemo<QuizSessionContextValue>(
     () => ({
       state,
       startSession: () => {
-        dispatch({ type: 'START' });
+        dispatch({ type: 'START', payload: { totalQuestions } });
       },
       goToPreviousQuestion: () => {
         dispatch({ type: 'GO_TO_PREVIOUS_QUESTION' });
@@ -306,7 +311,7 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'RESET' });
       },
     }),
-    [state],
+    [state, totalQuestions],
   );
 
   return <QuizSessionContext.Provider value={value}>{children}</QuizSessionContext.Provider>;

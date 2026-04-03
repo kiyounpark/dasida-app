@@ -61,6 +61,7 @@ export type PracticeMode = 'weakness' | 'challenge';
 
 export type QuizSessionState = {
   hasStarted: boolean;
+  totalQuestions: number;
   attemptId?: string;
   startedAt?: string;
   currentQuestionIndex: number;
