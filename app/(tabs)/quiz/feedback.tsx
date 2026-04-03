@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { BrandButton } from '@/components/brand/BrandButton';
@@ -12,8 +11,6 @@ import { getSingleParam } from '@/utils/get-single-param';
 export default function QuizFeedbackScreen() {
   const { state, resetSession } = useQuizSession();
   const params = useLocalSearchParams();
-  const [feedback, setFeedback] = useState('');
-  const [submitted, setSubmitted] = useState(false);
 
   const summary = state.result;
   const fallbackWeaknessId = resolveWeaknessId(
@@ -61,38 +58,14 @@ export default function QuizFeedbackScreen() {
             </View>
           )}
 
-          <Text style={styles.prompt}>이번 학습 경험을 한 줄로 남겨주세요.</Text>
-          <TextInput
-            style={styles.input}
-            value={feedback}
-            onChangeText={setFeedback}
-            placeholder="예: 오답에서 바로 약점을 잡아주는 게 좋았어요"
-            multiline
+          <BrandButton
+            title="홈으로 이동"
+            variant="primary"
+            onPress={() => {
+              resetSession();
+              router.replace('/(tabs)/quiz');
+            }}
           />
-
-          <View style={styles.buttonGap}>
-            <BrandButton
-              title={submitted ? '제출 완료' : '제출하기'}
-              variant={submitted ? 'success' : 'primary'}
-              disabled={submitted}
-              onPress={() => {
-                setSubmitted(true);
-                resetSession();
-                router.replace('/(tabs)/quiz');
-              }}
-            />
-          </View>
-
-          <View style={styles.buttonGap}>
-            <BrandButton
-              title="처음부터 다시 시작"
-              variant="neutral"
-              onPress={() => {
-                resetSession();
-                router.replace('/(tabs)/quiz');
-              }}
-            />
-          </View>
         </View>
       </ScrollView>
     </View>
@@ -153,23 +126,5 @@ const styles = StyleSheet.create({
   },
   weaknessList: {
     gap: 2,
-  },
-  prompt: {
-    fontSize: 16,
-    marginTop: 8,
-    color: '#2D3A30',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  buttonGap: {
-    marginTop: 8,
   },
 });
