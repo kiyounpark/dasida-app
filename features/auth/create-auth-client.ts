@@ -6,12 +6,12 @@ import { isFirebaseAuthConfigured } from './firebase-config';
 import { LocalAnonymousAuthClient } from './local-anonymous-auth-client';
 
 export function createAuthClient(): AuthClient {
-  if (canUseDevGuestAuth()) {
-    return new LocalAnonymousAuthClient();
-  }
-
   if (isFirebaseAuthConfigured()) {
     return new FirebaseAuthClient();
+  }
+
+  if (canUseDevGuestAuth()) {
+    return new LocalAnonymousAuthClient();
   }
 
   return new DisabledAuthClient();
