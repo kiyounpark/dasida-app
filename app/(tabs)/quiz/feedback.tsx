@@ -25,7 +25,6 @@ export default function QuizFeedbackScreen() {
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.container}>
         <View style={styles.mainCard}>
           <Text style={styles.title}>학습 피드백</Text>
