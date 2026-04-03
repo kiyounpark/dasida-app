@@ -21,6 +21,16 @@
 
 ## 로그
 
+### 2026.04.03
+
+**Playwright E2E Smoke Test 세팅**
+- `playwright.config.ts`: Expo 웹 서버(포트 8081) 자동 시작, `reuseExistingServer`, Chromium 단일 브라우저
+- `e2e/smoke.spec.ts`: dev-guest 로그인 → `/quiz` 진입 smoke test
+- `package.json`: `test:e2e` / `test:e2e:ui` 스크립트 추가
+- `.gitignore`: `playwright-report/`, `test-results/` 추가
+- **검증**: `npm run test:e2e` 1 passed (21.8s)
+- 브랜치: `feat/playwright-e2e` → `main` 머지
+
 ### 2026.03.24
 
 **Claude 최근 변경 검토 훅 강화**
@@ -696,6 +706,25 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.03 19:51
+- 해시: `78313d9` (`78313d97265e15d53c493123f85c4271dec0b26f`)
+- 브랜치: feat/playwright-e2e
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/78313d97265e15d53c493123f85c4271dec0b26f
+- 작성자: 박기윤
+- 메시지: feat: 온보딩 고3 트랙 선택 스텝 추가 (미적분/확통/기하)
+
+### 커밋 2026.04.03 09:05
+- 해시: `6fe5891` (`6fe5891812542be34ef4575f1c7422f304cbba4c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6fe5891812542be34ef4575f1c7422f304cbba4c
+- 작성자: 박기윤
+- 메시지: refactor: 피드백 화면 단순화 — TextInput·더미 state 제거, 홈 이동 버튼으로 정리
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.03 00:41
 - 해시: `0f90885` (`0f90885a8b958fff4653d12097090a1e331dcbc9`)
