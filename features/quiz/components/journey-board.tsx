@@ -41,6 +41,7 @@ type StepCopyConfig = {
   statusY: number;
   titleX: number;
   titleY: number;
+  titleAnchor?: 'start' | 'end';
 };
 
 const nodeRectStyle: Record<JourneyStepKey, JourneyAbsoluteRect> = {
@@ -52,9 +53,9 @@ const nodeRectStyle: Record<JourneyStepKey, JourneyAbsoluteRect> = {
 
 const stepCopyConfig: Record<JourneyStepKey, StepCopyConfig> = {
   diagnostic: { titleX: 75, titleY: 586, statusX: 207, statusY: 630 },
-  analysis: { titleX: 456, titleY: 742, statusX: 606, statusY: 787 },
+  analysis: { titleX: 752, titleY: 742, statusX: 606, statusY: 787, titleAnchor: 'end' },
   review: { titleX: 75, titleY: 918, statusX: 235, statusY: 962 },
-  exam: { titleX: 486, titleY: 1068, statusX: 602, statusY: 1113 },
+  exam: { titleX: 752, titleY: 1068, statusX: 602, statusY: 1113, titleAnchor: 'end' },
 };
 
 const nodeVisualBias: Record<JourneyStepKey, Point> = {
@@ -197,7 +198,7 @@ export function JourneyBoard({
                 fill={getStepTitleColor(step.status)}
                 fontFamily={FontFamilies.bold}
                 fontSize={stepTitleFontSize}
-                textAnchor="start">
+                textAnchor={copy.titleAnchor ?? 'start'}>
                 {`STEP ${step.number}: ${step.title}`}
               </SvgText>
             );
