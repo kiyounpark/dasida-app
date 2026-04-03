@@ -50,10 +50,10 @@ const fallbackAuthBlockingReason = getAuthBlockingReason({
   isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
 });
 // Firestore가 설정된 경우 원격 store 사용 (기기 간 동기화)
-// 웹에서는 Firebase 설정 여부와 무관하게 로컬 store 사용
-// (웹 dev-guest 세션은 Firebase 인증 없이 Firestore 접근 불가)
+// 웹 또는 개발 모드에서는 로컬 store 사용
+// (dev-guest 세션은 Firebase 인증 없이 Firestore 접근 불가)
 const profileStore =
-  isFirebaseAuthConfigured() && process.env.EXPO_OS !== 'web'
+  isFirebaseAuthConfigured() && process.env.EXPO_OS !== 'web' && !canUseDevGuestAuth()
     ? new FirestoreLearnerProfileStore()
     : new LocalLearnerProfileStore();
 
