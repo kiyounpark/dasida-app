@@ -21,7 +21,22 @@ export type WeaknessId =
   | 'remainder_substitution_error'
   | 'simultaneous_equation_error'
   | 'counting_method_confusion'
-  | 'counting_overcounting';
+  | 'counting_overcounting'
+  // 고3 공통 (미적분·확통·기하 모두)
+  | 'g3_diff'
+  | 'g3_sequence'
+  | 'g3_log_exp'
+  | 'g3_integral'
+  | 'g3_trig'
+  | 'g3_limit'
+  | 'g3_conic'
+  // 고3 확통 특화
+  | 'g3_counting'
+  | 'g3_probability'
+  | 'g3_statistics'
+  // 고3 기하 특화
+  | 'g3_vector'
+  | 'g3_space_geometry';
 
 export type DiagnosisItem = {
   id: WeaknessId;
@@ -54,6 +69,19 @@ export const weaknessOrder: WeaknessId[] = [
   'simultaneous_equation_error',
   'counting_method_confusion',
   'counting_overcounting',
+  // 고3
+  'g3_diff',
+  'g3_sequence',
+  'g3_log_exp',
+  'g3_integral',
+  'g3_trig',
+  'g3_limit',
+  'g3_conic',
+  'g3_counting',
+  'g3_probability',
+  'g3_statistics',
+  'g3_vector',
+  'g3_space_geometry',
 ];
 
 export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
@@ -194,6 +222,81 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     labelKo: '중복 처리 실수',
     desc: '경우를 셀 때 같은 경우를 두 번 세거나 조건을 잘못 걸러내는 실수가 발생했습니다.',
     tip: '수형도나 표로 경우를 직접 나열하면서 중복 여부를 하나씩 확인하세요.',
+  },
+  // ─── 고3 공통 ────────────────────────────────────────────────────
+  g3_diff: {
+    id: 'g3_diff',
+    labelKo: '미분 계산',
+    desc: '다항함수·합성함수·곱의 미분 계산에서 오류가 발생했습니다.',
+    tip: 'f\'(x) 공식을 단계별로 적용하고, 각 항을 독립적으로 미분한 뒤 합산하세요.',
+  },
+  g3_sequence: {
+    id: 'g3_sequence',
+    labelKo: '수열 계산',
+    desc: '등차·등비수열의 일반항이나 합 공식 적용에서 실수가 있었습니다.',
+    tip: '등차수열 aₙ=a₁+(n-1)d, 등비수열 aₙ=a₁·rⁿ⁻¹ 공식을 먼저 확인하세요.',
+  },
+  g3_log_exp: {
+    id: 'g3_log_exp',
+    labelKo: '지수·로그 계산',
+    desc: '지수법칙이나 로그 성질 적용 과정에서 오류가 있었습니다.',
+    tip: 'logₐb + logₐc = logₐ(bc), aˣ·aʸ = aˣ⁺ʸ 등 기본 성질을 점검하세요.',
+  },
+  g3_integral: {
+    id: 'g3_integral',
+    labelKo: '적분 계산',
+    desc: '부정적분이나 정적분 계산에서 실수가 있었습니다.',
+    tip: '∫xⁿdx = xⁿ⁺¹/(n+1)+C 기본 공식부터 확인하고, 정적분은 [F(x)]ₐᵇ = F(b)-F(a)로 계산하세요.',
+  },
+  g3_trig: {
+    id: 'g3_trig',
+    labelKo: '삼각함수 계산',
+    desc: '삼각함수의 기본 값이나 항등식 적용에서 오류가 있었습니다.',
+    tip: '단위원에서 sin·cos·tan의 대표 값(0°, 30°, 45°, 60°, 90°)을 암기하세요.',
+  },
+  g3_limit: {
+    id: 'g3_limit',
+    labelKo: '극한 계산',
+    desc: '함수의 극한 계산 과정에서 0/0 꼴 처리나 인수분해가 미숙합니다.',
+    tip: '0/0 꼴은 분자·분모를 인수분해해 공통인수를 약분한 뒤 대입하세요.',
+  },
+  g3_conic: {
+    id: 'g3_conic',
+    labelKo: '이차곡선',
+    desc: '포물선·타원·쌍곡선의 표준형과 초점·점근선 공식 적용이 어렵습니다.',
+    tip: '각 곡선의 표준형을 먼저 정리하세요: 포물선 y²=4px, 타원 x²/a²+y²/b²=1, 쌍곡선 x²/a²-y²/b²=1.',
+  },
+  // ─── 고3 확통 특화 ───────────────────────────────────────────────
+  g3_counting: {
+    id: 'g3_counting',
+    labelKo: '경우의 수·순열·조합',
+    desc: '순열과 조합 중 어느 것을 쓸지 판단하거나 중복 처리에서 실수가 있었습니다.',
+    tip: '순서가 중요하면 순열 P(n,r), 순서 무관하면 조합 C(n,r). 중복 가능 여부도 함께 체크하세요.',
+  },
+  g3_probability: {
+    id: 'g3_probability',
+    labelKo: '확률 계산',
+    desc: '조건부확률 또는 독립·종속 사건의 확률 계산에서 오류가 있었습니다.',
+    tip: 'P(A|B) = P(A∩B)/P(B). 여사건 P(Aᶜ)=1-P(A)를 활용하면 계산이 편해지는 경우가 많습니다.',
+  },
+  g3_statistics: {
+    id: 'g3_statistics',
+    labelKo: '통계 (정규분포·이항분포)',
+    desc: '정규분포 표준화나 이항분포 공식 적용에서 실수가 있었습니다.',
+    tip: 'Z=(X-μ)/σ로 표준화 후 표준정규분포표를 읽으세요. 이항분포 B(n,p)의 평균=np, 분산=npq.',
+  },
+  // ─── 고3 기하 특화 ───────────────────────────────────────────────
+  g3_vector: {
+    id: 'g3_vector',
+    labelKo: '벡터 연산',
+    desc: '벡터의 합·내적·크기 계산에서 오류가 있었습니다.',
+    tip: '내적: a⃗·b⃗ = |a||b|cosθ = a₁b₁+a₂b₂. 크기: |a⃗| = √(a₁²+a₂²).',
+  },
+  g3_space_geometry: {
+    id: 'g3_space_geometry',
+    labelKo: '공간도형·정사영',
+    desc: '공간에서 직선·평면의 위치 관계나 정사영 넓이 계산이 어렵습니다.',
+    tip: '정사영 넓이 = 원래 넓이 × cosθ (θ: 두 평면이 이루는 각). 이면각을 먼저 구하세요.',
   },
 };
 
