@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import type { LearnerGrade } from '@/features/learner/types';
+import type { LearnerGrade, LearnerTrack } from '@/features/learner/types';
 import type { UseOnboardingScreenResult } from '@/features/onboarding/hooks/use-onboarding-screen';
 
 const CHARACTER_SOURCE = require('../../../assets/auth/dasida-login-character.png');
@@ -29,6 +29,12 @@ const GRADE_OPTIONS: { value: Exclude<LearnerGrade, 'unknown'>; label: string; s
   { value: 'g1', label: '고1', sub: '1학년' },
   { value: 'g2', label: '고2', sub: '2학년' },
   { value: 'g3', label: '고3', sub: '3학년' },
+];
+
+const TRACK_OPTIONS: { value: LearnerTrack; label: string; sub: string }[] = [
+  { value: 'calc', label: '미적분', sub: '미적분 선택' },
+  { value: 'stats', label: '확통', sub: '확률과통계 선택' },
+  { value: 'geom', label: '기하', sub: '기하 선택' },
 ];
 
 function BackgroundGlow() {
@@ -89,14 +95,53 @@ function GradeCard({
   );
 }
 
+function TrackCard({
+  label,
+  sub,
+  selected,
+  onPress,
+}: {
+  label: string;
+  sub: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+  const handlePress = () => {
+    scale.value = withSpring(1.06, { damping: 12 }, () => {
+      scale.value = withSpring(selected ? 1 : 1.04);
+    });
+    onPress();
+  };
+  return (
+    <Pressable
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} 선택`}
+      accessibilityState={{ selected }}
+      style={styles.gradeCardWrap}>
+      <Animated.View style={[styles.gradeCard, selected && styles.gradeCardSelected, animatedStyle]}>
+        <Text style={[styles.gradeLabel, selected && styles.gradeLabelSelected]}>{label}</Text>
+        <Text style={[styles.gradeSub, selected && styles.gradeSubSelected]}>{sub}</Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export function OnboardingScreenView({
   nickname,
   grade,
+  track,
+  showTrackStep,
   isBusy,
   isReady,
   errorMessage,
   onChangeNickname,
   onSelectGrade,
+  onSelectTrack,
   onSubmit,
 }: UseOnboardingScreenResult) {
   const insets = useSafeAreaInsets();
@@ -158,6 +203,24 @@ export function OnboardingScreenView({
               ))}
             </View>
           </Animated.View>
+
+          {/* 트랙 선택 (고3 전용) */}
+          {showTrackStep ? (
+            <Animated.View entering={FadeInUp.duration(220).delay(200)} style={styles.fieldBlock}>
+              <Text selectable style={styles.fieldLabel}>수능 수학 선택과목</Text>
+              <View style={styles.gradeRow}>
+                {TRACK_OPTIONS.map((option) => (
+                  <TrackCard
+                    key={option.value}
+                    label={option.label}
+                    sub={option.sub}
+                    selected={track === option.value}
+                    onPress={() => onSelectTrack(option.value)}
+                  />
+                ))}
+              </View>
+            </Animated.View>
+          ) : null}
 
           {/* CTA 버튼 */}
           <Animated.View entering={FadeInUp.duration(220).delay(240)} style={styles.ctaBlock}>
