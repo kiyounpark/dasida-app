@@ -1,17 +1,20 @@
-import type { SolveMethodId } from './diagnosisTree';
+import type { LearnerGrade, LearnerTrack } from '@/features/learner/types';
 
 export type Problem = {
   id: string;
+  grade: LearnerGrade;
+  track?: LearnerTrack; // 고3 트랙별 문제에만 사용
   question: string;
   choices: string[];
   answerIndex: number;
   topic: string;
-  diagnosisMethods: SolveMethodId[];
+  diagnosisMethods: string[];
 };
 
 export const problemData: Problem[] = [
   {
     id: 'q1',
+    grade: 'g1',
     question: 'sqrt(75) - 6/sqrt(3) + sqrt(48)의 값은?',
     choices: ['5√3', '7√3', '9√3', '11√3', '13√3'],
     answerIndex: 1,
@@ -20,6 +23,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q2',
+    grade: 'g1',
     question:
       '(2x + 3)(x - 4) - (x + 1)(x - 5)를 전개하여 정리한 식에서 x의 계수와 상수항의 합은?',
     choices: ['-12', '-8', '-4', '2', '6'],
@@ -29,6 +33,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q3',
+    grade: 'g1',
     question: '(1 + 3i)(2 - i) - (1 - i)^2의 값이 a + bi일 때, a + b의 값은?',
     choices: ['6', '8', '10', '12', '14'],
     answerIndex: 3,
@@ -37,6 +42,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q4',
+    grade: 'g1',
     question: '이차방정식 2x^2 - 6x + k = 0의 두 근의 차가 4일 때, 상수 k의 값은?',
     choices: ['-9/2', '-7/2', '-5/2', '5/2', '7/2'],
     answerIndex: 1,
@@ -45,6 +51,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q5',
+    grade: 'g1',
     question:
       'P(x)를 (x - 2)로 나눈 나머지가 11, (x + 1)로 나눈 나머지가 2일 때, (x - 2)(x + 1)로 나눈 나머지 R(x)=ax+b에서 a×b의 값은?',
     choices: ['5', '10', '12', '15', '18'],
@@ -54,6 +61,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q6',
+    grade: 'g1',
     question:
       'x^2 - 5x + 4 <= 0을 만족하는 정수의 개수를 m, x^2 + 2x - 8 > 0을 만족하는 정수(-5 이상 5 이하)의 개수를 n이라 할 때 m + n의 값은?',
     choices: ['5', '7', '8', '9', '10'],
@@ -63,6 +71,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q7',
+    grade: 'g1',
     question:
       '1부터 6까지 숫자 카드에서 3장을 뽑아 세 자리 자연수를 만들 때, 홀수인 경우의 수는?',
     choices: ['24', '36', '48', '60', '72'],
@@ -72,6 +81,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q8',
+    grade: 'g1',
     question:
       'x^2 - 6x + k = 0과 x^2 + 2x - k + 4 = 0이 모두 실근을 가지도록 하는 정수 k의 개수는?',
     choices: ['3', '5', '7', '8', '10'],
@@ -81,6 +91,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q9',
+    grade: 'g1',
     question:
       '이차함수 f(x) = -x^2 + 2ax + b가 x=3에서 최댓값 12를 가질 때, f(5)의 값은?',
     choices: ['0', '4', '8', '12', '16'],
@@ -90,6 +101,7 @@ export const problemData: Problem[] = [
   },
   {
     id: 'q10',
+    grade: 'g1',
     question:
       '1,2,3,4,5가 적힌 공 5개에서 2개를 꺼내 큰 수를 a, 작은 수를 b라 할 때, x^2 - ax + b = 0이 서로 다른 두 양의 실근을 가지는 경우의 수는?',
     choices: ['5', '6', '7', '9', '10'],
@@ -97,4 +109,321 @@ export const problemData: Problem[] = [
     topic: '경우의 수/이차방정식',
     diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
   },
+  // ─── 고3 미적분 (calc) ───────────────────────────────────────────
+  {
+    id: 'g3_calc_q1',
+    grade: 'g3',
+    track: 'calc',
+    question: 'f(x) = 3x^4 - 2x^3 + x일 때, f\'(x)는?',
+    choices: ['12x^3-6x^2+1', '12x^3-6x^2', '3x^3-2x^2+1', '12x^4-6x^3+1', '4x^3-3x^2+1'],
+    answerIndex: 0,
+    topic: '미분',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_calc_q2',
+    grade: 'g3',
+    track: 'calc',
+    question: 'f(x) = (x^2+1)(2x-3)일 때, f\'(1)은?',
+    choices: ['0', '1', '2', '4', '6'],
+    answerIndex: 2,
+    topic: '미분',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_calc_q3',
+    grade: 'g3',
+    track: 'calc',
+    question: '등차수열 {a_n}에서 a_1=2, 공차=3일 때, a_5는?',
+    choices: ['10', '11', '12', '13', '14'],
+    answerIndex: 4,
+    topic: '수열',
+    diagnosisMethods: ['g3_sequence'],
+  },
+  {
+    id: 'g3_calc_q4',
+    grade: 'g3',
+    track: 'calc',
+    question: 'log_2(8) + log_2(4)의 값은?',
+    choices: ['3', '4', '5', '6', '7'],
+    answerIndex: 2,
+    topic: '지수·로그',
+    diagnosisMethods: ['g3_log_exp'],
+  },
+  {
+    id: 'g3_calc_q5',
+    grade: 'g3',
+    track: 'calc',
+    question: '정적분 ∫_0^2 (3x^2+2x)dx의 값은?',
+    choices: ['8', '10', '12', '14', '16'],
+    answerIndex: 2,
+    topic: '적분',
+    diagnosisMethods: ['g3_integral'],
+  },
+  {
+    id: 'g3_calc_q6',
+    grade: 'g3',
+    track: 'calc',
+    question: 'sin(π/6) + cos(π/3)의 값은?',
+    choices: ['0', '1/2', '√2/2', '1', '√3/2'],
+    answerIndex: 3,
+    topic: '삼각함수',
+    diagnosisMethods: ['g3_trig'],
+  },
+  {
+    id: 'g3_calc_q7',
+    grade: 'g3',
+    track: 'calc',
+    question: 'lim_{x→2} (x^2-4)/(x-2)의 값은?',
+    choices: ['0', '2', '4', '8', '존재하지 않는다'],
+    answerIndex: 2,
+    topic: '극한',
+    diagnosisMethods: ['g3_limit'],
+  },
+  {
+    id: 'g3_calc_q8',
+    grade: 'g3',
+    track: 'calc',
+    question: '포물선 y^2 = 8x의 초점의 x좌표는?',
+    choices: ['1', '2', '4', '8', '-2'],
+    answerIndex: 1,
+    topic: '이차곡선',
+    diagnosisMethods: ['g3_conic'],
+  },
+  {
+    id: 'g3_calc_q9',
+    grade: 'g3',
+    track: 'calc',
+    question: '등비수열 {a_n}에서 a_1=2, 공비=3일 때, a_1+a_2+a_3는?',
+    choices: ['20', '22', '24', '26', '28'],
+    answerIndex: 3,
+    topic: '수열',
+    diagnosisMethods: ['g3_sequence'],
+  },
+  {
+    id: 'g3_calc_q10',
+    grade: 'g3',
+    track: 'calc',
+    question: 'f(x) = x^3 - 3x^2일 때, 극솟값은?',
+    choices: ['-4', '-3', '-2', '0', '4'],
+    answerIndex: 0,
+    topic: '미분 (극값)',
+    diagnosisMethods: ['g3_diff'],
+  },
+  // ─── 고3 확률과통계 (stats) ──────────────────────────────────────
+  {
+    id: 'g3_stats_q1',
+    grade: 'g3',
+    track: 'stats',
+    question: 'f(x) = 4x^3 - 6x + 1일 때, f\'(2)는?',
+    choices: ['30', '36', '42', '48', '54'],
+    answerIndex: 2,
+    topic: '미분',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_stats_q2',
+    grade: 'g3',
+    track: 'stats',
+    question: 'f(x) = x^3 + 3x^2 - 9x일 때, 극댓값은?',
+    choices: ['5', '9', '18', '27', '32'],
+    answerIndex: 3,
+    topic: '미분 (극값)',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_stats_q3',
+    grade: 'g3',
+    track: 'stats',
+    question: '1+3+5+...+9 (홀수 5개의 합)은?',
+    choices: ['15', '20', '25', '30', '35'],
+    answerIndex: 2,
+    topic: '수열',
+    diagnosisMethods: ['g3_sequence'],
+  },
+  {
+    id: 'g3_stats_q4',
+    grade: 'g3',
+    track: 'stats',
+    question: '2^(x+1) = 32일 때, x는?',
+    choices: ['2', '3', '4', '5', '6'],
+    answerIndex: 2,
+    topic: '지수',
+    diagnosisMethods: ['g3_log_exp'],
+  },
+  {
+    id: 'g3_stats_q5',
+    grade: 'g3',
+    track: 'stats',
+    question: 'tan(π/4) + sin(π/2)의 값은?',
+    choices: ['0', '1', '√2', '2', '√3+1'],
+    answerIndex: 3,
+    topic: '삼각함수',
+    diagnosisMethods: ['g3_trig'],
+  },
+  {
+    id: 'g3_stats_q6',
+    grade: 'g3',
+    track: 'stats',
+    question: '정적분 ∫_1^3 (2x+1)dx의 값은?',
+    choices: ['6', '8', '10', '12', '14'],
+    answerIndex: 2,
+    topic: '적분',
+    diagnosisMethods: ['g3_integral'],
+  },
+  {
+    id: 'g3_stats_q7',
+    grade: 'g3',
+    track: 'stats',
+    question: '5명 중 2명을 순서 있게 뽑는 경우의 수는?',
+    choices: ['10', '15', '20', '24', '30'],
+    answerIndex: 2,
+    topic: '순열',
+    diagnosisMethods: ['g3_counting'],
+  },
+  {
+    id: 'g3_stats_q8',
+    grade: 'g3',
+    track: 'stats',
+    question: '타원 x^2/9 + y^2/4 = 1의 장축의 길이는?',
+    choices: ['3', '4', '5', '6', '8'],
+    answerIndex: 3,
+    topic: '이차곡선',
+    diagnosisMethods: ['g3_conic'],
+  },
+  {
+    id: 'g3_stats_q9',
+    grade: 'g3',
+    track: 'stats',
+    question: 'lim_{x→0} sin(2x)/x의 값은?',
+    choices: ['0', '1', '2', '4', '존재하지 않는다'],
+    answerIndex: 2,
+    topic: '극한',
+    diagnosisMethods: ['g3_limit'],
+  },
+  {
+    id: 'g3_stats_q10',
+    grade: 'g3',
+    track: 'stats',
+    question: 'P(A)=1/2, P(B|A)=1/3일 때, P(A∩B)는?',
+    choices: ['1/8', '1/6', '1/4', '1/3', '5/6'],
+    answerIndex: 1,
+    topic: '확률',
+    diagnosisMethods: ['g3_probability'],
+  },
+  // ─── 고3 기하 (geom) ────────────────────────────────────────────
+  {
+    id: 'g3_geom_q1',
+    grade: 'g3',
+    track: 'geom',
+    question: 'f(x) = x^4 - 4x^3일 때, f\'(3)은?',
+    choices: ['-12', '-4', '0', '4', '12'],
+    answerIndex: 2,
+    topic: '미분',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_geom_q2',
+    grade: 'g3',
+    track: 'geom',
+    question: 'g(x) = (2x-1)^3일 때, g\'(1)은?',
+    choices: ['2', '4', '6', '8', '12'],
+    answerIndex: 2,
+    topic: '미분 (합성함수)',
+    diagnosisMethods: ['g3_diff'],
+  },
+  {
+    id: 'g3_geom_q3',
+    grade: 'g3',
+    track: 'geom',
+    question: '등차수열에서 a_3=7, a_7=19일 때, a_5는?',
+    choices: ['11', '12', '13', '14', '15'],
+    answerIndex: 2,
+    topic: '수열',
+    diagnosisMethods: ['g3_sequence'],
+  },
+  {
+    id: 'g3_geom_q4',
+    grade: 'g3',
+    track: 'geom',
+    question: 'sin60° × cos30°의 값은?',
+    choices: ['1/4', '1/2', '3/4', '1', '√3/2'],
+    answerIndex: 2,
+    topic: '삼각함수',
+    diagnosisMethods: ['g3_trig'],
+  },
+  {
+    id: 'g3_geom_q5',
+    grade: 'g3',
+    track: 'geom',
+    question: '쌍곡선 x^2/4 - y^2/9 = 1의 점근선 기울기의 절댓값은?',
+    choices: ['1/3', '2/3', '1', '3/2', '2'],
+    answerIndex: 3,
+    topic: '이차곡선',
+    diagnosisMethods: ['g3_conic'],
+  },
+  {
+    id: 'g3_geom_q6',
+    grade: 'g3',
+    track: 'geom',
+    question: 'log_3(27) - log_3(3)의 값은?',
+    choices: ['1', '2', '3', '6', '9'],
+    answerIndex: 1,
+    topic: '로그',
+    diagnosisMethods: ['g3_log_exp'],
+  },
+  {
+    id: 'g3_geom_q7',
+    grade: 'g3',
+    track: 'geom',
+    question: '정적분 ∫_0^1 (4x^3-2x)dx의 값은?',
+    choices: ['-1', '0', '1', '2', '4'],
+    answerIndex: 1,
+    topic: '적분',
+    diagnosisMethods: ['g3_integral'],
+  },
+  {
+    id: 'g3_geom_q8',
+    grade: 'g3',
+    track: 'geom',
+    question: 'lim_{x→3} (x^2-9)/(x-3)의 값은?',
+    choices: ['0', '3', '6', '9', '존재하지 않는다'],
+    answerIndex: 2,
+    topic: '극한',
+    diagnosisMethods: ['g3_limit'],
+  },
+  {
+    id: 'g3_geom_q9',
+    grade: 'g3',
+    track: 'geom',
+    question: '벡터 a⃗=(3,4)의 크기는?',
+    choices: ['3', '4', '5', '7', '√7'],
+    answerIndex: 2,
+    topic: '벡터',
+    diagnosisMethods: ['g3_vector'],
+  },
+  {
+    id: 'g3_geom_q10',
+    grade: 'g3',
+    track: 'geom',
+    question: '정사면체의 꼭짓점 수, 모서리 수, 면 수의 합은?',
+    choices: ['10', '12', '14', '16', '18'],
+    answerIndex: 2,
+    topic: '공간도형',
+    diagnosisMethods: ['g3_space_geometry'],
+  },
 ];
+
+export function getDiagnosticProblems(
+  grade: LearnerGrade,
+  track?: LearnerTrack,
+): Problem[] {
+  // g2는 아직 전용 콘텐츠가 없으므로 g1 fallback
+  const effectiveGrade = grade === 'g2' || grade === 'unknown' ? 'g1' : grade;
+
+  return problemData.filter((p) => {
+    if (p.grade !== effectiveGrade) return false;
+    if (effectiveGrade === 'g3' && p.track !== track) return false;
+    return true;
+  });
+}
