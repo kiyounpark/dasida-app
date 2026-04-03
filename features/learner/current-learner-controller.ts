@@ -27,6 +27,7 @@ import type { LearnerProfileStore } from './profile-store';
 import type {
   FeaturedExamState,
   LearnerProfile,
+  LearnerTrack,
   PreviewSeedState,
 } from './types';
 
@@ -66,6 +67,7 @@ export type CurrentLearnerController = {
   updateOnboardingProfile(
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
+    track?: LearnerTrack,
   ): Promise<CurrentLearnerSnapshot>;
   graduateToPractice(): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
@@ -386,12 +388,13 @@ export function createCurrentLearnerController({
         summary,
       });
     },
-    updateOnboardingProfile: async (nickname, grade) => {
+    updateOnboardingProfile: async (nickname, grade, track) => {
       const { session, profile, summary } = await readAccessibleSnapshot();
       const nextProfile: LearnerProfile = {
         ...profile,
         nickname,
         grade,
+        track: grade === 'g3' ? track : undefined,
         updatedAt: new Date().toISOString(),
       };
       await profileStore.save(nextProfile);

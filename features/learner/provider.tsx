@@ -30,6 +30,7 @@ import type { LearningSource } from '@/features/learning/history-types';
 import type {
   FeaturedExamState,
   LearnerProfile,
+  LearnerTrack,
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
@@ -92,6 +93,7 @@ export type CurrentLearnerContextValue = {
   updateOnboardingProfile(
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
+    track?: LearnerTrack,
   ): Promise<void>;
   graduateToPractice(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
@@ -247,8 +249,8 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         const snapshot = await learnerController.updateGrade(grade);
         setState(toLearnerState(snapshot));
       },
-      updateOnboardingProfile: async (nickname, grade) => {
-        const snapshot = await learnerController.updateOnboardingProfile(nickname, grade);
+      updateOnboardingProfile: async (nickname, grade, track) => {
+        const snapshot = await learnerController.updateOnboardingProfile(nickname, grade, track);
         setState(toLearnerState(snapshot));
       },
       graduateToPractice: async () => {
