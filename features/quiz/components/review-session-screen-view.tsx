@@ -76,7 +76,32 @@ export function ReviewSessionScreenView({
   }
 
   if (!step) {
-    return null;
+    // g3_* 약점처럼 사고 흐름 데이터가 없는 경우 — 완료 화면으로 바로 진입
+    return (
+      <View style={[styles.screen, styles.doneScreen, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
+        <Text style={styles.doneEmoji}>🌿</Text>
+        <Text style={styles.doneTitle}>모든 단계 완료!</Text>
+        <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
+
+        <View style={styles.scheduleBox}>
+          <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
+          <Text style={styles.scheduleVal}>
+            {task.stage === 'day1' ? '3일 후' :
+             task.stage === 'day3' ? '7일 후' :
+             task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
+          </Text>
+        </View>
+
+        <View style={styles.doneButtons}>
+          <Pressable style={styles.retryBtn} onPress={onPressRetry}>
+            <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
+          </Pressable>
+          <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
+            <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
 
   const continueLabel = isLastStep ? '완료 →' : '다음 단계 →';
