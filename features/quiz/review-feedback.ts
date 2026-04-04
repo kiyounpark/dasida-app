@@ -37,16 +37,15 @@ export async function requestReviewFeedback(
 
     const payload = await response.json().catch(() => null);
 
-    if (
-      !response.ok ||
-      !payload ||
-      typeof payload.replyText !== 'string' ||
-      !payload.replyText.trim()
-    ) {
-      throw new Error(
+    if (!response.ok) {
+      const errorMsg =
         (payload && typeof payload.error === 'string' && payload.error) ||
-          'Failed to fetch review feedback',
-      );
+        `Review feedback request failed (HTTP ${response.status})`;
+      throw new Error(errorMsg);
+    }
+
+    if (!payload || typeof payload.replyText !== 'string' || !payload.replyText.trim()) {
+      throw new Error('Review feedback returned empty or invalid response');
     }
 
     return { replyText: payload.replyText.trim() };
