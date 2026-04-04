@@ -199,3 +199,34 @@ export async function requestDiagnosisExplanationFromOpenAI({
     model,
   };
 }
+
+export async function requestReviewFeedbackFromOpenAI({
+  apiKey,
+  model,
+  systemPrompt,
+  userContent,
+}: {
+  apiKey: string;
+  model: string;
+  systemPrompt: string;
+  userContent: string;
+}): Promise<{ replyText: string }> {
+  // review-feedback은 자유 텍스트 응답이므로 responses.create(JSON schema)가 아닌
+  // chat.completions.create를 사용한다. 코칭 피드백은 구조화된 JSON이 불필요하기 때문.
+  const client = new OpenAI({ apiKey });
+  const completion = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent },
+    ],
+    max_tokens: 200,
+  });
+
+  const replyText = completion.choices[0]?.message?.content?.trim() ?? '';
+  if (!replyText) {
+    throw new Error('OpenAI response did not include content');
+  }
+
+  return { replyText };
+}

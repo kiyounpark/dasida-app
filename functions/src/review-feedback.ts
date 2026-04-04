@@ -3,7 +3,7 @@ import * as logger from 'firebase-functions/logger';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { onRequest } from 'firebase-functions/v2/https';
 import { z } from 'zod';
-import OpenAI from 'openai';
+import { requestReviewFeedbackFromOpenAI } from './openai-client';
 
 const openAiApiKey = defineSecret('OPENAI_API_KEY');
 const openAiModel = defineString('OPENAI_MODEL', { default: 'gpt-4.1' });
@@ -63,20 +63,12 @@ export const reviewFeedback = onRequest(
       .join('\n');
 
     try {
-      const client = new OpenAI({ apiKey: openAiApiKey.value() });
-      const completion = await client.chat.completions.create({
+      const { replyText } = await requestReviewFeedbackFromOpenAI({
+        apiKey: openAiApiKey.value(),
         model: openAiModel.value(),
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        max_tokens: 200,
+        systemPrompt: SYSTEM_PROMPT,
+        userContent,
       });
-
-      const replyText = completion.choices[0]?.message?.content?.trim() ?? '';
-      if (!replyText) {
-        throw new Error('Empty response from OpenAI');
-      }
 
       response.status(200).json({ replyText });
     } catch (error) {
