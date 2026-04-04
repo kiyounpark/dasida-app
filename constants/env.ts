@@ -36,3 +36,6 @@ export const learningHistoryImportLocalSnapshotUrl = (
 
 export const diagnosisRouterTimeoutMs = 8000;
 export const diagnosisExplainTimeoutMs = 12000;
+
+export const reviewFeedbackUrl = (process.env.EXPO_PUBLIC_REVIEW_FEEDBACK_URL ?? '').trim();
+export const reviewFeedbackTimeoutMs = 10000;
