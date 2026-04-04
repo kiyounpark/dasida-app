@@ -1,6 +1,6 @@
 // features/quiz/hooks/use-review-session-screen.ts
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import { completeReviewTask, rescheduleReviewTask } from '@/features/learning/review-scheduler';
@@ -53,14 +53,21 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!accountKey || !taskId) {
       return;
     }
+    let cancelled = false;
     store.load(accountKey).then((tasks) => {
+      if (cancelled) return;
       const found = tasks.find((t) => t.id === taskId) ?? null;
       setTask(found);
       if (found) {
         setSteps(getReviewThinkingSteps(found.weaknessId));
       }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [accountKey, taskId]);
+
+  const isFetchingRef = useRef(false);
 
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
@@ -78,6 +85,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   };
 
   const onPressNext = async () => {
+    if (isFetchingRef.current) return;
     const step = steps[currentStepIndex];
     if (!step || !task) {
       return;
@@ -87,11 +95,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     const hasText = userText.trim().length > 0;
 
     if (!hasChoice && !hasText) {
-      // 아무 입력 없으면 피드백 없이 바로 다음
       setStepPhase('feedback');
       return;
     }
 
+    isFetchingRef.current = true;
     setIsLoadingFeedback(true);
     try {
       const selectedChoiceText = hasChoice
@@ -106,15 +114,18 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       });
       setAiFeedback(result.replyText);
     } catch {
-      // AI 실패 시 피드백 없이 계속 진행
       setAiFeedback(null);
     } finally {
+      isFetchingRef.current = false;
       setIsLoadingFeedback(false);
       setStepPhase('feedback');
     }
   };
 
   const onPressContinue = () => {
+    if (!task || steps.length === 0) {
+      return;
+    }
     const nextIndex = currentStepIndex + 1;
     if (nextIndex >= steps.length) {
       setSessionComplete(true);
@@ -128,8 +139,12 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) {
       return;
     }
-    await completeReviewTask(accountKey, task.id, store);
-    await refresh();
+    try {
+      await completeReviewTask(accountKey, task.id, store);
+      await refresh();
+    } catch (error) {
+      console.warn('Failed to complete review task', error);
+    }
     router.back();
   };
 
@@ -137,8 +152,12 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) {
       return;
     }
-    await rescheduleReviewTask(accountKey, task.id, store);
-    await refresh();
+    try {
+      await rescheduleReviewTask(accountKey, task.id, store);
+      await refresh();
+    } catch (error) {
+      console.warn('Failed to reschedule review task', error);
+    }
     router.back();
   };
 
