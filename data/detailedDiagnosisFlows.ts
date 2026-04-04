@@ -167,7 +167,7 @@ const customExplainCopyByChoice: Partial<Record<string, ExplainCopy>> = {
   },
 };
 
-const checkPromptByWeakness: Record<WeaknessId, CheckPromptDefinition> = {
+const checkPromptByWeakness: Partial<Record<WeaknessId, CheckPromptDefinition>> = {
   formula_understanding: {
     title: '완전제곱식 핵심 확인',
     prompt: 'x² - 6x를 완전제곱식으로 만들 때 더하고 빼야 하는 수는?',
@@ -425,7 +425,9 @@ function buildCheckNode(
   onCorrectNextNodeId: string,
   onWrongNextNodeId: string,
 ): CheckNode {
-  const definition = checkPromptByWeakness[weaknessId];
+  // checkPromptByWeakness only contains g1 entries; g3 weaknesses don't use this tree
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const definition = checkPromptByWeakness[weaknessId]!;
 
   return {
     id: nodeId,
