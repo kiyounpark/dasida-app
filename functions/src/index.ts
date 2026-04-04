@@ -12,3 +12,4 @@ export { importLocalLearningHistoryHandler as importLocalLearningHistory } from 
 export { listLearningAttemptsHandler as listLearningAttempts } from './list-learning-attempts';
 export { recordLearningAttemptHandler as recordLearningAttempt } from './record-learning-attempt';
 export { saveFeaturedExamStateHandler as saveFeaturedExamState } from './save-featured-exam-state';
+export { reviewFeedback } from './review-feedback';
