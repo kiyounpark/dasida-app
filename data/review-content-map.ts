@@ -12,6 +12,8 @@ type ReviewContent = {
   thinkingSteps: ThinkingStep[];
 };
 
+// g3_* 약점은 이 맵에 포함되지 않음 — 해당 약점의 복습 세션은 별도로 구현 예정
+// getReviewThinkingSteps는 g3_* weaknessId에 대해 [] 반환
 const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
   discriminant_calculation: {
     heroPrompt: '판별식은 b^2와 4ac를 따로 계산한 뒤 빼야 한다는 흐름이 떠오르나요?',
@@ -824,6 +826,6 @@ export function getReviewHeroPrompt(weaknessId: WeaknessId) {
   return reviewContentMap[weaknessId]?.heroPrompt ?? diagnosisMap[weaknessId].tip;
 }
 
-export function getReviewThinkingSteps(weaknessId: WeaknessId): ThinkingStep[] {
+export function getReviewThinkingSteps(weaknessId: WeaknessId): readonly ThinkingStep[] {
   return reviewContentMap[weaknessId]?.thinkingSteps ?? [];
 }
