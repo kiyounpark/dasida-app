@@ -25,6 +25,7 @@ export async function completeReviewTask(
   const tasks = await store.load(accountKey);
   const task = tasks.find((t) => t.id === taskId);
   if (!task) {
+    console.warn('[review-scheduler] completeReviewTask: task not found', taskId);
     return;
   }
 
@@ -73,6 +74,7 @@ export async function rescheduleReviewTask(
   const tasks = await store.load(accountKey);
   const task = tasks.find((t) => t.id === taskId);
   if (!task) {
+    console.warn('[review-scheduler] rescheduleReviewTask: task not found', taskId);
     return;
   }
 
