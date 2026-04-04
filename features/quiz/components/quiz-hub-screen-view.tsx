@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
+import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 
@@ -75,6 +76,7 @@ export function QuizHubScreenView({
   journey,
   onDismissAuthNotice,
   onPressJourneyCta,
+  onPressReviewCard,
   onRefresh,
   profile,
   session,
@@ -122,6 +124,12 @@ export function QuizHubScreenView({
             isCompactLayout={isCompactLayout}
             message={authNoticeMessage}
             onDismiss={onDismissAuthNotice}
+          />
+        ) : null}
+        {homeState?.nextReviewTask ? (
+          <ReviewHomeCard
+            task={homeState.nextReviewTask}
+            onPress={onPressReviewCard}
           />
         ) : null}
         <JourneyBoard

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
+import { applyOverduePenalties } from '@/features/learning/review-scheduler';
+import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -18,6 +20,7 @@ export type UseQuizHubScreenResult = {
   onOpenPractice: () => void;
   onOpenRecentResult: () => void;
   onPressJourneyCta: () => void;
+  onPressReviewCard: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
@@ -46,6 +49,20 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     setLocalAuthNoticeMessage(authNoticeMessage);
     dismissAuthNotice();
   }, [authNoticeMessage, dismissAuthNotice]);
+
+  const reviewStore = new LocalReviewTaskStore();
+
+  useEffect(() => {
+    const accountKey = session?.accountKey;
+    if (!accountKey) {
+      return;
+    }
+    applyOverduePenalties(accountKey, reviewStore).then(() => {
+      void refresh();
+    });
+    // 마운트 시 1회만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.accountKey]);
 
   const onStartDiagnostic = () => {
     resetSession();
@@ -76,6 +93,17 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push({
       pathname: '/quiz/result',
       params: { source: 'snapshot' },
+    });
+  };
+
+  const onPressReviewCard = () => {
+    const taskId = homeState?.nextReviewTask?.id;
+    if (!taskId) {
+      return;
+    }
+    router.push({
+      pathname: '/quiz/review-session',
+      params: { taskId },
     });
   };
 
@@ -113,6 +141,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onOpenPractice,
     onOpenRecentResult,
     onPressJourneyCta,
+    onPressReviewCard,
     onRefresh: refresh,
     onStartDiagnostic,
     profile,
