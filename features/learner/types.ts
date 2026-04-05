@@ -5,6 +5,9 @@ export type PreviewSeedState =
   | 'fresh'
   | 'diagnostic-complete'
   | 'review-available'
+  | 'review-day3-available'
+  | 'review-day7-available'
+  | 'review-day30-available'
   | 'exam-in-progress';
 
 export type LearnerGrade = 'g1' | 'g2' | 'g3' | 'unknown';

@@ -22,6 +22,7 @@ import { createCurrentLearnerController } from '@/features/learner/current-learn
 import { AnonymousAwareLearnerProfileStore } from '@/features/learner/anonymous-aware-learner-profile-store';
 import { FirestoreLearnerProfileStore } from '@/features/learner/firestore-learner-profile-store';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
+import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
 import type {
   FinalizedAttemptInput,
@@ -45,6 +46,7 @@ import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
+const localReviewTaskStore = new LocalReviewTaskStore();
 const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
 const fallbackAuthBlockingReason = getAuthBlockingReason({
   availableProviders: availableAuthProviders,
@@ -75,6 +77,7 @@ const learnerController = createCurrentLearnerController({
     snapshotStore: new LocalLearningHistorySnapshotStore(),
   }),
   peerPresenceStore,
+  reviewTaskStore: localReviewTaskStore,
 });
 
 export type CurrentLearnerContextValue = {
@@ -106,6 +109,7 @@ export type CurrentLearnerContextValue = {
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
+  pullReviewDueDates(): Promise<void>;
   resetLocalProfile(): Promise<void>;
 };
 
@@ -274,6 +278,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       seedPreview: async (previewState) => {
         const snapshot = await learnerController.seedPreview(previewState);
+        setState(toLearnerState(snapshot));
+      },
+      pullReviewDueDates: async () => {
+        const snapshot = await learnerController.pullReviewDueDates();
         setState(toLearnerState(snapshot));
       },
       resetLocalProfile: async () => {

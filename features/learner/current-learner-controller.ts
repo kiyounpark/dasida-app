@@ -20,7 +20,8 @@ import {
 } from '@/features/learning/history-repository';
 import { LearningHistoryMigrationService } from '@/features/learning/learning-history-migration-service';
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
-import type { LearningSource } from '@/features/learning/history-types';
+import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
+import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 
 import type { LearnerProfileStore } from './profile-store';
@@ -73,6 +74,7 @@ export type CurrentLearnerController = {
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
+  pullReviewDueDates(): Promise<CurrentLearnerSnapshot>;
   resetLocalProfile(): Promise<CurrentLearnerSnapshot>;
 };
 
@@ -83,6 +85,7 @@ type Dependencies = {
   localLearningHistoryRepository: LocalLearningHistoryRepository;
   migrationService: LearningHistoryMigrationService;
   peerPresenceStore: PreviewablePeerPresenceStore;
+  reviewTaskStore: LocalReviewTaskStore;
 };
 
 async function ensureProfile(
@@ -149,6 +152,7 @@ export function createCurrentLearnerController({
   localLearningHistoryRepository,
   migrationService,
   peerPresenceStore,
+  reviewTaskStore,
 }: Dependencies): CurrentLearnerController {
   const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
   const devGuestEnabled = canUseDevGuestAuth();
@@ -461,6 +465,37 @@ export function createCurrentLearnerController({
         );
       }
 
+      if (
+        state === 'review-day3-available' ||
+        state === 'review-day7-available' ||
+        state === 'review-day30-available'
+      ) {
+        const stageMap: Record<
+          'review-day3-available' | 'review-day7-available' | 'review-day30-available',
+          ReviewStage
+        > = {
+          'review-day3-available': 'day3',
+          'review-day7-available': 'day7',
+          'review-day30-available': 'day30',
+        };
+        const targetStage = stageMap[state as keyof typeof stageMap];
+        const completedAt = new Date().toISOString();
+        const today = completedAt.slice(0, 10);
+
+        const { reviewTasks } = await learningHistoryRepository.recordAttempt(
+          buildPreviewAttemptInput(profile, 'diagnostic', null, completedAt),
+        );
+
+        const remappedTasks = reviewTasks.map((task) => ({
+          ...task,
+          id: `${task.sourceId}__${task.weaknessId}__${targetStage}`,
+          stage: targetStage,
+          scheduledFor: today,
+        }));
+
+        await reviewTaskStore.saveAll(session.accountKey, remappedTasks);
+      }
+
       if (state === 'exam-in-progress') {
         await learningHistoryRepository.saveFeaturedExamState(session.accountKey, {
           examId: 'featured-mock-1',
@@ -474,6 +509,16 @@ export function createCurrentLearnerController({
       return buildSnapshotForSession(session, {
         authGateState: 'guest-dev',
       });
+    },
+    pullReviewDueDates: async () => {
+      const { session } = await readDevGuestSnapshot();
+      const tasks = await reviewTaskStore.load(session.accountKey);
+      const today = new Date().toISOString().slice(0, 10);
+      const updated = tasks.map((task) =>
+        task.completed ? task : { ...task, scheduledFor: today },
+      );
+      await reviewTaskStore.saveAll(session.accountKey, updated);
+      return readCurrentSnapshot();
     },
     resetLocalProfile: async () => {
       const { session } = await readDevGuestSnapshot();
