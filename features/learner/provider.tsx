@@ -19,6 +19,7 @@ import { createAuthClient } from '@/features/auth/create-auth-client';
 import { isFirebaseAuthConfigured } from '@/features/auth/firebase-config';
 import type { AuthSession, SupportedAuthProvider } from '@/features/auth/types';
 import { createCurrentLearnerController } from '@/features/learner/current-learner-controller';
+import { AnonymousAwareLearnerProfileStore } from '@/features/learner/anonymous-aware-learner-profile-store';
 import { FirestoreLearnerProfileStore } from '@/features/learner/firestore-learner-profile-store';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
 import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
@@ -49,12 +50,18 @@ const fallbackAuthBlockingReason = getAuthBlockingReason({
   availableProviders: availableAuthProviders,
   isFirebaseAuthConfigured: isFirebaseAuthConfigured(),
 });
-// Firestore가 설정된 경우 원격 store 사용 (기기 간 동기화)
-// 웹에서는 Firebase 설정 여부와 무관하게 로컬 store 사용
-// (웹 dev-guest 세션은 Firebase 인증 없이 Firestore 접근 불가)
+// 웹: Firebase 인증 없이 Firestore 접근 불가 → 항상 LocalStore
+// Android/iOS + Firebase 구성됨:
+//   - 익명 세션 → LocalStore  (Firestore 접근 권한 없음)
+//   - 인증 세션 → FirestoreStore (기기 간 동기화)
+// Android/iOS + Firebase 미구성: 항상 LocalStore
 const profileStore =
   isFirebaseAuthConfigured() && process.env.EXPO_OS !== 'web'
-    ? new FirestoreLearnerProfileStore()
+    ? new AnonymousAwareLearnerProfileStore(
+        () => authClient.loadSession(),
+        new FirestoreLearnerProfileStore(),
+        new LocalLearnerProfileStore(),
+      )
     : new LocalLearnerProfileStore();
 
 const learnerController = createCurrentLearnerController({
