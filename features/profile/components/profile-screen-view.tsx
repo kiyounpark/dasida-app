@@ -105,6 +105,7 @@ export function ProfileScreenView({
   supportedAuthProviders,
   onGoToOnboarding,
   onImportLocalHistory,
+  onPullReviewDueDates,
   onResetLocalProfile,
   onSeedPreview,
   onSignIn,
@@ -307,6 +308,16 @@ export function ProfileScreenView({
                     />
                   ))}
                 </View>
+                <ActionButton
+                  label={
+                    busyAction === 'pull-review-dates'
+                      ? '날짜 당기는 중...'
+                      : '복습 날짜 당기기'
+                  }
+                  disabled={busyAction !== null}
+                  subtle
+                  onPress={() => void onPullReviewDueDates()}
+                />
                 <ActionButton
                   label={busyAction === 'reset-local' ? '초기화 중...' : '로컬 상태 초기화'}
                   disabled={busyAction !== null}

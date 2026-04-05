@@ -23,6 +23,9 @@ const previewStates: { value: PreviewSeedState; label: string }[] = [
   { value: 'fresh', label: '첫 설치' },
   { value: 'diagnostic-complete', label: '진단 완료' },
   { value: 'review-available', label: '오늘 복습 있음' },
+  { value: 'review-day3-available', label: 'DAY 3 복습 있음' },
+  { value: 'review-day7-available', label: 'DAY 7 복습 있음' },
+  { value: 'review-day30-available', label: 'DAY 30 복습 있음' },
   { value: 'exam-in-progress', label: '모의고사 진행 중' },
 ];
 
@@ -60,6 +63,7 @@ export function useProfileScreen() {
     importAnonymousHistory,
     isReady,
     profile,
+    pullReviewDueDates,
     refresh,
     resetLocalProfile,
     seedPreview,
@@ -196,6 +200,17 @@ export function useProfileScreen() {
 
       try {
         await resetLocalProfile();
+      } catch (error) {
+        setErrorMessage(formatErrorMessage(error));
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    onPullReviewDueDates: async () => {
+      setBusyAction('pull-review-dates');
+      setErrorMessage(null);
+      try {
+        await pullReviewDueDates();
       } catch (error) {
         setErrorMessage(formatErrorMessage(error));
       } finally {
