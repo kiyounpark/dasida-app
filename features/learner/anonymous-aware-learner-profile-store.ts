@@ -11,7 +11,8 @@ export class AnonymousAwareLearnerProfileStore implements LearnerProfileStore {
 
   // 매 호출마다 최신 세션을 읽어 스토어를 선택합니다.
   // session이 null이거나 anonymous이면 anonymousStore로 위임합니다.
-  // auth 전환(signIn/signOut) 중에는 이 메서드가 호출되지 않으므로 레이스 컨디션 위험은 없습니다.
+  // signIn 흐름 내부(buildSnapshotForSession)에서도 호출될 수 있으며,
+  // 이 시점에는 Firebase 세션이 이미 authenticated 상태이므로 authenticatedStore가 선택됩니다.
   private async selectStore(): Promise<LearnerProfileStore> {
     const session = await this.loadSession();
     return session?.status === 'authenticated'
