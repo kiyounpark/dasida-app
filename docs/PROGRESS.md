@@ -707,6 +707,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.04 11:51
+- 해시: `fe842d1` (`fe842d166b214c5033e91d8c1537499553e9a098`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/fe842d166b214c5033e91d8c1537499553e9a098
+- 작성자: 박기윤
+- 메시지: feat: 홈 화면에 ReviewHomeCard 연결 + 오버듀 패널티 effect
+
 ### 커밋 2026.04.03 19:51
 - 해시: `78313d9` (`78313d97265e15d53c493123f85c4271dec0b26f`)
 - 브랜치: feat/playwright-e2e
