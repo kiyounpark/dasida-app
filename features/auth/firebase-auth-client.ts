@@ -8,6 +8,7 @@ import {
   makeRedirectUri,
 } from 'expo-auth-session';
 import Constants from 'expo-constants';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
   GoogleAuthProvider,
   OAuthProvider,
@@ -148,6 +149,27 @@ async function signInWithAppleCredential(): Promise<AppleSignInResult> {
 
     throw error;
   }
+}
+
+async function signInWithGoogleNative(): Promise<GoogleSignInResult> {
+  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+  const response = await GoogleSignin.signIn();
+
+  if (response.type === 'cancelled') {
+    throw new AuthFlowCancelledError();
+  }
+
+  const idToken = response.data?.idToken;
+  if (!idToken) {
+    throw new Error('Google ID token is missing.');
+  }
+
+  return {
+    signInResult: await signInWithCredential(
+      getFirebaseAuthInstance(),
+      GoogleAuthProvider.credential(idToken),
+    ),
+  };
 }
 
 async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
@@ -301,7 +323,11 @@ export class FirebaseAuthClient implements AuthClient {
 
     const previousSession = await this.loadSession();
     const credentialResult =
-      provider === 'apple' ? await signInWithAppleCredential() : await signInWithGoogleCredential();
+      provider === 'apple'
+        ? await signInWithAppleCredential()
+        : process.env.EXPO_OS === 'android'
+          ? await signInWithGoogleNative()
+          : await signInWithGoogleCredential();
     const authResult = credentialResult.signInResult;
     const appleOverrides =
       isAppleSignInResult(credentialResult)

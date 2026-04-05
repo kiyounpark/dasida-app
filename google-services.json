@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "508273060403",
+    "project_id": "dasida-app",
+    "storage_bucket": "dasida-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508273060403:android:7422f559dad3c522fed146",
+        "android_client_info": {
+          "package_name": "com.dasida.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "508273060403-592ipb5d4msraiivd9c82jdk4b9i0a7n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dasida.app",
+            "certificate_hash": "6e841dc02f3662e8a7dfb558d183b5a5b95b9ea9"
+          }
+        },
+        {
+          "client_id": "508273060403-bcvv0d68ibfdlfmg4g20p1b1faniv8sl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dasida.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "508273060403-t956itkitho1hlp1knajk7skc3l9cqak.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dasida.app",
+            "certificate_hash": "100d6def33c8729aa3247741db5b947d10ca3a58"
+          }
+        },
+        {
+          "client_id": "508273060403-f6rcd1snmf8p1qih7ll2auv8p5j8tbcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvR4WEKvolcBkUqYQvA3I3CmL4Z6CeNJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "508273060403-f6rcd1snmf8p1qih7ll2auv8p5j8tbcp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "508273060403-eam1pvp5nueq3cgkv0n2i157ojgacdc3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dasida.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

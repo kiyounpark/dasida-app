@@ -13,6 +13,13 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
   // Fast refresh or unsupported platforms can call this more than once.
 });
 
+if (process.env.EXPO_OS === 'android') {
+  const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+  GoogleSignin.configure({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  });
+}
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };
