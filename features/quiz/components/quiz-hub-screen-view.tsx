@@ -132,12 +132,14 @@ export function QuizHubScreenView({
             onPress={onPressReviewCard}
           />
         ) : null}
-        <JourneyBoard
-          isCompactLayout={isCompactLayout}
-          onPressCurrentStep={onPressJourneyCta}
-          onPressCta={onPressJourneyCta}
-          state={journey}
-        />
+        {!profile?.practiceGraduatedAt ? (
+          <JourneyBoard
+            isCompactLayout={isCompactLayout}
+            onPressCurrentStep={onPressJourneyCta}
+            onPressCta={onPressJourneyCta}
+            state={journey}
+          />
+        ) : null}
       </View>
     </View>
   );
