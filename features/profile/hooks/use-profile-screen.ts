@@ -27,6 +27,7 @@ const previewStates: { value: PreviewSeedState; label: string }[] = [
   { value: 'review-day7-available', label: 'DAY 7 복습 있음' },
   { value: 'review-day30-available', label: 'DAY 30 복습 있음' },
   { value: 'exam-in-progress', label: '모의고사 진행 중' },
+  { value: 'practice-graduated', label: '약점 연습 완료' },
 ];
 
 function formatErrorMessage(error: unknown) {

@@ -505,6 +505,25 @@ export function createCurrentLearnerController({
         });
       }
 
+      if (state === 'practice-graduated') {
+        const completedAt = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+        const { reviewTasks } = await learningHistoryRepository.recordAttempt(
+          buildPreviewAttemptInput(profile, 'diagnostic', null, completedAt),
+        );
+        const remappedTasks = reviewTasks.map((task) => ({
+          ...task,
+          stage: 'day1' as ReviewStage,
+          scheduledFor: completedAt.slice(0, 10),
+        }));
+        await reviewTaskStore.saveAll(session.accountKey, remappedTasks);
+        const graduatedProfile: LearnerProfile = {
+          ...profile,
+          practiceGraduatedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await profileStore.save(graduatedProfile);
+      }
+
       await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));
       return buildSnapshotForSession(session, {
         authGateState: 'guest-dev',
