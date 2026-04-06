@@ -15,7 +15,7 @@ const MEMORY_RETENTION_PCT: Record<string, number> = {
   day30: 20,
 };
 
-const TIMER_SECONDS = 10;
+const TIMER_SECONDS = __DEV__ ? 1 : 10;
 
 type Props = {
   task: ActiveReviewTaskSummary;

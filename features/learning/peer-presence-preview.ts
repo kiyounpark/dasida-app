@@ -19,6 +19,30 @@ const previewPeerMap: Record<Exclude<PreviewSeedState, 'fresh'>, PeerPresenceSna
       { id: 'peer-harin', nickname: '하린', avatarSeed: 'harin', statusText: '오답 복기 시작' },
     ],
   },
+  'review-day3-available': {
+    updatedAt: new Date('2026-03-13T08:30:00.000Z').toISOString(),
+    peers: [
+      { id: 'peer-jiwoo', nickname: '지우', avatarSeed: 'jiwoo', statusText: 'Day 3 복습 완료' },
+      { id: 'peer-seojun', nickname: '서준', avatarSeed: 'seojun', statusText: '실전 세트 이어 풀기' },
+      { id: 'peer-harin', nickname: '하린', avatarSeed: 'harin', statusText: '오답 복기 시작' },
+    ],
+  },
+  'review-day7-available': {
+    updatedAt: new Date('2026-03-13T08:30:00.000Z').toISOString(),
+    peers: [
+      { id: 'peer-jiwoo', nickname: '지우', avatarSeed: 'jiwoo', statusText: 'Day 7 복습 완료' },
+      { id: 'peer-seojun', nickname: '서준', avatarSeed: 'seojun', statusText: '실전 세트 이어 풀기' },
+      { id: 'peer-harin', nickname: '하린', avatarSeed: 'harin', statusText: '오답 복기 시작' },
+    ],
+  },
+  'review-day30-available': {
+    updatedAt: new Date('2026-03-13T08:30:00.000Z').toISOString(),
+    peers: [
+      { id: 'peer-jiwoo', nickname: '지우', avatarSeed: 'jiwoo', statusText: 'Day 30 복습 완료' },
+      { id: 'peer-seojun', nickname: '서준', avatarSeed: 'seojun', statusText: '실전 세트 이어 풀기' },
+      { id: 'peer-harin', nickname: '하린', avatarSeed: 'harin', statusText: '오답 복기 시작' },
+    ],
+  },
   'exam-in-progress': {
     updatedAt: new Date('2026-03-13T09:15:00.000Z').toISOString(),
     peers: [
