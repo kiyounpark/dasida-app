@@ -120,7 +120,9 @@ export function QuizHubScreenView({
   return (
     <View style={styles.screen}>
       <View style={[styles.posterScreen, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-        <JourneyScreenHero isCompactLayout={isCompactLayout} />
+        {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
+          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+        ) : null}
         {authNoticeMessage ? (
           <AuthNotice
             isCompactLayout={isCompactLayout}
