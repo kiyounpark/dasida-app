@@ -123,7 +123,7 @@ export function QuizHubScreenView({
   return (
     <View style={styles.screen}>
       {isNoReviewDay ? <BrandHeader compact={isCompactLayout} /> : null}
-      <View style={[styles.posterScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
+      <View style={[styles.posterScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding, justifyContent: isNoReviewDay ? 'flex-start' : 'center' }]}>
         {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         ) : null}
