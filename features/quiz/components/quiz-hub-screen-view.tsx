@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
@@ -86,6 +87,8 @@ export function QuizHubScreenView({
   const insets = useSafeAreaInsets();
   const topPadding = insets.top + (isCompactLayout ? 14 : 24);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
+  const isNoReviewDay = !!(homeState?.nextReviewTask && homeState.todayReviewCount === 0 && !profile?.practiceGraduatedAt);
+  const posterTopPadding = isNoReviewDay ? (isCompactLayout ? 14 : 24) : topPadding;
 
   if (!isReady) {
     return (
@@ -119,7 +122,8 @@ export function QuizHubScreenView({
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.posterScreen, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+      {isNoReviewDay ? <BrandHeader compact={isCompactLayout} /> : null}
+      <View style={[styles.posterScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
         {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         ) : null}
