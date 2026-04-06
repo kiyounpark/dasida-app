@@ -19,6 +19,7 @@ export type UseQuizHubScreenResult = {
   onDismissAuthNotice: () => void;
   onOpenPractice: () => void;
   onOpenRecentResult: () => void;
+  onPressExam: () => void;
   onPressJourneyCta: () => void;
   onPressReviewCard: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
@@ -107,6 +108,10 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     });
   };
 
+  const onPressExam = () => {
+    router.push('/(tabs)/quiz/exams');
+  };
+
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
 
@@ -140,6 +145,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     },
     onOpenPractice,
     onOpenRecentResult,
+    onPressExam,
     onPressJourneyCta,
     onPressReviewCard,
     onRefresh: refresh,
