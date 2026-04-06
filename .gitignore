@@ -37,6 +37,7 @@ firebase-debug.log
 .env
 .env.*
 !.env.example
+!.env.playwright
 
 # typescript
 *.tsbuildinfo

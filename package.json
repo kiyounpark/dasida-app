@@ -23,7 +23,8 @@
     "functions:lint": "npm run lint --prefix functions",
     "functions:test": "npm run test --prefix functions",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:firestore": "FIREBASE_EMULATOR_TESTS=true npx playwright test e2e/firebase-firestore.spec.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
