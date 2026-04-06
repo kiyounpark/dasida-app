@@ -128,7 +128,7 @@ export function QuizHubScreenView({
             onDismiss={onDismissAuthNotice}
           />
         ) : null}
-        {homeState?.nextReviewTask ? (
+        {homeState?.nextReviewTask && homeState.todayReviewCount > 0 ? (
           <ReviewHomeCard
             task={homeState.nextReviewTask}
             onPress={onPressReviewCard}
