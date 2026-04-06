@@ -207,7 +207,6 @@ export function SignInScreenView({
   supportedAuthProviders,
   onContinueAsDevGuest,
   onSignIn,
-  onSignInWithTestAccount,
 }: UseSignInScreenResult) {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -312,25 +311,7 @@ export function SignInScreenView({
               </Animated.View>
             ) : null}
 
-            {onSignInWithTestAccount ? (
-              <Animated.View entering={FadeIn.duration(180).delay(260)} style={styles.devGuestWrap}>
-                <Pressable
-                  testID="sign-in-with-test-account"
-                  accessibilityRole="button"
-                  disabled={busyAction !== null}
-                  onPress={() => void onSignInWithTestAccount()}
-                  style={({ pressed }) => [
-                    styles.devGuestButton,
-                    (pressed || busyAction !== null) && styles.devGuestButtonPressed,
-                  ]}>
-                  <Text selectable style={styles.devGuestText}>
-                    {busyAction === 'test-account'
-                      ? '테스트 계정으로 로그인 중...'
-                      : '테스트 계정으로 로그인'}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-            ) : null}
+
           </View>
         </View>
       </View>

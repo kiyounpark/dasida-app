@@ -1,10 +1,7 @@
 import { router } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useMemo, useState } from 'react';
 
-import { useFirebaseEmulator } from '@/constants/env';
 import { AuthFlowCancelledError } from '@/features/auth/auth-client';
-import { getFirebaseAuthInstance } from '@/features/auth/firebase-app';
 import type { SupportedAuthProvider } from '@/features/auth/types';
 import { useCurrentLearner } from '@/features/learner/provider';
 
@@ -42,7 +39,6 @@ export function useSignInScreen() {
     availableAuthProviders,
     canUseDevGuestAuth,
     continueAsDevGuest,
-    refresh,
     signIn,
   } = useCurrentLearner();
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -87,25 +83,6 @@ export function useSignInScreen() {
     }
   }
 
-  async function handleSignInWithTestAccount() {
-    setBusyAction('test-account');
-    setErrorMessage(null);
-
-    try {
-      await signInWithEmailAndPassword(
-        getFirebaseAuthInstance(),
-        'test@emulator.local',
-        'testpass123',
-      );
-      await refresh();
-      router.replace('/(tabs)/quiz');
-    } catch (error) {
-      setErrorMessage(formatErrorMessage(error));
-    } finally {
-      setBusyAction(null);
-    }
-  }
-
   return {
     blockingCopy: supportedAuthProviders.length === 0 ? getBlockingCopy(authBlockingReason) : null,
     busyAction,
@@ -114,6 +91,5 @@ export function useSignInScreen() {
     supportedAuthProviders,
     onContinueAsDevGuest: handleContinueAsDevGuest,
     onSignIn: handleSignIn,
-    onSignInWithTestAccount: useFirebaseEmulator ? handleSignInWithTestAccount : undefined,
   };
 }
