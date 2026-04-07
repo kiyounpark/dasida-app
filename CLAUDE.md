@@ -12,6 +12,7 @@
 - 코드 구조/리팩터링/커스텀 훅 분리 작업은 `.claude/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`를 먼저 확인합니다.
 - 이 저장소에는 `.claude/settings.json` 기반 Claude 훅이 포함되어 있으며, `UserPromptSubmit`가 관련 Expo 스킬을 자동 제안하고 `PreToolUse`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도합니다.
 - 작은 문서 수정, 단순 텍스트 수정, 영향 범위가 좁은 단순 수정에는 Claude 검증을 생략할 수 있습니다.
+- 브레인스토밍 spec 파일(`docs/superpowers/specs/*.md`) 저장 직후, Notion "DASIDA 개발 기록" 데이터베이스에 초안 페이지를 생성한다 (상태: 기획중). PostToolUse 훅이 리마인더를 출력하므로 그 즉시 실행한다.
 
 3. 네이티브 빌드 규칙 (필수)
 - **패키지 추가/변경 후에는 반드시**: `npx expo prebuild --clean`
@@ -61,5 +62,9 @@
 - `pre-commit`은 사용하지 않음
 - 가능한 경우 `git commit -> git push origin <현재 브랜치> -> npm run log:commit`
 - 개발 기록은 `docs/PROGRESS.md` 기준으로 남김
+- **Notion 업데이트 (필수)**: 이번 세션에서 기능을 구현 완료했다면, Notion "DASIDA 개발 기록"에서 해당 페이지를 업데이트한다:
+  1. `notion-update-page`로 상태 → `구현완료`, 구현완료일 → 오늘 날짜
+  2. Spec/Plan 필드를 GitHub permalink로 업데이트 (커밋 해시 포함 URL)
+  3. 본문 `## 완료 메모` 섹션에 특이사항 추가 (없으면 생략)
 
 상세 운영 규약은 `docs/AI_COLLABORATION.md`를 따릅니다.
