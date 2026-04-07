@@ -220,8 +220,8 @@ function buildWeaknessProgressItems(
 
   return deduped.slice(0, 3).map((t) => ({
     weaknessId: t.weaknessId,
-    topicLabel: diagnosisMap[t.weaknessId].topicLabel,
-    weaknessLabel: diagnosisMap[t.weaknessId].labelKo,
+    topicLabel: diagnosisMap[t.weaknessId]?.topicLabel ?? '',
+    weaknessLabel: diagnosisMap[t.weaknessId]?.labelKo ?? t.weaknessId,
     stage: t.stage,
     completed: t.completed,
   }));

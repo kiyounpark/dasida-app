@@ -129,7 +129,11 @@ export function QuizHubScreenView({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
-          { paddingTop: posterTopPadding, paddingBottom: bottomPadding },
+          {
+            paddingTop: posterTopPadding,
+            paddingBottom: bottomPadding,
+            justifyContent: homeState?.latestDiagnosticSummary ? 'flex-start' : 'center',
+          },
         ]}
         showsVerticalScrollIndicator={false}>
         {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
@@ -181,6 +185,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   posterScreen: {
+    flexGrow: 1,
     alignItems: 'center',
     gap: 14,
     paddingHorizontal: 14,
