@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import {
-  Alert,
   Linking,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,6 +34,51 @@ function formatProviderLabel(provider: 'anonymous' | 'apple' | 'google') {
     default:
       return '익명';
   }
+}
+
+function DeleteAccountConfirmModal({
+  visible,
+  onCancel,
+  onConfirm,
+}: {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onCancel}>
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalTopBand} />
+          <Text selectable style={styles.modalTitle}>
+            정말 탈퇴하시겠어요?
+          </Text>
+          <Text selectable style={styles.modalBody}>
+            모든 학습 기록이 삭제되며{'\n'}복구할 수 없습니다.
+          </Text>
+          <View style={styles.modalActions}>
+            <Pressable
+              style={({ pressed }) => [styles.modalCancelButton, pressed && { opacity: 0.75 }]}
+              onPress={onCancel}
+              accessibilityRole="button">
+              <Text style={styles.modalCancelLabel}>취소</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.modalConfirmButton, pressed && { opacity: 0.82 }]}
+              onPress={onConfirm}
+              accessibilityRole="button">
+              <Text style={styles.modalConfirmLabel}>탈퇴</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 function SecondaryNotice({
@@ -118,8 +164,18 @@ export function ProfileScreenView({
   session,
   supportedAuthProviders,
 }: UseProfileScreenResult) {
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+
   return (
     <View style={styles.screen}>
+      <DeleteAccountConfirmModal
+        visible={deleteConfirmVisible}
+        onCancel={() => setDeleteConfirmVisible(false)}
+        onConfirm={() => {
+          setDeleteConfirmVisible(false);
+          void onDeleteAccount();
+        }}
+      />
       <BrandHeader compact />
       <ScrollView
         style={styles.scroll}
@@ -223,20 +279,7 @@ export function ProfileScreenView({
               </Text>
               <Pressable
                 disabled={busyAction !== null}
-                onPress={() => {
-                  Alert.alert(
-                    '정말 탈퇴하시겠어요?',
-                    '모든 학습 기록이 삭제되며 복구할 수 없습니다.',
-                    [
-                      { text: '취소', style: 'cancel' },
-                      {
-                        text: '탈퇴',
-                        style: 'destructive',
-                        onPress: () => void onDeleteAccount(),
-                      },
-                    ],
-                  );
-                }}
+                onPress={() => setDeleteConfirmVisible(true)}
                 style={({ pressed }) => [
                   styles.deleteAccountLink,
                   (pressed || busyAction !== null) && { opacity: 0.48 },
@@ -606,5 +649,66 @@ const styles = StyleSheet.create({
   },
   previewList: {
     gap: BrandSpacing.xs,
+  },
+  modalBackdrop: {
+    flex: 1,
+    paddingHorizontal: BrandSpacing.xl,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(32, 40, 32, 0.28)',
+  },
+  modalCard: {
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
+    backgroundColor: BrandColors.background,
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.md,
+    boxShadow: '0 20px 42px rgba(24, 32, 25, 0.16)',
+  },
+  modalTopBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 10,
+    backgroundColor: BrandColors.danger,
+  },
+  modalTitle: {
+    marginTop: BrandSpacing.xs,
+    ...BrandTypography.sectionTitle,
+    color: BrandColors.text,
+  },
+  modalBody: {
+    ...BrandTypography.body,
+    color: BrandColors.mutedText,
+  },
+  modalActions: {
+    gap: BrandSpacing.xs,
+  },
+  modalCancelButton: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: '#F4F6F3',
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  modalCancelLabel: {
+    ...BrandTypography.button,
+    color: BrandColors.primaryDark,
+  },
+  modalConfirmButton: {
+    borderRadius: BrandRadius.sm,
+    borderCurve: 'continuous',
+    backgroundColor: BrandColors.danger,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  modalConfirmLabel: {
+    ...BrandTypography.button,
+    color: '#FFFFFF',
   },
 });
