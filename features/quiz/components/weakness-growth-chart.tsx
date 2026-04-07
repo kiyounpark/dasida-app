@@ -1,102 +1,114 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
-
-type HistoryPoint = { weekLabel: string; count: number };
+import type { WeaknessProgressItem } from '@/features/learning/types';
 
 const MAX_BAR_HEIGHT = 44;
 
-function GhostBar({ label }: { label: string }) {
-  return (
-    <View style={styles.barCol}>
-      <View style={styles.ghostBar} />
-      <Text style={styles.barLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function SolidBar({
-  count,
+function AccuracyBar({
+  diagnosticAccuracy,
+  reviewAccuracy,
   label,
-  maxCount,
-  isCurrent,
 }: {
-  count: number;
+  diagnosticAccuracy?: number;
+  reviewAccuracy?: number;
   label: string;
-  maxCount: number;
-  isCurrent: boolean;
 }) {
-  const height = maxCount === 0 ? 6 : Math.max(6, (count / maxCount) * MAX_BAR_HEIGHT);
-  const opacity = isCurrent ? 1 : 0.35 + (count / Math.max(maxCount, 1)) * 0.3;
+  const diagHeight =
+    diagnosticAccuracy != null
+      ? Math.max(4, (diagnosticAccuracy / 100) * MAX_BAR_HEIGHT)
+      : 4;
+  const reviewHeight =
+    reviewAccuracy != null ? Math.max(4, (reviewAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
+
   return (
-    <View style={styles.barCol}>
-      <Text style={[styles.barNum, isCurrent && styles.barNumCurrent]}>{count}</Text>
-      <View style={[styles.solidBar, { height, opacity }]} />
-      <Text style={styles.barLabel}>{label}</Text>
+    <View style={styles.barGroup}>
+      <View style={[styles.barRow, { height: MAX_BAR_HEIGHT }]}>
+        {/* 진단 막대 */}
+        <View style={styles.barColInner}>
+          {diagnosticAccuracy != null && (
+            <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
+          )}
+          <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
+        </View>
+
+        {/* 복습 막대 or ghost */}
+        <View style={styles.barColInner}>
+          {reviewAccuracy != null ? (
+            <>
+              <Text style={[styles.barNum, styles.reviewNum]}>{reviewAccuracy}%</Text>
+              <View style={[styles.solidBar, styles.reviewBar, { height: reviewHeight }]} />
+            </>
+          ) : (
+            <>
+              <Text style={styles.barNumEmpty}>-</Text>
+              <View style={[styles.ghostBar, { height: diagHeight }]} />
+            </>
+          )}
+        </View>
+      </View>
+      <Text style={styles.barLabel} numberOfLines={2}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-export function WeaknessGrowthChart({
-  history,
-  onRediagnose,
-}: {
-  history: HistoryPoint[];
-  onRediagnose: () => void;
-}) {
-  const resolvedCount = history[history.length - 1]?.count ?? 0;
-  const hasResolved = resolvedCount > 0;
-  const maxCount = Math.max(...history.map((p) => p.count), 1);
+export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[] }) {
+  const reviewedItems = items.filter(
+    (item) => item.reviewAccuracy != null && item.diagnosticAccuracy != null,
+  );
+  const avgDelta =
+    reviewedItems.length > 0
+      ? Math.round(
+          reviewedItems.reduce(
+            (sum, item) => sum + (item.reviewAccuracy! - item.diagnosticAccuracy!),
+            0,
+          ) / reviewedItems.length,
+        )
+      : null;
+  const hasReviewData = reviewedItems.length > 0;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>약점 해결 현황</Text>
-        {hasResolved ? (
+        <Text style={styles.title}>약점별 정답률</Text>
+        {avgDelta != null && avgDelta > 0 ? (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>🌱 {resolvedCount}개 해결됨</Text>
+            <Text style={styles.badgeText}>🌱 평균 +{avgDelta}%</Text>
           </View>
+        ) : !hasReviewData ? (
+          <Text style={styles.hint}>복습하면 오른쪽이 채워져요</Text>
         ) : null}
       </View>
 
-      <View style={styles.barRow}>
-        {hasResolved ? (
-          history.map((point, i) => (
-            <View key={point.weekLabel} style={styles.barWithArrow}>
-              <SolidBar
-                count={point.count}
-                label={point.weekLabel}
-                maxCount={maxCount}
-                isCurrent={i === history.length - 1}
-              />
-              {i < history.length - 1 ? <Text style={styles.arrow}>→</Text> : null}
-            </View>
-          ))
-        ) : (
-          <>
-            <View style={styles.barWithArrow}>
-              <SolidBar count={0} label="1주차" maxCount={1} isCurrent={false} />
-              <Text style={styles.arrow}>→</Text>
-            </View>
-            <View style={styles.barWithArrow}>
-              <GhostBar label="2주차" />
-              <Text style={styles.arrow}>→</Text>
-            </View>
-            <GhostBar label="지금" />
-          </>
-        )}
+      <View style={styles.barsRow}>
+        {items.map((item) => (
+          <AccuracyBar
+            key={item.weaknessId}
+            diagnosticAccuracy={item.diagnosticAccuracy}
+            reviewAccuracy={item.reviewAccuracy}
+            label={item.weaknessLabel}
+          />
+        ))}
       </View>
 
       <View style={styles.floor} />
 
-      {!hasResolved ? (
-        <View style={styles.ctaArea}>
-          <Text style={styles.ctaHint}>재진단을 보면 성장 곡선이 채워져요</Text>
-          <Pressable style={styles.ctaButton} onPress={onRediagnose}>
-            <Text style={styles.ctaButtonText}>재진단 10문제 풀기 →</Text>
-          </Pressable>
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, styles.diagDot]} />
+          <Text style={styles.legendText}>진단</Text>
         </View>
-      ) : null}
+        <View style={styles.legendItem}>
+          {hasReviewData ? (
+            <View style={[styles.legendDot, styles.reviewDot]} />
+          ) : (
+            <View style={styles.legendDotGhost} />
+          )}
+          <Text style={styles.legendText}>최근 복습</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -114,11 +126,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 7,
+    marginBottom: 8,
   },
   title: {
     fontFamily: FontFamilies.bold,
-    fontSize: 10,
+    fontSize: 13,
     color: '#1C2C19',
   },
   badge: {
@@ -129,87 +141,111 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 8.5,
+    fontSize: 11,
     color: '#2A4A28',
+  },
+  hint: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 11,
+    color: 'rgba(72, 67, 58, 0.45)',
+  },
+  barsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  barGroup: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
   },
   barRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    height: MAX_BAR_HEIGHT + 22,
+    gap: 3,
   },
-  barWithArrow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  barCol: {
+  barColInner: {
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: 16,
     gap: 2,
   },
   solidBar: {
-    width: 20,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    width: 12,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+  },
+  diagBar: {
+    backgroundColor: 'rgba(74, 124, 89, 0.3)',
+  },
+  reviewBar: {
     backgroundColor: '#4A7C59',
   },
   ghostBar: {
-    width: 20,
-    height: 20,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    width: 12,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
     borderWidth: 1.5,
-    borderColor: 'rgba(74, 124, 89, 0.3)',
     borderStyle: 'dashed',
-    backgroundColor: 'rgba(74, 124, 89, 0.05)',
+    borderColor: 'rgba(74, 124, 89, 0.3)',
+    backgroundColor: 'rgba(74, 124, 89, 0.04)',
   },
   barNum: {
     fontFamily: FontFamilies.bold,
-    fontSize: 8.5,
-    color: 'rgba(74, 124, 89, 0.5)',
+    fontSize: 9,
+    color: 'rgba(74, 124, 89, 0.6)',
   },
-  barNumCurrent: {
-    fontSize: 11,
-    color: '#2A4A28',
+  reviewNum: {
+    color: '#2A5C38',
+  },
+  barNumEmpty: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 9,
+    color: 'rgba(41, 59, 39, 0.2)',
   },
   barLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 7.5,
-    color: 'rgba(72, 67, 58, 0.45)',
-    position: 'absolute',
-    bottom: 0,
-  },
-  arrow: {
-    fontSize: 10,
-    color: 'rgba(41, 59, 39, 0.2)',
-    paddingBottom: 18,
-    paddingHorizontal: 4,
+    fontSize: 9,
+    color: 'rgba(28, 44, 25, 0.45)',
+    textAlign: 'center',
+    lineHeight: 12,
   },
   floor: {
     height: 1,
     backgroundColor: 'rgba(41, 59, 39, 0.1)',
-    marginTop: 4,
+    marginTop: 6,
     marginBottom: 6,
   },
-  ctaArea: {
-    gap: 4,
+  legend: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  ctaHint: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 9,
-    color: 'rgba(72, 67, 58, 0.55)',
-    textAlign: 'center',
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
-  ctaButton: {
-    alignSelf: 'center',
-    backgroundColor: 'rgba(74, 124, 89, 0.12)',
-    borderRadius: 99,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
   },
-  ctaButtonText: {
+  diagDot: {
+    backgroundColor: 'rgba(74, 124, 89, 0.3)',
+  },
+  reviewDot: {
+    backgroundColor: '#4A7C59',
+  },
+  legendDotGhost: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(74, 124, 89, 0.35)',
+  },
+  legendText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 9,
-    color: '#2A4A28',
+    fontSize: 10,
+    color: 'rgba(28, 44, 25, 0.45)',
   },
 });
