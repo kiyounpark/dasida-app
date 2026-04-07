@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
 import type { HomeLearningState } from '@/features/learning/home-state';
+import { WeaknessAccuracyChart } from '@/features/quiz/components/weakness-growth-chart';
 import { WeaknessProgressItem } from '@/features/quiz/components/weakness-progress-item';
 
 function PeerChip({ peers }: { peers: HomeLearningState['peerPresence'] }) {
@@ -50,6 +51,7 @@ export function HomeWeaknessSection({
       <View style={styles.divider} />
       <View style={styles.content}>
         <PeerChip peers={peerPresence} />
+        <WeaknessAccuracyChart items={weaknessProgressItems} />
 
         {weaknessProgressItems.length > 0 ? (
           <View style={styles.weaknessList}>
