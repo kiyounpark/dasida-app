@@ -78,7 +78,7 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
             <Text style={styles.badgeText}>🌱 평균 +{avgDelta}%</Text>
           </View>
         ) : !hasReviewData ? (
-          <Text style={styles.hint}>복습하면 오른쪽이 채워져요</Text>
+          <Text style={styles.hint}>복습 한 번이면 바로 채워져요</Text>
         ) : null}
       </View>
 
@@ -184,10 +184,7 @@ const styles = StyleSheet.create({
     width: 12,
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(74, 124, 89, 0.3)',
-    backgroundColor: 'rgba(74, 124, 89, 0.04)',
+    backgroundColor: 'rgba(74, 124, 89, 0.18)',
   },
   barNum: {
     fontFamily: FontFamilies.bold,
