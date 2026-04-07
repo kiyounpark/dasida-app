@@ -59,6 +59,7 @@ export function useProfileScreen() {
   const {
     authGateState,
     availableAuthProviders,
+    deleteAccount,
     getHistoryMigrationStatus,
     homeState,
     importAnonymousHistory,
@@ -233,6 +234,20 @@ export function useProfileScreen() {
     onGoToOnboarding: () => router.push('/onboarding'),
     onSignIn: handleSignIn,
     onSignOut: handleSignOut,
+    onDeleteAccount: async () => {
+      setBusyAction('delete-account');
+      setErrorMessage(null);
+      setNoticeMessage(null);
+
+      try {
+        await deleteAccount();
+        router.replace('/sign-in');
+      } catch (error) {
+        setErrorMessage(`탈퇴에 실패했습니다. ${formatErrorMessage(error)}`);
+      } finally {
+        setBusyAction(null);
+      }
+    },
     onUpdateGrade: async (grade: (typeof gradeOptions)[number]['value']) => {
       setBusyAction(`grade:${grade}`);
       setErrorMessage(null);

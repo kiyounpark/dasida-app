@@ -59,6 +59,7 @@ export type CurrentLearnerController = {
   continueAsDevGuest(): Promise<CurrentLearnerSnapshot>;
   signIn(provider: SupportedAuthProvider): Promise<CurrentLearnerSnapshot>;
   signOut(): Promise<CurrentLearnerSnapshot>;
+  deleteAccount(): Promise<CurrentLearnerSnapshot>;
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<{
     snapshot: CurrentLearnerSnapshot;
@@ -86,6 +87,7 @@ type Dependencies = {
   migrationService: LearningHistoryMigrationService;
   peerPresenceStore: PreviewablePeerPresenceStore;
   reviewTaskStore: LocalReviewTaskStore;
+  deleteAccountUrl: string;
 };
 
 async function ensureProfile(
@@ -153,6 +155,7 @@ export function createCurrentLearnerController({
   migrationService,
   peerPresenceStore,
   reviewTaskStore,
+  deleteAccountUrl,
 }: Dependencies): CurrentLearnerController {
   const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
   const devGuestEnabled = canUseDevGuestAuth();
@@ -363,6 +366,12 @@ export function createCurrentLearnerController({
     },
     signOut: async () => {
       await Promise.all([authClient.signOut(), peerPresenceStore.clearPreviewSnapshot()]);
+      return buildRequiredSnapshot();
+    },
+    deleteAccount: async () => {
+      const { session } = await readAccessibleSnapshot();
+      await authClient.deleteAccount(session.accountKey, deleteAccountUrl);
+      await peerPresenceStore.clearPreviewSnapshot();
       return buildRequiredSnapshot();
     },
     getHistoryMigrationStatus: async (sourceAnonymousAccountKey) => {

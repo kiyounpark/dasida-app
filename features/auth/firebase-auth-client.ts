@@ -12,7 +12,9 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
   GoogleAuthProvider,
   OAuthProvider,
+  deleteUser,
   getAdditionalUserInfo,
+  reauthenticateWithCredential,
   signInWithCredential,
   signOut as firebaseSignOut,
   type UserCredential,
@@ -25,6 +27,7 @@ import type {
   SignInResult,
 } from './auth-client';
 import { AuthFlowCancelledError } from './auth-client';
+import { clearLearningHistoryStorage } from '@/features/learning/local-learning-history-storage';
 import { getFirebaseAuthInstance } from './firebase-app';
 import {
   getGoogleClientIdForCurrentPlatform,
@@ -172,7 +175,7 @@ async function signInWithGoogleNative(): Promise<GoogleSignInResult> {
   };
 }
 
-async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
+async function getGoogleIdTokenViaAuthSession(): Promise<string> {
   const clientId = getGoogleClientIdForCurrentPlatform();
   if (!clientId) {
     throw new Error('Google sign-in is not configured for this platform.');
@@ -228,6 +231,11 @@ async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
     throw new Error('Google ID token is missing.');
   }
 
+  return idToken;
+}
+
+async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
+  const idToken = await getGoogleIdTokenViaAuthSession();
   return {
     signInResult: await signInWithCredential(
       getFirebaseAuthInstance(),
@@ -361,6 +369,138 @@ export class FirebaseAuthClient implements AuthClient {
 
     await clearStoredAuthSession();
     return null;
+  }
+
+  async deleteAccount(accountKey: string, deleteAccountUrl: string): Promise<void> {
+    const auth = getFirebaseAuthInstance();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No authenticated user found.');
+    }
+
+    const providerId = currentUser.providerData[0]?.providerId ?? '';
+
+    // Step 1: Call Cloud Function to delete all Firestore data
+    const context = await this.getRemoteAuthContext(accountKey);
+    if (context.kind !== 'firebase') {
+      throw new Error('Firebase auth context required for account deletion.');
+    }
+
+    const deleteResponse = await fetch(deleteAccountUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${context.idToken}`,
+        'x-dasida-account-key': accountKey,
+      },
+      body: JSON.stringify({ accountKey }),
+    });
+
+    if (!deleteResponse.ok) {
+      const errorBody = await deleteResponse.json().catch(() => ({})) as { error?: string };
+      throw new Error(errorBody.error ?? `deleteAccount failed with status ${deleteResponse.status}`);
+    }
+
+    // Step 2: Clear local AsyncStorage cache
+    await clearLearningHistoryStorage(accountKey);
+
+    // Step 3: Revoke OAuth token + delete Firebase Auth account
+    // If Auth deletion fails after Firestore is already wiped, still clear local session
+    // so the user lands on the sign-in screen rather than a broken empty state.
+    try {
+      await this.revokeAndDeleteUser(currentUser, providerId);
+    } finally {
+      await clearStoredAuthSession();
+    }
+  }
+
+  private async revokeAndDeleteUser(user: User, providerId: string): Promise<void> {
+    try {
+      await this.doRevokeAndDelete(user, providerId);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'auth/requires-recent-login'
+      ) {
+        // Re-authenticate then retry
+        const reauthUser = await this.reauthenticateUser(user, providerId);
+        await this.doRevokeAndDelete(reauthUser, providerId);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private async doRevokeAndDelete(user: User, providerId: string): Promise<void> {
+    if (providerId === 'google.com' && process.env.EXPO_OS === 'android') {
+      await GoogleSignin.revokeAccess();
+    }
+    // Apple token revocation requires server-side client_secret — handled by
+    // the Cloud Function (Firebase Auth deleteUser revokes active Firebase tokens).
+    await deleteUser(user);
+  }
+
+  private async reauthenticateUser(user: User, providerId: string): Promise<User> {
+    if (providerId === 'apple.com') {
+      try {
+        const rawNonce = await createRandomNonce();
+        const hashedNonce = await createSha256(rawNonce);
+        const appleCredential = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+          nonce: hashedNonce,
+        });
+        if (!appleCredential.identityToken) {
+          throw new Error('Apple identity token is missing during reauthentication.');
+        }
+        const firebaseCredential = new OAuthProvider('apple.com').credential({
+          idToken: appleCredential.identityToken,
+          rawNonce,
+        });
+        const result = await reauthenticateWithCredential(user, firebaseCredential);
+        return result.user;
+      } catch (error) {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'ERR_REQUEST_CANCELED'
+        ) {
+          throw new AuthFlowCancelledError();
+        }
+        throw error;
+      }
+    }
+
+    // Google — mirror primary sign-in platform branch
+    if (process.env.EXPO_OS === 'android') {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+      if (response.type === 'cancelled') {
+        throw new AuthFlowCancelledError();
+      }
+      const idToken = response.data?.idToken;
+      if (!idToken) {
+        throw new Error('Google ID token missing during reauthentication.');
+      }
+      const result = await reauthenticateWithCredential(
+        user,
+        GoogleAuthProvider.credential(idToken),
+      );
+      return result.user;
+    }
+
+    // iOS/web: use expo-auth-session flow, but reauthenticate (not full sign-in)
+    const idToken = await getGoogleIdTokenViaAuthSession();
+    const result = await reauthenticateWithCredential(
+      user,
+      GoogleAuthProvider.credential(idToken),
+    );
+    return result.user;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {

@@ -18,6 +18,10 @@ export class DisabledAuthClient implements AuthClient {
     return null;
   }
 
+  async deleteAccount(): Promise<never> {
+    throw new Error('Account deletion is unavailable for this build.');
+  }
+
   getSupportedProviders(): SupportedAuthProvider[] {
     return [];
   }
