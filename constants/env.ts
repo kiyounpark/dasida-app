@@ -33,6 +33,9 @@ export const learningHistoryGetLearningAttemptResultsUrl = (
 export const learningHistoryImportLocalSnapshotUrl = (
   process.env.EXPO_PUBLIC_IMPORT_LOCAL_LEARNING_HISTORY_URL ?? ''
 ).trim();
+export const learningHistoryListReviewTasksUrl = (
+  process.env.EXPO_PUBLIC_LIST_REVIEW_TASKS_URL ?? ''
+).trim();
 
 export const diagnosisRouterTimeoutMs = 8000;
 export const diagnosisExplainTimeoutMs = 12000;

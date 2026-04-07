@@ -3,6 +3,7 @@ import {
   learningHistoryGetLearningAttemptResultsUrl,
   learningHistoryImportLocalSnapshotUrl,
   learningHistoryListLearningAttemptsUrl,
+  learningHistoryListReviewTasksUrl,
   learningHistoryRecordAttemptUrl,
   learningHistorySaveFeaturedExamStateUrl,
 } from '@/constants/env';
@@ -19,7 +20,8 @@ export function isLearningHistoryRemoteCrudConfigured() {
       learningHistoryGetLearnerSummaryUrl &&
       learningHistorySaveFeaturedExamStateUrl &&
       learningHistoryListLearningAttemptsUrl &&
-      learningHistoryGetLearningAttemptResultsUrl,
+      learningHistoryGetLearningAttemptResultsUrl &&
+      learningHistoryListReviewTasksUrl,
   );
 }
 
@@ -37,6 +39,7 @@ export function createLearningHistoryRepository(authClient: AuthClient): Learnin
       saveFeaturedExamStateUrl: learningHistorySaveFeaturedExamStateUrl,
       listLearningAttemptsUrl: learningHistoryListLearningAttemptsUrl,
       getLearningAttemptResultsUrl: learningHistoryGetLearningAttemptResultsUrl,
+      listReviewTasksUrl: learningHistoryListReviewTasksUrl,
     })
     : null;
 

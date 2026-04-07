@@ -28,6 +28,7 @@ type Dependencies = {
   saveFeaturedExamStateUrl: string;
   listLearningAttemptsUrl: string;
   getLearningAttemptResultsUrl: string;
+  listReviewTasksUrl: string;
 };
 
 export class FirebaseLearningHistoryRepository implements LearningHistoryRepository {
@@ -247,6 +248,27 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
   }
 
   async listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
-    return this.cache.listReviewTasks(accountKey);
+    try {
+      const payload = await this.withAuthorizedRequest(accountKey, (headers) =>
+        readLearningHistoryApiJson<{ reviewTasks: ReviewTask[] }>(
+          `${this.dependencies.listReviewTasksUrl}?accountKey=${encodeURIComponent(accountKey)}`,
+          {
+            method: 'GET',
+            headers,
+          },
+          1,
+        ),
+      );
+
+      await this.cache.cacheReviewTasks(accountKey, payload.reviewTasks);
+      return payload.reviewTasks;
+    } catch (error) {
+      if (shouldUseLearningHistoryCacheFallback(error)) {
+        this.logCacheFallback('listReviewTasks', error);
+        return this.cache.listReviewTasks(accountKey);
+      }
+
+      throw error;
+    }
   }
 }
