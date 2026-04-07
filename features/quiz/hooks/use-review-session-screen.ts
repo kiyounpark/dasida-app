@@ -48,6 +48,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
 
+  const isFetchingRef = useRef(false);
+  const sessionStartedAtRef = useRef(new Date().toISOString());
+  const firstAttemptCorrectRef = useRef<Array<boolean | null>>([]);
+
   // task 로드
   useEffect(() => {
     if (!accountKey || !taskId) {
@@ -70,10 +74,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       cancelled = true;
     };
   }, [accountKey, taskId]);
-
-  const isFetchingRef = useRef(false);
-  const sessionStartedAtRef = useRef(new Date().toISOString());
-  const firstAttemptCorrectRef = useRef<Array<boolean | null>>([]);
 
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
@@ -172,7 +172,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         completedAt,
         questionCount,
         correctCount,
-        wrongCount: questionCount - correctCount,
+        wrongCount: results.filter((r) => r === false).length,
         accuracy,
         primaryWeaknessId: task.weaknessId,
         topWeaknesses: [task.weaknessId],
