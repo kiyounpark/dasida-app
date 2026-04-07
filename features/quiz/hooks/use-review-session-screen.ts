@@ -35,7 +35,7 @@ const store = new LocalReviewTaskStore();
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const params = useLocalSearchParams();
   const taskId = getSingleParam(params.taskId) ?? '';
-  const { session, refresh } = useCurrentLearner();
+  const { session, refresh, profile, recordAttempt } = useCurrentLearner();
   const accountKey = session?.accountKey ?? '';
 
   const [task, setTask] = useState<ReviewTask | null>(null);
@@ -60,6 +60,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       setTask(found);
       if (found) {
         setSteps(getReviewThinkingSteps(found.weaknessId));
+        firstAttemptCorrectRef.current = new Array(
+          getReviewThinkingSteps(found.weaknessId).length,
+        ).fill(null);
+        sessionStartedAtRef.current = new Date().toISOString();
       }
     });
     return () => {
@@ -68,6 +72,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   }, [accountKey, taskId]);
 
   const isFetchingRef = useRef(false);
+  const sessionStartedAtRef = useRef(new Date().toISOString());
+  const firstAttemptCorrectRef = useRef<Array<boolean | null>>([]);
 
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
@@ -78,6 +84,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onSelectChoice = (index: number) => {
     setSelectedChoiceIndex(index);
+    if (
+      stepPhase === 'input' &&
+      firstAttemptCorrectRef.current[currentStepIndex] === null
+    ) {
+      const isCorrect = steps[currentStepIndex]?.choices[index]?.correct ?? false;
+      firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
+    }
   };
 
   const onChangeText = (text: string) => {
@@ -136,9 +149,56 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   };
 
   const onPressRemember = async () => {
-    if (!task) {
+    if (!task || !profile) {
       return;
     }
+
+    const completedAt = new Date().toISOString();
+    const results = firstAttemptCorrectRef.current;
+    const questionCount = steps.length;
+    const correctCount = results.filter((r) => r === true).length;
+    const accuracy =
+      questionCount > 0 ? Math.round((correctCount / questionCount) * 100) : 100;
+
+    try {
+      await recordAttempt({
+        attemptId: `review-${task.id}-${Date.now().toString(36)}`,
+        accountKey,
+        learnerId: profile.learnerId,
+        source: 'weakness-practice',
+        sourceEntityId: task.sourceId,
+        gradeSnapshot: profile.grade,
+        startedAt: sessionStartedAtRef.current,
+        completedAt,
+        questionCount,
+        correctCount,
+        wrongCount: questionCount - correctCount,
+        accuracy,
+        primaryWeaknessId: task.weaknessId,
+        topWeaknesses: [task.weaknessId],
+        reviewContext: {
+          reviewTaskId: task.id,
+          reviewStage: task.stage,
+        },
+        questions: steps.map((step, i) => ({
+          questionId: `${task.id}-step-${i}`,
+          questionNumber: i + 1,
+          topic: step.title,
+          selectedIndex: null,
+          isCorrect: results[i] ?? false,
+          finalWeaknessId: task.weaknessId,
+          methodId: null,
+          diagnosisSource: null,
+          finalMethodSource: null,
+          diagnosisCompleted: true,
+          usedDontKnow: false,
+          usedAiHelp: false,
+        })),
+      });
+    } catch (error) {
+      console.warn('Failed to record review attempt', error);
+    }
+
     try {
       await completeReviewTask(accountKey, task.id, store);
       await refresh();
