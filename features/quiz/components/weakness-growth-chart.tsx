@@ -1,115 +1,71 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
+import type { ReviewStage } from '@/features/learning/history-types';
 import type { WeaknessProgressItem } from '@/features/learning/types';
 
 const MAX_BAR_HEIGHT = 44;
+const STAGE_ORDER: ReviewStage[] = ['day1', 'day3', 'day7', 'day30'];
 
-function AccuracyBar({
-  diagnosticAccuracy,
-  reviewAccuracy,
-  label,
+function StageBar({
+  accuracy,
+  isGhost,
 }: {
-  diagnosticAccuracy?: number;
-  reviewAccuracy?: number;
-  label: string;
+  accuracy?: number;
+  isGhost: boolean;
 }) {
-  const hasDiagData = diagnosticAccuracy != null;
-  const hasReviewData = reviewAccuracy != null;
+  if (isGhost) {
+    return (
+      <View style={styles.barColInner}>
+        <View style={[styles.ghostBar, { height: MAX_BAR_HEIGHT }]} />
+      </View>
+    );
+  }
+  const height = Math.max(4, ((accuracy ?? 0) / 100) * MAX_BAR_HEIGHT);
+  return (
+    <View style={styles.barColInner}>
+      <Text style={styles.barNum}>{accuracy}%</Text>
+      <View style={[styles.solidBar, { height }]} />
+    </View>
+  );
+}
 
-  // 진단 데이터 없고 복습만 있는 경우: 복습 막대를 왼쪽에, ghost를 오른쪽에
-  const leftAccuracy = hasDiagData ? diagnosticAccuracy : reviewAccuracy;
-  const leftIsReview = !hasDiagData && hasReviewData;
-  const leftHeight = leftAccuracy != null ? Math.max(4, (leftAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
-
-  // 오른쪽: 진단+복습 모두 있으면 복습 막대, 그 외엔 ghost
-  const showRightSolid = hasDiagData && hasReviewData;
-  const rightHeight = showRightSolid
-    ? Math.max(4, (reviewAccuracy! / 100) * MAX_BAR_HEIGHT)
-    : 0;
+function AccuracyBar({ item }: { item: WeaknessProgressItem }) {
+  const stageIndex = STAGE_ORDER.indexOf(item.stage);
+  const visibleStages = STAGE_ORDER.slice(0, stageIndex + 1);
 
   return (
     <View style={styles.barGroup}>
       <View style={[styles.barRow, { height: MAX_BAR_HEIGHT + 16 }]}>
-        {/* 왼쪽: 진단 막대 (진단 있으면) 또는 복습 막대 (진단 없으면) */}
-        {leftAccuracy != null && (
-          <View style={styles.barColInner}>
-            <Text style={[styles.barNum, leftIsReview && styles.reviewNum]}>
-              {leftAccuracy}%
-            </Text>
-            <View
-              style={[
-                styles.solidBar,
-                leftIsReview ? styles.reviewBar : styles.diagBar,
-                { height: leftHeight },
-              ]}
-            />
-          </View>
-        )}
-
-        {/* 오른쪽: 복습 막대 (진단+복습 모두 있으면) 또는 ghost */}
-        <View style={styles.barColInner}>
-          {showRightSolid ? (
-            <>
-              <Text style={[styles.barNum, styles.reviewNum]}>{reviewAccuracy}%</Text>
-              <View style={[styles.solidBar, styles.reviewBar, { height: rightHeight }]} />
-            </>
-          ) : (
-            <View style={[styles.ghostBar, { height: MAX_BAR_HEIGHT }]} />
-          )}
-        </View>
+        {visibleStages.map((stage) => {
+          const accuracy = item.reviewAccuracyByStage[stage];
+          return <StageBar key={stage} accuracy={accuracy} isGhost={accuracy == null} />;
+        })}
       </View>
       <Text style={styles.barLabel} numberOfLines={2}>
-        {label}
+        {item.weaknessLabel}
       </Text>
     </View>
   );
 }
 
 export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[] }) {
-  const reviewedItems = items.filter(
-    (item) => item.reviewAccuracy != null && item.diagnosticAccuracy != null,
+  const hasAnyReview = items.some(
+    (item) => Object.keys(item.reviewAccuracyByStage).length > 0,
   );
-  const avgDelta =
-    reviewedItems.length > 0
-      ? Math.round(
-          reviewedItems.reduce(
-            (sum, item) => sum + (item.reviewAccuracy! - item.diagnosticAccuracy!),
-            0,
-          ) / reviewedItems.length,
-        )
-      : null;
-  const hasReviewData = items.some((item) => item.reviewAccuracy != null);
-  const hasAnyDiagData = items.some((item) => item.diagnosticAccuracy != null);
-
-  const hintText = (() => {
-    if (avgDelta != null && avgDelta > 0) return null;
-    if (!hasReviewData) return '복습 한 번이면 바로 채워져요';
-    if (hasReviewData && !hasAnyDiagData) return '한 번만 더! 바로 채워져요';
-    return null;
-  })();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>약점별 정답률</Text>
-        {avgDelta != null && avgDelta > 0 ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>🌱 평균 +{avgDelta}%</Text>
-          </View>
-        ) : hintText != null ? (
-          <Text style={styles.hint}>{hintText}</Text>
-        ) : null}
+        <Text style={styles.title}>복습 정답률</Text>
+        {!hasAnyReview && (
+          <Text style={styles.hint}>복습 한 번이면 바로 채워져요</Text>
+        )}
       </View>
 
       <View style={styles.barsRow}>
         {items.map((item) => (
-          <AccuracyBar
-            key={item.weaknessId}
-            diagnosticAccuracy={item.diagnosticAccuracy}
-            reviewAccuracy={item.reviewAccuracy}
-            label={item.weaknessLabel}
-          />
+          <AccuracyBar key={item.weaknessId} item={item} />
         ))}
       </View>
 
@@ -117,16 +73,12 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
 
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, styles.diagDot]} />
-          <Text style={styles.legendText}>진단</Text>
+          <View style={[styles.legendDot, styles.completedDot]} />
+          <Text style={styles.legendText}>완료</Text>
         </View>
         <View style={styles.legendItem}>
-          {hasReviewData ? (
-            <View style={[styles.legendDot, styles.reviewDot]} />
-          ) : (
-            <View style={styles.legendDotGhost} />
-          )}
-          <Text style={styles.legendText}>최근 복습</Text>
+          <View style={styles.legendDotGhost} />
+          <Text style={styles.legendText}>다음 복습</Text>
         </View>
       </View>
     </View>
@@ -152,17 +104,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 13,
     color: '#1C2C19',
-  },
-  badge: {
-    backgroundColor: 'rgba(74, 124, 89, 0.1)',
-    borderRadius: 99,
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-  },
-  badgeText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 11,
-    color: '#2A4A28',
   },
   hint: {
     fontFamily: FontFamilies.regular,
@@ -190,18 +131,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   solidBar: {
-    width: 12,
+    width: 10,
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
-  },
-  diagBar: {
-    backgroundColor: 'rgba(74, 124, 89, 0.5)',
-  },
-  reviewBar: {
     backgroundColor: '#4A7C59',
   },
   ghostBar: {
-    width: 12,
+    width: 10,
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
     backgroundColor: 'rgba(74, 124, 89, 0.18)',
@@ -209,15 +145,7 @@ const styles = StyleSheet.create({
   barNum: {
     fontFamily: FontFamilies.bold,
     fontSize: 9,
-    color: 'rgba(74, 124, 89, 0.6)',
-  },
-  reviewNum: {
     color: '#2A5C38',
-  },
-  barNumEmpty: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 9,
-    color: 'rgba(41, 59, 39, 0.2)',
   },
   barLabel: {
     fontFamily: FontFamilies.bold,
@@ -246,10 +174,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 2,
   },
-  diagDot: {
-    backgroundColor: 'rgba(74, 124, 89, 0.3)',
-  },
-  reviewDot: {
+  completedDot: {
     backgroundColor: '#4A7C59',
   },
   legendDotGhost: {
