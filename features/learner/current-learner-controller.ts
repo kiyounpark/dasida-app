@@ -106,6 +106,65 @@ function getPreviewWeaknesses(): WeaknessId[] {
   return weaknessOrder.slice(0, 3);
 }
 
+const PREVIEW_STAGE_ACCURACY: Record<ReviewStage, number> = {
+  day1: 50,
+  day3: 70,
+  day7: 85,
+  day30: 92,
+};
+
+const PREVIEW_PREVIOUS_STAGES: Record<ReviewStage, ReviewStage[]> = {
+  day1: [],
+  day3: ['day1'],
+  day7: ['day1', 'day3'],
+  day30: ['day1', 'day3', 'day7'],
+};
+
+function buildPreviewReviewAttemptInput(
+  profile: LearnerProfile,
+  weaknessId: WeaknessId,
+  reviewStage: ReviewStage,
+  completedAt: string,
+): FinalizedAttemptInput {
+  const accuracy = PREVIEW_STAGE_ACCURACY[reviewStage];
+  const questionCount = 4;
+  const correctCount = Math.round((accuracy / 100) * questionCount);
+  return {
+    attemptId: `preview-review-${weaknessId}-${reviewStage}`,
+    accountKey: profile.accountKey,
+    learnerId: profile.learnerId,
+    source: 'weakness-practice',
+    sourceEntityId: null,
+    gradeSnapshot: profile.grade,
+    startedAt: completedAt,
+    completedAt,
+    questionCount,
+    correctCount,
+    wrongCount: questionCount - correctCount,
+    accuracy,
+    primaryWeaknessId: weaknessId,
+    topWeaknesses: [weaknessId],
+    reviewContext: {
+      reviewTaskId: `preview-review-${weaknessId}-${reviewStage}`,
+      reviewStage,
+    },
+    questions: Array.from({ length: questionCount }, (_, i) => ({
+      questionId: `preview-review-q-${weaknessId}-${reviewStage}-${i + 1}`,
+      questionNumber: i + 1,
+      topic: '미리보기',
+      selectedIndex: i,
+      isCorrect: i < correctCount,
+      finalWeaknessId: weaknessId,
+      methodId: null,
+      diagnosisSource: null,
+      finalMethodSource: null,
+      diagnosisCompleted: true,
+      usedDontKnow: false,
+      usedAiHelp: false,
+    })),
+  };
+}
+
 function buildPreviewAttemptInput(
   profile: LearnerProfile,
   source: 'diagnostic' | 'featured-exam',
@@ -516,6 +575,17 @@ export function createCurrentLearnerController({
         }));
 
         await reviewTaskStore.saveAll(session.accountKey, remappedTasks);
+
+        // 이전 단계 복습 시도 시드 (차트에 솔리드 막대 표시용)
+        const prevStages = PREVIEW_PREVIOUS_STAGES[targetStage];
+        const prevCompletedAt = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+        for (const prevStage of prevStages) {
+          for (const weaknessId of getPreviewWeaknesses()) {
+            await localLearningHistoryRepository.recordAttempt(
+              buildPreviewReviewAttemptInput(profile, weaknessId, prevStage, prevCompletedAt),
+            );
+          }
+        }
       }
 
       if (state === 'exam-in-progress') {
