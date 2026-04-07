@@ -65,13 +65,11 @@ function ActionButton({
   onPress,
   disabled = false,
   subtle = false,
-  danger = false,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   subtle?: boolean;
-  danger?: boolean;
 }) {
   return (
     <Pressable
@@ -80,7 +78,6 @@ function ActionButton({
       style={({ pressed }) => [
         styles.actionButton,
         subtle && styles.actionButtonSubtle,
-        danger && !disabled && styles.actionButtonDanger,
         disabled && styles.actionButtonDisabled,
         pressed && !disabled && styles.actionButtonPressed,
       ]}>
@@ -89,7 +86,6 @@ function ActionButton({
         style={[
           styles.actionButtonText,
           subtle && styles.actionButtonTextSubtle,
-          danger && !disabled && styles.actionButtonTextDanger,
           disabled && styles.actionButtonTextDisabled,
         ]}>
         {label}
@@ -179,10 +175,20 @@ export function ProfileScreenView({
             <Text selectable style={styles.cardTitle}>
               계정 관리
             </Text>
-            <Text selectable style={styles.body}>
-              서버 기록과 여러 기기 동기화가 활성화되어 있습니다. 로그아웃하면 로그인 게이트로
-              돌아갑니다.
-            </Text>
+
+            <View style={styles.accountInfoRow}>
+              <View style={styles.providerBadge}>
+                <Text selectable style={styles.providerBadgeText}>
+                  {formatProviderLabel(session.provider)}
+                </Text>
+              </View>
+              {session.email ? (
+                <Text selectable style={styles.accountEmail} numberOfLines={1}>
+                  {session.email}
+                </Text>
+              ) : null}
+            </View>
+
             {manualImportCandidate ? (
               <View style={styles.importCard}>
                 <Text selectable style={styles.importTitle}>
@@ -203,32 +209,43 @@ export function ProfileScreenView({
                 />
               </View>
             ) : null}
+
             <ActionButton
               label={busyAction === 'sign-out' ? '로그아웃 중...' : '로그아웃'}
               disabled={busyAction !== null}
               subtle
               onPress={() => void onSignOut()}
             />
-            <ActionButton
-              label={busyAction === 'delete-account' ? '탈퇴 처리 중...' : '회원 탈퇴'}
-              disabled={busyAction !== null}
-              subtle
-              danger
-              onPress={() => {
-                Alert.alert(
-                  '정말 탈퇴하시겠어요?',
-                  '모든 학습 기록이 삭제되며 복구할 수 없습니다.',
-                  [
-                    { text: '취소', style: 'cancel' },
-                    {
-                      text: '탈퇴',
-                      style: 'destructive',
-                      onPress: () => void onDeleteAccount(),
-                    },
-                  ],
-                );
-              }}
-            />
+
+            <View style={styles.deleteAccountSection}>
+              <Text selectable style={styles.deleteAccountDescription}>
+                탈퇴하면 모든 학습 기록이 영구적으로 삭제됩니다.
+              </Text>
+              <Pressable
+                disabled={busyAction !== null}
+                onPress={() => {
+                  Alert.alert(
+                    '정말 탈퇴하시겠어요?',
+                    '모든 학습 기록이 삭제되며 복구할 수 없습니다.',
+                    [
+                      { text: '취소', style: 'cancel' },
+                      {
+                        text: '탈퇴',
+                        style: 'destructive',
+                        onPress: () => void onDeleteAccount(),
+                      },
+                    ],
+                  );
+                }}
+                style={({ pressed }) => [
+                  styles.deleteAccountLink,
+                  (pressed || busyAction !== null) && { opacity: 0.48 },
+                ]}>
+                <Text selectable style={styles.deleteAccountLinkText}>
+                  {busyAction === 'delete-account' ? '탈퇴 처리 중...' : '회원 탈퇴'}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         ) : null}
 
@@ -485,14 +502,6 @@ const styles = StyleSheet.create({
   actionButtonTextSubtle: {
     color: BrandColors.primaryDark,
   },
-  actionButtonDanger: {
-    borderWidth: 1,
-    borderColor: BrandColors.danger,
-    backgroundColor: 'transparent',
-  },
-  actionButtonTextDanger: {
-    color: BrandColors.danger,
-  },
   actionButtonTextDisabled: {
     color: BrandColors.disabled,
   },
@@ -519,6 +528,49 @@ const styles = StyleSheet.create({
   },
   noticeTextSuccess: {
     color: BrandColors.success,
+  },
+  accountInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: BrandSpacing.xs,
+  },
+  providerBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: '#EEF4EC',
+  },
+  providerBadgeText: {
+    ...BrandTypography.chip,
+    color: BrandColors.primaryDark,
+  },
+  accountEmail: {
+    ...BrandTypography.meta,
+    color: BrandColors.mutedText,
+    flexShrink: 1,
+  },
+  deleteAccountSection: {
+    marginTop: 4,
+    paddingTop: BrandSpacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: BrandColors.border,
+    gap: 6,
+  },
+  deleteAccountDescription: {
+    ...BrandTypography.meta,
+    color: BrandColors.mutedText,
+  },
+  deleteAccountLink: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+  },
+  deleteAccountLinkText: {
+    ...BrandTypography.meta,
+    color: BrandColors.danger,
+    textDecorationLine: 'underline',
+    textDecorationColor: 'rgba(214, 69, 69, 0.35)',
   },
   importCard: {
     gap: BrandSpacing.xs,
