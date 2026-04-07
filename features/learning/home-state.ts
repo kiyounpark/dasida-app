@@ -12,6 +12,7 @@ import {
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
 import type { LearnerSummaryCurrent, LearningAttempt, PeerPresenceSnapshot, ReviewTask, WeaknessProgressItem } from './types';
+import type { ReviewStage } from './history-types';
 
 export type PeerPresenceState =
   | {
@@ -218,12 +219,26 @@ function buildWeaknessProgressItems(
     return true;
   });
 
+  const STAGE_ORDER: ReviewStage[] = ['day1', 'day3', 'day7', 'day30'];
+
   return deduped.slice(0, 3).map((t) => {
     const diagnosticAccuracy =
       summary.latestDiagnosticSummary?.weaknessAccuracies?.[t.weaknessId];
-    const reviewAccuracy = recentReviewAttempts
-      .filter((a) => a.source === 'weakness-practice' && a.primaryWeaknessId === t.weaknessId)
-      .sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0]?.accuracy;
+
+    const reviewAccuracyByStage: Partial<Record<ReviewStage, number>> = {};
+    for (const stage of STAGE_ORDER) {
+      const match = recentReviewAttempts
+        .filter(
+          (a) =>
+            a.source === 'weakness-practice' &&
+            a.primaryWeaknessId === t.weaknessId &&
+            a.reviewStage === stage,
+        )
+        .sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0];
+      if (match != null) {
+        reviewAccuracyByStage[stage] = match.accuracy;
+      }
+    }
 
     return {
       weaknessId: t.weaknessId,
@@ -232,7 +247,7 @@ function buildWeaknessProgressItems(
       stage: t.stage,
       completed: t.completed,
       diagnosticAccuracy,
-      reviewAccuracy,
+      reviewAccuracyByStage,
     };
   });
 }

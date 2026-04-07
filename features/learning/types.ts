@@ -115,5 +115,5 @@ export type WeaknessProgressItem = {
   stage: ReviewStage;
   completed: boolean;
   diagnosticAccuracy?: number;
-  reviewAccuracy?: number;
+  reviewAccuracyByStage: Partial<Record<ReviewStage, number>>;
 };
