@@ -38,6 +38,7 @@ export type LearningAttempt = {
   accuracy: number;
   primaryWeaknessId: WeaknessId | null;
   topWeaknesses: WeaknessId[];
+  reviewStage?: ReviewStage;
   schemaVersion: 1;
   createdAt: string;
 };

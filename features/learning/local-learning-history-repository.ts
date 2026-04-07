@@ -322,6 +322,7 @@ function buildAttempt(input: FinalizedAttemptInput, createdAt: string): Learning
     accuracy: input.accuracy,
     primaryWeaknessId: input.primaryWeaknessId,
     topWeaknesses: input.topWeaknesses,
+    reviewStage: input.reviewContext?.reviewStage,
     schemaVersion: 1,
     createdAt,
   };
