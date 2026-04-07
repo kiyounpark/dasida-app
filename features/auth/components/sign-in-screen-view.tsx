@@ -2,6 +2,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { Image } from 'expo-image';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DasidaLogo } from '@/components/brand/DasidaLogo';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
 import type { UseSignInScreenResult } from '@/features/auth/hooks/use-sign-in-screen';
 import type { SupportedAuthProvider } from '@/features/auth/types';
@@ -311,6 +313,17 @@ export function SignInScreenView({
               </Animated.View>
             ) : null}
 
+            <Animated.View entering={FadeIn.duration(180).delay(280)} style={styles.privacyWrap}>
+              <Text selectable style={styles.privacyText}>
+                {'로그인하면 '}
+                <Text
+                  style={styles.privacyLink}
+                  onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy)}>
+                  개인정보처리방침
+                </Text>
+                {'에 동의한 것으로 간주됩니다.'}
+              </Text>
+            </Animated.View>
 
           </View>
         </View>
@@ -464,5 +477,19 @@ const styles = StyleSheet.create({
     color: BrandColors.primaryDark,
     textDecorationLine: 'underline',
     textDecorationColor: 'rgba(41, 59, 39, 0.38)',
+  },
+  privacyWrap: {
+    paddingBottom: BrandSpacing.xs,
+  },
+  privacyText: {
+    ...BrandTypography.meta,
+    color: 'rgba(41, 59, 39, 0.45)',
+    textAlign: 'center',
+  },
+  privacyLink: {
+    ...BrandTypography.meta,
+    color: 'rgba(41, 59, 39, 0.55)',
+    textDecorationLine: 'underline',
+    textDecorationColor: 'rgba(41, 59, 39, 0.30)',
   },
 });
