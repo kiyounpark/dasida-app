@@ -181,6 +181,7 @@ export function createCurrentLearnerController({
       params.profile,
       params.summary,
       await peerPresenceStore.load(),
+      await reviewTaskStore.load(params.session.accountKey),
     ),
   });
 
