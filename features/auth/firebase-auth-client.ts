@@ -400,10 +400,13 @@ export class FirebaseAuthClient implements AuthClient {
     await clearLearningHistoryStorage(accountKey);
 
     // Step 3: Revoke OAuth token + delete Firebase Auth account
-    await this.revokeAndDeleteUser(currentUser, providerId);
-
-    // Step 4: Clear local auth session
-    await clearStoredAuthSession();
+    // If Auth deletion fails after Firestore is already wiped, still clear local session
+    // so the user lands on the sign-in screen rather than a broken empty state.
+    try {
+      await this.revokeAndDeleteUser(currentUser, providerId);
+    } finally {
+      await clearStoredAuthSession();
+    }
   }
 
   private async revokeAndDeleteUser(user: User, providerId: string): Promise<void> {
@@ -426,19 +429,11 @@ export class FirebaseAuthClient implements AuthClient {
   }
 
   private async doRevokeAndDelete(user: User, providerId: string): Promise<void> {
-    if (providerId === 'apple.com') {
-      const { appleCredential } = await signInWithAppleCredential();
-      if (appleCredential.authorizationCode) {
-        await fetch('https://appleid.apple.com/auth/revoke', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `token=${encodeURIComponent(appleCredential.authorizationCode)}&token_type_hint=authorization_code`,
-        });
-      }
-    } else if (providerId === 'google.com') {
+    if (providerId === 'google.com') {
       await GoogleSignin.revokeAccess();
     }
-
+    // Apple token revocation requires server-side client_secret — handled by
+    // the Cloud Function (Firebase Auth deleteUser revokes active Firebase tokens).
     await deleteUser(user);
   }
 
