@@ -22,6 +22,7 @@ export type UseQuizHubScreenResult = {
   onPressExam: () => void;
   onPressJourneyCta: () => void;
   onPressReviewCard: () => void;
+  onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
@@ -148,6 +149,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onPressExam,
     onPressJourneyCta,
     onPressReviewCard,
+    onRediagnose: onStartDiagnostic,
     onRefresh: refresh,
     onStartDiagnostic,
     profile,

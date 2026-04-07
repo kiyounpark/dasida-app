@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -9,6 +9,7 @@ import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
+import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-section';
 
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
@@ -80,6 +81,7 @@ export function QuizHubScreenView({
   onPressExam,
   onPressJourneyCta,
   onPressReviewCard,
+  onRediagnose,
   onRefresh,
   profile,
   session,
@@ -123,7 +125,13 @@ export function QuizHubScreenView({
   return (
     <View style={styles.screen}>
       {isNoReviewDay ? <BrandHeader compact={isCompactLayout} /> : null}
-      <View style={[styles.posterScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding, justifyContent: isNoReviewDay ? 'flex-start' : 'center' }]}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.posterScreen,
+          { paddingTop: posterTopPadding, paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}>
         {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         ) : null}
@@ -156,7 +164,10 @@ export function QuizHubScreenView({
             state={journey}
           />
         ) : null}
-      </View>
+        {homeState ? (
+          <HomeWeaknessSection homeState={homeState} onRediagnose={onRediagnose} />
+        ) : null}
+      </ScrollView>
     </View>
   );
 }
@@ -166,12 +177,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F6F2E7',
   },
-  posterScreen: {
+  scrollView: {
     flex: 1,
-    paddingHorizontal: 14,
+  },
+  posterScreen: {
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 14,
+    paddingHorizontal: 14,
   },
   feedbackScreen: {
     flex: 1,
