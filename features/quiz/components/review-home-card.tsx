@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: BrandRadius.lg,
     padding: BrandSpacing.lg,
     gap: BrandSpacing.sm,
+    width: '100%',
   },
   topRow: {
     flexDirection: 'row',

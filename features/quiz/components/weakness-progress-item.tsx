@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
   },
   topicChipText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 9,
+    fontSize: 11,
     color: '#2A5C38',
   },
   weaknessLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 11,
+    fontSize: 14,
     color: '#1C2C19',
   },
   badge: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 9,
+    fontSize: 11,
     color: '#2A4A28',
   },
   right: {
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: 'rgba(41, 59, 39, 0.12)',
   },
   dotFilled: {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   stageLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 7.5,
+    fontSize: 10,
     color: 'rgba(72, 67, 58, 0.4)',
   },
   stageLabelDone: {
