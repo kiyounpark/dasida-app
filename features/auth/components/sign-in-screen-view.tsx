@@ -314,14 +314,11 @@ export function SignInScreenView({
             ) : null}
 
             <Animated.View entering={FadeIn.duration(180).delay(280)} style={styles.privacyWrap}>
-              <Text selectable style={styles.privacyText}>
-                {'로그인하면 '}
-                <Text
-                  style={styles.privacyLink}
-                  onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy)}>
-                  개인정보처리방침
-                </Text>
-                {'에 동의한 것으로 간주됩니다.'}
+              <Text
+                selectable
+                style={styles.privacyLink}
+                onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy)}>
+                개인정보처리방침
               </Text>
             </Animated.View>
 
@@ -480,11 +477,6 @@ const styles = StyleSheet.create({
   },
   privacyWrap: {
     paddingBottom: BrandSpacing.xs,
-  },
-  privacyText: {
-    ...BrandTypography.meta,
-    color: 'rgba(41, 59, 39, 0.45)',
-    textAlign: 'center',
   },
   privacyLink: {
     ...BrandTypography.meta,
