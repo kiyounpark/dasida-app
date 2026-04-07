@@ -169,21 +169,33 @@ export function createCurrentLearnerController({
       session: AuthSession;
       summary: LearnerSummaryCurrent;
     },
-  ): Promise<CurrentLearnerSnapshot> => ({
-    authGateState: params.authGateState,
-    authBlockingReason: null,
-    canUseDevGuestAuth: devGuestEnabled,
-    authNoticeMessage: params.authNoticeMessage ?? null,
-    session: params.session,
-    profile: params.profile,
-    summary: params.summary,
-    homeState: buildHomeLearningState(
-      params.profile,
-      params.summary,
-      await peerPresenceStore.load(),
-      await reviewTaskStore.load(params.session.accountKey),
-    ),
-  });
+  ): Promise<CurrentLearnerSnapshot> => {
+    const [peerPresence, reviewTasks, recentReviewAttempts] = await Promise.all([
+      peerPresenceStore.load(),
+      reviewTaskStore.load(params.session.accountKey),
+      learningHistoryRepository.listAttempts(params.session.accountKey, {
+        source: 'weakness-practice',
+        limit: 20,
+      }),
+    ]);
+
+    return {
+      authGateState: params.authGateState,
+      authBlockingReason: null,
+      canUseDevGuestAuth: devGuestEnabled,
+      authNoticeMessage: params.authNoticeMessage ?? null,
+      session: params.session,
+      profile: params.profile,
+      summary: params.summary,
+      homeState: buildHomeLearningState(
+        params.profile,
+        params.summary,
+        peerPresence,
+        reviewTasks,
+        recentReviewAttempts,
+      ),
+    };
+  };
 
   const buildRequiredSnapshot = (noticeMessage: string | null = null): CurrentLearnerSnapshot => ({
     authGateState: 'required',
