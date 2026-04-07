@@ -15,11 +15,20 @@
 | 디자인 정합화 | 로고/브랜드 톤 앱 전역 반영 | ✅ 완료 |
 | Firebase 연결 | Firestore 피드백 저장 | ⬜ |
 | OpenAI 연결 | AI 판정 API 호출 | 🟡 1차 구현 |
-| 앱스토어 준비 | 개인정보처리방침, 심사 체크리스트 | ⬜ |
+| 앱스토어 준비 | 개인정보처리방침, 심사 체크리스트 | 🟡 진행 중 |
 
 ---
 
 ## 로그
+
+### 2026.04.07
+
+**개인정보처리방침 코드 반영**
+- `constants/legal-urls.ts`: `LEGAL_URLS.privacyPolicy` / `termsOfService` URL 상수 신규 정의
+- `features/profile/components/profile-screen-view.tsx`: 학년 설정 카드 하단에 `앱 정보` 카드 추가 — 버전 표시 + "개인정보처리방침" 버튼(Linking.openURL)
+- `app.json`: `expo.extra.privacyPolicyUrl` 추가
+- **검증**: typecheck/lint 기존 에러 범위 변화 없음, 브라우저 연결 tap 동작 확인 예정
+- **남은 작업**: Firebase Hosting에 실제 개인정보처리방침 HTML 배포 + App Store Connect URL 입력
 
 ### 2026.04.03
 
@@ -706,6 +715,61 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.07 19:31
+- 해시: `087b7c5` (`087b7c568c5c5c9a4103cb72744cc9f183867ad8`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/087b7c568c5c5c9a4103cb72744cc9f183867ad8
+- 작성자: 박기윤
+- 메시지: feat: 홈 하단 약점 섹션 추가 (WeaknessProgressItem, WeaknessGrowthChart, HomeWeaknessSection)
+
+### 커밋 2026.04.06 23:16
+- 해시: `9ab1ab1` (`9ab1ab1e221c819e9e1e5c96ca7dda5f09e42387`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9ab1ab1e221c819e9e1e5c96ca7dda5f09e42387
+- 작성자: 박기윤
+- 메시지: fix: 복습 없는 날 NoReviewDayCard 상단 정렬 (헤더 바로 아래)
+
+### 커밋 2026.04.06 23:14
+- 해시: `d5e3a67` (`d5e3a67150001fd187ef63fbf4c0d7ff2e2e28ab`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d5e3a67150001fd187ef63fbf4c0d7ff2e2e28ab
+- 작성자: 박기윤
+- 메시지: feat: 복습 없는 날 화면에 BrandHeader 추가
+
+### 커밋 2026.04.06 22:04
+- 해시: `5fbe366` (`5fbe36665e2b81163692f0854314c9db04b5cd69`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5fbe36665e2b81163692f0854314c9db04b5cd69
+- 작성자: 박기윤
+- 메시지: Merge branch 'feat/hide-journey-board-after-onboarding'
+
+### 커밋 2026.04.06 18:25
+- 해시: `0827b13` (`0827b13f700225404d5e8bffc4e3ce9d2c4d4be4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0827b13f700225404d5e8bffc4e3ce9d2c4d4be4
+- 작성자: 박기윤
+- 메시지: feat: Firebase 에뮬레이터 포트 설정 + devDep 추가
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.06 16:33
+- 해시: `9b6ac5c` (`9b6ac5ce58ea83dea27d3bf90a6a48286c50577c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9b6ac5ce58ea83dea27d3bf90a6a48286c50577c
+- 작성자: 박기윤
+- 메시지: feat: 복습 dev 테스팅 인프라 구현 (시드 3개 + 날짜 당기기 + E2E 7개)
 
 ### 커밋 2026.04.04 11:51
 - 해시: `fe842d1` (`fe842d166b214c5033e91d8c1537499553e9a098`)

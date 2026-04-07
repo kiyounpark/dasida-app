@@ -55,7 +55,8 @@
       "router": {},
       "eas": {
         "projectId": "e398244b-6a71-42d3-bad0-1f69e0fe2148"
-      }
+      },
+      "privacyPolicyUrl": "https://dasida-app.web.app/privacy"
     },
     "owner": "xsalsswmxzxc"
   }

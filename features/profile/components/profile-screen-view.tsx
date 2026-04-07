@@ -1,4 +1,5 @@
 import {
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -6,8 +7,11 @@ import {
   View,
 } from 'react-native';
 
+import Constants from 'expo-constants';
+
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
 import type { UseProfileScreenResult } from '@/features/profile/hooks/use-profile-screen';
 
@@ -221,6 +225,19 @@ export function ProfileScreenView({
               );
             })}
           </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text selectable style={styles.cardTitle}>
+            앱 정보
+          </Text>
+          <Text selectable style={styles.body}>
+            버전 {Constants.expoConfig?.version ?? '—'}
+          </Text>
+          <ActionButton
+            label="개인정보처리방침"
+            onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy)}
+          />
         </View>
 
         {isDevBuild ? (
