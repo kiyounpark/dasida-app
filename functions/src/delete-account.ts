@@ -39,10 +39,16 @@ export const deleteAccountHandler = onRequest(
         accountKey,
       );
 
-      // accountKey is "user:{firebaseUid}" format
+      // accountKey형태: "user:{firebaseUid}" → 두 경로 모두 삭제
+      // 1. 학습 기록: users/{accountKey} (user: prefix 포함) — Cloud Functions에서 이 경로 사용
+      // 2. 프로필: users/{uid} (user: prefix 제거) — 클라이언트 JS SDK에서 이 경로 사용
       const uid = accountKey.startsWith('user:') ? accountKey.slice(5) : accountKey;
-      const userRef = getFirestore().collection('users').doc(uid);
-      await getFirestore().recursiveDelete(userRef);
+      const learningHistoryRef = getFirestore().collection('users').doc(accountKey);
+      const profileRef = getFirestore().collection('users').doc(uid);
+      await Promise.all([
+        getFirestore().recursiveDelete(learningHistoryRef),
+        getFirestore().recursiveDelete(profileRef),
+      ]);
 
       response.status(200).json({ success: true });
     } catch (error) {
@@ -51,7 +57,7 @@ export const deleteAccountHandler = onRequest(
         return;
       }
 
-      logger.error('deleteAccount failed', error);
+      logger.error('deleteAccount failed', { accountKey, error });
       response.status(500).json({ error: 'Failed to delete account' });
     }
   },
