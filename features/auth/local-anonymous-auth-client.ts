@@ -32,6 +32,10 @@ export class LocalAnonymousAuthClient implements AuthClient {
     return null;
   }
 
+  async deleteAccount(): Promise<never> {
+    throw new Error('Account deletion is not supported for anonymous accounts.');
+  }
+
   getSupportedProviders(): SupportedAuthProvider[] {
     return [];
   }

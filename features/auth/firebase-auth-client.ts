@@ -12,7 +12,9 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
   GoogleAuthProvider,
   OAuthProvider,
+  deleteUser,
   getAdditionalUserInfo,
+  reauthenticateWithCredential,
   signInWithCredential,
   signOut as firebaseSignOut,
   type UserCredential,
@@ -25,6 +27,7 @@ import type {
   SignInResult,
 } from './auth-client';
 import { AuthFlowCancelledError } from './auth-client';
+import { clearLearningHistoryStorage } from '@/features/learning/local-learning-history-storage';
 import { getFirebaseAuthInstance } from './firebase-app';
 import {
   getGoogleClientIdForCurrentPlatform,
@@ -361,6 +364,121 @@ export class FirebaseAuthClient implements AuthClient {
 
     await clearStoredAuthSession();
     return null;
+  }
+
+  async deleteAccount(accountKey: string, deleteAccountUrl: string): Promise<void> {
+    const auth = getFirebaseAuthInstance();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No authenticated user found.');
+    }
+
+    const providerId = currentUser.providerData[0]?.providerId ?? '';
+
+    // Step 1: Call Cloud Function to delete all Firestore data
+    const context = await this.getRemoteAuthContext(accountKey);
+    if (context.kind !== 'firebase') {
+      throw new Error('Firebase auth context required for account deletion.');
+    }
+
+    const deleteResponse = await fetch(deleteAccountUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${context.idToken}`,
+        'x-dasida-account-key': accountKey,
+      },
+      body: JSON.stringify({ accountKey }),
+    });
+
+    if (!deleteResponse.ok) {
+      const errorBody = await deleteResponse.json().catch(() => ({})) as { error?: string };
+      throw new Error(errorBody.error ?? `deleteAccount failed with status ${deleteResponse.status}`);
+    }
+
+    // Step 2: Clear local AsyncStorage cache
+    await clearLearningHistoryStorage(accountKey);
+
+    // Step 3: Revoke OAuth token + delete Firebase Auth account
+    await this.revokeAndDeleteUser(currentUser, providerId);
+
+    // Step 4: Clear local auth session
+    await clearStoredAuthSession();
+  }
+
+  private async revokeAndDeleteUser(user: User, providerId: string): Promise<void> {
+    try {
+      await this.doRevokeAndDelete(user, providerId);
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'auth/requires-recent-login'
+      ) {
+        // Re-authenticate then retry
+        const reauthUser = await this.reauthenticateUser(user, providerId);
+        await this.doRevokeAndDelete(reauthUser, providerId);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private async doRevokeAndDelete(user: User, providerId: string): Promise<void> {
+    if (providerId === 'apple.com') {
+      const { appleCredential } = await signInWithAppleCredential();
+      if (appleCredential.authorizationCode) {
+        await fetch('https://appleid.apple.com/auth/revoke', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `token=${encodeURIComponent(appleCredential.authorizationCode)}&token_type_hint=authorization_code`,
+        });
+      }
+    } else if (providerId === 'google.com') {
+      await GoogleSignin.revokeAccess();
+    }
+
+    await deleteUser(user);
+  }
+
+  private async reauthenticateUser(user: User, providerId: string): Promise<User> {
+    if (providerId === 'apple.com') {
+      const rawNonce = await createRandomNonce();
+      const hashedNonce = await createSha256(rawNonce);
+      const appleCredential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+      if (!appleCredential.identityToken) {
+        throw new Error('Apple identity token is missing during reauthentication.');
+      }
+      const firebaseCredential = new OAuthProvider('apple.com').credential({
+        idToken: appleCredential.identityToken,
+        rawNonce,
+      });
+      const result = await reauthenticateWithCredential(user, firebaseCredential);
+      return result.user;
+    }
+
+    // Google
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const response = await GoogleSignin.signIn();
+    if (response.type === 'cancelled') {
+      throw new AuthFlowCancelledError();
+    }
+    const idToken = response.data?.idToken;
+    if (!idToken) {
+      throw new Error('Google ID token missing during reauthentication.');
+    }
+    const result = await reauthenticateWithCredential(
+      user,
+      GoogleAuthProvider.credential(idToken),
+    );
+    return result.user;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {

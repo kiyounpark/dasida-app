@@ -30,6 +30,7 @@ export type AuthClient = {
   ensureAnonymousSession(): Promise<AuthSession>;
   signIn(provider: SupportedAuthProvider): Promise<SignInResult>;
   signOut(): Promise<AuthSession | null>;
+  deleteAccount(accountKey: string, deleteAccountUrl: string): Promise<void>;
   getSupportedProviders(): SupportedAuthProvider[];
   getRemoteAuthContext(
     accountKey?: string,
