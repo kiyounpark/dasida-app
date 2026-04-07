@@ -85,7 +85,7 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
   const hintText = (() => {
     if (avgDelta != null && avgDelta > 0) return null;
     if (!hasReviewData) return '복습 한 번이면 바로 채워져요';
-    if (hasReviewData && !hasAnyDiagData) return '곧 채울 수 있어요';
+    if (hasReviewData && !hasAnyDiagData) return '복습 완료 시 채워져요';
     return null;
   })();
 
