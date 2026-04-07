@@ -41,8 +41,7 @@ function AccuracyBar({
             </>
           ) : (
             <>
-              <Text style={styles.barNumEmpty}>-</Text>
-              <View style={[styles.ghostBar, { height: diagHeight }]} />
+              <View style={[styles.ghostBar, { height: MAX_BAR_HEIGHT }]} />
             </>
           )}
         </View>
