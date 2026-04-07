@@ -33,12 +33,29 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/notion-spec-reminder.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/clear-expo-skill-state.mjs\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/notion-session-end-check.mjs\"",
             "timeout": 5
           }
         ]
