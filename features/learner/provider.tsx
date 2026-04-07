@@ -42,6 +42,7 @@ import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-lea
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
+import { deleteAccountUrl } from '@/constants/env';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
@@ -78,6 +79,7 @@ const learnerController = createCurrentLearnerController({
   }),
   peerPresenceStore,
   reviewTaskStore: localReviewTaskStore,
+  deleteAccountUrl,
 });
 
 export type CurrentLearnerContextValue = {
@@ -97,6 +99,7 @@ export type CurrentLearnerContextValue = {
   continueAsDevGuest(): Promise<void>;
   signIn(provider: SupportedAuthProvider): Promise<void>;
   signOut(): Promise<void>;
+  deleteAccount(): Promise<void>;
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<HistoryMigrationStatus>;
   updateGrade(grade: LearnerProfile['grade']): Promise<void>;
@@ -246,6 +249,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       signOut: async () => {
         const snapshot = await learnerController.signOut();
+        setState(toLearnerState(snapshot));
+      },
+      deleteAccount: async () => {
+        const snapshot = await learnerController.deleteAccount();
         setState(toLearnerState(snapshot));
       },
       getHistoryMigrationStatus: (sourceAnonymousAccountKey) => {
