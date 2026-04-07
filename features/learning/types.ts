@@ -113,4 +113,6 @@ export type WeaknessProgressItem = {
   weaknessLabel: string;
   stage: ReviewStage;
   completed: boolean;
+  diagnosticAccuracy?: number;
+  reviewAccuracy?: number;
 };

@@ -2,7 +2,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
 import type { HomeLearningState } from '@/features/learning/home-state';
-import { WeaknessGrowthChart } from '@/features/quiz/components/weakness-growth-chart';
 import { WeaknessProgressItem } from '@/features/quiz/components/weakness-progress-item';
 
 function PeerChip({ peers }: { peers: HomeLearningState['peerPresence'] }) {
@@ -37,24 +36,20 @@ function PeerChip({ peers }: { peers: HomeLearningState['peerPresence'] }) {
 
 export function HomeWeaknessSection({
   homeState,
-  onRediagnose,
 }: {
   homeState: HomeLearningState;
-  onRediagnose: () => void;
 }) {
   if (!homeState.latestDiagnosticSummary) {
     return null;
   }
 
-  const { weaknessProgressItems, resolvedWeaknessHistory, peerPresence } = homeState;
+  const { weaknessProgressItems, peerPresence } = homeState;
 
   return (
     <View style={styles.section}>
       <View style={styles.divider} />
       <View style={styles.content}>
         <PeerChip peers={peerPresence} />
-
-        <WeaknessGrowthChart history={resolvedWeaknessHistory} onRediagnose={onRediagnose} />
 
         {weaknessProgressItems.length > 0 ? (
           <View style={styles.weaknessList}>
@@ -78,7 +73,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(41, 59, 39, 0.08)',
   },
   content: {
-    paddingHorizontal: 14,
     paddingTop: 10,
     paddingBottom: 16,
     gap: 8,
@@ -118,7 +112,7 @@ const styles = StyleSheet.create({
   },
   peerText: {
     fontFamily: FontFamilies.medium,
-    fontSize: 9,
+    fontSize: 12,
     color: 'rgba(72, 67, 58, 0.7)',
   },
   peerTextBold: {
@@ -130,7 +124,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 10,
+    fontSize: 13,
     color: '#1C2C19',
     marginBottom: 1,
   },

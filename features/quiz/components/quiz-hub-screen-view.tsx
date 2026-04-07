@@ -81,7 +81,6 @@ export function QuizHubScreenView({
   onPressExam,
   onPressJourneyCta,
   onPressReviewCard,
-  onRediagnose,
   onRefresh,
   profile,
   session,
@@ -169,7 +168,7 @@ export function QuizHubScreenView({
           />
         ) : null}
         {homeState ? (
-          <HomeWeaknessSection homeState={homeState} onRediagnose={onRediagnose} />
+          <HomeWeaknessSection homeState={homeState} />
         ) : null}
       </ScrollView>
     </View>

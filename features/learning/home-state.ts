@@ -11,7 +11,7 @@ import {
 } from '@/features/learning/home-journey-state';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
-import type { LearnerSummaryCurrent, PeerPresenceSnapshot, ReviewTask, WeaknessProgressItem } from './types';
+import type { LearnerSummaryCurrent, LearningAttempt, PeerPresenceSnapshot, ReviewTask, WeaknessProgressItem } from './types';
 
 export type PeerPresenceState =
   | {
@@ -56,7 +56,6 @@ export type HomeLearningState = {
     occurredAt: string;
   }>;
   weaknessProgressItems: WeaknessProgressItem[];
-  resolvedWeaknessHistory: Array<{ weekLabel: string; count: number }>;
 };
 
 function buildHeroContent(
@@ -190,6 +189,7 @@ function buildRecentActivity(summary: LearnerSummaryCurrent): HomeLearningState[
 function buildWeaknessProgressItems(
   summary: LearnerSummaryCurrent,
   allReviewTasks: ReviewTask[],
+  recentReviewAttempts: LearningAttempt[],
 ): WeaknessProgressItem[] {
   // 활성 태스크 (미완료) 먼저, stage 높은 순
   const activeTasks = allReviewTasks
@@ -218,61 +218,23 @@ function buildWeaknessProgressItems(
     return true;
   });
 
-  return deduped.slice(0, 3).map((t) => ({
-    weaknessId: t.weaknessId,
-    topicLabel: diagnosisMap[t.weaknessId]?.topicLabel ?? '',
-    weaknessLabel: diagnosisMap[t.weaknessId]?.labelKo ?? t.weaknessId,
-    stage: t.stage,
-    completed: t.completed,
-  }));
-}
+  return deduped.slice(0, 3).map((t) => {
+    const diagnosticAccuracy =
+      summary.latestDiagnosticSummary?.weaknessAccuracies?.[t.weaknessId];
+    const reviewAccuracy = recentReviewAttempts
+      .filter((a) => a.source === 'weakness-practice' && a.primaryWeaknessId === t.weaknessId)
+      .sort((a, b) => b.completedAt.localeCompare(a.completedAt))[0]?.accuracy;
 
-function buildResolvedWeaknessHistory(
-  allReviewTasks: ReviewTask[],
-): Array<{ weekLabel: string; count: number }> {
-  const resolvedTasks = allReviewTasks.filter(
-    (t) => t.completed && t.stage === 'day30' && t.completedAt,
-  );
-
-  if (resolvedTasks.length === 0) {
-    return [{ weekLabel: '1주차', count: 0 }];
-  }
-
-  // 가장 이른 완료 날짜 기준으로 주차 계산
-  const sortedByDate = [...resolvedTasks].sort((a, b) =>
-    (a.completedAt ?? '').localeCompare(b.completedAt ?? ''),
-  );
-  const firstCompletedAt = new Date(sortedByDate[0].completedAt!);
-
-  // 주차별 집계 (누적 아님, 주차별 count)
-  const weekCounts: Record<number, number> = {};
-  for (const task of resolvedTasks) {
-    const completedAt = new Date(task.completedAt!);
-    const diffMs = completedAt.getTime() - firstCompletedAt.getTime();
-    const weekIndex = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-    weekCounts[weekIndex] = (weekCounts[weekIndex] ?? 0) + 1;
-  }
-
-  // 최근 3주 포인트 생성 (누적 count)
-  const maxWeek = Math.max(...Object.keys(weekCounts).map(Number));
-  const startWeek = Math.max(0, maxWeek - 2);
-
-  let cumulative = 0;
-  // startWeek 이전의 count 누적
-  for (const [weekStr, cnt] of Object.entries(weekCounts)) {
-    if (Number(weekStr) < startWeek) {
-      cumulative += cnt;
-    }
-  }
-
-  const points: Array<{ weekLabel: string; count: number }> = [];
-  for (let w = startWeek; w <= maxWeek; w++) {
-    cumulative += weekCounts[w] ?? 0;
-    const label = w === maxWeek ? '지금' : `${w + 1}주차`;
-    points.push({ weekLabel: label, count: cumulative });
-  }
-
-  return points.slice(-3);
+    return {
+      weaknessId: t.weaknessId,
+      topicLabel: diagnosisMap[t.weaknessId]?.topicLabel ?? '',
+      weaknessLabel: diagnosisMap[t.weaknessId]?.labelKo ?? t.weaknessId,
+      stage: t.stage,
+      completed: t.completed,
+      diagnosticAccuracy,
+      reviewAccuracy,
+    };
+  });
 }
 
 export function buildHomeLearningState(
@@ -280,6 +242,7 @@ export function buildHomeLearningState(
   summary: LearnerSummaryCurrent,
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
   allReviewTasks: ReviewTask[] = [],
+  recentReviewAttempts: LearningAttempt[] = [],
 ): HomeLearningState {
   const nextReviewTask = summary.nextReviewTask;
   const dueReviewTasks = summary.dueReviewTasks ?? [];
@@ -304,7 +267,6 @@ export function buildHomeLearningState(
     },
     recentResultCard,
     recentActivity: buildRecentActivity(summary),
-    weaknessProgressItems: buildWeaknessProgressItems(summary, allReviewTasks),
-    resolvedWeaknessHistory: buildResolvedWeaknessHistory(allReviewTasks),
+    weaknessProgressItems: buildWeaknessProgressItems(summary, allReviewTasks, recentReviewAttempts),
   };
 }
