@@ -71,6 +71,7 @@ export type LearningHistoryRepository = {
     options?: { source?: LearningSource; limit?: number },
   ): Promise<LearningAttempt[]>;
   listAttemptResults(accountKey: string, attemptId: string): Promise<LearningAttemptResult[]>;
+  listReviewTasks(accountKey: string): Promise<ReviewTask[]>;
 };
 
 export type LocalLearningHistorySnapshot = {

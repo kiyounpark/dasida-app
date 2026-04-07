@@ -11,6 +11,7 @@ import type {
   LearnerSummaryCurrent,
   LearningAttempt,
   LearningAttemptResult,
+  ReviewTask,
 } from './types';
 
 type Dependencies = {
@@ -67,5 +68,9 @@ export class LearningHistoryRepositoryRouter implements LearningHistoryRepositor
     attemptId: string,
   ): Promise<LearningAttemptResult[]> {
     return (await this.resolveRepository(accountKey)).listAttemptResults(accountKey, attemptId);
+  }
+
+  async listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
+    return (await this.resolveRepository(accountKey)).listReviewTasks(accountKey);
   }
 }

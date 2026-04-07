@@ -14,3 +14,4 @@ export { recordLearningAttemptHandler as recordLearningAttempt } from './record-
 export { saveFeaturedExamStateHandler as saveFeaturedExamState } from './save-featured-exam-state';
 export { reviewFeedback } from './review-feedback';
 export { deleteAccountHandler as deleteAccount } from './delete-account';
+export { listReviewTasksHandler as listReviewTasks } from './list-review-tasks';

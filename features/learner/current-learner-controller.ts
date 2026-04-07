@@ -395,6 +395,14 @@ export function createCurrentLearnerController({
     },
     signIn: async (provider) => {
       const { previousSession, nextSession } = await authClient.signIn(provider);
+
+      // 복습 데이터 서버 동기화 (실패해도 로그인 흐름 계속)
+      try {
+        await learningHistoryRepository.listReviewTasks(nextSession.accountKey);
+      } catch (error) {
+        console.warn('Failed to sync review tasks after sign-in.', error);
+      }
+
       if (previousSession?.status !== 'anonymous' || nextSession.status !== 'authenticated') {
         return buildSnapshotForSession(nextSession, {
           authGateState: 'authenticated',

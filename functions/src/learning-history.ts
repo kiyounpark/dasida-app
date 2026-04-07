@@ -95,7 +95,7 @@ const DiagnosticSummarySnapshotSchema = z.object({
   completedAt: z.string().datetime(),
   topWeaknesses: z.array(WeaknessIdSchema).max(3),
   accuracy: z.number().int().min(0).max(100),
-  weaknessAccuracies: z.record(z.string(), z.number().int().min(0).max(100)).default(() => ({})),
+  weaknessAccuracies: z.record(WeaknessIdSchema, z.number().int().min(0).max(100)).default({} as Record<(typeof weaknessOrder)[number], number>),
 });
 
 const ActiveReviewTaskSummarySchema = z.object({
@@ -962,6 +962,11 @@ export async function listLearningAttempts(
   return typeof options?.limit === 'number'
     ? sortedAttempts.slice(0, options.limit)
     : sortedAttempts;
+}
+
+export async function listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
+  const reviewTasksSnapshot = await getReviewTasksCollection(accountKey).get();
+  return reviewTasksSnapshot.docs.map((doc) => ReviewTaskSchema.parse(doc.data()));
 }
 
 export async function getLearningAttemptResults(accountKey: string, attemptId: string) {
