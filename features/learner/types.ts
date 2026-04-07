@@ -19,6 +19,7 @@ export type DiagnosticSummarySnapshot = {
   completedAt: string;
   topWeaknesses: WeaknessId[];
   accuracy: number;
+  weaknessAccuracies: Partial<Record<WeaknessId, number>>;
 };
 
 export type ActiveReviewTaskSummary = {

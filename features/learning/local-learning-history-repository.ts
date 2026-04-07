@@ -264,6 +264,7 @@ export function buildSummary(
           completedAt: latestDiagnosticAttempt.completedAt,
           topWeaknesses: latestDiagnosticAttempt.topWeaknesses,
           accuracy: latestDiagnosticAttempt.accuracy,
+          weaknessAccuracies: {},
         }
       : undefined,
     repeatedWeaknesses: buildRepeatedWeaknesses(results),
