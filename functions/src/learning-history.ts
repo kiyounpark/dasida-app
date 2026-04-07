@@ -937,6 +937,11 @@ export async function listLearningAttempts(
     : sortedAttempts;
 }
 
+export async function listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
+  const reviewTasksSnapshot = await getReviewTasksCollection(accountKey).get();
+  return reviewTasksSnapshot.docs.map((doc) => ReviewTaskSchema.parse(doc.data()));
+}
+
 export async function getLearningAttemptResults(accountKey: string, attemptId: string) {
   const history = await loadLearnerHistory(accountKey);
   return history.results

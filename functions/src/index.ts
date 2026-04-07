@@ -13,3 +13,4 @@ export { listLearningAttemptsHandler as listLearningAttempts } from './list-lear
 export { recordLearningAttemptHandler as recordLearningAttempt } from './record-learning-attempt';
 export { saveFeaturedExamStateHandler as saveFeaturedExamState } from './save-featured-exam-state';
 export { reviewFeedback } from './review-feedback';
+export { listReviewTasksHandler as listReviewTasks } from './list-review-tasks';
