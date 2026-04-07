@@ -135,7 +135,7 @@ function buildPreviewAttemptInput(
       questionNumber: index + 1,
       topic: '미리보기',
       selectedIndex: index,
-      isCorrect: false,
+      isCorrect: index % 2 === 0,
       finalWeaknessId: weaknessId,
       methodId: null,
       diagnosisSource: null,
