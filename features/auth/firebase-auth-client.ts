@@ -175,7 +175,7 @@ async function signInWithGoogleNative(): Promise<GoogleSignInResult> {
   };
 }
 
-async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
+async function getGoogleIdTokenViaAuthSession(): Promise<string> {
   const clientId = getGoogleClientIdForCurrentPlatform();
   if (!clientId) {
     throw new Error('Google sign-in is not configured for this platform.');
@@ -231,6 +231,11 @@ async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
     throw new Error('Google ID token is missing.');
   }
 
+  return idToken;
+}
+
+async function signInWithGoogleCredential(): Promise<GoogleSignInResult> {
+  const idToken = await getGoogleIdTokenViaAuthSession();
   return {
     signInResult: await signInWithCredential(
       getFirebaseAuthInstance(),
@@ -429,7 +434,7 @@ export class FirebaseAuthClient implements AuthClient {
   }
 
   private async doRevokeAndDelete(user: User, providerId: string): Promise<void> {
-    if (providerId === 'google.com') {
+    if (providerId === 'google.com' && process.env.EXPO_OS === 'android') {
       await GoogleSignin.revokeAccess();
     }
     // Apple token revocation requires server-side client_secret — handled by
@@ -489,9 +494,13 @@ export class FirebaseAuthClient implements AuthClient {
       return result.user;
     }
 
-    // iOS/web: use expo-auth-session flow (same as primary sign-in path)
-    const { signInResult } = await signInWithGoogleCredential();
-    return signInResult.user;
+    // iOS/web: use expo-auth-session flow, but reauthenticate (not full sign-in)
+    const idToken = await getGoogleIdTokenViaAuthSession();
+    const result = await reauthenticateWithCredential(
+      user,
+      GoogleAuthProvider.credential(idToken),
+    );
+    return result.user;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {
