@@ -30,7 +30,7 @@ function AccuracyBar({
 
   return (
     <View style={styles.barGroup}>
-      <View style={[styles.barRow, { height: MAX_BAR_HEIGHT }]}>
+      <View style={[styles.barRow, { height: MAX_BAR_HEIGHT + 16 }]}>
         {/* 왼쪽: 진단 막대 (진단 있으면) 또는 복습 막대 (진단 없으면) */}
         {leftAccuracy != null && (
           <View style={styles.barColInner}>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 3,
   },
   diagBar: {
-    backgroundColor: 'rgba(74, 124, 89, 0.3)',
+    backgroundColor: 'rgba(74, 124, 89, 0.5)',
   },
   reviewBar: {
     backgroundColor: '#4A7C59',
