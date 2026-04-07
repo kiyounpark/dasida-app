@@ -17,24 +17,20 @@ function AccuracyBar({
   const hasDiagData = diagnosticAccuracy != null;
   const diagHeight = hasDiagData
     ? Math.max(4, (diagnosticAccuracy / 100) * MAX_BAR_HEIGHT)
-    : Math.round(MAX_BAR_HEIGHT * 0.4);
+    : 0;
   const reviewHeight =
     reviewAccuracy != null ? Math.max(4, (reviewAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
 
   return (
     <View style={styles.barGroup}>
       <View style={[styles.barRow, { height: MAX_BAR_HEIGHT }]}>
-        {/* 진단 막대 */}
-        <View style={styles.barColInner}>
-          {hasDiagData ? (
-            <>
-              <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
-              <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
-            </>
-          ) : (
-            <View style={[styles.ghostBar, { height: diagHeight }]} />
-          )}
-        </View>
+        {/* 진단 막대 — 데이터 없으면 렌더링하지 않음 */}
+        {hasDiagData && (
+          <View style={styles.barColInner}>
+            <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
+            <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
+          </View>
+        )}
 
         {/* 복습 막대 or ghost */}
         <View style={styles.barColInner}>
