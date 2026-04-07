@@ -15,34 +15,47 @@ function AccuracyBar({
   label: string;
 }) {
   const hasDiagData = diagnosticAccuracy != null;
-  const diagHeight = hasDiagData
-    ? Math.max(4, (diagnosticAccuracy / 100) * MAX_BAR_HEIGHT)
+  const hasReviewData = reviewAccuracy != null;
+
+  // 진단 데이터 없고 복습만 있는 경우: 복습 막대를 왼쪽에, ghost를 오른쪽에
+  const leftAccuracy = hasDiagData ? diagnosticAccuracy : reviewAccuracy;
+  const leftIsReview = !hasDiagData && hasReviewData;
+  const leftHeight = leftAccuracy != null ? Math.max(4, (leftAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
+
+  // 오른쪽: 진단+복습 모두 있으면 복습 막대, 그 외엔 ghost
+  const showRightSolid = hasDiagData && hasReviewData;
+  const rightHeight = showRightSolid
+    ? Math.max(4, (reviewAccuracy! / 100) * MAX_BAR_HEIGHT)
     : 0;
-  const reviewHeight =
-    reviewAccuracy != null ? Math.max(4, (reviewAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
 
   return (
     <View style={styles.barGroup}>
       <View style={[styles.barRow, { height: MAX_BAR_HEIGHT }]}>
-        {/* 진단 막대 — 데이터 없으면 렌더링하지 않음 */}
-        {hasDiagData && (
+        {/* 왼쪽: 진단 막대 (진단 있으면) 또는 복습 막대 (진단 없으면) */}
+        {leftAccuracy != null && (
           <View style={styles.barColInner}>
-            <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
-            <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
+            <Text style={[styles.barNum, leftIsReview && styles.reviewNum]}>
+              {leftAccuracy}%
+            </Text>
+            <View
+              style={[
+                styles.solidBar,
+                leftIsReview ? styles.reviewBar : styles.diagBar,
+                { height: leftHeight },
+              ]}
+            />
           </View>
         )}
 
-        {/* 복습 막대 or ghost */}
+        {/* 오른쪽: 복습 막대 (진단+복습 모두 있으면) 또는 ghost */}
         <View style={styles.barColInner}>
-          {reviewAccuracy != null ? (
+          {showRightSolid ? (
             <>
               <Text style={[styles.barNum, styles.reviewNum]}>{reviewAccuracy}%</Text>
-              <View style={[styles.solidBar, styles.reviewBar, { height: reviewHeight }]} />
+              <View style={[styles.solidBar, styles.reviewBar, { height: rightHeight }]} />
             </>
           ) : (
-            <>
-              <View style={[styles.ghostBar, { height: MAX_BAR_HEIGHT }]} />
-            </>
+            <View style={[styles.ghostBar, { height: MAX_BAR_HEIGHT }]} />
           )}
         </View>
       </View>
@@ -67,6 +80,14 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
         )
       : null;
   const hasReviewData = items.some((item) => item.reviewAccuracy != null);
+  const hasAnyDiagData = items.some((item) => item.diagnosticAccuracy != null);
+
+  const hintText = (() => {
+    if (avgDelta != null && avgDelta > 0) return null;
+    if (!hasReviewData) return '복습 한 번이면 바로 채워져요';
+    if (hasReviewData && !hasAnyDiagData) return '곧 채울 수 있어요';
+    return null;
+  })();
 
   return (
     <View style={styles.container}>
@@ -76,8 +97,8 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
           <View style={styles.badge}>
             <Text style={styles.badgeText}>🌱 평균 +{avgDelta}%</Text>
           </View>
-        ) : !hasReviewData ? (
-          <Text style={styles.hint}>복습 한 번이면 바로 채워져요</Text>
+        ) : hintText != null ? (
+          <Text style={styles.hint}>{hintText}</Text>
         ) : null}
       </View>
 
