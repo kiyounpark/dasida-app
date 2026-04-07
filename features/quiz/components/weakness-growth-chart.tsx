@@ -24,7 +24,7 @@ function StageBar({
   const height = Math.max(4, ((accuracy ?? 0) / 100) * MAX_BAR_HEIGHT);
   return (
     <View style={styles.barColInner}>
-      <Text style={styles.barNum}>{accuracy}%</Text>
+      <Text style={styles.barNum}>{accuracy ?? 0}%</Text>
       <View style={[styles.solidBar, { height }]} />
     </View>
   );
@@ -32,6 +32,7 @@ function StageBar({
 
 function AccuracyBar({ item }: { item: WeaknessProgressItem }) {
   const stageIndex = STAGE_ORDER.indexOf(item.stage);
+  if (stageIndex === -1) return null;
   const visibleStages = STAGE_ORDER.slice(0, stageIndex + 1);
 
   return (
