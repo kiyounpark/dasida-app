@@ -245,4 +245,8 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
       throw error;
     }
   }
+
+  async listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
+    return this.cache.listReviewTasks(accountKey);
+  }
 }

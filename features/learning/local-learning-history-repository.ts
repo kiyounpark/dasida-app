@@ -553,6 +553,14 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     });
   }
 
+  async cacheReviewTasks(accountKey: string, reviewTasks: ReviewTask[]): Promise<void> {
+    await writeLearningHistoryJson(getReviewTasksStorageKey(accountKey), reviewTasks);
+  }
+
+  async listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
+    return readLearningHistoryJson<ReviewTask[]>(getReviewTasksStorageKey(accountKey), []);
+  }
+
   async saveFeaturedExamState(
     accountKey: string,
     state: FeaturedExamState,
