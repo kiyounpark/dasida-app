@@ -439,41 +439,59 @@ export class FirebaseAuthClient implements AuthClient {
 
   private async reauthenticateUser(user: User, providerId: string): Promise<User> {
     if (providerId === 'apple.com') {
-      const rawNonce = await createRandomNonce();
-      const hashedNonce = await createSha256(rawNonce);
-      const appleCredential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-        nonce: hashedNonce,
-      });
-      if (!appleCredential.identityToken) {
-        throw new Error('Apple identity token is missing during reauthentication.');
+      try {
+        const rawNonce = await createRandomNonce();
+        const hashedNonce = await createSha256(rawNonce);
+        const appleCredential = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+          nonce: hashedNonce,
+        });
+        if (!appleCredential.identityToken) {
+          throw new Error('Apple identity token is missing during reauthentication.');
+        }
+        const firebaseCredential = new OAuthProvider('apple.com').credential({
+          idToken: appleCredential.identityToken,
+          rawNonce,
+        });
+        const result = await reauthenticateWithCredential(user, firebaseCredential);
+        return result.user;
+      } catch (error) {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'ERR_REQUEST_CANCELED'
+        ) {
+          throw new AuthFlowCancelledError();
+        }
+        throw error;
       }
-      const firebaseCredential = new OAuthProvider('apple.com').credential({
-        idToken: appleCredential.identityToken,
-        rawNonce,
-      });
-      const result = await reauthenticateWithCredential(user, firebaseCredential);
+    }
+
+    // Google — mirror primary sign-in platform branch
+    if (process.env.EXPO_OS === 'android') {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+      if (response.type === 'cancelled') {
+        throw new AuthFlowCancelledError();
+      }
+      const idToken = response.data?.idToken;
+      if (!idToken) {
+        throw new Error('Google ID token missing during reauthentication.');
+      }
+      const result = await reauthenticateWithCredential(
+        user,
+        GoogleAuthProvider.credential(idToken),
+      );
       return result.user;
     }
 
-    // Google
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const response = await GoogleSignin.signIn();
-    if (response.type === 'cancelled') {
-      throw new AuthFlowCancelledError();
-    }
-    const idToken = response.data?.idToken;
-    if (!idToken) {
-      throw new Error('Google ID token missing during reauthentication.');
-    }
-    const result = await reauthenticateWithCredential(
-      user,
-      GoogleAuthProvider.credential(idToken),
-    );
-    return result.user;
+    // iOS/web: use expo-auth-session flow (same as primary sign-in path)
+    const { signInResult } = await signInWithGoogleCredential();
+    return signInResult.user;
   }
 
   getSupportedProviders(): SupportedAuthProvider[] {
