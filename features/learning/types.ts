@@ -106,3 +106,11 @@ export type PeerPresenceSnapshot = {
   peers: PeerPresenceItem[];
   updatedAt: string;
 };
+
+export type WeaknessProgressItem = {
+  weaknessId: WeaknessId;
+  topicLabel: string;
+  weaknessLabel: string;
+  stage: ReviewStage;
+  completed: boolean;
+};
