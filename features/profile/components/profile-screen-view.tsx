@@ -80,7 +80,7 @@ function ActionButton({
       style={({ pressed }) => [
         styles.actionButton,
         subtle && styles.actionButtonSubtle,
-        danger && styles.actionButtonDanger,
+        danger && !disabled && styles.actionButtonDanger,
         disabled && styles.actionButtonDisabled,
         pressed && !disabled && styles.actionButtonPressed,
       ]}>
@@ -89,7 +89,7 @@ function ActionButton({
         style={[
           styles.actionButtonText,
           subtle && styles.actionButtonTextSubtle,
-          danger && styles.actionButtonTextDanger,
+          danger && !disabled && styles.actionButtonTextDanger,
           disabled && styles.actionButtonTextDisabled,
         ]}>
         {label}
