@@ -1,4 +1,5 @@
 import {
+  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -64,11 +65,13 @@ function ActionButton({
   onPress,
   disabled = false,
   subtle = false,
+  danger = false,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   subtle?: boolean;
+  danger?: boolean;
 }) {
   return (
     <Pressable
@@ -77,6 +80,7 @@ function ActionButton({
       style={({ pressed }) => [
         styles.actionButton,
         subtle && styles.actionButtonSubtle,
+        danger && styles.actionButtonDanger,
         disabled && styles.actionButtonDisabled,
         pressed && !disabled && styles.actionButtonPressed,
       ]}>
@@ -85,6 +89,7 @@ function ActionButton({
         style={[
           styles.actionButtonText,
           subtle && styles.actionButtonTextSubtle,
+          danger && styles.actionButtonTextDanger,
           disabled && styles.actionButtonTextDisabled,
         ]}>
         {label}
@@ -103,10 +108,7 @@ export function ProfileScreenView({
   isReady,
   manualImportCandidate,
   noticeMessage,
-  previewStates,
-  profile,
-  session,
-  supportedAuthProviders,
+  onDeleteAccount,
   onGoToOnboarding,
   onImportLocalHistory,
   onPullReviewDueDates,
@@ -115,6 +117,10 @@ export function ProfileScreenView({
   onSignIn,
   onSignOut,
   onUpdateGrade,
+  previewStates,
+  profile,
+  session,
+  supportedAuthProviders,
 }: UseProfileScreenResult) {
   return (
     <View style={styles.screen}>
@@ -202,6 +208,26 @@ export function ProfileScreenView({
               disabled={busyAction !== null}
               subtle
               onPress={() => void onSignOut()}
+            />
+            <ActionButton
+              label={busyAction === 'delete-account' ? '탈퇴 처리 중...' : '회원 탈퇴'}
+              disabled={busyAction !== null}
+              subtle
+              danger
+              onPress={() => {
+                Alert.alert(
+                  '정말 탈퇴하시겠어요?',
+                  '모든 학습 기록이 삭제되며 복구할 수 없습니다.',
+                  [
+                    { text: '취소', style: 'cancel' },
+                    {
+                      text: '탈퇴',
+                      style: 'destructive',
+                      onPress: () => void onDeleteAccount(),
+                    },
+                  ],
+                );
+              }}
             />
           </View>
         ) : null}
@@ -458,6 +484,14 @@ const styles = StyleSheet.create({
   },
   actionButtonTextSubtle: {
     color: BrandColors.primaryDark,
+  },
+  actionButtonDanger: {
+    borderWidth: 1,
+    borderColor: BrandColors.danger,
+    backgroundColor: 'transparent',
+  },
+  actionButtonTextDanger: {
+    color: BrandColors.danger,
   },
   actionButtonTextDisabled: {
     color: BrandColors.disabled,
