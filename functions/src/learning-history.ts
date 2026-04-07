@@ -95,7 +95,7 @@ const DiagnosticSummarySnapshotSchema = z.object({
   completedAt: z.string().datetime(),
   topWeaknesses: z.array(WeaknessIdSchema).max(3),
   accuracy: z.number().int().min(0).max(100),
-  weaknessAccuracies: z.record(WeaknessIdSchema, z.number().int().min(0).max(100)).default({}),
+  weaknessAccuracies: z.record(WeaknessIdSchema, z.number().int().min(0).max(100)).default({} as Record<(typeof weaknessOrder)[number], number>),
 });
 
 const ActiveReviewTaskSummarySchema = z.object({
