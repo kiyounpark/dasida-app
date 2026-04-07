@@ -14,10 +14,10 @@ function AccuracyBar({
   reviewAccuracy?: number;
   label: string;
 }) {
-  const diagHeight =
-    diagnosticAccuracy != null
-      ? Math.max(4, (diagnosticAccuracy / 100) * MAX_BAR_HEIGHT)
-      : 4;
+  const hasDiagData = diagnosticAccuracy != null;
+  const diagHeight = hasDiagData
+    ? Math.max(4, (diagnosticAccuracy / 100) * MAX_BAR_HEIGHT)
+    : Math.round(MAX_BAR_HEIGHT * 0.4);
   const reviewHeight =
     reviewAccuracy != null ? Math.max(4, (reviewAccuracy / 100) * MAX_BAR_HEIGHT) : 0;
 
@@ -26,10 +26,14 @@ function AccuracyBar({
       <View style={[styles.barRow, { height: MAX_BAR_HEIGHT }]}>
         {/* 진단 막대 */}
         <View style={styles.barColInner}>
-          {diagnosticAccuracy != null && (
-            <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
+          {hasDiagData ? (
+            <>
+              <Text style={styles.barNum}>{diagnosticAccuracy}%</Text>
+              <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
+            </>
+          ) : (
+            <View style={[styles.ghostBar, { height: diagHeight }]} />
           )}
-          <View style={[styles.solidBar, styles.diagBar, { height: diagHeight }]} />
         </View>
 
         {/* 복습 막대 or ghost */}
@@ -66,7 +70,7 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
           ) / reviewedItems.length,
         )
       : null;
-  const hasReviewData = reviewedItems.length > 0;
+  const hasReviewData = items.some((item) => item.reviewAccuracy != null);
 
   return (
     <View style={styles.container}>
