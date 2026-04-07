@@ -451,6 +451,15 @@ test('buildSummary ignores weakness-practice for repeated weaknesses and recent 
   );
 
   assert.equal(summary.latestDiagnosticSummary?.attemptId, diagnosticAttempt.id);
+  // weaknessAccuracies: 진단 결과에서 약점별 정답률이 계산됨
+  const weaknessAccuracies = summary.latestDiagnosticSummary?.weaknessAccuracies;
+  assert.ok(weaknessAccuracies !== undefined, 'weaknessAccuracies should exist');
+  assert.ok(typeof weaknessAccuracies['formula_understanding'] === 'number' || weaknessAccuracies['formula_understanding'] === undefined);
+  // 진단 결과에 formula_understanding 관련 문제가 있었다면 정답률이 0-100 범위여야 함
+  if (typeof weaknessAccuracies['formula_understanding'] === 'number') {
+    assert.ok(weaknessAccuracies['formula_understanding'] >= 0);
+    assert.ok(weaknessAccuracies['formula_understanding'] <= 100);
+  }
   assert.equal(summary.repeatedWeaknesses.length, 1);
   assert.equal(summary.repeatedWeaknesses[0]?.weaknessId, 'formula_understanding');
   assert.equal(

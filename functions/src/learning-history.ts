@@ -95,7 +95,7 @@ const DiagnosticSummarySnapshotSchema = z.object({
   completedAt: z.string().datetime(),
   topWeaknesses: z.array(WeaknessIdSchema).max(3),
   accuracy: z.number().int().min(0).max(100),
-  weaknessAccuracies: z.record(WeaknessIdSchema, z.number().int().min(0).max(100)).default({}),
+  weaknessAccuracies: z.record(z.string(), z.number().int().min(0).max(100)).default(() => ({})),
 });
 
 const ActiveReviewTaskSummarySchema = z.object({
@@ -493,6 +493,33 @@ function diffReviewTasks(existingTasks: ReviewTask[], nextTasks: ReviewTask[]) {
   };
 }
 
+function buildWeaknessAccuracies(
+  diagnosticAttemptId: string,
+  results: LearningAttemptResult[],
+): Partial<Record<WeaknessId, number>> {
+  const diagnosticResults = results.filter(
+    (r) => r.attemptId === diagnosticAttemptId && r.finalWeaknessId !== null,
+  );
+
+  const grouped = new Map<WeaknessId, { correct: number; total: number }>();
+  for (const r of diagnosticResults) {
+    const id = r.finalWeaknessId as WeaknessId;
+    const existing = grouped.get(id) ?? { correct: 0, total: 0 };
+    grouped.set(id, {
+      correct: existing.correct + (r.isCorrect ? 1 : 0),
+      total: existing.total + 1,
+    });
+  }
+
+  const accuracies: Partial<Record<WeaknessId, number>> = {};
+  for (const [id, { correct, total }] of grouped) {
+    if (total > 0) {
+      accuracies[id] = Math.round((correct / total) * 100);
+    }
+  }
+  return accuracies;
+}
+
 function buildRepeatedWeaknesses(
   results: LearningAttemptResult[],
 ): LearnerSummaryCurrent['repeatedWeaknesses'] {
@@ -783,7 +810,7 @@ export function buildSummary(
           completedAt: latestDiagnosticAttempt.completedAt,
           topWeaknesses: latestDiagnosticAttempt.topWeaknesses,
           accuracy: latestDiagnosticAttempt.accuracy,
-          weaknessAccuracies: {},
+          weaknessAccuracies: buildWeaknessAccuracies(latestDiagnosticAttempt.id, results),
         }
       : undefined,
     repeatedWeaknesses: buildRepeatedWeaknesses(results),
