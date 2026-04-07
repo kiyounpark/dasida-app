@@ -35,9 +35,26 @@ function AccuracyBar({ item }: { item: WeaknessProgressItem }) {
   if (stageIndex === -1) return null;
   const visibleStages = STAGE_ORDER.slice(0, stageIndex + 1);
 
+  // day1 미완료 + 진단 데이터 있을 때: 진단 기준 막대를 왼쪽에 표시
+  const showDiagRef =
+    stageIndex === 0 &&
+    item.reviewAccuracyByStage['day1'] == null &&
+    item.diagnosticAccuracy != null;
+
   return (
     <View style={styles.barGroup}>
       <View style={[styles.barRow, { height: MAX_BAR_HEIGHT + 16 }]}>
+        {showDiagRef && (
+          <View style={styles.barColInner}>
+            <Text style={styles.barNumDiag}>{item.diagnosticAccuracy}%</Text>
+            <View
+              style={[
+                styles.diagRefBar,
+                { height: Math.max(4, (item.diagnosticAccuracy! / 100) * MAX_BAR_HEIGHT) },
+              ]}
+            />
+          </View>
+        )}
         {visibleStages.map((stage) => {
           const accuracy = item.reviewAccuracyByStage[stage];
           return <StageBar key={stage} accuracy={accuracy} isGhost={accuracy == null} />;
@@ -53,6 +70,12 @@ function AccuracyBar({ item }: { item: WeaknessProgressItem }) {
 export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[] }) {
   const hasAnyReview = items.some(
     (item) => Object.keys(item.reviewAccuracyByStage).length > 0,
+  );
+  const showDiagLegend = items.some(
+    (item) =>
+      STAGE_ORDER.indexOf(item.stage) === 0 &&
+      item.reviewAccuracyByStage['day1'] == null &&
+      item.diagnosticAccuracy != null,
   );
 
   return (
@@ -73,6 +96,12 @@ export function WeaknessAccuracyChart({ items }: { items: WeaknessProgressItem[]
       <View style={styles.floor} />
 
       <View style={styles.legend}>
+        {showDiagLegend && (
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, styles.diagDot]} />
+            <Text style={styles.legendText}>진단</Text>
+          </View>
+        )}
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, styles.completedDot]} />
           <Text style={styles.legendText}>완료</Text>
@@ -131,6 +160,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 2,
   },
+  diagRefBar: {
+    width: 10,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    backgroundColor: 'rgba(74, 124, 89, 0.45)',
+  },
   solidBar: {
     width: 10,
     borderTopLeftRadius: 3,
@@ -147,6 +182,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 9,
     color: '#2A5C38',
+  },
+  barNumDiag: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 9,
+    color: 'rgba(74, 124, 89, 0.65)',
   },
   barLabel: {
     fontFamily: FontFamilies.bold,
@@ -174,6 +214,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 2,
+  },
+  diagDot: {
+    backgroundColor: 'rgba(74, 124, 89, 0.45)',
   },
   completedDot: {
     backgroundColor: '#4A7C59',
