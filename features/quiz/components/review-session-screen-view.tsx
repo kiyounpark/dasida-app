@@ -14,6 +14,7 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-review-session-screen';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 
 export function ReviewSessionScreenView({
   task,
@@ -105,6 +106,106 @@ export function ReviewSessionScreenView({
   }
 
   const continueLabel = isLastStep ? '완료 →' : '다음 단계 →';
+  const isTablet = useIsTablet();
+
+  if (isTablet) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
+        {/* 진행 바 */}
+        <View style={[styles.progressBar, styles.tabletProgressBar]}>
+          {steps.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
+            />
+          ))}
+        </View>
+        <View style={styles.tabletRow}>
+          {/* 좌: 단계 카드 */}
+          <ScrollView
+            style={styles.tabletLeft}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}>
+            <View style={styles.stepCard}>
+              <View style={styles.stepNumRow}>
+                <View style={styles.stepNumBadge}>
+                  <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
+                </View>
+                <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
+              </View>
+              <Text style={styles.stepTitle}>{step.title}</Text>
+              <Text style={styles.stepBody}>{step.body}</Text>
+              {step.example ? (
+                <View style={styles.stepExampleBox}>
+                  <Text style={styles.stepExampleText}>{step.example}</Text>
+                </View>
+              ) : null}
+            </View>
+          </ScrollView>
+          {/* 우: 입력 카드 */}
+          <ScrollView
+            style={[styles.tabletRight, { backgroundColor: '#FFFFFF' }]}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.inputCard}>
+              <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
+              <View style={styles.choices}>
+                {step.choices.map((choice, i) => (
+                  <Pressable
+                    key={i}
+                    style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
+                    onPress={() => stepPhase === 'input' && onSelectChoice(i)}>
+                    <Text
+                      style={[
+                        styles.choiceBtnText,
+                        selectedChoiceIndex === i && styles.choiceBtnTextSelected,
+                      ]}>
+                      {choice.text}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
+                <View style={styles.dividerLine} />
+              </View>
+              <TextInput
+                style={styles.textInput}
+                value={userText}
+                onChangeText={stepPhase === 'input' ? onChangeText : undefined}
+                placeholder="자유롭게 써보세요..."
+                placeholderTextColor={BrandColors.disabled}
+                multiline
+                editable={stepPhase === 'input'}
+              />
+              {stepPhase === 'feedback' && aiFeedback ? (
+                <View style={styles.aiFeedback}>
+                  <Text style={styles.aiBadge}>✨ AI 피드백</Text>
+                  <Text style={styles.aiText}>{aiFeedback}</Text>
+                </View>
+              ) : null}
+              {stepPhase === 'input' ? (
+                <Pressable
+                  style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
+                  onPress={onPressNext}
+                  disabled={isLoadingFeedback}>
+                  {isLoadingFeedback ? (
+                    <ActivityIndicator color="#F6F2EA" size="small" />
+                  ) : (
+                    <Text style={styles.primaryBtnText}>다음으로</Text>
+                  )}
+                </Pressable>
+              ) : (
+                <Pressable style={styles.primaryBtn} onPress={onPressContinue}>
+                  <Text style={styles.primaryBtnText}>{continueLabel}</Text>
+                </Pressable>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -465,5 +566,22 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 14,
     color: '#F6F2EA',
+  },
+  // 태블릿 레이아웃
+  tabletProgressBar: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  tabletRow: {
+    flex: 1,
+    flexDirection: 'row' as const,
+  },
+  tabletLeft: {
+    flex: 55,
+    borderRightWidth: 1,
+    borderRightColor: '#D6E2D4',
+  },
+  tabletRight: {
+    flex: 45,
   },
 });
