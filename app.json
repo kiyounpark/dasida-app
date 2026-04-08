@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "dasida-app",
+    "name": "다시다",
     "slug": "dasida-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.dasida.app",
+      "buildNumber": "1",
       "usesAppleSignIn": true,
       "supportsTablet": true
     },

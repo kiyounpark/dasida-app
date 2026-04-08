@@ -2,6 +2,14 @@
   "cli": {
     "version": ">= 16.0.0"
   },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6761792023",
+        "appleId": "qq8918@nate.com"
+      }
+    }
+  },
   "build": {
     "development": {
       "developmentClient": true,
