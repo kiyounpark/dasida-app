@@ -1,6 +1,8 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useIsTablet } from '@/hooks/use-is-tablet';
+
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -85,6 +87,7 @@ export function QuizHubScreenView({
   profile,
   session,
 }: UseQuizHubScreenResult) {
+  const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
   const posterTopPadding = isCompactLayout ? 14 : 24;
@@ -128,6 +131,7 @@ export function QuizHubScreenView({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
+          isTablet && styles.tabletPosterScreen,
           {
             paddingTop: posterTopPadding,
             paddingBottom: bottomPadding,
@@ -272,5 +276,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     color: '#FFFFFF',
+  },
+  tabletPosterScreen: {
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center' as const,
   },
 });
