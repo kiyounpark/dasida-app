@@ -7,6 +7,10 @@
       "ios": {
         "ascAppId": "6761792023",
         "appleId": "qq8918@nate.com"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
       }
     }
   },
