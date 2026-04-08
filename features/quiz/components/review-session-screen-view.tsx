@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   },
   tabletRow: {
     flex: 1,
-    flexDirection: 'row' as const,
+    flexDirection: 'row',
   },
   tabletLeft: {
     flex: 55,

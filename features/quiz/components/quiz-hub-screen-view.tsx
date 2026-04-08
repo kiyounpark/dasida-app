@@ -280,6 +280,6 @@ const styles = StyleSheet.create({
   tabletPosterScreen: {
     maxWidth: 720,
     width: '100%',
-    alignSelf: 'center' as const,
+    alignSelf: 'center',
   },
 });

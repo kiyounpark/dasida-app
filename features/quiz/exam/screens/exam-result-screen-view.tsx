@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   // 태블릿
   tabletBody: {
     flex: 1,
-    flexDirection: 'row' as const,
+    flexDirection: 'row',
   },
   tabletLeft: {
     flex: 1,
@@ -350,6 +350,6 @@ const styles = StyleSheet.create({
     flex: 2,
     padding: 20,
     gap: 12,
-    justifyContent: 'center' as const,
+    justifyContent: 'center',
   },
 });

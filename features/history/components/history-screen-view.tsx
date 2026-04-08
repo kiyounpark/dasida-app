@@ -888,6 +888,6 @@ const styles = StyleSheet.create({
   tabletContainer: {
     maxWidth: 800,
     width: '100%',
-    alignSelf: 'center' as const,
+    alignSelf: 'center',
   },
 });
