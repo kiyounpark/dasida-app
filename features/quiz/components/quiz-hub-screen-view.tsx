@@ -86,14 +86,14 @@ export function QuizHubScreenView({
   session,
 }: UseQuizHubScreenResult) {
   const insets = useSafeAreaInsets();
-  const topPadding = insets.top + (isCompactLayout ? 14 : 24);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
   const posterTopPadding = isCompactLayout ? 14 : 24;
 
   if (!isReady) {
     return (
       <View style={styles.screen}>
-        <View style={[styles.feedbackScreen, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <BrandHeader compact={isCompactLayout} />
+        <View style={[styles.feedbackScreen, { paddingTop: isCompactLayout ? 14 : 24, paddingBottom: bottomPadding }]}>
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
           <FeedbackCard
             title="학습 여정을 준비 중이에요"
@@ -107,7 +107,8 @@ export function QuizHubScreenView({
   if (!profile || !homeState || !session || !journey) {
     return (
       <View style={styles.screen}>
-        <View style={[styles.feedbackScreen, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <BrandHeader compact={isCompactLayout} />
+        <View style={[styles.feedbackScreen, { paddingTop: isCompactLayout ? 14 : 24, paddingBottom: bottomPadding }]}>
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
           <FeedbackCard
             title="홈 상태를 다시 불러와야 해요"

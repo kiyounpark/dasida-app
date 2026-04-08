@@ -1,6 +1,5 @@
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 
 import { BrandColors } from '@/constants/brand';
 import { DasidaLogo } from './DasidaLogo';
@@ -12,7 +11,6 @@ export type BrandHeaderProps = {
 export function BrandHeader({ compact = false }: BrandHeaderProps) {
   return (
     <SafeAreaView edges={['top']} style={styles.wrapper}>
-      <StatusBar style="dark" backgroundColor="#ffffff" translucent={false} />
       <View style={styles.inner}>
         <DasidaLogo width={compact ? 172 : 186} height={compact ? 45 : 48} />
       </View>

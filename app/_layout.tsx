@@ -86,7 +86,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </CurrentLearnerProvider>
-      <StatusBar style="auto" translucent={false} backgroundColor="#ffffff" />
+      <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
     </ThemeProvider>
   );
 }
