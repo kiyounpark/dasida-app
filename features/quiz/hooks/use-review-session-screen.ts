@@ -22,6 +22,7 @@ export type UseReviewSessionScreenResult = {
   aiFeedback: string | null;
   isLoadingFeedback: boolean;
   sessionComplete: boolean;
+  hasInput: boolean;
   onSelectChoice: (index: number) => void;
   onChangeText: (text: string) => void;
   onPressNext: () => void;
@@ -106,11 +107,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     const hasChoice = selectedChoiceIndex !== null;
     const hasText = userText.trim().length > 0;
-
-    if (!hasChoice && !hasText) {
-      setStepPhase('feedback');
-      return;
-    }
 
     isFetchingRef.current = true;
     setIsLoadingFeedback(true);
@@ -221,6 +217,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     router.back();
   };
 
+  const hasInput = selectedChoiceIndex !== null || userText.trim().length > 0;
+
   return {
     task,
     steps,
@@ -231,6 +229,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     aiFeedback,
     isLoadingFeedback,
     sessionComplete,
+    hasInput,
     onSelectChoice,
     onChangeText,
     onPressNext,
