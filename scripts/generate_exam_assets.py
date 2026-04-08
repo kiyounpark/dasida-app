@@ -53,7 +53,7 @@ def make_title(p: dict) -> str:
 exams = {}        # examId → {parsed fields + problem numbers}
 exam_paths = {}   # examId → json file path (for exam-problems.ts require)
 
-for jp in sorted(glob.glob("data/exam/**/**/problems.json", recursive=True)):
+for jp in sorted(glob.glob("data/exam/*/problems.json")):
     try:
         d = json.load(open(jp))
         eid = d["examId"]
