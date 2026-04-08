@@ -23,6 +23,7 @@ export type UseReviewSessionScreenResult = {
   isLoadingFeedback: boolean;
   sessionComplete: boolean;
   hasInput: boolean;
+  onBack: () => void;
   onSelectChoice: (index: number) => void;
   onChangeText: (text: string) => void;
   onPressNext: () => void;
@@ -232,6 +233,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     isLoadingFeedback,
     sessionComplete,
     hasInput,
+    onBack: router.back,
     onSelectChoice,
     onChangeText,
     onPressNext,
