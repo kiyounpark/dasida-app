@@ -40,9 +40,10 @@ test.describe('복습 세션 흐름', () => {
 
     await page.getByText('사고 흐름 확인하기').click();
     await expect(page).toHaveURL(/review-session/, { timeout: 5000 });
+    await expect(page.getByText('오늘의 복습')).toBeVisible({ timeout: 3000 });
   });
 
-  test('3. 입력 없이 다음으로 → AI 호출 없이 다음 단계 버튼 표시', async ({ page }) => {
+  test('3. 입력 없이 다음으로 버튼은 비활성 — 선택 후 활성화', async ({ page }) => {
     await loginAsDevGuest(page);
     await seedAndGoToQuiz(page, '오늘 복습 있음');
 
@@ -51,11 +52,22 @@ test.describe('복습 세션 흐름', () => {
     await page.getByText('사고 흐름 확인하기').click();
     await expect(page).toHaveURL(/review-session/, { timeout: 5000 });
 
-    await expect(page.getByText('다음으로')).toBeVisible({ timeout: 5000 });
-    await page.getByText('다음으로').click();
+    // AppBar 확인
+    await expect(page.getByText('오늘의 복습')).toBeVisible({ timeout: 5000 });
 
-    // AI 피드백 없이 즉시 다음 단계 버튼 표시 (URL 미설정 → AI 호출 없음)
-    await expect(page.getByText(/다음 단계 →|완료 →/)).toBeVisible({ timeout: 3000 });
+    // 선택 없으면 비활성
+    const nextBtn = page.getByRole('button', { name: '다음으로' });
+    await expect(nextBtn).toBeVisible({ timeout: 5000 });
+    await expect(nextBtn).toBeDisabled();
+
+    // 첫 번째 선택지 클릭 → 활성화
+    const firstChoice = page.getByRole('button').filter({ hasNotText: /다음으로|뒤로가기/ }).first();
+    await firstChoice.click();
+    await expect(nextBtn).toBeEnabled();
+
+    // 활성화된 버튼 클릭 → AI 피드백 또는 다음 단계 버튼
+    await nextBtn.click();
+    await expect(page.getByText(/다음 단계 →|완료 →/)).toBeVisible({ timeout: 15000 });
   });
 
   test('4. 모든 단계 완료 → 완료 화면 표시', async ({ page }) => {
@@ -71,11 +83,17 @@ test.describe('복습 세션 흐름', () => {
     for (let i = 0; i < 10; i++) {
       const isDone = await page.getByText('모든 단계 완료!').isVisible();
       if (isDone) break;
+
       const hasNext = await page.getByText('다음으로').isVisible();
       if (hasNext) {
+        // 선택지를 먼저 골라야 버튼이 활성화됨
+        const firstChoice = page.getByRole('button').filter({ hasNotText: /다음으로|뒤로가기/ }).first();
+        await firstChoice.click();
         await page.getByText('다음으로').click();
-        await expect(page.getByText(/다음 단계 →|완료 →/)).toBeVisible({ timeout: 3000 });
+        // AI 호출 포함 최대 15초 대기
+        await expect(page.getByText(/다음 단계 →|완료 →/)).toBeVisible({ timeout: 15000 });
       }
+
       const hasContinue = await page.getByText(/다음 단계 →|완료 →/).isVisible();
       if (hasContinue) {
         await page.getByText(/다음 단계 →|완료 →/).click();
