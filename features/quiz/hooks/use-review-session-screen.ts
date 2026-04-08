@@ -108,6 +108,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     const hasChoice = selectedChoiceIndex !== null;
     const hasText = userText.trim().length > 0;
 
+    if (!hasChoice && !hasText) return;
+
     isFetchingRef.current = true;
     setIsLoadingFeedback(true);
     try {

@@ -88,6 +88,7 @@ test.describe('복습 세션 흐름', () => {
       if (hasNext) {
         // 선택지를 먼저 골라야 버튼이 활성화됨
         const firstChoice = page.getByRole('button').filter({ hasNotText: /다음으로|뒤로가기/ }).first();
+        await expect(firstChoice).toBeVisible({ timeout: 5000 });
         await firstChoice.click();
         await page.getByText('다음으로').click();
         // AI 호출 포함 최대 15초 대기
