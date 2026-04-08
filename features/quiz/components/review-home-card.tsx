@@ -15,7 +15,7 @@ const MEMORY_RETENTION_PCT: Record<string, number> = {
   day30: 20,
 };
 
-const TIMER_SECONDS = __DEV__ ? 1 : 10;
+const TIMER_SECONDS = 10;
 
 type Props = {
   task: ActiveReviewTaskSummary;
@@ -93,16 +93,16 @@ export function ReviewHomeCard({ task, onPress }: Props) {
           <Text style={[styles.timerNum, { color: timerColor }]}>{timerDisplay}</Text>
         </View>
         <Text style={styles.timerHint}>
-          {weaknessLabel}, 30초만 떠올려보세요.{'\n'}기억이 남아 있는 지금
+          {weaknessLabel}, 30초만 떠올려보세요.{'\n'}
+          <Text style={styles.timerHintNow}>지금이에요.</Text>
         </Text>
       </View>
 
       {/* CTA 버튼 */}
       <Pressable
-        style={[styles.cta, ready && styles.ctaReady]}
-        onPress={ready ? onPress : undefined}
-        disabled={!ready}>
-        <Text style={[styles.ctaText, !ready && styles.ctaTextDisabled]}>
+        style={[styles.cta, styles.ctaReady]}
+        onPress={onPress}>
+        <Text style={styles.ctaText}>
           기억 살리기
         </Text>
       </Pressable>
@@ -213,9 +213,14 @@ const styles = StyleSheet.create({
   timerHint: {
     fontFamily: FontFamilies.regular,
     fontSize: 12,
-    color: BrandColors.mutedText,
+    color: '#F6F2EA',
     lineHeight: 18,
     flex: 1,
+  },
+  timerHintNow: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 14,
+    color: '#F6F2EA',
   },
   cta: {
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -233,8 +238,5 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 15,
     color: '#F6F2EA',
-  },
-  ctaTextDisabled: {
-    color: BrandColors.mutedText,
   },
 });
