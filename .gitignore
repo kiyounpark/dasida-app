@@ -36,6 +36,9 @@ firebase-debug.log
 # local env files
 .env
 .env.*
+
+# sensitive credentials
+google-play-service-account.json
 !.env.example
 !.env.playwright
 
