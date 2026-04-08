@@ -8,7 +8,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -29,6 +28,7 @@ export function ReviewSessionScreenView({
   isLoadingFeedback,
   sessionComplete,
   hasInput,
+  onBack,
   onSelectChoice,
   onChangeText,
   onPressNext,
@@ -43,7 +43,7 @@ export function ReviewSessionScreenView({
     <SafeAreaView edges={['top']} style={styles.appBar}>
       <View style={styles.appBarInner}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={onBack}
           style={styles.backBtn}
           accessibilityLabel="뒤로가기"
           accessibilityRole="button">
@@ -70,40 +70,8 @@ export function ReviewSessionScreenView({
   const step = steps[currentStepIndex];
   const isLastStep = currentStepIndex === steps.length - 1;
 
-  // 완료 화면
-  if (sessionComplete) {
-    return (
-      <View style={styles.screen}>
-        {appBar}
-        <View style={[styles.doneScreen, { paddingBottom: insets.bottom + 24 }]}>
-          <Text style={styles.doneEmoji}>🌿</Text>
-          <Text style={styles.doneTitle}>모든 단계 완료!</Text>
-          <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
-
-          <View style={styles.scheduleBox}>
-            <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
-            <Text style={styles.scheduleVal}>
-              {task.stage === 'day1' ? '3일 후' :
-               task.stage === 'day3' ? '7일 후' :
-               task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
-            </Text>
-          </View>
-
-          <View style={styles.doneButtons}>
-            <Pressable style={styles.retryBtn} onPress={onPressRetry}>
-              <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
-            </Pressable>
-            <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
-              <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  if (!step) {
-    // g3_* 약점처럼 사고 흐름 데이터가 없는 경우 — 완료 화면으로 바로 진입
+  // 완료 화면 (sessionComplete) 또는 사고 흐름 데이터 없음 (g3_* 약점)
+  if (sessionComplete || !step) {
     return (
       <View style={styles.screen}>
         {appBar}
