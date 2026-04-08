@@ -8,13 +8,15 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-review-session-screen';
 import { useIsTablet } from '@/hooks/use-is-tablet';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export function ReviewSessionScreenView({
   task,
@@ -26,6 +28,7 @@ export function ReviewSessionScreenView({
   aiFeedback,
   isLoadingFeedback,
   sessionComplete,
+  hasInput,
   onSelectChoice,
   onChangeText,
   onPressNext,
@@ -36,10 +39,29 @@ export function ReviewSessionScreenView({
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
 
+  const appBar = (
+    <SafeAreaView edges={['top']} style={styles.appBar}>
+      <View style={styles.appBarInner}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          accessibilityLabel="뒤로가기"
+          accessibilityRole="button">
+          <IconSymbol name="chevron.left" size={24} color={BrandColors.primary} />
+        </Pressable>
+        <Text style={styles.appBarTitle}>오늘의 복습</Text>
+        <View style={styles.appBarSpacer} />
+      </View>
+    </SafeAreaView>
+  );
+
   if (!task) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.loadingText}>복습 데이터를 불러오는 중...</Text>
+      <View style={styles.screen}>
+        {appBar}
+        <View style={styles.loadingContent}>
+          <Text style={styles.loadingText}>복습 데이터를 불러오는 중...</Text>
+        </View>
       </View>
     );
   }
@@ -51,27 +73,30 @@ export function ReviewSessionScreenView({
   // 완료 화면
   if (sessionComplete) {
     return (
-      <View style={[styles.screen, styles.doneScreen, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-        <Text style={styles.doneEmoji}>🌿</Text>
-        <Text style={styles.doneTitle}>모든 단계 완료!</Text>
-        <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
+      <View style={styles.screen}>
+        {appBar}
+        <View style={[styles.doneScreen, { paddingBottom: insets.bottom + 24 }]}>
+          <Text style={styles.doneEmoji}>🌿</Text>
+          <Text style={styles.doneTitle}>모든 단계 완료!</Text>
+          <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
 
-        <View style={styles.scheduleBox}>
-          <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
-          <Text style={styles.scheduleVal}>
-            {task.stage === 'day1' ? '3일 후' :
-             task.stage === 'day3' ? '7일 후' :
-             task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
-          </Text>
-        </View>
+          <View style={styles.scheduleBox}>
+            <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
+            <Text style={styles.scheduleVal}>
+              {task.stage === 'day1' ? '3일 후' :
+               task.stage === 'day3' ? '7일 후' :
+               task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
+            </Text>
+          </View>
 
-        <View style={styles.doneButtons}>
-          <Pressable style={styles.retryBtn} onPress={onPressRetry}>
-            <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
-          </Pressable>
-          <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
-            <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
-          </Pressable>
+          <View style={styles.doneButtons}>
+            <Pressable style={styles.retryBtn} onPress={onPressRetry}>
+              <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
+            </Pressable>
+            <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
+              <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     );
@@ -80,27 +105,30 @@ export function ReviewSessionScreenView({
   if (!step) {
     // g3_* 약점처럼 사고 흐름 데이터가 없는 경우 — 완료 화면으로 바로 진입
     return (
-      <View style={[styles.screen, styles.doneScreen, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-        <Text style={styles.doneEmoji}>🌿</Text>
-        <Text style={styles.doneTitle}>모든 단계 완료!</Text>
-        <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
+      <View style={styles.screen}>
+        {appBar}
+        <View style={[styles.doneScreen, { paddingBottom: insets.bottom + 24 }]}>
+          <Text style={styles.doneEmoji}>🌿</Text>
+          <Text style={styles.doneTitle}>모든 단계 완료!</Text>
+          <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
 
-        <View style={styles.scheduleBox}>
-          <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
-          <Text style={styles.scheduleVal}>
-            {task.stage === 'day1' ? '3일 후' :
-             task.stage === 'day3' ? '7일 후' :
-             task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
-          </Text>
-        </View>
+          <View style={styles.scheduleBox}>
+            <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
+            <Text style={styles.scheduleVal}>
+              {task.stage === 'day1' ? '3일 후' :
+               task.stage === 'day3' ? '7일 후' :
+               task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
+            </Text>
+          </View>
 
-        <View style={styles.doneButtons}>
-          <Pressable style={styles.retryBtn} onPress={onPressRetry}>
-            <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
-          </Pressable>
-          <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
-            <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
-          </Pressable>
+          <View style={styles.doneButtons}>
+            <Pressable style={styles.retryBtn} onPress={onPressRetry}>
+              <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
+            </Pressable>
+            <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
+              <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     );
@@ -110,7 +138,8 @@ export function ReviewSessionScreenView({
 
   if (isTablet) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={styles.screen}>
+        {appBar}
         {/* 진행 바 */}
         <View style={[styles.progressBar, styles.tabletProgressBar]}>
           {steps.map((_, i) => (
@@ -186,9 +215,9 @@ export function ReviewSessionScreenView({
               ) : null}
               {stepPhase === 'input' ? (
                 <Pressable
-                  style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
+                  style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
                   onPress={onPressNext}
-                  disabled={isLoadingFeedback}>
+                  disabled={!hasInput || isLoadingFeedback}>
                   {isLoadingFeedback ? (
                     <ActivityIndicator color="#F6F2EA" size="small" />
                   ) : (
@@ -208,105 +237,108 @@ export function ReviewSessionScreenView({
   }
 
   return (
-    <ScrollView
-      style={[styles.screen, { paddingTop: insets.top }]}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-      keyboardShouldPersistTaps="handled">
+    <View style={styles.screen}>
+      {appBar}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled">
 
-      {/* 진행 바 */}
-      <View style={styles.progressBar}>
-        {steps.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
-          />
-        ))}
-      </View>
-
-      {/* 단계 카드 */}
-      <View style={styles.stepCard}>
-        <View style={styles.stepNumRow}>
-          <View style={styles.stepNumBadge}>
-            <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
-          </View>
-          <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
-        </View>
-        <Text style={styles.stepTitle}>{step.title}</Text>
-        <Text style={styles.stepBody}>{step.body}</Text>
-        {step.example ? (
-          <View style={styles.stepExampleBox}>
-            <Text style={styles.stepExampleText}>{step.example}</Text>
-          </View>
-        ) : null}
-      </View>
-
-      {/* 입력 카드 */}
-      <View style={styles.inputCard}>
-        <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
-
-        {/* 선택지 */}
-        <View style={styles.choices}>
-          {step.choices.map((choice, i) => (
-            <Pressable
+        {/* 진행 바 */}
+        <View style={styles.progressBar}>
+          {steps.map((_, i) => (
+            <View
               key={i}
-              style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
-              onPress={() => stepPhase === 'input' && onSelectChoice(i)}>
-              <Text
-                style={[
-                  styles.choiceBtnText,
-                  selectedChoiceIndex === i && styles.choiceBtnTextSelected,
-                ]}>
-                {choice.text}
-              </Text>
-            </Pressable>
+              style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
+            />
           ))}
         </View>
 
-        {/* 구분선 */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
-          <View style={styles.dividerLine} />
+        {/* 단계 카드 */}
+        <View style={styles.stepCard}>
+          <View style={styles.stepNumRow}>
+            <View style={styles.stepNumBadge}>
+              <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
+            </View>
+            <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
+          </View>
+          <Text style={styles.stepTitle}>{step.title}</Text>
+          <Text style={styles.stepBody}>{step.body}</Text>
+          {step.example ? (
+            <View style={styles.stepExampleBox}>
+              <Text style={styles.stepExampleText}>{step.example}</Text>
+            </View>
+          ) : null}
         </View>
 
-        {/* 자유 입력 */}
-        <TextInput
-          style={styles.textInput}
-          value={userText}
-          onChangeText={stepPhase === 'input' ? onChangeText : undefined}
-          placeholder="자유롭게 써보세요..."
-          placeholderTextColor={BrandColors.disabled}
-          multiline
-          editable={stepPhase === 'input'}
-        />
+        {/* 입력 카드 */}
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
 
-        {/* AI 피드백 */}
-        {stepPhase === 'feedback' && aiFeedback ? (
-          <View style={styles.aiFeedback}>
-            <Text style={styles.aiBadge}>✨ AI 피드백</Text>
-            <Text style={styles.aiText}>{aiFeedback}</Text>
+          {/* 선택지 */}
+          <View style={styles.choices}>
+            {step.choices.map((choice, i) => (
+              <Pressable
+                key={i}
+                style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
+                onPress={() => stepPhase === 'input' && onSelectChoice(i)}>
+                <Text
+                  style={[
+                    styles.choiceBtnText,
+                    selectedChoiceIndex === i && styles.choiceBtnTextSelected,
+                  ]}>
+                  {choice.text}
+                </Text>
+              </Pressable>
+            ))}
           </View>
-        ) : null}
 
-        {/* 버튼 */}
-        {stepPhase === 'input' ? (
-          <Pressable
-            style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
-            onPress={onPressNext}
-            disabled={isLoadingFeedback}>
-            {isLoadingFeedback ? (
-              <ActivityIndicator color="#F6F2EA" size="small" />
-            ) : (
-              <Text style={styles.primaryBtnText}>다음으로</Text>
-            )}
-          </Pressable>
-        ) : (
-          <Pressable style={styles.primaryBtn} onPress={onPressContinue}>
-            <Text style={styles.primaryBtnText}>{continueLabel}</Text>
-          </Pressable>
-        )}
-      </View>
-    </ScrollView>
+          {/* 구분선 */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* 자유 입력 */}
+          <TextInput
+            style={styles.textInput}
+            value={userText}
+            onChangeText={stepPhase === 'input' ? onChangeText : undefined}
+            placeholder="자유롭게 써보세요..."
+            placeholderTextColor={BrandColors.disabled}
+            multiline
+            editable={stepPhase === 'input'}
+          />
+
+          {/* AI 피드백 */}
+          {stepPhase === 'feedback' && aiFeedback ? (
+            <View style={styles.aiFeedback}>
+              <Text style={styles.aiBadge}>✨ AI 피드백</Text>
+              <Text style={styles.aiText}>{aiFeedback}</Text>
+            </View>
+          ) : null}
+
+          {/* 버튼 */}
+          {stepPhase === 'input' ? (
+            <Pressable
+              style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
+              onPress={onPressNext}
+              disabled={!hasInput || isLoadingFeedback}>
+              {isLoadingFeedback ? (
+                <ActivityIndicator color="#F6F2EA" size="small" />
+              ) : (
+                <Text style={styles.primaryBtnText}>다음으로</Text>
+              )}
+            </Pressable>
+          ) : (
+            <Pressable style={styles.primaryBtn} onPress={onPressContinue}>
+              <Text style={styles.primaryBtnText}>{continueLabel}</Text>
+            </Pressable>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -314,6 +346,41 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F6F2EA',
+  },
+  appBar: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: BrandColors.border,
+  },
+  appBarInner: {
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appBarTitle: {
+    flex: 1,
+    fontFamily: FontFamilies.bold,
+    fontSize: 16,
+    color: BrandColors.primary,
+    textAlign: 'center',
+  },
+  appBarSpacer: {
+    width: 44,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  loadingContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
     padding: BrandSpacing.md,
@@ -492,6 +559,7 @@ const styles = StyleSheet.create({
   },
   // 완료 화면
   doneScreen: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: BrandSpacing.xl,
