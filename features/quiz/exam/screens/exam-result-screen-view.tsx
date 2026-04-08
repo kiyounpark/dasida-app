@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   tabletRight: {
-    width: 320,
+    flex: 2,
     padding: 20,
     gap: 12,
     justifyContent: 'center' as const,

@@ -34,6 +34,7 @@ export function ReviewSessionScreenView({
   onPressRetry,
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
+  const isTablet = useIsTablet();
 
   if (!task) {
     return (
@@ -106,7 +107,6 @@ export function ReviewSessionScreenView({
   }
 
   const continueLabel = isLastStep ? '완료 →' : '다음 단계 →';
-  const isTablet = useIsTablet();
 
   if (isTablet) {
     return (
