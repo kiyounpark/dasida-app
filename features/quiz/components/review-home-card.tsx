@@ -74,7 +74,7 @@ export function ReviewHomeCard({ task, onPress }: Props) {
       </View>
 
       {/* 제목 */}
-      <Text style={styles.title}>{weaknessLabel}, 기억 사라지는 중 📉</Text>
+      <Text style={styles.title}>{weaknessLabel} — 지금 이 순간도 잊혀지고 있어요</Text>
 
       {/* 기억 유지율 바 */}
       <View style={styles.memoryWrap}>
@@ -93,7 +93,7 @@ export function ReviewHomeCard({ task, onPress }: Props) {
           <Text style={[styles.timerNum, { color: timerColor }]}>{timerDisplay}</Text>
         </View>
         <Text style={styles.timerHint}>
-          {weaknessLabel} 개념을{'\n'}잠깐 떠올려보세요
+          {weaknessLabel}, 30초만 떠올려보세요.{'\n'}기억이 남아 있는 지금
         </Text>
       </View>
 
@@ -103,7 +103,7 @@ export function ReviewHomeCard({ task, onPress }: Props) {
         onPress={ready ? onPress : undefined}
         disabled={!ready}>
         <Text style={[styles.ctaText, !ready && styles.ctaTextDisabled]}>
-          사고 흐름 확인하기
+          기억 살리기
         </Text>
       </Pressable>
     </View>

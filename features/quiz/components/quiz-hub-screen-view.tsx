@@ -88,8 +88,7 @@ export function QuizHubScreenView({
   const insets = useSafeAreaInsets();
   const topPadding = insets.top + (isCompactLayout ? 14 : 24);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  const isNoReviewDay = !!(homeState?.nextReviewTask && homeState.todayReviewCount === 0 && !profile?.practiceGraduatedAt);
-  const posterTopPadding = isNoReviewDay ? (isCompactLayout ? 14 : 24) : topPadding;
+  const posterTopPadding = isCompactLayout ? 14 : 24;
 
   if (!isReady) {
     return (
@@ -123,7 +122,7 @@ export function QuizHubScreenView({
 
   return (
     <View style={styles.screen}>
-      {isNoReviewDay ? <BrandHeader compact={isCompactLayout} /> : null}
+      <BrandHeader compact={isCompactLayout} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
