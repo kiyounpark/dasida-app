@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 
 import type { ExamResultSummary } from '../types';
 
@@ -22,6 +23,81 @@ export function ExamResultScreenView({
   onReturnHome,
 }: ExamResultScreenViewProps) {
   const insets = useSafeAreaInsets();
+  const isTablet = useIsTablet();
+
+  if (isTablet) {
+    return (
+      <View style={[styles.screen, { flex: 1 }]}>
+        <View style={[styles.heroWrap, { paddingTop: insets.top + 24 }]}>
+          <Text selectable style={styles.examTitle}>{examTitle}</Text>
+          <Text selectable style={styles.heroLabel}>채점 결과</Text>
+        </View>
+        <View style={styles.tabletBody}>
+          {/* 좌: 점수 카드 + 저장 상태 */}
+          <ScrollView
+            style={styles.tabletLeft}
+            contentContainerStyle={styles.tabletLeftContent}>
+            <View style={styles.scoreCard}>
+              <View style={styles.scoreRow}>
+                <View style={styles.scoreStat}>
+                  <Text selectable style={styles.scoreStatValue}>{result.totalScore}</Text>
+                  <Text selectable style={styles.scoreStatLabel}>획득 점수</Text>
+                </View>
+                <View style={styles.scoreDivider} />
+                <View style={styles.scoreStat}>
+                  <Text selectable style={styles.scoreStatValue}>{result.maxScore}</Text>
+                  <Text selectable style={styles.scoreStatLabel}>만점</Text>
+                </View>
+                <View style={styles.scoreDivider} />
+                <View style={styles.scoreStat}>
+                  <Text selectable style={[styles.scoreStatValue, styles.accuracyValue]}>
+                    {result.accuracy}%
+                  </Text>
+                  <Text selectable style={styles.scoreStatLabel}>정답률</Text>
+                </View>
+              </View>
+              <View style={styles.countRow}>
+                <View style={[styles.countBadge, styles.correctBadge]}>
+                  <Text selectable style={styles.countBadgeText}>정답 {result.correct}</Text>
+                </View>
+                <View style={[styles.countBadge, styles.wrongBadge]}>
+                  <Text selectable style={styles.countBadgeText}>오답 {result.wrong}</Text>
+                </View>
+                {result.unanswered > 0 && (
+                  <View style={[styles.countBadge, styles.unansweredBadge]}>
+                    <Text selectable style={styles.countBadgeText}>미답변 {result.unanswered}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            {saveState === 'saving' && (
+              <Text selectable style={styles.saveStatus}>결과 저장 중...</Text>
+            )}
+            {saveState === 'error' && (
+              <Text selectable style={[styles.saveStatus, styles.saveError]}>
+                결과 저장에 실패했습니다.
+              </Text>
+            )}
+          </ScrollView>
+          {/* 우: CTA */}
+          <View style={[styles.tabletRight, { paddingBottom: insets.bottom + 32 }]}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onStartDiagnostic}
+              style={styles.primaryCta}>
+              <Text selectable style={styles.primaryCtaText}>약점 분석하러 가기</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onReturnHome}
+              style={styles.secondaryCta}>
+              <Text selectable style={styles.secondaryCtaText}>홈으로 돌아가기</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -255,5 +331,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: '#8E8A81',
+  },
+  // 태블릿
+  tabletBody: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  tabletLeft: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: '#E8E4DC',
+  },
+  tabletLeftContent: {
+    padding: 20,
+    gap: 20,
+  },
+  tabletRight: {
+    flex: 2,
+    padding: 20,
+    gap: 12,
+    justifyContent: 'center',
   },
 });

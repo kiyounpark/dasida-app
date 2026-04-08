@@ -11,6 +11,7 @@ import {
 
 import Constants from 'expo-constants';
 
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { LEGAL_URLS } from '@/constants/legal-urls';
@@ -164,6 +165,7 @@ export function ProfileScreenView({
   session,
   supportedAuthProviders,
 }: UseProfileScreenResult) {
+  const isTablet = useIsTablet();
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
   return (
@@ -180,7 +182,7 @@ export function ProfileScreenView({
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
+        contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
         <View style={styles.heroCard}>
           <Text selectable style={styles.title}>
             설정
@@ -710,5 +712,10 @@ const styles = StyleSheet.create({
   modalConfirmLabel: {
     ...BrandTypography.button,
     color: '#FFFFFF',
+  },
+  tabletContainer: {
+    maxWidth: 680,
+    width: '100%',
+    alignSelf: 'center',
   },
 });

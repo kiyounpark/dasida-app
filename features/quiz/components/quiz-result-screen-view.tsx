@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -24,6 +25,8 @@ export function QuizResultScreenView({
   snapshotSummary,
   snapshotSummaryTitle,
 }: UseResultScreenResult) {
+  const isTablet = useIsTablet();
+
   if (!liveSummary && !snapshotSummary) {
     return (
       <View style={styles.screen}>
@@ -64,7 +67,7 @@ export function QuizResultScreenView({
         <ScrollView
           style={styles.scroll}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={styles.container}>
+          contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
           <View style={styles.summaryCard}>
             <Text style={styles.title}>최근 진단 결과</Text>
             <Text style={styles.summaryText}>정답률 {snapshotSummary.accuracy}%</Text>
@@ -133,7 +136,7 @@ export function QuizResultScreenView({
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
+        contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
         {saveState === 'saving' ? (
           <View style={styles.saveInfoCard}>
             <Text style={styles.saveInfoTitle}>학습 기록을 저장 중이에요</Text>
@@ -346,5 +349,10 @@ const styles = StyleSheet.create({
   legacyText: {
     fontSize: 15,
     color: '#444',
+  },
+  tabletContainer: {
+    maxWidth: 720,
+    width: '100%',
+    alignSelf: 'center',
   },
 });

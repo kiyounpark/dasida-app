@@ -1,5 +1,7 @@
 import { Fragment } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import Svg, {
   Circle,
   Defs,
@@ -161,6 +163,8 @@ export function HistoryScreenView({
   onPrimaryAction,
   onRefresh,
 }: UseHistoryScreenResult) {
+  const isTablet = useIsTablet();
+
   if (!isReady) {
     return (
       <View style={styles.screen}>
@@ -207,7 +211,7 @@ export function HistoryScreenView({
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -880,5 +884,10 @@ const styles = StyleSheet.create({
   feedbackBody: {
     ...BrandTypography.body,
     color: BrandColors.mutedText,
+  },
+  tabletContainer: {
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
 });
