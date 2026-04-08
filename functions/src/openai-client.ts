@@ -204,21 +204,19 @@ export async function requestReviewFeedbackFromOpenAI({
   apiKey,
   model,
   systemPrompt,
-  userContent,
+  messages,
 }: {
   apiKey: string;
   model: string;
   systemPrompt: string;
-  userContent: string;
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
 }): Promise<{ replyText: string }> {
-  // review-feedback은 자유 텍스트 응답이므로 responses.create(JSON schema)가 아닌
-  // chat.completions.create를 사용한다. 코칭 피드백은 구조화된 JSON이 불필요하기 때문.
   const client = new OpenAI({ apiKey });
   const completion = await client.chat.completions.create({
     model,
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: userContent },
+      ...messages,
     ],
     max_tokens: 200,
   });
