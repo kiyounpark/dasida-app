@@ -1,12 +1,16 @@
 // features/quiz/review-feedback.ts
 import { reviewFeedbackUrl, reviewFeedbackTimeoutMs } from '@/constants/env';
 
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export type ReviewFeedbackInput = {
   weaknessId: string;
   stepTitle: string;
   stepBody: string;
-  selectedChoiceText: string | null;
-  userText: string | null;
+  messages: ChatMessage[];
 };
 
 export type ReviewFeedbackResult = {
@@ -18,10 +22,6 @@ export async function requestReviewFeedback(
 ): Promise<ReviewFeedbackResult> {
   if (!reviewFeedbackUrl) {
     throw new Error('Review feedback endpoint is not configured');
-  }
-
-  if (!input.selectedChoiceText && !input.userText) {
-    throw new Error('No user input to send for feedback');
   }
 
   const controller = new AbortController();
