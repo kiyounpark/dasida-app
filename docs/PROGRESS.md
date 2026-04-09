@@ -21,6 +21,18 @@
 
 ## 로그
 
+### 2026.04.09
+
+**복습 세션 AI 피드백 — 멀티턴 채팅 전환**
+- `functions/src/openai-client.ts`: `requestReviewFeedbackFromOpenAI` 시그니처를 `userContent: string` → `messages[]` 배열로 변경, 멀티턴 OpenAI chat completions 지원
+- `functions/src/review-feedback.ts`: Zod 스키마를 `messages` 배열로 교체(selectedChoiceText/userText 제거), 첫 user 메시지에 단계 컨텍스트 prepend, 시스템 프롬프트 강화(단계 범위 제약 + 모호한 답변 구분), 첫 메시지 role 검증 `.refine()` 추가
+- `features/quiz/review-feedback.ts`: `ChatMessage` 타입 export, `ReviewFeedbackInput.messages: ChatMessage[]` 로 변경
+- `features/quiz/hooks/use-review-session-screen.ts`: `stepPhase: 'input'|'chat'`, `chatMessages: ChatEntry[]`, `chatText`, `onSendChatMessage` 추가, `aiFeedback` 제거
+- `features/quiz/components/review-session-screen-view.tsx`: chat phase UI — 초록 버블(학생)/연두 버블(AI), 채팅 입력창+전송버튼, "이해했어요, 다음 단계 →" 버튼
+- `e2e/review-session.spec.ts`: 테스트 3·4를 chat phase 흐름으로 업데이트 + 루프 안정성 개선
+- Firebase 재배포 완료 (`reviewFeedback` asia-northeast3) + curl 검증
+- **검증**: TypeScript 빌드 에러 없음, curl 멀티턴 테스트 통과, 첫 메시지 role 검증 400 응답 확인
+
 ### 2026.04.07
 
 **개인정보처리방침 코드 반영**
@@ -715,6 +727,186 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.09 20:07
+- 해시: `7eaadd8` (`7eaadd8e5b7bb354149f040b1940cad7240adaa9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7eaadd8e5b7bb354149f040b1940cad7240adaa9
+- 작성자: 박기윤
+- 메시지: test(e2e): 루프 안정성 개선 — 전환 대기 시간 증가 + 빈 반복 방지
+
+### 커밋 2026.04.08 22:01
+- 해시: `4fe1cd3` (`4fe1cd33744bca1f1224f99ced81a93a40ff4761`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4fe1cd33744bca1f1224f99ced81a93a40ff4761
+- 작성자: 박기윤
+- 메시지: Merge branch 'feat/tablet-responsive-ui'
+
+### 커밋 2026.04.08 09:03
+- 해시: `c87598a` (`c87598a6a42b9f355e76369de6c55a53e4333eaf`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c87598a6a42b9f355e76369de6c55a53e4333eaf
+- 작성자: 박기윤
+- 메시지: feat(eas): App Store 제출 설정 추가 (ascAppId, appleId, buildNumber, 앱 이름 한글화)
+
+### 커밋 2026.04.08 08:57
+- 해시: `23b83a0` (`23b83a05fb5bd2bbe92689aa695c8204530a1e4e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/23b83a05fb5bd2bbe92689aa695c8204530a1e4e
+- 작성자: 박기윤
+- 메시지: feat: listReviewTasks Cloud Function + 클라이언트 연동 (서버 복습 데이터 동기화)
+
+### 커밋 2026.04.08 00:11
+- 해시: `aeda50d` (`aeda50d6604a91465832627faf37c47c917a2738`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/aeda50d6604a91465832627faf37c47c917a2738
+- 작성자: 박기윤
+- 메시지: feat: day1 단계에서 진단 기준 막대 표시 (빈 상태 개선)
+- 본문: day1 복습을 아직 완료하지 않은 경우, 진단 정답률을 기준 막대로 표시하여 / 빈 상태가 아닌 맥락 있는 차트를 보여준다. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.08 00:05
+- 해시: `42a5bca` (`42a5bcab5fdf988f3404a5bdd8e448087df6d9d2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/42a5bcab5fdf988f3404a5bdd8e448087df6d9d2
+- 작성자: 박기윤
+- 메시지: fix: seedPreview에 이전 단계 weakness-practice 시도 추가 (차트 솔리드 막대 표시)
+
+### 커밋 2026.04.07 23:59
+- 해시: `c660f16` (`c660f16944435cf5e50a44004f8eade6d1e337fa`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c660f16944435cf5e50a44004f8eade6d1e337fa
+- 작성자: 박기윤
+- 메시지: fix: StageBar undefined 방어 처리 및 indexOf -1 가드 추가
+
+### 커밋 2026.04.07 23:43
+- 해시: `dd7627e` (`dd7627ec44610a44431b70ef8ac39ab356c7d62b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dd7627ec44610a44431b70ef8ac39ab356c7d62b
+- 작성자: 박기윤
+- 메시지: design(profile): 회원 탈퇴 확인 다이얼로그를 커스텀 모달로 교체 (다시다 디자인)
+
+### 커밋 2026.04.07 23:38
+- 해시: `3066dcb` (`3066dcb783aaba9419ce39eff930aa1700a117f9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3066dcb783aaba9419ce39eff930aa1700a117f9
+- 작성자: 박기윤
+- 메시지: fix: 퍼센트 레이블 overflow 방지(barRow 높이 +16) 및 진단 막대 색 진하게
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 23:38
+- 해시: `56a9e6b` (`56a9e6b7610b71cdf24d6873c1a646658f7e73cb`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/56a9e6b7610b71cdf24d6873c1a646658f7e73cb
+- 작성자: 박기윤
+- 메시지: design(profile): 회원 탈퇴 UI 다시다 방향으로 개선 (텍스트 링크 스타일 + 제공자 뱃지)
+
+### 커밋 2026.04.07 23:34
+- 해시: `5024af8` (`5024af8dd64f45778a47885daa0ed0a238763831`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5024af8dd64f45778a47885daa0ed0a238763831
+- 작성자: 박기윤
+- 메시지: fix: 시드 데이터 questions.isCorrect를 alternating으로 수정하여 약점별 정답률 0% 문제 해결
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 23:33
+- 해시: `e2e6db3` (`e2e6db34375781c82f731ce95963db7be127e3bd`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e2e6db34375781c82f731ce95963db7be127e3bd
+- 작성자: 박기윤
+- 메시지: feat: 계정 탈퇴 기능 추가 (Apple App Store 필수)
+
+### 커밋 2026.04.07 23:27
+- 해시: `021b74e` (`021b74e1ca6af3f5ed1731160efd086dc970bacf`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/021b74e1ca6af3f5ed1731160efd086dc970bacf
+- 작성자: 박기윤
+- 메시지: fix: ref 선언 순서 정정 및 wrongCount에서 null(미선택) 제외
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 21:31
+- 해시: `3de752f` (`3de752fb919e6467015a3f418f18b357e6b58771`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3de752fb919e6467015a3f418f18b357e6b58771
+- 작성자: 박기윤
+- 메시지: feat: HomeWeaknessSection을 WeaknessAccuracyChart로 연결
+- 본문: WeaknessAccuracyChart import 추가 및 weaknessProgressItems props 연결 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 21:25
+- 해시: `12faf69` (`12faf69ec448562dff4227a6e143db4d050d4fac`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/12faf69ec448562dff4227a6e143db4d050d4fac
+- 작성자: 박기윤
+- 메시지: feat: WeaknessProgressItem에 diagnosticAccuracy/reviewAccuracy 추가, resolvedWeaknessHistory 제거
+
+### 커밋 2026.04.07 19:53
+- 해시: `93612bc` (`93612bce368e075d4afb9f203ae2b2fb20ce3fe5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/93612bce368e075d4afb9f203ae2b2fb20ce3fe5
+- 작성자: 박기윤
+- 메시지: refactor: 로그인 화면 개인정보처리방침 문구 간소화
+- 본문: 동의 강제 문구 제거, 링크 텍스트만 표시 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 19:52
+- 해시: `af4d360` (`af4d360cc0822ea049ccc46facc255f1e3dbd9a5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/af4d360cc0822ea049ccc46facc255f1e3dbd9a5
+- 작성자: 박기윤
+- 메시지: feat: 로그인 화면에 개인정보처리방침 동의 문구 추가
+- 본문: 로그인 버튼 하단에 "로그인하면 개인정보처리방침에 동의한 것으로 간주됩니다." 문구를 추가하고, / '개인정보처리방침' 텍스트를 탭하면 브라우저에서 방침 페이지를 열도록 연결 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 19:42
+- 해시: `23c5664` (`23c56648e23c7c1060848fecf3ee981667fee1cd`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/23c56648e23c7c1060848fecf3ee981667fee1cd
+- 작성자: 박기윤
+- 메시지: feat: Firebase Hosting 설정 및 개인정보처리방침 페이지 배포
+- 본문: - firebase.json: hosting 설정 추가 (public/ 디렉터리) / - public/privacy/index.html: 한국어 개인정보처리방침 페이지 / - public/index.html: Hosting 루트 페이지 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.07 19:40
+- 해시: `92244a2` (`92244a230bba3fcc175a53adc5b8e099e041fd38`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/92244a230bba3fcc175a53adc5b8e099e041fd38
+- 작성자: 박기윤
+- 메시지: feat: 개인정보처리방침 코드 반영 (legal-urls, 앱 정보 카드, app.json)
+- 본문: - constants/legal-urls.ts: privacyPolicy/termsOfService URL 상수 신규 / - profile-screen-view: 학년 설정 카드 아래 앱 정보 카드 추가 (버전 + 개인정보처리방침 버튼) / - app.json: expo.extra.privacyPolicyUrl 추가 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.07 19:31
 - 해시: `087b7c5` (`087b7c568c5c5c9a4103cb72744cc9f183867ad8`)
