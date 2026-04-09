@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useRef } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -42,6 +43,11 @@ export function ReviewSessionScreenView({
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const scrollToBottom = () => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+  };
 
   const appBar = (
     <SafeAreaView edges={['top']} style={styles.appBar}>
@@ -137,6 +143,7 @@ export function ReviewSessionScreenView({
           style={styles.textInput}
           value={userText}
           onChangeText={onChangeText}
+          onFocus={scrollToBottom}
           placeholder="자유롭게 써보세요..."
           placeholderTextColor={BrandColors.disabled}
           multiline
@@ -186,6 +193,7 @@ export function ReviewSessionScreenView({
             style={styles.chatInput}
             value={chatText}
             onChangeText={onChangeChatText}
+            onFocus={scrollToBottom}
             placeholder="계속 써보세요..."
             placeholderTextColor={BrandColors.disabled}
             editable={!isLoadingFeedback}
@@ -267,6 +275,7 @@ export function ReviewSessionScreenView({
         behavior="padding"
         enabled={process.env.EXPO_OS !== 'ios'}>
         <ScrollView
+          ref={scrollRef}
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
