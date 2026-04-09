@@ -131,4 +131,59 @@ export const diagnosisMethodRoutingCatalog: Record<SolveMethodId, DiagnosisMetho
     ],
     followupLabel: '잘 모르겠어요',
   },
+  set: {
+    id: 'set',
+    labelKo: '집합 연산',
+    summary: '집합의 합집합·교집합·여집합 등을 이용하여 푸는 방식',
+    keywords: ['집합', '합집합', '교집합', '여집합', '원소', 'n(A'],
+    exampleUtterances: [
+      '집합 연산 공식을 써서 원소 개수를 구했어요',
+      '여집합 범위가 헷갈렸어요',
+    ],
+    followupLabel: '집합 연산을 사용함',
+  },
+  proposition: {
+    id: 'proposition',
+    labelKo: '명제 판별',
+    summary: '명제의 참·거짓 판단, 역·이·대우, 필요·충분조건을 다루는 방식',
+    keywords: ['명제', '역', '대우', '필요조건', '충분조건', '참', '거짓', '모든', '어떤'],
+    exampleUtterances: [
+      '역과 대우 중 어느 것을 써야 할지 헷갈렸어요',
+      '필요조건 충분조건 구분이 어려웠어요',
+    ],
+    followupLabel: '명제 참·거짓 판별',
+  },
+  trig: {
+    id: 'trig',
+    labelKo: '삼각함수',
+    summary: '삼각함수 정의, 단위원, 삼각방정식·부등식을 다루는 방식',
+    keywords: ['삼각', '사인', '코사인', '탄젠트', 'sin', 'cos', 'tan', '단위원', '라디안'],
+    exampleUtterances: [
+      '삼각방정식 해 범위 설정에서 막혔어요',
+      '단위원에서 값 읽는 게 헷갈렸어요',
+    ],
+    followupLabel: '삼각함수 활용',
+  },
+  integral: {
+    id: 'integral',
+    labelKo: '적분',
+    summary: '부정적분·정적분 공식을 이용하여 푸는 방식',
+    keywords: ['적분', '부정적분', '정적분', '넓이', 'F(b)-F(a)', '적분구간'],
+    exampleUtterances: [
+      '정적분 계산에서 끝값 대입을 잘못했어요',
+      '부정적분 공식이 잘 안 떠올랐어요',
+    ],
+    followupLabel: '적분을 활용함',
+  },
+  linear_eq: {
+    id: 'linear_eq',
+    labelKo: '부등식·함수',
+    summary: '이차부등식·함수의 정의역·치역을 다루는 방식',
+    keywords: ['부등식', '정의역', '치역', '범위', '함수식', '이차부등식'],
+    exampleUtterances: [
+      '이차부등식 해의 범위를 반대로 썼어요',
+      '함수의 정의역 설정이 헷갈렸어요',
+    ],
+    followupLabel: '부등식·함수 조건 활용',
+  },
 };

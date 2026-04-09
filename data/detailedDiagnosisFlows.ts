@@ -90,6 +90,11 @@ const methodFallbackWeakness: Record<SolveMethodId, WeaknessId> = {
   complex_number: 'imaginary_unit_confusion',
   remainder_theorem: 'remainder_substitution_error',
   counting: 'counting_method_confusion',
+  set: 'g2_set_operation',
+  proposition: 'g2_prop_contrapositive',
+  trig: 'g2_trig_unit_circle',
+  integral: 'g2_integral_basic',
+  linear_eq: 'g2_inequality_range',
 };
 
 const customExplainCopyByChoice: Partial<Record<string, ExplainCopy>> = {

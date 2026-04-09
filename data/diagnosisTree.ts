@@ -11,6 +11,11 @@ export type SolveMethodId =
   | 'polynomial'
   | 'complex_number'
   | 'remainder_theorem'
+  | 'set'
+  | 'proposition'
+  | 'trig'
+  | 'integral'
+  | 'linear_eq'
   | 'counting';
 
 export type MethodOption = {
@@ -41,6 +46,11 @@ export const methodOptions: MethodOption[] = [
   { id: 'complex_number', labelKo: '복소수 계산' },
   { id: 'remainder_theorem', labelKo: '나머지정리' },
   { id: 'counting', labelKo: '경우의 수' },
+  { id: 'set', labelKo: '집합 연산' },
+  { id: 'proposition', labelKo: '명제 판별' },
+  { id: 'trig', labelKo: '삼각함수' },
+  { id: 'integral', labelKo: '적분' },
+  { id: 'linear_eq', labelKo: '부등식·함수' },
   { id: 'unknown', labelKo: '잘 모르겠어' },
 ];
 
@@ -105,6 +115,11 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'diff_judge',
         text: '최댓값/최솟값 판단이 헷갈렸어요.',
         weaknessId: 'max_min_judgement_confusion',
+      },
+      {
+        id: 'g2_diff_application',
+        text: '증감표 작성 후 최댓·최솟값 결정에서 막혔어요.',
+        weaknessId: 'g2_diff_application',
       },
     ],
   },
@@ -190,6 +205,16 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         text: '변형 후 덧셈/뺄셈에서 계산 실수를 했어요.',
         weaknessId: 'calc_repeated_error',
       },
+      {
+        id: 'g2_radical_simplify',
+        text: '근호 안 수를 간소화하는 단계가 헷갈렸어요.',
+        weaknessId: 'g2_radical_simplify',
+      },
+      {
+        id: 'g2_radical_rationalize',
+        text: '켤레식으로 유리화하는 계산에서 실수했어요.',
+        weaknessId: 'g2_radical_rationalize',
+      },
     ],
   },
   polynomial: {
@@ -210,6 +235,16 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'polynomial_calc',
         text: '전개 자체는 했지만 계산에서 실수했어요.',
         weaknessId: 'calc_repeated_error',
+      },
+      {
+        id: 'g2_poly_factoring',
+        text: '고차 다항식 인수분해 패턴이 안 떠올랐어요.',
+        weaknessId: 'g2_poly_factoring',
+      },
+      {
+        id: 'g2_poly_remainder',
+        text: '나머지정리를 어디에 어떻게 쓰는지 헷갈렸어요.',
+        weaknessId: 'g2_poly_remainder',
       },
     ],
   },
@@ -273,6 +308,121 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'counting_basic',
         text: '경우의 수 개념 자체가 아직 부족해요.',
         weaknessId: 'basic_concept_needed',
+      },
+      {
+        id: 'g2_counting_method',
+        text: '순열·조합·곱·합 중 어느 방법을 써야 할지 헷갈렸어요.',
+        weaknessId: 'g2_counting_method',
+      },
+      {
+        id: 'g2_counting_overcounting',
+        text: '겹치는 경우를 중복으로 세거나 빠뜨렸어요.',
+        weaknessId: 'g2_counting_overcounting',
+      },
+    ],
+  },
+  set: {
+    methodId: 'set',
+    prompt: '집합 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'set_operation',
+        text: '합집합·교집합 계산에서 원소를 잘못 셌어요.',
+        weaknessId: 'g2_set_operation',
+      },
+      {
+        id: 'set_complement',
+        text: '여집합 범위를 잘못 잡았어요.',
+        weaknessId: 'g2_set_complement',
+      },
+      {
+        id: 'set_count',
+        text: 'n(A∪B) 공식에서 중복 원소 처리가 헷갈렸어요.',
+        weaknessId: 'g2_set_count',
+      },
+    ],
+  },
+  proposition: {
+    methodId: 'proposition',
+    prompt: '명제 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'prop_contrapositive',
+        text: '역·이·대우 중 어느 것인지 헷갈렸어요.',
+        weaknessId: 'g2_prop_contrapositive',
+      },
+      {
+        id: 'prop_necessary_sufficient',
+        text: '필요조건·충분조건 구분이 어려웠어요.',
+        weaknessId: 'g2_prop_necessary_sufficient',
+      },
+      {
+        id: 'prop_quantifier',
+        text: '"모든"과 "어떤" 명제 판단이 헷갈렸어요.',
+        weaknessId: 'g2_prop_quantifier',
+      },
+    ],
+  },
+  trig: {
+    methodId: 'trig',
+    prompt: '삼각함수 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'trig_unit_circle',
+        text: '단위원에서 sinθ·cosθ 값을 읽는 게 헷갈렸어요.',
+        weaknessId: 'g2_trig_unit_circle',
+      },
+      {
+        id: 'trig_equation_range',
+        text: '삼각방정식의 해 범위를 잘못 설정했어요.',
+        weaknessId: 'g2_trig_equation_range',
+      },
+      {
+        id: 'trig_identity',
+        text: '삼각함수 항등식 적용에서 막혔어요.',
+        weaknessId: 'g2_trig_identity',
+      },
+    ],
+  },
+  integral: {
+    methodId: 'integral',
+    prompt: '적분 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'integral_basic',
+        text: '부정적분 공식 적용에서 실수했어요.',
+        weaknessId: 'g2_integral_basic',
+      },
+      {
+        id: 'integral_definite',
+        text: 'F(b)-F(a) 계산에서 끝값 대입을 잘못했어요.',
+        weaknessId: 'g2_integral_basic',
+      },
+      {
+        id: 'integral_diff',
+        text: '적분보다 미분 활용(최댓·최솟값) 단계에서 막혔어요.',
+        weaknessId: 'g2_diff_application',
+      },
+    ],
+  },
+  linear_eq: {
+    methodId: 'linear_eq',
+    prompt: '부등식·함수 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'linear_eq_range',
+        text: '이차부등식 해의 범위를 반대로 썼어요.',
+        weaknessId: 'g2_inequality_range',
+      },
+      {
+        id: 'linear_eq_domain',
+        text: '함수의 정의역·치역 설정이 헷갈렸어요.',
+        weaknessId: 'g2_function_domain',
+      },
+      {
+        id: 'linear_eq_setup',
+        text: '조건을 방정식·부등식으로 세우는 단계가 막혔어요.',
+        weaknessId: 'g2_eq_setup',
       },
     ],
   },
