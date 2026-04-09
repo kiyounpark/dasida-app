@@ -1,4 +1,5 @@
 // features/quiz/components/review-session-screen-view.tsx
+import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,7 +10,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useRef } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
@@ -44,10 +44,20 @@ export function ReviewSessionScreenView({
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
   const scrollRef = useRef<ScrollView>(null);
+  const tabletInputScrollRef = useRef<ScrollView>(null);
 
   const scrollToBottom = () => {
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      tabletInputScrollRef.current?.scrollToEnd({ animated: true });
+    }, 250);
   };
+
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      scrollToBottom();
+    }
+  }, [chatMessages.length]);
 
   const appBar = (
     <SafeAreaView edges={['top']} style={styles.appBar}>
@@ -256,9 +266,11 @@ export function ReviewSessionScreenView({
             behavior="padding"
             enabled={process.env.EXPO_OS !== 'ios'}>
             <ScrollView
+              ref={tabletInputScrollRef}
               style={{ backgroundColor: '#FFFFFF' }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-              keyboardShouldPersistTaps="handled">
+              keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}>
               <View style={styles.inputCard}>{inputCardContent}</View>
             </ScrollView>
           </KeyboardAvoidingView>
