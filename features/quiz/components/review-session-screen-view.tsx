@@ -264,11 +264,13 @@ export function ReviewSessionScreenView({
       {appBar}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        enabled={Platform.OS !== 'ios'}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-          keyboardShouldPersistTaps="handled">
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}>
           <View style={styles.progressBar}>
             {steps.map((_, i) => (
               <View
