@@ -1,6 +1,8 @@
 // features/quiz/components/review-session-screen-view.tsx
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -242,12 +244,16 @@ export function ReviewSessionScreenView({
               ) : null}
             </View>
           </ScrollView>
-          <ScrollView
-            style={[styles.tabletRight, { backgroundColor: '#FFFFFF' }]}
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-            keyboardShouldPersistTaps="handled">
-            <View style={styles.inputCard}>{inputCardContent}</View>
-          </ScrollView>
+          <KeyboardAvoidingView
+            style={styles.tabletRight}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView
+              style={{ backgroundColor: '#FFFFFF' }}
+              contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+              keyboardShouldPersistTaps="handled">
+              <View style={styles.inputCard}>{inputCardContent}</View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </View>
     );
@@ -256,35 +262,39 @@ export function ReviewSessionScreenView({
   return (
     <View style={styles.screen}>
       {appBar}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.progressBar}>
-          {steps.map((_, i) => (
-            <View
-              key={i}
-              style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
-            />
-          ))}
-        </View>
-        <View style={styles.stepCard}>
-          <View style={styles.stepNumRow}>
-            <View style={styles.stepNumBadge}>
-              <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
-            </View>
-            <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.progressBar}>
+            {steps.map((_, i) => (
+              <View
+                key={i}
+                style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
+              />
+            ))}
           </View>
-          <Text style={styles.stepTitle}>{step.title}</Text>
-          <Text style={styles.stepBody}>{step.body}</Text>
-          {step.example ? (
-            <View style={styles.stepExampleBox}>
-              <Text style={styles.stepExampleText}>{step.example}</Text>
+          <View style={styles.stepCard}>
+            <View style={styles.stepNumRow}>
+              <View style={styles.stepNumBadge}>
+                <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
+              </View>
+              <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
             </View>
-          ) : null}
-        </View>
-        <View style={styles.inputCard}>{inputCardContent}</View>
-      </ScrollView>
+            <Text style={styles.stepTitle}>{step.title}</Text>
+            <Text style={styles.stepBody}>{step.body}</Text>
+            {step.example ? (
+              <View style={styles.stepExampleBox}>
+                <Text style={styles.stepExampleText}>{step.example}</Text>
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.inputCard}>{inputCardContent}</View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -293,6 +303,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F6F2EA',
+  },
+  flex: {
+    flex: 1,
   },
   appBar: {
     backgroundColor: '#fff',
