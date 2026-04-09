@@ -96,7 +96,11 @@ test.describe('복습 세션 흐름', () => {
       const hasContinue = await page.getByText(/이해했어요/).isVisible();
       if (hasContinue) {
         await page.getByText(/이해했어요/).click();
-        await page.waitForTimeout(200);
+        await page.waitForTimeout(800);
+      }
+
+      if (!hasNext && !hasContinue) {
+        await page.waitForTimeout(500);
       }
     }
 
