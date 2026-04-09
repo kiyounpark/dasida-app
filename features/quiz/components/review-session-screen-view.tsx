@@ -246,7 +246,8 @@ export function ReviewSessionScreenView({
           </ScrollView>
           <KeyboardAvoidingView
             style={styles.tabletRight}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            behavior="padding"
+            enabled={Platform.OS === 'ios'}>
             <ScrollView
               style={{ backgroundColor: '#FFFFFF' }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
@@ -264,8 +265,8 @@ export function ReviewSessionScreenView({
       {appBar}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        enabled={Platform.OS !== 'ios'}>
+        behavior="padding"
+        enabled={Platform.OS === 'ios'}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
