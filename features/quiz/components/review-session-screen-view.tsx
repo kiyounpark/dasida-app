@@ -2,7 +2,6 @@
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -247,7 +246,7 @@ export function ReviewSessionScreenView({
           <KeyboardAvoidingView
             style={styles.tabletRight}
             behavior="padding"
-            enabled={Platform.OS === 'ios'}>
+            enabled={process.env.EXPO_OS !== 'ios'}>
             <ScrollView
               style={{ backgroundColor: '#FFFFFF' }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
@@ -266,12 +265,12 @@ export function ReviewSessionScreenView({
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
-        enabled={Platform.OS === 'ios'}>
+        enabled={process.env.EXPO_OS !== 'ios'}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}>
+          automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}>
           <View style={styles.progressBar}>
             {steps.map((_, i) => (
               <View
