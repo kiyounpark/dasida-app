@@ -316,7 +316,7 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     labelKo: '역·이·대우 혼동',
     topicLabel: '명제',
     desc: 'p→q의 역(q→p), 이(~p→~q), 대우(~q→~p)를 혼동했습니다.',
-    tip: '대우는 가설과 결론을 모두 부정하고 순서를 바꾼다. 역·이·대우 표를 직접 채워보세요.',
+    tip: '역·이·대우 표를 직접 채우면서 각각 p→q 방향이 어떻게 바뀌는지 확인하세요.',
   },
   g2_prop_necessary_sufficient: {
     id: 'g2_prop_necessary_sufficient',
@@ -363,7 +363,7 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
   g2_poly_remainder: {
     id: 'g2_poly_remainder',
     labelKo: '나머지정리 적용 오류',
-    topicLabel: '다항식',
+    topicLabel: '나머지정리',
     desc: 'f(x)를 (x-a)로 나눈 나머지가 f(a)임을 잘못 적용하거나 인수정리 조건을 혼동했습니다.',
     tip: '나머지 = f(나누는 식의 근) 임을 먼저 확인하고, 조건식에 대입하는 순서를 지키세요.',
   },
@@ -399,7 +399,7 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     id: 'g2_integral_basic',
     labelKo: '정적분 계산 오류',
     topicLabel: '적분',
-    desc: '∫xⁿdx = xⁿ⁺¹/(n+1)+C 적용 또는 정적분 [F(x)]_a^b = F(b)-F(a) 계산에서 실수했습니다.',
+    desc: '∫xⁿdx = xⁿ⁺¹/(n+1)+C 적용 또는 정적분 [F(x)]ₐᵇ = F(b)-F(a) 계산에서 실수했습니다.',
     tip: '부정적분을 먼저 구하고, 위 끝값에서 아래 끝값을 빼는 순서를 한 줄씩 적어보세요.',
   },
   g2_counting_method: {
