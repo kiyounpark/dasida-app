@@ -1,5 +1,6 @@
 // features/quiz/components/review-session-screen-view.tsx
 import { useEffect, useRef } from 'react';
+import { Image } from 'expo-image';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -179,7 +180,11 @@ export function ReviewSessionScreenView({
                 styles.bubbleRow,
                 msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAi,
               ]}>
-              {msg.role === 'ai' && <Text style={styles.aiBadgeIcon}>✨</Text>}
+              {msg.role === 'ai' && (
+                <View style={styles.aiBadgeIconWrapper}>
+                  <Image source={require('@/assets/review/ai-coach-avatar.png')} style={styles.aiBadgeIconImg} contentFit="contain" />
+                </View>
+              )}
               <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAi]}>
                 {msg.text ? (
                   <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>
@@ -191,7 +196,9 @@ export function ReviewSessionScreenView({
           ))}
           {isLoadingFeedback && (
             <View style={[styles.bubbleRow, styles.bubbleRowAi]}>
-              <Text style={styles.aiBadgeIcon}>✨</Text>
+              <View style={styles.aiBadgeIconWrapper}>
+                <Image source={require('@/assets/review/ai-coach-avatar.png')} style={styles.aiBadgeIconImg} contentFit="contain" />
+              </View>
               <View style={[styles.bubble, styles.bubbleAi]}>
                 <ActivityIndicator size="small" color={BrandColors.primary} />
               </View>
@@ -546,9 +553,16 @@ const styles = StyleSheet.create({
   bubbleTextUser: {
     color: '#fff',
   },
-  aiBadgeIcon: {
-    fontSize: 14,
+  aiBadgeIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
     marginBottom: 2,
+  },
+  aiBadgeIconImg: {
+    width: 36,
+    height: 36,
   },
   chatInputRow: {
     flexDirection: 'row',
