@@ -109,6 +109,118 @@ export const problemData: Problem[] = [
     topic: '경우의 수/이차방정식',
     diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
   },
+  // ─── 고2 공통 ────────────────────────────────────────────────────
+  {
+    id: 'g2_q1',
+    grade: 'g2',
+    question:
+      '집합 A={1,2,3,4,5}, B={2,4,6}일 때, n(A∪B) - n(A∩B)의 값은?',
+    choices: ['2', '3', '4', '5', '6'],
+    answerIndex: 2,
+    topic: '집합',
+    diagnosisMethods: ['set', 'unknown'],
+  },
+  {
+    id: 'g2_q2',
+    grade: 'g2',
+    question: '명제 "소수이면 홀수이다"의 역은?',
+    choices: [
+      '소수이면 홀수이다',
+      '홀수이면 소수이다',
+      '소수가 아니면 홀수가 아니다',
+      '홀수가 아니면 소수가 아니다',
+      '소수이면 홀수가 아니다',
+    ],
+    answerIndex: 1,
+    topic: '명제',
+    diagnosisMethods: ['proposition', 'unknown'],
+  },
+  {
+    id: 'g2_q3',
+    grade: 'g2',
+    question: '다음 중 참인 명제는?',
+    choices: [
+      'x>0이면 x²>x이다',
+      '모든 실수 x에 대해 x²≥0이다',
+      'x²>0이면 x>0이다',
+      '모든 정수 n에 대해 n²은 홀수이다',
+      'x+y>0이면 x>0이고 y>0이다',
+    ],
+    answerIndex: 1,
+    topic: '명제',
+    diagnosisMethods: ['proposition', 'unknown'],
+  },
+  {
+    id: 'g2_q4',
+    grade: 'g2',
+    question: 'sin(150°)의 값은?',
+    choices: ['-√3/2', '-1/2', '0', '1/2', '√3/2'],
+    answerIndex: 3,
+    topic: '삼각함수',
+    diagnosisMethods: ['trig', 'unknown'],
+  },
+  {
+    id: 'g2_q5',
+    grade: 'g2',
+    question:
+      '다항식 f(x)를 (x-1)(x+2)로 나누었을 때 나머지가 2x+1이었다. f(1)의 값은?',
+    choices: ['1', '2', '3', '4', '5'],
+    answerIndex: 2,
+    topic: '나머지정리',
+    diagnosisMethods: ['polynomial', 'unknown'],
+  },
+  {
+    id: 'g2_q6',
+    grade: 'g2',
+    question:
+      'x에 대한 방정식 x²-4x+k=0이 허근을 가질 때, 정수 k의 최솟값은?',
+    choices: ['3', '4', '5', '6', '7'],
+    answerIndex: 2,
+    topic: '방정식',
+    diagnosisMethods: ['diff', 'unknown'],
+  },
+  {
+    id: 'g2_q7',
+    grade: 'g2',
+    question: '√18 - √8 + √2의 값은?',
+    choices: ['√2', '2√2', '3√2', '4√2', '5√2'],
+    answerIndex: 1,
+    topic: '무리수',
+    diagnosisMethods: ['radical', 'unknown'],
+  },
+  {
+    id: 'g2_q8',
+    grade: 'g2',
+    question: '5명 중에서 회장 1명, 부회장 1명을 선출하는 방법의 수는?',
+    choices: ['10', '15', '20', '25', '30'],
+    answerIndex: 2,
+    topic: '경우의 수',
+    diagnosisMethods: ['counting', 'unknown'],
+  },
+  {
+    id: 'g2_q9',
+    grade: 'g2',
+    question: '∫₀² (3x²-2x+1)dx의 값은?',
+    choices: ['4', '5', '6', '7', '8'],
+    answerIndex: 2,
+    topic: '적분',
+    diagnosisMethods: ['integral', 'unknown'],
+  },
+  {
+    id: 'g2_q10',
+    grade: 'g2',
+    question: 'x에 대한 이차부등식 x²-3x-4<0의 해는?',
+    choices: [
+      'x<-1 또는 x>4',
+      '-4<x<1',
+      '-1<x<4',
+      'x<-4 또는 x>1',
+      'x≥-1 또는 x≤4',
+    ],
+    answerIndex: 2,
+    topic: '부등식',
+    diagnosisMethods: ['linear_eq', 'unknown'],
+  },
   // ─── 고3 미적분 (calc) ───────────────────────────────────────────
   {
     id: 'g3_calc_q1',
@@ -418,8 +530,7 @@ export function getDiagnosticProblems(
   grade: LearnerGrade,
   track?: LearnerTrack,
 ): Problem[] {
-  // g2는 아직 전용 콘텐츠가 없으므로 g1 fallback
-  const effectiveGrade = grade === 'g2' || grade === 'unknown' ? 'g1' : grade;
+  const effectiveGrade = grade === 'unknown' ? 'g1' : grade;
 
   return problemData.filter((p) => {
     if (p.grade !== effectiveGrade) return false;
