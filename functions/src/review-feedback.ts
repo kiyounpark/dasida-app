@@ -20,7 +20,10 @@ const ReviewFeedbackRequestSchema = z.object({
       }),
     )
     .min(1)
-    .max(10),
+    .max(10)
+    .refine((msgs) => msgs[0].role === 'user', {
+      message: 'First message must be from user',
+    }),
 });
 
 const SYSTEM_PROMPT = `당신은 한국 수학 학습을 돕는 AI 코치입니다.
