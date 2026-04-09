@@ -9,6 +9,8 @@ import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/
 import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 
+const hubReviewStore = new LocalReviewTaskStore();
+
 type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
 export type UseQuizHubScreenResult = {
@@ -53,15 +55,13 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     dismissAuthNotice();
   }, [authNoticeMessage, dismissAuthNotice]);
 
-  const reviewStore = new LocalReviewTaskStore();
-
   useEffect(() => {
     const accountKey = session?.accountKey;
     if (!accountKey) {
       return;
     }
-    applyOverduePenalties(accountKey, reviewStore).then(() => {
-      void rescheduleAllReviewNotifications(accountKey, reviewStore);
+    applyOverduePenalties(accountKey, hubReviewStore).then(() => {
+      void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(console.warn);
       void refresh();
     });
     // 마운트 시 1회만 실행

@@ -250,7 +250,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     try {
       await completeReviewTask(accountKey, task.id, store);
-      void rescheduleAllReviewNotifications(accountKey, store);
+      void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
       await refresh();
     } catch (error) {
       console.warn('Failed to complete review task', error);
@@ -264,7 +264,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
     try {
       await rescheduleReviewTask(accountKey, task.id, store);
-      void rescheduleAllReviewNotifications(accountKey, store);
+      void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
       await refresh();
     } catch (error) {
       console.warn('Failed to reschedule review task', error);

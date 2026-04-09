@@ -7,18 +7,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldShowBanner: true,
     shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
-
-import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 void SplashScreen.preventAutoHideAsync().catch(() => {
   // Fast refresh or unsupported platforms can call this more than once.
@@ -67,13 +66,20 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
+    // 콜드스타트: 앱 종료 상태에서 알림 탭으로 진입한 경우
+    const lastResponse = Notifications.getLastNotificationResponse();
+    if (lastResponse) {
+      const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
+      if (taskId) {
+        router.push({ pathname: '/quiz/review-session', params: { taskId } });
+      }
+    }
+
+    // 포그라운드/백그라운드: 앱 실행 중 알림 탭
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const taskId = response.notification.request.content.data?.taskId as string | undefined;
       if (taskId) {
-        router.push({
-          pathname: '/quiz/review-session',
-          params: { taskId },
-        });
+        router.push({ pathname: '/quiz/review-session', params: { taskId } });
       }
     });
     return () => subscription.remove();

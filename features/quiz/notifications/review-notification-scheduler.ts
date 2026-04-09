@@ -80,6 +80,7 @@ export async function scheduleReviewNotifications(
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: morningDate,
+          channelId: 'review',
         },
       });
     }
@@ -96,6 +97,7 @@ export async function scheduleReviewNotifications(
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: eveningDate,
+          channelId: 'review',
         },
       });
     }

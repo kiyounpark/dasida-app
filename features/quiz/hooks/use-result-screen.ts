@@ -145,9 +145,7 @@ export function useResultScreen({
         return scheduleReviewNotifications(accountKey, resultScreenReviewStore);
       })
       .catch(console.warn);
-  // saveState 전환 시 1회만 실행
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveState]);
+  }, [saveState, session?.accountKey]);
 
   const snapshotSummaryTitle = useMemo(() => {
     if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {
