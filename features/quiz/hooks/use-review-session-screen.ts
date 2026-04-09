@@ -8,18 +8,24 @@ import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
-import { requestReviewFeedback } from '@/features/quiz/review-feedback';
+import { requestReviewFeedback, type ChatMessage } from '@/features/quiz/review-feedback';
 
-type StepPhase = 'input' | 'feedback';
+type StepPhase = 'input' | 'chat';
+
+type ChatEntry = {
+  role: 'user' | 'ai';
+  text: string;
+};
 
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
-  steps: ThinkingStep[];
+  steps: readonly ThinkingStep[];
   currentStepIndex: number;
   stepPhase: StepPhase;
   selectedChoiceIndex: number | null;
   userText: string;
-  aiFeedback: string | null;
+  chatMessages: ChatEntry[];
+  chatText: string;
   isLoadingFeedback: boolean;
   sessionComplete: boolean;
   hasInput: boolean;
@@ -27,6 +33,8 @@ export type UseReviewSessionScreenResult = {
   onSelectChoice: (index: number) => void;
   onChangeText: (text: string) => void;
   onPressNext: () => void;
+  onChangeChatText: (text: string) => void;
+  onSendChatMessage: () => void;
   onPressContinue: () => void;
   onPressRemember: () => void;
   onPressRetry: () => void;
@@ -41,12 +49,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const accountKey = session?.accountKey ?? '';
 
   const [task, setTask] = useState<ReviewTask | null>(null);
-  const [steps, setSteps] = useState<ThinkingStep[]>([]);
+  const [steps, setSteps] = useState<readonly ThinkingStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [stepPhase, setStepPhase] = useState<StepPhase>('input');
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
   const [userText, setUserText] = useState('');
-  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatEntry[]>([]);
+  const [chatText, setChatText] = useState('');
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
 
@@ -80,16 +89,14 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
     setUserText('');
-    setAiFeedback(null);
+    setChatMessages([]);
+    setChatText('');
     setStepPhase('input');
   };
 
   const onSelectChoice = (index: number) => {
     setSelectedChoiceIndex(index);
-    if (
-      stepPhase === 'input' &&
-      firstAttemptCorrectRef.current[currentStepIndex] === null
-    ) {
+    if (stepPhase === 'input' && firstAttemptCorrectRef.current[currentStepIndex] === null) {
       const isCorrect = steps[currentStepIndex]?.choices[index]?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
     }
@@ -99,38 +106,80 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     setUserText(text);
   };
 
+  const onChangeChatText = (text: string) => {
+    setChatText(text);
+  };
+
   const onPressNext = async () => {
     if (isFetchingRef.current) return;
     const step = steps[currentStepIndex];
-    if (!step || !task) {
-      return;
-    }
+    if (!step || !task) return;
 
     const hasChoice = selectedChoiceIndex !== null;
     const hasText = userText.trim().length > 0;
-
     if (!hasChoice && !hasText) return;
+
+    // 첫 번째 user 메시지 조합
+    const parts: string[] = [];
+    if (hasChoice) parts.push(`선택: ${step.choices[selectedChoiceIndex!]?.text ?? ''}`);
+    if (hasText) parts.push(hasChoice ? `직접 쓴 내용: ${userText.trim()}` : userText.trim());
+    const firstUserContent = parts.join('\n');
+
+    const firstUserEntry: ChatEntry = { role: 'user', text: firstUserContent };
 
     isFetchingRef.current = true;
     setIsLoadingFeedback(true);
+    setChatMessages([firstUserEntry]);
+    setStepPhase('chat');
+
     try {
-      const selectedChoiceText = hasChoice
-        ? (step.choices[selectedChoiceIndex!]?.text ?? null)
-        : null;
+      const apiMessages: ChatMessage[] = [{ role: 'user', content: firstUserContent }];
       const result = await requestReviewFeedback({
         weaknessId: task.weaknessId,
         stepTitle: step.title,
         stepBody: step.body,
-        selectedChoiceText,
-        userText: hasText ? userText.trim() : null,
+        messages: apiMessages,
       });
-      setAiFeedback(result.replyText);
+      setChatMessages([firstUserEntry, { role: 'ai', text: result.replyText }]);
     } catch {
-      setAiFeedback(null);
+      // 에러 시 AI 응답 없이 계속 진행 가능
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
-      setStepPhase('feedback');
+    }
+  };
+
+  const onSendChatMessage = async () => {
+    if (isFetchingRef.current || !chatText.trim() || !task) return;
+    const step = steps[currentStepIndex];
+    if (!step) return;
+
+    const userInput = chatText.trim();
+    const newUserEntry: ChatEntry = { role: 'user', text: userInput };
+    const allMessages = [...chatMessages, newUserEntry];
+
+    setChatMessages(allMessages);
+    setChatText('');
+    isFetchingRef.current = true;
+    setIsLoadingFeedback(true);
+
+    try {
+      const apiMessages: ChatMessage[] = allMessages.map((m) => ({
+        role: m.role === 'ai' ? ('assistant' as const) : ('user' as const),
+        content: m.text,
+      }));
+      const result = await requestReviewFeedback({
+        weaknessId: task.weaknessId,
+        stepTitle: step.title,
+        stepBody: step.body,
+        messages: apiMessages,
+      });
+      setChatMessages([...allMessages, { role: 'ai', text: result.replyText }]);
+    } catch {
+      // 에러 시 사용자 메시지만 보임, 계속 진행 가능
+    } finally {
+      isFetchingRef.current = false;
+      setIsLoadingFeedback(false);
     }
   };
 
@@ -229,7 +278,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     stepPhase,
     selectedChoiceIndex,
     userText,
-    aiFeedback,
+    chatMessages,
+    chatText,
     isLoadingFeedback,
     sessionComplete,
     hasInput,
@@ -237,6 +287,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSelectChoice,
     onChangeText,
     onPressNext,
+    onChangeChatText,
+    onSendChatMessage,
     onPressContinue,
     onPressRemember,
     onPressRetry,
