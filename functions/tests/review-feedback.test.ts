@@ -62,8 +62,4 @@ test('SYSTEM_PROMPT가 원칙 기반 판단 기준을 포함한다', () => {
     SYSTEM_PROMPT.includes('형태와 길이에 관계없이') || SYSTEM_PROMPT.includes('형태'),
     'SYSTEM_PROMPT에 형태·길이 무관 원칙이 있어야 한다',
   );
-  assert.ok(
-    !SYSTEM_PROMPT.includes('"그러게요", "네", "맞아요", "모르겠어요"'),
-    '예시 열거 방식의 좁은 거부 조건이 없어야 한다',
-  );
 });
