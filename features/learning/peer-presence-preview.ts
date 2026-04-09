@@ -51,6 +51,14 @@ const previewPeerMap: Record<Exclude<PreviewSeedState, 'fresh'>, PeerPresenceSna
       { id: 'peer-doyoon', nickname: '도윤', avatarSeed: 'doyoon', statusText: '진단 결과 다시 확인' },
     ],
   },
+  'practice-graduated': {
+    updatedAt: new Date('2026-03-13T10:00:00.000Z').toISOString(),
+    peers: [
+      { id: 'peer-minseo', nickname: '민서', avatarSeed: 'minseo', statusText: '약점 연습 완료!' },
+      { id: 'peer-seojun', nickname: '서준', avatarSeed: 'seojun', statusText: '실전 세트 도전 중' },
+      { id: 'peer-harin', nickname: '하린', avatarSeed: 'harin', statusText: '복습 계획 세우는 중' },
+    ],
+  },
 };
 
 export function getPreviewPeerPresence(
