@@ -24,7 +24,8 @@ export function ReviewSessionScreenView({
   stepPhase,
   selectedChoiceIndex,
   userText,
-  aiFeedback,
+  chatMessages,
+  chatText,
   isLoadingFeedback,
   sessionComplete,
   hasInput,
@@ -32,6 +33,8 @@ export function ReviewSessionScreenView({
   onSelectChoice,
   onChangeText,
   onPressNext,
+  onChangeChatText,
+  onSendChatMessage,
   onPressContinue,
   onPressRemember,
   onPressRetry,
@@ -70,7 +73,6 @@ export function ReviewSessionScreenView({
   const step = steps[currentStepIndex];
   const isLastStep = currentStepIndex === steps.length - 1;
 
-  // 완료 화면 (sessionComplete) 또는 사고 흐름 데이터 없음 (g3_* 약점)
   if (sessionComplete || !step) {
     return (
       <View style={styles.screen}>
@@ -102,13 +104,116 @@ export function ReviewSessionScreenView({
     );
   }
 
-  const continueLabel = isLastStep ? '완료 →' : '다음 단계 →';
+  const continueLabel = isLastStep ? '이해했어요, 완료 →' : '이해했어요, 다음 단계 →';
+
+  // ── 입력 카드 공통 내부 (mobile + tablet 공유) ──────────────────────────────
+  const inputCardContent =
+    stepPhase === 'input' ? (
+      <>
+        <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
+        <View style={styles.choices}>
+          {step.choices.map((choice, i) => (
+            <Pressable
+              key={i}
+              style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
+              onPress={() => onSelectChoice(i)}>
+              <Text
+                style={[
+                  styles.choiceBtnText,
+                  selectedChoiceIndex === i && styles.choiceBtnTextSelected,
+                ]}>
+                {choice.text}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
+          <View style={styles.dividerLine} />
+        </View>
+        <TextInput
+          style={styles.textInput}
+          value={userText}
+          onChangeText={onChangeText}
+          placeholder="자유롭게 써보세요..."
+          placeholderTextColor={BrandColors.disabled}
+          multiline
+        />
+        <Pressable
+          style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
+          onPress={onPressNext}
+          disabled={!hasInput || isLoadingFeedback}>
+          {isLoadingFeedback ? (
+            <ActivityIndicator color="#F6F2EA" size="small" />
+          ) : (
+            <Text style={styles.primaryBtnText}>다음으로</Text>
+          )}
+        </Pressable>
+      </>
+    ) : (
+      <>
+        <View style={styles.chatMessages}>
+          {chatMessages.map((msg, i) => (
+            <View
+              key={i}
+              style={[
+                styles.bubbleRow,
+                msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAi,
+              ]}>
+              {msg.role === 'ai' && <Text style={styles.aiBadgeIcon}>✨</Text>}
+              <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAi]}>
+                {msg.text ? (
+                  <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>
+                    {msg.text}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          ))}
+          {isLoadingFeedback && (
+            <View style={[styles.bubbleRow, styles.bubbleRowAi]}>
+              <Text style={styles.aiBadgeIcon}>✨</Text>
+              <View style={[styles.bubble, styles.bubbleAi]}>
+                <ActivityIndicator size="small" color={BrandColors.primary} />
+              </View>
+            </View>
+          )}
+        </View>
+        <View style={styles.chatInputRow}>
+          <TextInput
+            style={styles.chatInput}
+            value={chatText}
+            onChangeText={onChangeChatText}
+            placeholder="계속 써보세요..."
+            placeholderTextColor={BrandColors.disabled}
+            editable={!isLoadingFeedback}
+            returnKeyType="send"
+            onSubmitEditing={onSendChatMessage}
+          />
+          <Pressable
+            style={[
+              styles.sendBtn,
+              (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
+            ]}
+            onPress={onSendChatMessage}
+            disabled={!chatText.trim() || isLoadingFeedback}>
+            <Text style={styles.sendBtnText}>↑</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
+          onPress={onPressContinue}
+          disabled={isLoadingFeedback}>
+          <Text style={styles.primaryBtnText}>{continueLabel}</Text>
+        </Pressable>
+      </>
+    );
 
   if (isTablet) {
     return (
       <View style={styles.screen}>
         {appBar}
-        {/* 진행 바 */}
         <View style={[styles.progressBar, styles.tabletProgressBar]}>
           {steps.map((_, i) => (
             <View
@@ -118,7 +223,6 @@ export function ReviewSessionScreenView({
           ))}
         </View>
         <View style={styles.tabletRow}>
-          {/* 좌: 단계 카드 */}
           <ScrollView
             style={styles.tabletLeft}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}>
@@ -138,66 +242,11 @@ export function ReviewSessionScreenView({
               ) : null}
             </View>
           </ScrollView>
-          {/* 우: 입력 카드 */}
           <ScrollView
             style={[styles.tabletRight, { backgroundColor: '#FFFFFF' }]}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
             keyboardShouldPersistTaps="handled">
-            <View style={styles.inputCard}>
-              <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
-              <View style={styles.choices}>
-                {step.choices.map((choice, i) => (
-                  <Pressable
-                    key={i}
-                    style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
-                    onPress={() => stepPhase === 'input' && onSelectChoice(i)}>
-                    <Text
-                      style={[
-                        styles.choiceBtnText,
-                        selectedChoiceIndex === i && styles.choiceBtnTextSelected,
-                      ]}>
-                      {choice.text}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
-                <View style={styles.dividerLine} />
-              </View>
-              <TextInput
-                style={styles.textInput}
-                value={userText}
-                onChangeText={stepPhase === 'input' ? onChangeText : undefined}
-                placeholder="자유롭게 써보세요..."
-                placeholderTextColor={BrandColors.disabled}
-                multiline
-                editable={stepPhase === 'input'}
-              />
-              {stepPhase === 'feedback' && aiFeedback ? (
-                <View style={styles.aiFeedback}>
-                  <Text style={styles.aiBadge}>✨ AI 피드백</Text>
-                  <Text style={styles.aiText}>{aiFeedback}</Text>
-                </View>
-              ) : null}
-              {stepPhase === 'input' ? (
-                <Pressable
-                  style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
-                  onPress={onPressNext}
-                  disabled={!hasInput || isLoadingFeedback}>
-                  {isLoadingFeedback ? (
-                    <ActivityIndicator color="#F6F2EA" size="small" />
-                  ) : (
-                    <Text style={styles.primaryBtnText}>다음으로</Text>
-                  )}
-                </Pressable>
-              ) : (
-                <Pressable style={styles.primaryBtn} onPress={onPressContinue}>
-                  <Text style={styles.primaryBtnText}>{continueLabel}</Text>
-                </Pressable>
-              )}
-            </View>
+            <View style={styles.inputCard}>{inputCardContent}</View>
           </ScrollView>
         </View>
       </View>
@@ -211,8 +260,6 @@ export function ReviewSessionScreenView({
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled">
-
-        {/* 진행 바 */}
         <View style={styles.progressBar}>
           {steps.map((_, i) => (
             <View
@@ -221,8 +268,6 @@ export function ReviewSessionScreenView({
             />
           ))}
         </View>
-
-        {/* 단계 카드 */}
         <View style={styles.stepCard}>
           <View style={styles.stepNumRow}>
             <View style={styles.stepNumBadge}>
@@ -238,73 +283,7 @@ export function ReviewSessionScreenView({
             </View>
           ) : null}
         </View>
-
-        {/* 입력 카드 */}
-        <View style={styles.inputCard}>
-          <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
-
-          {/* 선택지 */}
-          <View style={styles.choices}>
-            {step.choices.map((choice, i) => (
-              <Pressable
-                key={i}
-                style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
-                onPress={() => stepPhase === 'input' && onSelectChoice(i)}>
-                <Text
-                  style={[
-                    styles.choiceBtnText,
-                    selectedChoiceIndex === i && styles.choiceBtnTextSelected,
-                  ]}>
-                  {choice.text}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* 구분선 */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* 자유 입력 */}
-          <TextInput
-            style={styles.textInput}
-            value={userText}
-            onChangeText={stepPhase === 'input' ? onChangeText : undefined}
-            placeholder="자유롭게 써보세요..."
-            placeholderTextColor={BrandColors.disabled}
-            multiline
-            editable={stepPhase === 'input'}
-          />
-
-          {/* AI 피드백 */}
-          {stepPhase === 'feedback' && aiFeedback ? (
-            <View style={styles.aiFeedback}>
-              <Text style={styles.aiBadge}>✨ AI 피드백</Text>
-              <Text style={styles.aiText}>{aiFeedback}</Text>
-            </View>
-          ) : null}
-
-          {/* 버튼 */}
-          {stepPhase === 'input' ? (
-            <Pressable
-              style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
-              onPress={onPressNext}
-              disabled={!hasInput || isLoadingFeedback}>
-              {isLoadingFeedback ? (
-                <ActivityIndicator color="#F6F2EA" size="small" />
-              ) : (
-                <Text style={styles.primaryBtnText}>다음으로</Text>
-              )}
-            </Pressable>
-          ) : (
-            <Pressable style={styles.primaryBtn} onPress={onPressContinue}>
-              <Text style={styles.primaryBtnText}>{continueLabel}</Text>
-            </Pressable>
-          )}
-        </View>
+        <View style={styles.inputCard}>{inputCardContent}</View>
       </ScrollView>
     </View>
   );
@@ -492,24 +471,81 @@ const styles = StyleSheet.create({
     minHeight: 64,
     textAlignVertical: 'top',
   },
-  aiFeedback: {
-    backgroundColor: '#f0fdf4',
-    borderRadius: BrandRadius.sm,
-    padding: 12,
+  // 채팅 UI
+  chatMessages: {
+    gap: 10,
+  },
+  bubbleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  bubbleRowUser: {
+    justifyContent: 'flex-end',
+  },
+  bubbleRowAi: {
+    justifyContent: 'flex-start',
+  },
+  bubble: {
+    borderRadius: 12,
+    padding: 10,
+    maxWidth: '82%',
+  },
+  bubbleUser: {
+    backgroundColor: BrandColors.primary,
+    borderBottomRightRadius: 2,
+  },
+  bubbleAi: {
+    backgroundColor: '#F0FDF4',
     borderWidth: 1,
     borderColor: '#D6E2D4',
-    gap: 4,
+    borderTopLeftRadius: 2,
   },
-  aiBadge: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 11,
-    color: BrandColors.success,
-  },
-  aiText: {
+  bubbleText: {
     fontFamily: FontFamilies.regular,
     fontSize: 13,
     color: BrandColors.text,
     lineHeight: 20,
+  },
+  bubbleTextUser: {
+    color: '#fff',
+  },
+  aiBadgeIcon: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  chatInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: '#F6F2EA',
+    borderWidth: 1,
+    borderColor: '#D6E2D4',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
+    color: BrandColors.text,
+  },
+  sendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: BrandColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendBtnDisabled: {
+    backgroundColor: BrandColors.disabled,
+  },
+  sendBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: FontFamilies.bold,
   },
   primaryBtn: {
     backgroundColor: BrandColors.primary,
