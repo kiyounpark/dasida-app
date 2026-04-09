@@ -1,10 +1,21 @@
 import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { router, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -54,6 +65,20 @@ function AuthGateRedirector() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const taskId = response.notification.request.content.data?.taskId as string | undefined;
+      if (taskId) {
+        router.push({
+          pathname: '/quiz/review-session',
+          params: { taskId },
+        });
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
   const [fontsLoaded, fontError] = useFonts({
     'SUIT-Regular': require('../assets/fonts/SUIT-Regular.ttf'),
     'SUIT-Medium': require('../assets/fonts/SUIT-Medium.ttf'),

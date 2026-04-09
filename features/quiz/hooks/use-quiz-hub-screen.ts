@@ -5,6 +5,7 @@ import { useWindowDimensions } from 'react-native';
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
+import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 
@@ -60,6 +61,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return;
     }
     applyOverduePenalties(accountKey, reviewStore).then(() => {
+      void rescheduleAllReviewNotifications(accountKey, reviewStore);
       void refresh();
     });
     // 마운트 시 1회만 실행

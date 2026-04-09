@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import { completeReviewTask, rescheduleReviewTask } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
+import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
@@ -249,6 +250,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     try {
       await completeReviewTask(accountKey, task.id, store);
+      void rescheduleAllReviewNotifications(accountKey, store);
       await refresh();
     } catch (error) {
       console.warn('Failed to complete review task', error);
@@ -262,6 +264,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
     try {
       await rescheduleReviewTask(accountKey, task.id, store);
+      void rescheduleAllReviewNotifications(accountKey, store);
       await refresh();
     } catch (error) {
       console.warn('Failed to reschedule review task', error);

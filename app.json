@@ -38,6 +38,12 @@
       "expo-router",
       "expo-apple-authentication",
       [
+        "expo-notifications",
+        {
+          "androidMode": "default"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

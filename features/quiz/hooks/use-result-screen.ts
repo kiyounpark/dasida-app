@@ -2,9 +2,16 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
+import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
+import {
+  requestNotificationPermission,
+  scheduleReviewNotifications,
+} from '@/features/quiz/notifications/review-notification-scheduler';
 import { useQuizSession } from '@/features/quiz/session';
+
+const resultScreenReviewStore = new LocalReviewTaskStore();
 
 export type QuizResultRouteParams = {
   legacyNextStep?: string;
@@ -125,6 +132,22 @@ export function useResultScreen({
 
     void persistResult();
   }, [liveSummary, persistResult, profile, saveState, session, storedSummary?.attemptId]);
+
+  // 진단 완료 저장 후 알림 권한 요청 + Day1 알림 예약
+  useEffect(() => {
+    if (saveState !== 'saved' || !liveSummary || !session?.accountKey) {
+      return;
+    }
+    const accountKey = session.accountKey;
+    requestNotificationPermission()
+      .then((granted) => {
+        if (!granted) return;
+        return scheduleReviewNotifications(accountKey, resultScreenReviewStore);
+      })
+      .catch(console.warn);
+  // saveState 전환 시 1회만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveState]);
 
   const snapshotSummaryTitle = useMemo(() => {
     if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {
