@@ -51,6 +51,7 @@ export type WeaknessId =
   | 'g2_radical_rationalize'
   | 'g2_diff_application'
   | 'g2_integral_basic'
+  | 'g2_integral_definite'
   | 'g2_counting_method'
   | 'g2_counting_overcounting'
   | 'g2_inequality_range'
@@ -108,6 +109,7 @@ export const weaknessOrder: WeaknessId[] = [
   'g2_radical_rationalize',
   'g2_diff_application',
   'g2_integral_basic',
+  'g2_integral_definite',
   'g2_counting_method',
   'g2_counting_overcounting',
   'g2_inequality_range',
@@ -397,10 +399,17 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
   },
   g2_integral_basic: {
     id: 'g2_integral_basic',
-    labelKo: '정적분 계산 오류',
+    labelKo: '부정적분 공식 오류',
     topicLabel: '적분',
-    desc: '∫xⁿdx = xⁿ⁺¹/(n+1)+C 적용 또는 정적분 [F(x)]ₐᵇ = F(b)-F(a) 계산에서 실수했습니다.',
-    tip: '부정적분을 먼저 구하고, 위 끝값에서 아래 끝값을 빼는 순서를 한 줄씩 적어보세요.',
+    desc: '∫xⁿdx = xⁿ⁺¹/(n+1)+C 공식 적용에서 지수 처리나 계수 계산을 잘못했습니다.',
+    tip: '지수를 1 올리고, 올린 지수로 나누는 두 단계를 한 항씩 따로 적어보세요.',
+  },
+  g2_integral_definite: {
+    id: 'g2_integral_definite',
+    labelKo: '정적분 끝값 대입 오류',
+    topicLabel: '적분',
+    desc: '정적분 [F(x)]ₐᵇ = F(b)-F(a)에서 끝값 대입 순서나 빼기 부호를 잘못 처리했습니다.',
+    tip: 'F(위끝) - F(아래끝) 순서를 지키고, 두 값을 따로 계산한 뒤 빼보세요.',
   },
   g2_counting_method: {
     id: 'g2_counting_method',

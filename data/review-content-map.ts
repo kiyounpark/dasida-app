@@ -1348,36 +1348,71 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
   g2_integral_basic: {
-    heroPrompt: '정적분은 부정적분을 먼저 구한 뒤 위 끝값에서 아래 끝값을 빼는 순서입니다.',
+    heroPrompt: '부정적분 ∫xⁿdx = xⁿ⁺¹/(n+1)에서 지수와 계수를 어떻게 처리하는지 확인해볼게요.',
     thinkingSteps: [
       {
         title: '부정적분 공식 적용',
-        body: '∫xⁿdx = xⁿ⁺¹/(n+1)+C (n≠-1). 각 항별로 적용한다.',
+        body: '∫xⁿdx = xⁿ⁺¹/(n+1)+C (n≠-1). 지수를 1 올리고, 올린 지수로 나눈다.',
         example: '∫(3x²-2x+1)dx = x³-x²+x+C',
         choices: [
           { text: '지수를 1 증가시키고 증가된 지수로 나눈다', correct: true },
-          { text: '지수를 앞으로 내리고 1을 빼면 된다', correct: false },
+          { text: '지수를 앞으로 내리고 1을 뺀다 (미분 공식)', correct: false },
           { text: '상수항은 적분해도 사라진다', correct: false },
         ],
       },
       {
-        title: '정적분 계산 [F(x)]ₐᵇ',
-        body: 'F(b)-F(a)를 계산한다. 위 끝값을 먼저 대입하고 아래 끝값을 빼는 순서를 지킨다.',
-        example: '[x³-x²+x]₀² = (8-4+2) - (0) = 6',
+        title: '계수 처리 확인',
+        body: '∫axⁿdx = a·xⁿ⁺¹/(n+1). 계수 a는 그대로 유지한 뒤 새 지수로 나눈다.',
+        example: '∫6x²dx = 6·x³/3 = 2x³ (계수 6을 올린 지수 3으로 나눔)',
         choices: [
-          { text: 'F(위끝값) - F(아래끝값) 순서이다', correct: true },
-          { text: 'F(아래끝값) - F(위끝값) 순서이다', correct: false },
-          { text: '두 끝값의 평균을 대입한다', correct: false },
+          { text: '계수는 그대로 두고 새 지수로 나눈다', correct: true },
+          { text: '계수는 지수처럼 앞으로 내린다', correct: false },
+          { text: '계수는 지수를 올리기 전 값으로 나눈다', correct: false },
         ],
       },
       {
-        title: '계산 검증',
-        body: '각 끝값 대입 결과를 별도로 계산하고, 빼기 부호를 빠뜨리지 않았는지 확인한다.',
-        example: 'F(2)=6, F(0)=0 → 6-0=6. 부호 확인 ✓',
+        title: '미분으로 역검증',
+        body: '구한 F(x)를 미분하면 원래 f(x)가 나와야 한다. 틀렸다면 적분 공식 적용에 실수가 있는 것이다.',
+        example: '∫3x²dx = x³+C → (x³)′=3x² ✓',
         choices: [
-          { text: '두 값을 따로 계산하고 뺀다', correct: true },
-          { text: '한 번에 계산해도 실수가 없다', correct: false },
-          { text: '아래 끝값은 항상 0이다', correct: false },
+          { text: 'F(x)를 미분해서 f(x)가 나오면 정확하다', correct: true },
+          { text: '미분과 적분은 역관계가 아니다', correct: false },
+          { text: '상수 C는 미분하면 1이 된다', correct: false },
+        ],
+      },
+    ],
+  },
+  g2_integral_definite: {
+    heroPrompt: '부정적분은 구했는데 끝값 대입에서 실수했나요? 아래 끝값이 0이 아닐 때를 집중적으로 확인해봅시다.',
+    thinkingSteps: [
+      {
+        title: '아래 끝값도 반드시 대입',
+        body: '[F(x)]ₐᵇ = F(b)-F(a). 아래 끝값 a가 0이 아닌 경우에도 F(a)를 반드시 계산하여 뺀다.',
+        example: '[x³]₁³ → F(3)=27, F(1)=1 → 27-1=26. (F(1)을 빼지 않으면 27로 오답)',
+        choices: [
+          { text: '아래 끝값이 0이 아닌 경우에도 F(a)를 뺀다', correct: true },
+          { text: '아래 끝값이 0이 아닌 경우 F(a)를 빼지 않아도 된다', correct: false },
+          { text: 'F(아래끝)-F(위끝) 순서이다', correct: false },
+        ],
+      },
+      {
+        title: 'F(b), F(a) 각각 별도 계산',
+        body: 'F(b)와 F(a)를 한꺼번에 계산하면 부호 실수가 생긴다. 두 값을 먼저 따로 구한 뒤 뺀다.',
+        example: '[2x³]₁² → F(2)=16, F(1)=2 → 16-2=14. (한꺼번에 계산 시 부호 실수 위험)',
+        choices: [
+          { text: 'F(b)와 F(a)를 따로 계산한 뒤 뺀다', correct: true },
+          { text: '한 번에 전개해도 실수가 없다', correct: false },
+          { text: 'F(0)=0이므로 아래끝이 0이면 생략해도 된다', correct: false },
+        ],
+      },
+      {
+        title: '빼기 부호 전파 확인',
+        body: 'F(a)에 여러 항이 있을 때 빼기 부호가 모든 항에 적용되는지 확인한다.',
+        example: '[x²+2x]₁³ = (9+6)-(1+2) = 15-3 = 12. F(1)=3을 빠뜨리면 15로 오답 ✓',
+        choices: [
+          { text: '빼기 부호가 F(a)의 모든 항에 적용된다', correct: true },
+          { text: '빼기 부호는 F(a)의 첫 항에만 적용된다', correct: false },
+          { text: 'F(a)가 양수이면 빼지 않아도 된다', correct: false },
         ],
       },
     ],

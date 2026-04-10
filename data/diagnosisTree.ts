@@ -396,7 +396,7 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
       {
         id: 'integral_definite',
         text: 'F(b)-F(a) 계산에서 끝값 대입을 잘못했어요.',
-        weaknessId: 'g2_integral_basic',
+        weaknessId: 'g2_integral_definite',
       },
       {
         id: 'integral_diff',
