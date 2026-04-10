@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { AuthFlowCancelledError } from '@/features/auth/auth-client';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { PreviewSeedState } from '@/features/learner/types';
+import * as Notifications from 'expo-notifications';
+
+import { requestNotificationPermission } from '@/features/quiz/notifications/review-notification-scheduler';
 
 type MigrationCandidate = {
   sourceAccountKey: string;
@@ -227,6 +230,38 @@ export function useProfileScreen() {
         await seedPreview(state);
       } catch (error) {
         setErrorMessage(formatErrorMessage(error));
+      } finally {
+        setBusyAction(null);
+      }
+    },
+    onTestNotification: async () => {
+      setBusyAction('test-notification');
+      setErrorMessage(null);
+      setNoticeMessage(null);
+
+      try {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+          setErrorMessage('알림 권한이 거부됐습니다. 설정에서 알림을 허용해주세요.');
+          return;
+        }
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '판별식, 잊기 전에 확인해요',
+            body: '3분만 다시 보면 기억이 살아납니다 →',
+            sound: 'default',
+            data: { taskId: 'dev-test-task' },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 5,
+          },
+        });
+
+        setNoticeMessage('5초 후 테스트 알림 발송됩니다. 앱을 백그라운드로 내리세요.');
+      } catch (error) {
+        setErrorMessage(`알림 테스트 실패: ${formatErrorMessage(error)}`);
       } finally {
         setBusyAction(null);
       }

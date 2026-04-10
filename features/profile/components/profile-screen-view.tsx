@@ -159,6 +159,7 @@ export function ProfileScreenView({
   onSeedPreview,
   onSignIn,
   onSignOut,
+  onTestNotification,
   onUpdateGrade,
   previewStates,
   profile,
@@ -386,6 +387,23 @@ export function ProfileScreenView({
             <ActionButton
               label="온보딩 화면으로 이동"
               onPress={onGoToOnboarding}
+            />
+          </View>
+        ) : null}
+
+        {isDevBuild ? (
+          <View style={[styles.card, styles.devCard]}>
+            <Text selectable style={styles.devLabel}>
+              개발용 알림 테스트
+            </Text>
+            <Text selectable style={styles.body}>
+              권한 요청 후 5초 뒤 테스트 알림을 발송합니다. 앱을 백그라운드로 내리면 알림이 보입니다.
+            </Text>
+            <ActionButton
+              label={busyAction === 'test-notification' ? '예약 중...' : '알림 테스트 (5초 후)'}
+              disabled={busyAction !== null}
+              subtle
+              onPress={() => void onTestNotification()}
             />
           </View>
         ) : null}
