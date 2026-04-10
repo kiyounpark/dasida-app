@@ -21,6 +21,18 @@
 
 ## 로그
 
+### 2026.04.10
+
+**고2 진단 콘텐츠 구현 완료 — g2_xxx 완전 분리**
+- `data/diagnosisMap.ts`: WeaknessId union + weaknessOrder + diagnosisMap에 g2_xxx 20개 추가
+- `data/diagnosisTree.ts`: SolveMethodId union에 5개 신규(set/proposition/trig/integral/linear_eq) + 기존 4개(polynomial/diff/radical/counting)에 g2 서브선택지 확장
+- `data/detailedDiagnosisFlows.ts`: hasCheckNode 가드 추가 — g2_xxx weaknessId는 check 노드 생성 생략, explain → final 직접 연결 (크래시 방어)
+- `data/diagnosis-method-routing.ts`, `data/detailedDiagnosisFlows.ts`: Record<SolveMethodId, ...> 타입에 신규 5개 메서드 추가
+- `data/problemData.ts`: grade:'g2' 진단 문제 10개 추가(g2_q1~g2_q10), g1 fallback 제거(`grade === 'g2'` 조건 삭제)
+- `data/review-content-map.ts`: g2_xxx 20개 복습 콘텐츠(heroPrompt + 3 thinkingSteps) 추가
+- 수정사항: g2_q6 diagnosisMethods diff→quadratic (판별식 문제), g2_prop_contrapositive 예시 명제 교체(거짓→참), g2_radical_rationalize 표기 통일
+- 커밋: 10cb337, a1fc4ff, e9025a6, ef1d851, 829bae6, 202021b, 8b1c3ef
+
 ### 2026.04.09
 
 **복습 세션 AI 피드백 — 멀티턴 채팅 전환**
@@ -727,6 +739,25 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.09 21:37
+- 해시: `5e28733` (`5e287332ad9c2893e465db24d91f499bdbf71004`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5e287332ad9c2893e465db24d91f499bdbf71004
+- 작성자: 박기윤
+- 메시지: test(feedback): 취약한 부정 단언 제거 — 원칙 검증 2개로 충분
+
+### 커밋 2026.04.09 21:12
+- 해시: `dd1d92b` (`dd1d92be28ae362d56c2e9268ef183061d8acf49`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dd1d92be28ae362d56c2e9268ef183061d8acf49
+- 작성자: 박기윤
+- 메시지: fix(keyboard): 태블릿 ScrollView ref 연결 + chatMessages 자동 스크롤 + iOS insets
+- 본문: - tabletInputScrollRef 추가, 태블릿 우측 ScrollView에 연결 / - scrollToBottom에서 두 ref 모두 scrollToEnd 호출 / - useEffect로 chatMessages.length 변화 시 자동 스크롤 / - setTimeout 150ms → 250ms (레이아웃 완료 후 스크롤 보장) / - automaticallyAdjustKeyboardInsets 태블릿 iOS ScrollView에 추가 / - import 순서 정리: react → react-native 순 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.09 20:07
 - 해시: `7eaadd8` (`7eaadd8e5b7bb354149f040b1940cad7240adaa9`)
