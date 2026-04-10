@@ -177,7 +177,7 @@ export const problemData: Problem[] = [
     choices: ['3', '4', '5', '6', '7'],
     answerIndex: 2,
     topic: '방정식',
-    diagnosisMethods: ['diff', 'unknown'],
+    diagnosisMethods: ['quadratic', 'unknown'],
   },
   {
     id: 'g2_q7',
