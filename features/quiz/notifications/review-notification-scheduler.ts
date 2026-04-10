@@ -113,6 +113,27 @@ export async function cancelReviewNotifications(taskId: string): Promise<void> {
 }
 
 /**
+ * 개발용 테스트 알림. 5초 후 단건 발송.
+ * __DEV__ 환경에서만 호출할 것.
+ */
+export async function scheduleTestNotification(): Promise<void> {
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'dev-test-notification',
+    content: {
+      title: '판별식, 잊기 전에 확인해요',
+      body: '3분만 다시 보면 기억이 살아납니다 →',
+      sound: 'default',
+      data: { taskId: 'dev-test-task' },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 5,
+      channelId: 'review',
+    },
+  });
+}
+
+/**
  * 전체 review 알림을 취소하고 현재 task 목록 기준으로 재예약.
  * overdue penalty 적용 후 또는 앱 마운트 시 호출.
  */
