@@ -32,7 +32,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('review', {
       name: '복습 알림',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
       sound: 'default',
     });
   }
