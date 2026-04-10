@@ -12,8 +12,9 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
+    shouldShowAlert: true, // Android foreground 알림 표시
+    shouldShowBanner: true, // iOS 14+ banner
+    shouldShowList: true, // iOS 14+ notification center
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
