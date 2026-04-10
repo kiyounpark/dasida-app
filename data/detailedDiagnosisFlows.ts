@@ -471,6 +471,7 @@ function createMethodFlow(methodId: SolveMethodId): DetailedDiagnosisFlow {
   };
 
   definition.choices.forEach((choice) => {
+    const hasCheckNode = choice.weaknessId in checkPromptByWeakness;
     const explainCopy = buildDefaultExplainCopy(methodId, choice.id, choice.weaknessId);
     const finalNodeId = `${choice.id}_final`;
     const fallbackFinalNodeId = `${choice.id}_fallback_final`;
@@ -481,35 +482,37 @@ function createMethodFlow(methodId: SolveMethodId): DetailedDiagnosisFlow {
       title: explainCopy.title,
       body: explainCopy.body,
       primaryLabel: CONTINUE_LABEL,
-      primaryNextNodeId: `${choice.id}_check`,
+      primaryNextNodeId: hasCheckNode ? `${choice.id}_check` : finalNodeId,
       secondaryLabel: DONT_KNOW_LABEL,
-      secondaryNextNodeId: `${choice.id}_remedial`,
+      secondaryNextNodeId: hasCheckNode ? `${choice.id}_remedial` : fallbackFinalNodeId,
     };
 
-    nodes[`${choice.id}_remedial`] = {
-      id: `${choice.id}_remedial`,
-      kind: 'explain',
-      title: explainCopy.remedialTitle,
-      body: explainCopy.remedialBody,
-      primaryLabel: CONTINUE_LABEL,
-      primaryNextNodeId: `${choice.id}_retry_check`,
-      secondaryLabel: DONT_KNOW_LABEL,
-      secondaryNextNodeId: fallbackFinalNodeId,
-    };
+    if (hasCheckNode) {
+      nodes[`${choice.id}_remedial`] = {
+        id: `${choice.id}_remedial`,
+        kind: 'explain',
+        title: explainCopy.remedialTitle,
+        body: explainCopy.remedialBody,
+        primaryLabel: CONTINUE_LABEL,
+        primaryNextNodeId: `${choice.id}_retry_check`,
+        secondaryLabel: DONT_KNOW_LABEL,
+        secondaryNextNodeId: fallbackFinalNodeId,
+      };
 
-    nodes[`${choice.id}_check`] = buildCheckNode(
-      `${choice.id}_check`,
-      choice.weaknessId,
-      finalNodeId,
-      `${choice.id}_remedial`,
-    );
+      nodes[`${choice.id}_check`] = buildCheckNode(
+        `${choice.id}_check`,
+        choice.weaknessId,
+        finalNodeId,
+        `${choice.id}_remedial`,
+      );
 
-    nodes[`${choice.id}_retry_check`] = buildCheckNode(
-      `${choice.id}_retry_check`,
-      choice.weaknessId,
-      finalNodeId,
-      fallbackFinalNodeId,
-    );
+      nodes[`${choice.id}_retry_check`] = buildCheckNode(
+        `${choice.id}_retry_check`,
+        choice.weaknessId,
+        finalNodeId,
+        fallbackFinalNodeId,
+      );
+    }
 
     nodes[finalNodeId] = buildFinalNode(finalNodeId, choice.weaknessId);
     nodes[fallbackFinalNodeId] = buildFinalNode(

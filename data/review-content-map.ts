@@ -933,7 +933,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         title: 'p→q 원래 명제 확인',
         body: '주어진 명제에서 가설 p와 결론 q를 분리한다.',
-        example: '예) "소수이면 홀수이다" → p:소수, q:홀수',
+        example: '예) "짝수이면 정수이다" → p:짝수, q:정수',
         choices: [
           { text: '가설과 결론을 먼저 분리한다', correct: true },
           { text: '명제 전체를 통째로 뒤집는다', correct: false },
@@ -943,7 +943,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         title: '역·이·대우 정의 적용',
         body: '역: q→p, 이: ~p→~q, 대우: ~q→~p',
-        example: '역: "홀수이면 소수이다" / 대우: "홀수가 아니면 소수가 아니다"',
+        example: '역: "정수이면 짝수이다" / 대우: "정수가 아니면 짝수가 아니다"',
         choices: [
           { text: '대우는 p와 q를 모두 부정하고 순서를 바꾼다', correct: true },
           { text: '역은 p와 q를 모두 부정한다', correct: false },
@@ -1295,7 +1295,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다.',
         example: '(2+√3)(2-√3) = 4-3 = 1',
         choices: [
-          { text: '(a+b)(a-b)=a²-b² 공식을 쓴다', correct: true },
+          { text: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다', correct: true },
           { text: '분모를 (a+√b)²으로 전개한다', correct: false },
           { text: '분모 전개 결과는 항상 1이다', correct: false },
         ],
