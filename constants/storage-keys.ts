@@ -8,4 +8,5 @@ export const StorageKeys = {
   learnerSummaryCurrentPrefix: 'dasida/learner-summary-current/',
   learningHistoryMigrationPrefix: 'dasida/history-migration/',
   featuredExamAttemptPrefix: 'dasida/featured-exam/',
+  examDiagnosisProgressPrefix: 'dasida/exam-diagnosis/',
 } as const;
