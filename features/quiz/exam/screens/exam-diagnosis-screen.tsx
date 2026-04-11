@@ -65,9 +65,10 @@ function ExamDiagnosisScreenView({
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    setTimeout(() => {
+    const id = setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 200);
+    return () => clearTimeout(id);
   }, [entries.length]);
 
   return (
