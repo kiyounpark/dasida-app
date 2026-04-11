@@ -51,50 +51,71 @@ export async function scheduleReviewNotifications(
   if (status !== 'granted') return;
 
   const tasks = await store.load(accountKey);
-  const incompleteTasks = tasks.filter((t) => !t.completed);
+  const incompleteTasks = tasks
+    .filter((t) => !t.completed)
+    .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor));
+
+  const representativeTask = incompleteTasks[0];
+  if (!representativeTask) return;
+
+  const label = representativeTask.weaknessId
+    ? diagnosisMap[representativeTask.weaknessId]?.labelKo
+    : undefined;
+
+  const morningTitle = label
+    ? `벌써 잊혀지고 있어요. ${label}, 지금 3분이면 돼요`
+    : '벌써 잊혀지고 있어요. 지금 3분이면 돼요';
+  const morningBody = '오늘 안 하면 내일 처음부터예요';
+
+  const eveningTitle = label
+    ? `${label}, 오늘 자기 전 마지막 기회예요`
+    : '오늘 복습 마감, 자기 전 3분만요';
+  const eveningBody = '잠들기 전 3분, 기억이 굳어져요';
+
   const now = new Date();
+  const morningDate = buildScheduledDate(
+    representativeTask.scheduledFor,
+    MORNING_HOUR,
+    MORNING_MINUTE,
+  );
+  const eveningDate = buildScheduledDate(
+    representativeTask.scheduledFor,
+    EVENING_HOUR,
+    EVENING_MINUTE,
+  );
 
-  for (const task of incompleteTasks) {
-    const label = task.weaknessId ? diagnosisMap[task.weaknessId]?.labelKo : undefined;
-    const title = label ? `${label}, 잊기 전에 확인해요` : '오늘 복습이 기다리고 있어요';
-    const body = '3분만 다시 보면 기억이 살아납니다 →';
+  if (morningDate > now) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: MORNING_NOTIFICATION_ID,
+      content: {
+        title: morningTitle,
+        body: morningBody,
+        sound: 'default',
+        data: { taskId: representativeTask.id },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: morningDate,
+        channelId: 'review',
+      },
+    });
+  }
 
-    const morningDate = buildScheduledDate(task.scheduledFor, MORNING_HOUR, MORNING_MINUTE);
-    const eveningDate = buildScheduledDate(task.scheduledFor, EVENING_HOUR, EVENING_MINUTE);
-
-    if (morningDate > now) {
-      await Notifications.scheduleNotificationAsync({
-        identifier: MORNING_NOTIFICATION_ID,
-        content: {
-          title,
-          body,
-          sound: 'default',
-          data: { taskId: task.id },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: morningDate,
-          channelId: 'review',
-        },
-      });
-    }
-
-    if (eveningDate > now) {
-      await Notifications.scheduleNotificationAsync({
-        identifier: EVENING_NOTIFICATION_ID,
-        content: {
-          title,
-          body,
-          sound: 'default',
-          data: { taskId: task.id },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: eveningDate,
-          channelId: 'review',
-        },
-      });
-    }
+  if (eveningDate > now) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: EVENING_NOTIFICATION_ID,
+      content: {
+        title: eveningTitle,
+        body: eveningBody,
+        sound: 'default',
+        data: { taskId: representativeTask.id },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: eveningDate,
+        channelId: 'review',
+      },
+    });
   }
 }
 
