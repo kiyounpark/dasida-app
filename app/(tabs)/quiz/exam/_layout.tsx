@@ -8,6 +8,7 @@ export default function ExamLayout() {
       <Stack>
         <Stack.Screen name="solve" options={{ headerShown: false }} />
         <Stack.Screen name="result" options={{ headerShown: false }} />
+        <Stack.Screen name="diagnosis" options={{ headerShown: false }} />
       </Stack>
     </ExamSessionProvider>
   );
