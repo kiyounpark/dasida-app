@@ -110,9 +110,8 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     wrongCount,
     onAnalyzeProblem: (problemNumber: number) => {
       if (!result) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.push({
-        pathname: '/quiz/exam/diagnosis' as any,
+        pathname: '/quiz/exam/diagnosis',
         params: {
           examId: result.examId,
           problemNumber: String(problemNumber),
