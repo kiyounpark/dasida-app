@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 
 import type { ProblemTile, UseExamResultScreenResult } from '../hooks/use-exam-result-screen';
