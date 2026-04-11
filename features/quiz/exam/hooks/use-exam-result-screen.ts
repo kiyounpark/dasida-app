@@ -1,35 +1,48 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useCurrentLearner } from '@/features/learner/provider';
-import { useQuizSession } from '@/features/quiz/session';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
 import { buildExamAttemptInput } from '../build-exam-attempt-input';
+import {
+  getDiagnosisProgress,
+  type ExamDiagnosisProgress,
+} from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
 import type { ExamResultSummary } from '../types';
 
 export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
+export type ProblemTile = {
+  number: number;
+  topic: string;
+  score: number;
+  status: 'undone' | 'done' | 'blank';
+};
+
 export type UseExamResultScreenResult = {
   result: ExamResultSummary | null;
   examTitle: string;
   saveState: ResultSaveState;
-  onStartDiagnostic: () => void;
+  problemTiles: ProblemTile[];
+  diagnosedCount: number;
+  wrongCount: number;
+  onAnalyzeProblem: (problemNumber: number) => void;
   onReturnHome: () => void;
 };
 
 export function useExamResultScreen(): UseExamResultScreenResult {
   const { state, resetExam } = useExamSession();
-  const { resetSession } = useQuizSession();
   const { profile, recordAttempt, session } = useCurrentLearner();
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
+  const [diagnosedProblems, setDiagnosedProblems] = useState<ExamDiagnosisProgress>({});
   const saveAttempted = useRef(false);
 
   const result = state.result;
   const examTitle = result ? (EXAM_CATALOG_BY_ID[result.examId]?.title ?? result.examId) : '';
 
-  // profile/session이 비동기 로딩되는 경우에도 저장이 실행되도록 deps로 감시
+  // 결과 저장 (최초 1회)
   useEffect(() => {
     if (!result || !profile || !session) return;
     if (saveAttempted.current) return;
@@ -41,14 +54,61 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       .catch(() => setSaveState('error'));
   }, [result, profile, session, recordAttempt]);
 
+  // 포커스 시 진단 진행 상태 갱신
+  useFocusEffect(
+    useCallback(() => {
+      if (!result) return;
+      getDiagnosisProgress(result.examId).then(setDiagnosedProblems);
+    }, [result]),
+  );
+
+  // 문제 타일 계산
+  const problemTiles: ProblemTile[] = result
+    ? result.perProblem
+        .filter((p) => !p.isCorrect)
+        .sort((a, b) => {
+          const aBlank = a.userAnswer === null;
+          const bBlank = b.userAnswer === null;
+          if (aBlank !== bBlank) return aBlank ? 1 : -1;
+          return b.earnedScore - a.earnedScore;
+        })
+        .map((p) => ({
+          number: p.number,
+          topic: 'exam',
+          score: p.earnedScore,
+          status:
+            p.userAnswer === null
+              ? 'blank'
+              : diagnosedProblems[p.number]
+                ? 'done'
+                : 'undone',
+        }))
+    : [];
+
+  const wrongCount = result
+    ? result.perProblem.filter((p) => !p.isCorrect && p.userAnswer !== null).length
+    : 0;
+  const diagnosedCount = Object.keys(diagnosedProblems).length;
+
   return {
     result,
     examTitle,
     saveState,
-    onStartDiagnostic: () => {
-      resetExam();
-      resetSession();
-      router.push({ pathname: '/quiz/diagnostic', params: { autostart: '1' } });
+    problemTiles,
+    diagnosedCount,
+    wrongCount,
+    onAnalyzeProblem: (problemNumber: number) => {
+      if (!result) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      router.push({
+        pathname: '/quiz/exam/diagnosis' as any,
+        params: {
+          examId: result.examId,
+          problemNumber: String(problemNumber),
+          wrongCount: String(wrongCount),
+          diagnosedCount: String(diagnosedCount),
+        },
+      });
     },
     onReturnHome: () => {
       resetExam();

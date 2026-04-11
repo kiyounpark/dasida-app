@@ -2,7 +2,7 @@ import { ExamResultScreenView } from './exam-result-screen-view';
 import { useExamResultScreen } from '../hooks/use-exam-result-screen';
 
 export function ExamResultScreen() {
-  const { result, examTitle, saveState, onStartDiagnostic, onReturnHome } =
+  const { result, examTitle, saveState, onReturnHome } =
     useExamResultScreen();
 
   if (!result) return null;
@@ -12,7 +12,7 @@ export function ExamResultScreen() {
       result={result}
       examTitle={examTitle}
       saveState={saveState}
-      onStartDiagnostic={onStartDiagnostic}
+      onStartDiagnostic={() => {}}
       onReturnHome={onReturnHome}
     />
   );
