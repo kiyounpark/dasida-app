@@ -138,6 +138,10 @@ export function useExamDiagnosis(params: {
 
       setSelectedMethodId(methodId);
 
+      const newDraft = createDiagnosisFlowDraft(methodId);
+      setDraft(newDraft);
+      const flow = getDiagnosisFlow(methodId);
+
       setEntries((prev) => {
         const frozen = prev.map((e) =>
           'interactive' in e ? { ...e, interactive: false } : e,
@@ -146,27 +150,19 @@ export function useExamDiagnosis(params: {
           ...frozen,
           {
             kind: 'bubble' as const,
-            id: `user-method`,
+            id: `user-method-${Date.now()}`,
             role: 'user' as const,
             text: method.labelKo,
           },
+          {
+            kind: 'flow-node' as const,
+            id: `node-${newDraft.currentNodeId}`,
+            flow,
+            draft: newDraft,
+            interactive: true,
+          },
         ];
       });
-
-      const newDraft = createDiagnosisFlowDraft(methodId);
-      setDraft(newDraft);
-      const flow = getDiagnosisFlow(methodId);
-
-      setEntries((prev) => [
-        ...prev,
-        {
-          kind: 'flow-node',
-          id: `node-${newDraft.currentNodeId}`,
-          flow,
-          draft: newDraft,
-          interactive: true,
-        },
-      ]);
     },
     [],
   );
@@ -247,9 +243,10 @@ export function useExamDiagnosis(params: {
           }),
         ),
       ]);
-    } finally {
-      setIsSaving(false);
       router.back();
+    } catch {
+      setIsDone(false);
+      setIsSaving(false);
     }
   }, [draft, session, profile, examId, problemNumber, problem, recordAttempt]);
 
