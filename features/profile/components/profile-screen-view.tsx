@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -404,6 +405,22 @@ export function ProfileScreenView({
               disabled={busyAction !== null}
               subtle
               onPress={() => void onTestNotification()}
+            />
+          </View>
+        ) : null}
+
+        {isDevBuild ? (
+          <View style={[styles.card, styles.devCard]}>
+            <Text selectable style={styles.devLabel}>
+              개발 허브
+            </Text>
+            <Text selectable style={styles.body}>
+              모의고사 결과 화면, 오답 진단 화면, 퀴즈 스테이지를 바로 미리볼 수 있습니다.
+            </Text>
+            <ActionButton
+              label="개발 허브로 이동"
+              subtle
+              onPress={() => router.push('/dev')}
             />
           </View>
         ) : null}
