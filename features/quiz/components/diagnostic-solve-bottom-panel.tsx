@@ -66,24 +66,25 @@ export function DiagnosticSolveBottomPanel({
 
 const styles = StyleSheet.create({
   panel: {
-    gap: 12,
+    gap: 8,
     paddingHorizontal: 18,
-    paddingTop: 14,
+    paddingTop: 8,
   },
   circleRow: {
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between',
+    gap: 14,
+    justifyContent: 'center',
   },
   circle: {
-    flex: 1,
-    aspectRatio: 1,
+    width: 44,
+    height: 44,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleCompact: {
-    // sizing inherited from circle via flex:1 + aspectRatio:1
+    width: 40,
+    height: 40,
   },
   circleIdle: {
     borderWidth: 1.5,
@@ -95,12 +96,12 @@ const styles = StyleSheet.create({
   },
   circleText: {
     fontFamily: FontFamilies.bold,
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 22,
   },
   circleTextCompact: {
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 20,
   },
   circleTextIdle: {
     color: '#6B6560',

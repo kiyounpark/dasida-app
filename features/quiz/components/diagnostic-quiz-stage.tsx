@@ -67,13 +67,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 12,
     gap: 18,
   },
   contentCompact: {
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 10,
     gap: 16,
   },
 });
