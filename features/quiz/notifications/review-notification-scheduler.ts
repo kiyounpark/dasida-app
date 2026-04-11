@@ -11,8 +11,8 @@ const EVENING_HOUR = 20;
 const EVENING_MINUTE = 0;
 
 const NOTIFICATION_ID_PREFIX = 'review_';
-const MORNING_NOTIFICATION_ID = 'review_morning';
-const EVENING_NOTIFICATION_ID = 'review_evening';
+const MORNING_NOTIFICATION_ID = `${NOTIFICATION_ID_PREFIX}morning` as const;
+const EVENING_NOTIFICATION_ID = `${NOTIFICATION_ID_PREFIX}evening` as const;
 
 function buildScheduledDate(dateString: string, hour: number, minute: number): Date {
   const [year, month, day] = dateString.split('-').map(Number);
