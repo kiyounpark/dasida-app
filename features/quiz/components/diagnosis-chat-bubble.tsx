@@ -1,12 +1,15 @@
+import { Image } from 'expo-image';
+import { StyleSheet, Text, View } from 'react-native';
+
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
-import { StyleSheet, Text, View } from 'react-native';
 
 type DiagnosisChatBubbleProps = {
   role: 'assistant' | 'user';
   text: string;
   variant?: 'assistant' | 'user';
   tone?: 'neutral' | 'positive' | 'warning' | 'info';
+  showAvatar?: boolean;
 };
 
 export function DiagnosisChatBubble({
@@ -14,6 +17,7 @@ export function DiagnosisChatBubble({
   text,
   variant,
   tone = 'neutral',
+  showAvatar = false,
 }: DiagnosisChatBubbleProps) {
   const resolvedVariant = variant ?? role;
   const isUser = resolvedVariant === 'user';
@@ -21,6 +25,14 @@ export function DiagnosisChatBubble({
 
   return (
     <View style={[styles.row, isUser ? styles.userRow : styles.assistantRow]}>
+      {!isUser && showAvatar && (
+        <Image
+          source={require('@/assets/review/ai-coach-avatar.png')}
+          style={styles.avatar}
+          contentFit="cover"
+        />
+      )}
+      {!isUser && !showAvatar && <View style={styles.avatarPlaceholder} />}
       <View
         style={[
           styles.bubble,
@@ -53,15 +65,30 @@ export function DiagnosisChatBubble({
   );
 }
 
+const AVATAR_SIZE = 28;
+
 const styles = StyleSheet.create({
   row: {
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
   },
   assistantRow: {
-    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
   },
   userRow: {
-    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    flexShrink: 0,
+  },
+  avatarPlaceholder: {
+    width: 0,
+    height: AVATAR_SIZE,
   },
   bubble: {
     position: 'relative',
@@ -70,13 +97,14 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 16,
     boxShadow: '0 8px 20px rgba(36, 50, 41, 0.06)',
+    flexShrink: 1,
   },
   assistantBubble: {
-    maxWidth: '88%',
+    maxWidth: '82%',
     backgroundColor: DiagnosisTheme.assistantBubble,
     borderWidth: 1,
     borderColor: DiagnosisTheme.assistantBubbleBorder,
-    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 4,
   },
   assistantWarning: {
     backgroundColor: DiagnosisTheme.warningBg,
@@ -96,15 +124,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: DiagnosisTheme.choiceActiveBorder,
   },
-  positiveAccent: {
-    backgroundColor: '#527A5F',
-  },
-  warningAccent: {
-    backgroundColor: '#C9973E',
-  },
-  infoAccent: {
-    backgroundColor: '#7B9079',
-  },
+  positiveAccent: { backgroundColor: '#527A5F' },
+  warningAccent: { backgroundColor: '#C9973E' },
+  infoAccent: { backgroundColor: '#7B9079' },
   text: {
     fontSize: 15,
     lineHeight: 23,
@@ -117,16 +139,7 @@ const styles = StyleSheet.create({
     color: DiagnosisTheme.userBubbleText,
     fontWeight: '700',
   },
-  positiveText: {
-    color: '#355B43',
-    paddingLeft: BrandSpacing.sm,
-  },
-  warningText: {
-    color: '#775520',
-    paddingLeft: BrandSpacing.sm,
-  },
-  infoText: {
-    color: '#4D6754',
-    paddingLeft: BrandSpacing.sm,
-  },
+  positiveText: { color: '#355B43', paddingLeft: BrandSpacing.sm },
+  warningText: { color: '#775520', paddingLeft: BrandSpacing.sm },
+  infoText: { color: '#4D6754', paddingLeft: BrandSpacing.sm },
 });

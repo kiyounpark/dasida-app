@@ -75,6 +75,7 @@ type DiagnosisConversationPageProps = {
   restoreOffset?: number;
   shouldRestoreScroll: boolean;
   shouldAutoScrollToEnd: boolean;
+  showAvatar?: boolean;
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
   onManualSelect: (methodId: SolveMethodId) => void;
@@ -126,6 +127,7 @@ export function DiagnosisConversationPage({
   restoreOffset,
   shouldRestoreScroll,
   shouldAutoScrollToEnd,
+  showAvatar = false,
   onInputChange,
   onAnalyze,
   onManualSelect,
@@ -217,6 +219,7 @@ export function DiagnosisConversationPage({
                     role={entry.role}
                     text={entry.text}
                     tone={entry.tone}
+                    showAvatar={showAvatar && entry.role === 'assistant'}
                   />
                 </Animated.View>
               );
