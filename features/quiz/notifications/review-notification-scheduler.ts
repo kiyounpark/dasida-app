@@ -11,14 +11,8 @@ const EVENING_HOUR = 20;
 const EVENING_MINUTE = 0;
 
 const NOTIFICATION_ID_PREFIX = 'review_';
-
-function morningId(taskId: string) {
-  return `${NOTIFICATION_ID_PREFIX}${taskId}_morning`;
-}
-
-function eveningId(taskId: string) {
-  return `${NOTIFICATION_ID_PREFIX}${taskId}_evening`;
-}
+const MORNING_NOTIFICATION_ID = 'review_morning';
+const EVENING_NOTIFICATION_ID = 'review_evening';
 
 function buildScheduledDate(dateString: string, hour: number, minute: number): Date {
   const [year, month, day] = dateString.split('-').map(Number);
@@ -70,7 +64,7 @@ export async function scheduleReviewNotifications(
 
     if (morningDate > now) {
       await Notifications.scheduleNotificationAsync({
-        identifier: morningId(task.id),
+        identifier: MORNING_NOTIFICATION_ID,
         content: {
           title,
           body,
@@ -87,7 +81,7 @@ export async function scheduleReviewNotifications(
 
     if (eveningDate > now) {
       await Notifications.scheduleNotificationAsync({
-        identifier: eveningId(task.id),
+        identifier: EVENING_NOTIFICATION_ID,
         content: {
           title,
           body,
@@ -102,14 +96,6 @@ export async function scheduleReviewNotifications(
       });
     }
   }
-}
-
-/**
- * 특정 task 알림 취소 (아침 + 저녁).
- */
-export async function cancelReviewNotifications(taskId: string): Promise<void> {
-  await Notifications.cancelScheduledNotificationAsync(morningId(taskId)).catch(() => {});
-  await Notifications.cancelScheduledNotificationAsync(eveningId(taskId)).catch(() => {});
 }
 
 /**
