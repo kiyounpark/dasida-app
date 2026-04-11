@@ -1,200 +1,165 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { useIsTablet } from '@/hooks/use-is-tablet';
 
+import type { ProblemTile, UseExamResultScreenResult } from '../hooks/use-exam-result-screen';
 import type { ExamResultSummary } from '../types';
 
-type ExamResultScreenViewProps = {
+type Props = Omit<UseExamResultScreenResult, 'result'> & {
   result: ExamResultSummary;
-  examTitle: string;
-  saveState: 'idle' | 'saving' | 'saved' | 'error';
-  onStartDiagnostic: () => void;
-  onReturnHome: () => void;
 };
 
 export function ExamResultScreenView({
   result,
   examTitle,
   saveState,
-  onStartDiagnostic,
+  problemTiles,
+  diagnosedCount,
+  wrongCount,
+  onAnalyzeProblem,
   onReturnHome,
-}: ExamResultScreenViewProps) {
+}: Props) {
   const insets = useSafeAreaInsets();
-  const isTablet = useIsTablet();
-
-  if (isTablet) {
-    return (
-      <View style={[styles.screen, { flex: 1 }]}>
-        <View style={[styles.heroWrap, { paddingTop: insets.top + 24 }]}>
-          <Text selectable style={styles.examTitle}>{examTitle}</Text>
-          <Text selectable style={styles.heroLabel}>채점 결과</Text>
-        </View>
-        <View style={styles.tabletBody}>
-          {/* 좌: 점수 카드 + 저장 상태 */}
-          <ScrollView
-            style={styles.tabletLeft}
-            contentContainerStyle={styles.tabletLeftContent}>
-            <View style={styles.scoreCard}>
-              <View style={styles.scoreRow}>
-                <View style={styles.scoreStat}>
-                  <Text selectable style={styles.scoreStatValue}>{result.totalScore}</Text>
-                  <Text selectable style={styles.scoreStatLabel}>획득 점수</Text>
-                </View>
-                <View style={styles.scoreDivider} />
-                <View style={styles.scoreStat}>
-                  <Text selectable style={styles.scoreStatValue}>{result.maxScore}</Text>
-                  <Text selectable style={styles.scoreStatLabel}>만점</Text>
-                </View>
-                <View style={styles.scoreDivider} />
-                <View style={styles.scoreStat}>
-                  <Text selectable style={[styles.scoreStatValue, styles.accuracyValue]}>
-                    {result.accuracy}%
-                  </Text>
-                  <Text selectable style={styles.scoreStatLabel}>정답률</Text>
-                </View>
-              </View>
-              <View style={styles.countRow}>
-                <View style={[styles.countBadge, styles.correctBadge]}>
-                  <Text selectable style={styles.countBadgeText}>정답 {result.correct}</Text>
-                </View>
-                <View style={[styles.countBadge, styles.wrongBadge]}>
-                  <Text selectable style={styles.countBadgeText}>오답 {result.wrong}</Text>
-                </View>
-                {result.unanswered > 0 && (
-                  <View style={[styles.countBadge, styles.unansweredBadge]}>
-                    <Text selectable style={styles.countBadgeText}>미답변 {result.unanswered}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-            {saveState === 'saving' && (
-              <Text selectable style={styles.saveStatus}>결과 저장 중...</Text>
-            )}
-            {saveState === 'error' && (
-              <Text selectable style={[styles.saveStatus, styles.saveError]}>
-                결과 저장에 실패했습니다.
-              </Text>
-            )}
-          </ScrollView>
-          {/* 우: CTA */}
-          <View style={[styles.tabletRight, { paddingBottom: insets.bottom + 32 }]}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={onStartDiagnostic}
-              style={styles.primaryCta}>
-              <Text selectable style={styles.primaryCtaText}>약점 분석하러 가기</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={onReturnHome}
-              style={styles.secondaryCta}>
-              <Text selectable style={styles.secondaryCtaText}>홈으로 돌아가기</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  }
+  const progressPercent = wrongCount > 0 ? (diagnosedCount / wrongCount) * 100 : 0;
 
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 32 }]}>
-      {/* 헤더 */}
-      <View style={[styles.heroWrap, { paddingTop: insets.top + 24 }]}>
-        <Text selectable style={styles.examTitle}>
-          {examTitle}
-        </Text>
-        <Text selectable style={styles.heroLabel}>
-          채점 결과
-        </Text>
-      </View>
 
-      {/* 점수 카드 */}
-      <View style={styles.scoreCard}>
+      {/* ── 헤더 패널 ── */}
+      <View style={[styles.hero, { paddingTop: insets.top + 20 }]}>
+        <Text selectable style={styles.examName}>{examTitle}</Text>
         <View style={styles.scoreRow}>
-          <View style={styles.scoreStat}>
-            <Text selectable style={styles.scoreStatValue}>
-              {result.totalScore}
-            </Text>
-            <Text selectable style={styles.scoreStatLabel}>
-              획득 점수
-            </Text>
+          <View style={styles.scoreLeft}>
+            <Text selectable style={styles.scoreNum}>{result.totalScore}</Text>
+            <Text selectable style={styles.scoreDenom}>/ {result.maxScore}점</Text>
           </View>
-          <View style={styles.scoreDivider} />
-          <View style={styles.scoreStat}>
-            <Text selectable style={styles.scoreStatValue}>
-              {result.maxScore}
-            </Text>
-            <Text selectable style={styles.scoreStatLabel}>
-              만점
-            </Text>
-          </View>
-          <View style={styles.scoreDivider} />
-          <View style={styles.scoreStat}>
-            <Text selectable style={[styles.scoreStatValue, styles.accuracyValue]}>
-              {result.accuracy}%
-            </Text>
-            <Text selectable style={styles.scoreStatLabel}>
-              정답률
-            </Text>
+          <View style={styles.ring}>
+            <Text selectable style={styles.ringPct}>{result.accuracy}%</Text>
+            <Text selectable style={styles.ringLabel}>정답률</Text>
           </View>
         </View>
-
-        <View style={styles.countRow}>
-          <View style={[styles.countBadge, styles.correctBadge]}>
-            <Text selectable style={styles.countBadgeText}>
-              정답 {result.correct}
-            </Text>
+        <View style={styles.statRow}>
+          <View style={[styles.statChip, styles.chipCorrect]}>
+            <View style={[styles.dot, styles.dotCorrect]} />
+            <Text selectable style={styles.chipText}>정답 {result.correct}</Text>
           </View>
-          <View style={[styles.countBadge, styles.wrongBadge]}>
-            <Text selectable style={styles.countBadgeText}>
-              오답 {result.wrong}
-            </Text>
+          <View style={[styles.statChip, styles.chipWrong]}>
+            <View style={[styles.dot, styles.dotWrong]} />
+            <Text selectable style={styles.chipText}>오답 {result.wrong}</Text>
           </View>
           {result.unanswered > 0 && (
-            <View style={[styles.countBadge, styles.unansweredBadge]}>
-              <Text selectable style={styles.countBadgeText}>
-                미답변 {result.unanswered}
-              </Text>
+            <View style={[styles.statChip, styles.chipBlank]}>
+              <View style={[styles.dot, styles.dotBlank]} />
+              <Text selectable style={styles.chipText}>미풀이 {result.unanswered}</Text>
             </View>
           )}
         </View>
       </View>
 
-      {/* 저장 상태 */}
-      {saveState === 'saving' && (
-        <Text selectable style={styles.saveStatus}>
-          결과 저장 중...
-        </Text>
-      )}
-      {saveState === 'error' && (
-        <Text selectable style={[styles.saveStatus, styles.saveError]}>
-          결과 저장에 실패했습니다.
-        </Text>
-      )}
+      {/* ── 바디 ── */}
+      <View style={styles.body}>
 
-      {/* CTA */}
-      <View style={styles.ctaWrap}>
+        {/* 약점 분석 진행률 */}
+        {wrongCount > 0 && (
+          <View style={styles.progWrap}>
+            <View style={styles.progHead}>
+              <Text selectable style={styles.progLabel}>약점 분석</Text>
+              <Text selectable style={styles.progCount}>{diagnosedCount} / {wrongCount} 완료</Text>
+            </View>
+            <View style={styles.progTrack}>
+              <View style={[styles.progFill, { width: `${progressPercent}%` }]} />
+            </View>
+          </View>
+        )}
+
+        {/* 저장 상태 */}
+        {saveState === 'error' && (
+          <Text selectable style={styles.saveError}>결과 저장에 실패했습니다.</Text>
+        )}
+
+        {/* 문제 그리드 */}
+        {problemTiles.length > 0 && (
+          <View>
+            <Text selectable style={styles.secTitle}>틀린 문제 · 미풀이</Text>
+            <View style={styles.grid}>
+              {problemTiles.map((tile) => (
+                <ProblemTileCard
+                  key={tile.number}
+                  tile={tile}
+                  onPress={() => onAnalyzeProblem(tile.number)}
+                />
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.divider} />
         <Pressable
           accessibilityRole="button"
-          onPress={onStartDiagnostic}
-          style={styles.primaryCta}>
-          <Text selectable style={styles.primaryCtaText}>
-            약점 분석하러 가기
-          </Text>
-        </Pressable>
-
-        <Pressable accessibilityRole="button" onPress={onReturnHome} style={styles.secondaryCta}>
-          <Text selectable style={styles.secondaryCtaText}>
-            홈으로 돌아가기
-          </Text>
+          onPress={onReturnHome}
+          style={styles.homeBtn}>
+          <Text selectable style={styles.homeBtnText}>홈으로 돌아가기</Text>
         </Pressable>
       </View>
     </ScrollView>
+  );
+}
+
+function ProblemTileCard({
+  tile,
+  onPress,
+}: {
+  tile: ProblemTile;
+  onPress: () => void;
+}) {
+  const isUndone = tile.status === 'undone';
+  const isDone = tile.status === 'done';
+  const isBlank = tile.status === 'blank';
+
+  return (
+    <Pressable
+      onPress={isUndone ? onPress : undefined}
+      disabled={!isUndone}
+      accessibilityRole={isUndone ? 'button' : undefined}
+      style={[
+        styles.tile,
+        isUndone && styles.tileUndone,
+        isDone && styles.tileDone,
+        isBlank && styles.tileBlank,
+      ]}>
+      <Text
+        selectable
+        style={[
+          styles.tileNum,
+          isUndone && styles.tileNumUndone,
+          isDone && styles.tileNumDone,
+          isBlank && styles.tileNumBlank,
+        ]}>
+        {tile.number}
+      </Text>
+      <View
+        style={[
+          styles.tileAction,
+          isUndone && styles.tileActionUndone,
+          isDone && styles.tileActionDone,
+          isBlank && styles.tileActionBlank,
+        ]}>
+        <Text
+          selectable
+          style={[
+            styles.tileActionText,
+            isUndone && styles.tileActionTextUndone,
+            isDone && styles.tileActionTextDone,
+            isBlank && styles.tileActionTextBlank,
+          ]}>
+          {isUndone ? '왜 틀렸지?' : isDone ? '✓ 완료' : '미풀이'}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -205,151 +170,217 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: BrandSpacing.lg,
-    gap: BrandSpacing.lg,
   },
-  heroWrap: {
-    alignItems: 'center',
-    paddingBottom: BrandSpacing.sm,
-    gap: 6,
+
+  // ── 헤더 패널 ──
+  hero: {
+    backgroundColor: BrandColors.primaryDark,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 12,
   },
-  examTitle: {
+  examName: {
     fontFamily: FontFamilies.medium,
-    fontSize: 14,
-    lineHeight: 18,
-    color: BrandColors.primarySoft,
-  },
-  heroLabel: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 28,
-    lineHeight: 36,
-    color: '#1B1A17',
-  },
-  scoreCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.md,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
+    fontSize: 11,
+    color: '#6BAA72',
+    letterSpacing: 0.4,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  scoreStat: {
-    flex: 1,
+  scoreLeft: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 5,
+  },
+  scoreNum: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 48,
+    lineHeight: 52,
+    color: '#FFFFFF',
+    fontVariant: ['tabular-nums'],
+  },
+  scoreDenom: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.38)',
+  },
+  ring: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 4,
+    borderColor: '#7FC87A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringPct: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontVariant: ['tabular-nums'],
+  },
+  ringLabel: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 8,
+    color: '#7FC87A',
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  statChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+  chipCorrect: { backgroundColor: 'rgba(127,200,122,0.15)' },
+  chipWrong: { backgroundColor: 'rgba(220,80,80,0.18)' },
+  chipBlank: { backgroundColor: 'rgba(255,255,255,0.08)' },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  dotCorrect: { backgroundColor: '#7FC87A' },
+  dotWrong: { backgroundColor: '#E07070' },
+  dotBlank: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  chipText: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+  },
+
+  // ── 바디 ──
+  body: {
+    padding: 18,
+    gap: 16,
+  },
+  progWrap: {
+    gap: 6,
+  },
+  progHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progLabel: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 11,
+    color: '#4A4540',
+  },
+  progCount: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 11,
+    color: BrandColors.primarySoft,
+  },
+  progTrack: {
+    height: 5,
+    backgroundColor: '#E4DFD6',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progFill: {
+    height: '100%',
+    backgroundColor: BrandColors.primarySoft,
+    borderRadius: 999,
+  },
+  saveError: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
+    color: BrandColors.danger,
+    textAlign: 'center',
+  },
+  secTitle: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 13,
+    color: '#1B1A17',
+    marginBottom: 10,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+
+  // ── 타일 ──
+  tile: {
+    width: '31%',
+    borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
+    padding: 12,
     alignItems: 'center',
     gap: 4,
   },
-  scoreDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: BrandColors.border,
-  },
-  scoreStatValue: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 32,
-    lineHeight: 40,
-    color: '#1B1A17',
-  },
-  accuracyValue: {
-    color: BrandColors.primarySoft,
-  },
-  scoreStatLabel: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 12,
-    lineHeight: 16,
-    color: '#8E8A81',
-  },
-  countRow: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  countBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-  },
-  correctBadge: {
-    backgroundColor: '#EEF8EE',
-  },
-  wrongBadge: {
-    backgroundColor: '#FFF0F0',
-  },
-  unansweredBadge: {
-    backgroundColor: '#F5F4F1',
-  },
-  countBadgeText: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#4A4A4A',
-  },
-  saveStatus: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#8E8A81',
-    textAlign: 'center',
-  },
-  saveError: {
-    color: BrandColors.danger,
-  },
-  ctaWrap: {
-    gap: BrandSpacing.sm,
-    marginTop: BrandSpacing.sm,
-  },
-  primaryCta: {
-    backgroundColor: BrandColors.primaryDark,
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 60,
-  },
-  primaryCtaText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 18,
-    lineHeight: 24,
-    color: '#FFFFFF',
-  },
-  secondaryCta: {
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-    borderWidth: 1.5,
-    borderColor: '#CAC7BF',
+  tileUndone: {
     backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E8E3D8',
+    boxShadow: '0 3px 0 #CECDCA',
   },
-  secondaryCtaText: {
+  tileDone: {
+    backgroundColor: '#EDF7ED',
+    borderWidth: 1.5,
+    borderColor: '#B8DDB8',
+    opacity: 0.85,
+  },
+  tileBlank: {
+    backgroundColor: '#F5F3EF',
+    borderWidth: 1.5,
+    borderColor: '#C8C2B4',
+    borderStyle: 'dashed',
+  },
+  tileNum: {
     fontFamily: FontFamilies.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 22,
+    lineHeight: 26,
+    fontVariant: ['tabular-nums'],
+  },
+  tileNumUndone: { color: '#1B1A17' },
+  tileNumDone: { color: '#3A7A3A' },
+  tileNumBlank: { color: '#A89F8C' },
+  tileAction: {
+    width: '100%',
+    paddingVertical: 5,
+    borderRadius: 7,
+    alignItems: 'center',
+  },
+  tileActionUndone: { backgroundColor: BrandColors.primaryDark },
+  tileActionDone: { backgroundColor: '#C8EAC8' },
+  tileActionBlank: {
+    borderWidth: 1,
+    borderColor: '#C8C2B4',
+    borderStyle: 'dashed',
+  },
+  tileActionText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 10,
+  },
+  tileActionTextUndone: { color: '#FFFFFF' },
+  tileActionTextDone: { color: '#2E7A2E' },
+  tileActionTextBlank: { color: '#B8B0A4' },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#EAE6DE',
+  },
+  homeBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#D8D3C8',
+    borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  homeBtnText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 14,
     color: '#8E8A81',
-  },
-  // 태블릿
-  tabletBody: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  tabletLeft: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#E8E4DC',
-  },
-  tabletLeftContent: {
-    padding: 20,
-    gap: 20,
-  },
-  tabletRight: {
-    flex: 2,
-    padding: 20,
-    gap: 12,
-    justifyContent: 'center',
   },
 });

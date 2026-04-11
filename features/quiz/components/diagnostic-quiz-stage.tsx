@@ -21,21 +21,21 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
       <QuizSolveLayout
         body={
           <DiagnosticQuestionCard
+            choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             question={quizStage.problem.question}
+            selectedIndex={quizStage.selectedIndex}
           />
         }
         bodyContentContainerStyle={[styles.content, isCompactLayout ? styles.contentCompact : null]}
         footer={
           <DiagnosticSolveBottomPanel
             canGoPrevious={quizStage.canGoPrevious}
-            choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             isNextDisabled={quizStage.isNextDisabled}
             onNextPress={quizStage.onNextQuestion}
             onPreviousPress={quizStage.onPreviousQuestion}
             onSelectChoice={quizStage.onSelectChoice}
-            problemId={quizStage.problem.id}
             selectedIndex={quizStage.selectedIndex}
           />
         }
@@ -67,13 +67,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 12,
     gap: 18,
   },
   contentCompact: {
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 10,
     gap: 16,
   },
 });

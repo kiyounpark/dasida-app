@@ -1,57 +1,58 @@
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { DiagnosticChoiceCard } from '@/features/quiz/components/diagnostic-choice-card';
 import { DiagnosticSolveFooter } from '@/features/quiz/components/diagnostic-solve-footer';
-import { getQuizBottomPanelMaxHeight } from '@/features/quiz/components/quiz-solve-layout';
+import { BrandColors } from '@/constants/brand';
+import { FontFamilies } from '@/constants/typography';
 
 export type DiagnosticSolveBottomPanelProps = {
   canGoPrevious: boolean;
-  choices: string[];
   isCompactLayout: boolean;
   isNextDisabled: boolean;
   onNextPress: () => void;
   onPreviousPress: () => void;
   onSelectChoice: (index: number) => void;
-  problemId: string;
   selectedIndex: number | null;
 };
 
 export function DiagnosticSolveBottomPanel({
   canGoPrevious,
-  choices,
   isCompactLayout,
   isNextDisabled,
   onNextPress,
   onPreviousPress,
   onSelectChoice,
-  problemId,
   selectedIndex,
 }: DiagnosticSolveBottomPanelProps) {
-  const { height } = useWindowDimensions();
-  const choicesMaxHeight = getQuizBottomPanelMaxHeight(height, isCompactLayout);
-
   return (
     <View style={styles.panel}>
-      <ScrollView
-        key={problemId}
-        style={[styles.choiceScroll, { maxHeight: choicesMaxHeight }]}
-        contentContainerStyle={[
-          styles.choiceContent,
-          isCompactLayout ? styles.choiceContentCompact : null,
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        {choices.map((choice, index) => (
-          <DiagnosticChoiceCard
-            key={`${problemId}-${index}`}
-            index={index}
-            isCompactLayout={isCompactLayout}
-            isSelected={selectedIndex === index}
-            onPress={() => onSelectChoice(index)}
-            text={choice}
-          />
-        ))}
-      </ScrollView>
+      <View accessibilityRole="radiogroup" style={styles.circleRow}>
+        {[0, 1, 2, 3, 4].map((i) => {
+          const isSelected = selectedIndex === i;
+          return (
+            <Pressable
+              key={i}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={`${i + 1}번`}
+              hitSlop={isCompactLayout ? { top: 2, bottom: 2, left: 2, right: 2 } : undefined}
+              onPress={() => onSelectChoice(i)}
+              style={[
+                styles.circle,
+                isCompactLayout && styles.circleCompact,
+                isSelected ? styles.circleSelected : styles.circleIdle,
+              ]}>
+              <Text
+                style={[
+                  styles.circleText,
+                  isCompactLayout && styles.circleTextCompact,
+                  isSelected ? styles.circleTextSelected : styles.circleTextIdle,
+                ]}>
+                {i + 1}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <DiagnosticSolveFooter
         canGoPrevious={canGoPrevious}
@@ -66,18 +67,47 @@ export function DiagnosticSolveBottomPanel({
 
 const styles = StyleSheet.create({
   panel: {
-    gap: 16,
+    gap: 8,
     paddingHorizontal: 18,
-    paddingTop: 16,
+    paddingTop: 8,
   },
-  choiceScroll: {
-    width: '100%',
+  circleRow: {
+    flexDirection: 'row',
+    gap: 14,
+    justifyContent: 'center',
   },
-  choiceContent: {
-    gap: 12,
-    paddingBottom: 4,
+  circle: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  choiceContentCompact: {
-    gap: 10,
+  circleCompact: {
+    width: 40,
+    height: 40,
+  },
+  circleIdle: {
+    borderWidth: 1.5,
+    borderColor: '#D7D4CD',
+    backgroundColor: '#FFFFFF',
+  },
+  circleSelected: {
+    backgroundColor: BrandColors.primaryDark,
+  },
+  circleText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  circleTextCompact: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  circleTextIdle: {
+    color: '#6B6560',
+  },
+  circleTextSelected: {
+    color: '#FFFFFF',
   },
 });

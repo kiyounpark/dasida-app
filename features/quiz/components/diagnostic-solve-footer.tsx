@@ -26,6 +26,7 @@ export function DiagnosticSolveFooter({
       <Pressable
         accessibilityRole="button"
         disabled={!canGoPrevious}
+        hitSlop={isCompactLayout ? { top: 2, bottom: 2 } : undefined}
         onPress={onPreviousPress}
         style={[
           styles.button,
@@ -47,6 +48,7 @@ export function DiagnosticSolveFooter({
       <Pressable
         accessibilityRole="button"
         disabled={isNextDisabled}
+        hitSlop={isCompactLayout ? { top: 2, bottom: 2 } : undefined}
         onPress={onNextPress}
         style={[
           styles.button,
@@ -72,19 +74,19 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     gap: 14,
-    paddingTop: 12,
+    paddingTop: 8,
     backgroundColor: 'transparent',
   },
   button: {
     flex: 1,
-    minHeight: 60,
+    minHeight: 44,
     borderRadius: 18,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonCompact: {
-    minHeight: 56,
+    minHeight: 40,
     borderRadius: 16,
   },
   primaryButton: {
@@ -104,8 +106,8 @@ const styles = StyleSheet.create({
   },
   primaryLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 22,
     color: '#FFFFFF',
   },
   primaryLabelDisabled: {
@@ -113,15 +115,15 @@ const styles = StyleSheet.create({
   },
   secondaryLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 22,
     color: '#8E8A81',
   },
   secondaryLabelDisabled: {
     color: '#B9B4AA',
   },
   labelCompact: {
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 20,
   },
 });
