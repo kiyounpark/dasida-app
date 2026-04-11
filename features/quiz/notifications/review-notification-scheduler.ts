@@ -61,7 +61,7 @@ export async function scheduleReviewNotifications(
   const tasks = await store.load(accountKey);
   const incompleteTasks = tasks
     .filter((t) => !t.completed)
-    .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor));
+    .sort((a, b) => a.scheduledFor.slice(0, 10).localeCompare(b.scheduledFor.slice(0, 10)));
 
   const representativeTask = incompleteTasks[0];
   if (!representativeTask) return;
