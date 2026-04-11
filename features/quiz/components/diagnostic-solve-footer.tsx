@@ -26,6 +26,7 @@ export function DiagnosticSolveFooter({
       <Pressable
         accessibilityRole="button"
         disabled={!canGoPrevious}
+        hitSlop={isCompactLayout ? { top: 2, bottom: 2 } : undefined}
         onPress={onPreviousPress}
         style={[
           styles.button,
@@ -47,6 +48,7 @@ export function DiagnosticSolveFooter({
       <Pressable
         accessibilityRole="button"
         disabled={isNextDisabled}
+        hitSlop={isCompactLayout ? { top: 2, bottom: 2 } : undefined}
         onPress={onNextPress}
         style={[
           styles.button,

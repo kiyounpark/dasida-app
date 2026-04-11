@@ -32,6 +32,7 @@ export function DiagnosticQuestionCard({
           styles.questionText,
           hasProminentFormula && styles.questionTextWithFormula,
           isCompactLayout && styles.questionTextCompact,
+          isCompactLayout && hasProminentFormula && styles.questionTextCompactFormula,
         ]}
       />
 
@@ -103,6 +104,9 @@ const styles = StyleSheet.create({
   questionTextCompact: {
     fontSize: 18,
     lineHeight: 28,
+  },
+  questionTextCompactFormula: {
+    lineHeight: 32,
   },
   choicesSection: {
     marginTop: 10,

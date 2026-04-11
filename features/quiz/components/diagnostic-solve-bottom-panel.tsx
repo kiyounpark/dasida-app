@@ -34,6 +34,7 @@ export function DiagnosticSolveBottomPanel({
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={`${i + 1}번`}
+              hitSlop={isCompactLayout ? { top: 2, bottom: 2, left: 2, right: 2 } : undefined}
               onPress={() => onSelectChoice(i)}
               style={[
                 styles.circle,
