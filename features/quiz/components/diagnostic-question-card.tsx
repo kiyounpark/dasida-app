@@ -51,15 +51,17 @@ export function DiagnosticQuestionCard({
                   ]}>
                   {CHOICE_LABELS[i] ?? `(${i + 1})`}
                 </Text>
-                <MathText
-                  selectable
-                  text={choice}
-                  style={[
-                    styles.choiceText,
-                    isCompactLayout && styles.choiceTextCompact,
-                    isSelected && styles.choiceTextSelected,
-                  ]}
-                />
+                <View style={styles.choiceTextWrap}>
+                  <MathText
+                    selectable
+                    text={choice}
+                    style={[
+                      styles.choiceText,
+                      isCompactLayout && styles.choiceTextCompact,
+                      isSelected && styles.choiceTextSelected,
+                    ]}
+                  />
+                </View>
               </View>
             );
           })}
@@ -131,8 +133,11 @@ const styles = StyleSheet.create({
   choiceLabelSelected: {
     color: BrandColors.primaryDark,
   },
-  choiceText: {
+  choiceTextWrap: {
     flex: 1,
+    minWidth: 0,
+  },
+  choiceText: {
     fontSize: 18,
     lineHeight: 28,
     color: '#3D3B36',

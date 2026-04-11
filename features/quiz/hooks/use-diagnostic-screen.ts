@@ -478,7 +478,7 @@ export function useDiagnosticScreen({
   };
 
   const currentQuestionNumber = Math.min(state.currentQuestionIndex + 1, problemData.length);
-  const questionCount = problemData.length;
+  const questionCount = state.totalQuestions;
   const progressRatio = currentQuestionNumber / questionCount;
   const progressPercent = `${progressRatio * 100}%` as `${number}%`;
   const stepLabel = `${String(currentQuestionNumber).padStart(2, '0')} / ${String(questionCount).padStart(2, '0')}`;
