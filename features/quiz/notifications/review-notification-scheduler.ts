@@ -14,8 +14,16 @@ const NOTIFICATION_ID_PREFIX = 'review_';
 const MORNING_NOTIFICATION_ID = `${NOTIFICATION_ID_PREFIX}morning` as const;
 const EVENING_NOTIFICATION_ID = `${NOTIFICATION_ID_PREFIX}evening` as const;
 
+function toLocalDateString(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function buildScheduledDate(dateString: string, hour: number, minute: number): Date {
-  const [year, month, day] = dateString.split('-').map(Number);
+  // Normalize: accept both "YYYY-MM-DD" (review-scheduler) and
+  // "YYYY-MM-DDTHH:mm:ss.sssZ" (local-learning-history-repository addDays).
+  const datePart = dateString.slice(0, 10);
+  const [year, month, day] = datePart.split('-').map(Number);
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
@@ -73,16 +81,22 @@ export async function scheduleReviewNotifications(
   const eveningBody = '잠들기 전 3분, 기억이 굳어져요';
 
   const now = new Date();
-  const morningDate = buildScheduledDate(
-    representativeTask.scheduledFor,
-    MORNING_HOUR,
-    MORNING_MINUTE,
-  );
-  const eveningDate = buildScheduledDate(
-    representativeTask.scheduledFor,
-    EVENING_HOUR,
-    EVENING_MINUTE,
-  );
+
+  // Normalize to YYYY-MM-DD (handles both YYYY-MM-DD and full ISO strings).
+  let scheduledDateString = representativeTask.scheduledFor.slice(0, 10);
+
+  let morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
+  let eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
+
+  // Fallback: if both slots have already passed (e.g. user completed diagnostic after 20:00),
+  // advance to tomorrow so at least the next morning slot fires.
+  if (morningDate <= now && eveningDate <= now) {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    scheduledDateString = toLocalDateString(tomorrow);
+    morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
+    eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
+  }
 
   if (morningDate > now) {
     await Notifications.scheduleNotificationAsync({
