@@ -127,8 +127,8 @@ export async function scheduleTestNotification(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     identifier: 'dev-test-notification',
     content: {
-      title: '판별식, 잊기 전에 확인해요',
-      body: '3분만 다시 보면 기억이 살아납니다 →',
+      title: '벌써 잊혀지고 있어요. 판별식 계산 실수, 지금 3분이면 돼요',
+      body: '오늘 안 하면 내일 처음부터예요',
       sound: 'default',
       data: { taskId: 'dev-test-task' },
     },
