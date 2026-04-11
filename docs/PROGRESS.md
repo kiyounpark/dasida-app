@@ -21,6 +21,21 @@
 
 ## 로그
 
+### 2026.04.11
+
+**모의고사 오답 약점 분석 구현 완료**
+- `features/quiz/components/diagnosis-chat-bubble.tsx`: `showAvatar` prop 추가 — 선생님 캐릭터 아바타 표시
+- `features/quiz/components/diagnosis-conversation-page.tsx`: `showAvatar` prop 전달
+- `constants/storage-keys.ts`: `examDiagnosisProgressPrefix` 추가 (`dasida/exam-diagnosis/`)
+- `features/quiz/exam/exam-diagnosis-progress.ts` 신규 — AsyncStorage 기반 진단 진행 상태 저장 (직렬화 큐 포함)
+- `features/quiz/exam/hooks/use-exam-result-screen.ts`: 오답 타일 계산 + `onAnalyzeProblem` 추가, `useFocusEffect`로 진행 상태 갱신
+- `features/quiz/exam/screens/exam-result-screen-view.tsx`: 오답 타일 그리드 UI (undone/done/blank 상태)
+- `features/quiz/exam/build-exam-diagnosis-attempt-input.ts` 신규 — 모의고사 기반 진단 attempt 입력 빌더
+- `features/quiz/exam/hooks/use-exam-diagnosis.ts` 신규 — 문제별 진단 흐름 훅
+- `features/quiz/exam/screens/exam-diagnosis-screen.tsx` 신규 — 진단 화면 (다크 헤더 + 채팅 UI)
+- `app/(tabs)/quiz/exam/diagnosis.tsx` 신규 + `_layout.tsx` 업데이트 — 라우트 등록
+- 커밋: 0934d6c, cbff2d4, dbebc95, d078988, ba69522, 25e8480, 89ca419, 775285c, 3f57ff1, 62b5520
+
 ### 2026.04.10
 
 **고2 진단 콘텐츠 구현 완료 — g2_xxx 완전 분리**
@@ -739,6 +754,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.11 11:05
+- 해시: `7570ea2` (`7570ea29e03944cc41d2dea430da0acccb6634e0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7570ea29e03944cc41d2dea430da0acccb6634e0
+- 작성자: 박기윤
+- 메시지: fix(notifications): cold-start 알림 nav 타이밍 수정 — Stack 마운트 후 router.push 실행
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.10 17:50
 - 해시: `6ed0136` (`6ed013602c871f346875a8a26f17a55fc94a11b2`)
