@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
@@ -65,18 +65,19 @@ function AuthGateRedirector() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const pendingTaskId = useRef<string | null>(null);
 
   useEffect(() => {
-    // 콜드스타트: 앱 종료 상태에서 알림 탭으로 진입한 경우
+    // 콜드스타트: Stack이 아직 마운트되지 않았으므로 ref에만 저장
     const lastResponse = Notifications.getLastNotificationResponse();
     if (lastResponse) {
       const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
       if (taskId) {
-        router.push({ pathname: '/quiz/review-session', params: { taskId } });
+        pendingTaskId.current = taskId;
       }
     }
 
-    // 포그라운드/백그라운드: 앱 실행 중 알림 탭
+    // 포그라운드/백그라운드: 앱 실행 중 알림 탭 (Stack 이미 마운트됨)
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const taskId = response.notification.request.content.data?.taskId as string | undefined;
       if (taskId) {
@@ -101,6 +102,12 @@ export default function RootLayout() {
 
     if (fontsLoaded || fontError) {
       void SplashScreen.hideAsync();
+
+      // Stack이 마운트된 이후 → cold-start pending 알림 처리
+      if (pendingTaskId.current) {
+        router.push({ pathname: '/quiz/review-session', params: { taskId: pendingTaskId.current } });
+        pendingTaskId.current = null;
+      }
     }
   }, [fontsLoaded, fontError]);
 
