@@ -21,21 +21,21 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
       <QuizSolveLayout
         body={
           <DiagnosticQuestionCard
+            choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             question={quizStage.problem.question}
+            selectedIndex={quizStage.selectedIndex}
           />
         }
         bodyContentContainerStyle={[styles.content, isCompactLayout ? styles.contentCompact : null]}
         footer={
           <DiagnosticSolveBottomPanel
             canGoPrevious={quizStage.canGoPrevious}
-            choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             isNextDisabled={quizStage.isNextDisabled}
             onNextPress={quizStage.onNextQuestion}
             onPreviousPress={quizStage.onPreviousQuestion}
             onSelectChoice={quizStage.onSelectChoice}
-            problemId={quizStage.problem.id}
             selectedIndex={quizStage.selectedIndex}
           />
         }
