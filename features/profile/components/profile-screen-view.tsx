@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -153,6 +152,7 @@ export function ProfileScreenView({
   manualImportCandidate,
   noticeMessage,
   onDeleteAccount,
+  onGoToDevHub,
   onGoToOnboarding,
   onImportLocalHistory,
   onPullReviewDueDates,
@@ -420,7 +420,7 @@ export function ProfileScreenView({
             <ActionButton
               label="개발 허브로 이동"
               subtle
-              onPress={() => router.push('/dev')}
+              onPress={onGoToDevHub}
             />
           </View>
         ) : null}

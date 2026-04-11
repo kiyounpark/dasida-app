@@ -257,6 +257,7 @@ export function useProfileScreen() {
       }
     },
     onGoToOnboarding: () => router.push('/onboarding'),
+    onGoToDevHub: () => router.push('/dev'),
     onSignIn: handleSignIn,
     onSignOut: handleSignOut,
     onDeleteAccount: async () => {
