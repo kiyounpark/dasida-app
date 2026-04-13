@@ -301,6 +301,7 @@ export function buildSummary(
     totals: {
       diagnosticAttempts: attempts.filter((attempt) => attempt.source === 'diagnostic').length,
       featuredExamAttempts: attempts.filter((attempt) => attempt.source === 'featured-exam').length,
+      reviewAttempts: attempts.filter((attempt) => attempt.source === 'weakness-practice').length,
     },
     recentActivity: buildRecentActivity(sortedAttempts, reviewTasks, featuredExamState),
   };
