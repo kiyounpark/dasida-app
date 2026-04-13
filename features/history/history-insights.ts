@@ -7,7 +7,7 @@ export type HistoryHeroState = {
   reviewAttempts: number;
   dueWeaknesses: Array<{ weaknessId: WeaknessId; label: string; stageLabel: string }>;
   accuracyValue: string;
-  accuracyBadgeText: string;
+  accuracyBadgeText: string | null;
   accuracyBadgeTone: 'positive' | 'neutral' | 'warning';
   ctaLabel: string;
   ctaKind: 'review' | 'diagnostic';
@@ -94,7 +94,7 @@ function buildHero(
     compareTimestampsAsc(a.completedAt, b.completedAt),
   );
   let accuracyValue = '—';
-  let accuracyBadgeText = '—';
+  let accuracyBadgeText: string | null = null;
   let accuracyBadgeTone: HistoryHeroState['accuracyBadgeTone'] = 'neutral';
 
   if (!isLoadingAttempts && sorted.length > 0) {

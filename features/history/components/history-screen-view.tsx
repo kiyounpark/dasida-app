@@ -121,7 +121,7 @@ export function HistoryScreenView({
             <Text selectable style={styles.heroAccuracyValue}>
               {isLoadingAttempts ? '—' : insights.hero.accuracyValue}
             </Text>
-            {!isLoadingAttempts && insights.hero.accuracyBadgeText !== '—' ? (
+            {!isLoadingAttempts && insights.hero.accuracyBadgeText !== null ? (
               <View style={[styles.heroAccuracyBadge, { backgroundColor: accuracyBadge.bg }]}>
                 <Text selectable style={[styles.heroAccuracyBadgeText, { color: accuracyBadge.color }]}>
                   {insights.hero.accuracyBadgeText}

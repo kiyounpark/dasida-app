@@ -7,18 +7,9 @@ import type { LearningAttempt } from '@/features/learning/types';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
 
-function formatErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return '최근 진단 흐름을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
-}
-
 export function useHistoryScreen() {
   const { isReady, refresh, loadRecentAttempts, summary } = useCurrentLearner();
   const [recentDiagnosticAttempts, setRecentDiagnosticAttempts] = useState<LearningAttempt[]>([]);
-  const [attemptsErrorMessage, setAttemptsErrorMessage] = useState<string | null>(null);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isMountedRef = useRef(true);
@@ -36,7 +27,6 @@ export function useHistoryScreen() {
       }
 
       setRecentDiagnosticAttempts([]);
-      setAttemptsErrorMessage(null);
       setIsLoadingAttempts(false);
       return;
     }
@@ -54,14 +44,12 @@ export function useHistoryScreen() {
       }
 
       setRecentDiagnosticAttempts(attempts);
-      setAttemptsErrorMessage(null);
     } catch (error) {
       if (!isMountedRef.current) {
         return;
       }
 
       setRecentDiagnosticAttempts([]);
-      setAttemptsErrorMessage(formatErrorMessage(error));
     } finally {
       if (isMountedRef.current) {
         setIsLoadingAttempts(false);
