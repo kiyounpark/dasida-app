@@ -11,6 +11,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { BrandColors } from '@/constants/brand';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import { DiagnosisChatBubble } from '@/features/quiz/components/diagnosis-chat-bubble';
 import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-card';
 import { DiagnosisMethodSelectorCard } from '@/features/quiz/components/diagnosis-method-selector-card';
@@ -48,6 +49,7 @@ export function ExamDiagnosisPage({
 }: ExamDiagnosisPageProps) {
   const hook = useExamDiagnosis({ examId, problemNumber, userAnswer, onComplete });
   const scrollRef = useRef<ScrollView>(null);
+  const isTablet = useIsTablet();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -61,6 +63,68 @@ export function ExamDiagnosisPage({
       Keyboard.dismiss();
     }
   }, [isActive]);
+
+  // 태블릿: 좌우 분할 레이아웃 (문제 이미지 | 진단 인터랙션)
+  if (isTablet) {
+    const problemEntry = hook.entries.find((e) => e.kind === 'problem-card');
+    const interactionEntries = hook.entries.filter((e) => e.kind !== 'problem-card');
+
+    return (
+      <View style={styles.tabletPage}>
+        {/* 왼쪽: 문제 이미지 패널 */}
+        <ScrollView
+          style={styles.tabletLeft}
+          contentContainerStyle={styles.tabletLeftContent}
+          showsVerticalScrollIndicator={false}>
+          {problemEntry && (
+            <EntryRenderer
+              entry={problemEntry}
+              hook={hook}
+              nextProblemNumber={nextProblemNumber}
+              onNext={onNext}
+              onBackToResult={onBackToResult}
+            />
+          )}
+        </ScrollView>
+
+        {/* 오른쪽: 진단 인터랙션 패널 */}
+        <ScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          style={styles.tabletRight}
+          contentContainerStyle={styles.tabletRightContent}
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}>
+          {interactionEntries.map((entry) => (
+            <Animated.View
+              key={entry.id}
+              entering={
+                entry.kind === 'next-problem'
+                  ? undefined
+                  : FadeInDown.duration(220).withInitialValues({
+                      opacity: 0,
+                      transform: [{ translateY: 8 }],
+                    })
+              }>
+              <EntryRenderer
+                entry={entry}
+                hook={hook}
+                nextProblemNumber={nextProblemNumber}
+                onNext={onNext}
+                onBackToResult={onBackToResult}
+              />
+            </Animated.View>
+          ))}
+          {hook.isSaving && (
+            <View style={styles.savingRow}>
+              <ActivityIndicator size="small" color={BrandColors.primarySoft} />
+              <Text style={styles.savingText}>저장 중...</Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.page, { width }]}>
@@ -207,5 +271,29 @@ const styles = StyleSheet.create({
   savingText: {
     fontSize: 13,
     color: BrandColors.primarySoft,
+  },
+  tabletPage: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  tabletLeft: {
+    flex: 0.6,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: 'rgba(41,59,39,0.15)',
+  },
+  tabletLeftContent: {
+    flexGrow: 1,
+    padding: 24,
+    justifyContent: 'center',
+  },
+  tabletRight: {
+    flex: 0.4,
+  },
+  tabletRightContent: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
+    gap: 12,
   },
 });
