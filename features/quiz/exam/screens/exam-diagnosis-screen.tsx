@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -88,40 +90,44 @@ export function ExamDiagnosisPage({
         </ScrollView>
 
         {/* 오른쪽: 진단 인터랙션 패널 */}
-        <ScrollView
-          ref={scrollRef}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
           style={styles.tabletRight}
-          contentContainerStyle={styles.tabletRightContent}
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}>
-          {interactionEntries.map((entry) => (
-            <Animated.View
-              key={entry.id}
-              entering={
-                entry.kind === 'next-problem'
-                  ? undefined
-                  : FadeInDown.duration(220).withInitialValues({
-                      opacity: 0,
-                      transform: [{ translateY: 8 }],
-                    })
-              }>
-              <EntryRenderer
-                entry={entry}
-                hook={hook}
-                nextProblemNumber={nextProblemNumber}
-                onNext={onNext}
-                onBackToResult={onBackToResult}
-              />
-            </Animated.View>
-          ))}
-          {hook.isSaving && (
-            <View style={styles.savingRow}>
-              <ActivityIndicator size="small" color={BrandColors.primarySoft} />
-              <Text style={styles.savingText}>저장 중...</Text>
-            </View>
-          )}
-        </ScrollView>
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            ref={scrollRef}
+            keyboardShouldPersistTaps="handled"
+            style={styles.tabletRightScroll}
+            contentContainerStyle={styles.tabletRightContent}
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}>
+            {interactionEntries.map((entry) => (
+              <Animated.View
+                key={entry.id}
+                entering={
+                  entry.kind === 'next-problem'
+                    ? undefined
+                    : FadeInDown.duration(220).withInitialValues({
+                        opacity: 0,
+                        transform: [{ translateY: 8 }],
+                      })
+                }>
+                <EntryRenderer
+                  entry={entry}
+                  hook={hook}
+                  nextProblemNumber={nextProblemNumber}
+                  onNext={onNext}
+                  onBackToResult={onBackToResult}
+                />
+              </Animated.View>
+            ))}
+            {hook.isSaving && (
+              <View style={styles.savingRow}>
+                <ActivityIndicator size="small" color={BrandColors.primarySoft} />
+                <Text style={styles.savingText}>저장 중...</Text>
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     );
   }
@@ -288,6 +294,9 @@ const styles = StyleSheet.create({
   },
   tabletRight: {
     flex: 0.4,
+  },
+  tabletRightScroll: {
+    flex: 1,
   },
   tabletRightContent: {
     flexGrow: 1,
