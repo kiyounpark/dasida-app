@@ -69,6 +69,29 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!accountKey || !taskId) {
       return;
     }
+
+    // DEV: 스크린샷용 목업 태스크 (taskId='__mock__'일 때만 활성화)
+    if (taskId === '__mock__') {
+      const mockTask: ReviewTask = {
+        id: '__mock__',
+        accountKey,
+        weaknessId: 'formula_understanding',
+        source: 'diagnostic',
+        sourceId: '__mock__',
+        scheduledFor: new Date().toISOString(),
+        stage: 'day1',
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+      setTask(mockTask);
+      setSteps(getReviewThinkingSteps(mockTask.weaknessId));
+      firstAttemptCorrectRef.current = new Array(
+        getReviewThinkingSteps(mockTask.weaknessId).length,
+      ).fill(null);
+      sessionStartedAtRef.current = new Date().toISOString();
+      return;
+    }
+
     let cancelled = false;
     store.load(accountKey).then((tasks) => {
       if (cancelled) return;
