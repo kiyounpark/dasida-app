@@ -75,6 +75,7 @@ export function HistoryScreenView({
           { paddingTop: insets.top + BrandSpacing.md },
           isTablet && styles.tabletContainer,
         ]}
+        scrollIndicatorInsets={{ top: insets.top }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     minWidth: 90,
-    maxWidth: 110,
+    maxWidth: 120,
     gap: 6,
   },
   heroPanelLabel: {
