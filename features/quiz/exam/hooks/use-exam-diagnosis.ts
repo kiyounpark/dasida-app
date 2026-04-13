@@ -1,5 +1,5 @@
 // features/quiz/exam/hooks/use-exam-diagnosis.ts
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
@@ -92,6 +92,12 @@ export function useExamDiagnosis(params: {
   );
 
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const [diagnosisInput, setDiagnosisInput] = useState('');
   const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
@@ -289,6 +295,7 @@ export function useExamDiagnosis(params: {
           }),
         ),
       ]);
+      if (!isMountedRef.current) return;
       // next-problem 카드 추가 후 세션에 완료 알림
       setEntries((prev) => [
         ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
@@ -296,8 +303,11 @@ export function useExamDiagnosis(params: {
       ]);
       onComplete();
     } catch {
-      setIsDone(false);
-      setIsSaving(false);
+      if (isMountedRef.current) {
+        setIsDone(false);
+      }
+    } finally {
+      if (isMountedRef.current) setIsSaving(false);
     }
   }, [draft, session, profile, examId, problemNumber, problem, recordAttempt, onComplete]);
 
