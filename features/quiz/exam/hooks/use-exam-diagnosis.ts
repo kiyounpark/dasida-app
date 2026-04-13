@@ -1,10 +1,12 @@
-import { router } from 'expo-router';
+// features/quiz/exam/hooks/use-exam-diagnosis.ts
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { WeaknessId } from '@/data/diagnosisMap';
+import { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 import { methodOptions } from '@/data/diagnosisTree';
 import type { DetailedDiagnosisFlow } from '@/data/detailedDiagnosisFlows';
+import type { DiagnosisMethodCardOption } from '@/features/quiz/components/diagnosis-method-selector-card';
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 import {
   advanceFromCheck,
@@ -15,6 +17,10 @@ import {
   getNode,
   type DiagnosisFlowDraft,
 } from '@/features/quiz/diagnosis-flow-engine';
+import {
+  analyzeDiagnosisMethod,
+  type DiagnosisRouterResult,
+} from '@/features/quiz/diagnosis-router';
 import { useCurrentLearner } from '@/features/learner/provider';
 
 import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
@@ -22,42 +28,43 @@ import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 
 export type ExamDiagEntry =
   | { kind: 'bubble'; id: string; role: 'assistant' | 'user'; text: string }
-  | { kind: 'method-choices'; id: string; interactive: boolean }
-  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean };
-
-export type MethodChoice = {
-  id: SolveMethodId;
-  label: string;
-};
+  | { kind: 'problem-card'; id: string; imageKey: string; userAnswer: number; correctAnswer: number; problemType: 'multiple_choice' | 'short_answer' }
+  | { kind: 'method-selector'; id: string; interactive: boolean }
+  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean }
+  | { kind: 'next-problem'; id: string };
 
 export type UseExamDiagnosisResult = {
   problemNumber: number;
   topic: string;
   score: number;
-  progressLabel: string;
-  progressPercent: number;
   entries: ExamDiagEntry[];
-  methodChoices: MethodChoice[];
-  selectedMethodId: SolveMethodId | null;
+  methods: DiagnosisMethodCardOption[];
+  diagnosisInput: string;
+  routerResult: DiagnosisRouterResult | null;
+  suggestedMethods: DiagnosisMethodCardOption[];
+  analysisErrorMessage: string;
+  isAnalyzing: boolean;
   isDone: boolean;
   isSaving: boolean;
-  onSelectMethod: (methodId: SolveMethodId) => void;
+  onInputChange: (text: string) => void;
+  onAnalyze: () => void;
+  onManualSelect: (id: SolveMethodId) => void;
+  onConfirmPredicted: () => void;
   onChoicePress: (optionId: string) => void;
   onExplainContinue: () => void;
   onExplainDontKnow: () => void;
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
   onFinalConfirm: () => void;
-  onBack: () => void;
 };
 
 export function useExamDiagnosis(params: {
   examId: string;
   problemNumber: number;
-  wrongCount: number;
-  diagnosedCount: number;
+  userAnswer: number;
+  onComplete: () => void;
 }): UseExamDiagnosisResult {
-  const { examId, problemNumber, wrongCount, diagnosedCount } = params;
+  const { examId, problemNumber, userAnswer, onComplete } = params;
   const { session, profile, recordAttempt } = useCurrentLearner();
 
   const problem = useMemo(
@@ -65,29 +72,128 @@ export function useExamDiagnosis(params: {
     [examId, problemNumber],
   );
 
-  const methodChoices: MethodChoice[] = useMemo(
+  const imageKey = `${examId}/${problemNumber}`;
+
+  const methods: DiagnosisMethodCardOption[] = useMemo(
     () =>
-      (problem?.diagnosisMethods ?? [])
-        .map((id) => methodOptions.find((o) => o.id === id))
-        .filter((o): o is NonNullable<typeof o> => !!o)
-        .map((o) => ({ id: o.id, label: o.labelKo })),
+      (problem?.diagnosisMethods ?? []).flatMap((id) => {
+        const option = methodOptions.find((o) => o.id === id);
+        if (!option) return [];
+        const info = diagnosisMethodRoutingCatalog[option.id as SolveMethodId];
+        const item: DiagnosisMethodCardOption = {
+          id: option.id as SolveMethodId,
+          labelKo: option.labelKo,
+          summary: info?.summary ?? option.labelKo,
+          exampleUtterances: info?.exampleUtterances ?? [],
+        };
+        return [item];
+      }),
     [problem],
   );
 
-  const [selectedMethodId, setSelectedMethodId] = useState<SolveMethodId | null>(null);
+  const isMountedRef = useRef(true);
+
+  const [diagnosisInput, setDiagnosisInput] = useState('');
+  const [routerResult, setRouterResult] = useState<DiagnosisRouterResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
+
   const [draft, setDraft] = useState<DiagnosisFlowDraft | null>(null);
-  const [entries, setEntries] = useState<ExamDiagEntry[]>(() => [
-    {
-      kind: 'bubble',
-      id: 'intro',
-      role: 'assistant',
-      text: '어떤 방법으로 풀려고 했나요?',
-    },
-    { kind: 'method-choices', id: 'methods', interactive: true },
-  ]);
+  const [entries, setEntries] = useState<ExamDiagEntry[]>(() => {
+    const problemEntry: ExamDiagEntry = {
+      kind: 'problem-card',
+      id: 'problem-card',
+      imageKey,
+      userAnswer,
+      correctAnswer: problem?.answer ?? 0,
+      problemType: problem?.type ?? 'multiple_choice',
+    };
+    return [
+      problemEntry,
+      { kind: 'bubble', id: 'intro', role: 'assistant', text: '어떤 방법으로 풀었나요?' },
+      { kind: 'method-selector', id: 'method-selector', interactive: true },
+    ];
+  });
   const [isDone, setIsDone] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const startedAt = useRef(new Date().toISOString());
+
+  const suggestedMethods: DiagnosisMethodCardOption[] = useMemo(() => {
+    if (!routerResult?.needsManualSelection) return [];
+    return routerResult.candidateMethodIds
+      .filter((id) => id !== 'unknown')
+      .slice(0, 2)
+      .map((id) => methods.find((m) => m.id === id))
+      .filter((m): m is DiagnosisMethodCardOption => Boolean(m));
+  }, [routerResult, methods]);
+
+  const freezeAndAppend = useCallback((newEntries: ExamDiagEntry[]) => {
+    setEntries((prev) => [
+      ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
+      ...newEntries,
+    ]);
+  }, []);
+
+  const onInputChange = useCallback((text: string) => {
+    setDiagnosisInput(text);
+  }, []);
+
+  const onAnalyze = useCallback(async () => {
+    const rawText = diagnosisInput.trim();
+    if (!rawText || isAnalyzing) return;
+
+    setIsAnalyzing(true);
+    setAnalysisErrorMessage('');
+    setRouterResult(null);
+
+    try {
+      const result = await analyzeDiagnosisMethod({
+        allowedMethodIds: methods.map((m) => m.id),
+        allowedMethods: methods.map((m) => ({
+          id: m.id,
+          labelKo: m.labelKo,
+          summary: m.summary ?? m.labelKo,
+          exampleUtterances: m.exampleUtterances ?? [],
+        })),
+        problemId: `${examId}-${problemNumber}`,
+        rawText,
+      });
+      if (!isMountedRef.current) return;
+      setRouterResult(result);
+    } catch {
+      if (!isMountedRef.current) return;
+      setAnalysisErrorMessage('분석 중 오류가 발생했어요. 다시 시도해주세요.');
+    } finally {
+      if (isMountedRef.current) setIsAnalyzing(false);
+    }
+  }, [diagnosisInput, isAnalyzing, methods, examId, problemNumber]);
+
+  const selectMethod = useCallback(
+    (methodId: SolveMethodId) => {
+      const method = methods.find((m) => m.id === methodId);
+      if (!method) return;
+
+      const newDraft = createDiagnosisFlowDraft(methodId);
+      setDraft(newDraft);
+      const flow = getDiagnosisFlow(methodId);
+
+      freezeAndAppend([
+        { kind: 'bubble', id: `user-method-${Date.now()}`, role: 'user', text: method.labelKo },
+        { kind: 'flow-node', id: `node-${newDraft.currentNodeId}`, flow, draft: newDraft, interactive: true },
+      ]);
+    },
+    [methods, freezeAndAppend],
+  );
+
+  const onManualSelect = useCallback(
+    (methodId: SolveMethodId) => selectMethod(methodId),
+    [selectMethod],
+  );
+
+  const onConfirmPredicted = useCallback(() => {
+    if (!routerResult?.predictedMethodId) return;
+    selectMethod(routerResult.predictedMethodId);
+  }, [routerResult, selectMethod]);
 
   const advanceDraft = useCallback(
     (nextDraft: DiagnosisFlowDraft, userText: string) => {
@@ -95,73 +201,19 @@ export function useExamDiagnosis(params: {
       const node = getNode(flow, nextDraft.currentNodeId);
 
       setDraft(nextDraft);
-
       setEntries((prev) => {
-        const frozen = prev.map((e) =>
-          'interactive' in e ? { ...e, interactive: false } : e,
-        );
+        const frozen = prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e));
         if (userText) {
-          frozen.push({
-            kind: 'bubble',
-            id: `user-${nextDraft.currentNodeId}`,
-            role: 'user',
-            text: userText,
-          });
+          frozen.push({ kind: 'bubble', id: `user-${nextDraft.currentNodeId}`, role: 'user', text: userText });
         }
-        if (node.kind !== 'final') {
-          frozen.push({
-            kind: 'flow-node',
-            id: `node-${nextDraft.currentNodeId}-${Date.now()}`,
-            flow,
-            draft: nextDraft,
-            interactive: true,
-          });
-        } else {
-          frozen.push({
-            kind: 'flow-node',
-            id: `final-${Date.now()}`,
-            flow,
-            draft: nextDraft,
-            interactive: true,
-          });
-        }
+        frozen.push({
+          kind: 'flow-node',
+          id: `node-${nextDraft.currentNodeId}-${Date.now()}`,
+          flow,
+          draft: nextDraft,
+          interactive: node.kind !== 'final',
+        });
         return frozen;
-      });
-    },
-    [],
-  );
-
-  const onSelectMethod = useCallback(
-    (methodId: SolveMethodId) => {
-      const method = methodOptions.find((o) => o.id === methodId);
-      if (!method) return;
-
-      setSelectedMethodId(methodId);
-
-      const newDraft = createDiagnosisFlowDraft(methodId);
-      setDraft(newDraft);
-      const flow = getDiagnosisFlow(methodId);
-
-      setEntries((prev) => {
-        const frozen = prev.map((e) =>
-          'interactive' in e ? { ...e, interactive: false } : e,
-        );
-        return [
-          ...frozen,
-          {
-            kind: 'bubble' as const,
-            id: `user-method-${Date.now()}`,
-            role: 'user' as const,
-            text: method.labelKo,
-          },
-          {
-            kind: 'flow-node' as const,
-            id: `node-${newDraft.currentNodeId}`,
-            flow,
-            draft: newDraft,
-            interactive: true,
-          },
-        ];
       });
     },
     [],
@@ -175,22 +227,19 @@ export function useExamDiagnosis(params: {
       if (node.kind !== 'choice') return;
       const option = node.options.find((o) => o.id === optionId);
       if (!option) return;
-      const nextDraft = advanceFromChoice(draft, optionId);
-      advanceDraft(nextDraft, option.text);
+      advanceDraft(advanceFromChoice(draft, optionId), option.text);
     },
     [draft, advanceDraft],
   );
 
   const onExplainContinue = useCallback(() => {
     if (!draft) return;
-    const nextDraft = advanceFromExplain(draft, 'continue');
-    advanceDraft(nextDraft, '확인할게요');
+    advanceDraft(advanceFromExplain(draft, 'continue'), '확인할게요');
   }, [draft, advanceDraft]);
 
   const onExplainDontKnow = useCallback(() => {
     if (!draft) return;
-    const nextDraft = advanceFromExplain(draft, 'dont_know');
-    advanceDraft(nextDraft, '모르겠습니다');
+    advanceDraft(advanceFromExplain(draft, 'dont_know'), '모르겠습니다');
   }, [draft, advanceDraft]);
 
   const onCheckPress = useCallback(
@@ -201,21 +250,18 @@ export function useExamDiagnosis(params: {
       if (node.kind !== 'check') return;
       const option = node.options.find((o) => o.id === optionId);
       if (!option) return;
-      const nextDraft = advanceFromCheck(draft, optionId);
-      advanceDraft(nextDraft, option.text);
+      advanceDraft(advanceFromCheck(draft, optionId), option.text);
     },
     [draft, advanceDraft],
   );
 
   const onCheckDontKnow = useCallback(() => {
     if (!draft) return;
-    const nextDraft = advanceFromCheck(draft, undefined);
-    advanceDraft(nextDraft, '모르겠습니다');
+    advanceDraft(advanceFromCheck(draft, undefined), '모르겠습니다');
   }, [draft, advanceDraft]);
 
   const onFinalConfirm = useCallback(async () => {
     if (!draft || !session || !profile) return;
-
     const flow = getDiagnosisFlow(draft.methodId);
     const node = getNode(flow, draft.currentNodeId);
     if (node.kind !== 'final') return;
@@ -243,34 +289,40 @@ export function useExamDiagnosis(params: {
           }),
         ),
       ]);
-      router.back();
+      // next-problem 카드 추가 후 세션에 완료 알림
+      setEntries((prev) => [
+        ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
+        { kind: 'next-problem', id: 'next-problem' },
+      ]);
+      onComplete();
     } catch {
       setIsDone(false);
       setIsSaving(false);
     }
-  }, [draft, session, profile, examId, problemNumber, problem, recordAttempt]);
-
-  const progressPercent =
-    wrongCount > 0 ? ((diagnosedCount / wrongCount) * 100) : 0;
+  }, [draft, session, profile, examId, problemNumber, problem, recordAttempt, onComplete]);
 
   return {
     problemNumber,
     topic: problem?.topic ?? '문제',
     score: problem?.score ?? 0,
-    progressLabel: `${diagnosedCount + 1} / ${wrongCount}`,
-    progressPercent,
     entries,
-    methodChoices,
-    selectedMethodId,
+    methods,
+    diagnosisInput,
+    routerResult,
+    suggestedMethods,
+    analysisErrorMessage,
+    isAnalyzing,
     isDone,
     isSaving,
-    onSelectMethod,
+    onInputChange,
+    onAnalyze,
+    onManualSelect,
+    onConfirmPredicted,
     onChoicePress,
     onExplainContinue,
     onExplainDontKnow,
     onCheckPress,
     onCheckDontKnow,
     onFinalConfirm,
-    onBack: () => router.back(),
   };
 }
