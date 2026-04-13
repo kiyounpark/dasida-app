@@ -16,7 +16,11 @@ export type SolveMethodId =
   | 'trig'
   | 'integral'
   | 'linear_eq'
-  | 'counting';
+  | 'counting'
+  | 'sequence'
+  | 'log_exp'
+  | 'conic'
+  | 'limit';
 
 export type MethodOption = {
   id: SolveMethodId;
@@ -51,6 +55,10 @@ export const methodOptions: MethodOption[] = [
   { id: 'trig', labelKo: '삼각함수' },
   { id: 'integral', labelKo: '적분' },
   { id: 'linear_eq', labelKo: '부등식·함수' },
+  { id: 'sequence', labelKo: '수열' },
+  { id: 'log_exp', labelKo: '지수·로그' },
+  { id: 'conic', labelKo: '이차곡선' },
+  { id: 'limit', labelKo: '극한' },
   { id: 'unknown', labelKo: '잘 모르겠어' },
 ];
 
@@ -423,6 +431,90 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'linear_eq_setup',
         text: '조건을 방정식·부등식으로 세우는 단계가 막혔어요.',
         weaknessId: 'g2_eq_setup',
+      },
+    ],
+  },
+  sequence: {
+    methodId: 'sequence',
+    prompt: '수열 문제에서 어디가 가장 막혔나요?',
+    choices: [
+      {
+        id: 'seq_general',
+        text: '일반항 aₙ 공식(등차·등비)을 어디에 써야 할지 몰랐어요.',
+        weaknessId: 'g3_sequence',
+      },
+      {
+        id: 'seq_sum',
+        text: '합 Sₙ 공식 적용 방법에서 막혔어요.',
+        weaknessId: 'g3_sequence',
+      },
+      {
+        id: 'seq_recurrence',
+        text: '점화식을 세우거나 일반항으로 바꾸는 방법이 어려웠어요.',
+        weaknessId: 'g3_sequence',
+      },
+    ],
+  },
+  log_exp: {
+    methodId: 'log_exp',
+    prompt: '지수·로그 문제에서 어디서 막혔나요?',
+    choices: [
+      {
+        id: 'log_law',
+        text: '로그 성질(덧셈·뺄셈·지수 변환) 적용이 어려웠어요.',
+        weaknessId: 'g3_log_exp',
+      },
+      {
+        id: 'exp_law',
+        text: '지수 법칙 변환이나 밑 통일이 어려웠어요.',
+        weaknessId: 'g3_log_exp',
+      },
+      {
+        id: 'log_eq',
+        text: '지수방정식·로그방정식으로 변환해서 푸는 흐름이 헷갈렸어요.',
+        weaknessId: 'g3_log_exp',
+      },
+    ],
+  },
+  conic: {
+    methodId: 'conic',
+    prompt: '이차곡선 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'conic_std',
+        text: '포물선·타원·쌍곡선 표준형을 어떻게 쓰는지 몰랐어요.',
+        weaknessId: 'g3_conic',
+      },
+      {
+        id: 'conic_focus',
+        text: '초점이나 점근선 공식이 기억나지 않았어요.',
+        weaknessId: 'g3_conic',
+      },
+      {
+        id: 'conic_setup',
+        text: '조건을 이차곡선 식으로 세우는 과정이 어려웠어요.',
+        weaknessId: 'g3_conic',
+      },
+    ],
+  },
+  limit: {
+    methodId: 'limit',
+    prompt: '극한 문제에서 어디서 막혔나요?',
+    choices: [
+      {
+        id: 'lim_zero',
+        text: '0/0 꼴이 나왔을 때 어떻게 처리할지 몰랐어요.',
+        weaknessId: 'g3_limit',
+      },
+      {
+        id: 'lim_factor',
+        text: '인수분해로 공통인수를 약분하는 과정이 막혔어요.',
+        weaknessId: 'g3_limit',
+      },
+      {
+        id: 'lim_inf',
+        text: '∞/∞ 꼴에서 최고차항으로 나누는 처리가 어려웠어요.',
+        weaknessId: 'g3_limit',
       },
     ],
   },
