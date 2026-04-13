@@ -24,10 +24,11 @@ export function ExamDiagnosisSessionScreen() {
   const params = useLocalSearchParams();
   const examId = getSingleParam(params.examId) ?? '';
   const wrongProblemNumbers = parseProblemNumbers(getSingleParam(params.wrongProblemNumbers));
+  const rawIndex = Number(getSingleParam(params.startIndex) ?? '0');
   const startIndex = Math.max(
     0,
     Math.min(
-      Number(getSingleParam(params.startIndex) ?? '0'),
+      Number.isNaN(rawIndex) ? 0 : rawIndex,
       wrongProblemNumbers.length > 0 ? wrongProblemNumbers.length - 1 : 0,
     ),
   );
