@@ -179,7 +179,7 @@ export function HistoryScreenView({
                   </View>
                   {item.valueBadge ? (
                     <View style={styles.pulseBadge}>
-                      <Text selectable style={styles.pulseBadgeText}>{item.valueBadge}</Text>
+                      <Text selectable style={[styles.pulseBadgeText, styles.pulseBadgeValueText]}>{item.valueBadge}</Text>
                     </View>
                   ) : (
                     <View style={[styles.pulseBadge, styles.pulseBadgeKind]}>
@@ -191,6 +191,15 @@ export function HistoryScreenView({
                 </View>
               ))}
             </View>
+          </View>
+        ) : null}
+
+        {/* 빈 상태 — 약점 진행 및 활동 둘 다 없을 때 */}
+        {insights.weaknessProgress.length === 0 && insights.pulseItems.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text selectable style={styles.emptyText}>
+              진단을 완료하면 복습 기록이 여기에 쌓입니다
+            </Text>
           </View>
         ) : null}
 
@@ -333,7 +342,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderColor: BrandColors.border,
-    borderRadius: 14,
+    borderRadius: BrandRadius.md,
     backgroundColor: '#FFFFFF',
     padding: 14,
     gap: 10,
@@ -378,7 +387,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    borderRadius: 999,
     backgroundColor: BrandColors.primarySoft,
   },
   progressFillDue: {
@@ -419,10 +427,27 @@ const styles = StyleSheet.create({
   pulseBadgeText: {
     ...BrandTypography.tiny,
     color: BrandColors.success,
+  },
+  pulseBadgeValueText: {
     fontVariant: ['tabular-nums'],
   },
   pulseBadgeKindText: {
     color: BrandColors.primarySoft,
+  },
+
+  // 빈 상태
+  emptyCard: {
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.md,
+    backgroundColor: '#FFFFFF',
+    padding: 14,
+    alignItems: 'center',
+  },
+  emptyText: {
+    ...BrandTypography.body,
+    color: BrandColors.mutedText,
+    textAlign: 'center',
   },
 
   // 로딩/오류 상태

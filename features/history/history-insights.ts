@@ -53,7 +53,7 @@ const STAGE_PROGRESS: Record<ReviewStage, number> = {
 
 function getWeaknessLabel(weaknessId?: WeaknessId | null): string {
   if (!weaknessId) return '기록 없음';
-  return diagnosisMap[weaknessId].labelKo;
+  return diagnosisMap[weaknessId]?.labelKo ?? '알 수 없는 약점';
 }
 
 function formatDateTime(timestamp: string) {
