@@ -58,7 +58,9 @@ export type WeaknessId =
   | 'g2_function_domain'
   // 고3 기하 특화
   | 'g3_vector'
-  | 'g3_space_geometry';
+  | 'g3_space_geometry'
+  | 'g1_geometry'
+  | 'g3_function';
 
 export type DiagnosisItem = {
   id: WeaknessId;
@@ -127,6 +129,8 @@ export const weaknessOrder: WeaknessId[] = [
   'g3_statistics',
   'g3_vector',
   'g3_space_geometry',
+  'g1_geometry',
+  'g3_function',
 ];
 
 export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
@@ -525,6 +529,20 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     topicLabel: '공간도형',
     desc: '공간에서 직선·평면의 위치 관계나 정사영 넓이 계산이 어렵습니다.',
     tip: '정사영 넓이 = 원래 넓이 × cosθ (θ: 두 평면이 이루는 각). 이면각을 먼저 구하세요.',
+  },
+  g1_geometry: {
+    id: 'g1_geometry',
+    labelKo: '평면기하',
+    topicLabel: '도형',
+    desc: '피타고라스 정리나 삼각비를 이용한 변의 길이·넓이 계산에서 실수가 있었습니다.',
+    tip: '직각삼각형을 찾거나 보조선으로 만들어 a²+b²=c²을 적용하거나, sinθ=대변/빗변으로 길이를 구하세요.',
+  },
+  g3_function: {
+    id: 'g3_function',
+    labelKo: '함수 분석',
+    topicLabel: '함수',
+    desc: '역함수·합성함수 계산이나 전사·단사 함수 조건 판단에서 오류가 있었습니다.',
+    tip: '역함수: y=f(x)를 x에 대해 풀어 x=f⁻¹(y). 합성함수 (f∘g)(x)=f(g(x))는 안쪽부터 계산하세요.',
   },
 };
 
