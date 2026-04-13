@@ -99,6 +99,16 @@ const methodFallbackWeakness: Record<SolveMethodId, WeaknessId> = {
   log_exp: 'g3_log_exp',
   conic: 'g3_conic',
   limit: 'g3_limit',
+  vector: 'g3_vector',
+  probability: 'g3_probability',
+  space_geometry: 'g3_space_geometry',
+  function: 'g3_function',
+  statistics: 'g3_statistics',
+  geometry: 'g1_geometry',
+  permutation: 'g3_counting',
+  sequence_limit: 'g3_limit',
+  integral_advanced: 'g3_integral',
+  diff_advanced: 'g3_diff',
 };
 
 const customExplainCopyByChoice: Partial<Record<string, ExplainCopy>> = {
