@@ -15,7 +15,7 @@ export default function ExamDiagnosisRedirect() {
   return (
     <Redirect
       href={{
-        pathname: '/quiz/exam/diagnosis-session' as '/quiz/exam/diagnosis-session',
+        pathname: '/quiz/exam/diagnosis-session',
         params: {
           examId,
           wrongProblemNumbers: JSON.stringify([Number(problemNumber)]),
