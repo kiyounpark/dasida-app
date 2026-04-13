@@ -1,5 +1,5 @@
 // features/quiz/exam/components/next-problem-card.tsx
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { BrandRadius } from '@/constants/brand';
