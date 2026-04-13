@@ -10,6 +10,7 @@ export type ExamProblem = {
   answer: number;
   topic: string;
   diagnosisMethods: string[];
+  imageKey?: string;
 };
 
 type ProblemsJson = { problems: ExamProblem[] };
