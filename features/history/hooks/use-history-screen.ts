@@ -79,9 +79,9 @@ export function useHistoryScreen() {
     }
 
     return buildHistoryInsights(summary, recentDiagnosticAttempts, {
-      attemptsErrorMessage,
+      isLoadingAttempts,
     });
-  }, [attemptsErrorMessage, recentDiagnosticAttempts, summary]);
+  }, [isLoadingAttempts, recentDiagnosticAttempts, summary]);
 
   async function onRefresh() {
     setIsRefreshing(true);
