@@ -53,6 +53,9 @@ export function DiagnosisDarkHeader({
 
         {/* 도트 내비게이터 */}
         <View style={styles.dotsRow}>
+          {showEllipsis && windowStart > 0 && (
+            <Text style={styles.ellipsis}>···</Text>
+          )}
           {visibleIndices.map((pageIndex) => {
             const isActive = pageIndex === activeIndex;
             const isCompleted = completedIndices.includes(pageIndex);
@@ -62,6 +65,7 @@ export function DiagnosisDarkHeader({
                 onPress={() => onDotPress(pageIndex)}
                 style={styles.dotHitArea}
                 accessibilityRole="tab"
+                accessibilityLabel={`${pageIndex + 1}번째 문제`}
                 accessibilityState={{ selected: isActive }}>
                 <View
                   style={[
@@ -76,7 +80,7 @@ export function DiagnosisDarkHeader({
               </Pressable>
             );
           })}
-          {showEllipsis && (
+          {showEllipsis && (windowStart + 5 < totalCount) && (
             <Text style={styles.ellipsis}>···</Text>
           )}
         </View>
@@ -132,8 +136,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   dotHitArea: {
-    width: 24,
-    height: 20,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
