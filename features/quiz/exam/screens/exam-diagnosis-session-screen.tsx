@@ -1,7 +1,7 @@
 // features/quiz/exam/screens/exam-diagnosis-session-screen.tsx
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
-import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
@@ -11,25 +11,40 @@ import { getSingleParam } from '@/utils/get-single-param';
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
 import { useExamDiagnosisSession } from '../hooks/use-exam-diagnosis-session';
 
+function parseProblemNumbers(raw: string | undefined): number[] {
+  try {
+    const parsed = JSON.parse(raw ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function ExamDiagnosisSessionScreen() {
   const params = useLocalSearchParams();
   const examId = getSingleParam(params.examId) ?? '';
-  const wrongProblemNumbers: number[] = JSON.parse(
-    getSingleParam(params.wrongProblemNumbers) ?? '[]',
-  ) as number[];
-  const startIndex = Number(getSingleParam(params.startIndex) ?? '0');
+  const wrongProblemNumbers = parseProblemNumbers(getSingleParam(params.wrongProblemNumbers));
+  const startIndex = Math.max(
+    0,
+    Math.min(
+      Number(getSingleParam(params.startIndex) ?? '0'),
+      wrongProblemNumbers.length > 0 ? wrongProblemNumbers.length - 1 : 0,
+    ),
+  );
 
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
   const insets = useSafeAreaInsets();
-  const pageWidth = Dimensions.get('window').width;
+  const { width: pageWidth } = useWindowDimensions();
+
+  const { onSwipeEnd } = session;
 
   // 스와이프 완료 시 activeProblemIndex 동기화 (onDotPress 아님 — scroll 재호출 방지)
   const handleMomentumEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { x: number } } }) => {
       const index = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
-      session.onSwipeEnd(index);
+      onSwipeEnd(index);
     },
-    [pageWidth, session.onSwipeEnd],
+    [pageWidth, onSwipeEnd],
   );
 
   return (
@@ -52,7 +67,6 @@ export function ExamDiagnosisSessionScreen() {
         pagingEnabled
         bounces={false}
         directionalLockEnabled
-        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         keyExtractor={(problemNumber) => String(problemNumber)}
         initialScrollIndex={startIndex}
