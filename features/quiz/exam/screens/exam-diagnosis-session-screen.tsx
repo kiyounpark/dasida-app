@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
@@ -36,6 +37,7 @@ export function ExamDiagnosisSessionScreen() {
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
+  const isTablet = useIsTablet();
 
   const { onSwipeEnd } = session;
 
@@ -47,6 +49,41 @@ export function ExamDiagnosisSessionScreen() {
     },
     [pageWidth, onSwipeEnd],
   );
+
+  // 태블릿: FlatList 없이 현재 문제 하나만 렌더링
+  if (isTablet) {
+    const activeProblemNumber = wrongProblemNumbers[session.activeProblemIndex];
+
+    return (
+      <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
+        <DiagnosisDarkHeader
+          title={`${activeProblemNumber ?? ''}번`}
+          backLabel="← 채점 결과"
+          progressLabel={session.progressLabel}
+          progressPercent={session.progressPercent}
+          totalCount={wrongProblemNumbers.length}
+          completedIndices={session.diagnosedIndices}
+          activeIndex={session.activeProblemIndex}
+          onBack={session.onBackToResult}
+          onDotPress={session.onDotPress}
+        />
+        {activeProblemNumber !== undefined && (
+          <ExamDiagnosisPage
+            key={activeProblemNumber}
+            examId={examId}
+            problemNumber={activeProblemNumber}
+            userAnswer={session.getUserAnswer(activeProblemNumber)}
+            width={pageWidth}
+            isActive={true}
+            nextProblemNumber={session.getNextProblemNumber(session.activeProblemIndex)}
+            onComplete={() => session.onComplete(session.activeProblemIndex)}
+            onNext={() => session.onScrollToNext(session.activeProblemIndex)}
+            onBackToResult={session.onBackToResult}
+          />
+        )}
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
