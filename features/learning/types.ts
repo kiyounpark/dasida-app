@@ -85,6 +85,7 @@ export type LearnerSummaryCurrent = {
   totals: {
     diagnosticAttempts: number;
     featuredExamAttempts: number;
+    reviewAttempts: number;
   };
   recentActivity: Array<{
     id: string;

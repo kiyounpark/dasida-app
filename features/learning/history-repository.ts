@@ -129,6 +129,7 @@ export function createEmptyLearnerSummary(accountKey: string): LearnerSummaryCur
     totals: {
       diagnosticAttempts: 0,
       featuredExamAttempts: 0,
+      reviewAttempts: 0,
     },
     recentActivity: [],
   };
