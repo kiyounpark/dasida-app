@@ -20,7 +20,17 @@ export type SolveMethodId =
   | 'sequence'
   | 'log_exp'
   | 'conic'
-  | 'limit';
+  | 'limit'
+  | 'vector'
+  | 'probability'
+  | 'space_geometry'
+  | 'function'
+  | 'statistics'
+  | 'geometry'
+  | 'permutation'
+  | 'sequence_limit'
+  | 'integral_advanced'
+  | 'diff_advanced';
 
 export type MethodOption = {
   id: SolveMethodId;
@@ -59,6 +69,16 @@ export const methodOptions: MethodOption[] = [
   { id: 'log_exp', labelKo: '지수·로그' },
   { id: 'conic', labelKo: '이차곡선' },
   { id: 'limit', labelKo: '극한' },
+  { id: 'vector', labelKo: '벡터' },
+  { id: 'probability', labelKo: '확률' },
+  { id: 'space_geometry', labelKo: '공간기하' },
+  { id: 'function', labelKo: '함수' },
+  { id: 'statistics', labelKo: '통계' },
+  { id: 'geometry', labelKo: '도형' },
+  { id: 'permutation', labelKo: '순열·조합' },
+  { id: 'sequence_limit', labelKo: '수열의 극한' },
+  { id: 'integral_advanced', labelKo: '심화 적분' },
+  { id: 'diff_advanced', labelKo: '심화 미분' },
   { id: 'unknown', labelKo: '잘 모르겠어' },
 ];
 
@@ -515,6 +535,216 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'lim_inf',
         text: '∞/∞ 꼴에서 최고차항으로 나누는 처리가 어려웠어요.',
         weaknessId: 'g3_limit',
+      },
+    ],
+  },
+  vector: {
+    methodId: 'vector',
+    prompt: '벡터 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'vec_calc',
+        text: '두 벡터의 덧셈·뺄셈·크기 계산이 어려웠어요.',
+        weaknessId: 'g3_vector',
+      },
+      {
+        id: 'vec_dot',
+        text: '내적 계산이나 공식 적용이 막혔어요.',
+        weaknessId: 'g3_vector',
+      },
+      {
+        id: 'vec_setup',
+        text: '벡터로 도형 조건을 식으로 세우는 과정이 어려웠어요.',
+        weaknessId: 'g3_vector',
+      },
+    ],
+  },
+  probability: {
+    methodId: 'probability',
+    prompt: '확률 문제에서 어디가 막혔나요?',
+    choices: [
+      {
+        id: 'prob_conditional',
+        text: '조건부확률 P(A|B) 공식 적용이 헷갈렸어요.',
+        weaknessId: 'g3_probability',
+      },
+      {
+        id: 'prob_independent',
+        text: '독립·종속 사건 판단이나 곱의 법칙이 어려웠어요.',
+        weaknessId: 'g3_probability',
+      },
+      {
+        id: 'prob_complement',
+        text: '여사건을 활용해 계산하는 방법을 몰랐어요.',
+        weaknessId: 'g3_probability',
+      },
+    ],
+  },
+  space_geometry: {
+    methodId: 'space_geometry',
+    prompt: '공간기하 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'sg_projection',
+        text: '정사영이나 두 평면이 이루는 각 계산이 어려웠어요.',
+        weaknessId: 'g3_space_geometry',
+      },
+      {
+        id: 'sg_relation',
+        text: '직선과 평면의 위치 관계 파악이 헷갈렸어요.',
+        weaknessId: 'g3_space_geometry',
+      },
+      {
+        id: 'sg_coord',
+        text: '공간도형을 좌표로 설정하는 방법이 어려웠어요.',
+        weaknessId: 'g3_space_geometry',
+      },
+    ],
+  },
+  function: {
+    methodId: 'function',
+    prompt: '함수 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'fn_inverse',
+        text: '역함수나 합성함수를 구하는 방법이 어려웠어요.',
+        weaknessId: 'g3_function',
+      },
+      {
+        id: 'fn_condition',
+        text: '전사·단사 조건 판단이 헷갈렸어요.',
+        weaknessId: 'g3_function',
+      },
+      {
+        id: 'fn_graph',
+        text: '그래프에서 조건을 읽어내는 과정이 어려웠어요.',
+        weaknessId: 'g3_function',
+      },
+    ],
+  },
+  statistics: {
+    methodId: 'statistics',
+    prompt: '통계 문제에서 어디가 막혔나요?',
+    choices: [
+      {
+        id: 'stat_normalize',
+        text: '정규분포 표준화 Z=(X-μ)/σ 과정이 어려웠어요.',
+        weaknessId: 'g3_statistics',
+      },
+      {
+        id: 'stat_binomial',
+        text: '이항분포 공식(평균 np, 분산 npq) 적용이 막혔어요.',
+        weaknessId: 'g3_statistics',
+      },
+      {
+        id: 'stat_table',
+        text: '표준정규분포표에서 확률값을 읽는 방법이 헷갈렸어요.',
+        weaknessId: 'g3_statistics',
+      },
+    ],
+  },
+  geometry: {
+    methodId: 'geometry',
+    prompt: '도형 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'geo_pythagorean',
+        text: '피타고라스 정리를 어떤 삼각형에 적용할지 몰랐어요.',
+        weaknessId: 'g1_geometry',
+      },
+      {
+        id: 'geo_auxiliary',
+        text: '보조선을 어디에 그어야 할지 몰랐어요.',
+        weaknessId: 'g1_geometry',
+      },
+      {
+        id: 'geo_trig',
+        text: '삼각비로 변의 길이를 구하는 방법이 어려웠어요.',
+        weaknessId: 'g1_geometry',
+      },
+    ],
+  },
+  permutation: {
+    methodId: 'permutation',
+    prompt: '순열·조합 문제에서 어디가 막혔나요?',
+    choices: [
+      {
+        id: 'perm_choice',
+        text: '순열과 조합 중 어느 것을 써야 할지 판단이 어려웠어요.',
+        weaknessId: 'g3_counting',
+      },
+      {
+        id: 'perm_restrict',
+        text: '중복 허용·제한 조건 처리가 어려웠어요.',
+        weaknessId: 'g3_counting',
+      },
+      {
+        id: 'perm_special',
+        text: '원순열이나 같은 것이 있는 순열 공식이 헷갈렸어요.',
+        weaknessId: 'g3_counting',
+      },
+    ],
+  },
+  sequence_limit: {
+    methodId: 'sequence_limit',
+    prompt: '수열의 극한 문제에서 어디가 막혔나요?',
+    choices: [
+      {
+        id: 'sl_converge',
+        text: '수열이 수렴하는지 발산하는지 판단이 어려웠어요.',
+        weaknessId: 'g3_limit',
+      },
+      {
+        id: 'sl_inf',
+        text: '∞/∞ 꼴에서 극한값을 구하는 처리가 막혔어요.',
+        weaknessId: 'g3_limit',
+      },
+      {
+        id: 'sl_geom',
+        text: '등비수열 극한 조건(|r|<1이면 수렴)이 헷갈렸어요.',
+        weaknessId: 'g3_limit',
+      },
+    ],
+  },
+  integral_advanced: {
+    methodId: 'integral_advanced',
+    prompt: '적분 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'ia_substitution',
+        text: '치환적분·부분적분을 어디에 써야 할지 몰랐어요.',
+        weaknessId: 'g3_integral',
+      },
+      {
+        id: 'ia_area',
+        text: '정적분으로 넓이 계산할 때 절댓값 처리가 어려웠어요.',
+        weaknessId: 'g3_integral',
+      },
+      {
+        id: 'ia_ftc',
+        text: '∫f(t)dt를 미분하는 관계식 활용이 막혔어요.',
+        weaknessId: 'g3_integral',
+      },
+    ],
+  },
+  diff_advanced: {
+    methodId: 'diff_advanced',
+    prompt: '미분 문제에서 어디가 어려웠나요?',
+    choices: [
+      {
+        id: 'da_chain',
+        text: '합성함수 미분(chain rule) 적용이 어려웠어요.',
+        weaknessId: 'g3_diff',
+      },
+      {
+        id: 'da_extremum',
+        text: '극값·최솟값을 미분으로 찾는 과정이 막혔어요.',
+        weaknessId: 'g3_diff',
+      },
+      {
+        id: 'da_tangent',
+        text: '접선의 방정식 구하는 방법이 헷갈렸어요.',
+        weaknessId: 'g3_diff',
       },
     ],
   },
