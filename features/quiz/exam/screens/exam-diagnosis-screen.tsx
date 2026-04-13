@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,7 @@ import { NextProblemCard } from '../components/next-problem-card';
 import {
   useExamDiagnosis,
   type ExamDiagEntry,
+  type UseExamDiagnosisResult,
 } from '../hooks/use-exam-diagnosis';
 
 type ExamDiagnosisPageProps = {
@@ -38,7 +40,7 @@ export function ExamDiagnosisPage({
   problemNumber,
   userAnswer,
   width,
-  isActive: _isActive,
+  isActive,
   nextProblemNumber,
   onComplete,
   onNext,
@@ -54,17 +56,28 @@ export function ExamDiagnosisPage({
     return () => clearTimeout(id);
   }, [hook.entries.length]);
 
+  useEffect(() => {
+    if (!isActive) {
+      Keyboard.dismiss();
+    }
+  }, [isActive]);
+
   return (
     <View style={[styles.page, { width }]}>
       <ScrollView
         ref={scrollRef}
+        keyboardShouldPersistTaps="handled"
         style={styles.canvas}
         contentContainerStyle={styles.canvasContent}
         keyboardDismissMode="on-drag">
         {hook.entries.map((entry) => (
           <Animated.View
             key={entry.id}
-            entering={FadeInDown.duration(220).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] })}>
+            entering={
+              entry.kind === 'next-problem'
+                ? undefined
+                : FadeInDown.duration(220).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] })
+            }>
             <EntryRenderer
               entry={entry}
               hook={hook}
@@ -87,7 +100,7 @@ export function ExamDiagnosisPage({
 
 type EntryRendererProps = {
   entry: ExamDiagEntry;
-  hook: ReturnType<typeof useExamDiagnosis>;
+  hook: UseExamDiagnosisResult;
   nextProblemNumber: number | null;
   onNext: () => void;
   onBackToResult: () => void;
