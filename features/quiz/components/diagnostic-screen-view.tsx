@@ -1,6 +1,5 @@
 import {
   FlatList,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,10 +8,10 @@ import {
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-conversation-page';
+import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
 import { DiagnosisIntroScreen } from '@/features/quiz/components/diagnosis-intro-screen';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
@@ -79,72 +78,35 @@ export function DiagnosticScreenView({
       return <DiagnosisIntroScreen onStartDiagnosis={onStartDiagnosisIntro} />;
     }
 
+    const totalCount = diagnosisPages.length;
+    const completedIndices = diagnosisPages
+      .map((page, i) => (page.workspace.status === 'completed' ? i : -1))
+      .filter((i) => i !== -1);
+    const progressPercent =
+      totalCount > 0 ? ((activeDiagnosisPageIndex + 1) / totalCount) * 100 : 0;
+    const currentPage = diagnosisPages[activeDiagnosisPageIndex];
+    const title = currentPage
+      ? `Q${currentPage.answerIndex + 1}`
+      : 'Q1';
+
     return (
       <View style={[styles.screen, styles.diagnosisScreen]}>
-        <BrandHeader />
+        <DiagnosisDarkHeader
+          title={title}
+          backLabel="← 뒤로"
+          progressLabel={`${activeDiagnosisPageIndex + 1} / ${totalCount}`}
+          progressPercent={progressPercent}
+          totalCount={totalCount}
+          completedIndices={completedIndices}
+          activeIndex={activeDiagnosisPageIndex}
+          onBack={onOpenExitModal}
+          onDotPress={onScrollToDiagnosisPage}
+        />
+
         <View style={styles.diagnosisShell}>
           <View pointerEvents="none" style={styles.diagnosisBackdrop}>
             <View style={styles.diagnosisBackdropGlow} />
             <View style={styles.diagnosisBackdropBand} />
-          </View>
-
-          <View style={styles.diagnosisSessionBar}>
-            <View style={styles.diagnosisHeader}>
-              <Pressable
-                style={styles.closeButton}
-                onPress={onOpenExitModal}
-                accessibilityRole="button"
-                accessibilityLabel="오답 분석 닫기">
-                <IconSymbol name="xmark" size={18} color={DiagnosisTheme.ink} />
-              </Pressable>
-              <View style={styles.diagnosisHeaderCopy}>
-                <Text selectable style={styles.diagnosisHeaderTitle}>
-                  오답 약점 분석
-                </Text>
-                <Text selectable style={styles.diagnosisHeaderMeta}>
-                  {diagnosisStepLabel}
-                </Text>
-              </View>
-              <View style={styles.closeSpacer} />
-            </View>
-
-            <View style={styles.navigatorRow}>
-              <View style={styles.navigatorDots}>
-                <View accessible accessibilityRole="tablist" style={styles.navigatorDotsList}>
-                  {diagnosisPages.map((page, pageIndex) => {
-                    const isActive = pageIndex === activeDiagnosisPageIndex;
-                    const isCompleted = page.workspace.status === 'completed';
-                    const pageLabel = `${pageIndex + 1} / ${diagnosisPages.length}`;
-
-                    return (
-                      <Pressable
-                        key={`diagnosis-page-${page.answerIndex}`}
-                        style={styles.navigatorDotHitArea}
-                        onPress={() => onScrollToDiagnosisPage(pageIndex)}
-                        accessibilityRole="tab"
-                        accessibilityState={{ selected: isActive }}
-                        accessibilityLabel={`${pageLabel}로 이동`}
-                        accessibilityHint={
-                          isCompleted
-                            ? '이 문제의 분석은 완료되었습니다'
-                            : '이 문제의 분석은 아직 진행 중입니다'
-                        }>
-                        <View
-                          style={[
-                            styles.navigatorDot,
-                            isCompactNavigator ? styles.navigatorDotCompact : styles.navigatorDotRegular,
-                            isCompleted ? styles.navigatorDotCompleted : styles.navigatorDotUpcoming,
-                            isActive && styles.navigatorDotActive,
-                            isActive && isCompactNavigator && styles.navigatorDotActiveCompact,
-                            isActive && !isCompactNavigator && styles.navigatorDotActiveRegular,
-                          ]}
-                        />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
           </View>
 
           <FlatList
@@ -301,7 +263,6 @@ const styles = StyleSheet.create({
   diagnosisShell: {
     flex: 1,
     overflow: 'hidden',
-    paddingTop: BrandSpacing.sm,
     backgroundColor: DiagnosisTheme.canvas,
   },
   diagnosisBackdrop: {
@@ -326,111 +287,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: '#FAF6EF',
     opacity: 0.9,
-  },
-  diagnosisSessionBar: {
-    marginHorizontal: BrandSpacing.lg,
-    paddingHorizontal: BrandSpacing.md,
-    paddingTop: 12,
-    paddingBottom: 10,
-    borderWidth: 1,
-    borderColor: DiagnosisTheme.line,
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    backgroundColor: DiagnosisTheme.panel,
-    boxShadow: '0 10px 24px rgba(36, 50, 41, 0.06)',
-  },
-  diagnosisHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: BrandSpacing.sm,
-  },
-  closeButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderCurve: 'continuous',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FAF7F2',
-    borderWidth: 1,
-    borderColor: DiagnosisTheme.line,
-  },
-  diagnosisHeaderCopy: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  diagnosisHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: DiagnosisTheme.ink,
-  },
-  diagnosisHeaderMeta: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: DiagnosisTheme.inkMuted,
-    letterSpacing: 0.2,
-  },
-  closeSpacer: {
-    width: 42,
-    height: 42,
-  },
-  navigatorRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 10,
-  },
-  navigatorDots: {
-    alignSelf: 'stretch',
-  },
-  navigatorDotsList: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-  },
-  navigatorDotHitArea: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navigatorDot: {
-    borderCurve: 'continuous',
-    borderWidth: 1,
-  },
-  navigatorDotRegular: {
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-  },
-  navigatorDotCompact: {
-    width: 8,
-    height: 8,
-    borderRadius: 999,
-  },
-  navigatorDotActive: {
-    backgroundColor: DiagnosisTheme.userBubble,
-    borderColor: DiagnosisTheme.userBubble,
-  },
-  navigatorDotActiveRegular: {
-    width: 24,
-    height: 10,
-    borderRadius: 999,
-  },
-  navigatorDotActiveCompact: {
-    width: 20,
-    height: 8,
-    borderRadius: 999,
-  },
-  navigatorDotCompleted: {
-    backgroundColor: '#73896E',
-    borderColor: '#73896E',
-  },
-  navigatorDotUpcoming: {
-    backgroundColor: 'transparent',
-    borderColor: '#B4BCAF',
   },
   diagnosisPager: {
     flex: 1,
