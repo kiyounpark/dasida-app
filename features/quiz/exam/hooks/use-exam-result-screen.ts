@@ -110,13 +110,16 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     wrongCount,
     onAnalyzeProblem: (problemNumber: number) => {
       if (!result) return;
+      const wrongProblemNumbers = result.perProblem
+        .filter((p) => !p.isCorrect && p.userAnswer !== null)
+        .map((p) => p.number);
+      const startIndex = wrongProblemNumbers.indexOf(problemNumber);
       router.push({
-        pathname: '/quiz/exam/diagnosis',
+        pathname: '/quiz/exam/diagnosis-session',
         params: {
           examId: result.examId,
-          problemNumber: String(problemNumber),
-          wrongCount: String(wrongCount),
-          diagnosedCount: String(diagnosedCount),
+          wrongProblemNumbers: JSON.stringify(wrongProblemNumbers),
+          startIndex: String(Math.max(0, startIndex)),
         },
       });
     },
