@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandRadius } from '@/constants/brand';
+import { FontFamilies } from '@/constants/typography';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import type { ExamProblemType } from '@/features/quiz/data/exam-problems';
 import examImages from '@/features/quiz/data/exam-images';
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
   circleText: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: FontFamilies.bold,
     color: '#6B6560',
   },
   circleTextFilled: {
@@ -138,6 +140,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 11,
+    fontFamily: FontFamilies.regular,
     color: DiagnosisTheme.inkMuted,
   },
 });
