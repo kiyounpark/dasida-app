@@ -22,7 +22,7 @@ import { LearningHistoryMigrationService } from '@/features/learning/learning-hi
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
 import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
-import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
+import type { LearnerSummaryCurrent, LearningAttempt, ReviewTask } from '@/features/learning/types';
 
 import type { LearnerProfileStore } from './profile-store';
 import type {
@@ -622,6 +622,68 @@ export function createCurrentLearnerController({
           updatedAt: new Date().toISOString(),
         };
         await profileStore.save(graduatedProfile);
+      }
+
+      if (state === 'history-full') {
+        // 내 기록 화면 꽉 찬 상태:
+        //   - 진단 2회 (정답률 55% → 75%) → 히어로 ▲ +20%p 배지
+        //   - w0: 4단계(day30) 오늘 복습 | w1: 3단계(day7) 오늘 복습 | w2: 2단계(day3) 오늘 복습
+        //   - 이전 단계 완료 기록 → recentActivity 복습 완료 항목 + reviewAttempts = 6
+        const today = new Date().toISOString().slice(0, 10);
+        const sourceId = 'preview-full';
+        const ts = (daysAgo: number) =>
+          new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+        const diagAt1 = ts(10);
+        const diagAt2 = ts(1);
+        const weaknesses = getPreviewWeaknesses() as [WeaknessId, WeaknessId, WeaknessId];
+        const [w0, w1, w2] = weaknesses;
+
+        await learningHistoryRepository.recordAttempt({
+          ...buildPreviewAttemptInput(profile, 'diagnostic', sourceId, diagAt1),
+          attemptId: 'preview-full-diag-1',
+          accuracy: 55,
+          correctCount: 5,
+          wrongCount: 5,
+        });
+        await learningHistoryRepository.recordAttempt({
+          ...buildPreviewAttemptInput(profile, 'diagnostic', `${sourceId}-b`, diagAt2),
+          attemptId: 'preview-full-diag-2',
+          accuracy: 75,
+          correctCount: 8,
+          wrongCount: 2,
+        });
+
+        // 각 약점의 단계별 이력을 직접 구성: 완료 태스크(recentActivity용) + 현재 대기 태스크
+        const reviewTasks: ReviewTask[] = [
+          // w0: day1✓ day3✓ day7✓ → day30 오늘 대기
+          { id: `day1__${w0}__${sourceId}`, accountKey: session.accountKey, weaknessId: w0, source: 'diagnostic', sourceId, stage: 'day1', scheduledFor: ts(9).slice(0, 10), completed: true, completedAt: ts(9), createdAt: diagAt1 },
+          { id: `day3__${w0}__${sourceId}`, accountKey: session.accountKey, weaknessId: w0, source: 'diagnostic', sourceId, stage: 'day3', scheduledFor: ts(7).slice(0, 10), completed: true, completedAt: ts(7), createdAt: diagAt1 },
+          { id: `day7__${w0}__${sourceId}`, accountKey: session.accountKey, weaknessId: w0, source: 'diagnostic', sourceId, stage: 'day7', scheduledFor: ts(4).slice(0, 10), completed: true, completedAt: ts(4), createdAt: diagAt1 },
+          { id: `day30__${w0}__${sourceId}`, accountKey: session.accountKey, weaknessId: w0, source: 'diagnostic', sourceId, stage: 'day30', scheduledFor: today, completed: false, createdAt: diagAt1 },
+          // w1: day1✓ day3✓ → day7 오늘 대기
+          { id: `day1__${w1}__${sourceId}`, accountKey: session.accountKey, weaknessId: w1, source: 'diagnostic', sourceId, stage: 'day1', scheduledFor: ts(6).slice(0, 10), completed: true, completedAt: ts(6), createdAt: diagAt1 },
+          { id: `day3__${w1}__${sourceId}`, accountKey: session.accountKey, weaknessId: w1, source: 'diagnostic', sourceId, stage: 'day3', scheduledFor: ts(3).slice(0, 10), completed: true, completedAt: ts(3), createdAt: diagAt1 },
+          { id: `day7__${w1}__${sourceId}`, accountKey: session.accountKey, weaknessId: w1, source: 'diagnostic', sourceId, stage: 'day7', scheduledFor: today, completed: false, createdAt: diagAt1 },
+          // w2: day1✓ → day3 오늘 대기
+          { id: `day1__${w2}__${sourceId}`, accountKey: session.accountKey, weaknessId: w2, source: 'diagnostic', sourceId, stage: 'day1', scheduledFor: ts(2).slice(0, 10), completed: true, completedAt: ts(2), createdAt: diagAt1 },
+          { id: `day3__${w2}__${sourceId}`, accountKey: session.accountKey, weaknessId: w2, source: 'diagnostic', sourceId, stage: 'day3', scheduledFor: today, completed: false, createdAt: diagAt1 },
+        ];
+        await reviewTaskStore.saveAll(session.accountKey, reviewTasks);
+
+        // weakness-practice 시도 기록 → totals.reviewAttempts = 6
+        const practiceAt = ts(4);
+        const practiceItems: Array<{ weaknessId: WeaknessId; stages: ReviewStage[] }> = [
+          { weaknessId: w0, stages: ['day1', 'day3', 'day7'] },
+          { weaknessId: w1, stages: ['day1', 'day3'] },
+          { weaknessId: w2, stages: ['day1'] },
+        ];
+        for (const { weaknessId, stages } of practiceItems) {
+          for (const stage of stages) {
+            await localLearningHistoryRepository.recordAttempt(
+              buildPreviewReviewAttemptInput(profile, weaknessId, stage, practiceAt),
+            );
+          }
+        }
       }
 
       await peerPresenceStore.setPreviewSnapshot(getPreviewPeerPresence(state));

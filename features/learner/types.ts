@@ -9,7 +9,8 @@ export type PreviewSeedState =
   | 'review-day7-available'
   | 'review-day30-available'
   | 'exam-in-progress'
-  | 'practice-graduated';
+  | 'practice-graduated'
+  | 'history-full';
 
 export type LearnerGrade = 'g1' | 'g2' | 'g3' | 'unknown';
 export type LearnerTrack = 'calc' | 'stats' | 'geom'; // 고3 수능 선택과목
