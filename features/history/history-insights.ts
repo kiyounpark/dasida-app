@@ -103,7 +103,7 @@ function buildHero(
     if (sorted.length >= 2) {
       const previous = sorted[sorted.length - 2];
       const delta = latest.accuracy - previous.accuracy;
-      accuracyBadgeText = delta >= 0 ? `▲ +${delta}%p` : `▼ ${delta}%p`;
+      accuracyBadgeText = delta >= 0 ? `▲ +${delta}%p` : `▼ ${Math.abs(delta)}%p`;
       accuracyBadgeTone = delta >= 0 ? 'positive' : 'warning';
     }
   }
