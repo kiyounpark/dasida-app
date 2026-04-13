@@ -186,4 +186,52 @@ export const diagnosisMethodRoutingCatalog: Record<SolveMethodId, DiagnosisMetho
     ],
     followupLabel: '부등식·함수 조건 활용',
   },
+  sequence: {
+    id: 'sequence',
+    labelKo: '수열',
+    summary: '등차·등비수열 일반항·합 공식 또는 점화식으로 푸는 방식',
+    keywords: ['수열', '등차', '등비', '점화식', '일반항', '합 공식', 'Sₙ', '시그마'],
+    exampleUtterances: [
+      '등차수열 일반항으로 aₙ 구했어요',
+      '점화식으로 일반항 유도했어요',
+      '합 공식 Sₙ 써서 계산했어요',
+    ],
+    followupLabel: '수열 공식을 적용함',
+  },
+  log_exp: {
+    id: 'log_exp',
+    labelKo: '지수·로그',
+    summary: '지수·로그 성질을 이용해 방정식·부등식을 푸는 방식',
+    keywords: ['지수', '로그', 'log', '밑', '지수법칙', '로그 성질', '방정식', '상용로그'],
+    exampleUtterances: [
+      '로그 성질로 식을 변환했어요',
+      '지수법칙으로 밑을 통일했어요',
+      '양변에 로그 취해서 지수방정식 풀었어요',
+    ],
+    followupLabel: '지수·로그 성질을 활용함',
+  },
+  conic: {
+    id: 'conic',
+    labelKo: '이차곡선',
+    summary: '포물선·타원·쌍곡선 표준형과 초점·점근선을 이용하는 방식',
+    keywords: ['포물선', '타원', '쌍곡선', '초점', '점근선', '이차곡선', '표준형', '준선'],
+    exampleUtterances: [
+      '타원 표준형으로 초점 구했어요',
+      '쌍곡선 점근선 공식 썼어요',
+      '포물선 표준형으로 꼭짓점 찾았어요',
+    ],
+    followupLabel: '이차곡선 표준형을 활용함',
+  },
+  limit: {
+    id: 'limit',
+    labelKo: '극한',
+    summary: '0/0·∞/∞ 부정형을 인수분해·유리화로 처리하는 방식',
+    keywords: ['극한', 'lim', '0/0', '무한대', '인수분해', '부정형', '최고차항', '유리화'],
+    exampleUtterances: [
+      '0/0 꼴을 인수분해로 약분했어요',
+      '∞/∞ 꼴에서 최고차항으로 나눴어요',
+      '분자 유리화해서 극한값 구했어요',
+    ],
+    followupLabel: '극한값을 계산함',
+  },
 };
