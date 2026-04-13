@@ -5,7 +5,6 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
@@ -90,13 +89,12 @@ export function QuizHubScreenView({
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  const posterTopPadding = isCompactLayout ? 14 : 24;
+  const posterTopPadding = insets.top + (isCompactLayout ? 14 : 24);
 
   if (!isReady) {
     return (
       <View style={styles.screen}>
-        <BrandHeader compact={isCompactLayout} />
-        <View style={[styles.feedbackScreen, { paddingTop: isCompactLayout ? 14 : 24, paddingBottom: bottomPadding }]}>
+        <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
           <FeedbackCard
             title="학습 여정을 준비 중이에요"
@@ -110,8 +108,7 @@ export function QuizHubScreenView({
   if (!profile || !homeState || !session || !journey) {
     return (
       <View style={styles.screen}>
-        <BrandHeader compact={isCompactLayout} />
-        <View style={[styles.feedbackScreen, { paddingTop: isCompactLayout ? 14 : 24, paddingBottom: bottomPadding }]}>
+        <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
           <FeedbackCard
             title="홈 상태를 다시 불러와야 해요"
@@ -126,7 +123,6 @@ export function QuizHubScreenView({
 
   return (
     <View style={styles.screen}>
-      <BrandHeader compact={isCompactLayout} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[

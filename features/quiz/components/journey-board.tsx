@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
 import { BrandColors } from '@/constants/brand';
@@ -132,6 +132,16 @@ function getStepTitleColor(status: HomeJourneyStep['status']) {
   return status === 'active' ? '#111111' : 'rgba(72, 67, 58, 0.5)';
 }
 
+// posterScreen paddingHorizontal(14) × 2
+const BOARD_CONTAINER_PADDING = 28;
+// 화면에서 실제로 보이기를 원하는 목표 px 크기
+const TARGET_STEP_TITLE_PX = 16;
+const TARGET_STATUS_PX = 14;
+
+function calcSvgFontSize(targetPx: number, boardWidth: number): number {
+  return Math.round(targetPx * (VIEWBOX_WIDTH / boardWidth));
+}
+
 export function JourneyBoard({
   isCompactLayout,
   onPressCurrentStep,
@@ -143,8 +153,11 @@ export function JourneyBoard({
   onPressCta: () => void;
   state: HomeJourneyState;
 }) {
-  const stepTitleFontSize = isCompactLayout ? 30 : 32;
-  const statusFontSize = isCompactLayout ? 26 : 28;
+  const { width: screenWidth } = useWindowDimensions();
+  const boardMaxWidth = isCompactLayout ? 430 : 470;
+  const boardWidth = Math.min(screenWidth - BOARD_CONTAINER_PADDING, boardMaxWidth);
+  const stepTitleFontSize = calcSvgFontSize(TARGET_STEP_TITLE_PX, boardWidth);
+  const statusFontSize = calcSvgFontSize(TARGET_STATUS_PX, boardWidth);
   const topGuideStart = getNodeAnchor('diagnostic', { x: 0.56, y: -0.12 });
   const topGuideEnd = getNodeAnchor('analysis', { x: -0.62, y: -0.28 });
   const middleGuideStart = getNodeAnchor('analysis', { x: -0.52, y: 0.26 });

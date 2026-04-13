@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     paddingBottom: '3%',
   },
   heroTitle: {
+    width: '100%',
     fontFamily: FontFamilies.extrabold,
     fontSize: 32,
     lineHeight: 38,
