@@ -586,7 +586,7 @@ function buildCheckNode(
   onCorrectNextNodeId: string,
   onWrongNextNodeId: string,
 ): CheckNode {
-  // checkPromptByWeakness only contains g1 entries; g3 weaknesses don't use this tree
+  // Guarded by hasCheckNode above — if we reach here, the entry is always present
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const definition = checkPromptByWeakness[weaknessId]!;
 
