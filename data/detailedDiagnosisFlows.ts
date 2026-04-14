@@ -254,8 +254,8 @@ const checkPromptByWeakness: Partial<Record<WeaknessId, CheckPromptDefinition>> 
     title: '최댓값/최솟값 판단 확인',
     prompt: '이차함수에서 a < 0이면 그래프는?',
     options: [
-      { id: 'correct', text: '아래로 볼록이라 최댓값을 가진다', isCorrect: true },
-      { id: 'min', text: '위로 볼록이라 최솟값을 가진다', isCorrect: false },
+      { id: 'correct', text: '위로 볼록이라 최댓값을 가진다', isCorrect: true },
+      { id: 'min', text: '아래로 볼록이라 최솟값을 가진다', isCorrect: false },
       { id: 'none', text: '최댓값도 최솟값도 없다', isCorrect: false },
     ],
   },
