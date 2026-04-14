@@ -25,6 +25,8 @@ import { useDiagnosisAiHelp } from '@/features/quiz/hooks/use-diagnosis-ai-help'
 import { useDiagnosisPager } from '@/features/quiz/hooks/use-diagnosis-pager';
 import { useDiagnosisWorkspaces } from '@/features/quiz/hooks/use-diagnosis-workspaces';
 import { useQuizSession } from '@/features/quiz/session';
+import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
+import { useCurrentLearner } from '@/features/learner/provider';
 
 type UseDiagnosticScreenParams = {
   shouldAutoStart: boolean;
@@ -107,6 +109,7 @@ export function useDiagnosticScreen({
     submitDiagnosisWeakness,
     finishDiagnosis,
   } = useQuizSession();
+  const { profile } = useCurrentLearner();
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
@@ -448,6 +451,14 @@ export function useDiagnosticScreen({
       ],
       status: 'completed',
     }));
+
+    if (profile) {
+      logDiagnosisCompleted({
+        accountKey: profile.accountKey,
+        source: 'unit',
+        weaknessId: activeNode.weaknessId,
+      });
+    }
 
     if (nextPageIndex !== null) {
       requestAnimationFrame(() => {
