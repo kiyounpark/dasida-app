@@ -420,6 +420,9 @@ export function useDiagnosticScreen({
     if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'final') {
       return;
     }
+    if (workspace.status === 'completed') {
+      return;
+    }
 
     setDiagnosisInteracted(answerIndex);
     requestDiagnosisAutoScroll(answerIndex);
