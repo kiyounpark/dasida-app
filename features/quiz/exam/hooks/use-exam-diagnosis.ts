@@ -55,7 +55,6 @@ export type UseExamDiagnosisResult = {
   onExplainDontKnow: () => void;
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
-  onFinalConfirm: () => void;
 };
 
 export function useExamDiagnosis(params: {
@@ -265,7 +264,8 @@ export function useExamDiagnosis(params: {
     advanceDraft(advanceFromCheck(draft, undefined), '모르겠습니다');
   }, [draft, advanceDraft]);
 
-  const onFinalConfirm = useCallback(async () => {
+  // 최종 노드 자동 저장 — draft가 final을 가리키는 순간 즉시 저장, 1.5초 후 다음 문제 카드 등장
+  useEffect(() => {
     if (!draft || !session || !profile || isDone) return;
     const flow = getDiagnosisFlow(draft.methodId);
     const node = getNode(flow, draft.currentNodeId);
@@ -277,38 +277,40 @@ export function useExamDiagnosis(params: {
     setIsDone(true);
     setIsSaving(true);
 
-    try {
-      await Promise.all([
-        markProblemDiagnosed(examId, problemNumber, weaknessId),
-        recordAttempt(
-          buildExamDiagnosisAttemptInput({
-            session,
-            profile,
-            examId,
-            problemNumber,
-            topic: problem?.topic ?? 'exam',
-            methodId: draft.methodId,
-            weaknessId,
-            startedAt: startedAt.current,
-            completedAt,
-          }),
-        ),
-      ]);
-      if (!isMountedRef.current) return;
-      // next-problem 카드 추가 후 세션에 완료 알림
-      setEntries((prev) => [
-        ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
-        { kind: 'next-problem', id: 'next-problem' },
-      ]);
-      onComplete();
-    } catch {
-      if (isMountedRef.current) {
-        setIsDone(false);
-      }
-    } finally {
-      if (isMountedRef.current) setIsSaving(false);
-    }
-  }, [draft, session, profile, isDone, examId, problemNumber, problem, recordAttempt, onComplete]);
+    Promise.all([
+      markProblemDiagnosed(examId, problemNumber, weaknessId),
+      recordAttempt(
+        buildExamDiagnosisAttemptInput({
+          session,
+          profile,
+          examId,
+          problemNumber,
+          topic: problem?.topic ?? 'exam',
+          methodId: draft.methodId,
+          weaknessId,
+          startedAt: startedAt.current,
+          completedAt,
+        }),
+      ),
+    ])
+      .then(() => {
+        if (!isMountedRef.current) return;
+        setTimeout(() => {
+          if (!isMountedRef.current) return;
+          setEntries((prev) => [
+            ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
+            { kind: 'next-problem', id: 'next-problem' },
+          ]);
+          onComplete();
+        }, 1500);
+      })
+      .catch(() => {
+        if (isMountedRef.current) setIsDone(false);
+      })
+      .finally(() => {
+        if (isMountedRef.current) setIsSaving(false);
+      });
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete]);
 
   return {
     problemNumber,
@@ -332,6 +334,5 @@ export function useExamDiagnosis(params: {
     onExplainDontKnow,
     onCheckPress,
     onCheckDontKnow,
-    onFinalConfirm,
   };
 }
