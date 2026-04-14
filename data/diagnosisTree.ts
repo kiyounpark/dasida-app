@@ -738,7 +738,7 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
       },
       {
         id: 'da_extremum',
-        text: '극값·최솟값을 미분으로 찾는 과정이 막혔어요.',
+        text: '극값(최댓값·최솟값)을 미분으로 찾는 과정이 막혔어요.',
         weaknessId: 'g3_diff',
       },
       {
