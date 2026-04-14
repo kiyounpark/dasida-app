@@ -525,4 +525,22 @@ export const practiceMap: Record<WeaknessId, PracticeProblem> = {
     hint: '정사면체: 꼭짓점 4개, 모서리 6개, 면 4개.',
     explanation: 'V=4, E=6, F=4. 합=14. (오일러 공식 V-E+F=2 확인: 4-6+4=2 ✓)',
   },
+  g1_geometry: {
+    id: 'p_g1_geometry',
+    weaknessId: 'g1_geometry',
+    question: '직각삼각형에서 빗변이 10, 한 변이 6일 때 나머지 변의 길이는?',
+    choices: ['4', '6', '7', '8', '9'],
+    answerIndex: 3,
+    hint: '피타고라스 정리 a²+b²=c²를 적용하세요. c=10, a=6이면 b²=100-36.',
+    explanation: 'b²=100-36=64, b=8. 피타고라스 정리: 6²+8²=36+64=100=10² ✓',
+  },
+  g3_function: {
+    id: 'p_g3_function',
+    weaknessId: 'g3_function',
+    question: 'f(x)=2x+1일 때 역함수 f⁻¹(x)는?',
+    choices: ['(x-1)/2', '(x+1)/2', '2x-1', '1/(2x+1)', '(x-2)/1'],
+    answerIndex: 0,
+    hint: 'y=2x+1을 x에 대해 풀어 x=f⁻¹(y)를 구하세요.',
+    explanation: 'y=2x+1 → 2x=y-1 → x=(y-1)/2. 따라서 f⁻¹(x)=(x-1)/2.',
+  },
 };
