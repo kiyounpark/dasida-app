@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
@@ -27,17 +26,9 @@ export function DiagnosisFlowCard({
   onExplainDontKnow,
   onCheckPress,
   onCheckDontKnow,
-  onFinalConfirm = () => {},
+  onFinalConfirm,
 }: DiagnosisFlowCardProps) {
   const resolvedVariant = variant ?? node.kind;
-
-  // final 노드: 이전 버튼의 터치 이벤트가 새 버튼에 흡수되는 현상 방지
-  const [isFinalReady, setIsFinalReady] = useState(node.kind !== 'final');
-  useEffect(() => {
-    if (node.kind !== 'final') return;
-    const t = setTimeout(() => setIsFinalReady(true), 350);
-    return () => clearTimeout(t);
-  }, [node.kind]);
 
   return (
     <View
@@ -142,18 +133,24 @@ export function DiagnosisFlowCard({
       )}
 
       {node.kind === 'final' && (
-        <View style={styles.actionGroup}>
-          <Pressable
-            style={[styles.primaryButton, (disabled || !isFinalReady) ? styles.buttonDisabled : null]}
-            onPress={onFinalConfirm}
-            accessibilityRole="button"
-            accessibilityLabel={node.ctaLabel}
-            disabled={disabled || !isFinalReady}>
-            <Text style={styles.primaryButtonText}>
-              {node.ctaLabel}
-            </Text>
-          </Pressable>
-        </View>
+        onFinalConfirm ? (
+          <View style={styles.actionGroup}>
+            <Pressable
+              style={[styles.primaryButton, disabled ? styles.buttonDisabled : null]}
+              onPress={onFinalConfirm}
+              accessibilityRole="button"
+              accessibilityLabel={node.ctaLabel}
+              disabled={disabled}>
+              <Text style={styles.primaryButtonText}>
+                {node.ctaLabel}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.finalStatusRow}>
+            <Text style={styles.finalStatusText}>✓ 이 약점으로 정리되었습니다</Text>
+          </View>
+        )
       )}
     </View>
   );
@@ -272,5 +269,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.66,
+  },
+  finalStatusRow: {
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  finalStatusText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: DiagnosisTheme.ink,
   },
 });
