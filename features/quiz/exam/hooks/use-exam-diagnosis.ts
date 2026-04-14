@@ -22,6 +22,7 @@ import {
   type DiagnosisRouterResult,
 } from '@/features/quiz/diagnosis-router';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
 
 import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
@@ -275,6 +276,13 @@ export function useExamDiagnosis(params: {
     const completedAt = new Date().toISOString();
 
     setIsDone(true);
+    logDiagnosisCompleted({
+      accountKey: profile.accountKey,
+      source: 'exam',
+      weaknessId,
+      examId,
+      problemNumber,
+    });
     setIsSaving(true);
 
     Promise.all([
