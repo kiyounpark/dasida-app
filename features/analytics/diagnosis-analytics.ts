@@ -3,7 +3,7 @@ import { addDoc, collection, getFirestore, serverTimestamp } from 'firebase/fire
 
 export type DiagnosisCompletedSource = 'exam' | 'unit';
 
-interface LogDiagnosisCompletedParams {
+export interface LogDiagnosisCompletedParams {
   accountKey: string; // "user:{firebaseUid}" 형태
   source: DiagnosisCompletedSource;
   weaknessId: string;
@@ -12,9 +12,10 @@ interface LogDiagnosisCompletedParams {
 }
 
 export function logDiagnosisCompleted(params: LogDiagnosisCompletedParams): void {
-  const uid = params.accountKey.startsWith('user:')
-    ? params.accountKey.slice(5)
-    : params.accountKey;
+  if (!params.accountKey.startsWith('user:')) {
+    return; // 익명/게스트 유저는 리텐션 추적 대상이 아님
+  }
+  const uid = params.accountKey.slice(5);
 
   const db = getFirestore(getApp());
 
