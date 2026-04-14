@@ -15,6 +15,7 @@ export type UseExamDiagnosisSessionResult = {
   examId: string;
   wrongProblemNumbers: number[];
   activeProblemIndex: number;
+  activeProblemIndexRef: React.MutableRefObject<number>;
   diagnosedIndices: number[];
   pagerRef: React.RefObject<FlatList<number> | null>;
   progressLabel: string;
@@ -35,6 +36,9 @@ export function useExamDiagnosisSession({
 }: UseExamDiagnosisSessionParams): UseExamDiagnosisSessionResult {
   const { state } = useExamSession();
   const [activeProblemIndex, setActiveProblemIndex] = useState(startIndex);
+  // Ref always reflects current value — readable by stale closures at call time
+  const activeProblemIndexRef = useRef(activeProblemIndex);
+  activeProblemIndexRef.current = activeProblemIndex;
   const [diagnosedIndices, setDiagnosedIndices] = useState<number[]>([]);
   const pagerRef = useRef<FlatList<number>>(null);
   const total = wrongProblemNumbers.length;
@@ -56,6 +60,8 @@ export function useExamDiagnosisSession({
   );
 
   const scrollToIndex = useCallback((index: number) => {
+    // Phone: FlatList slides with animation. Tablet: pagerRef is null (no FlatList),
+    // but setActiveProblemIndex below re-keys the single ExamDiagnosisPage, triggering re-mount.
     pagerRef.current?.scrollToIndex({ index, animated: true });
     setActiveProblemIndex(index);
   }, []);
@@ -98,6 +104,7 @@ export function useExamDiagnosisSession({
     examId,
     wrongProblemNumbers,
     activeProblemIndex,
+    activeProblemIndexRef,
     diagnosedIndices,
     pagerRef,
     progressLabel: `${activeProblemIndex + 1} / ${total}`,

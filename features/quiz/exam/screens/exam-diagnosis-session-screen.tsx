@@ -41,6 +41,20 @@ export function ExamDiagnosisSessionScreen() {
 
   const { onSwipeEnd } = session;
 
+  const handlePageComplete = useCallback(
+    (index: number) => {
+      session.onComplete(index);
+      // Guard: if the user has manually swiped away during the 1.5s delay, skip auto-advance
+      if (index !== session.activeProblemIndexRef.current) return;
+      if (session.getNextProblemNumber(index) !== null) {
+        session.onScrollToNext(index);
+      } else {
+        session.onBackToResult();
+      }
+    },
+    [session],
+  );
+
   // 스와이프 완료 시 activeProblemIndex 동기화 (onDotPress 아님 — scroll 재호출 방지)
   const handleMomentumEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { x: number } } }) => {
@@ -75,14 +89,7 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(activeProblemNumber)}
             width={pageWidth}
             isActive={true}
-            onComplete={() => {
-              session.onComplete(session.activeProblemIndex);
-              if (session.getNextProblemNumber(session.activeProblemIndex) !== null) {
-                session.onScrollToNext(session.activeProblemIndex);
-              } else {
-                session.onBackToResult();
-              }
-            }}
+            onComplete={() => handlePageComplete(session.activeProblemIndex)}
           />
         )}
       </View>
@@ -125,14 +132,7 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(problemNumber)}
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
-            onComplete={() => {
-              session.onComplete(index);
-              if (session.getNextProblemNumber(index) !== null) {
-                session.onScrollToNext(index);
-              } else {
-                session.onBackToResult();
-              }
-            }}
+            onComplete={() => handlePageComplete(index)}
           />
         )}
         style={styles.pager}
