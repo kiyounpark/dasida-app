@@ -266,7 +266,7 @@ export function useExamDiagnosis(params: {
   }, [draft, advanceDraft]);
 
   const onFinalConfirm = useCallback(async () => {
-    if (!draft || !session || !profile) return;
+    if (!draft || !session || !profile || isDone) return;
     const flow = getDiagnosisFlow(draft.methodId);
     const node = getNode(flow, draft.currentNodeId);
     if (node.kind !== 'final') return;
@@ -308,7 +308,7 @@ export function useExamDiagnosis(params: {
     } finally {
       if (isMountedRef.current) setIsSaving(false);
     }
-  }, [draft, session, profile, examId, problemNumber, problem, recordAttempt, onComplete]);
+  }, [draft, session, profile, isDone, examId, problemNumber, problem, recordAttempt, onComplete]);
 
   return {
     problemNumber,
