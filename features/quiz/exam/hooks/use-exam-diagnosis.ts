@@ -30,8 +30,7 @@ export type ExamDiagEntry =
   | { kind: 'bubble'; id: string; role: 'assistant' | 'user'; text: string }
   | { kind: 'problem-card'; id: string; imageKey: string; userAnswer: number; correctAnswer: number; problemType: 'multiple_choice' | 'short_answer' }
   | { kind: 'method-selector'; id: string; interactive: boolean }
-  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean }
-  | { kind: 'next-problem'; id: string };
+  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean };
 
 export type UseExamDiagnosisResult = {
   problemNumber: number;
@@ -297,10 +296,6 @@ export function useExamDiagnosis(params: {
         if (!isMountedRef.current) return;
         setTimeout(() => {
           if (!isMountedRef.current) return;
-          setEntries((prev) => [
-            ...prev.map((e) => ('interactive' in e ? { ...e, interactive: false } : e)),
-            { kind: 'next-problem', id: 'next-problem' },
-          ]);
           onComplete();
         }, 1500);
       })
