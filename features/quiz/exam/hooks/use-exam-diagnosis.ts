@@ -204,7 +204,6 @@ export function useExamDiagnosis(params: {
   const advanceDraft = useCallback(
     (nextDraft: DiagnosisFlowDraft, userText: string) => {
       const flow = getDiagnosisFlow(nextDraft.methodId);
-      const node = getNode(flow, nextDraft.currentNodeId);
 
       setDraft(nextDraft);
       setEntries((prev) => {
