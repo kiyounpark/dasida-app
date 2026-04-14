@@ -3,12 +3,217 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>다시다</title>
+  <title>다시다 — 수능 수학 약점 진단</title>
   <style>
-    body { font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #fafafa; color: #333; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F6F2E7;
+      color: #1C2C19;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 28px 24px 0;
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #1C2C19;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+
+    .card {
+      background: rgba(255, 252, 247, 0.96);
+      border: 1px solid rgba(41, 59, 39, 0.12);
+      border-radius: 24px;
+      padding: 40px 36px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 18px 48px rgba(28, 44, 25, 0.08);
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      color: #5A7A56;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #1C2C19;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .desc {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #4A5E47;
+      margin-bottom: 32px;
+    }
+
+    .features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+
+    .features li {
+      font-size: 14px;
+      color: #3A4E37;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .features li::before {
+      content: "•";
+      color: #5A7A56;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .badge:hover { opacity: 0.8; }
+
+    .badge-ios {
+      background: #1C2C19;
+      color: #F6F2E7;
+    }
+
+    .badge-android {
+      background: #293B27;
+      color: #F6F2E7;
+    }
+
+    .badge-soon {
+      background: rgba(41, 59, 39, 0.08);
+      color: #4A5E47;
+      border: 1px solid rgba(41, 59, 39, 0.15);
+      cursor: default;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(41, 59, 39, 0.1);
+      margin-bottom: 24px;
+    }
+
+    .contact {
+      font-size: 13px;
+      color: #6A7E67;
+      line-height: 1.6;
+    }
+
+    .contact a {
+      color: #3A6E35;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .contact a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      padding: 20px 24px 28px;
+      font-size: 12px;
+      color: #8A9E87;
+    }
+
+    footer a {
+      color: #5A7A56;
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .card { padding: 28px 20px; border-radius: 20px; }
+      h1 { font-size: 26px; }
+    }
   </style>
 </head>
 <body>
-  <p>다시다(DASIDA)</p>
+  <header>
+    <div class="logo">다시다</div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="eyebrow">수능 수학 학습 앱</div>
+      <h1>막히는 곳을 알면<br>공부가 달라집니다</h1>
+      <p class="desc">
+        10문항 진단으로 내 약점 단원을 찾고,<br>
+        그 약점만 집중 연습하는 수학 앱입니다.
+      </p>
+
+      <ul class="features">
+        <li>짧은 10문항으로 약점 단원 AI 진단 (약 3분)</li>
+        <li>진단 결과에서 바로 약점 연습문제로 연결</li>
+        <li>모의고사 오답을 문제별로 분석</li>
+        <li>AI 복습 피드백으로 풀이 과정 점검</li>
+        <li>고1 · 고2 · 고3, 미적분 · 확통 · 기하 지원</li>
+      </ul>
+
+      <div class="badge-row">
+        <span class="badge badge-soon">App Store — 출시 예정</span>
+        <span class="badge badge-soon">Google Play — 출시 예정</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="contact">
+        문의 및 지원: <a href="mailto:qq8918@nate.com">qq8918@nate.com</a><br>
+        <a href="/privacy">개인정보처리방침</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 다시다. All rights reserved. &nbsp;·&nbsp;
+    <a href="/privacy">개인정보처리방침</a>
+  </footer>
 </body>
 </html>
