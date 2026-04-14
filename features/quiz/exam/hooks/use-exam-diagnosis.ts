@@ -121,6 +121,7 @@ export function useExamDiagnosis(params: {
   const [isDone, setIsDone] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const startedAt = useRef(new Date().toISOString());
+  const hasAdvancedRef = useRef(false);
 
   const suggestedMethods: DiagnosisMethodCardOption[] = useMemo(() => {
     if (!routerResult?.needsManualSelection) return [];
@@ -295,7 +296,8 @@ export function useExamDiagnosis(params: {
       .then(() => {
         if (!isMountedRef.current) return;
         setTimeout(() => {
-          if (!isMountedRef.current) return;
+          if (!isMountedRef.current || hasAdvancedRef.current) return;
+          hasAdvancedRef.current = true;
           onComplete();
         }, 1500);
       })
