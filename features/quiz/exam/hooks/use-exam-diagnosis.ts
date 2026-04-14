@@ -217,7 +217,7 @@ export function useExamDiagnosis(params: {
           id: `node-${nextDraft.currentNodeId}-${Date.now()}`,
           flow,
           draft: nextDraft,
-          interactive: node.kind !== 'final',
+          interactive: true,
         });
         return frozen;
       });
