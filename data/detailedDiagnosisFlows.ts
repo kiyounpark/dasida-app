@@ -449,12 +449,12 @@ const checkPromptByWeakness: Partial<Record<WeaknessId, CheckPromptDefinition>> 
     ],
   },
   g3_space_geometry: {
-    title: '정사영 길이 확인',
-    prompt: '길이 4인 선분이 평면에 45°로 기울어져 있을 때 정사영의 길이는?',
+    title: '정사영 개념 확인',
+    prompt: '평면에 수직으로 세운 선분의 정사영 길이는?',
     options: [
-      { id: 'correct', text: '2√2', isCorrect: true },
-      { id: 'wrong1', text: '4', isCorrect: false },
-      { id: 'wrong2', text: '2', isCorrect: false },
+      { id: 'correct', text: '0', isCorrect: true },
+      { id: 'wrong1', text: '원래 길이', isCorrect: false },
+      { id: 'wrong2', text: '반', isCorrect: false },
     ],
   },
   g3_function: {
