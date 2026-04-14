@@ -235,7 +235,6 @@ function EntryRenderer({
         onExplainDontKnow={hook.onExplainDontKnow}
         onCheckPress={hook.onCheckPress}
         onCheckDontKnow={hook.onCheckDontKnow}
-        onFinalConfirm={hook.onFinalConfirm}
       />
     );
   }

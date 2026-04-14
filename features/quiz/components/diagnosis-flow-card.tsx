@@ -14,7 +14,7 @@ type DiagnosisFlowCardProps = {
   onExplainDontKnow: () => void;
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
-  onFinalConfirm: () => void;
+  onFinalConfirm?: () => void;
 };
 
 export function DiagnosisFlowCard({
@@ -27,7 +27,7 @@ export function DiagnosisFlowCard({
   onExplainDontKnow,
   onCheckPress,
   onCheckDontKnow,
-  onFinalConfirm,
+  onFinalConfirm = () => {},
 }: DiagnosisFlowCardProps) {
   const resolvedVariant = variant ?? node.kind;
 
