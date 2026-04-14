@@ -19,7 +19,6 @@ import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-car
 import { DiagnosisMethodSelectorCard } from '@/features/quiz/components/diagnosis-method-selector-card';
 
 import { ExamProblemCard } from '../components/exam-problem-card';
-import { NextProblemCard } from '../components/next-problem-card';
 import {
   useExamDiagnosis,
   type ExamDiagEntry,
@@ -32,10 +31,7 @@ type ExamDiagnosisPageProps = {
   userAnswer: number;
   width: number;          // FlatList page width
   isActive: boolean;      // FlatList 현재 페이지 여부
-  nextProblemNumber: number | null;
   onComplete: () => void;   // 진단 완료 시 호출
-  onNext: () => void;       // 다음 문제로 이동
-  onBackToResult: () => void;
 };
 
 export function ExamDiagnosisPage({
@@ -44,10 +40,7 @@ export function ExamDiagnosisPage({
   userAnswer,
   width,
   isActive,
-  nextProblemNumber,
   onComplete,
-  onNext,
-  onBackToResult,
 }: ExamDiagnosisPageProps) {
   const hook = useExamDiagnosis({ examId, problemNumber, userAnswer, onComplete });
   const scrollRef = useRef<ScrollView>(null);
@@ -82,9 +75,6 @@ export function ExamDiagnosisPage({
             <EntryRenderer
               entry={problemEntry}
               hook={hook}
-              nextProblemNumber={nextProblemNumber}
-              onNext={onNext}
-              onBackToResult={onBackToResult}
             />
           )}
         </ScrollView>
@@ -103,20 +93,13 @@ export function ExamDiagnosisPage({
             {interactionEntries.map((entry) => (
               <Animated.View
                 key={entry.id}
-                entering={
-                  entry.kind === 'next-problem'
-                    ? undefined
-                    : FadeInDown.duration(220).withInitialValues({
-                        opacity: 0,
-                        transform: [{ translateY: 8 }],
-                      })
-                }>
+                entering={FadeInDown.duration(220).withInitialValues({
+                  opacity: 0,
+                  transform: [{ translateY: 8 }],
+                })}>
                 <EntryRenderer
                   entry={entry}
                   hook={hook}
-                  nextProblemNumber={nextProblemNumber}
-                  onNext={onNext}
-                  onBackToResult={onBackToResult}
                 />
               </Animated.View>
             ))}
@@ -143,17 +126,10 @@ export function ExamDiagnosisPage({
         {hook.entries.map((entry) => (
           <Animated.View
             key={entry.id}
-            entering={
-              entry.kind === 'next-problem'
-                ? undefined
-                : FadeInDown.duration(220).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] })
-            }>
+            entering={FadeInDown.duration(220).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] })}>
             <EntryRenderer
               entry={entry}
               hook={hook}
-              nextProblemNumber={nextProblemNumber}
-              onNext={onNext}
-              onBackToResult={onBackToResult}
             />
           </Animated.View>
         ))}
@@ -171,17 +147,11 @@ export function ExamDiagnosisPage({
 type EntryRendererProps = {
   entry: ExamDiagEntry;
   hook: UseExamDiagnosisResult;
-  nextProblemNumber: number | null;
-  onNext: () => void;
-  onBackToResult: () => void;
 };
 
 function EntryRenderer({
   entry,
   hook,
-  nextProblemNumber,
-  onNext,
-  onBackToResult,
 }: EntryRendererProps) {
   if (entry.kind === 'problem-card') {
     return (
@@ -235,16 +205,6 @@ function EntryRenderer({
         onExplainDontKnow={hook.onExplainDontKnow}
         onCheckPress={hook.onCheckPress}
         onCheckDontKnow={hook.onCheckDontKnow}
-      />
-    );
-  }
-
-  if (entry.kind === 'next-problem') {
-    return (
-      <NextProblemCard
-        nextProblemNumber={nextProblemNumber}
-        onNext={onNext}
-        onBackToResult={onBackToResult}
       />
     );
   }
