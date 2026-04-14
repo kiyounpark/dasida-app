@@ -755,6 +755,55 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.14 09:03
+- 해시: `bcbad6a` (`bcbad6aaed6e6ca37ef53cbfaa39c96886da40be`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/bcbad6aaed6e6ca37ef53cbfaa39c96886da40be
+- 작성자: 박기윤
+- 메시지: fix(diagnosis): practiceMap에 g1_geometry·g3_function 연습문제 추가 (WeaknessId exhaustive)
+
+### 커밋 2026.04.13 23:22
+- 해시: `42f2f59` (`42f2f59abf7751a848247b332c06a1fb2b36f764`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/42f2f59abf7751a848247b332c06a1fb2b36f764
+- 작성자: 박기윤
+- 메시지: feat(dev): 내 기록 꽉 찬 상태 미리보기 시드 추가
+- 본문: 설정 > 개발용 상태 미리보기에 '내 기록 꽉 찬 상태' 버튼 추가. / 히어로 카드: / - 진단 2회 (55% → 75%) → ▲ +20%p 배지 / - 복습 완료 6회 (약점 3개 × 이전 단계 합산) / - 오늘 복습 3개 대기 중 표시 / 약점별 진행 단계: / - 공식 이해 부족: 4단계(day30) 오늘 대기 / - 계산 실수 반복: 3단계(day7) 오늘 대기 / - 최솟값 읽기 혼동: 2단계(day3) 오늘 대기 / 최근 활동: / - 진단 완료 2건 + 복습 완료 6건 → 최신 5건 표시 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.13 23:06
+- 해시: `3c36f08` (`3c36f0834e27685f164bc85d59eed2c1fcdfdf4f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3c36f0834e27685f164bc85d59eed2c1fcdfdf4f
+- 작성자: 박기윤
+- 메시지: refactor(history): 마이너 코드 정리
+- 본문: - getWeaknessLabel defensive guard (optional chaining) / - card borderRadius → BrandRadius.md 토큰 사용 / - progressFill borderRadius 제거 (parent overflow:hidden으로 충분) / - pulseBadgeText/pulseBadgeValueText 스타일 분리 (fontVariant 격리) / - 빈 상태 안내 카드 추가 (약점·활동 둘 다 없을 때) / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.11 15:29
+- 해시: `5f88832` (`5f88832d9d1b25a5ba159b2d8024c4edfc561a28`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5f88832d9d1b25a5ba159b2d8024c4edfc561a28
+- 작성자: 박기윤
+- 메시지: feat(dev): 개발 허브 페이지 추가 — 모의고사/진단 화면 미리보기
+- 본문: - app/dev/_layout.tsx: __DEV__ 가드 (프로덕션 차단), Stack 레이아웃 / - app/dev/index.tsx: 결과/진단/퀴즈스테이지 3개 화면 링크 / - app/dev/exam-result.tsx: ExamResultScreenView 직접 렌더링 (recordAttempt 우회) / - app/dev/quiz-stage.tsx: problemData g1 문제로 DiagnosticQuizStage 미리보기 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.11 13:06
+- 해시: `afe456c` (`afe456c55e71a96358e6d726b21de45cb6668ece`)
+- 브랜치: feat/diagnostic-quiz-layout-redesign
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/afe456c55e71a96358e6d726b21de45cb6668ece
+- 작성자: 박기윤
+- 메시지: docs: 모의고사 오답 약점 분석 진행 기록 추가
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.11 11:05
 - 해시: `7570ea2` (`7570ea29e03944cc41d2dea430da0acccb6634e0`)
 - 브랜치: main
