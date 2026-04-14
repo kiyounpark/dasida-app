@@ -75,10 +75,14 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(activeProblemNumber)}
             width={pageWidth}
             isActive={true}
-            nextProblemNumber={session.getNextProblemNumber(session.activeProblemIndex)}
-            onComplete={() => session.onComplete(session.activeProblemIndex)}
-            onNext={() => session.onScrollToNext(session.activeProblemIndex)}
-            onBackToResult={session.onBackToResult}
+            onComplete={() => {
+              session.onComplete(session.activeProblemIndex);
+              if (session.getNextProblemNumber(session.activeProblemIndex) !== null) {
+                session.onScrollToNext(session.activeProblemIndex);
+              } else {
+                session.onBackToResult();
+              }
+            }}
           />
         )}
       </View>
@@ -121,10 +125,14 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(problemNumber)}
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
-            nextProblemNumber={session.getNextProblemNumber(index)}
-            onComplete={() => session.onComplete(index)}
-            onNext={() => session.onScrollToNext(index)}
-            onBackToResult={session.onBackToResult}
+            onComplete={() => {
+              session.onComplete(index);
+              if (session.getNextProblemNumber(index) !== null) {
+                session.onScrollToNext(index);
+              } else {
+                session.onBackToResult();
+              }
+            }}
           />
         )}
         style={styles.pager}
