@@ -36,7 +36,7 @@ export const unstable_settings = {
 };
 
 function AuthGateRedirector() {
-  const { authGateState, isReady } = useCurrentLearner();
+  const { authGateState, isReady, profile } = useCurrentLearner();
   const segments = useSegments();
   const rootSegment = segments[0];
   const isSignInRoute = rootSegment === 'sign-in';
@@ -56,9 +56,13 @@ function AuthGateRedirector() {
     }
 
     if (isSignInRoute) {
-      router.replace('/(tabs)/quiz');
+      if (profile?.grade === 'unknown' || !profile?.nickname) {
+        router.replace('/onboarding');
+      } else {
+        router.replace('/(tabs)/quiz');
+      }
     }
-  }, [authGateState, isReady, isOnboardingRoute, isSignInRoute, isTabsRoute]);
+  }, [authGateState, isReady, isOnboardingRoute, isSignInRoute, isTabsRoute, profile]);
 
   return null;
 }
