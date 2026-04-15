@@ -1,5 +1,5 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
-import { getDiagnosticProblems } from '@/data/problemData';
+import { getDiagnosticProblems, type Problem } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
 import { useCurrentLearner } from '@/features/learner/provider';
 import {
@@ -10,6 +10,7 @@ import {
 import type { DiagnosisDetailTrace, DiagnosisRoutingTrace, QuizSessionState } from './types';
 
 type QuizSessionContextValue = {
+  problems: Problem[];
   state: QuizSessionState;
   startSession: () => void;
   goToPreviousQuestion: () => void;
@@ -266,13 +267,17 @@ const QuizSessionContext = createContext<QuizSessionContextValue | undefined>(un
 
 export function QuizSessionProvider({ children }: { children: ReactNode }) {
   const { profile } = useCurrentLearner();
-  const problems = getDiagnosticProblems(profile?.grade ?? 'unknown', profile?.track);
+  const problems = useMemo(
+    () => getDiagnosticProblems(profile?.grade ?? 'unknown', profile?.track),
+    [profile?.grade, profile?.track],
+  );
   const totalQuestions = problems.length;
 
   const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
 
   const value = useMemo<QuizSessionContextValue>(
     () => ({
+      problems,
       state,
       startSession: () => {
         dispatch({ type: 'START', payload: { totalQuestions } });
@@ -311,7 +316,7 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'RESET' });
       },
     }),
-    [state, totalQuestions],
+    [problems, state, totalQuestions],
   );
 
   return <QuizSessionContext.Provider value={value}>{children}</QuizSessionContext.Provider>;

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import type { SolveMethodId } from '@/data/diagnosisTree';
-import { problemData, type Problem } from '@/data/problemData';
+import type { Problem } from '@/data/problemData';
 import {
   advanceFromCheck,
   advanceFromChoice,
@@ -100,6 +100,7 @@ export function useDiagnosticScreen({
   shouldResetOnMount,
 }: UseDiagnosticScreenParams): UseDiagnosticScreenResult {
   const {
+    problems,
     state,
     resetSession,
     startSession,
@@ -201,6 +202,7 @@ export function useDiagnosticScreen({
     updateWorkspace,
   } = useDiagnosisWorkspaces({
     isMountedRef,
+    problems,
     state,
   });
 
@@ -491,7 +493,7 @@ export function useDiagnosticScreen({
     );
   };
 
-  const currentQuestionNumber = Math.min(state.currentQuestionIndex + 1, problemData.length);
+  const currentQuestionNumber = Math.min(state.currentQuestionIndex + 1, problems.length);
   const questionCount = state.totalQuestions;
   const progressRatio = currentQuestionNumber / questionCount;
   const progressPercent = `${progressRatio * 100}%` as `${number}%`;

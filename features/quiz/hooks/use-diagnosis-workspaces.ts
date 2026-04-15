@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DiagnosisFlowNode } from '@/data/detailedDiagnosisFlows';
-import { problemData, type Problem } from '@/data/problemData';
+import type { Problem } from '@/data/problemData';
 import type {
   DiagnosisConversationEntry,
 } from '@/features/quiz/components/diagnosis-conversation-page';
@@ -34,11 +34,13 @@ type QuizSessionState = ReturnType<typeof useQuizSession>['state'];
 
 type UseDiagnosisWorkspacesParams = {
   isMountedRef: React.MutableRefObject<boolean>;
+  problems: Problem[];
   state: QuizSessionState;
 };
 
 export function useDiagnosisWorkspaces({
   isMountedRef,
+  problems,
   state,
 }: UseDiagnosisWorkspacesParams) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -49,8 +51,8 @@ export function useDiagnosisWorkspaces({
   const isAnalyzingRef = useRef<Record<number, boolean>>({});
 
   const currentProblem = useMemo(
-    () => problemData[state.currentQuestionIndex],
-    [state.currentQuestionIndex],
+    () => problems[state.currentQuestionIndex],
+    [problems, state.currentQuestionIndex],
   );
 
   useEffect(() => {
