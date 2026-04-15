@@ -61,8 +61,8 @@ export default function QuizFeedbackScreen() {
             title="홈으로 이동"
             variant="primary"
             onPress={() => {
-              resetSession();
               router.replace('/(tabs)/quiz');
+              resetSession();
             }}
           />
         </View>

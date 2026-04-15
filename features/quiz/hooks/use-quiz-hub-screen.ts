@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
@@ -64,9 +64,30 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(console.warn);
       void refresh();
     });
-    // 마운트 시 1회만 실행
+    // 마운트 시 1회만 실행 (overdue 패널티 적용 + 알림 재스케줄링)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.accountKey]);
+
+  // 화면 포커스 시 상태 갱신 — 진단/연습 완료 후 홈으로 돌아올 때 최신 summary 반영
+  // - 첫 포커스(마운트 시)는 위 useEffect가 담당하므로 skip
+  // - 탭 전환 빈도가 높을 때 불필요한 네트워크 요청 방지를 위해 5초 쿨다운 적용
+  const isFirstFocusRef = useRef(true);
+  const lastFocusRefreshAtRef = useRef(0);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocusRef.current) {
+        isFirstFocusRef.current = false;
+        return;
+      }
+      const now = Date.now();
+      if (now - lastFocusRefreshAtRef.current < 5_000) {
+        return;
+      }
+      lastFocusRefreshAtRef.current = now;
+      void refresh();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.accountKey]),
+  );
 
   const onStartDiagnostic = () => {
     resetSession();

@@ -201,8 +201,8 @@ export function useResultScreen({
       });
     },
     onRestartQuiz: () => {
-      resetSession();
       router.replace('/quiz');
+      resetSession();
     },
     persistResult,
     saveErrorMessage,
