@@ -755,6 +755,36 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.15 22:06
+- 해시: `249ea74` (`249ea7461b776c2a4d6a99e4475dd757a25ce553`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/249ea7461b776c2a4d6a99e4475dd757a25ce553
+- 작성자: 박기윤
+- 메시지: fix(profile): 코드 리뷰 반영 — 학년 변경 품질 수정
+- 본문: - clearLearningHistory: reviewTaskStore.reset 중복 제거 / (localLearningHistoryRepository.reset이 review tasks 포함 전체 처리) / - onUpdateGradeAndTrack: clearLearningHistory best-effort로 전환 / (authenticated 사용자 Firestore 미지원 한계 대응, 학년 변경은 항상 진행) / - grade confirm 모달 취소 버튼: disabled={busyAction !== null} 추가 / - 모달 확인 onPress: async 제거, void 처리로 패턴 통일 / - modalOverlay/modalBox: Brand 토큰으로 기존 모달과 시각 일관성 확보 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.15 19:33
+- 해시: `78ad592` (`78ad592b1d0d2d39b0a3bc1ccc061270df424114`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/78ad592b1d0d2d39b0a3bc1ccc061270df424114
+- 작성자: 박기윤
+- 메시지: fix(data): G3 진단 문제 diagnosisMethods를 유효한 SolveMethodId로 교체
+- 본문: g3_diff, g3_trig 등 methodOptions에 없는 g3_* 접두사 메서드 ID를 / 실제 존재하는 SolveMethodId로 교체한다. / 기존 g3_* ID는 methodOptions에 없어 buildMethodOptions()가 빈 배열을 / 반환했고 고3 진단 화면에서 메서드 선택 버튼이 전혀 표시되지 않았다. / 매핑: / - g3_diff → diff_advanced (fallback: g3_diff) / - g3_integral → integral_advanced (fallback: g3_integral) / - g3_sequence → sequence (fallback: g3_sequence) / - g3_log_exp → log_exp (fallback: g3_log_exp) / - g3_limit → limit (fallback: g3_limit) / - g3_conic → conic (fallback: g3_conic) / - g3_counting → permutation (fallback: g3_counting) / - g3_probability → probability (fallback: g3_probability) / - g3_vector → vector (fallback: g3_vector) / - g3_space_geometry → space_geometry (fallback: g3_space_geometry) / - g3_trig → trig (fallback: g2_trig_unit_circle) / 모든 30개 문제에 unknown 보조 옵션도 추가. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.15 09:17
+- 해시: `63ccc2c` (`63ccc2cf0ec02ebb57d5e123497febaa0d5d0040`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/63ccc2cf0ec02ebb57d5e123497febaa0d5d0040
+- 작성자: 박기윤
+- 메시지: feat(content): G3 복습 콘텐츠 추가 — g3_diff, g3_integral, g3_sequence, g3_log_exp, g3_trig, g3_limit, g3_conic, g3_counting, g3_probability, g3_statistics (전체 10개 완료)
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.14 09:03
 - 해시: `bcbad6a` (`bcbad6aaed6e6ca37ef53cbfaa39c96886da40be`)
 - 브랜치: main
