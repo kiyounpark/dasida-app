@@ -157,7 +157,7 @@ export const problemData: Problem[] = [
     choices: ['-√3/2', '-1/2', '0', '1/2', '√3/2'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig', 'unknown'],
+    diagnosisMethods: ['trig'],
   },
   {
     id: 'g2_q5',
@@ -230,7 +230,7 @@ export const problemData: Problem[] = [
     choices: ['12x^3-6x^2+1', '12x^3-6x^2', '3x^3-2x^2+1', '12x^4-6x^3+1', '4x^3-3x^2+1'],
     answerIndex: 0,
     topic: '미분',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_calc_q2',
@@ -240,7 +240,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1', '2', '4', '6'],
     answerIndex: 2,
     topic: '미분',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_calc_q3',
@@ -250,7 +250,7 @@ export const problemData: Problem[] = [
     choices: ['10', '11', '12', '13', '14'],
     answerIndex: 4,
     topic: '수열',
-    diagnosisMethods: ['sequence', 'unknown'],
+    diagnosisMethods: ['sequence'],
   },
   {
     id: 'g3_calc_q4',
@@ -260,7 +260,7 @@ export const problemData: Problem[] = [
     choices: ['3', '4', '5', '6', '7'],
     answerIndex: 2,
     topic: '지수·로그',
-    diagnosisMethods: ['log_exp', 'unknown'],
+    diagnosisMethods: ['log_exp'],
   },
   {
     id: 'g3_calc_q5',
@@ -270,7 +270,7 @@ export const problemData: Problem[] = [
     choices: ['8', '10', '12', '14', '16'],
     answerIndex: 2,
     topic: '적분',
-    diagnosisMethods: ['integral_advanced', 'unknown'],
+    diagnosisMethods: ['integral_advanced'],
   },
   {
     id: 'g3_calc_q6',
@@ -280,7 +280,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1/2', '√2/2', '1', '√3/2'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig', 'unknown'],
+    diagnosisMethods: ['trig'],
   },
   {
     id: 'g3_calc_q7',
@@ -290,7 +290,7 @@ export const problemData: Problem[] = [
     choices: ['0', '2', '4', '8', '존재하지 않는다'],
     answerIndex: 2,
     topic: '극한',
-    diagnosisMethods: ['limit', 'unknown'],
+    diagnosisMethods: ['limit'],
   },
   {
     id: 'g3_calc_q8',
@@ -300,7 +300,7 @@ export const problemData: Problem[] = [
     choices: ['1', '2', '4', '8', '-2'],
     answerIndex: 1,
     topic: '이차곡선',
-    diagnosisMethods: ['conic', 'unknown'],
+    diagnosisMethods: ['conic'],
   },
   {
     id: 'g3_calc_q9',
@@ -310,7 +310,7 @@ export const problemData: Problem[] = [
     choices: ['20', '22', '24', '26', '28'],
     answerIndex: 3,
     topic: '수열',
-    diagnosisMethods: ['sequence', 'unknown'],
+    diagnosisMethods: ['sequence'],
   },
   {
     id: 'g3_calc_q10',
@@ -320,7 +320,7 @@ export const problemData: Problem[] = [
     choices: ['-4', '-3', '-2', '0', '4'],
     answerIndex: 0,
     topic: '미분 (극값)',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   // ─── 고3 확률과통계 (stats) ──────────────────────────────────────
   {
@@ -331,7 +331,7 @@ export const problemData: Problem[] = [
     choices: ['30', '36', '42', '48', '54'],
     answerIndex: 2,
     topic: '미분',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_stats_q2',
@@ -341,7 +341,7 @@ export const problemData: Problem[] = [
     choices: ['5', '9', '18', '27', '32'],
     answerIndex: 3,
     topic: '미분 (극값)',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_stats_q3',
@@ -351,7 +351,7 @@ export const problemData: Problem[] = [
     choices: ['15', '20', '25', '30', '35'],
     answerIndex: 2,
     topic: '수열',
-    diagnosisMethods: ['sequence', 'unknown'],
+    diagnosisMethods: ['sequence'],
   },
   {
     id: 'g3_stats_q4',
@@ -361,7 +361,7 @@ export const problemData: Problem[] = [
     choices: ['2', '3', '4', '5', '6'],
     answerIndex: 2,
     topic: '지수',
-    diagnosisMethods: ['log_exp', 'unknown'],
+    diagnosisMethods: ['log_exp'],
   },
   {
     id: 'g3_stats_q5',
@@ -371,7 +371,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1', '√2', '2', '√3+1'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig', 'unknown'],
+    diagnosisMethods: ['trig'],
   },
   {
     id: 'g3_stats_q6',
@@ -381,7 +381,7 @@ export const problemData: Problem[] = [
     choices: ['6', '8', '10', '12', '14'],
     answerIndex: 2,
     topic: '적분',
-    diagnosisMethods: ['integral_advanced', 'unknown'],
+    diagnosisMethods: ['integral_advanced'],
   },
   {
     id: 'g3_stats_q7',
@@ -391,7 +391,7 @@ export const problemData: Problem[] = [
     choices: ['10', '15', '20', '24', '30'],
     answerIndex: 2,
     topic: '순열',
-    diagnosisMethods: ['permutation', 'unknown'],
+    diagnosisMethods: ['permutation'],
   },
   {
     id: 'g3_stats_q8',
@@ -401,7 +401,7 @@ export const problemData: Problem[] = [
     choices: ['3', '4', '5', '6', '8'],
     answerIndex: 3,
     topic: '이차곡선',
-    diagnosisMethods: ['conic', 'unknown'],
+    diagnosisMethods: ['conic'],
   },
   {
     id: 'g3_stats_q9',
@@ -411,7 +411,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1', '2', '4', '존재하지 않는다'],
     answerIndex: 2,
     topic: '극한',
-    diagnosisMethods: ['limit', 'unknown'],
+    diagnosisMethods: ['limit'],
   },
   {
     id: 'g3_stats_q10',
@@ -421,7 +421,7 @@ export const problemData: Problem[] = [
     choices: ['1/8', '1/6', '1/4', '1/3', '5/6'],
     answerIndex: 1,
     topic: '확률',
-    diagnosisMethods: ['probability', 'unknown'],
+    diagnosisMethods: ['probability'],
   },
   // ─── 고3 기하 (geom) ────────────────────────────────────────────
   {
@@ -432,7 +432,7 @@ export const problemData: Problem[] = [
     choices: ['-12', '-4', '0', '4', '12'],
     answerIndex: 2,
     topic: '미분',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_geom_q2',
@@ -442,7 +442,7 @@ export const problemData: Problem[] = [
     choices: ['2', '4', '6', '8', '12'],
     answerIndex: 2,
     topic: '미분 (합성함수)',
-    diagnosisMethods: ['diff_advanced', 'unknown'],
+    diagnosisMethods: ['diff_advanced'],
   },
   {
     id: 'g3_geom_q3',
@@ -452,7 +452,7 @@ export const problemData: Problem[] = [
     choices: ['11', '12', '13', '14', '15'],
     answerIndex: 2,
     topic: '수열',
-    diagnosisMethods: ['sequence', 'unknown'],
+    diagnosisMethods: ['sequence'],
   },
   {
     id: 'g3_geom_q4',
@@ -462,7 +462,7 @@ export const problemData: Problem[] = [
     choices: ['1/4', '1/2', '3/4', '1', '√3/2'],
     answerIndex: 2,
     topic: '삼각함수',
-    diagnosisMethods: ['trig', 'unknown'],
+    diagnosisMethods: ['trig'],
   },
   {
     id: 'g3_geom_q5',
@@ -472,7 +472,7 @@ export const problemData: Problem[] = [
     choices: ['1/3', '2/3', '1', '3/2', '2'],
     answerIndex: 3,
     topic: '이차곡선',
-    diagnosisMethods: ['conic', 'unknown'],
+    diagnosisMethods: ['conic'],
   },
   {
     id: 'g3_geom_q6',
@@ -482,7 +482,7 @@ export const problemData: Problem[] = [
     choices: ['1', '2', '3', '6', '9'],
     answerIndex: 1,
     topic: '로그',
-    diagnosisMethods: ['log_exp', 'unknown'],
+    diagnosisMethods: ['log_exp'],
   },
   {
     id: 'g3_geom_q7',
@@ -492,7 +492,7 @@ export const problemData: Problem[] = [
     choices: ['-1', '0', '1', '2', '4'],
     answerIndex: 1,
     topic: '적분',
-    diagnosisMethods: ['integral_advanced', 'unknown'],
+    diagnosisMethods: ['integral_advanced'],
   },
   {
     id: 'g3_geom_q8',
@@ -502,7 +502,7 @@ export const problemData: Problem[] = [
     choices: ['0', '3', '6', '9', '존재하지 않는다'],
     answerIndex: 2,
     topic: '극한',
-    diagnosisMethods: ['limit', 'unknown'],
+    diagnosisMethods: ['limit'],
   },
   {
     id: 'g3_geom_q9',
@@ -512,7 +512,7 @@ export const problemData: Problem[] = [
     choices: ['3', '4', '5', '7', '√7'],
     answerIndex: 2,
     topic: '벡터',
-    diagnosisMethods: ['vector', 'unknown'],
+    diagnosisMethods: ['vector'],
   },
   {
     id: 'g3_geom_q10',
@@ -522,7 +522,7 @@ export const problemData: Problem[] = [
     choices: ['10', '12', '14', '16', '18'],
     answerIndex: 2,
     topic: '공간도형',
-    diagnosisMethods: ['space_geometry', 'unknown'],
+    diagnosisMethods: ['space_geometry'],
   },
 ];
 
