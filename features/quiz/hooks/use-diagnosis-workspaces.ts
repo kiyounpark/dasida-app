@@ -335,7 +335,6 @@ export function useDiagnosisWorkspaces({
     handleDiagnosisInputChange,
     removeAiHelpComposerEntries,
     selectedIndex,
-    setDiagnosisWorkspaces,
     setSelectedIndex,
     startDiagnosisFlow,
     updateWorkspace,
