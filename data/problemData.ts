@@ -107,7 +107,7 @@ export const problemData: Problem[] = [
     choices: ['5', '6', '7', '9', '10'],
     answerIndex: 3,
     topic: '경우의 수/이차방정식',
-    diagnosisMethods: ['factoring', 'quadratic', 'unknown'],
+    diagnosisMethods: ['counting', 'factoring', 'quadratic', 'unknown'],
   },
   // ─── 고2 공통 ────────────────────────────────────────────────────
   {
