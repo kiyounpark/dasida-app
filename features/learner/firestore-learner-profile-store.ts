@@ -49,10 +49,12 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
   }
 
   async save(profile: LearnerProfile): Promise<void> {
-    await setDoc(this.profileRef(profile.accountKey), {
-      ...profile,
-      _updatedAt: serverTimestamp(),
-    });
+    const data = Object.fromEntries(
+      Object.entries({ ...profile, _updatedAt: serverTimestamp() }).filter(
+        ([, v]) => v !== undefined,
+      ),
+    );
+    await setDoc(this.profileRef(profile.accountKey), data);
   }
 
   async reset(accountKey: string): Promise<void> {
