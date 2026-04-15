@@ -146,27 +146,14 @@ export function ProfileScreenView({
   busyAction,
   errorMessage,
   gradeOptions,
-  homeState,
-  isDevBuild,
-  isGuestDevSession,
-  isReady,
   manualImportCandidate,
   noticeMessage,
   onDeleteAccount,
-  onGoToDevHub,
-  onGoToOnboarding,
   onImportLocalHistory,
-  onPullReviewDueDates,
-  onResetLocalProfile,
-  onSeedPreview,
-  onSignIn,
   onSignOut,
-  onTestNotification,
   onUpdateGrade,
-  previewStates,
   profile,
   session,
-  supportedAuthProviders,
 }: UseProfileScreenResult) {
   const isTablet = useIsTablet();
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
@@ -191,9 +178,7 @@ export function ProfileScreenView({
             설정
           </Text>
           <Text selectable style={styles.subtitle}>
-            {isGuestDevSession
-              ? '개발용 익명 세션에서 로컬 학습 상태와 로그인 전환을 확인합니다.'
-              : '연결된 계정, 학년 설정, 이 기기 기록 가져오기를 관리합니다.'}
+            계정과 학습 환경을 설정합니다.
           </Text>
         </View>
 
@@ -201,37 +186,6 @@ export function ProfileScreenView({
 
         {errorMessage ? <SecondaryNotice tone="error" message={errorMessage} /> : null}
         {noticeMessage ? <SecondaryNotice tone="success" message={noticeMessage} /> : null}
-
-        <View style={styles.card}>
-          <Text selectable style={styles.cardTitle}>
-            현재 학습자 상태
-          </Text>
-          {isReady && session && profile ? (
-            <View style={styles.infoList}>
-              <Text selectable style={styles.body}>
-                세션 상태: {session.status}
-              </Text>
-              <Text selectable style={styles.body}>
-                계정 키: {maskAccountKey(session.accountKey)}
-              </Text>
-              <Text selectable style={styles.body}>
-                로그인 방식: {isGuestDevSession ? '개발용 익명' : formatProviderLabel(session.provider)}
-              </Text>
-              {session.status === 'authenticated' && session.email ? (
-                <Text selectable style={styles.body}>
-                  계정 이메일: {session.email}
-                </Text>
-              ) : null}
-              <Text selectable style={styles.body}>
-                허브 히어로: {homeState?.hero ?? '준비 중'}
-              </Text>
-            </View>
-          ) : (
-            <Text selectable style={styles.body}>
-              학습자 상태를 불러오는 중입니다.
-            </Text>
-          )}
-        </View>
 
         {session?.status === 'authenticated' ? (
           <View style={styles.card}>
@@ -333,153 +287,6 @@ export function ProfileScreenView({
           />
         </View>
 
-        {isDevBuild ? (
-          <View style={styles.card}>
-            <Text selectable style={styles.cardTitle}>
-              소셜 로그인 테스트
-            </Text>
-            <Text selectable style={styles.body}>
-              {isGuestDevSession
-                ? '개발용 익명 세션에서 실제 로그인 전환을 다시 확인할 수 있습니다.'
-                : '지금은 로그인된 계정 세션입니다. 다시 테스트하려면 로그아웃 후 개발용 익명으로 계속으로 돌아오세요.'}
-            </Text>
-            {isGuestDevSession && supportedAuthProviders.length > 0 ? (
-              <View style={styles.authButtonList}>
-                {supportedAuthProviders.map((provider) => (
-                  <ActionButton
-                    key={provider}
-                    label={
-                      busyAction === provider
-                        ? `${formatProviderLabel(provider)} 로그인 중...`
-                        : `${formatProviderLabel(provider)}로 로그인`
-                    }
-                    disabled={busyAction !== null}
-                    onPress={() => void onSignIn(provider)}
-                  />
-                ))}
-              </View>
-            ) : isGuestDevSession ? (
-              <Text selectable style={styles.body}>
-                현재 빌드에는 테스트할 소셜 로그인 제공자가 설정되어 있지 않습니다.
-              </Text>
-            ) : null}
-            <ActionButton
-              label={
-                busyAction === 'sign-out'
-                  ? isGuestDevSession
-                    ? '로그인 게이트로 이동 중...'
-                    : '로그아웃 중...'
-                  : isGuestDevSession
-                    ? '로그인 게이트로 돌아가기'
-                    : '로그아웃하고 로그인 게이트로 이동'
-              }
-              disabled={busyAction !== null}
-              subtle
-              onPress={() => void onSignOut()}
-            />
-          </View>
-        ) : null}
-
-        {isDevBuild ? (
-          <View style={styles.card}>
-            <Text selectable style={styles.cardTitle}>
-              온보딩
-            </Text>
-            <Text selectable style={styles.body}>
-              닉네임과 학년을 입력하는 온보딩 화면으로 이동합니다.
-            </Text>
-            <ActionButton
-              label="온보딩 화면으로 이동"
-              onPress={onGoToOnboarding}
-            />
-          </View>
-        ) : null}
-
-        {isDevBuild ? (
-          <View style={[styles.card, styles.devCard]}>
-            <Text selectable style={styles.devLabel}>
-              개발용 알림 테스트
-            </Text>
-            <Text selectable style={styles.body}>
-              권한 요청 후 5초 뒤 테스트 알림을 발송합니다. 앱을 백그라운드로 내리면 알림이 보입니다.
-            </Text>
-            <ActionButton
-              label={busyAction === 'test-notification' ? '예약 중...' : '알림 테스트 (5초 후)'}
-              disabled={busyAction !== null}
-              subtle
-              onPress={() => void onTestNotification()}
-            />
-          </View>
-        ) : null}
-
-        {isDevBuild ? (
-          <View style={[styles.card, styles.devCard]}>
-            <Text selectable style={styles.devLabel}>
-              개발 허브
-            </Text>
-            <Text selectable style={styles.body}>
-              모의고사 결과 화면, 오답 진단 화면, 퀴즈 스테이지를 바로 미리볼 수 있습니다.
-            </Text>
-            <ActionButton
-              label="개발 허브로 이동"
-              subtle
-              onPress={onGoToDevHub}
-            />
-          </View>
-        ) : null}
-
-        {isDevBuild ? (
-          <View style={[styles.card, styles.devCard]}>
-            <Text selectable style={styles.devLabel}>
-              개발용 상태 미리보기
-            </Text>
-            <Text selectable style={styles.body}>
-              {isGuestDevSession
-                ? '익명 로컬 모드에서 허브 히어로와 리뷰 상태를 빠르게 전환합니다.'
-                : '이 도구는 로그인된 계정 데이터를 건드리지 않기 위해 개발용 익명 세션에서만 실행됩니다.'}
-            </Text>
-            {isGuestDevSession ? (
-              <>
-                <View style={styles.previewList}>
-                  {previewStates.map((preview) => (
-                    <ActionButton
-                      key={preview.value}
-                      label={preview.label}
-                      subtle
-                      disabled={busyAction !== null}
-                      onPress={() => void onSeedPreview(preview.value)}
-                    />
-                  ))}
-                </View>
-                <ActionButton
-                  label={
-                    busyAction === 'pull-review-dates'
-                      ? '날짜 당기는 중...'
-                      : '복습 날짜 당기기'
-                  }
-                  disabled={busyAction !== null}
-                  subtle
-                  onPress={() => void onPullReviewDueDates()}
-                />
-                <ActionButton
-                  label={busyAction === 'reset-local' ? '초기화 중...' : '로컬 상태 초기화'}
-                  disabled={busyAction !== null}
-                  subtle
-                  onPress={() => void onResetLocalProfile()}
-                />
-              </>
-            ) : (
-              <View style={styles.devHintCard}>
-                <Text selectable style={styles.devHintTitle}>
-                  로그인 후에도 카드가 사라지지 않게 유지했습니다.
-                </Text>
-                <Text selectable style={styles.body}>
-                  미리보기를 다시 쓰려면 로그아웃 후 sign-in 화면에서 `개발용 익명으로 계속`을 선택하면 됩니다.
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -532,9 +339,6 @@ const styles = StyleSheet.create({
     ...BrandTypography.body,
     color: BrandColors.mutedText,
   },
-  infoList: {
-    gap: 4,
-  },
   chipWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -558,9 +362,6 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: '#FFFFFF',
-  },
-  authButtonList: {
-    gap: BrandSpacing.xs,
   },
   actionButton: {
     borderRadius: BrandRadius.md,
@@ -666,29 +467,6 @@ const styles = StyleSheet.create({
   importTitle: {
     ...BrandTypography.cardTitle,
     color: BrandColors.text,
-  },
-  devHintCard: {
-    gap: BrandSpacing.xs,
-    padding: BrandSpacing.md,
-    borderRadius: BrandRadius.md,
-    backgroundColor: '#F8FBF7',
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-  },
-  devHintTitle: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  devCard: {
-    borderStyle: 'dashed',
-  },
-  devLabel: {
-    ...BrandTypography.meta,
-    color: BrandColors.primarySoft,
-    letterSpacing: 0.2,
-  },
-  previewList: {
-    gap: BrandSpacing.xs,
   },
   modalBackdrop: {
     flex: 1,
