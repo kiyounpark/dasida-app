@@ -819,6 +819,42 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
 
+  g1_geometry: {
+    heroPrompt: '직각삼각형을 찾아서 피타고라스 정리나 삼각비를 적용하는 흐름이 기억나나요?',
+    thinkingSteps: [
+      {
+        title: '직각삼각형 찾기',
+        body: '도형 문제에서 가장 먼저 직각삼각형을 찾거나 보조선을 그어 만든다. 직각이 있어야 피타고라스 정리와 삼각비를 쓸 수 있다.',
+        example: '예) 삼각형의 꼭짓점에서 밑변에 수선을 내리면 두 직각삼각형이 생긴다',
+        choices: [
+          { text: '보조선을 그어 직각삼각형을 만든다', correct: true },
+          { text: '모든 삼각형에 바로 삼각비를 적용한다', correct: false },
+          { text: '직각이 없어도 피타고라스 정리를 쓸 수 있다', correct: false },
+        ],
+      },
+      {
+        title: '피타고라스 정리 적용',
+        body: '직각삼각형에서 a²+b²=c² (c: 빗변). 두 변을 알면 나머지 한 변을 구할 수 있다.',
+        example: '예) 두 변이 3, 4이면 빗변=√(9+16)=5',
+        choices: [
+          { text: '두 변의 제곱의 합 = 빗변의 제곱', correct: true },
+          { text: '두 변의 합 = 빗변', correct: false },
+          { text: '빗변의 제곱 = 두 변의 제곱의 차', correct: false },
+        ],
+      },
+      {
+        title: '삼각비로 변의 길이·넓이 계산',
+        body: 'sinθ=대변/빗변, cosθ=밑변/빗변, tanθ=대변/밑변. 각도와 한 변을 알면 나머지 변을 구하고, 넓이=(1/2)×밑변×높이로 계산한다.',
+        example: '예) 빗변=10, θ=30° → 높이=10×sin30°=5, 넓이=(1/2)×밑변×5',
+        choices: [
+          { text: 'sinθ=대변/빗변으로 높이를 구한 뒤 넓이를 계산한다', correct: true },
+          { text: 'sinθ=밑변/빗변이다', correct: false },
+          { text: '각도만 알면 변의 길이를 구할 수 있다', correct: false },
+        ],
+      },
+    ],
+  },
+
   // ─── 고2 공통 ────────────────────────────────────────────────────
   g2_set_operation: {
     heroPrompt: '합집합과 교집합 계산에서 원소를 세는 순서를 다시 떠올려볼게요.',
