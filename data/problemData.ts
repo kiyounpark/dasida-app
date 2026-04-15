@@ -157,7 +157,7 @@ export const problemData: Problem[] = [
     choices: ['-√3/2', '-1/2', '0', '1/2', '√3/2'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig'],
+    diagnosisMethods: ['trig', 'unknown'],
   },
   {
     id: 'g2_q5',
