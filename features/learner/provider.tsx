@@ -113,6 +113,7 @@ export type CurrentLearnerContextValue = {
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
   pullReviewDueDates(): Promise<void>;
+  clearLearningHistory(): Promise<void>;
   resetLocalProfile(): Promise<void>;
 };
 
@@ -289,6 +290,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       pullReviewDueDates: async () => {
         const snapshot = await learnerController.pullReviewDueDates();
+        setState(toLearnerState(snapshot));
+      },
+      clearLearningHistory: async () => {
+        const snapshot = await learnerController.clearLearningHistory();
         setState(toLearnerState(snapshot));
       },
       resetLocalProfile: async () => {

@@ -76,6 +76,7 @@ export type CurrentLearnerController = {
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
   pullReviewDueDates(): Promise<CurrentLearnerSnapshot>;
+  clearLearningHistory(): Promise<CurrentLearnerSnapshot>;
   resetLocalProfile(): Promise<CurrentLearnerSnapshot>;
 };
 
@@ -699,6 +700,14 @@ export function createCurrentLearnerController({
         task.completed ? task : { ...task, scheduledFor: today },
       );
       await reviewTaskStore.saveAll(session.accountKey, updated);
+      return readCurrentSnapshot();
+    },
+    clearLearningHistory: async () => {
+      const { session } = await readAccessibleSnapshot();
+      await Promise.all([
+        localLearningHistoryRepository.reset(session.accountKey),
+        reviewTaskStore.reset(session.accountKey),
+      ]);
       return readCurrentSnapshot();
     },
     resetLocalProfile: async () => {

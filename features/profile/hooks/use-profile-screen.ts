@@ -26,12 +26,12 @@ function formatErrorMessage(error: unknown) {
 
 export function useProfileScreen() {
   const {
+    clearLearningHistory,
     deleteAccount,
     getHistoryMigrationStatus,
     importAnonymousHistory,
     profile,
     refresh,
-    resetLocalProfile,
     session,
     signOut,
     updateOnboardingProfile,
@@ -154,7 +154,7 @@ export function useProfileScreen() {
       setErrorMessage(null);
 
       try {
-        await resetLocalProfile();
+        await clearLearningHistory();
         await updateOnboardingProfile(
           profile?.nickname ?? '',
           grade,
