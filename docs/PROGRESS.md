@@ -21,6 +21,18 @@
 
 ## 로그
 
+### 2026.04.15
+
+**설정 화면 정리 — dev 항목 제거, 학년+트랙 설정 개선, Firestore undefined 버그 수정**
+
+- `features/profile/hooks/use-profile-screen.ts`: dev 전용 props 7개 제거, `clearLearningHistory` 연결, `onUpdateGradeAndTrack(grade, track?)` 추가 — 학년 변경 시 로컬 기록 초기화 후 `updateOnboardingProfile` 호출
+- `features/profile/components/profile-screen-view.tsx`: "현재 학습자 상태" 카드 + dev 카드 6개 제거, 부제목 단순화, 학년+트랙 chip 선택 + 확인 모달 UI 추가 (`gradeChangeRequest` staged 패턴, `gradeConfirmVisible` 모달 상태)
+- `features/learner/current-learner-controller.ts`: `clearLearningHistory()` 메서드 추가 — `readAccessibleSnapshot()` 사용(dev-guest 전용 제한 해제)
+- `features/learner/provider.tsx`: `clearLearningHistory(): Promise<void>` context 인터페이스 + 구현 추가
+- `features/learner/firestore-learner-profile-store.ts`: `save()` 내 `undefined` 필드 필터링 추가 — g1/g2 학년 변경 시 `track: undefined` 포함 시 Firestore 에러 수정 (`Object.entries(...).filter(([, v]) => v !== undefined)`)
+- **검증**: 리뷰 에이전트 2회 승인 — undefined 필터 정확성, serverTimestamp 통과, falsy 값 보존 확인; updateGrade dead code 확인(호출자 없음)
+- 커밋: `321fb2d`, `249ea74`, `edfd486`
+
 ### 2026.04.11
 
 **모의고사 오답 약점 분석 구현 완료**
