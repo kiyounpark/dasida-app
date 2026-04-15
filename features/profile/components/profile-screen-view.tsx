@@ -178,6 +178,7 @@ export function ProfileScreenView({
         visible={gradeConfirmVisible}
         transparent
         animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => {
           setGradeConfirmVisible(false);
           setGradeChangeRequest(null);
@@ -310,6 +311,7 @@ export function ProfileScreenView({
               return (
                 <Pressable
                   key={option.value}
+                  disabled={busyAction !== null}
                   style={[styles.chip, isSelected && styles.chipSelected]}
                   onPress={() => {
                     setGradeChangeRequest({ grade: option.value, track: undefined });
@@ -339,6 +341,7 @@ export function ProfileScreenView({
                   return (
                     <Pressable
                       key={track.value}
+                      disabled={busyAction !== null}
                       style={[styles.chip, isSelected && styles.chipSelected]}
                       onPress={() => {
                         setGradeChangeRequest((prev) =>

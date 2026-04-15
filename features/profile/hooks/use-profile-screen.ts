@@ -28,9 +28,7 @@ export function useProfileScreen() {
   const {
     deleteAccount,
     getHistoryMigrationStatus,
-    homeState,
     importAnonymousHistory,
-    isReady,
     profile,
     refresh,
     resetLocalProfile,
@@ -128,8 +126,6 @@ export function useProfileScreen() {
     busyAction,
     errorMessage,
     gradeOptions,
-    homeState,
-    isReady,
     manualImportCandidate,
     noticeMessage,
     profile,
