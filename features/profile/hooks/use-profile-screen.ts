@@ -154,7 +154,13 @@ export function useProfileScreen() {
       setErrorMessage(null);
 
       try {
-        await clearLearningHistory();
+        // 히스토리 초기화: 로컬(anonymous) 사용자에게는 완전 초기화, authenticated 사용자는
+        // 로컬 캐시만 초기화됨 (Firestore 기록은 유지). 실패해도 학년 변경은 진행.
+        try {
+          await clearLearningHistory();
+        } catch {
+          // best-effort — 학년 변경 자체는 막지 않음
+        }
         await updateOnboardingProfile(
           profile?.nickname ?? '',
           grade,

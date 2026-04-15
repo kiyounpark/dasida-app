@@ -704,10 +704,7 @@ export function createCurrentLearnerController({
     },
     clearLearningHistory: async () => {
       const { session } = await readAccessibleSnapshot();
-      await Promise.all([
-        localLearningHistoryRepository.reset(session.accountKey),
-        reviewTaskStore.reset(session.accountKey),
-      ]);
+      await localLearningHistoryRepository.reset(session.accountKey);
       return readCurrentSnapshot();
     },
     resetLocalProfile: async () => {

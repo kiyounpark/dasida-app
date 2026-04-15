@@ -194,17 +194,18 @@ export function ProfileScreenView({
             <ActionButton
               label="확인"
               disabled={busyAction !== null}
-              onPress={async () => {
+              onPress={() => {
                 if (!gradeChangeRequest) return;
                 const { grade, track } = gradeChangeRequest;
                 setGradeConfirmVisible(false);
                 setGradeChangeRequest(null);
-                await onUpdateGradeAndTrack(grade, track);
+                void onUpdateGradeAndTrack(grade, track);
               }}
             />
             <ActionButton
               label="취소"
               subtle
+              disabled={busyAction !== null}
               onPress={() => {
                 setGradeConfirmVisible(false);
                 setGradeChangeRequest(null);
@@ -639,17 +640,19 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: BrandSpacing.xl,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+    backgroundColor: 'rgba(32, 40, 32, 0.28)',
   },
   modalBox: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 360,
-    gap: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
+    backgroundColor: BrandColors.background,
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.md,
+    boxShadow: '0 20px 42px rgba(24, 32, 25, 0.16)',
   },
 });
