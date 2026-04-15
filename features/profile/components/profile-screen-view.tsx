@@ -16,6 +16,7 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
+import type { LearnerTrack } from '@/features/learner/types';
 import type { UseProfileScreenResult } from '@/features/profile/hooks/use-profile-screen';
 import { FoundingMemberCard } from '@/features/profile/components/founding-member-card';
 
@@ -151,12 +152,17 @@ export function ProfileScreenView({
   onDeleteAccount,
   onImportLocalHistory,
   onSignOut,
-  onUpdateGrade,
+  onUpdateGradeAndTrack,
   profile,
   session,
 }: UseProfileScreenResult) {
   const isTablet = useIsTablet();
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [gradeChangeRequest, setGradeChangeRequest] = useState<{
+    grade: 'g1' | 'g2' | 'g3';
+    track?: LearnerTrack;
+  } | null>(null);
+  const [gradeConfirmVisible, setGradeConfirmVisible] = useState(false);
 
   return (
     <View style={styles.screen}>
@@ -168,6 +174,44 @@ export function ProfileScreenView({
           void onDeleteAccount();
         }}
       />
+      <Modal
+        visible={gradeConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setGradeConfirmVisible(false);
+          setGradeChangeRequest(null);
+        }}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text selectable style={styles.modalTitle}>
+              학년을 변경할까요?
+            </Text>
+            <Text selectable style={styles.modalBody}>
+              학년을 변경하면 기존 진단 및 복습 기록이 초기화됩니다. 계속하시겠어요?
+            </Text>
+            <ActionButton
+              label="확인"
+              disabled={busyAction !== null}
+              onPress={async () => {
+                if (!gradeChangeRequest) return;
+                const { grade, track } = gradeChangeRequest;
+                setGradeConfirmVisible(false);
+                setGradeChangeRequest(null);
+                await onUpdateGradeAndTrack(grade, track);
+              }}
+            />
+            <ActionButton
+              label="취소"
+              subtle
+              onPress={() => {
+                setGradeConfirmVisible(false);
+                setGradeChangeRequest(null);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
       <BrandHeader compact />
       <ScrollView
         style={styles.scroll}
@@ -259,12 +303,17 @@ export function ProfileScreenView({
           </Text>
           <View style={styles.chipWrap}>
             {gradeOptions.map((option) => {
-              const isSelected = profile?.grade === option.value;
+              const isSelected =
+                gradeChangeRequest !== null
+                  ? gradeChangeRequest.grade === option.value
+                  : profile?.grade === option.value;
               return (
                 <Pressable
                   key={option.value}
                   style={[styles.chip, isSelected && styles.chipSelected]}
-                  onPress={() => void onUpdateGrade(option.value)}>
+                  onPress={() => {
+                    setGradeChangeRequest({ grade: option.value, track: undefined });
+                  }}>
                   <Text selectable style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                     {option.label}
                   </Text>
@@ -272,6 +321,57 @@ export function ProfileScreenView({
               );
             })}
           </View>
+
+          {gradeChangeRequest?.grade === 'g3' ? (
+            <>
+              <Text selectable style={[styles.body, { marginTop: 12, marginBottom: 6 }]}>
+                선택과목
+              </Text>
+              <View style={styles.chipWrap}>
+                {(
+                  [
+                    { value: 'calc', label: '미적분' },
+                    { value: 'stats', label: '확률과통계' },
+                    { value: 'geom', label: '기하' },
+                  ] as { value: LearnerTrack; label: string }[]
+                ).map((track) => {
+                  const isSelected = gradeChangeRequest.track === track.value;
+                  return (
+                    <Pressable
+                      key={track.value}
+                      style={[styles.chip, isSelected && styles.chipSelected]}
+                      onPress={() => {
+                        setGradeChangeRequest((prev) =>
+                          prev ? { ...prev, track: track.value } : prev,
+                        );
+                      }}>
+                      <Text selectable style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                        {track.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+
+          {gradeChangeRequest !== null &&
+          (gradeChangeRequest.grade !== 'g3' || gradeChangeRequest.track !== undefined) ? (
+            <ActionButton
+              label={busyAction?.startsWith('grade:') ? '저장 중...' : '변경 저장'}
+              disabled={busyAction !== null}
+              onPress={() => setGradeConfirmVisible(true)}
+            />
+          ) : null}
+
+          {gradeChangeRequest !== null ? (
+            <ActionButton
+              label="취소"
+              subtle
+              disabled={busyAction !== null}
+              onPress={() => setGradeChangeRequest(null)}
+            />
+          ) : null}
         </View>
 
         <View style={styles.card}>
@@ -533,5 +633,20 @@ const styles = StyleSheet.create({
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 360,
+    gap: 12,
   },
 });
