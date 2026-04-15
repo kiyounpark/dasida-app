@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 18,
+    lineHeight: 24,
   },
   title: {
     ...BrandTypography.bodyStrong,
@@ -54,12 +55,10 @@ const styles = StyleSheet.create({
   body: {
     ...BrandTypography.body,
     color: '#78350F',
-    lineHeight: 22,
   },
   divider: {
     height: 1,
     backgroundColor: '#FDE68A',
-    marginVertical: BrandSpacing.xs,
   },
   footer: {
     flexDirection: 'row',
