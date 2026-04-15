@@ -167,7 +167,7 @@ export const problemData: Problem[] = [
     choices: ['1', '2', '3', '4', '5'],
     answerIndex: 2,
     topic: '나머지정리',
-    diagnosisMethods: ['polynomial', 'unknown'],
+    diagnosisMethods: ['remainder_theorem', 'unknown'],
   },
   {
     id: 'g2_q6',
