@@ -17,6 +17,7 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
 import type { UseProfileScreenResult } from '@/features/profile/hooks/use-profile-screen';
+import { FoundingMemberCard } from '@/features/profile/components/founding-member-card';
 
 function maskAccountKey(accountKey: string) {
   if (accountKey.length <= 18) {
@@ -195,6 +196,8 @@ export function ProfileScreenView({
               : '연결된 계정, 학년 설정, 이 기기 기록 가져오기를 관리합니다.'}
           </Text>
         </View>
+
+        {profile?.accountKey.startsWith('user:') ? <FoundingMemberCard /> : null}
 
         {errorMessage ? <SecondaryNotice tone="error" message={errorMessage} /> : null}
         {noticeMessage ? <SecondaryNotice tone="success" message={noticeMessage} /> : null}
