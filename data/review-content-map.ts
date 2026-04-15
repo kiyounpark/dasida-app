@@ -1870,6 +1870,76 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       },
     ],
   },
+  g3_vector: {
+    heroPrompt: '벡터의 내적과 크기 계산 순서가 기억나나요?',
+    thinkingSteps: [
+      {
+        title: '벡터 크기 계산',
+        body: '벡터 a⃗=(a₁,a₂)의 크기는 |a⃗|=√(a₁²+a₂²). 각 성분을 제곱해서 더한 뒤 제곱근을 취한다.',
+        example: '예) a⃗=(3,4) → |a⃗|=√(9+16)=√25=5',
+        choices: [
+          { text: '각 성분을 제곱해서 더한 뒤 제곱근을 취한다', correct: true },
+          { text: '각 성분을 더한 뒤 제곱근을 취한다', correct: false },
+          { text: '성분 중 큰 값이 크기가 된다', correct: false },
+        ],
+      },
+      {
+        title: '벡터 내적 계산',
+        body: 'a⃗·b⃗=a₁b₁+a₂b₂. 같은 위치의 성분끼리 곱한 뒤 더한다. 결과는 스칼라(수)이다.',
+        example: '예) a⃗=(2,3), b⃗=(4,1) → a⃗·b⃗=2×4+3×1=8+3=11',
+        choices: [
+          { text: '같은 위치 성분끼리 곱해서 더한다', correct: true },
+          { text: '같은 위치 성분끼리 더한 뒤 곱한다', correct: false },
+          { text: '내적의 결과는 벡터이다', correct: false },
+        ],
+      },
+      {
+        title: '내적과 각도 관계',
+        body: 'a⃗·b⃗=|a⃗||b⃗|cosθ. 내적이 0이면 두 벡터는 수직(θ=90°). 이 공식으로 두 벡터가 이루는 각을 구할 수 있다.',
+        example: '예) a⃗·b⃗=0 → cosθ=0 → θ=90° → 수직',
+        choices: [
+          { text: '내적이 0이면 두 벡터는 수직이다', correct: true },
+          { text: '내적이 0이면 두 벡터는 평행이다', correct: false },
+          { text: '내적이 양수면 두 벡터는 반대 방향이다', correct: false },
+        ],
+      },
+    ],
+  },
+  g3_space_geometry: {
+    heroPrompt: '정사영 넓이를 구할 때 이면각을 먼저 찾는 흐름이 기억나나요?',
+    thinkingSteps: [
+      {
+        title: '공간에서 직선·평면 위치 관계',
+        body: '공간에서 두 직선은 평행·교차·꼬임 중 하나다. 꼬인 위치는 같은 평면 위에 없고 만나지도 않는 경우이다.',
+        example: '예) 직육면체에서 AB와 CD는 꼬인 위치일 수 있다',
+        choices: [
+          { text: '꼬인 위치는 만나지 않고 평행하지도 않은 두 직선', correct: true },
+          { text: '꼬인 위치는 만나지 않는 모든 두 직선', correct: false },
+          { text: '꼬인 위치는 같은 평면 위에 있는 두 직선', correct: false },
+        ],
+      },
+      {
+        title: '이면각 구하기',
+        body: '두 평면이 이루는 각(이면각)은 교선에 수직인 두 반직선이 이루는 각이다. 보조선을 그어 직각삼각형을 만들어 구한다.',
+        example: '예) 정사면체에서 한 면과 밑면이 이루는 각 → 교선에 수직인 선 작도 후 cosθ 계산',
+        choices: [
+          { text: '교선에 수직인 두 반직선이 이루는 각이 이면각이다', correct: true },
+          { text: '두 평면의 법선벡터가 이루는 각이 이면각이다', correct: false },
+          { text: '두 평면이 만나는 선의 길이가 이면각이다', correct: false },
+        ],
+      },
+      {
+        title: '정사영 넓이 계산',
+        body: '도형을 평면에 정사영하면 넓이 S\'=S·cosθ (θ: 두 평면이 이루는 각). 이면각θ를 먼저 구한 뒤 원래 넓이에 cosθ를 곱한다.',
+        example: '예) 넓이 10인 도형, 이면각 60° → 정사영 넓이=10×cos60°=5',
+        choices: [
+          { text: '정사영 넓이 = 원래 넓이 × cosθ', correct: true },
+          { text: '정사영 넓이 = 원래 넓이 × sinθ', correct: false },
+          { text: '정사영 넓이 = 원래 넓이 × tanθ', correct: false },
+        ],
+      },
+    ],
+  },
   g3_statistics: {
     heroPrompt: '표준화 Z=(X-μ)/σ 공식을 적용하는 흐름을 볼게요.',
     thinkingSteps: [
