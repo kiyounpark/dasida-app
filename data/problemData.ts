@@ -219,7 +219,7 @@ export const problemData: Problem[] = [
     ],
     answerIndex: 2,
     topic: '부등식',
-    diagnosisMethods: ['linear_eq', 'unknown'],
+    diagnosisMethods: ['factoring', 'linear_eq', 'unknown'],
   },
   // ─── 고3 미적분 (calc) ───────────────────────────────────────────
   {
