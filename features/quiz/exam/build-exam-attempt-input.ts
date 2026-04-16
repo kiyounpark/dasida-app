@@ -15,7 +15,7 @@ export function buildExamAttemptInput(params: {
     attemptId: result.attemptId,
     accountKey: session.accountKey,
     learnerId: profile.learnerId,
-    source: 'exam',
+    source: 'featured-exam',
     sourceEntityId: result.examId,
     gradeSnapshot: profile.grade,
     startedAt: result.startedAt,
