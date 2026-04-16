@@ -35,7 +35,7 @@ export function buildExamDiagnosisAttemptInput(params: {
     attemptId: createAttemptId(examId, problemNumber),
     accountKey: session.accountKey,
     learnerId: profile.learnerId,
-    source: 'exam',
+    source: 'featured-exam',
     sourceEntityId: examId,
     gradeSnapshot: profile.grade,
     startedAt,
