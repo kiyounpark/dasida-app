@@ -50,6 +50,7 @@ const solveMethodIds = [
 ] as const;
 const diagnosisTraceSources = ['mock-router', 'openai-router', 'manual-selection'] as const;
 const weaknessOrder = [
+  // base (고1 이하)
   'formula_understanding',
   'calc_repeated_error',
   'min_value_read_confusion',
@@ -73,8 +74,48 @@ const weaknessOrder = [
   'simultaneous_equation_error',
   'counting_method_confusion',
   'counting_overcounting',
+  // 고2 공통 — 클라이언트 WeaknessId와 동기화
+  'g2_set_operation',
+  'g2_set_complement',
+  'g2_set_count',
+  'g2_prop_contrapositive',
+  'g2_prop_necessary_sufficient',
+  'g2_prop_quantifier',
+  'g2_trig_unit_circle',
+  'g2_trig_equation_range',
+  'g2_trig_identity',
+  'g2_poly_factoring',
+  'g2_poly_remainder',
+  'g2_eq_setup',
+  'g2_radical_simplify',
+  'g2_radical_rationalize',
+  'g2_diff_application',
+  'g2_integral_basic',
+  'g2_integral_definite',
+  'g2_counting_method',
+  'g2_counting_overcounting',
+  'g2_inequality_range',
+  'g2_function_domain',
+  // 고3 공통
+  'g3_diff',
+  'g3_sequence',
+  'g3_log_exp',
+  'g3_integral',
+  'g3_trig',
+  'g3_limit',
+  'g3_conic',
+  // 고3 확통 특화
+  'g3_counting',
+  'g3_probability',
+  'g3_statistics',
+  // 고3 기하·함수 / 고1 기하
+  'g3_vector',
+  'g3_space_geometry',
+  'g1_geometry',
+  'g3_function',
 ] as const;
 const weaknessLabels: Record<(typeof weaknessOrder)[number], string> = {
+  // base
   formula_understanding: '공식 이해 부족',
   calc_repeated_error: '계산 실수 반복',
   min_value_read_confusion: '최솟값 읽기 혼동',
@@ -98,6 +139,45 @@ const weaknessLabels: Record<(typeof weaknessOrder)[number], string> = {
   simultaneous_equation_error: '연립방정식 설정 실수',
   counting_method_confusion: '경우의 수 방법 혼동',
   counting_overcounting: '중복 처리 실수',
+  // 고2 공통
+  g2_set_operation: '집합 연산 오류',
+  g2_set_complement: '여집합 범위 혼동',
+  g2_set_count: '원소 개수 계산 오류',
+  g2_prop_contrapositive: '역·이·대우 혼동',
+  g2_prop_necessary_sufficient: '필요충분조건 오류',
+  g2_prop_quantifier: '전칭·존재 명제 혼동',
+  g2_trig_unit_circle: '단위원 좌표 혼동',
+  g2_trig_equation_range: '삼각방정식 범위 오류',
+  g2_trig_identity: '삼각함수 항등식 오류',
+  g2_poly_factoring: '인수분해 패턴 누락',
+  g2_poly_remainder: '나머지정리 적용 오류',
+  g2_eq_setup: '방정식 세우기·순서 오류',
+  g2_radical_simplify: '무리식 간소화 오류',
+  g2_radical_rationalize: '유리화 계산 오류',
+  g2_diff_application: '미분 활용 오류',
+  g2_integral_basic: '부정적분 공식 오류',
+  g2_integral_definite: '정적분 끝값 대입 오류',
+  g2_counting_method: '경우의 수 방법 선택 오류',
+  g2_counting_overcounting: '중복 계산 오류',
+  g2_inequality_range: '이차부등식 범위 오류',
+  g2_function_domain: '정의역·치역 혼동',
+  // 고3 공통
+  g3_diff: '미분 계산',
+  g3_sequence: '수열 계산',
+  g3_log_exp: '지수·로그 계산',
+  g3_integral: '적분 계산',
+  g3_trig: '삼각함수 계산',
+  g3_limit: '극한 계산',
+  g3_conic: '이차곡선',
+  // 고3 확통 특화
+  g3_counting: '경우의 수·순열·조합',
+  g3_probability: '확률 계산',
+  g3_statistics: '통계 (정규분포·이항분포)',
+  // 고3 기하·함수 / 고1 기하
+  g3_vector: '벡터 연산',
+  g3_space_geometry: '공간도형·정사영',
+  g1_geometry: '평면기하',
+  g3_function: '함수 분석',
 };
 const MAX_IMPORT_TOTAL_RESULTS = 2000;
 const MAX_IMPORT_TOTAL_WRITES = 2400;
