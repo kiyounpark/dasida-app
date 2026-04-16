@@ -28,6 +28,26 @@ const solveMethodIds = [
   'complex_number',
   'remainder_theorem',
   'counting',
+  // 추가: 클라이언트 SolveMethodId와 동기화
+  'set',
+  'proposition',
+  'trig',
+  'integral',
+  'linear_eq',
+  'sequence',
+  'log_exp',
+  'conic',
+  'limit',
+  'vector',
+  'probability',
+  'space_geometry',
+  'function',
+  'statistics',
+  'geometry',
+  'permutation',
+  'sequence_limit',
+  'integral_advanced',
+  'diff_advanced',
 ] as const;
 const diagnosisTraceSources = ['mock-router', 'openai-router', 'manual-selection'] as const;
 const weaknessOrder = [
