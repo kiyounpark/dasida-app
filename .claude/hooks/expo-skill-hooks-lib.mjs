@@ -198,6 +198,24 @@ const SKILL_DEFINITIONS = [
     ],
     reason: 'UI, 화면, 레이아웃 또는 네비게이션 관련 키워드를 감지했습니다.',
   },
+  {
+    name: 'superpowers',
+    keywords: [
+      'superpowers',
+      '슈퍼파워스',
+      'brainstorming',
+      '브레인스토밍',
+      'executing-plans',
+      'subagent-driven-development',
+      '스펙 작성',
+      '스펙 써줘',
+      'docs/superpowers',
+      '아이디어 정리',
+      '플랜 실행',
+      '구현 계획',
+    ],
+    reason: '슈퍼파워스 브레인스토밍 또는 구현 계획 실행 관련 키워드를 감지했습니다.',
+  },
 ];
 
 export async function readHookInput() {
