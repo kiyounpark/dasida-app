@@ -124,11 +124,17 @@ export class FirebaseLearningHistoryRepository implements LearningHistoryReposit
 
       if (payload.summary) {
         await this.cache.cacheSummary(accountKey, payload.summary);
-      } else {
-        await this.cache.cacheSummary(accountKey, createEmptyLearnerSummary(accountKey));
+        return payload.summary;
       }
 
-      return payload.summary;
+      // Server returned null (eventual consistency — e.g. just after recordAttempt POST).
+      // Fall back to local cache which may have correct data from a recent cacheRecord.
+      const cachedSummary = await this.cache.loadCurrentSummary(accountKey);
+      if (cachedSummary) {
+        return cachedSummary;
+      }
+
+      return null;
     } catch (error) {
       if (shouldUseLearningHistoryCacheFallback(error)) {
         this.logCacheFallback('loadCurrentSummary', error);
