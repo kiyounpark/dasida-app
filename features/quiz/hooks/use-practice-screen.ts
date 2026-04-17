@@ -248,8 +248,8 @@ export function usePracticeScreen({
 
       if (isLast) {
         router.push({
-          pathname: '/quiz/feedback',
-          params: toFeedbackParams('weakness', activeWeaknessId),
+          pathname: '/quiz/step-complete',
+          params: { step: 'practice' },
         });
       }
       return;
