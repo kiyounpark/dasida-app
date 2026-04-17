@@ -353,7 +353,9 @@ export function usePracticeScreen({
             ? '다음 복습 문제'
             : '홈으로 돌아가기'
           : isLastWeakness
-            ? '피드백 화면으로 이동'
+            ? state.result && state.practiceMode === 'weakness'
+              ? '연습 완료'
+              : '피드백 화면으로 이동'
             : '다음 약점 문제',
     emptyActionLabel: activeMode === 'review' ? '홈으로 돌아가기' : '결과로 돌아가기',
     emptyTitle: activeMode === 'review' ? '오늘 바로 시작할 복습이 없어요.' : '연습 문제를 찾지 못했어요.',
