@@ -80,7 +80,7 @@ export function usePracticeScreen({
   fallbackWeaknessKey,
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
-  const { state, advancePractice, completeChallenge } = useQuizSession();
+  const { state, advancePractice, completeChallenge, resetSession } = useQuizSession();
   const { graduateToPractice, profile, recordAttempt, session, summary } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -247,6 +247,7 @@ export function usePracticeScreen({
       advancePractice();
 
       if (isLast) {
+        resetSession();
         router.push({
           pathname: '/quiz/step-complete',
           params: { step: 'practice' },

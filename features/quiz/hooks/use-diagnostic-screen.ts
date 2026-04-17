@@ -115,6 +115,7 @@ export function useDiagnosticScreen({
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
   const hasRequestedResetRef = useRef(false);
+  const hasNavigatedToAnalysisRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
@@ -169,6 +170,7 @@ export function useDiagnosticScreen({
   useEffect(() => {
     if (!state.isDiagnosing) {
       setHasNavigatedToStepComplete(false);
+      hasNavigatedToAnalysisRef.current = false;
     }
   }, [state.isDiagnosing]);
 
@@ -191,7 +193,8 @@ export function useDiagnosticScreen({
       return;
     }
 
-    if (state.result) {
+    if (state.result && !hasNavigatedToAnalysisRef.current) {
+      hasNavigatedToAnalysisRef.current = true;
       router.replace({
         pathname: '/quiz/step-complete',
         params: { step: 'analysis' },
