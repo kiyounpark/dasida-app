@@ -13,6 +13,7 @@ export default function QuizLayout() {
         <Stack.Screen name="feedback" options={{ title: '피드백', headerShown: false }} />
         <Stack.Screen name="exam" options={{ headerShown: false }} />
         <Stack.Screen name="review-session" options={{ title: '복습 세션', headerShown: false }} />
+        <Stack.Screen name="step-complete" options={{ title: '완료', headerShown: false }} />
       </Stack>
     </QuizSessionProvider>
   );
