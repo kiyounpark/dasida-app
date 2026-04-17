@@ -119,6 +119,7 @@ export function useDiagnosticScreen({
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
   const [hasSeenDiagnosisIntro, setHasSeenDiagnosisIntro] = useState(false);
+  const [hasNavigatedToStepComplete, setHasNavigatedToStepComplete] = useState(false);
 
   useEffect(() => {
     if (!state.hasStarted) {
@@ -166,12 +167,35 @@ export function useDiagnosticScreen({
   ]);
 
   useEffect(() => {
+    if (!state.isDiagnosing) {
+      setHasNavigatedToStepComplete(false);
+    }
+  }, [state.isDiagnosing]);
+
+  useEffect(() => {
+    if (isPreparingFreshSession) {
+      return;
+    }
+
+    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete) {
+      setHasNavigatedToStepComplete(true);
+      router.push({
+        pathname: '/quiz/step-complete',
+        params: { step: 'diagnostic' },
+      });
+    }
+  }, [isPreparingFreshSession, state.isDiagnosing, state.result, hasNavigatedToStepComplete]);
+
+  useEffect(() => {
     if (isPreparingFreshSession) {
       return;
     }
 
     if (state.result) {
-      router.replace('/quiz/result');
+      router.replace({
+        pathname: '/quiz/step-complete',
+        params: { step: 'analysis' },
+      });
     }
   }, [isPreparingFreshSession, state.result]);
 
