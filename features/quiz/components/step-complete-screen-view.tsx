@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -47,14 +47,33 @@ type Props = {
   onContinue: () => void;
 };
 
+const AUTO_ADVANCE_SECONDS = 3;
+
 export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const config = STEP_CONFIG[stepKey];
+  const [countdown, setCountdown] = useState(AUTO_ADVANCE_SECONDS);
+  const onContinueRef = useRef(onContinue);
+  onContinueRef.current = onContinue;
 
   useEffect(() => {
     if (process.env.EXPO_OS === 'ios') {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          onContinueRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -77,11 +96,16 @@ export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
         <Text style={styles.body}>{config.body}</Text>
       </View>
 
-      <Pressable
-        style={[styles.button, { backgroundColor: config.accentColor }]}
-        onPress={onContinue}>
-        <Text style={styles.buttonText}>{config.nextLabel}</Text>
-      </Pressable>
+      <View style={styles.footer}>
+        <Text style={styles.countdown}>
+          {countdown > 0 ? `${countdown}초 후 자동으로 넘어가요` : ''}
+        </Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: config.accentColor }]}
+          onPress={onContinue}>
+          <Text style={styles.buttonText}>{config.nextLabel}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -100,8 +124,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   character: {
-    width: 140,
-    height: 140,
+    width: 180,
+    height: 180,
     marginBottom: 8,
   },
   title: {
@@ -117,6 +141,16 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     color: '#555',
     textAlign: 'center',
+  },
+  footer: {
+    width: '100%',
+    gap: 10,
+    alignItems: 'center',
+  },
+  countdown: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
+    color: '#888',
   },
   button: {
     width: '100%',
