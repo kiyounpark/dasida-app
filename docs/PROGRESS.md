@@ -21,6 +21,22 @@
 
 ## 로그
 
+### 2026.04.18
+
+**단계별 완료 화면(step-complete) 구현 — 진단·분석·연습 완료 시 캐릭터 셀레브레이션 화면**
+
+- `app/(tabs)/quiz/_layout.tsx`: `step-complete` 라우트 Stack 등록
+- `features/quiz/hooks/use-step-complete-screen.ts`: 신규 — `StepCompleteKey`(diagnostic/analysis/practice) 별 네비게이션 훅, `useCallback` 적용
+- `features/quiz/components/step-complete-screen-view.tsx`: 신규 — 캐릭터 이미지(char_04/07/15), 단계별 테마(보라/노랑/초록), iOS haptic, SafeArea 처리
+- `features/quiz/screens/step-complete-screen.tsx`: 신규 — DASIDA 패턴 스크린 래퍼
+- `app/(tabs)/quiz/step-complete.tsx`: 신규 — step 파라미터 유효성 검사(`isValidStep`) + fallback
+- `features/quiz/hooks/use-diagnostic-screen.ts`: isDiagnosing 감지 useEffect 추가 → step-complete(diagnostic) 이동; state.result 목적지를 step-complete(analysis)로 변경; hasNavigatedToAnalysisRef 가드 추가(루프 방지)
+- `features/quiz/hooks/use-practice-screen.ts`: weakness 마지막 문제 → step-complete(practice) 연결; continueLabel '연습 완료'로 수정; resetSession() 푸시 전 호출(Android 백 스택 보호)
+- `features/learning/home-journey-state.ts`: 여정 보드 '복습' 문구 전체 → '연습'으로 통일
+- `assets/images/characters/char_00~15.png`: 캐릭터 이미지 16장 추가 (스프라이트 시트에서 크롭)
+- **검증**: 각 태스크별 스펙 컴플라이언스 + 코드 퀄리티 2단계 리뷰 완료 (8회 에이전트 검토), 크리티컬 이슈 2건 수정 후 최종 승인
+- 커밋: `00c0d43`, `9f253f8`, `1b702b3`, `69efd8d`, `c49da53`, `e5c7ada`, `a769afd`, `655b3d0`
+
 ### 2026.04.15
 
 **설정 화면 정리 — dev 항목 제거, 학년+트랙 설정 개선, Firestore undefined 버그 수정**
@@ -766,6 +782,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.15 22:18
+- 해시: `8deae74` (`8deae74e8dd6ddc277f64f8fb8b30e0d7fac63bb`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8deae74e8dd6ddc277f64f8fb8b30e0d7fac63bb
+- 작성자: 박기윤
+- 메시지: docs: 2026.04.15 설정 화면 정리 작업 로그 추가
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.15 22:06
 - 해시: `249ea74` (`249ea7461b776c2a4d6a99e4475dd757a25ce553`)
