@@ -6,7 +6,11 @@
 #   ./scripts/notion.sh page-get <page_id>
 #   ./scripts/notion.sh db-query <database_id>
 
-TOKEN="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"
+TOKEN="${NOTION_TOKEN:-$(cat ~/.config/dasida/notion-token 2>/dev/null)}"
+if [ -z "$TOKEN" ]; then
+  echo "Error: NOTION_TOKEN 환경변수 또는 ~/.config/dasida/notion-token 파일이 필요합니다." >&2
+  exit 1
+fi
 DASIDA_DB_ID="5d997b1c-3dae-44e5-bee8-713e35685697"
 
 notion_api() {

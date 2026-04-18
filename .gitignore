@@ -60,3 +60,4 @@ app-example
 
 playwright-report/
 test-results/
+.mcp.json
