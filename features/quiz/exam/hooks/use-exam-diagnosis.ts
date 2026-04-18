@@ -278,7 +278,7 @@ export function useExamDiagnosis(params: {
     setIsDone(true);
     logDiagnosisCompleted({
       accountKey: profile.accountKey,
-      source: 'featured-exam',
+      source: 'exam',
       weaknessId,
       examId,
       problemNumber,
