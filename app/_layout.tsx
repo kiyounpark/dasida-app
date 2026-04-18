@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Asset } from 'expo-asset';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
@@ -89,6 +90,14 @@ export default function RootLayout() {
       }
     });
     return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    void Asset.loadAsync([
+      require('../assets/images/characters/char_04.png'),
+      require('../assets/images/characters/char_07.png'),
+      require('../assets/images/characters/char_sparkle_sunglasses.png'),
+    ]).catch(() => {});
   }, []);
 
   const [fontsLoaded, fontError] = useFonts({
