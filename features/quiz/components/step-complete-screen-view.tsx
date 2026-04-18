@@ -1,9 +1,9 @@
+// features/quiz/components/step-complete-screen-view.tsx
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import type { StepCompleteKey } from '@/features/quiz/hooks/use-step-complete-screen';
 
@@ -23,8 +23,8 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
     title: '진단 완료!',
     body: '10문제로 약점을 찾았어요.\n이제 약점을 분석할게요.',
     nextLabel: '약점 분석 시작하기',
-    accentColor: BrandColors.warning,
-    backgroundColor: BrandColors.background,
+    accentColor: '#6366f1',
+    backgroundColor: '#f5f3ff',
     autoAdvanceSeconds: 3,
   },
   analysis: {
@@ -32,8 +32,8 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
     title: '분석 완료!',
     body: '약점 분석이 끝났어요.\n결과를 확인하고 연습해볼게요.',
     nextLabel: '결과 확인하기',
-    accentColor: BrandColors.primarySoft,
-    backgroundColor: BrandColors.background,
+    accentColor: '#f59e0b',
+    backgroundColor: '#fffbeb',
     autoAdvanceSeconds: 3,
   },
   practice: {
@@ -41,8 +41,8 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
     title: '이제 새로운\n시작이에요!',
     body: '진단, 분석, 연습까지 함께했어요.\n이제 실전에서 같이 나아가봐요.',
     nextLabel: '함께 실전 시작하기 →',
-    accentColor: BrandColors.primary,
-    backgroundColor: BrandColors.background,
+    accentColor: '#22c55e',
+    backgroundColor: '#f0fdf4',
     autoAdvanceSeconds: 0,
   },
 };
@@ -51,14 +51,21 @@ type Props = {
   stepKey: StepCompleteKey;
   onContinue: () => void;
   isGraduating: boolean;
+  onDismiss?: () => void;
 };
 
-export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Props) {
+export function StepCompleteScreenView({ stepKey, onContinue, isGraduating, onDismiss }: Props) {
   const insets = useSafeAreaInsets();
   const config = STEP_CONFIG[stepKey];
   const [countdown, setCountdown] = useState(config.autoAdvanceSeconds);
   const onContinueRef = useRef(onContinue);
   onContinueRef.current = onContinue;
+
+  const dot1Scale = useRef(new Animated.Value(0)).current;
+  const dot2Scale = useRef(new Animated.Value(0)).current;
+  const dot3Scale = useRef(new Animated.Value(0)).current;
+  const dot4Scale = useRef(new Animated.Value(0)).current;
+  const dot4Glow = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (process.env.EXPO_OS === 'ios') {
@@ -66,10 +73,35 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Pr
     }
   }, []);
 
+  // practice 전용: 4-dot 순차 팝인 → ✦ glow-pulse
   useEffect(() => {
-    if (config.autoAdvanceSeconds === 0) {
-      return;
-    }
+    if (stepKey !== 'practice') return;
+
+    const bounce = (anim: Animated.Value) =>
+      Animated.spring(anim, {
+        toValue: 1,
+        tension: 200,
+        friction: 8,
+        useNativeDriver: true,
+      });
+
+    Animated.stagger(200, [
+      bounce(dot1Scale),
+      bounce(dot2Scale),
+      bounce(dot3Scale),
+      bounce(dot4Scale),
+    ]).start(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(dot4Glow, { toValue: 1.25, duration: 700, useNativeDriver: true }),
+          Animated.timing(dot4Glow, { toValue: 1.0, duration: 700, useNativeDriver: true }),
+        ]),
+      ).start();
+    });
+  }, [stepKey, dot1Scale, dot2Scale, dot3Scale, dot4Scale, dot4Glow]);
+
+  useEffect(() => {
+    if (config.autoAdvanceSeconds === 0) return;
     const interval = setInterval(() => {
       setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
@@ -82,6 +114,8 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Pr
     }
   }, [countdown, config.autoAdvanceSeconds]);
 
+  const checkDotScales = [dot1Scale, dot2Scale, dot3Scale];
+
   return (
     <View
       style={[
@@ -92,6 +126,16 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Pr
           paddingBottom: insets.bottom + 24,
         },
       ]}>
+
+      {onDismiss != null && (
+        <Pressable
+          style={[styles.closeButton, { top: insets.top + 12 }]}
+          onPress={onDismiss}
+          hitSlop={8}>
+          <Text style={styles.closeIcon}>✕</Text>
+        </Pressable>
+      )}
+
       <View style={styles.content}>
         <Image
           source={config.charImage}
@@ -100,6 +144,25 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Pr
         />
         <Text style={styles.title}>{config.title}</Text>
         <Text style={styles.body}>{config.body}</Text>
+
+        {stepKey === 'practice' && (
+          <View style={styles.dotsRow}>
+            {checkDotScales.map((scale, i) => (
+              <Animated.View
+                key={i}
+                style={[styles.dot, styles.dotGreen, { transform: [{ scale }] }]}>
+                <Text style={styles.dotText}>✓</Text>
+              </Animated.View>
+            ))}
+            {/* ✦ dot: 팝인(dot4Scale) 후 glow-pulse(dot4Glow) 중첩 */}
+            <Animated.View style={{ transform: [{ scale: dot4Scale }] }}>
+              <Animated.View
+                style={[styles.dot, styles.dotGold, { transform: [{ scale: dot4Glow }] }]}>
+                <Text style={styles.dotText}>✦</Text>
+              </Animated.View>
+            </Animated.View>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -107,10 +170,16 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Pr
           {countdown > 0 ? `${countdown}초 후 자동으로 넘어가요` : ''}
         </Text>
         <Pressable
-          style={[styles.button, { backgroundColor: config.accentColor }, isGraduating && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            { backgroundColor: config.accentColor },
+            isGraduating && styles.buttonDisabled,
+          ]}
           onPress={onContinue}
           disabled={isGraduating}>
-          <Text style={styles.buttonText}>{isGraduating ? '처리 중...' : config.nextLabel}</Text>
+          <Text style={styles.buttonText}>
+            {isGraduating ? '처리 중...' : config.nextLabel}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -123,6 +192,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 20,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIcon: {
+    fontSize: 18,
+    color: '#999',
   },
   content: {
     flex: 1,
@@ -139,15 +220,38 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 28,
     lineHeight: 36,
-    color: BrandColors.text,
+    color: '#1a1a1a',
     textAlign: 'center',
   },
   body: {
     fontFamily: FontFamilies.regular,
     fontSize: 16,
     lineHeight: 26,
-    color: BrandColors.mutedText,
+    color: '#555',
     textAlign: 'center',
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  dot: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotGreen: {
+    backgroundColor: '#22c55e',
+  },
+  dotGold: {
+    backgroundColor: '#f59e0b',
+  },
+  dotText: {
+    fontSize: 18,
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   footer: {
     width: '100%',
@@ -157,7 +261,7 @@ const styles = StyleSheet.create({
   countdown: {
     fontFamily: FontFamilies.regular,
     fontSize: 13,
-    color: BrandColors.mutedText,
+    color: '#888',
   },
   button: {
     width: '100%',
