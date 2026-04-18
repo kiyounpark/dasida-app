@@ -49,8 +49,12 @@ export function useStepCompleteScreen(
       });
   }, [stepKey, isGraduating, resetSession, graduateToPractice]);
 
+  const onDismissCallback = useCallback(() => {
+    router.back();
+  }, []);
+
   const onDismiss: (() => void) | undefined =
-    stepKey === 'practice' ? () => router.back() : undefined;
+    stepKey === 'practice' ? onDismissCallback : undefined;
 
   return { stepKey, onContinue, onDismiss, isGraduating };
 }
