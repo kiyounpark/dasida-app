@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   character: {
-    width: 180,
-    height: 180,
+    width: 220,
+    height: 220,
     marginBottom: 8,
   },
   title: {
