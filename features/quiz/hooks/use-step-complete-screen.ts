@@ -10,6 +10,7 @@ export type StepCompleteKey = 'diagnostic' | 'analysis' | 'practice';
 export type UseStepCompleteScreenResult = {
   stepKey: StepCompleteKey;
   onContinue: () => void;
+  onDismiss: (() => void) | undefined;
   isGraduating: boolean;
 };
 
@@ -48,5 +49,8 @@ export function useStepCompleteScreen(
       });
   }, [stepKey, isGraduating, resetSession, graduateToPractice]);
 
-  return { stepKey, onContinue, isGraduating };
+  const onDismiss: (() => void) | undefined =
+    stepKey === 'practice' ? () => router.back() : undefined;
+
+  return { stepKey, onContinue, onDismiss, isGraduating };
 }
