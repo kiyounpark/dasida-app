@@ -37,6 +37,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const {
     authNoticeMessage,
     dismissAuthNotice,
+    graduateToPractice,
     homeState,
     isReady,
     profile,
@@ -64,13 +65,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(console.warn);
       void refresh();
     });
-    // 마운트 시 1회만 실행 (overdue 패널티 적용 + 알림 재스케줄링)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.accountKey]);
 
-  // 화면 포커스 시 상태 갱신 — 진단/연습 완료 후 홈으로 돌아올 때 최신 summary 반영
-  // - 첫 포커스(마운트 시)는 위 useEffect가 담당하므로 skip
-  // - 탭 전환 빈도가 높을 때 불필요한 네트워크 요청 방지를 위해 5초 쿨다운 적용
   const isFirstFocusRef = useRef(true);
   const lastFocusRefreshAtRef = useRef(0);
   useFocusEffect(
@@ -151,19 +148,30 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         onOpenPractice();
         return;
       case 'open_exam':
-        router.push('/(tabs)/quiz/exams');
+        // practiceGraduatedAt 없으면 → 졸업 처리 (실전 여정 시작)
+        // practiceGraduatedAt 있으면 → JourneyBoard 자체가 숨겨져 있어 실제로 호출 안 됨
+        void graduateToPractice().then(() => {
+          router.replace('/(tabs)/quiz');
+        });
         return;
       default:
         onStartDiagnostic();
     }
   };
 
+  // exam 단계 + 미졸업 시 ctaLabel 오버라이드
+  const baseJourney = homeState?.journey ?? null;
+  const journey =
+    baseJourney && baseJourney.ctaAction === 'open_exam' && !profile?.practiceGraduatedAt
+      ? { ...baseJourney, ctaLabel: '실전 여정으로 떠나기 →' }
+      : baseJourney;
+
   return {
     authNoticeMessage: localAuthNoticeMessage,
     homeState,
     isCompactLayout: width < 390 || height < 780,
     isReady,
-    journey: homeState?.journey ?? null,
+    journey,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
