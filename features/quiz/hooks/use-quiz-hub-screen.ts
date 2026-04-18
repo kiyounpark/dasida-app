@@ -158,6 +158,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         isGraduatingRef.current = true;
         void graduateToPractice()
           .then(() => {
+            isGraduatingRef.current = false;
             resetSession();
             router.replace('/(tabs)/quiz');
           })
