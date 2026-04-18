@@ -23,6 +23,14 @@
 
 ### 2026.04.18
 
+**step-complete(practice) ✓✓✓→✦ 애니메이션 + X 닫기 버튼 구현**
+
+- `features/quiz/components/step-complete-screen-view.tsx`: practice 전용 4-dot 애니메이션 (Animated.stagger 200ms, spring bounce) + ✦ glow-pulse 무한 루프 + X 닫기 버튼 (isGraduating 중 비활성화) + 애니메이션 cleanup
+- `features/quiz/hooks/use-step-complete-screen.ts`: `onDismiss` 핸들러 추가 — practice → `router.back()`, 나머지 → `undefined`, `useCallback` 안정화
+- `features/quiz/exam/hooks/use-exam-diagnosis.ts`: `source: 'featured-exam'` → `'exam'` TypeScript 오류 수정
+- **검증**: 병렬 서브에이전트 구현 → 스펙/코드퀄리티 2단계 리뷰 5회, 크리티컬 이슈 수정 후 최종 승인, TypeScript 오류 0개
+- 커밋: `0192f60`, `ea80e36`, `ba7d8ac`, `3ba9367`, `e755557`, `6132168`
+
 **단계별 완료 화면(step-complete) 구현 — 진단·분석·연습 완료 시 캐릭터 셀레브레이션 화면**
 
 - `app/(tabs)/quiz/_layout.tsx`: `step-complete` 라우트 Stack 등록
@@ -782,6 +790,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.18 13:33
+- 해시: `44aa720` (`44aa7204b2c6f3d48b45287180a2b784841eae96`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/44aa7204b2c6f3d48b45287180a2b784841eae96
+- 작성자: 박기윤
+- 메시지: feat(quiz-hub): exam CTA → '실전 여정으로 떠나기' + 직접 졸업 처리
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.15 22:18
 - 해시: `8deae74` (`8deae74e8dd6ddc277f64f8fb8b30e0d7fac63bb`)
