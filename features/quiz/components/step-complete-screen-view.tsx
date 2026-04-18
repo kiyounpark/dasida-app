@@ -1,6 +1,7 @@
 // features/quiz/components/step-complete-screen-view.tsx
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
@@ -154,7 +155,7 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating, onDi
         <Image
           source={config.charImage}
           style={styles.character}
-          resizeMode="contain"
+          contentFit="contain"
         />
         <Text style={styles.title}>{config.title}</Text>
         <Text style={styles.body}>{config.body}</Text>
