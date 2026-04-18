@@ -135,7 +135,7 @@ export function QuizHubScreenView({
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
+        {!profile?.practiceGraduatedAt ? (
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         ) : null}
         {authNoticeMessage ? (
@@ -159,7 +159,7 @@ export function QuizHubScreenView({
             onPressExam={onPressExam}
           />
         ) : null}
-        {!profile?.practiceGraduatedAt && !homeState?.nextReviewTask ? (
+        {!profile?.practiceGraduatedAt ? (
           <JourneyBoard
             isCompactLayout={isCompactLayout}
             onPressCurrentStep={onPressJourneyCta}
