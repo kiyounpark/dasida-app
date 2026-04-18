@@ -85,6 +85,9 @@ export function QuizHubScreenView({
   onRefresh,
   profile,
   session,
+  showJourneyHero,
+  showJourneyBoard,
+  showNoReviewDayCard,
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
@@ -135,7 +138,7 @@ export function QuizHubScreenView({
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {!profile?.practiceGraduatedAt ? (
+        {showJourneyHero ? (
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         ) : null}
         {authNoticeMessage ? (
@@ -151,15 +154,13 @@ export function QuizHubScreenView({
             onPress={onPressReviewCard}
           />
         ) : null}
-        {homeState?.nextReviewTask &&
-          homeState.todayReviewCount === 0 &&
-          !profile?.practiceGraduatedAt ? (
+        {showNoReviewDayCard ? (
           <NoReviewDayCard
-            nextTask={homeState.nextReviewTask}
+            nextTask={homeState.nextReviewTask!}
             onPressExam={onPressExam}
           />
         ) : null}
-        {!profile?.practiceGraduatedAt ? (
+        {showJourneyBoard ? (
           <JourneyBoard
             isCompactLayout={isCompactLayout}
             onPressCurrentStep={onPressJourneyCta}

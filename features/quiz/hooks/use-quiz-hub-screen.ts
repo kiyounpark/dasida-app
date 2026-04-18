@@ -30,6 +30,9 @@ export type UseQuizHubScreenResult = {
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
+  showJourneyHero: boolean;
+  showJourneyBoard: boolean;
+  showNoReviewDayCard: boolean;
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
@@ -46,6 +49,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   } = useCurrentLearner();
   const { resetSession } = useQuizSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
+  const isGraduatingRef = useRef(false);
 
   useEffect(() => {
     if (!authNoticeMessage) {
@@ -150,12 +154,17 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       case 'open_exam':
         // practiceGraduatedAt 없으면 → 졸업 처리 (실전 여정 시작)
         // practiceGraduatedAt 있으면 → JourneyBoard 자체가 숨겨져 있어 실제로 호출 안 됨
+        if (isGraduatingRef.current) return;
+        isGraduatingRef.current = true;
         void graduateToPractice()
           .then(() => {
             resetSession();
             router.replace('/(tabs)/quiz');
           })
-          .catch(console.warn);
+          .catch((err) => {
+            isGraduatingRef.current = false;
+            console.warn('[QuizHub] graduateToPractice failed', err);
+          });
         return;
       default:
         onStartDiagnostic();
@@ -168,6 +177,13 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     baseJourney && baseJourney.ctaAction === 'open_exam' && !profile?.practiceGraduatedAt
       ? { ...baseJourney, ctaLabel: '실전 여정으로 떠나기 →' }
       : baseJourney;
+
+  const showJourneyHero = !profile?.practiceGraduatedAt;
+  const showJourneyBoard = !profile?.practiceGraduatedAt;
+  const showNoReviewDayCard =
+    !!homeState?.nextReviewTask &&
+    homeState.todayReviewCount === 0 &&
+    !profile?.practiceGraduatedAt;
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
@@ -188,5 +204,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onStartDiagnostic,
     profile,
     session,
+    showJourneyHero,
+    showJourneyBoard,
+    showNoReviewDayCard,
   };
 }

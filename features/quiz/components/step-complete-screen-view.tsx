@@ -49,9 +49,10 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
 type Props = {
   stepKey: StepCompleteKey;
   onContinue: () => void;
+  isGraduating: boolean;
 };
 
-export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
+export function StepCompleteScreenView({ stepKey, onContinue, isGraduating }: Props) {
   const insets = useSafeAreaInsets();
   const config = STEP_CONFIG[stepKey];
   const [countdown, setCountdown] = useState(config.autoAdvanceSeconds);
@@ -105,9 +106,10 @@ export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
           {countdown > 0 ? `${countdown}초 후 자동으로 넘어가요` : ''}
         </Text>
         <Pressable
-          style={[styles.button, { backgroundColor: config.accentColor }]}
-          onPress={onContinue}>
-          <Text style={styles.buttonText}>{config.nextLabel}</Text>
+          style={[styles.button, { backgroundColor: config.accentColor }, isGraduating && styles.buttonDisabled]}
+          onPress={onContinue}
+          disabled={isGraduating}>
+          <Text style={styles.buttonText}>{isGraduating ? '처리 중...' : config.nextLabel}</Text>
         </Pressable>
       </View>
     </View>
@@ -161,6 +163,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     fontFamily: FontFamilies.bold,
