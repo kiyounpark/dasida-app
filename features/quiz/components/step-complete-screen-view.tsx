@@ -13,6 +13,7 @@ type StepConfig = {
   nextLabel: string;
   accentColor: string;
   backgroundColor: string;
+  autoAdvanceSeconds: number;
 };
 
 const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
@@ -23,6 +24,7 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
     nextLabel: '약점 분석 시작하기',
     accentColor: '#6366f1',
     backgroundColor: '#f5f3ff',
+    autoAdvanceSeconds: 3,
   },
   analysis: {
     charImage: require('../../../assets/images/characters/char_07.png'),
@@ -31,14 +33,16 @@ const STEP_CONFIG: Record<StepCompleteKey, StepConfig> = {
     nextLabel: '결과 확인하기',
     accentColor: '#f59e0b',
     backgroundColor: '#fffbeb',
+    autoAdvanceSeconds: 3,
   },
   practice: {
-    charImage: require('../../../assets/images/characters/char_15.png'),
-    title: '연습 완료!',
-    body: '약점 연습을 모두 마쳤어요.\n여정 보드가 완성됐어요.',
-    nextLabel: '여정 보드 보기',
+    charImage: require('../../../assets/images/characters/char_sparkle_sunglasses.png'),
+    title: '이제 새로운\n시작이에요!',
+    body: '진단, 분석, 연습까지 함께했어요.\n이제 실전에서 같이 나아가봐요.',
+    nextLabel: '함께 실전 시작하기 →',
     accentColor: '#22c55e',
     backgroundColor: '#f0fdf4',
+    autoAdvanceSeconds: 0,
   },
 };
 
@@ -47,12 +51,10 @@ type Props = {
   onContinue: () => void;
 };
 
-const AUTO_ADVANCE_SECONDS = 3;
-
 export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const config = STEP_CONFIG[stepKey];
-  const [countdown, setCountdown] = useState(AUTO_ADVANCE_SECONDS);
+  const [countdown, setCountdown] = useState(config.autoAdvanceSeconds);
   const onContinueRef = useRef(onContinue);
   onContinueRef.current = onContinue;
 
@@ -63,17 +65,20 @@ export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
   }, []);
 
   useEffect(() => {
+    if (config.autoAdvanceSeconds === 0) {
+      return;
+    }
     const interval = setInterval(() => {
       setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [config.autoAdvanceSeconds]);
 
   useEffect(() => {
-    if (countdown === 0 && AUTO_ADVANCE_SECONDS > 0) {
+    if (countdown === 0 && config.autoAdvanceSeconds > 0) {
       onContinueRef.current();
     }
-  }, [countdown]);
+  }, [countdown, config.autoAdvanceSeconds]);
 
   return (
     <View
