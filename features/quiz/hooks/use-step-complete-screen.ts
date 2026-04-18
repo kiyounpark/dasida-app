@@ -50,7 +50,7 @@ export function useStepCompleteScreen(
   }, [stepKey, isGraduating, resetSession, graduateToPractice]);
 
   const onDismissCallback = useCallback(() => {
-    router.back();
+    router.replace('/(tabs)/quiz');
   }, []);
 
   const onDismiss: (() => void) | undefined =
