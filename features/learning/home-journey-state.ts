@@ -37,7 +37,7 @@ export type HomeJourneyState = {
 const stepTitles: Record<JourneyStepKey, string> = {
   diagnostic: '10문제 빠른 진단',
   analysis: '오답 약점 분석',
-  review: '맞춤 연습 & 복습',
+  review: '맞춤 약점 연습',
   exam: '완벽 마스터',
 };
 
@@ -151,13 +151,13 @@ function getStepDetail(
   if (step === 'review') {
     const dueReviewTasks = summary.dueReviewTasks ?? [];
     if (dueReviewTasks[0]) {
-      return `${formatReviewStageLabel(dueReviewTasks[0].stage)} · 오늘 복습 ${dueReviewTasks.length}개`;
+      return `약점 연습 ${dueReviewTasks.length}개 준비됨`;
     }
 
     return '약점을 다시 잡는 단계';
   }
 
-  return '복습 뒤 실전에 적용';
+  return '연습 뒤 실전에 적용';
 }
 
 function getStepStatusLabel(
@@ -183,7 +183,7 @@ function getStepStatusLabel(
 
   if (step === 'review') {
     const dueCount = summary.dueReviewTasks?.length ?? 0;
-    return dueCount > 0 ? `복습 ${dueCount}개` : '활성화';
+    return dueCount > 0 ? `연습 ${dueCount}개` : '활성화';
   }
 
   return '활성화';
@@ -208,20 +208,20 @@ function getCurrentStepBody(
 ) {
   switch (currentStep) {
     case 'analysis':
-      return `${getWeaknessLabel(summary)}부터 확인하면 다음 복습 단계가 더 빨리 열립니다.`;
+      return `${getWeaknessLabel(summary)}부터 확인하면 연습 단계로 바로 이어집니다.`;
     case 'review': {
       const dueCount = summary.dueReviewTasks?.length ?? 0;
       if (dueCount === 0) {
         return '약점 연습을 마치면 모의고사가 열립니다.';
       }
       return dueCount > 1
-        ? `오늘은 복습 ${dueCount}개를 차례로 정리하면 됩니다.`
+        ? `오늘은 연습 ${dueCount}개를 차례로 정리하면 됩니다.`
         : '오늘은 약점 1개만 짧게 다시 잡으면 됩니다.';
     }
     case 'exam':
       return '모의고사로 지금까지 정리한 약점을 실전에서 확인해보세요.';
     default:
-      return '첫 기록만 생기면 분석, 복습, 실전 적용까지 한 줄로 이어집니다.';
+      return '첫 기록만 생기면 분석, 연습, 실전 적용까지 한 줄로 이어집니다.';
   }
 }
 
@@ -233,7 +233,7 @@ function getCtaState(
     return {
       ctaAction: 'open_result',
       ctaLabel: '약점 결과 보기',
-      ctaBody: `${getWeaknessLabel(summary)}부터 보면 다음 복습으로 자연스럽게 이어집니다.`,
+      ctaBody: `${getWeaknessLabel(summary)}부터 보면 연습 단계로 자연스럽게 이어집니다.`,
     };
   }
 
@@ -250,11 +250,11 @@ function getCtaState(
 
     return {
       ctaAction: 'open_review',
-      ctaLabel: dueCount > 1 ? `복습 ${dueCount}개 시작하기` : '복습 시작하기',
+      ctaLabel: dueCount > 1 ? `연습 ${dueCount}개 시작하기` : '약점 연습 시작하기',
       ctaBody:
         dueCount > 1
-          ? '대표 약점부터 순서대로 다시 보면 됩니다.'
-          : '오늘 해야 할 복습 한 가지만 먼저 열어보세요.',
+          ? '대표 약점부터 순서대로 정리하면 됩니다.'
+          : '오늘 해야 할 연습 한 가지만 먼저 시작해보세요.',
     };
   }
 
@@ -293,7 +293,7 @@ export function buildHomeJourneyState(summary: LearnerSummaryCurrent): HomeJourn
   return {
     eyebrow: '학습 여정',
     title: '지금 단계만 따라가면 됩니다.',
-    body: '진단에서 분석, 복습, 실전 적용까지 한 줄로 이어집니다.',
+    body: '진단에서 분석, 연습, 실전 적용까지 한 줄로 이어집니다.',
     progressLabel: `${currentStepIndex + 1} / 4 단계`,
     currentStepKey,
     currentStepTitle: stepTitles[currentStepKey],
