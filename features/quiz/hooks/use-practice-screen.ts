@@ -248,7 +248,7 @@ export function usePracticeScreen({
 
       if (isLast) {
         resetSession();
-        router.push({
+        router.replace({
           pathname: '/quiz/step-complete',
           params: { step: 'practice' },
         });
