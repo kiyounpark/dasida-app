@@ -64,17 +64,16 @@ export function StepCompleteScreenView({ stepKey, onContinue }: Props) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          onContinueRef.current();
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (countdown === 0 && AUTO_ADVANCE_SECONDS > 0) {
+      onContinueRef.current();
+    }
+  }, [countdown]);
 
   return (
     <View
