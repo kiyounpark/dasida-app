@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { router } from 'expo-router';
 
+import { useCurrentLearner } from '@/features/learner/provider';
 import { useQuizSession } from '@/features/quiz/session';
 
 export type StepCompleteKey = 'diagnostic' | 'analysis' | 'practice';
@@ -15,24 +16,25 @@ export function useStepCompleteScreen(
   stepKey: StepCompleteKey,
 ): UseStepCompleteScreenResult {
   const { resetSession } = useQuizSession();
+  const { graduateToPractice } = useCurrentLearner();
 
   const onContinue = useCallback(() => {
     if (stepKey === 'diagnostic') {
-      // 진단 화면으로 돌아가서 isDiagnosing UI 표시
       router.back();
       return;
     }
 
     if (stepKey === 'analysis') {
-      // 약점 결과 화면으로 이동
       router.replace('/quiz/result');
       return;
     }
 
-    // practice: 세션 초기화 후 여정 보드(홈)로 이동
-    resetSession();
-    router.replace('/(tabs)/quiz');
-  }, [stepKey, resetSession]);
+    // practice: 졸업 처리 후 홈으로 이동
+    void graduateToPractice().then(() => {
+      resetSession();
+      router.replace('/(tabs)/quiz');
+    });
+  }, [stepKey, resetSession, graduateToPractice]);
 
   return { stepKey, onContinue };
 }
