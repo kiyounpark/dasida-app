@@ -30,7 +30,7 @@ function isRetryableError(error: unknown) {
   );
 }
 
-async function parseErrorPayload(response: Response) {
+async function parseErrorPayload(response: Response, url: string) {
   const payload = await response.json().catch(() => null);
   const errorMessage =
     payload &&
@@ -40,6 +40,10 @@ async function parseErrorPayload(response: Response) {
     payload.error
       ? payload.error
       : `Request failed (${response.status})`;
+
+  if (response.status === 400 && payload && typeof payload === 'object' && 'details' in payload) {
+    console.warn(`[LearningHistoryApi] 400 validation details (${url}):`, JSON.stringify(payload.details));
+  }
 
   if (response.status === 401 || response.status === 403) {
     throw new LearningHistoryApiError(errorMessage, response.status, 'UNAUTHORIZED');
@@ -76,7 +80,7 @@ export async function readLearningHistoryApiJson<T>(
     });
 
     if (!response.ok) {
-      await parseErrorPayload(response);
+      await parseErrorPayload(response, url);
     }
 
     const payload = await response.json().catch(() => null);
