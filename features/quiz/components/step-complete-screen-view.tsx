@@ -144,6 +144,7 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating, onDi
         <Pressable
           style={[styles.closeButton, { top: insets.top + 12 }]}
           onPress={onDismiss}
+          disabled={isGraduating}
           hitSlop={{ top: 8, bottom: 16, left: 16, right: 8 }}>
           <Text style={styles.closeIcon}>✕</Text>
         </Pressable>
