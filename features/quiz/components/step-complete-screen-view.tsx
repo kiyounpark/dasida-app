@@ -86,19 +86,31 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating, onDi
         useNativeDriver: true,
       });
 
+    let loopAnimation: Animated.CompositeAnimation | null = null;
+
     Animated.stagger(200, [
       bounce(dot1Scale),
       bounce(dot2Scale),
       bounce(dot3Scale),
       bounce(dot4Scale),
     ]).start(() => {
-      Animated.loop(
+      loopAnimation = Animated.loop(
         Animated.sequence([
           Animated.timing(dot4Glow, { toValue: 1.25, duration: 700, useNativeDriver: true }),
           Animated.timing(dot4Glow, { toValue: 1.0, duration: 700, useNativeDriver: true }),
         ]),
-      ).start();
+      );
+      loopAnimation.start();
     });
+
+    return () => {
+      dot1Scale.stopAnimation();
+      dot2Scale.stopAnimation();
+      dot3Scale.stopAnimation();
+      dot4Scale.stopAnimation();
+      dot4Glow.stopAnimation();
+      loopAnimation?.stop();
+    };
   }, [stepKey, dot1Scale, dot2Scale, dot3Scale, dot4Scale, dot4Glow]);
 
   useEffect(() => {
@@ -132,7 +144,7 @@ export function StepCompleteScreenView({ stepKey, onContinue, isGraduating, onDi
         <Pressable
           style={[styles.closeButton, { top: insets.top + 12 }]}
           onPress={onDismiss}
-          hitSlop={8}>
+          hitSlop={{ top: 8, bottom: 16, left: 16, right: 8 }}>
           <Text style={styles.closeIcon}>✕</Text>
         </Pressable>
       )}
@@ -252,7 +264,7 @@ const styles = StyleSheet.create({
   dotText: {
     fontSize: 18,
     color: '#ffffff',
-    fontWeight: 'bold',
+    fontFamily: FontFamilies.bold,
   },
   footer: {
     width: '100%',
