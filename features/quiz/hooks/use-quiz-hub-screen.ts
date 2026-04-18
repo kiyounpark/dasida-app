@@ -150,9 +150,12 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       case 'open_exam':
         // practiceGraduatedAt 없으면 → 졸업 처리 (실전 여정 시작)
         // practiceGraduatedAt 있으면 → JourneyBoard 자체가 숨겨져 있어 실제로 호출 안 됨
-        void graduateToPractice().then(() => {
-          router.replace('/(tabs)/quiz');
-        });
+        void graduateToPractice()
+          .then(() => {
+            resetSession();
+            router.replace('/(tabs)/quiz');
+          })
+          .catch(console.warn);
         return;
       default:
         onStartDiagnostic();

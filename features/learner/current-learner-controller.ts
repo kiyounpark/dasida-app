@@ -501,6 +501,14 @@ export function createCurrentLearnerController({
     },
     graduateToPractice: async () => {
       const { session, profile, summary } = await readAccessibleSnapshot();
+      if (profile.practiceGraduatedAt) {
+        return buildSnapshot({
+          authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+          profile,
+          session,
+          summary,
+        });
+      }
       const nextProfile: LearnerProfile = {
         ...profile,
         practiceGraduatedAt: new Date().toISOString(),

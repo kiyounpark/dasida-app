@@ -30,10 +30,12 @@ export function useStepCompleteScreen(
     }
 
     // practice: 졸업 처리 후 홈으로 이동
-    void graduateToPractice().then(() => {
-      resetSession();
-      router.replace('/(tabs)/quiz');
-    });
+    void graduateToPractice()
+      .then(() => {
+        resetSession();
+        router.replace('/(tabs)/quiz');
+      })
+      .catch(console.warn);
   }, [stepKey, resetSession, graduateToPractice]);
 
   return { stepKey, onContinue };
