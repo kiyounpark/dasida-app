@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     fontSize: 18,
-    color: BrandColors.disabled,
+    color: BrandColors.mutedText,
   },
   content: {
     flex: 1,
