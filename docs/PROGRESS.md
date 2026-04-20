@@ -791,6 +791,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.20 08:23
+- 해시: `27d2c77` (`27d2c77b0fa9de90ef79739ca51f54112a9cb23d`)
+- 브랜치: claude/remove-bottom-nav-aZXRe
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app/commit/27d2c77b0fa9de90ef79739ca51f54112a9cb23d
+- 작성자: Claude
+- 메시지: feat: 약점 학습 플로우 화면을 루트 Stack으로 이동하여 바텀 네비게이션 제거
+- 본문: - app/(tabs)/quiz/ 하위 플로우 화면 10개를 app/quiz/로 이동 / (diagnostic, result, practice, feedback, review-session, step-complete, exam/*) / - app/quiz/_layout.tsx 생성: QuizSessionProvider + 플로우 스크린 Stack / - app/quiz/exam/_layout.tsx 생성: ExamSessionProvider + exam 서브 Stack / - app/_layout.tsx: Root Stack에 quiz Screen 등록 / - app/(tabs)/quiz/_layout.tsx: index, exams만 유지하도록 정리 / - 허브(quiz/index)와 모의고사 목록(exams)은 (tabs) 유지 → 탭바 보임 / - 플로우 진행 중에는 Root Stack 화면으로 렌더링 → 탭바 없음 / https://claude.ai/code/session_017qee8dB95Yt2AKk4ZhAY2c
+
 ### 커밋 2026.04.18 13:33
 - 해시: `44aa720` (`44aa7204b2c6f3d48b45287180a2b784841eae96`)
 - 브랜치: main
