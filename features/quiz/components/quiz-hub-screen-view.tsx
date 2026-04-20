@@ -5,6 +5,7 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
@@ -85,6 +86,7 @@ export function QuizHubScreenView({
   onRefresh,
   profile,
   session,
+  showBrandHeader,
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
@@ -92,7 +94,11 @@ export function QuizHubScreenView({
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  const posterTopPadding = insets.top + (isCompactLayout ? 14 : 24);
+  // BrandHeader가 SafeAreaView edges={['top']}으로 insets.top을 처리하므로
+  // 졸업 후 상태에서는 insets.top을 제외한 콘텐츠 간격만 적용
+  const posterTopPadding = showBrandHeader
+    ? (isCompactLayout ? 14 : 24)
+    : insets.top + (isCompactLayout ? 14 : 24);
 
   if (!isReady) {
     return (
@@ -126,6 +132,7 @@ export function QuizHubScreenView({
 
   return (
     <View style={styles.screen}>
+      {showBrandHeader ? <BrandHeader compact /> : null}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
