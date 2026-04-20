@@ -30,6 +30,7 @@ export type UseQuizHubScreenResult = {
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
+  showBrandHeader: boolean;
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
@@ -179,6 +180,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       ? { ...baseJourney, ctaLabel: '실전 여정으로 떠나기 →' }
       : baseJourney;
 
+  const showBrandHeader = !!profile?.practiceGraduatedAt;
   const showJourneyHero = !profile?.practiceGraduatedAt;
   const showJourneyBoard = !profile?.practiceGraduatedAt;
   const showNoReviewDayCard =
@@ -205,6 +207,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onStartDiagnostic,
     profile,
     session,
+    showBrandHeader,
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
