@@ -72,6 +72,7 @@ export type CurrentLearnerController = {
     track?: LearnerTrack,
   ): Promise<CurrentLearnerSnapshot>;
   graduateToPractice(): Promise<CurrentLearnerSnapshot>;
+  markDiagnosticResultViewed(): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
@@ -512,6 +513,30 @@ export function createCurrentLearnerController({
       const nextProfile: LearnerProfile = {
         ...profile,
         practiceGraduatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    markDiagnosticResultViewed: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      if (profile.latestDiagnosticResultViewedAt) {
+        // 이미 결과를 본 상태면 no-op. 재진입 시 중복 저장 방지.
+        return buildSnapshot({
+          authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+          profile,
+          session,
+          summary,
+        });
+      }
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        latestDiagnosticResultViewedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await profileStore.save(nextProfile);
