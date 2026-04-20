@@ -109,6 +109,7 @@ export type CurrentLearnerContextValue = {
     track?: LearnerTrack,
   ): Promise<void>;
   graduateToPractice(): Promise<void>;
+  markDiagnosticResultViewed(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
@@ -274,6 +275,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       graduateToPractice: async () => {
         const snapshot = await learnerController.graduateToPractice();
+        setState(toLearnerState(snapshot));
+      },
+      markDiagnosticResultViewed: async () => {
+        const snapshot = await learnerController.markDiagnosticResultViewed();
         setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {

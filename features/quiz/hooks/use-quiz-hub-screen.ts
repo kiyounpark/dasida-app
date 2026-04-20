@@ -33,6 +33,7 @@ export type UseQuizHubScreenResult = {
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
+  showWeaknessSection: boolean;
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
@@ -138,7 +139,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
 
-    if (!action) {
+    if (!action || action === 'none') {
       return;
     }
 
@@ -149,9 +150,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       case 'open_review':
         onOpenPractice();
         return;
-      case 'open_exam':
-        // practiceGraduatedAt 없으면 → 졸업 처리 (실전 여정 시작)
-        // practiceGraduatedAt 있으면 → JourneyBoard 자체가 숨겨져 있어 실제로 호출 안 됨
+      case 'graduate_practice':
         if (isGraduatingRef.current) return;
         isGraduatingRef.current = true;
         void graduateToPractice()
@@ -164,25 +163,26 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
             console.warn('[QuizHub] graduateToPractice failed', err);
           });
         return;
+      case 'start_diagnostic':
       default:
         onStartDiagnostic();
     }
   };
 
-  // exam 단계 + 미졸업 시 ctaLabel 오버라이드
-  const baseJourney = homeState?.journey ?? null;
-  const journey =
-    baseJourney && baseJourney.ctaAction === 'open_exam' && !profile?.practiceGraduatedAt
-      ? { ...baseJourney, ctaLabel: '실전 여정으로 떠나기 →' }
-      : baseJourney;
+  const journey = homeState?.journey ?? null;
+  const isGraduated = journey?.currentStateKey === 'journey_graduated';
+  const isJourneyActive = !isGraduated;
 
-  const showBrandHeader = !!profile?.practiceGraduatedAt;
-  const showJourneyHero = !profile?.practiceGraduatedAt;
-  const showJourneyBoard = !profile?.practiceGraduatedAt;
+  const showBrandHeader = isGraduated;
+  const showJourneyHero = isJourneyActive;
+  const showJourneyBoard = isJourneyActive;
+  // 여정 진행 중에는 NoReviewDayCard를 숨긴다. 졸업 후(isGraduated)에만 기존 조건을 평가.
   const showNoReviewDayCard =
+    isGraduated &&
     !!homeState?.nextReviewTask &&
-    homeState.todayReviewCount === 0 &&
-    !profile?.practiceGraduatedAt;
+    homeState.todayReviewCount === 0;
+  // 약점 섹션도 여정 완료 후에만 노출.
+  const showWeaknessSection = isGraduated;
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
@@ -207,5 +207,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
+    showWeaknessSection,
   };
 }

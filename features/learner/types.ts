@@ -48,4 +48,5 @@ export type LearnerProfile = {
   createdAt: string;
   updatedAt: string;
   practiceGraduatedAt?: string; // ISO 타임스탬프. 약점 연습 완료 버튼을 처음 누른 시각.
+  latestDiagnosticResultViewedAt?: string; // ISO 타임스탬프. 가장 최근 진단의 결과 화면을 처음 본 시각. 새 진단 완료 시 리셋된다.
 };
