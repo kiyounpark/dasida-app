@@ -1,7 +1,7 @@
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { BrandColors } from '@/constants/brand';
-import { DiagnosticQuestionCard } from '@/features/quiz/components/diagnostic-question-card';
+import { QuizQuestionCard } from '@/features/quiz/components/quiz-question-card';
 import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnostic-solve-bottom-panel';
 import { QuizSolveExitConfirmModal } from '@/features/quiz/components/quiz-solve-exit-confirm-modal';
 import { QuizSolveHeader } from '@/features/quiz/components/quiz-solve-header';
@@ -20,7 +20,7 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
     <View style={styles.screen}>
       <QuizSolveLayout
         body={
-          <DiagnosticQuestionCard
+          <QuizQuestionCard
             choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             question={quizStage.problem.question}
