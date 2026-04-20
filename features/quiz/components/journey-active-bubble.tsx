@@ -48,23 +48,6 @@ const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
   },
 };
 
-const bubbleLinesByStep: Record<JourneyStepKey, string[]> = {
-  diagnostic: ['반가워요!', '첫 진단 평가를', '시작해볼까요?'],
-  analysis: ['내 약점을 분석', '중이에요...'],
-  review: ['이제 연습할', '시간!'],
-  exam: ['이제 실전에', '써볼 차례예요!'],
-};
-
-function getBubbleLines(stepKey: JourneyStepKey, bubbleText: string) {
-  const lines = bubbleLinesByStep[stepKey];
-
-  if (lines.length > 0) {
-    return lines;
-  }
-
-  return [bubbleText];
-}
-
 export function JourneyActiveBubble({
   bubbleText,
   isCompactLayout,
@@ -75,7 +58,6 @@ export function JourneyActiveBubble({
   stepKey: JourneyStepKey;
 }) {
   const layout = bubbleLayoutConfig[stepKey];
-  const lines = getBubbleLines(stepKey, bubbleText);
   const bubbleSide = layout.side;
   const bubbleAspectRatio =
     bubbleSide === 'left' ? LEFT_TAIL_BUBBLE_ASPECT_RATIO : RIGHT_TAIL_BUBBLE_ASPECT_RATIO;
@@ -127,14 +109,11 @@ export function JourneyActiveBubble({
                 ? styles.bubbleContentLeftTailCompact
                 : styles.bubbleContentRightTailCompact),
           ]}>
-          {lines.map((line) => (
-            <Text
-              key={`${stepKey}-${line}`}
-              selectable
-              style={[styles.line, isCompactLayout && styles.lineCompact]}>
-              {line}
-            </Text>
-          ))}
+          <Text
+            selectable
+            style={[styles.line, isCompactLayout && styles.lineCompact]}>
+            {bubbleText}
+          </Text>
         </View>
       </View>
     </View>
