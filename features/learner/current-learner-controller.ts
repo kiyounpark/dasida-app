@@ -550,9 +550,22 @@ export function createCurrentLearnerController({
     recordAttempt: async (input) => {
       const { session, profile } = await readAccessibleSnapshot();
       const result = await learningHistoryRepository.recordAttempt(input);
+
+      // 새 진단이 기록되면 이전 진단의 "결과 봄" 이정표는 무효화한다.
+      // profile.latestDiagnosticResultViewedAt이 설정되어 있을 때만 갱신해 불필요한 쓰기를 피한다.
+      let nextProfile = profile;
+      if (input.source === 'diagnostic' && profile.latestDiagnosticResultViewedAt) {
+        nextProfile = {
+          ...profile,
+          latestDiagnosticResultViewedAt: undefined,
+          updatedAt: new Date().toISOString(),
+        };
+        await profileStore.save(nextProfile);
+      }
+
       return buildSnapshot({
         authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
-        profile,
+        profile: nextProfile,
         session,
         summary: result.summary,
       });
