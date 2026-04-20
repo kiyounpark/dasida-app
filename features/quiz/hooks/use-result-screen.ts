@@ -34,7 +34,6 @@ export type UseResultScreenResult = {
   legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string };
   legacyWeaknessId: ReturnType<typeof resolveWeaknessId>;
   liveSummary: ReturnType<typeof useQuizSession>['state']['result'];
-  onCloseReport: () => void;
   onOpenChallengePractice: () => void;
   onOpenLegacyPractice: () => void;
   onOpenSnapshotDiagnostic: () => void;
@@ -186,9 +185,6 @@ export function useResultScreen({
     legacyPracticeParams,
     legacyWeaknessId,
     liveSummary,
-    onCloseReport: () => {
-      router.replace('/quiz');
-    },
     onOpenChallengePractice: () => {
       router.push({
         pathname: '/quiz/practice',

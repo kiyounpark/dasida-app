@@ -12,7 +12,6 @@ export function QuizResultScreenView({
   legacyNextStep,
   legacyWeaknessId,
   liveSummary,
-  onCloseReport,
   onOpenChallengePractice,
   onOpenLegacyPractice,
   onOpenSnapshotDiagnostic,
@@ -120,7 +119,6 @@ export function QuizResultScreenView({
   if (!summary.allCorrect && summary.topWeaknesses.length > 0) {
     return (
       <QuizResultReportView
-        onClose={onCloseReport}
         onOpenWeaknessPractice={onOpenWeaknessPractice}
         persistResult={persistResult}
         saveErrorMessage={saveErrorMessage}

@@ -11,7 +11,6 @@ import { QuizResultReportHeader } from './quiz-result-report-header';
 import { QuizResultReportHero } from './quiz-result-report-hero';
 
 type QuizResultReportViewProps = {
-  onClose: () => void;
   onOpenWeaknessPractice: (weaknessId: string) => void;
   persistResult: () => Promise<void>;
   saveErrorMessage: string | null;
@@ -20,7 +19,6 @@ type QuizResultReportViewProps = {
 };
 
 export function QuizResultReportView({
-  onClose,
   onOpenWeaknessPractice,
   persistResult,
   saveErrorMessage,
@@ -34,10 +32,7 @@ export function QuizResultReportView({
 
   return (
     <View style={styles.screen}>
-      <QuizResultReportHeader
-        isCompactLayout={isCompactLayout}
-        onClose={onClose}
-      />
+      <QuizResultReportHeader isCompactLayout={isCompactLayout} />
 
       <ScrollView
         style={styles.scroll}
