@@ -4,7 +4,7 @@ import { BrandColors } from '@/constants/brand';
 import { DiagnosticQuestionCard } from '@/features/quiz/components/diagnostic-question-card';
 import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnostic-solve-bottom-panel';
 import { DiagnosticSolveExitModal } from '@/features/quiz/components/diagnostic-solve-exit-modal';
-import { DiagnosticSolveHeader } from '@/features/quiz/components/diagnostic-solve-header';
+import { QuizSolveHeader } from '@/features/quiz/components/quiz-solve-header';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
@@ -40,12 +40,13 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
           />
         }
         header={
-          <DiagnosticSolveHeader
+          <QuizSolveHeader
             currentQuestionNumber={quizStage.currentQuestionNumber}
             isCompactLayout={isCompactLayout}
             onBackPress={quizStage.onOpenExitModal}
             progressPercent={quizStage.progressPercent}
             questionCount={quizStage.questionCount}
+            title="약점 진단"
           />
         }
         screenBackgroundColor={BrandColors.background}

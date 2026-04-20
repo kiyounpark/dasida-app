@@ -5,27 +5,29 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 
-type DiagnosticSolveHeaderProps = {
+export type QuizSolveHeaderProps = {
   currentQuestionNumber: number;
   isCompactLayout: boolean;
   onBackPress: () => void;
   progressPercent: `${number}%`;
   questionCount: number;
+  title: string;
 };
 
-export function DiagnosticSolveHeader({
+export function QuizSolveHeader({
   currentQuestionNumber,
   isCompactLayout,
   onBackPress,
   progressPercent,
   questionCount,
-}: DiagnosticSolveHeaderProps) {
+  title,
+}: QuizSolveHeaderProps) {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={[styles.wrap, isCompactLayout && styles.wrapCompact]}>
         <View style={styles.topRow}>
           <Pressable
-            accessibilityHint="현재 진단을 나갈지 선택합니다"
+            accessibilityHint="현재 풀이를 나갈지 선택합니다"
             accessibilityLabel="뒤로가기"
             accessibilityRole="button"
             onPress={onBackPress}
@@ -37,7 +39,7 @@ export function DiagnosticSolveHeader({
           </Pressable>
 
           <Text numberOfLines={1} style={[styles.title, isCompactLayout && styles.titleCompact]}>
-            약점 진단
+            {title}
           </Text>
 
           <Text style={[styles.counter, isCompactLayout && styles.counterCompact]}>
