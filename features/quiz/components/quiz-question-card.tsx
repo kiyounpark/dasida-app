@@ -6,25 +6,33 @@ import { FontFamilies } from '@/constants/typography';
 
 const CHOICE_LABELS = ['①', '②', '③', '④', '⑤'] as const;
 
-type DiagnosticQuestionCardProps = {
+export type QuizQuestionCardProps = {
   isCompactLayout: boolean;
   question: string;
   choices: string[];
   selectedIndex: number | null;
+  subtitle?: string;
 };
 
-export function DiagnosticQuestionCard({
+export function QuizQuestionCard({
   isCompactLayout,
   question,
   choices,
   selectedIndex,
-}: DiagnosticQuestionCardProps) {
+  subtitle,
+}: QuizQuestionCardProps) {
   const hasProminentFormula = splitQuestionDisplaySegments(question).some(
     (segment) => segment.kind === 'formula',
   );
 
   return (
     <View style={[styles.card, isCompactLayout && styles.cardCompact]}>
+      {subtitle ? (
+        <Text selectable style={styles.subtitle}>
+          {subtitle}
+        </Text>
+      ) : null}
+
       <MathText
         selectable
         text={question}
@@ -91,6 +99,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  subtitle: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 13,
+    lineHeight: 18,
+    color: BrandColors.primarySoft,
+    marginBottom: 6,
   },
   questionText: {
     fontSize: 20,

@@ -3,17 +3,25 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 
-type DiagnosticSolveExitModalProps = {
+export type QuizSolveExitConfirmModalProps = {
+  body: string;
+  cancelLabel?: string;
+  confirmLabel?: string;
   onClose: () => void;
   onConfirmExit: () => void;
+  title: string;
   visible: boolean;
 };
 
-export function DiagnosticSolveExitModal({
+export function QuizSolveExitConfirmModal({
+  body,
+  cancelLabel = '계속 풀기',
+  confirmLabel = '나가기',
   onClose,
   onConfirmExit,
+  title,
   visible,
-}: DiagnosticSolveExitModalProps) {
+}: QuizSolveExitConfirmModalProps) {
   return (
     <Modal
       animationType="fade"
@@ -24,16 +32,16 @@ export function DiagnosticSolveExitModal({
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text selectable style={styles.title}>
-            진단을 나갈까요?
+            {title}
           </Text>
           <Text selectable style={styles.body}>
-            지금까지 푼 답안은 저장되지 않아요. 나가면 처음부터 다시 시작해야 해요.
+            {body}
           </Text>
 
           <View style={styles.actions}>
             <Pressable accessibilityRole="button" onPress={onClose} style={styles.secondaryButton}>
               <Text selectable style={styles.secondaryLabel}>
-                계속 풀기
+                {cancelLabel}
               </Text>
             </Pressable>
 
@@ -42,7 +50,7 @@ export function DiagnosticSolveExitModal({
               onPress={onConfirmExit}
               style={styles.primaryButton}>
               <Text selectable style={styles.primaryLabel}>
-                나가기
+                {confirmLabel}
               </Text>
             </Pressable>
           </View>

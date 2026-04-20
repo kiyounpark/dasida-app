@@ -1,16 +1,15 @@
-import { ScrollView, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { MathText } from '@/components/math/MathText';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { getQuizBottomPanelMaxHeight } from '@/features/quiz/components/quiz-solve-layout';
+import { FontFamilies } from '@/constants/typography';
 import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice-screen';
 
 type PracticeFeedback = NonNullable<UsePracticeScreenResult['feedback']>;
 
-export type QuizPracticeBottomPanelProps = Pick<
+export type QuizPracticeFooterProps = Pick<
   UsePracticeScreenResult,
   | 'continueLabel'
   | 'feedback'
@@ -22,12 +21,13 @@ export type QuizPracticeBottomPanelProps = Pick<
   | 'persistErrorMessage'
   | 'selectedIndex'
 > & {
-  activeProblem: NonNullable<UsePracticeScreenResult['activeProblem']>;
+  choiceCount: number;
   isCompactLayout: boolean;
+  problemId: string;
 };
 
-export function QuizPracticeBottomPanel({
-  activeProblem,
+export function QuizPracticeFooter({
+  choiceCount,
   continueLabel,
   feedback,
   isCompactLayout,
@@ -37,41 +37,48 @@ export function QuizPracticeBottomPanel({
   onSelectChoice,
   onSubmit,
   persistErrorMessage,
+  problemId,
   selectedIndex,
-}: QuizPracticeBottomPanelProps) {
-  const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
-  const panelMaxHeight = getQuizBottomPanelMaxHeight(height, isCompactLayout);
-  const panelBottomPadding = Math.max(insets.bottom, 12);
-
+}: QuizPracticeFooterProps) {
   if (!feedback) {
-    return (
-      <View style={[styles.panel, { paddingBottom: panelBottomPadding }]}>
-        <ScrollView
-          key={activeProblem.id}
-          style={[styles.choiceScroll, { maxHeight: panelMaxHeight }]}
-          contentContainerStyle={styles.choiceContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          {activeProblem.choices.map((choice, index) => {
-            const isSelected = selectedIndex === index;
+    const indices = Array.from({ length: choiceCount }, (_, i) => i);
 
+    return (
+      <View style={styles.panel}>
+        <View accessibilityRole="radiogroup" style={styles.circleRow}>
+          {indices.map((i) => {
+            const isSelected = selectedIndex === i;
             return (
               <Pressable
-                key={`${activeProblem.id}_${index}`}
-                style={[styles.choiceButton, isSelected ? styles.choiceButtonSelected : null]}
-                onPress={() => onSelectChoice(index)}>
-                <MathText
-                  selectable
-                  text={choice}
-                  style={[styles.choiceText, isSelected ? styles.choiceTextSelected : null]}
-                />
+                key={i}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`${i + 1}번`}
+                hitSlop={isCompactLayout ? { top: 2, bottom: 2, left: 2, right: 2 } : undefined}
+                onPress={() => onSelectChoice(i)}
+                style={[
+                  styles.circle,
+                  isCompactLayout && styles.circleCompact,
+                  isSelected ? styles.circleSelected : styles.circleIdle,
+                ]}>
+                <Text
+                  style={[
+                    styles.circleText,
+                    isCompactLayout && styles.circleTextCompact,
+                    isSelected ? styles.circleTextSelected : styles.circleTextIdle,
+                  ]}>
+                  {i + 1}
+                </Text>
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
 
-        <BrandButton title="정답 확인" onPress={onSubmit} disabled={selectedIndex === null} />
+        <BrandButton
+          disabled={selectedIndex === null}
+          onPress={onSubmit}
+          title="정답 확인"
+        />
       </View>
     );
   }
@@ -85,16 +92,10 @@ export function QuizPracticeBottomPanel({
           ? '기록 저장 중...'
           : continueLabel;
 
-  const actionVariant =
-    feedback.kind === 'correct'
-      ? 'success'
-      : feedback.kind === 'resolved'
-        ? 'primary'
-        : 'primary';
+  const actionVariant = feedback.kind === 'correct' ? 'success' : 'primary';
 
-  const actionDisabled = feedback.kind === 'correct' || feedback.kind === 'resolved'
-    ? isPersistingAttempt
-    : false;
+  const actionDisabled =
+    (feedback.kind === 'correct' || feedback.kind === 'resolved') && isPersistingAttempt;
 
   return (
     <View
@@ -102,14 +103,13 @@ export function QuizPracticeBottomPanel({
         styles.panel,
         styles.feedbackPanel,
         feedback.kind === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong,
-        { paddingBottom: panelBottomPadding },
       ]}>
       <ScrollView
-        style={[styles.feedbackScroll, { maxHeight: panelMaxHeight }]}
+        style={styles.feedbackScroll}
         contentContainerStyle={styles.feedbackContent}
         showsVerticalScrollIndicator={false}>
         <Animated.View
-          key={`${activeProblem.id}_${feedback.kind}`}
+          key={`${problemId}_${feedback.kind}`}
           entering={FadeInDown.duration(220)}
           exiting={FadeOutUp.duration(180)}
           layout={LinearTransition.duration(180)}
@@ -119,10 +119,10 @@ export function QuizPracticeBottomPanel({
       </ScrollView>
 
       <BrandButton
+        disabled={actionDisabled}
+        onPress={feedback.kind === 'retry' || feedback.kind === 'coaching' ? onRetry : onContinue}
         title={actionTitle}
         variant={actionVariant}
-        onPress={feedback.kind === 'retry' || feedback.kind === 'coaching' ? onRetry : onContinue}
-        disabled={actionDisabled}
       />
 
       {persistErrorMessage ? (
@@ -165,38 +165,50 @@ function renderPracticeFeedback(feedback: PracticeFeedback) {
 
 const styles = StyleSheet.create({
   panel: {
-    gap: 16,
-    paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.md,
-  },
-  choiceScroll: {
-    width: '100%',
-  },
-  choiceContent: {
     gap: 10,
+    paddingHorizontal: 18,
+    paddingTop: 10,
     paddingBottom: 4,
   },
-  choiceButton: {
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderRadius: BrandRadius.sm,
-    borderCurve: 'continuous',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
+  circleRow: {
+    flexDirection: 'row',
+    gap: 14,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
-  choiceButtonSelected: {
-    borderColor: BrandColors.primarySoft,
-    backgroundColor: BrandColors.primarySoft,
+  circle: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  choiceText: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#333',
+  circleCompact: {
+    width: 40,
+    height: 40,
   },
-  choiceTextSelected: {
-    color: '#fff',
-    fontWeight: '700',
+  circleIdle: {
+    borderWidth: 1.5,
+    borderColor: '#D7D4CD',
+    backgroundColor: '#FFFFFF',
+  },
+  circleSelected: {
+    backgroundColor: BrandColors.primaryDark,
+  },
+  circleText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  circleTextCompact: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  circleTextIdle: {
+    color: '#6B6560',
+  },
+  circleTextSelected: {
+    color: '#FFFFFF',
   },
   feedbackPanel: {
     gap: 12,
@@ -209,6 +221,7 @@ const styles = StyleSheet.create({
   },
   feedbackScroll: {
     width: '100%',
+    flexShrink: 1,
   },
   feedbackContent: {
     flexGrow: 1,

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors } from '@/constants/brand';
 import { useIsTablet } from '@/hooks/use-is-tablet';
@@ -8,6 +9,7 @@ export type QuizSolveLayoutProps = {
   body: ReactNode;
   bodyContentContainerStyle?: StyleProp<ViewStyle>;
   footer: ReactNode;
+  footerSafeArea?: boolean;
   header: ReactNode;
   screenBackgroundColor?: string;
 };
@@ -21,10 +23,12 @@ export function QuizSolveLayout({
   body,
   bodyContentContainerStyle,
   footer,
+  footerSafeArea = true,
   header,
   screenBackgroundColor = BrandColors.background,
 }: QuizSolveLayoutProps) {
   const isTablet = useIsTablet();
+  const insets = useSafeAreaInsets();
 
   if (isTablet) {
     return (
@@ -48,6 +52,8 @@ export function QuizSolveLayout({
     );
   }
 
+  const footerPaddingBottom = footerSafeArea ? Math.max(insets.bottom, 12) : 0;
+
   return (
     <View style={[styles.screen, { backgroundColor: screenBackgroundColor }]}>
       {header}
@@ -57,7 +63,7 @@ export function QuizSolveLayout({
         contentContainerStyle={[styles.bodyContent, bodyContentContainerStyle]}>
         {body}
       </ScrollView>
-      <View style={styles.footerWrap}>{footer}</View>
+      <View style={[styles.footerWrap, { paddingBottom: footerPaddingBottom }]}>{footer}</View>
     </View>
   );
 }
@@ -66,7 +72,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  // 모바일
   bodyScroll: {
     flex: 1,
   },
@@ -79,7 +84,6 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(41, 59, 39, 0.08)',
     boxShadow: '0 -10px 24px rgba(36, 52, 38, 0.08)',
   },
-  // 태블릿
   tabletRow: {
     flex: 1,
     flexDirection: 'row',

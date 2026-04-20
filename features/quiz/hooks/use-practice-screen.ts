@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
@@ -72,6 +72,13 @@ export type UsePracticeScreenResult = {
   screenTitle: string;
   selectedIndex: number | null;
   weaknessLabel: string;
+  currentQuestionNumber: number;
+  isExitModalVisible: boolean;
+  onCloseExitModal: () => void;
+  onConfirmExit: () => void;
+  onOpenExitModal: () => void;
+  progressPercent: `${number}%`;
+  questionCount: number;
 };
 
 const PERSIST_ERROR_MESSAGE = '연습 기록을 저장하지 못했어요. 다시 시도해 주세요.';
@@ -92,6 +99,8 @@ export function usePracticeScreen({
   const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
   const [solvedCount, setSolvedCount] = useState(0);
   const [isGraduating, setIsGraduating] = useState(false);
+  const [isExitModalVisible, setIsExitModalVisible] = useState(false);
+  const reviewQueueInitialCountRef = useRef<number | null>(null);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
   const reviewQueue = useMemo<ActiveReviewTaskSummary[]>(
@@ -129,6 +138,16 @@ export function usePracticeScreen({
     state.practiceQueue,
     state.result,
   ]);
+
+  useEffect(() => {
+    if (activeMode !== 'review') {
+      reviewQueueInitialCountRef.current = null;
+      return;
+    }
+    if (reviewQueueInitialCountRef.current === null) {
+      reviewQueueInitialCountRef.current = reviewQueue.length;
+    }
+  }, [activeMode, reviewQueue.length]);
 
   const activeProblem =
     activeMode === 'challenge'
@@ -344,6 +363,25 @@ export function usePracticeScreen({
       ? state.practiceIndex >= state.practiceQueue.length - 1
       : true;
 
+  const counter = (() => {
+    if (activeMode === 'weakness' && state.result && state.practiceMode === 'weakness') {
+      const total = Math.max(state.practiceQueue.length, 1);
+      const current = Math.min(state.practiceIndex + 1, total);
+      return { current, total };
+    }
+
+    if (activeMode === 'review') {
+      const total = Math.max(reviewQueueInitialCountRef.current ?? reviewQueue.length, 1);
+      const remaining = reviewQueue.length;
+      const current = Math.min(Math.max(total - remaining + 1, 1), total);
+      return { current, total };
+    }
+
+    return { current: 1, total: 1 };
+  })();
+
+  const progressPercent = `${Math.round((counter.current / counter.total) * 100)}%` as `${number}%`;
+
   return {
     activeProblem,
     continueLabel:
@@ -402,5 +440,15 @@ export function usePracticeScreen({
           : '약점 기반 연습',
     selectedIndex,
     weaknessLabel,
+    currentQuestionNumber: counter.current,
+    isExitModalVisible,
+    onCloseExitModal: () => setIsExitModalVisible(false),
+    onConfirmExit: () => {
+      setIsExitModalVisible(false);
+      router.replace('/(tabs)/quiz');
+    },
+    onOpenExitModal: () => setIsExitModalVisible(true),
+    progressPercent,
+    questionCount: counter.total,
   };
 }

@@ -1,11 +1,13 @@
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
-import { ProblemStatement } from '@/components/math/problem-statement';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { QuizPracticeBottomPanel } from '@/features/quiz/components/quiz-practice-bottom-panel';
+import { GraduateFloatingBar } from '@/features/quiz/components/graduate-floating-bar';
+import { QuizPracticeFooter } from '@/features/quiz/components/quiz-practice-footer';
+import { QuizQuestionCard } from '@/features/quiz/components/quiz-question-card';
+import { QuizSolveExitConfirmModal } from '@/features/quiz/components/quiz-solve-exit-confirm-modal';
+import { QuizSolveHeader } from '@/features/quiz/components/quiz-solve-header';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice-screen';
 
@@ -13,24 +15,30 @@ export function QuizPracticeScreenView({
   activeProblem,
   canGraduate,
   continueLabel,
+  currentQuestionNumber,
   emptyActionLabel,
   emptyTitle,
   feedback,
+  isExitModalVisible,
   isGraduating,
   isPersistingAttempt,
+  onCloseExitModal,
+  onConfirmExit,
   onContinue,
   onGraduate,
+  onOpenExitModal,
   onRetry,
   onSelectChoice,
   onSubmit,
   onViewResult,
   persistErrorMessage,
+  progressPercent,
+  questionCount,
   screenTitle,
   selectedIndex,
   weaknessLabel,
 }: UsePracticeScreenResult) {
   const { height, width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const isCompactLayout = width < 390 || height < 780;
 
   if (!activeProblem) {
@@ -53,16 +61,18 @@ export function QuizPracticeScreenView({
     <View style={styles.screen}>
       <QuizSolveLayout
         body={
-          <View style={styles.problemCard}>
-            <Text style={styles.title}>{screenTitle}</Text>
-            <Text style={styles.subtitle}>{weaknessLabel}</Text>
-            <ProblemStatement question={activeProblem.question} />
-          </View>
+          <QuizQuestionCard
+            choices={activeProblem.choices}
+            isCompactLayout={isCompactLayout}
+            question={activeProblem.question}
+            selectedIndex={selectedIndex}
+            subtitle={weaknessLabel}
+          />
         }
-        bodyContentContainerStyle={styles.container}
+        bodyContentContainerStyle={[styles.content, isCompactLayout ? styles.contentCompact : null]}
         footer={
-          <QuizPracticeBottomPanel
-            activeProblem={activeProblem}
+          <QuizPracticeFooter
+            choiceCount={activeProblem.choices.length}
             continueLabel={continueLabel}
             feedback={feedback}
             isCompactLayout={isCompactLayout}
@@ -72,22 +82,39 @@ export function QuizPracticeScreenView({
             onSelectChoice={onSelectChoice}
             onSubmit={onSubmit}
             persistErrorMessage={persistErrorMessage}
+            problemId={activeProblem.id}
             selectedIndex={selectedIndex}
           />
         }
-        header={<BrandHeader />}
+        footerSafeArea={!canGraduate}
+        header={
+          <QuizSolveHeader
+            currentQuestionNumber={currentQuestionNumber}
+            isCompactLayout={isCompactLayout}
+            onBackPress={onOpenExitModal}
+            progressPercent={progressPercent}
+            questionCount={questionCount}
+            title={screenTitle}
+          />
+        }
         screenBackgroundColor={BrandColors.background}
       />
+
       {canGraduate ? (
-        <View style={[styles.graduateBar, { paddingBottom: insets.bottom + BrandSpacing.lg }]}>
-          <BrandButton
-            title={isGraduating ? '저장 중...' : '약점 연습 완료하기'}
-            variant="neutral"
-            onPress={onGraduate}
-            disabled={isGraduating}
-          />
-        </View>
+        <GraduateFloatingBar
+          disabled={isGraduating}
+          isGraduating={isGraduating}
+          onPress={onGraduate}
+        />
       ) : null}
+
+      <QuizSolveExitConfirmModal
+        body="현재 풀던 문제는 저장되지 않아요. 연습 허브로 돌아갈까요?"
+        onClose={onCloseExitModal}
+        onConfirmExit={onConfirmExit}
+        title="연습을 나갈까요?"
+        visible={isExitModalVisible}
+      />
     </View>
   );
 }
@@ -97,12 +124,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.background,
   },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.md,
-    paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
+  content: {
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
+    gap: 18,
+  },
+  contentCompact: {
+    paddingTop: 8,
+    paddingBottom: 10,
+    gap: 16,
   },
   emptyBody: {
     flex: 1,
@@ -118,31 +149,12 @@ const styles = StyleSheet.create({
     marginTop: BrandSpacing.md,
     padding: BrandSpacing.lg,
   },
-  problemCard: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    backgroundColor: '#fff',
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.sm,
-  },
   title: {
     fontSize: 24,
     fontWeight: '700',
     color: BrandColors.text,
   },
-  subtitle: {
-    fontSize: 14,
-    color: BrandColors.primarySoft,
-    fontWeight: '700',
-  },
   buttonTopGap: {
     marginTop: 20,
-  },
-  graduateBar: {
-    paddingHorizontal: BrandSpacing.lg,
-    paddingTop: BrandSpacing.sm,
-    backgroundColor: BrandColors.background,
   },
 });
