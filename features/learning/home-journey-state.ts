@@ -1,14 +1,27 @@
 import { diagnosisMap } from '@/data/diagnosisMap';
-import { formatReviewStageLabel } from '@/features/learning/review-stage';
+import type { LearnerProfile } from '@/features/learner/types';
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
+// 캐릭터가 위치한 시각적 단계 (JourneyBoard의 4노드). state 추가와 무관하게 유지.
 export type JourneyStepKey = 'diagnostic' | 'analysis' | 'review' | 'exam';
 export type JourneyStepStatus = 'completed' | 'active' | 'pending' | 'locked';
+
+// 사용자 여정 state. Phase 1은 5개 구현(2,5는 Phase 2).
+export type JourneyStateKey =
+  | 'journey_not_started'
+  | 'diagnostic_in_progress' // Phase 2
+  | 'result_pending'
+  | 'viewed_pre_practice'
+  | 'practice_in_progress' // Phase 2
+  | 'journey_complete_pending'
+  | 'journey_graduated';
+
 export type JourneyCtaAction =
   | 'start_diagnostic'
   | 'open_result'
   | 'open_review'
-  | 'open_exam';
+  | 'graduate_practice'
+  | 'none'; // state 7 전용
 
 export type HomeJourneyStep = {
   key: JourneyStepKey;
@@ -24,6 +37,7 @@ export type HomeJourneyState = {
   title: string;
   body: string;
   progressLabel: string;
+  currentStateKey: JourneyStateKey;
   currentStepKey: JourneyStepKey;
   currentStepTitle: string;
   currentStepBody: string;
@@ -39,6 +53,72 @@ const stepTitles: Record<JourneyStepKey, string> = {
   analysis: '오답 약점 분석',
   review: '맞춤 약점 연습',
   exam: '완벽 마스터',
+};
+
+// state → 시각적 stepKey (캐릭터 위치)
+const stateToStepKey: Record<JourneyStateKey, JourneyStepKey> = {
+  journey_not_started: 'diagnostic',
+  diagnostic_in_progress: 'diagnostic',
+  result_pending: 'analysis',
+  viewed_pre_practice: 'review',
+  practice_in_progress: 'review',
+  journey_complete_pending: 'exam',
+  journey_graduated: 'exam',
+};
+
+type StateCopy = {
+  bubbleText: string;
+  ctaAction: JourneyCtaAction;
+  ctaLabel: string;
+  ctaBody: string;
+};
+
+const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
+  journey_not_started: {
+    bubbleText: '반가워요! 첫 진단부터 시작해볼까요?',
+    ctaAction: 'start_diagnostic',
+    ctaLabel: '첫 진단 시작하기',
+    ctaBody: '10문제로 지금 위치를 먼저 확인합니다',
+  },
+  diagnostic_in_progress: {
+    // Phase 2에서 상세화. Phase 1에서는 도달 불가능한 state이지만 타입 커버리지를 위해 placeholder.
+    bubbleText: '진단을 이어서 풀어볼까요?',
+    ctaAction: 'start_diagnostic',
+    ctaLabel: '진단 이어서 풀기',
+    ctaBody: '풀던 진단을 다시 시작합니다',
+  },
+  result_pending: {
+    bubbleText: '약점 찾기 끝! 결과부터 볼까요?',
+    ctaAction: 'open_result',
+    ctaLabel: '약점 결과 보기',
+    ctaBody: '결과를 보면 연습 단계로 이어집니다',
+  },
+  viewed_pre_practice: {
+    bubbleText: '약점 확인 끝! 이제 연습 차례예요',
+    ctaAction: 'open_review',
+    ctaLabel: '약점 연습 시작하기',
+    ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
+  },
+  practice_in_progress: {
+    // Phase 2에서 상세화.
+    bubbleText: '연습을 이어서 풀어볼까요?',
+    ctaAction: 'open_review',
+    ctaLabel: '연습 이어서 풀기',
+    ctaBody: '풀던 연습을 다시 시작합니다',
+  },
+  journey_complete_pending: {
+    bubbleText: '여정을 다 돌아봤어요. 새 출발 준비됐나요?',
+    ctaAction: 'graduate_practice',
+    ctaLabel: '새로 시작하기 →',
+    ctaBody: '여정을 마무리하고 일반 허브로 이동합니다',
+  },
+  journey_graduated: {
+    // 이 state에서는 여정보드 자체가 숨겨지므로 문구는 사용되지 않는다.
+    bubbleText: '',
+    ctaAction: 'none',
+    ctaLabel: '',
+    ctaBody: '',
+  },
 };
 
 function hasActivityAfter(
@@ -74,27 +154,30 @@ function getWeaknessLabel(summary: LearnerSummaryCurrent) {
   return diagnosisMap[weaknessId].labelKo;
 }
 
-function getCurrentStep(summary: LearnerSummaryCurrent): JourneyStepKey {
+function getCurrentState(
+  summary: LearnerSummaryCurrent,
+  profile: LearnerProfile | null,
+): JourneyStateKey {
+  if (profile?.practiceGraduatedAt) {
+    return 'journey_graduated';
+  }
+
   const hasLatestDiagnostic = Boolean(summary.latestDiagnosticSummary);
+  if (!hasLatestDiagnostic) {
+    return 'journey_not_started';
+  }
+
   const latestDiagnosticAt = summary.latestDiagnosticSummary?.completedAt;
-  const hasDueReviews = (summary.dueReviewTasks?.length ?? 0) > 0;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
-
-  // 의도된 설계: 약점 연습 1회 완료 시점에 dueReviewTasks가 남아있어도
-  // exam 단계로 바로 해제한다. 남은 복습은 exam과 병행할 수 있다.
   if (hasReviewAfterLatestDiagnostic) {
-    return 'exam';
+    return 'journey_complete_pending';
   }
 
-  if (hasDueReviews) {
-    return 'review';
+  if (profile?.latestDiagnosticResultViewedAt) {
+    return 'viewed_pre_practice';
   }
 
-  if (hasLatestDiagnostic) {
-    return 'analysis';
-  }
-
-  return 'diagnostic';
+  return 'result_pending';
 }
 
 function getStepStatus(
@@ -189,92 +272,37 @@ function getStepStatusLabel(
   return '활성화';
 }
 
-function getCurrentBubbleText(currentStep: JourneyStepKey) {
-  switch (currentStep) {
-    case 'analysis':
-      return '내 약점을 분석 중이에요...';
-    case 'review':
-      return '이제 연습할 시간!';
-    case 'exam':
-      return '실전에 도전할 시간이에요!';
-    default:
-      return '반가워요! 첫 진단 평가를 시작해볼까요?';
-  }
-}
-
 function getCurrentStepBody(
-  currentStep: JourneyStepKey,
+  currentStepKey: JourneyStepKey,
   summary: LearnerSummaryCurrent,
-) {
-  switch (currentStep) {
+): string {
+  switch (currentStepKey) {
     case 'analysis':
       return `${getWeaknessLabel(summary)}부터 확인하면 연습 단계로 바로 이어집니다.`;
     case 'review': {
       const dueCount = summary.dueReviewTasks?.length ?? 0;
       if (dueCount === 0) {
-        return '약점 연습을 마치면 모의고사가 열립니다.';
+        return '약점 연습을 마치면 여정이 완성됩니다.';
       }
       return dueCount > 1
         ? `오늘은 연습 ${dueCount}개를 차례로 정리하면 됩니다.`
         : '오늘은 약점 1개만 짧게 다시 잡으면 됩니다.';
     }
     case 'exam':
-      return '모의고사로 지금까지 정리한 약점을 실전에서 확인해보세요.';
+      return '여정 마무리까지 한 걸음 남았어요.';
     default:
       return '첫 기록만 생기면 분석, 연습, 실전 적용까지 한 줄로 이어집니다.';
   }
 }
 
-function getCtaState(
-  currentStep: JourneyStepKey,
+export function buildHomeJourneyState(
   summary: LearnerSummaryCurrent,
-): Pick<HomeJourneyState, 'ctaAction' | 'ctaLabel' | 'ctaBody'> {
-  if (currentStep === 'analysis') {
-    return {
-      ctaAction: 'open_result',
-      ctaLabel: '약점 결과 보기',
-      ctaBody: `${getWeaknessLabel(summary)}부터 보면 연습 단계로 자연스럽게 이어집니다.`,
-    };
-  }
+  profile: LearnerProfile | null,
+): HomeJourneyState {
+  const currentStateKey = getCurrentState(summary, profile);
+  const currentStepKey = stateToStepKey[currentStateKey];
+  const copy = stateCopyTable[currentStateKey];
 
-  if (currentStep === 'review') {
-    const dueCount = summary.dueReviewTasks?.length ?? 0;
-
-    if (dueCount === 0) {
-      return {
-        ctaAction: 'open_review',
-        ctaLabel: '약점 연습 시작하기',
-        ctaBody: '약점 연습을 마치면 모의고사가 열립니다.',
-      };
-    }
-
-    return {
-      ctaAction: 'open_review',
-      ctaLabel: dueCount > 1 ? `연습 ${dueCount}개 시작하기` : '약점 연습 시작하기',
-      ctaBody:
-        dueCount > 1
-          ? '대표 약점부터 순서대로 정리하면 됩니다.'
-          : '오늘 해야 할 연습 한 가지만 먼저 시작해보세요.',
-    };
-  }
-
-  if (currentStep === 'exam') {
-    return {
-      ctaAction: 'open_exam',
-      ctaLabel: '대표 세트 열기',
-      ctaBody: '지금까지 정리한 약점을 실전 문제에서 바로 확인할 수 있어요.',
-    };
-  }
-
-  return {
-    ctaAction: 'start_diagnostic',
-    ctaLabel: '첫 진단 시작하기',
-    ctaBody: '10문제로 지금 위치를 먼저 확인합니다.',
-  };
-}
-
-export function buildHomeJourneyState(summary: LearnerSummaryCurrent): HomeJourneyState {
-  const currentStepKey = getCurrentStep(summary);
   const stepOrder: JourneyStepKey[] = ['diagnostic', 'analysis', 'review', 'exam'];
   const currentStepIndex = stepOrder.indexOf(currentStepKey);
   const steps = stepOrder.map((step, index) => {
@@ -295,11 +323,14 @@ export function buildHomeJourneyState(summary: LearnerSummaryCurrent): HomeJourn
     title: '지금 단계만 따라가면 됩니다.',
     body: '진단에서 분석, 연습, 실전 적용까지 한 줄로 이어집니다.',
     progressLabel: `${currentStepIndex + 1} / 4 단계`,
+    currentStateKey,
     currentStepKey,
     currentStepTitle: stepTitles[currentStepKey],
     currentStepBody: getCurrentStepBody(currentStepKey, summary),
-    currentBubbleText: getCurrentBubbleText(currentStepKey),
-    ...getCtaState(currentStepKey, summary),
+    currentBubbleText: copy.bubbleText,
+    ctaAction: copy.ctaAction,
+    ctaLabel: copy.ctaLabel,
+    ctaBody: copy.ctaBody,
     steps,
   };
 }
