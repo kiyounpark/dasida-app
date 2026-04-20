@@ -90,6 +90,7 @@ export function QuizHubScreenView({
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
+  showWeaknessSection,
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
@@ -175,7 +176,7 @@ export function QuizHubScreenView({
             state={journey}
           />
         ) : null}
-        {homeState ? (
+        {showWeaknessSection && homeState ? (
           <HomeWeaknessSection homeState={homeState} />
         ) : null}
       </ScrollView>
