@@ -7,7 +7,6 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
-import { useQuizSession } from '@/features/quiz/session';
 
 const hubReviewStore = new LocalReviewTaskStore();
 
@@ -48,7 +47,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     refresh,
     session,
   } = useCurrentLearner();
-  const { resetSession } = useQuizSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
   const isGraduatingRef = useRef(false);
 
@@ -92,10 +90,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   );
 
   const onStartDiagnostic = () => {
-    resetSession();
     router.push({
       pathname: '/quiz/diagnostic',
-      params: { autostart: '1' },
+      params: { autostart: '1', reset: '1' },
     });
   };
 
@@ -160,7 +157,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         void graduateToPractice()
           .then(() => {
             isGraduatingRef.current = false;
-            resetSession();
             router.replace('/(tabs)/quiz');
           })
           .catch((err) => {
