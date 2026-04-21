@@ -7,7 +7,6 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
-import { useQuizSession } from '@/features/quiz/session';
 
 const hubReviewStore = new LocalReviewTaskStore();
 
@@ -40,7 +39,6 @@ export type UseQuizHubScreenResult = {
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
   const { height, width } = useWindowDimensions();
-  const { resetSession } = useQuizSession();
   const {
     authNoticeMessage,
     dismissAuthNotice,
@@ -159,7 +157,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         void graduateToPractice()
           .then(() => {
             isGraduatingRef.current = false;
-            resetSession();
+            // router.replace가 app/quiz/_layout.tsx 스택을 unmount하면서
+            // QuizSessionProvider도 소멸 → 세션 상태가 자연히 초기화됨
             router.replace('/(tabs)/quiz');
           })
           .catch((err) => {
