@@ -96,11 +96,13 @@ export function QuizHubScreenView({
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
+  // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함
+  const bannerRaise = isCompactLayout ? 24 : 32;
   // BrandHeader가 SafeAreaView edges={['top']}으로 insets.top을 처리하므로
   // 졸업 후 상태에서는 insets.top을 제외한 콘텐츠 간격만 적용
   const posterTopPadding = showBrandHeader
     ? (isCompactLayout ? 14 : 24)
-    : insets.top + (isCompactLayout ? 14 : 24);
+    : insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
 
   if (!isReady) {
     return (
