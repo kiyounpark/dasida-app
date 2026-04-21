@@ -33,6 +33,7 @@ export type UseQuizHubScreenResult = {
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
+  showReviewHomeCard: boolean;
   showWeaknessSection: boolean;
 };
 
@@ -156,6 +157,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         void graduateToPractice()
           .then(() => {
             isGraduatingRef.current = false;
+            // router.replace가 app/quiz/_layout.tsx 스택을 unmount하면서
+            // QuizSessionProvider도 소멸 → 세션 상태가 자연히 초기화됨
             router.replace('/(tabs)/quiz');
           })
           .catch((err) => {
@@ -183,6 +186,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     homeState.todayReviewCount === 0;
   // 약점 섹션도 여정 완료 후에만 노출.
   const showWeaknessSection = isGraduated;
+  // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
+  const showReviewHomeCard =
+    isGraduated &&
+    !!homeState?.nextReviewTask &&
+    homeState.todayReviewCount > 0;
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
@@ -207,6 +215,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
+    showReviewHomeCard,
     showWeaknessSection,
   };
 }

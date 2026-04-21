@@ -431,9 +431,9 @@ test('review completion advances to the next stage and stops after day30', () =>
   assert.equal(stillOnlyDay30?.completed, true);
 });
 
-test('buildSummary ignores weakness-practice for repeated weaknesses and recent activity', () => {
+test('buildSummary: 자유 약점 연습(reviewStage 없음)은 recentActivity에 kind=review로 포함된다', () => {
   const diagnosticAttempt = createDiagnosticAttempt();
-  const weaknessAttempt = createWeaknessPracticeAttempt();
+  const weaknessAttempt = createWeaknessPracticeAttempt(); // reviewStage 없음 (mode='weakness')
   const reviewTask = createReviewTask(diagnosticAttempt);
   const futureReviewTask: ReviewTask = {
     ...reviewTask,
@@ -451,11 +451,9 @@ test('buildSummary ignores weakness-practice for repeated weaknesses and recent 
   );
 
   assert.equal(summary.latestDiagnosticSummary?.attemptId, diagnosticAttempt.id);
-  // weaknessAccuracies: 진단 결과에서 약점별 정답률이 계산됨
   const weaknessAccuracies = summary.latestDiagnosticSummary?.weaknessAccuracies;
   assert.ok(weaknessAccuracies !== undefined, 'weaknessAccuracies should exist');
   assert.ok(typeof weaknessAccuracies['formula_understanding'] === 'number' || weaknessAccuracies['formula_understanding'] === undefined);
-  // 진단 결과에 formula_understanding 관련 문제가 있었다면 정답률이 0-100 범위여야 함
   if (typeof weaknessAccuracies['formula_understanding'] === 'number') {
     assert.ok(weaknessAccuracies['formula_understanding'] >= 0);
     assert.ok(weaknessAccuracies['formula_understanding'] <= 100);
@@ -472,8 +470,81 @@ test('buildSummary ignores weakness-practice for repeated weaknesses and recent 
   assert.deepEqual(summary.dueReviewTasks.map((task) => task.id), [reviewTask.id]);
   assert.equal(summary.totals.diagnosticAttempts, 1);
   assert.equal(summary.totals.featuredExamAttempts, 0);
-  assert.equal(summary.recentActivity.some((activity) => activity.id === weaknessAttempt.id), false);
+
+  // 핵심 검증: 자유 약점 연습이 recentActivity에 kind='review'로 포함되어야 state 6 전이 가능
+  const weaknessPracticeEntry = summary.recentActivity.find((activity) => activity.id === weaknessAttempt.id);
+  assert.ok(weaknessPracticeEntry !== undefined, '자유 약점 연습이 recentActivity에 포함되어야 함');
+  assert.equal(weaknessPracticeEntry?.kind, 'review', 'kind는 review여야 함');
+  assert.equal(weaknessPracticeEntry?.title, '복습 완료');
   assert.equal(summary.recentActivity.some((activity) => activity.id === diagnosticAttempt.id), true);
+});
+
+test('buildSummary: 스케줄 약점 연습(reviewStage 있음)은 attempt 경로로 recentActivity에 추가되지 않는다 (ReviewTask 경로로만 포함)', () => {
+  const diagnosticAttempt = createDiagnosticAttempt();
+  const reviewTask = createReviewTask(diagnosticAttempt);
+
+  // mode='review' — reviewStage 있음, ReviewTask도 완료됨
+  const scheduledPracticeAttempt: LearningAttempt = {
+    ...createWeaknessPracticeAttempt(),
+    id: 'weakness-practice-scheduled-1',
+    reviewStage: 'day1',
+    completedAt: '2026-03-17T09:05:00.000Z',
+    createdAt: '2026-03-17T09:05:00.000Z',
+  };
+  const completedReviewTask: ReviewTask = {
+    ...reviewTask,
+    completed: true,
+    completedAt: '2026-03-17T09:05:00.000Z',
+  };
+
+  const summary = buildSummary(
+    ACCOUNT_KEY,
+    [scheduledPracticeAttempt, diagnosticAttempt],
+    [createDiagnosticResult(diagnosticAttempt)],
+    [completedReviewTask],
+    createEmptyLearnerSummary(ACCOUNT_KEY),
+  );
+
+  // attempt 자체는 recentActivity에 없어야 함 (ReviewTask 경로로만 포함)
+  assert.equal(
+    summary.recentActivity.some((activity) => activity.id === scheduledPracticeAttempt.id),
+    false,
+    '스케줄 약점 연습 attempt는 직접 포함되지 않아야 함',
+  );
+  // ReviewTask 완료 엔트리는 있어야 함
+  assert.equal(
+    summary.recentActivity.some((activity) => activity.id === `review-${completedReviewTask.id}`),
+    true,
+    'ReviewTask 완료 엔트리는 포함되어야 함',
+  );
+});
+
+test('buildSummary: 진단 완료 후 자유 약점 연습 완료 시 recentActivity에 진단 이후 review 기록이 생겨 state 6 전이 조건이 충족된다', () => {
+  const diagnosticAttempt = createDiagnosticAttempt(); // completedAt: '2026-03-16T08:10:00.000Z'
+  const weaknessAttempt = createWeaknessPracticeAttempt(); // completedAt: '2026-03-17T09:02:00.000Z' (진단 이후)
+
+  const summary = buildSummary(
+    ACCOUNT_KEY,
+    [weaknessAttempt, diagnosticAttempt],
+    [createWeaknessPracticeResult(weaknessAttempt), createDiagnosticResult(diagnosticAttempt)],
+    [],
+    createEmptyLearnerSummary(ACCOUNT_KEY),
+  );
+
+  const diagnosticCompletedAt = summary.latestDiagnosticSummary?.completedAt;
+  assert.ok(diagnosticCompletedAt !== undefined, '진단 완료 시간이 있어야 함');
+
+  // state 6 판정 조건: 진단 이후 kind='review' 활동이 recentActivity에 있어야 함
+  const hasReviewAfterDiagnostic = summary.recentActivity.some((activity) => {
+    if (activity.kind !== 'review') return false;
+    return Date.parse(activity.occurredAt) > Date.parse(diagnosticCompletedAt!);
+  });
+
+  assert.equal(
+    hasReviewAfterDiagnostic,
+    true,
+    '진단 이후 review 기록이 있어야 state 6(journey_complete_pending)으로 전이 가능',
+  );
 });
 
 test('listLearningAttempts query accepts weakness-practice source filter', () => {
