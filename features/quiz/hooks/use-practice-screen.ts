@@ -450,7 +450,12 @@ export function usePracticeScreen({
       setIsExitModalVisible(false);
       router.replace('/(tabs)/quiz');
     },
-    onOpenExitModal: () => setIsExitModalVisible(true),
+    onOpenExitModal: () => {
+      if (isGraduating) {
+        return;
+      }
+      setIsExitModalVisible(true);
+    },
     progressPercent,
     questionCount: counter.total,
   };
