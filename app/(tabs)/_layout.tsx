@@ -41,6 +41,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="doc.text.magnifyingglass" color={color} />
           ),
+          tabBarStyle: { display: 'none' },
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (event) => {
