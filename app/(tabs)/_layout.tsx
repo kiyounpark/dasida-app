@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -17,13 +17,13 @@ export default function TabLayout() {
   const { profile } = useCurrentLearner();
   const isGraduated = Boolean(profile?.practiceGraduatedAt);
 
-  const defaultTabBarStyle = {
+  const defaultTabBarStyle = useMemo(() => ({
     backgroundColor: '#FFFEF8',
     borderTopColor: 'rgba(41, 59, 39, 0.08)',
     height: tabBarHeight,
     paddingBottom: tabBarPaddingBottom,
     paddingTop: 8,
-  } as const;
+  }), [tabBarHeight, tabBarPaddingBottom]);
 
   return (
     <Tabs
