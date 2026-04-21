@@ -90,6 +90,7 @@ export function QuizHubScreenView({
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
+  showReviewHomeCard,
   showWeaknessSection,
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
@@ -156,7 +157,7 @@ export function QuizHubScreenView({
             onDismiss={onDismissAuthNotice}
           />
         ) : null}
-        {homeState?.nextReviewTask && homeState.todayReviewCount > 0 ? (
+        {showReviewHomeCard && homeState?.nextReviewTask ? (
           <ReviewHomeCard
             task={homeState.nextReviewTask}
             onPress={onPressReviewCard}

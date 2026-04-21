@@ -7,6 +7,7 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { useQuizSession } from '@/features/quiz/session';
 
 const hubReviewStore = new LocalReviewTaskStore();
 
@@ -33,11 +34,13 @@ export type UseQuizHubScreenResult = {
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
+  showReviewHomeCard: boolean;
   showWeaknessSection: boolean;
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
   const { height, width } = useWindowDimensions();
+  const { resetSession } = useQuizSession();
   const {
     authNoticeMessage,
     dismissAuthNotice,
@@ -156,6 +159,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         void graduateToPractice()
           .then(() => {
             isGraduatingRef.current = false;
+            resetSession();
             router.replace('/(tabs)/quiz');
           })
           .catch((err) => {
@@ -183,6 +187,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     homeState.todayReviewCount === 0;
   // 약점 섹션도 여정 완료 후에만 노출.
   const showWeaknessSection = isGraduated;
+  // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
+  const showReviewHomeCard =
+    isGraduated &&
+    !!homeState?.nextReviewTask &&
+    homeState.todayReviewCount > 0;
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
@@ -207,6 +216,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
+    showReviewHomeCard,
     showWeaknessSection,
   };
 }
