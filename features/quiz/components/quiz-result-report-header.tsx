@@ -8,9 +8,11 @@ type QuizResultReportHeaderProps = {
 };
 
 export function QuizResultReportHeader({ isCompactLayout }: QuizResultReportHeaderProps) {
+  // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함; 4 + bannerRaise
+  const bannerPaddingTop = isCompactLayout ? 28 : 36;
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <View style={styles.bannerWrap}>
+      <View style={[styles.bannerWrap, { paddingTop: bannerPaddingTop }]}>
         <PosterTitleBanner isCompactLayout={isCompactLayout} title="나의 약점 분석 리포트" />
       </View>
     </SafeAreaView>
@@ -23,6 +25,5 @@ const styles = StyleSheet.create({
   },
   bannerWrap: {
     paddingHorizontal: 14,
-    paddingTop: 4,
   },
 });
