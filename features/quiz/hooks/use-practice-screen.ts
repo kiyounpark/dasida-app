@@ -444,6 +444,9 @@ export function usePracticeScreen({
     isExitModalVisible,
     onCloseExitModal: () => setIsExitModalVisible(false),
     onConfirmExit: () => {
+      if (isGraduating) {
+        return;
+      }
       setIsExitModalVisible(false);
       router.replace('/(tabs)/quiz');
     },

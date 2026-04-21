@@ -109,7 +109,11 @@ export function QuizPracticeScreenView({
       ) : null}
 
       <QuizSolveExitConfirmModal
-        body="현재 풀던 문제는 저장되지 않아요. 연습 허브로 돌아갈까요?"
+        body={
+          feedback?.kind === 'correct' || feedback?.kind === 'resolved'
+            ? '지금까지 푼 결과는 저장돼요. 연습 허브로 돌아갈까요?'
+            : '현재 풀던 문제는 저장되지 않아요. 연습 허브로 돌아갈까요?'
+        }
         onClose={onCloseExitModal}
         onConfirmExit={onConfirmExit}
         title="연습을 나갈까요?"
