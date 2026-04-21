@@ -21,6 +21,17 @@
 
 ## 로그
 
+### 2026.04.21
+
+**BUG-1/3/4 수정 — 학습 여정 7-state 모델 버그픽스 + 실기기 검증 완료**
+
+- **BUG-1** `functions/src/learning-history.ts`, `features/learning/local-learning-history-repository.ts`: 자유 약점 연습(mode='weakness', reviewStage 없음)을 recentActivity에 `kind='review'`로 기록 → state 6(`journey_complete_pending`) 전이 수정. `LearningAttemptSchema`에 `reviewStage` 옵셔널 필드 추가, 스케줄 연습 중복 방지
+- **BUG-4** `features/quiz/hooks/use-quiz-hub-screen.ts`, `features/quiz/components/quiz-hub-screen-view.tsx`: `showReviewHomeCard` 변수 도입(isGraduated 가드 포함) — 여정 진행 중 ReviewHomeCard 노출 방지
+- **BUG-3** `useQuizSession`을 Provider 밖(`app/(tabs)/quiz/`)에서 호출한 오류 수정 — `router.replace`가 `QuizSessionProvider` unmount하면서 세션 자연 초기화되므로 `resetSession()` 불필요
+- 테스트 3개 추가: 자유 약점 연습 kind=review 포함 / 스케줄 연습 중복 없음 / state 6 전이 조건 충족 (11/11 통과)
+- 실기기 검증 완료: state 1→2→3→4(state 6) 전이 + 졸업 플로우
+- 커밋: `fix/state6-weakness-practice-activity` → main 머지
+
 ### 2026.04.18
 
 **step-complete(practice) ✓✓✓→✦ 애니메이션 + X 닫기 버튼 구현**
@@ -790,6 +801,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.21 08:59
+- 해시: `92a6c01` (`92a6c01db575a552e6564d75c35eccd8a7391f1a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/92a6c01db575a552e6564d75c35eccd8a7391f1a
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/dreamy-davinci-9ccedc': 약점 연습 진단 스타일 리디자인
+- 본문: - 약점 연습 화면을 진단 10문제 풀이와 동일한 구조로 재구성 / - QuizSolveHeader/QuizQuestionCard/QuizSolveExitConfirmModal 공용화 / - QuizPracticeFooter(원형 선택기+피드백 분기), GraduateFloatingBar 신설 / - footerSafeArea prop으로 safe-area 이중 패딩 제거 / - use-practice-screen에 카운터/프로그레스/exit modal 파생값 추가
 
 ### 커밋 2026.04.20 08:23
 - 해시: `27d2c77` (`27d2c77b0fa9de90ef79739ca51f54112a9cb23d`)
