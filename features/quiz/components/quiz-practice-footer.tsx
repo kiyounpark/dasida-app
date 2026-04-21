@@ -3,7 +3,7 @@ import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { MathText } from '@/components/math/MathText';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import type { UsePracticeScreenResult } from '@/features/quiz/hooks/use-practice-screen';
 
