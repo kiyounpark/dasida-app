@@ -81,11 +81,10 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '10문제로 지금 위치를 먼저 확인합니다',
   },
   diagnostic_in_progress: {
-    // Phase 2에서 상세화. Phase 1에서는 도달 불가능한 state이지만 타입 커버리지를 위해 placeholder.
-    bubbleText: '진단을 이어서 풀어볼까요?',
+    bubbleText: '풀던 진단이 있어요. 다시 시작할까요?',
     ctaAction: 'start_diagnostic',
-    ctaLabel: '진단 이어서 풀기',
-    ctaBody: '풀던 진단을 다시 시작합니다',
+    ctaLabel: '진단 다시 시작하기',
+    ctaBody: '처음부터 다시 풀면 최신 약점을 잡을 수 있어요',
   },
   result_pending: {
     bubbleText: '약점 찾기 끝! 결과부터 볼까요?',
@@ -100,11 +99,10 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   practice_in_progress: {
-    // Phase 2에서 상세화.
-    bubbleText: '연습을 이어서 풀어볼까요?',
+    bubbleText: '풀던 약점 연습이 있어요. 다시 시작할까요?',
     ctaAction: 'open_review',
-    ctaLabel: '연습 이어서 풀기',
-    ctaBody: '풀던 연습을 다시 시작합니다',
+    ctaLabel: '연습 다시 시작하기',
+    ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   journey_complete_pending: {
     bubbleText: '여정을 다 돌아봤어요. 새 출발 준비됐나요?',
