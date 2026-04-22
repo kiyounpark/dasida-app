@@ -216,25 +216,40 @@ function getCurrentState(
   summary: LearnerSummaryCurrent,
   profile: LearnerProfile | null,
 ): JourneyStateKey {
+  // 7: 졸업은 항상 최우선.
   if (profile?.practiceGraduatedAt) {
     return 'journey_graduated';
   }
 
+  // 2: 진단 중단. 최초 진단이 아직 완료되지 않았거나, 최신 완료 이후 새 진단이 시작돼 중단된 경우.
+  if (isPendingDiagnosticFresh(profile, summary)) {
+    return 'diagnostic_in_progress';
+  }
+
+  // 1: 진단 기록이 하나도 없음.
   const hasLatestDiagnostic = Boolean(summary.latestDiagnosticSummary);
   if (!hasLatestDiagnostic) {
     return 'journey_not_started';
   }
 
+  // 6: 최신 진단 이후 review 활동이 있으면 여정이 거의 끝난 상태.
   const latestDiagnosticAt = summary.latestDiagnosticSummary?.completedAt;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
   if (hasReviewAfterLatestDiagnostic) {
     return 'journey_complete_pending';
   }
 
+  // 5: 연습 중단. 4번 조건(결과 확인) 성립 + 최신 진단 이후 시작된 pending 연습이 있을 때.
+  if (profile?.latestDiagnosticResultViewedAt && isPendingPracticeFresh(profile, summary)) {
+    return 'practice_in_progress';
+  }
+
+  // 4: 결과 확인 완료.
   if (profile?.latestDiagnosticResultViewedAt) {
     return 'viewed_pre_practice';
   }
 
+  // 3: 결과 확인 전.
   return 'result_pending';
 }
 
