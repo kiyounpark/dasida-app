@@ -121,6 +121,64 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
   },
 };
 
+function isPendingDiagnosticFresh(
+  profile: LearnerProfile | null,
+  summary: LearnerSummaryCurrent,
+): boolean {
+  const pending = profile?.pendingDiagnosticStartedAt;
+  if (!pending) {
+    return false;
+  }
+
+  const pendingAt = Date.parse(pending);
+  if (Number.isNaN(pendingAt)) {
+    return false;
+  }
+
+  const latestCompleted = summary.latestDiagnosticSummary?.completedAt;
+  if (!latestCompleted) {
+    // 아직 완료된 진단이 없으면 pending은 진행 중인 첫 진단.
+    return true;
+  }
+
+  const latestCompletedAt = Date.parse(latestCompleted);
+  if (Number.isNaN(latestCompletedAt)) {
+    return true;
+  }
+
+  // pending이 최신 완료 시각보다 이후면 새 진단을 시작해 중단된 상태.
+  return pendingAt > latestCompletedAt;
+}
+
+function isPendingPracticeFresh(
+  profile: LearnerProfile | null,
+  summary: LearnerSummaryCurrent,
+): boolean {
+  const pending = profile?.pendingPracticeStartedAt;
+  if (!pending) {
+    return false;
+  }
+
+  const pendingAt = Date.parse(pending);
+  if (Number.isNaN(pendingAt)) {
+    return false;
+  }
+
+  const latestDiagnosticCompleted = summary.latestDiagnosticSummary?.completedAt;
+  if (!latestDiagnosticCompleted) {
+    // 진단이 없으면 연습 플래그도 stale 취급(정상 흐름이라면 불가능).
+    return false;
+  }
+
+  const latestDiagnosticCompletedAt = Date.parse(latestDiagnosticCompleted);
+  if (Number.isNaN(latestDiagnosticCompletedAt)) {
+    return false;
+  }
+
+  // 최신 진단 완료 이후에 시작된 연습이어야 유효.
+  return pendingAt > latestDiagnosticCompletedAt;
+}
+
 function hasActivityAfter(
   summary: LearnerSummaryCurrent,
   kind: 'review' | 'exam',
