@@ -7,6 +7,7 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
+import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
@@ -174,7 +175,6 @@ export function QuizHubScreenView({
           <JourneyBoard
             isCompactLayout={isCompactLayout}
             onPressCurrentStep={onPressJourneyCta}
-            onPressCta={onPressJourneyCta}
             state={journey}
           />
         ) : null}
@@ -182,6 +182,16 @@ export function QuizHubScreenView({
           <HomeWeaknessSection homeState={homeState} />
         ) : null}
       </ScrollView>
+      {showJourneyBoard ? (
+        <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 8 : 12) }]}>
+          <JourneyCtaButton
+            compact={isCompactLayout}
+            label={journey.ctaLabel}
+            onPress={onPressJourneyCta}
+            style={styles.ctaFooterButton}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -288,5 +298,15 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
+  },
+  ctaFooter: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 4,
+  },
+  ctaFooterButton: {
+    width: '70%',
+    maxWidth: 340,
   },
 });
