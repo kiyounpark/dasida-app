@@ -183,7 +183,7 @@ export function QuizHubScreenView({
         ) : null}
       </ScrollView>
       {showJourneyBoard ? (
-        <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 8 : 12) }]}>
+        <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 24 : 28) }]}>
           <JourneyCtaButton
             compact={isCompactLayout}
             label={journey.ctaLabel}
