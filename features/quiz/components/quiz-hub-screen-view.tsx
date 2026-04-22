@@ -145,7 +145,6 @@ export function QuizHubScreenView({
           {
             paddingTop: posterTopPadding,
             paddingBottom: bottomPadding,
-            justifyContent: homeState?.latestDiagnosticSummary ? 'flex-start' : 'center',
           },
         ]}
         showsVerticalScrollIndicator={false}>
