@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     aspectRatio: VIEWBOX_WIDTH / VIEWBOX_HEIGHT,
     position: 'relative',
     overflow: 'visible',
-    marginTop: 10,
+    marginTop: 52,
   },
   boardCompact: {
     maxWidth: 430,
