@@ -88,7 +88,15 @@ export function usePracticeScreen({
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
   const { state, advancePractice, completeChallenge, resetSession } = useQuizSession();
-  const { graduateToPractice, profile, recordAttempt, session, summary } = useCurrentLearner();
+  const {
+    clearPendingPractice,
+    graduateToPractice,
+    markPendingPracticeStarted,
+    profile,
+    recordAttempt,
+    session,
+    summary,
+  } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
@@ -165,6 +173,21 @@ export function usePracticeScreen({
     setPersistErrorMessage(null);
     setProblemStartedAt(new Date().toISOString());
   }, [activeProblem?.id, activeReviewTask?.id]);
+
+  // state 5 감지용 플래그. weakness 모드에서 활성 문제가 잡혀 실제 풀이 중일 때만 SET.
+  // review/challenge 모드는 건드리지 않는다.
+  useEffect(() => {
+    if (activeMode !== 'weakness') {
+      return;
+    }
+    if (!activeProblem) {
+      return;
+    }
+    void markPendingPracticeStarted().catch((err) => {
+      console.warn('[PracticeScreen] markPendingPracticeStarted failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMode, activeProblem?.id]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
     if (mode === 'challenge') {
@@ -267,6 +290,9 @@ export function usePracticeScreen({
 
       if (isLast) {
         resetSession();
+        void clearPendingPractice().catch((err) => {
+          console.warn('[PracticeScreen] clearPendingPractice failed', err);
+        });
         router.replace({
           pathname: '/quiz/step-complete',
           params: { step: 'practice' },
@@ -425,6 +451,9 @@ export function usePracticeScreen({
       setIsGraduating(true);
       void graduateToPractice()
         .then(() => {
+          void clearPendingPractice().catch((err) => {
+            console.warn('[PracticeScreen] clearPendingPractice failed', err);
+          });
           router.replace('/(tabs)/quiz');
         })
         .catch(() => {
