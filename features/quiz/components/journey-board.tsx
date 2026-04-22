@@ -9,7 +9,6 @@ import type {
   JourneyStepKey,
 } from '@/features/learning/home-journey-state';
 import { JourneyActiveBubble } from '@/features/quiz/components/journey-active-bubble';
-import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 import { JourneyStepNode } from '@/features/quiz/components/journey-step-node';
 
 const VIEWBOX_Y = 280;
@@ -145,12 +144,10 @@ function calcSvgFontSize(targetPx: number, boardWidth: number): number {
 export function JourneyBoard({
   isCompactLayout,
   onPressCurrentStep,
-  onPressCta,
   state,
 }: {
   isCompactLayout: boolean;
   onPressCurrentStep: () => void;
-  onPressCta: () => void;
   state: HomeJourneyState;
 }) {
   const { width: screenWidth } = useWindowDimensions();
@@ -243,14 +240,6 @@ export function JourneyBoard({
             style={nodeRectStyle[step.key]}
           />
         ))}
-
-        <JourneyCtaButton
-          accessibilityLabel={state.ctaLabel}
-          compact={isCompactLayout}
-          label={state.ctaLabel}
-          onPress={onPressCta}
-          style={[styles.ctaButton, isCompactLayout && styles.ctaButtonCompact]}
-        />
       </View>
     </View>
   );
@@ -277,16 +266,5 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     opacity: 0.22,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  ctaButton: {
-    position: 'absolute',
-    left: '17%',
-    width: '66%',
-    bottom: '-2%',
-  },
-  ctaButtonCompact: {
-    left: '14%',
-    width: '72%',
-    bottom: '-4.5%',
   },
 });
