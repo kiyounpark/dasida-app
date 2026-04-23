@@ -2,6 +2,7 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import { getDiagnosticProblems, type Problem } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
 import { useCurrentLearner } from '@/features/learner/provider';
+import type { PendingDiagnosisResumeState } from '@/features/learner/types';
 import {
   buildQuizResult,
   createInitialWeaknessScores,
@@ -22,6 +23,7 @@ type QuizSessionContextValue = {
     detailTrace?: DiagnosisDetailTrace,
   ) => void;
   finishDiagnosis: () => void;
+  resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
@@ -48,6 +50,7 @@ type Action =
       };
     }
   | { type: 'FINISH_DIAGNOSIS' }
+  | { type: 'RESUME_DIAGNOSIS'; payload: PendingDiagnosisResumeState }
   | { type: 'ADVANCE_PRACTICE' }
   | { type: 'COMPLETE_CHALLENGE' };
 
@@ -232,6 +235,29 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       return finalizeQuiz(state);
     }
 
+    case 'RESUME_DIAGNOSIS': {
+      const {
+        attemptId,
+        startedAt,
+        totalQuestions,
+        answers,
+        weaknessScores,
+        diagnosisQueue,
+      } = action.payload;
+      return {
+        ...createInitialState(),
+        hasStarted: true,
+        totalQuestions,
+        attemptId,
+        startedAt,
+        currentQuestionIndex: totalQuestions,
+        answers,
+        isDiagnosing: true,
+        diagnosisQueue,
+        weaknessScores,
+      };
+    }
+
     case 'ADVANCE_PRACTICE': {
       if (!state.result || state.practiceMode !== 'weakness') return state;
 
@@ -305,6 +331,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
       },
       finishDiagnosis: () => {
         dispatch({ type: 'FINISH_DIAGNOSIS' });
+      },
+      resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => {
+        dispatch({ type: 'RESUME_DIAGNOSIS', payload: resumeState });
       },
       advancePractice: () => {
         dispatch({ type: 'ADVANCE_PRACTICE' });
