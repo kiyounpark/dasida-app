@@ -14,6 +14,7 @@ type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
 export type UseQuizHubScreenResult = {
   authNoticeMessage: string | null;
+  hasPendingResume: boolean;
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
@@ -26,6 +27,8 @@ export type UseQuizHubScreenResult = {
   onPressReviewCard: () => void;
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
+  onResumeDiagnosis: () => void;
+  onRestartDiagnosis: () => void;
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
@@ -41,6 +44,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const { height, width } = useWindowDimensions();
   const {
     authNoticeMessage,
+    clearPendingDiagnosisResume,
     dismissAuthNotice,
     graduateToPractice,
     homeState,
@@ -172,6 +176,26 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     }
   };
 
+  const pendingResume = profile?.pendingDiagnosisResume;
+  const hasPendingResume = Boolean(
+    pendingResume &&
+      pendingResume.schemaVersion === 1 &&
+      pendingResume.attemptId &&
+      pendingResume.diagnosisQueue.length > 0,
+  );
+
+  const onResumeDiagnosis = () => {
+    router.push('/quiz/diagnostic');
+  };
+
+  const onRestartDiagnosis = () => {
+    void clearPendingDiagnosisResume().catch(console.warn);
+    router.push({
+      pathname: '/quiz/diagnostic',
+      params: { autostart: '1', reset: '1' },
+    });
+  };
+
   const journey = homeState?.journey ?? null;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
@@ -194,6 +218,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
+    hasPendingResume,
     homeState,
     isCompactLayout: width < 390 || height < 780,
     isReady,
@@ -208,6 +233,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onPressReviewCard,
     onRediagnose: onStartDiagnostic,
     onRefresh: refresh,
+    onResumeDiagnosis,
+    onRestartDiagnosis,
     onStartDiagnostic,
     profile,
     session,

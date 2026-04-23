@@ -236,6 +236,23 @@ export function useDiagnosticScreen({
     }
   }, [isPreparingFreshSession, shouldAutoStart, startSession, state.hasStarted]);
 
+  // pendingDiagnosisResume 감지 시 세션 자동 복원
+  useEffect(() => {
+    if (shouldResetOnMount || state.hasStarted || state.isDiagnosing) {
+      return;
+    }
+    const pendingResume = profile?.pendingDiagnosisResume;
+    if (
+      !pendingResume ||
+      pendingResume.schemaVersion !== 1 ||
+      pendingResume.diagnosisQueue.length === 0
+    ) {
+      return;
+    }
+    resumeDiagnosis(pendingResume);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.pendingDiagnosisResume]);
+
   // state 2 감지용 플래그. hasStarted 전환 시마다 현재 시각으로 덮어쓴다(크로스 디바이스 stale 방지).
   useEffect(() => {
     if (isPreparingFreshSession) {
