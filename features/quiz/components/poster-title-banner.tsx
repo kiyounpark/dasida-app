@@ -10,15 +10,11 @@ const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
 type PosterTitleBannerProps = {
   isCompactLayout: boolean;
   title: string;
-  fontSize?: number;
-  numberOfLines?: number;
 };
 
 export function PosterTitleBanner({
   isCompactLayout,
   title,
-  fontSize,
-  numberOfLines = 1,
 }: PosterTitleBannerProps) {
   return (
     <View style={styles.heroBlock}>
@@ -33,14 +29,10 @@ export function PosterTitleBanner({
         <View style={styles.heroFrameContent}>
           <Text
             selectable
-            adjustsFontSizeToFit={fontSize === undefined}
-            minimumFontScale={fontSize === undefined ? 0.72 : undefined}
-            numberOfLines={numberOfLines}
-            style={[
-              styles.heroTitle,
-              isCompactLayout && styles.heroTitleCompact,
-              fontSize !== undefined && { fontSize, lineHeight: Math.round(fontSize * 1.2) },
-            ]}>
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            numberOfLines={1}
+            style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact]}>
             {title}
           </Text>
         </View>
