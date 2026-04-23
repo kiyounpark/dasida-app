@@ -18,6 +18,35 @@ function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
 }
 
+function ResumeDiagnosisCard({
+  onResume,
+  onRestart,
+}: {
+  onResume: () => void;
+  onRestart: () => void;
+}) {
+  return (
+    <View style={styles.resumeCard}>
+      <Text selectable style={styles.resumeCardTitle}>
+        약점 분석이 완료되지 않았어요
+      </Text>
+      <Text selectable style={styles.resumeCardBody}>
+        지난번에 시작한 약점 분석을 이어서 할 수 있어요.
+      </Text>
+      <Pressable style={styles.resumeButton} onPress={onResume}>
+        <Text selectable style={styles.resumeButtonText}>
+          약점 분석 이어서 하기
+        </Text>
+      </Pressable>
+      <Pressable style={styles.restartButton} onPress={onRestart}>
+        <Text selectable style={styles.restartButtonText}>
+          처음부터 다시 풀기
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function FeedbackCard({
   actionLabel,
   body,
@@ -76,6 +105,7 @@ function AuthNotice({
 
 export function QuizHubScreenView({
   authNoticeMessage,
+  hasPendingResume,
   homeState,
   isCompactLayout,
   isReady,
@@ -85,6 +115,8 @@ export function QuizHubScreenView({
   onPressJourneyCta,
   onPressReviewCard,
   onRefresh,
+  onResumeDiagnosis,
+  onRestartDiagnosis,
   profile,
   session,
   showBrandHeader,
@@ -169,6 +201,12 @@ export function QuizHubScreenView({
           },
         ]}
         showsVerticalScrollIndicator={false}>
+        {hasPendingResume ? (
+          <ResumeDiagnosisCard
+            onResume={onResumeDiagnosis}
+            onRestart={onRestartDiagnosis}
+          />
+        ) : null}
         {showReviewHomeCard && homeState?.nextReviewTask ? (
           <ReviewHomeCard
             task={homeState.nextReviewTask}
@@ -323,6 +361,54 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 14,
+  },
+  resumeCard: {
+    width: '100%',
+    maxWidth: 430,
+    borderWidth: 1,
+    borderColor: 'rgba(41, 59, 39, 0.12)',
+    borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
+    backgroundColor: 'rgba(255, 252, 247, 0.96)',
+    padding: BrandSpacing.lg,
+    gap: BrandSpacing.sm,
+    boxShadow: '0 8px 24px rgba(28, 44, 25, 0.06)',
+  },
+  resumeCardTitle: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 17,
+    lineHeight: 24,
+    color: BrandColors.text,
+  },
+  resumeCardBody: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: BrandColors.mutedText,
+  },
+  resumeButton: {
+    borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
+    backgroundColor: BrandColors.primary,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: BrandSpacing.xs,
+  },
+  resumeButtonText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: '#FFFFFF',
+  },
+  restartButton: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  restartButtonText: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    color: BrandColors.mutedText,
   },
   outerNotice: {
     width: '100%',
