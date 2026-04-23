@@ -11,12 +11,14 @@ type PosterTitleBannerProps = {
   isCompactLayout: boolean;
   title: string;
   fontSize?: number;
+  numberOfLines?: number;
 };
 
 export function PosterTitleBanner({
   isCompactLayout,
   title,
   fontSize,
+  numberOfLines = 1,
 }: PosterTitleBannerProps) {
   return (
     <View style={styles.heroBlock}>
@@ -33,7 +35,7 @@ export function PosterTitleBanner({
             selectable
             adjustsFontSizeToFit={fontSize === undefined}
             minimumFontScale={fontSize === undefined ? 0.72 : undefined}
-            numberOfLines={1}
+            numberOfLines={numberOfLines}
             style={[
               styles.heroTitle,
               isCompactLayout && styles.heroTitleCompact,

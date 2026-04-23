@@ -16,7 +16,8 @@ export function QuizResultReportHeader({ isCompactLayout }: QuizResultReportHead
         <PosterTitleBanner
           isCompactLayout={isCompactLayout}
           title="나의 약점 분석 리포트"
-          fontSize={isCompactLayout ? 19 : 22}
+          fontSize={isCompactLayout ? 24 : 28}
+          numberOfLines={2}
         />
       </View>
     </SafeAreaView>
