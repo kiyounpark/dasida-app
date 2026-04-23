@@ -18,8 +18,8 @@ type BubbleLayoutConfig = {
 const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
   diagnostic: {
     side: "left",
-    bubbleStyle: { left: "31%", top: "-10%", width: "63%" },
-    bubbleStyleCompact: { left: "31%", top: "-10%", width: "63%" },
+    bubbleStyle: { left: "33%", top: "-10%", width: "58%" },
+    bubbleStyleCompact: { left: "34%", top: "-10%", width: "58%" },
   },
   analysis: {
     side: "right",
@@ -201,11 +201,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   bubbleContentLeftTail: {
-    // mirrors bubbleBackdropCoreLeftTail percentages
+    // text area is slightly wider than backdrop core to prevent font shrinkage
     top: "9%",
     bottom: "14%",
-    left: "7%",
-    right: "7%",
+    left: "5%",
+    right: "5%",
   },
   bubbleContentRightTail: {
     // mirrors bubbleBackdropCoreRightTail percentages
