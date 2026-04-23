@@ -28,14 +28,11 @@ export function QuizSolveHeader({
         <View style={styles.topRow}>
           <Pressable
             accessibilityHint="현재 풀이를 나갈지 선택합니다"
-            accessibilityLabel="뒤로가기"
+            accessibilityLabel="나가기"
             accessibilityRole="button"
             onPress={onBackPress}
             style={styles.backButton}>
             <IconSymbol color={BrandColors.primaryDark} name="chevron.left" size={isCompactLayout ? 22 : 24} />
-            <Text style={[styles.backLabel, isCompactLayout && styles.backLabelCompact]}>
-              Back
-            </Text>
           </Pressable>
 
           <Text numberOfLines={1} style={[styles.title, isCompactLayout && styles.titleCompact]}>
@@ -79,17 +76,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    minWidth: 72,
-  },
-  backLabel: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 18,
-    lineHeight: 24,
-    color: BrandColors.primaryDark,
-  },
-  backLabelCompact: {
-    fontSize: 16,
-    lineHeight: 22,
+    minWidth: 40,
   },
   title: {
     flex: 1,
@@ -105,7 +92,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   counter: {
-    minWidth: 72,
+    minWidth: 40,
     fontFamily: FontFamilies.bold,
     fontSize: 16,
     lineHeight: 22,
