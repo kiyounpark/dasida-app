@@ -47,7 +47,7 @@ export type PendingDiagnosisResumeState = {
   savedAt: string;     // ISO, stale 판정용
   totalQuestions: number;
   answers: QuizAnswer[];
-  weaknessScores: Record<string, number>;
+  weaknessScores: Record<WeaknessId, number>;
   diagnosisQueue: number[];
 };
 
