@@ -14,7 +14,6 @@ type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
 export type UseQuizHubScreenResult = {
   authNoticeMessage: string | null;
-  hasPendingResume: boolean;
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
@@ -28,7 +27,6 @@ export type UseQuizHubScreenResult = {
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onResumeDiagnosis: () => void;
-  onRestartDiagnosis: () => void;
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
@@ -142,7 +140,25 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/(tabs)/quiz/exams');
   };
 
+  const pendingResume = profile?.pendingDiagnosisResume;
+  const hasPendingResume = Boolean(
+    pendingResume &&
+      pendingResume.schemaVersion === 1 &&
+      pendingResume.attemptId &&
+      pendingResume.diagnosisQueue.length > 0 &&
+      summary?.latestDiagnosticSummary?.attemptId !== pendingResume.attemptId,
+  );
+
+  const onResumeDiagnosis = () => {
+    router.push('/quiz/diagnostic');
+  };
+
   const onPressJourneyCta = () => {
+    if (hasPendingResume) {
+      onResumeDiagnosis();
+      return;
+    }
+
     const action = homeState?.journey.ctaAction;
 
     if (!action || action === 'none') {
@@ -177,19 +193,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     }
   };
 
-  const pendingResume = profile?.pendingDiagnosisResume;
-  const hasPendingResume = Boolean(
-    pendingResume &&
-      pendingResume.schemaVersion === 1 &&
-      pendingResume.attemptId &&
-      pendingResume.diagnosisQueue.length > 0 &&
-      summary?.latestDiagnosticSummary?.attemptId !== pendingResume.attemptId,
-  );
-
-  const onResumeDiagnosis = () => {
-    router.push('/quiz/diagnostic');
-  };
-
   const onRestartDiagnosis = () => {
     void clearPendingDiagnosisResume().catch(console.warn);
     router.push({
@@ -198,7 +201,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     });
   };
 
-  const journey = homeState?.journey ?? null;
+  const rawJourney = homeState?.journey ?? null;
+  const journey =
+    hasPendingResume && rawJourney
+      ? { ...rawJourney, ctaLabel: '약점 분석 이어서 하기' }
+      : rawJourney;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
 
@@ -220,7 +227,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
-    hasPendingResume,
     homeState,
     isCompactLayout: width < 390 || height < 780,
     isReady,
@@ -236,7 +242,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onRediagnose: onStartDiagnostic,
     onRefresh: refresh,
     onResumeDiagnosis,
-    onRestartDiagnosis,
     onStartDiagnostic,
     profile,
     session,
