@@ -12,8 +12,6 @@ const RIGHT_TAIL_BUBBLE_ASPECT_RATIO = 668 / 398;
 type BubbleLayoutConfig = {
   bubbleStyle: ViewStyle;
   bubbleStyleCompact: ViewStyle;
-  contentStyle?: ViewStyle;
-  contentStyleCompact?: ViewStyle;
   side: 'left' | 'right';
 };
 
@@ -22,29 +20,21 @@ const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
     side: 'left',
     bubbleStyle: { left: '38%', top: '-8%', width: '44%' },
     bubbleStyleCompact: { left: '39%', top: '-7%', width: '46%' },
-    contentStyle: { paddingTop: 10, paddingBottom: 16, paddingLeft: 30, paddingRight: 18 },
-    contentStyleCompact: { paddingTop: 10, paddingBottom: 14, paddingLeft: 28, paddingRight: 16 },
   },
   analysis: {
     side: 'right',
     bubbleStyle: { left: '28%', top: '11%', width: '38%' },
     bubbleStyleCompact: { left: '27%', top: '12%', width: '40%' },
-    contentStyle: { paddingTop: 10, paddingBottom: 14, paddingLeft: 18, paddingRight: 24 },
-    contentStyleCompact: { paddingTop: 10, paddingBottom: 12, paddingLeft: 16, paddingRight: 22 },
   },
   review: {
     side: 'left',
     bubbleStyle: { left: '42%', top: '35.5%', width: '37%' },
     bubbleStyleCompact: { left: '41%', top: '36.5%', width: '39%' },
-    contentStyle: { paddingTop: 10, paddingBottom: 14, paddingLeft: 24, paddingRight: 18 },
-    contentStyleCompact: { paddingTop: 10, paddingBottom: 12, paddingLeft: 22, paddingRight: 16 },
   },
   exam: {
     side: 'right',
     bubbleStyle: { left: '28%', top: '42.5%', width: '38%' },
     bubbleStyleCompact: { left: '27%', top: '43.5%', width: '40%' },
-    contentStyle: { paddingTop: 10, paddingBottom: 14, paddingLeft: 18, paddingRight: 24 },
-    contentStyleCompact: { paddingTop: 10, paddingBottom: 12, paddingLeft: 16, paddingRight: 22 },
   },
 };
 
@@ -101,16 +91,10 @@ export function JourneyActiveBubble({
           style={[
             styles.bubbleContent,
             bubbleSide === 'left' ? styles.bubbleContentLeftTail : styles.bubbleContentRightTail,
-            isCompactLayout && styles.bubbleContentCompact,
-            layout.contentStyle,
-            isCompactLayout && layout.contentStyleCompact,
-            isCompactLayout &&
-              (bubbleSide === 'left'
-                ? styles.bubbleContentLeftTailCompact
-                : styles.bubbleContentRightTailCompact),
           ]}>
           <Text
-            selectable
+            adjustsFontSizeToFit
+            numberOfLines={3}
             style={[styles.line, isCompactLayout && styles.lineCompact]}>
             {bubbleText}
           </Text>
@@ -188,34 +172,23 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   bubbleContent: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 0,
-  },
-  bubbleContentCompact: {
-    paddingTop: 15,
-    paddingBottom: 20,
   },
   bubbleContentLeftTail: {
-    paddingTop: 14,
-    paddingBottom: 18,
-    paddingLeft: 24,
-    paddingRight: 18,
+    // mirrors bubbleBackdropCoreLeftTail percentages
+    top: '9%',
+    bottom: '14%',
+    left: '7%',
+    right: '7%',
   },
   bubbleContentRightTail: {
-    paddingTop: 14,
-    paddingBottom: 18,
-    paddingLeft: 18,
-    paddingRight: 24,
-  },
-  bubbleContentLeftTailCompact: {
-    paddingLeft: 22,
-    paddingRight: 16,
-  },
-  bubbleContentRightTailCompact: {
-    paddingLeft: 16,
-    paddingRight: 22,
+    // mirrors bubbleBackdropCoreRightTail percentages
+    top: '8%',
+    bottom: '12%',
+    left: '6%',
+    right: '7%',
   },
   line: {
     fontFamily: FontFamilies.medium,
