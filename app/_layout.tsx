@@ -136,7 +136,7 @@ export default function RootLayout() {
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="quiz" options={{ headerShown: false }} />
+          <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
         </Stack>
       </CurrentLearnerProvider>
       <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
