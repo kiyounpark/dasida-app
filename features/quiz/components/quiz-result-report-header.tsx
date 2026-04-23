@@ -29,8 +29,9 @@ export function QuizResultReportHeader({ isCompactLayout }: QuizResultReportHead
             <View style={styles.frameContent}>
               <Text
                 selectable
+                numberOfLines={1}
                 style={[styles.title, isCompactLayout && styles.titleCompact]}>
-                나의 약점{'\n'}분석 리포트
+                나의 약점 분석 리포트
               </Text>
             </View>
           </View>
@@ -81,15 +82,15 @@ const styles = StyleSheet.create({
   title: {
     width: '100%',
     fontFamily: FontFamilies.extrabold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 25,
+    lineHeight: 31,
     letterSpacing: -0.9,
     color: BrandColors.primaryDark,
     textAlign: 'center',
     transform: [{ translateX: 4 }],
   },
   titleCompact: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 28,
   },
 });
