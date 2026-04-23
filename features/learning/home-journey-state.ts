@@ -81,11 +81,10 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '10문제로 지금 위치를 먼저 확인합니다',
   },
   diagnostic_in_progress: {
-    // Phase 2에서 상세화. Phase 1에서는 도달 불가능한 state이지만 타입 커버리지를 위해 placeholder.
-    bubbleText: '진단을 이어서 풀어볼까요?',
+    bubbleText: '풀던 진단이 있어요. 다시 시작할까요?',
     ctaAction: 'start_diagnostic',
-    ctaLabel: '진단 이어서 풀기',
-    ctaBody: '풀던 진단을 다시 시작합니다',
+    ctaLabel: '진단 다시 시작하기',
+    ctaBody: '처음부터 다시 풀면 최신 약점을 잡을 수 있어요',
   },
   result_pending: {
     bubbleText: '약점 찾기 끝! 결과부터 볼까요?',
@@ -100,11 +99,10 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   practice_in_progress: {
-    // Phase 2에서 상세화.
-    bubbleText: '연습을 이어서 풀어볼까요?',
+    bubbleText: '풀던 약점 연습이 있어요. 다시 시작할까요?',
     ctaAction: 'open_review',
-    ctaLabel: '연습 이어서 풀기',
-    ctaBody: '풀던 연습을 다시 시작합니다',
+    ctaLabel: '연습 다시 시작하기',
+    ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   journey_complete_pending: {
     bubbleText: '여정을 다 돌아봤어요. 새 출발 준비됐나요?',
@@ -120,6 +118,64 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '',
   },
 };
+
+function isPendingDiagnosticFresh(
+  profile: LearnerProfile | null,
+  summary: LearnerSummaryCurrent,
+): boolean {
+  const pending = profile?.pendingDiagnosticStartedAt;
+  if (!pending) {
+    return false;
+  }
+
+  const pendingAt = Date.parse(pending);
+  if (Number.isNaN(pendingAt)) {
+    return false;
+  }
+
+  const latestCompleted = summary.latestDiagnosticSummary?.completedAt;
+  if (!latestCompleted) {
+    // 아직 완료된 진단이 없으면 pending은 진행 중인 첫 진단.
+    return true;
+  }
+
+  const latestCompletedAt = Date.parse(latestCompleted);
+  if (Number.isNaN(latestCompletedAt)) {
+    return true;
+  }
+
+  // pending이 최신 완료 시각보다 이후면 새 진단을 시작해 중단된 상태.
+  return pendingAt > latestCompletedAt;
+}
+
+function isPendingPracticeFresh(
+  profile: LearnerProfile | null,
+  summary: LearnerSummaryCurrent,
+): boolean {
+  const pending = profile?.pendingPracticeStartedAt;
+  if (!pending) {
+    return false;
+  }
+
+  const pendingAt = Date.parse(pending);
+  if (Number.isNaN(pendingAt)) {
+    return false;
+  }
+
+  const latestDiagnosticCompleted = summary.latestDiagnosticSummary?.completedAt;
+  if (!latestDiagnosticCompleted) {
+    // 진단이 없으면 연습 플래그도 stale 취급(정상 흐름이라면 불가능).
+    return false;
+  }
+
+  const latestDiagnosticCompletedAt = Date.parse(latestDiagnosticCompleted);
+  if (Number.isNaN(latestDiagnosticCompletedAt)) {
+    return false;
+  }
+
+  // 최신 진단 완료 이후에 시작된 연습이어야 유효.
+  return pendingAt > latestDiagnosticCompletedAt;
+}
 
 function hasActivityAfter(
   summary: LearnerSummaryCurrent,
@@ -158,25 +214,40 @@ function getCurrentState(
   summary: LearnerSummaryCurrent,
   profile: LearnerProfile | null,
 ): JourneyStateKey {
+  // 7: 졸업은 항상 최우선.
   if (profile?.practiceGraduatedAt) {
     return 'journey_graduated';
   }
 
+  // 2: 진단 중단. 최초 진단이 아직 완료되지 않았거나, 최신 완료 이후 새 진단이 시작돼 중단된 경우.
+  if (isPendingDiagnosticFresh(profile, summary)) {
+    return 'diagnostic_in_progress';
+  }
+
+  // 1: 진단 기록이 하나도 없음.
   const hasLatestDiagnostic = Boolean(summary.latestDiagnosticSummary);
   if (!hasLatestDiagnostic) {
     return 'journey_not_started';
   }
 
+  // 6: 최신 진단 이후 review 활동이 있으면 여정이 거의 끝난 상태.
   const latestDiagnosticAt = summary.latestDiagnosticSummary?.completedAt;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
   if (hasReviewAfterLatestDiagnostic) {
     return 'journey_complete_pending';
   }
 
+  // 5: 연습 중단. 4번 조건(결과 확인) 성립 + 최신 진단 이후 시작된 pending 연습이 있을 때.
+  if (profile?.latestDiagnosticResultViewedAt && isPendingPracticeFresh(profile, summary)) {
+    return 'practice_in_progress';
+  }
+
+  // 4: 결과 확인 완료.
   if (profile?.latestDiagnosticResultViewedAt) {
     return 'viewed_pre_practice';
   }
 
+  // 3: 결과 확인 전.
   return 'result_pending';
 }
 

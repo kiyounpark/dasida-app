@@ -109,6 +109,10 @@ export type CurrentLearnerContextValue = {
     track?: LearnerTrack,
   ): Promise<void>;
   graduateToPractice(): Promise<void>;
+  markPendingDiagnosticStarted(): Promise<void>;
+  clearPendingDiagnostic(): Promise<void>;
+  markPendingPracticeStarted(): Promise<void>;
+  clearPendingPractice(): Promise<void>;
   markDiagnosticResultViewed(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
@@ -279,6 +283,22 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       markDiagnosticResultViewed: async () => {
         const snapshot = await learnerController.markDiagnosticResultViewed();
+        setState(toLearnerState(snapshot));
+      },
+      markPendingDiagnosticStarted: async () => {
+        const snapshot = await learnerController.markPendingDiagnosticStarted();
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingDiagnostic: async () => {
+        const snapshot = await learnerController.clearPendingDiagnostic();
+        setState(toLearnerState(snapshot));
+      },
+      markPendingPracticeStarted: async () => {
+        const snapshot = await learnerController.markPendingPracticeStarted();
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingPractice: async () => {
+        const snapshot = await learnerController.clearPendingPractice();
         setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {

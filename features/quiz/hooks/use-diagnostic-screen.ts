@@ -110,7 +110,7 @@ export function useDiagnosticScreen({
     submitDiagnosisWeakness,
     finishDiagnosis,
   } = useQuizSession();
-  const { profile } = useCurrentLearner();
+  const { profile, markPendingDiagnosticStarted, clearPendingDiagnostic } = useCurrentLearner();
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
@@ -202,6 +202,17 @@ export function useDiagnosticScreen({
     }
   }, [isPreparingFreshSession, state.result]);
 
+  // 진단 결과가 기록되면 pending 플래그를 명시적으로 클리어. 실패해도 stale 판정이 자동 해소한다.
+  useEffect(() => {
+    if (!state.result) {
+      return;
+    }
+    void clearPendingDiagnostic().catch((err) => {
+      console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.result]);
+
   useEffect(() => {
     if (isPreparingFreshSession) {
       return;
@@ -211,6 +222,20 @@ export function useDiagnosticScreen({
       startSession();
     }
   }, [isPreparingFreshSession, shouldAutoStart, startSession, state.hasStarted]);
+
+  // state 2 감지용 플래그. hasStarted 전환 시마다 현재 시각으로 덮어쓴다(크로스 디바이스 stale 방지).
+  useEffect(() => {
+    if (isPreparingFreshSession) {
+      return;
+    }
+    if (!state.hasStarted) {
+      return;
+    }
+    void markPendingDiagnosticStarted().catch((err) => {
+      console.warn('[DiagnosticScreen] markPendingDiagnosticStarted failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreparingFreshSession, state.hasStarted]);
 
   const {
     appendNextNode,
@@ -506,6 +531,9 @@ export function useDiagnosticScreen({
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
     finishDiagnosis();
+    void clearPendingDiagnostic().catch((err) => {
+      console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+    });
   };
 
   const onQuestionSubmit = () => {

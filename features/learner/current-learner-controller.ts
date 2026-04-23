@@ -73,6 +73,10 @@ export type CurrentLearnerController = {
   ): Promise<CurrentLearnerSnapshot>;
   graduateToPractice(): Promise<CurrentLearnerSnapshot>;
   markDiagnosticResultViewed(): Promise<CurrentLearnerSnapshot>;
+  markPendingDiagnosticStarted(): Promise<CurrentLearnerSnapshot>;
+  clearPendingDiagnostic(): Promise<CurrentLearnerSnapshot>;
+  markPendingPracticeStarted(): Promise<CurrentLearnerSnapshot>;
+  clearPendingPractice(): Promise<CurrentLearnerSnapshot>;
   recordAttempt(input: FinalizedAttemptInput): Promise<CurrentLearnerSnapshot>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<CurrentLearnerSnapshot>;
   seedPreview(state: PreviewSeedState): Promise<CurrentLearnerSnapshot>;
@@ -537,6 +541,82 @@ export function createCurrentLearnerController({
       const nextProfile: LearnerProfile = {
         ...profile,
         latestDiagnosticResultViewedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    markPendingDiagnosticStarted: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        pendingDiagnosticStartedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    clearPendingDiagnostic: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      if (!profile.pendingDiagnosticStartedAt) {
+        return buildSnapshot({
+          authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+          profile,
+          session,
+          summary,
+        });
+      }
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        pendingDiagnosticStartedAt: undefined,
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    markPendingPracticeStarted: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        pendingPracticeStartedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await profileStore.save(nextProfile);
+      return buildSnapshot({
+        authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+        profile: nextProfile,
+        session,
+        summary,
+      });
+    },
+    clearPendingPractice: async () => {
+      const { session, profile, summary } = await readAccessibleSnapshot();
+      if (!profile.pendingPracticeStartedAt) {
+        return buildSnapshot({
+          authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
+          profile,
+          session,
+          summary,
+        });
+      }
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        pendingPracticeStartedAt: undefined,
         updatedAt: new Date().toISOString(),
       };
       await profileStore.save(nextProfile);
