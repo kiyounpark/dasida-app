@@ -18,8 +18,8 @@ type BubbleLayoutConfig = {
 const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
   diagnostic: {
     side: 'left',
-    bubbleStyle: { left: '30%', top: '-8%', width: '62%' },
-    bubbleStyleCompact: { left: '31%', top: '-7%', width: '62%' },
+    bubbleStyle: { left: '33%', top: '-8%', width: '58%' },
+    bubbleStyleCompact: { left: '34%', top: '-7%', width: '58%' },
   },
   analysis: {
     side: 'right',
