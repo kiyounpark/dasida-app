@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
   layer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 3,
+    overflow: 'visible',
   },
   bubbleFrame: {
     position: "absolute",
