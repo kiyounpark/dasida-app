@@ -114,8 +114,6 @@ export function JourneyActiveBubble({
           ]}
         >
           <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
             numberOfLines={2}
             style={[styles.line, isCompactLayout && styles.lineCompact]}
           >
@@ -201,11 +199,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   bubbleContentLeftTail: {
-    // text area is slightly wider than backdrop core to prevent font shrinkage
+    // mirrors bubbleBackdropCoreLeftTail percentages
     top: "9%",
     bottom: "14%",
-    left: "5%",
-    right: "5%",
+    left: "7%",
+    right: "7%",
   },
   bubbleContentRightTail: {
     // mirrors bubbleBackdropCoreRightTail percentages
