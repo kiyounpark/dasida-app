@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -128,6 +129,7 @@ export function QuizHubScreenView({
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
+  const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
   // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함
   const bannerRaise = isCompactLayout ? 24 : 32;
@@ -177,12 +179,22 @@ export function QuizHubScreenView({
     <View style={styles.screen}>
       {showBrandHeader ? <BrandHeader compact /> : null}
       {showJourneyHero ? (
-        <View style={[styles.heroHeader, { paddingTop: heroContainerPaddingTop }]}>
+        <View
+          style={[styles.heroHeader, { paddingTop: heroContainerPaddingTop }]}
+          onLayout={(e) => {
+            const { y, height } = e.nativeEvent.layout;
+            setHeroLayoutBottom(y + height);
+          }}>
           <JourneyScreenHero isCompactLayout={isCompactLayout} />
         </View>
       ) : null}
       {authNoticeMessage ? (
-        <View style={styles.outerNotice}>
+        <View
+          style={[
+            styles.outerNotice,
+            showJourneyHero && heroLayoutBottom > 0 && styles.outerNoticeOverlay,
+            showJourneyHero && heroLayoutBottom > 0 && { top: heroLayoutBottom + 14 },
+          ]}>
           <AuthNotice
             isCompactLayout={isCompactLayout}
             message={authNoticeMessage}
@@ -415,5 +427,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     alignItems: 'center',
     marginTop: 14,
+    zIndex: 10,
+  },
+  outerNoticeOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginTop: 0,
+    elevation: 10,
   },
 });
