@@ -19,6 +19,7 @@ import {
   buildDiagnosisMethodDescriptors,
   buildMethodOptions,
   buildSuggestedMethods,
+  createCompletedDiagnosisWorkspace,
   createInitialDiagnosisWorkspace,
   freezeConversationEntries,
   getMethodLabel,
@@ -82,7 +83,11 @@ export function useDiagnosisWorkspaces({
           diagnosisEntrySequence.current[answerIndex] = 3;
         }
 
-        next[answerIndex] = prev[answerIndex] ?? createInitialDiagnosisWorkspace(answerIndex, problem);
+        next[answerIndex] =
+          prev[answerIndex] ??
+          (answer.weaknessId
+            ? createCompletedDiagnosisWorkspace(answerIndex, problem)
+            : createInitialDiagnosisWorkspace(answerIndex, problem));
       });
 
       return next;

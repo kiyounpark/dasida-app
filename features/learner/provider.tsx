@@ -33,6 +33,7 @@ import type {
   FeaturedExamState,
   LearnerProfile,
   LearnerTrack,
+  PendingDiagnosisResumeState,
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
@@ -111,6 +112,8 @@ export type CurrentLearnerContextValue = {
   graduateToPractice(): Promise<void>;
   markPendingDiagnosticStarted(): Promise<void>;
   clearPendingDiagnostic(): Promise<void>;
+  setPendingDiagnosisResume(state: PendingDiagnosisResumeState): Promise<void>;
+  clearPendingDiagnosisResume(): Promise<void>;
   markPendingPracticeStarted(): Promise<void>;
   clearPendingPractice(): Promise<void>;
   markDiagnosticResultViewed(): Promise<void>;
@@ -291,6 +294,14 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       clearPendingDiagnostic: async () => {
         const snapshot = await learnerController.clearPendingDiagnostic();
+        setState(toLearnerState(snapshot));
+      },
+      setPendingDiagnosisResume: async (resumeState) => {
+        const snapshot = await learnerController.setPendingDiagnosisResume(resumeState);
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingDiagnosisResume: async () => {
+        const snapshot = await learnerController.clearPendingDiagnosisResume();
         setState(toLearnerState(snapshot));
       },
       markPendingPracticeStarted: async () => {
