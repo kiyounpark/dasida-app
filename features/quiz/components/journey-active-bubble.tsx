@@ -94,6 +94,7 @@ export function JourneyActiveBubble({
           ]}>
           <Text
             adjustsFontSizeToFit
+            minimumFontScale={0.85}
             numberOfLines={3}
             style={[styles.line, isCompactLayout && styles.lineCompact]}>
             {bubbleText}

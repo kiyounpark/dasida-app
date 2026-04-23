@@ -75,37 +75,37 @@ type StateCopy = {
 
 const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
   journey_not_started: {
-    bubbleText: '반가워요! 첫 진단부터 시작해볼까요?',
+    bubbleText: '반가워요! 첫 진단 시작할까요?',
     ctaAction: 'start_diagnostic',
     ctaLabel: '첫 진단 시작하기',
     ctaBody: '10문제로 지금 위치를 먼저 확인합니다',
   },
   diagnostic_in_progress: {
-    bubbleText: '풀던 진단이 있어요. 다시 시작할까요?',
+    bubbleText: '풀던 진단 이어할까요?',
     ctaAction: 'start_diagnostic',
     ctaLabel: '진단 다시 시작하기',
     ctaBody: '처음부터 다시 풀면 최신 약점을 잡을 수 있어요',
   },
   result_pending: {
-    bubbleText: '약점 찾기 끝! 결과부터 볼까요?',
+    bubbleText: '약점 찾기 끝! 결과 볼까요?',
     ctaAction: 'open_result',
     ctaLabel: '약점 결과 보기',
     ctaBody: '결과를 보면 연습 단계로 이어집니다',
   },
   viewed_pre_practice: {
-    bubbleText: '약점 확인 끝! 이제 연습 차례예요',
+    bubbleText: '약점 확인 끝! 연습 차례예요',
     ctaAction: 'open_review',
     ctaLabel: '약점 연습 시작하기',
     ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   practice_in_progress: {
-    bubbleText: '풀던 약점 연습이 있어요. 다시 시작할까요?',
+    bubbleText: '풀던 연습 이어할까요?',
     ctaAction: 'open_review',
     ctaLabel: '연습 다시 시작하기',
     ctaBody: '약점 연습을 마치면 여정이 완성됩니다',
   },
   journey_complete_pending: {
-    bubbleText: '여정을 다 돌아봤어요. 새 출발 준비됐나요?',
+    bubbleText: '여정 완성! 새 출발 할까요?',
     ctaAction: 'graduate_practice',
     ctaLabel: '새로 시작하기 →',
     ctaBody: '여정을 마무리하고 일반 허브로 이동합니다',
