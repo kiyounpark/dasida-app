@@ -52,6 +52,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     profile,
     refresh,
     session,
+    summary,
   } = useCurrentLearner();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
   const isGraduatingRef = useRef(false);
@@ -181,7 +182,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     pendingResume &&
       pendingResume.schemaVersion === 1 &&
       pendingResume.attemptId &&
-      pendingResume.diagnosisQueue.length > 0,
+      pendingResume.diagnosisQueue.length > 0 &&
+      summary?.latestDiagnosticSummary?.attemptId !== pendingResume.attemptId,
   );
 
   const onResumeDiagnosis = () => {

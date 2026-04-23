@@ -112,7 +112,7 @@ export function useDiagnosticScreen({
     finishDiagnosis,
     resumeDiagnosis,
   } = useQuizSession();
-  const { profile, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
+  const { profile, summary, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
@@ -205,25 +205,24 @@ export function useDiagnosticScreen({
     }
   }, [isPreparingFreshSession, state.result]);
 
-  // 진단 결과가 기록되면 pending 플래그를 명시적으로 클리어. 실패해도 stale 판정이 자동 해소한다.
+  // 진단 결과가 기록되면 pending 플래그들을 순차적으로 클리어한다.
+  // 순차 실행으로 concurrent Firestore write race condition을 방지한다.
   useEffect(() => {
     if (!state.result) {
       return;
     }
-    void clearPendingDiagnostic().catch((err) => {
-      console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.result]);
-
-  // 진단 완료 시 이어서 하기 저장 상태를 클리어한다.
-  useEffect(() => {
-    if (!state.result) {
-      return;
-    }
-    void clearPendingDiagnosisResume().catch((err) => {
-      console.warn('[DiagnosticScreen] clearPendingDiagnosisResume failed', err);
-    });
+    void (async () => {
+      try {
+        await clearPendingDiagnostic();
+      } catch (err) {
+        console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+      }
+      try {
+        await clearPendingDiagnosisResume();
+      } catch (err) {
+        console.warn('[DiagnosticScreen] clearPendingDiagnosisResume failed', err);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.result]);
 
@@ -248,6 +247,10 @@ export function useDiagnosticScreen({
       pendingResume.schemaVersion !== 1 ||
       pendingResume.diagnosisQueue.length === 0
     ) {
+      return;
+    }
+    // §6.3: 이미 완료된 attemptId의 resume 상태는 복원하지 않는다.
+    if (summary?.latestDiagnosticSummary?.attemptId === pendingResume.attemptId) {
       return;
     }
     hasResumedDiagnosisRef.current = true;
@@ -562,10 +565,14 @@ export function useDiagnosticScreen({
 
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
+    if (!state.attemptId || !state.startedAt) {
+      router.replace('/(tabs)/quiz');
+      return;
+    }
     void setPendingDiagnosisResume({
       schemaVersion: 1,
-      attemptId: state.attemptId!,
-      startedAt: state.startedAt!,
+      attemptId: state.attemptId,
+      startedAt: state.startedAt,
       savedAt: new Date().toISOString(),
       totalQuestions: state.totalQuestions,
       answers: state.answers,
