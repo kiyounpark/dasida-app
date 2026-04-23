@@ -18,8 +18,8 @@ type BubbleLayoutConfig = {
 const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
   diagnostic: {
     side: 'left',
-    bubbleStyle: { left: '38%', top: '-8%', width: '44%' },
-    bubbleStyleCompact: { left: '39%', top: '-7%', width: '46%' },
+    bubbleStyle: { left: '35%', top: '-8%', width: '56%' },
+    bubbleStyleCompact: { left: '36%', top: '-7%', width: '56%' },
   },
   analysis: {
     side: 'right',
@@ -95,7 +95,7 @@ export function JourneyActiveBubble({
           <Text
             adjustsFontSizeToFit
             minimumFontScale={0.85}
-            numberOfLines={3}
+            numberOfLines={2}
             style={[styles.line, isCompactLayout && styles.lineCompact]}>
             {bubbleText}
           </Text>
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   line: {
     fontFamily: FontFamilies.medium,
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 18,
+    lineHeight: 24,
     color: '#16120E',
     textAlign: 'center',
   },
   lineCompact: {
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 22,
   },
 });

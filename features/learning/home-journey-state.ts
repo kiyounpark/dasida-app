@@ -75,7 +75,7 @@ type StateCopy = {
 
 const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
   journey_not_started: {
-    bubbleText: '반가워요! 첫 진단 시작할까요?',
+    bubbleText: '반가워요!\n첫 진단 시작할게요',
     ctaAction: 'start_diagnostic',
     ctaLabel: '첫 진단 시작하기',
     ctaBody: '10문제로 지금 위치를 먼저 확인합니다',
