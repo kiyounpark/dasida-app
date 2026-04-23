@@ -53,6 +53,7 @@ export type DiagnosticQuizStageModel = {
 
 export type UseDiagnosticScreenResult = {
   activeDiagnosisPageIndex: number;
+  completedDiagnosisCount: number;
   diagnosisPageWidth: number;
   diagnosisPages: DiagnosisPage[];
   diagnosisPagerRef: ReturnType<typeof useDiagnosisPager>['diagnosisPagerRef'];
@@ -109,8 +110,9 @@ export function useDiagnosticScreen({
     confirmDiagnosisMethod,
     submitDiagnosisWeakness,
     finishDiagnosis,
+    resumeDiagnosis,
   } = useQuizSession();
-  const { profile, markPendingDiagnosticStarted, clearPendingDiagnostic } = useCurrentLearner();
+  const { profile, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
@@ -209,6 +211,17 @@ export function useDiagnosticScreen({
     }
     void clearPendingDiagnostic().catch((err) => {
       console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.result]);
+
+  // 진단 완료 시 이어서 하기 저장 상태를 클리어한다.
+  useEffect(() => {
+    if (!state.result) {
+      return;
+    }
+    void clearPendingDiagnosisResume().catch((err) => {
+      console.warn('[DiagnosticScreen] clearPendingDiagnosisResume failed', err);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.result]);
@@ -530,10 +543,19 @@ export function useDiagnosticScreen({
 
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
-    finishDiagnosis();
-    void clearPendingDiagnostic().catch((err) => {
-      console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+    void setPendingDiagnosisResume({
+      schemaVersion: 1,
+      attemptId: state.attemptId!,
+      startedAt: state.startedAt!,
+      savedAt: new Date().toISOString(),
+      totalQuestions: state.totalQuestions,
+      answers: state.answers,
+      weaknessScores: state.weaknessScores,
+      diagnosisQueue: state.diagnosisQueue,
+    }).catch((err) => {
+      console.warn('[DiagnosticScreen] setPendingDiagnosisResume failed', err);
     });
+    router.replace('/(tabs)/quiz');
   };
 
   const onQuestionSubmit = () => {
@@ -553,6 +575,10 @@ export function useDiagnosticScreen({
   const progressRatio = currentQuestionNumber / questionCount;
   const progressPercent = `${progressRatio * 100}%` as `${number}%`;
   const stepLabel = `${String(currentQuestionNumber).padStart(2, '0')} / ${String(questionCount).padStart(2, '0')}`;
+
+  const completedDiagnosisCount = state.isDiagnosing
+    ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
+    : 0;
 
   const quizStage =
     state.hasStarted && !state.isDiagnosing && currentProblem
@@ -596,6 +622,7 @@ export function useDiagnosticScreen({
 
   return {
     activeDiagnosisPageIndex,
+    completedDiagnosisCount,
     diagnosisPageWidth,
     diagnosisPages,
     diagnosisPagerRef,
