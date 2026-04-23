@@ -250,6 +250,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     flexShrink: 1,
+    overflow: 'visible',
   },
   board: {
     width: '100%',
