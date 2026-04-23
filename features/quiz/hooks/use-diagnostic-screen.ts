@@ -118,6 +118,7 @@ export function useDiagnosticScreen({
   const isMountedRef = useRef(true);
   const hasRequestedResetRef = useRef(false);
   const hasNavigatedToAnalysisRef = useRef(false);
+  const hasResumedDiagnosisRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
@@ -181,7 +182,7 @@ export function useDiagnosticScreen({
       return;
     }
 
-    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete) {
+    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete && !hasResumedDiagnosisRef.current) {
       setHasNavigatedToStepComplete(true);
       router.push({
         pathname: '/quiz/step-complete',
@@ -249,6 +250,7 @@ export function useDiagnosticScreen({
     ) {
       return;
     }
+    hasResumedDiagnosisRef.current = true;
     resumeDiagnosis(pendingResume);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.pendingDiagnosisResume]);
