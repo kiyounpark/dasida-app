@@ -42,7 +42,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const { height, width } = useWindowDimensions();
   const {
     authNoticeMessage,
-    clearPendingDiagnosisResume,
     dismissAuthNotice,
     graduateToPractice,
     homeState,
@@ -191,14 +190,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       default:
         onStartDiagnostic();
     }
-  };
-
-  const onRestartDiagnosis = () => {
-    void clearPendingDiagnosisResume().catch(console.warn);
-    router.push({
-      pathname: '/quiz/diagnostic',
-      params: { autostart: '1', reset: '1' },
-    });
   };
 
   const rawJourney = homeState?.journey ?? null;
