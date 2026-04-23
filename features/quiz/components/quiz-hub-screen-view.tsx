@@ -413,5 +413,7 @@ const styles = StyleSheet.create({
   outerNotice: {
     width: '100%',
     paddingHorizontal: 14,
+    alignItems: 'center',
+    marginTop: 14,
   },
 });
