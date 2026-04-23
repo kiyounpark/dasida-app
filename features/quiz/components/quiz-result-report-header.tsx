@@ -13,7 +13,11 @@ export function QuizResultReportHeader({ isCompactLayout }: QuizResultReportHead
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={[styles.bannerWrap, { paddingTop: bannerPaddingTop }]}>
-        <PosterTitleBanner isCompactLayout={isCompactLayout} title="나의 약점 분석 리포트" />
+        <PosterTitleBanner
+          isCompactLayout={isCompactLayout}
+          title="나의 약점 분석 리포트"
+          fontSize={isCompactLayout ? 19 : 22}
+        />
       </View>
     </SafeAreaView>
   );
