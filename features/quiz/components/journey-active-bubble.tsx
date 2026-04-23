@@ -18,8 +18,8 @@ type BubbleLayoutConfig = {
 const bubbleLayoutConfig: Record<JourneyStepKey, BubbleLayoutConfig> = {
   diagnostic: {
     side: 'left',
-    bubbleStyle: { left: '26%', top: '-8%', width: '68%' },
-    bubbleStyleCompact: { left: '27%', top: '-7%', width: '68%' },
+    bubbleStyle: { left: '30%', top: '-8%', width: '62%' },
+    bubbleStyleCompact: { left: '31%', top: '-7%', width: '62%' },
   },
   analysis: {
     side: 'right',
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   line: {
     fontFamily: FontFamilies.medium,
-    fontSize: 20,
-    lineHeight: 27,
+    fontSize: 18,
+    lineHeight: 24,
     color: '#16120E',
     textAlign: 'center',
   },
   lineCompact: {
-    fontSize: 19,
-    lineHeight: 25,
+    fontSize: 17,
+    lineHeight: 22,
   },
 });
