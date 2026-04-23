@@ -174,6 +174,7 @@ export function useDiagnosticScreen({
     if (!state.isDiagnosing) {
       setHasNavigatedToStepComplete(false);
       hasNavigatedToAnalysisRef.current = false;
+      hasResumedDiagnosisRef.current = false;
     }
   }, [state.isDiagnosing]);
 
