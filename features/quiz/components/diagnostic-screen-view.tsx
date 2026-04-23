@@ -19,6 +19,7 @@ import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagno
 
 export function DiagnosticScreenView({
   activeDiagnosisPageIndex,
+  completedDiagnosisCount,
   diagnosisPageWidth,
   diagnosisPages,
   diagnosisPagerRef,
@@ -179,6 +180,7 @@ export function DiagnosticScreenView({
 
         <DiagnosisExitConfirmModal
           visible={isExitModalVisible}
+          completedCount={completedDiagnosisCount}
           onContinue={onCloseExitModal}
           onExit={onExitDiagnosis}
         />
