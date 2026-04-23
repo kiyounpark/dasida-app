@@ -104,6 +104,12 @@ export function QuizHubScreenView({
   const posterTopPadding = showBrandHeader
     ? (isCompactLayout ? 14 : 24)
     : insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
+  // Hero가 ScrollView 밖에 있으므로 Hero 컨테이너가 insets + bannerRaise를 담당한다.
+  const heroContainerPaddingTop = insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
+  // ScrollView는 Hero 아래 gap(14)만 갖는다 (졸업 후는 기존 brandHeader 케이스 그대로).
+  const scrollTopPadding = showJourneyHero
+    ? 14
+    : (isCompactLayout ? 14 : 24);
 
   if (!isReady) {
     return (
@@ -138,27 +144,31 @@ export function QuizHubScreenView({
   return (
     <View style={styles.screen}>
       {showBrandHeader ? <BrandHeader compact /> : null}
+      {showJourneyHero ? (
+        <View style={[styles.heroHeader, { paddingTop: heroContainerPaddingTop }]}>
+          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+        </View>
+      ) : null}
+      {authNoticeMessage ? (
+        <View style={styles.outerNotice}>
+          <AuthNotice
+            isCompactLayout={isCompactLayout}
+            message={authNoticeMessage}
+            onDismiss={onDismissAuthNotice}
+          />
+        </View>
+      ) : null}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
           isTablet && styles.tabletPosterScreen,
           {
-            paddingTop: posterTopPadding,
+            paddingTop: scrollTopPadding,
             paddingBottom: bottomPadding,
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {showJourneyHero ? (
-          <JourneyScreenHero isCompactLayout={isCompactLayout} />
-        ) : null}
-        {authNoticeMessage ? (
-          <AuthNotice
-            isCompactLayout={isCompactLayout}
-            message={authNoticeMessage}
-            onDismiss={onDismissAuthNotice}
-          />
-        ) : null}
         {showReviewHomeCard && homeState?.nextReviewTask ? (
           <ReviewHomeCard
             task={homeState.nextReviewTask}
@@ -308,5 +318,14 @@ const styles = StyleSheet.create({
   ctaFooterButton: {
     width: '70%',
     maxWidth: 340,
+  },
+  heroHeader: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  outerNotice: {
+    width: '100%',
+    paddingHorizontal: 14,
   },
 });
