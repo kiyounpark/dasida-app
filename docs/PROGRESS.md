@@ -802,6 +802,35 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.24 07:23
+- 해시: `21b0bdc` (`21b0bdcacf1b382626a5df609522c4094bd5e413`)
+- 브랜치: feat/diagnosis-resume-on-exit
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/21b0bdcacf1b382626a5df609522c4094bd5e413
+- 작성자: 박기윤
+- 메시지: fix(home): 말풍선 글자 크기 개선 — diagnostic 버블 확장 + 2줄 레이아웃
+- 본문: - diagnostic 버블 폭 44%→56%로 확장해 텍스트 영역 131px→176px 확보 / - numberOfLines 3→2, fontSize 17→18px, lineHeight 22→24 / - journey_not_started bubbleText: 반가워요!\n첫 진단 시작할게요 (2줄 고정) / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.23 23:08
+- 해시: `dcc852d` (`dcc852d2414de77e2e1d1418489985f0de5c89e1`)
+- 브랜치: fix/journey-board-fixed-position
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dcc852d2414de77e2e1d1418489985f0de5c89e1
+- 작성자: 박기윤
+- 메시지: docs: 스와이프 차단 스펙 및 구현 계획 추가
+
+### 커밋 2026.04.23 22:58
+- 해시: `2ef61ba` (`2ef61ba9f098f6eace3fca3ec1253adadd448a7e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2ef61ba9f098f6eace3fca3ec1253adadd448a7e
+- 작성자: 박기윤
+- 메시지: fix(home): 여정 말풍선 글자 작음 수정 — 문구 단축 + minimumFontScale 추가
+- 본문: 말풍선 컨테이너(~131px)보다 긴 문구로 인해 adjustsFontSizeToFit이 / 글자를 과도하게 축소하던 문제를 수정합니다. / - stateCopyTable 6개 bubbleText 단축 (최대 19자 → 최대 15자) / - minimumFontScale={0.85} 추가로 14.5px 이하 축소 방지 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.21 08:59
 - 해시: `92a6c01` (`92a6c01db575a552e6564d75c35eccd8a7391f1a`)
 - 브랜치: main
