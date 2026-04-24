@@ -2,6 +2,51 @@ import { diagnosisMap } from '@/data/diagnosisMap';
 import type { LearnerProfile } from '@/features/learner/types';
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
+/**
+ * 여정보드 상태 머신 규약
+ * =====================================
+ *
+ * 이 파일은 학습자 여정의 진실 소스(single source of truth)다.
+ *
+ * ## 두 축: state vs stepKey
+ *
+ * - `JourneyStateKey` — 사용자가 지금 어느 "상황"에 있는지.
+ *   copy(말풍선/CTA/본문)와 동작(ctaAction)을 결정한다. state는 자주 늘어난다.
+ * - `JourneyStepKey` — 캐릭터가 보드 위 어느 "노드"에 시각적으로 머무는지.
+ *   4개 노드(diagnostic/analysis/review/exam)로 고정. 노드 UI 확장과 함께가 아니면 늘리지 않는다.
+ *
+ * ## 다대일 매핑은 의도된 설계
+ *
+ * 하나의 stepKey는 복수 state를 받는다. 예:
+ *   - diagnostic: journey_not_started, diagnostic_in_progress
+ *   - analysis:   result_pending, diagnostic_analysis_pending
+ *   - review:     viewed_pre_practice, practice_in_progress
+ *   - exam:       journey_complete_pending, journey_graduated
+ *
+ * 같은 노드에서 시각은 동일하되 말풍선/CTA로 "무엇을 해야 하는지"를 분화한다.
+ * 시각까지 구분해야 한다면 그것은 별도 UX 스펙의 결정이지, state 추가의 문제가 아니다.
+ *
+ * ## stale 판정 규칙
+ *
+ * pending 플래그가 fresh한지 판정할 때는 **시간 기반을 메인**으로 쓴다
+ * (pendingAt > latestCompletedAt). attemptId가 함께 저장된 pending에는
+ * **attemptId 동일성을 보조 가드**로 덧붙여 same-attempt race를 방어한다.
+ * `isPendingDiagnosticFresh`, `isPendingPracticeFresh`, `hasValidPendingResume`
+ * 세 함수는 이 규약을 따른다.
+ *
+ * ## 우선순위는 getCurrentState의 early-return 순서가 그대로 스펙이다
+ *
+ * 새 state를 추가할 때는 아래 순서 중 어디에 끼울지 반드시 명시한다:
+ *   1. journey_graduated            (졸업은 항상 최우선)
+ *   2. diagnostic_analysis_pending  (진단만 미완료인 이어서 상태)
+ *   3. diagnostic_in_progress       (10문제 진단 중단)
+ *   4. journey_not_started          (진단 기록 없음)
+ *   5. journey_complete_pending     (최신 진단 이후 review 활동 있음)
+ *   6. practice_in_progress         (결과 확인 + pending 연습 fresh)
+ *   7. viewed_pre_practice          (결과 확인만 완료)
+ *   8. result_pending               (기본 — 진단 완료, 결과 미확인)
+ */
+
 // 캐릭터가 위치한 시각적 단계 (JourneyBoard의 4노드). state 추가와 무관하게 유지.
 export type JourneyStepKey = 'diagnostic' | 'analysis' | 'review' | 'exam';
 export type JourneyStepStatus = 'completed' | 'active' | 'pending' | 'locked';
