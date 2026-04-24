@@ -198,7 +198,9 @@ export function useDiagnosticScreen({
   }, [isPreparingFreshSession, state.result]);
 
   // 진단 결과가 기록되면 pending 플래그들을 순차적으로 클리어한다.
-  // 순차 실행으로 concurrent Firestore write race condition을 방지한다.
+  // 순서 중요: clearPendingDiagnostic → clearPendingDiagnosisResume.
+  // 역순이면 두 write 사이 window에서 isPendingDiagnosticFresh가 true로 평가되어
+  // 여정 보드가 diagnostic_in_progress를 잘못 표시할 수 있다.
   useEffect(() => {
     if (!state.result) {
       return;

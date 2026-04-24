@@ -54,6 +54,8 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
         ([, v]) => v !== undefined,
       ),
     );
+    // setDoc(full replace): undefined 필드는 filter로 제거되어 Firestore에서 삭제됨.
+    // merge 모드나 updateDoc 전환 시 undefined 대신 deleteField() sentinel 필요.
     await setDoc(this.profileRef(profile.accountKey), data);
   }
 
