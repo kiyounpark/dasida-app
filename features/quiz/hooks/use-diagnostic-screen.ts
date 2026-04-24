@@ -201,6 +201,8 @@ export function useDiagnosticScreen({
   // 순서 중요: clearPendingDiagnostic → clearPendingDiagnosisResume.
   // 역순이면 두 write 사이 window에서 isPendingDiagnosticFresh가 true로 평가되어
   // 여정 보드가 diagnostic_in_progress를 잘못 표시할 수 있다.
+  // 단, 각 write는 독립적 try/catch이므로 write 1 실패 시에도 write 2가 실행된다.
+  // write 1 실패 + write 2 성공의 partial failure 케이스는 위 나쁜 상태로 남을 수 있다.
   useEffect(() => {
     if (!state.result) {
       return;
