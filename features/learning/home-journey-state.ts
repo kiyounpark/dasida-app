@@ -9,19 +9,21 @@ export type JourneyStepStatus = 'completed' | 'active' | 'pending' | 'locked';
 // 사용자 여정 state. Phase 1은 5개 구현(2,5는 Phase 2).
 export type JourneyStateKey =
   | 'journey_not_started'
-  | 'diagnostic_in_progress' // Phase 2
+  | 'diagnostic_in_progress'
+  | 'diagnostic_analysis_pending'
   | 'result_pending'
   | 'viewed_pre_practice'
-  | 'practice_in_progress' // Phase 2
+  | 'practice_in_progress'
   | 'journey_complete_pending'
   | 'journey_graduated';
 
 export type JourneyCtaAction =
   | 'start_diagnostic'
+  | 'resume_diagnosis'
   | 'open_result'
   | 'open_review'
   | 'graduate_practice'
-  | 'none'; // state 7 전용
+  | 'none';
 
 export type HomeJourneyStep = {
   key: JourneyStepKey;
@@ -59,6 +61,7 @@ const stepTitles: Record<JourneyStepKey, string> = {
 const stateToStepKey: Record<JourneyStateKey, JourneyStepKey> = {
   journey_not_started: 'diagnostic',
   diagnostic_in_progress: 'diagnostic',
+  diagnostic_analysis_pending: 'analysis',
   result_pending: 'analysis',
   viewed_pre_practice: 'review',
   practice_in_progress: 'review',
@@ -85,6 +88,12 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaAction: 'start_diagnostic',
     ctaLabel: '진단 다시 시작하기',
     ctaBody: '처음부터 다시 풀면 최신 약점을 잡을 수 있어요',
+  },
+  diagnostic_analysis_pending: {
+    bubbleText: '퀴즈는 끝! 약점 분석만 남았어요',
+    ctaAction: 'resume_diagnosis',
+    ctaLabel: '약점 분석 이어서 하기',
+    ctaBody: '퀴즈는 건너뛰고 분석만 마무리합니다',
   },
   result_pending: {
     bubbleText: '약점 찾기 끝! 결과 볼까요?',
@@ -118,6 +127,19 @@ const stateCopyTable: Record<JourneyStateKey, StateCopy> = {
     ctaBody: '',
   },
 };
+
+function hasValidPendingResume(
+  profile: LearnerProfile | null,
+  summary: LearnerSummaryCurrent,
+): boolean {
+  const pending = profile?.pendingDiagnosisResume;
+  if (!pending) return false;
+  if (pending.schemaVersion !== 1) return false;
+  if (!pending.attemptId) return false;
+  if (pending.diagnosisQueue.length === 0) return false;
+  if (summary.latestDiagnosticSummary?.attemptId === pending.attemptId) return false;
+  return true;
+}
 
 function isPendingDiagnosticFresh(
   profile: LearnerProfile | null,
@@ -217,6 +239,12 @@ function getCurrentState(
   // 7: 졸업은 항상 최우선.
   if (profile?.practiceGraduatedAt) {
     return 'journey_graduated';
+  }
+
+  // 약점 분석 이어서 하기: 10문제 퀴즈는 끝났고 분석만 미완료인 상태.
+  // graduated 다음으로 우선 체크 — 졸업 후 stale resume 레코드가 있어도 영향 없음.
+  if (hasValidPendingResume(profile, summary)) {
+    return 'diagnostic_analysis_pending';
   }
 
   // 2: 진단 중단. 최초 진단이 아직 완료되지 않았거나, 최신 완료 이후 새 진단이 시작돼 중단된 경우.
