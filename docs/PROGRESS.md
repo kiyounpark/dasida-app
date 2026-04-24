@@ -802,6 +802,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.24 23:24
+- 해시: `a434668` (`a434668a05a215b961ef53f592d322bdfc2cfff7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a434668a05a215b961ef53f592d322bdfc2cfff7
+- 작성자: 박기윤
+- 메시지: Merge feat/diagnostic-analysis-pending
+- 본문: diagnostic_analysis_pending 여정 상태 추가: / - JourneyStateKey/JourneyCtaAction에 신규 키 추가 / - hasValidPendingResume 헬퍼 + getCurrentState 분기 / - use-quiz-hub-screen 중복 오버라이드 제거 및 resume_diagnosis 케이스 / - switch never 가드로 미래 액션 추가 시 silent reset 방지
+
 ### 커밋 2026.04.24 07:23
 - 해시: `21b0bdc` (`21b0bdcacf1b382626a5df609522c4094bd5e413`)
 - 브랜치: feat/diagnosis-resume-on-exit
