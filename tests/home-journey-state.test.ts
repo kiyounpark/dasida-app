@@ -7,6 +7,8 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Use relative import to avoid @/ alias runtime issues in compiled JS.
 // tsc-alias rewrites @/ after compilation, but relative imports are simpler here.
@@ -189,5 +191,31 @@ test('보너스: pendingDiagnosisResume.attemptId === latestDiagnosticSummary.at
     result.currentStateKey,
     'result_pending',
     '무효 resume + 완료된 진단 → result_pending이어야 한다',
+  );
+});
+
+test('current-learner-controller: setPendingDiagnosisResume은 buildProfileForPendingResume을 사용한다 (인라인 재도입 방지)', () => {
+  // 컨트롤러 소스를 직접 읽어 call site를 검증한다.
+  // Firebase 의존성 때문에 컨트롤러를 직접 인스턴스화할 수 없으므로 소스 텍스트로 확인한다.
+  const source = readFileSync(
+    resolve(process.cwd(), 'features/learner/current-learner-controller.ts'),
+    'utf-8',
+  );
+
+  // import 선언 확인
+  assert.ok(
+    source.includes('buildProfileForPendingResume'),
+    'current-learner-controller가 buildProfileForPendingResume을 import하지 않음 — ' +
+    'setPendingDiagnosisResume에 pendingDiagnosticStartedAt: undefined 없는 인라인 객체 구성이 재도입됐을 수 있음',
+  );
+
+  // setPendingDiagnosisResume 메서드 내에서 호출 확인
+  const methodMatch = source.match(
+    /setPendingDiagnosisResume[\s\S]{0,500}?buildProfileForPendingResume/,
+  );
+  assert.ok(
+    methodMatch !== null,
+    'setPendingDiagnosisResume 메서드 내에서 buildProfileForPendingResume을 호출하지 않음 — ' +
+    'invariant 보장 없는 인라인 객체 구성으로 되돌아갔을 수 있음',
   );
 });
