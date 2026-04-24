@@ -597,6 +597,7 @@ export function createCurrentLearnerController({
       const nextProfile: LearnerProfile = {
         ...profile,
         pendingDiagnosisResume: resumeState,
+        pendingDiagnosticStartedAt: undefined,
         updatedAt: new Date().toISOString(),
       };
       await profileStore.save(nextProfile);
