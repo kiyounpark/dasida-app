@@ -229,7 +229,7 @@ function getWeaknessLabel(summary: LearnerSummaryCurrent) {
     return '최근 약점 없음';
   }
 
-  return diagnosisMap[weaknessId].labelKo;
+  return diagnosisMap[weaknessId]?.labelKo ?? '알 수 없음';
 }
 
 function getCurrentState(
