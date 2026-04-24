@@ -174,8 +174,12 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
           });
         return;
       case 'start_diagnostic':
-      default:
         onStartDiagnostic();
+        return;
+      default: {
+        const exhaustiveCheck: never = action;
+        console.warn('[QuizHub] unknown ctaAction', exhaustiveCheck);
+      }
     }
   };
 
