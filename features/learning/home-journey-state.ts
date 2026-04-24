@@ -300,7 +300,8 @@ function getWeaknessLabel(summary: LearnerSummaryCurrent) {
   return diagnosisMap[weaknessId]?.labelKo ?? '알 수 없음';
 }
 
-function getCurrentState(
+/** 테스트 전용 export. 프로덕션 코드는 buildHomeJourneyState를 사용. */
+export function getCurrentState(
   summary: LearnerSummaryCurrent,
   profile: LearnerProfile | null,
 ): JourneyStateKey {
