@@ -32,6 +32,7 @@ import type {
   PendingDiagnosisResumeState,
   PreviewSeedState,
 } from './types';
+import { buildProfileForPendingResume } from './learner-profile-builders';
 
 const AUTH_REQUIRED_ERROR_MESSAGE = 'Authentication is required before accessing learner data.';
 const DEV_GUEST_REQUIRED_ERROR_MESSAGE =
@@ -594,11 +595,7 @@ export function createCurrentLearnerController({
     },
     setPendingDiagnosisResume: async (resumeState: PendingDiagnosisResumeState) => {
       const { session, profile, summary } = await readAccessibleSnapshot();
-      const nextProfile: LearnerProfile = {
-        ...profile,
-        pendingDiagnosisResume: resumeState,
-        updatedAt: new Date().toISOString(),
-      };
+      const nextProfile = buildProfileForPendingResume(profile, resumeState);
       await profileStore.save(nextProfile);
       return buildSnapshot({
         authGateState: session.status === 'authenticated' ? 'authenticated' : 'guest-dev',
