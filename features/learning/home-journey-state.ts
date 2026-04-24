@@ -178,11 +178,34 @@ function hasValidPendingResume(
   summary: LearnerSummaryCurrent,
 ): boolean {
   const pending = profile?.pendingDiagnosisResume;
+
+  // ── 구조 검증 ──
   if (!pending) return false;
   if (pending.schemaVersion !== 1) return false;
   if (!pending.attemptId) return false;
   if (pending.diagnosisQueue.length === 0) return false;
-  if (summary.latestDiagnosticSummary?.attemptId === pending.attemptId) return false;
+
+  // ── stale 판정 ①: 시간 기반 (isPendingDiagnosticFresh / isPendingPracticeFresh와 동일 패턴)
+  // cross-device race 방어 — 다른 기기에서 새 attempt가 완료된 뒤 구기기의 오래된 resume을 열었을 때 stale 처리.
+  const savedAtMs = Date.parse(pending.savedAt);
+  const latestCompletedAtRaw = summary.latestDiagnosticSummary?.completedAt;
+  if (latestCompletedAtRaw) {
+    const latestCompletedAtMs = Date.parse(latestCompletedAtRaw);
+    if (
+      !Number.isNaN(savedAtMs) &&
+      !Number.isNaN(latestCompletedAtMs) &&
+      savedAtMs <= latestCompletedAtMs
+    ) {
+      return false;
+    }
+  }
+
+  // ── stale 판정 ②: attemptId 보조 가드 (same-attempt race 방어)
+  // finalize 직후 clear 실패 + 뒤늦은 save가 같은 attemptId로 남았을 때 stale 처리.
+  if (summary.latestDiagnosticSummary?.attemptId === pending.attemptId) {
+    return false;
+  }
+
   return true;
 }
 
