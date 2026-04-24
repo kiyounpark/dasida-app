@@ -26,7 +26,6 @@ export type UseQuizHubScreenResult = {
   onPressReviewCard: () => void;
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
-  onResumeDiagnosis: () => void;
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
@@ -49,7 +48,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     profile,
     refresh,
     session,
-    summary,
   } = useCurrentLearner();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
   const isGraduatingRef = useRef(false);
@@ -139,25 +137,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/(tabs)/quiz/exams');
   };
 
-  const pendingResume = profile?.pendingDiagnosisResume;
-  const hasPendingResume = Boolean(
-    pendingResume &&
-      pendingResume.schemaVersion === 1 &&
-      pendingResume.attemptId &&
-      pendingResume.diagnosisQueue.length > 0 &&
-      summary?.latestDiagnosticSummary?.attemptId !== pendingResume.attemptId,
-  );
-
   const onResumeDiagnosis = () => {
     router.push('/quiz/diagnostic');
   };
 
   const onPressJourneyCta = () => {
-    if (hasPendingResume) {
-      onResumeDiagnosis();
-      return;
-    }
-
     const action = homeState?.journey.ctaAction;
 
     if (!action || action === 'none') {
@@ -165,6 +149,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     }
 
     switch (action) {
+      case 'resume_diagnosis':
+        onResumeDiagnosis();
+        return;
       case 'open_result':
         onOpenRecentResult();
         return;
@@ -187,16 +174,16 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
           });
         return;
       case 'start_diagnostic':
-      default:
         onStartDiagnostic();
+        return;
+      default: {
+        const exhaustiveCheck: never = action;
+        console.warn('[QuizHub] unknown ctaAction', exhaustiveCheck);
+      }
     }
   };
 
-  const rawJourney = homeState?.journey ?? null;
-  const journey =
-    hasPendingResume && rawJourney
-      ? { ...rawJourney, ctaLabel: '약점 분석 이어서 하기' }
-      : rawJourney;
+  const journey = homeState?.journey ?? null;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
 
@@ -232,7 +219,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onPressReviewCard,
     onRediagnose: onStartDiagnostic,
     onRefresh: refresh,
-    onResumeDiagnosis,
     onStartDiagnostic,
     profile,
     session,
