@@ -304,46 +304,46 @@ function getCurrentState(
   summary: LearnerSummaryCurrent,
   profile: LearnerProfile | null,
 ): JourneyStateKey {
-  // 7: 졸업은 항상 최우선.
+  // 1: 졸업은 항상 최우선.
   if (profile?.practiceGraduatedAt) {
     return 'journey_graduated';
   }
 
-  // 약점 분석 이어서 하기: 10문제 퀴즈는 끝났고 분석만 미완료인 상태.
-  // graduated 다음으로 우선 체크 — 졸업 후 stale resume 레코드가 있어도 영향 없음.
+  // 2: 진단만 미완료인 "이어서" 상태 — 10문제 퀴즈는 끝났고 약점 분석이 남음.
+  //   graduated 다음으로 우선 체크 — 졸업 후 stale resume 레코드가 있어도 1번이 먼저 잡음.
   if (hasValidPendingResume(profile, summary)) {
     return 'diagnostic_analysis_pending';
   }
 
-  // 2: 진단 중단. 최초 진단이 아직 완료되지 않았거나, 최신 완료 이후 새 진단이 시작돼 중단된 경우.
+  // 3: 10문제 진단 중단 — 최초 진단 미완료 또는 최신 완료 이후 새 진단이 시작돼 중단된 경우.
   if (isPendingDiagnosticFresh(profile, summary)) {
     return 'diagnostic_in_progress';
   }
 
-  // 1: 진단 기록이 하나도 없음.
+  // 4: 진단 기록이 하나도 없음.
   const hasLatestDiagnostic = Boolean(summary.latestDiagnosticSummary);
   if (!hasLatestDiagnostic) {
     return 'journey_not_started';
   }
 
-  // 6: 최신 진단 이후 review 활동이 있으면 여정이 거의 끝난 상태.
+  // 5: 최신 진단 이후 review 활동이 있으면 여정이 거의 끝난 상태.
   const latestDiagnosticAt = summary.latestDiagnosticSummary?.completedAt;
   const hasReviewAfterLatestDiagnostic = hasActivityAfter(summary, 'review', latestDiagnosticAt);
   if (hasReviewAfterLatestDiagnostic) {
     return 'journey_complete_pending';
   }
 
-  // 5: 연습 중단. 4번 조건(결과 확인) 성립 + 최신 진단 이후 시작된 pending 연습이 있을 때.
+  // 6: 연습 중단 — 7번 조건(결과 확인) 성립 + 최신 진단 이후 시작된 pending 연습이 있을 때.
   if (profile?.latestDiagnosticResultViewedAt && isPendingPracticeFresh(profile, summary)) {
     return 'practice_in_progress';
   }
 
-  // 4: 결과 확인 완료.
+  // 7: 결과 확인 완료.
   if (profile?.latestDiagnosticResultViewedAt) {
     return 'viewed_pre_practice';
   }
 
-  // 3: 결과 확인 전.
+  // 8 (기본): 결과 확인 전 — 진단 완료 직후.
   return 'result_pending';
 }
 
