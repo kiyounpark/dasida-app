@@ -22,6 +22,8 @@
     "functions:build": "npm run build --prefix functions",
     "functions:lint": "npm run lint --prefix functions",
     "functions:test": "npm run test --prefix functions",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:pure": "tsc -p tsconfig.test.json && tsc-alias -p tsconfig.test.json && node --test test-lib/tests/*.test.js"
