@@ -20,6 +20,7 @@
     "features/learning/types.ts",
     "features/learning/home-journey-state.ts",
     "features/learner/types.ts",
+    "features/learner/learner-profile-builders.ts",
     "features/quiz/types.ts",
     "tests/**/*.ts"
   ],

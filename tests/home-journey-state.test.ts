@@ -11,6 +11,7 @@ import test from 'node:test';
 // Use relative import to avoid @/ alias runtime issues in compiled JS.
 // tsc-alias rewrites @/ after compilation, but relative imports are simpler here.
 import { buildHomeJourneyState } from '../features/learning/home-journey-state.js';
+import { buildProfileForPendingResume } from '../features/learner/learner-profile-builders.js';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -137,38 +138,26 @@ test('시나리오 5: 아무 플래그도 없고 완료된 진단이 있음 → 
 });
 
 test('setPendingDiagnosisResume 후 프로필: pendingDiagnosticStartedAt이 제거되어야 한다 (컨트롤러 fix 회귀 방지)', () => {
-  // 버그 재현 시나리오: 퀴즈 완료 후 분석 중 나가기
-  // 이 시점의 프로필 상태: pendingDiagnosticStartedAt이 살아있음
-  const profileBeforeExit = makeProfile({
+  const profileBeforeExit: any = makeProfile({
     pendingDiagnosticStartedAt: '2026-04-24T00:00:00.000Z',
   });
 
   const resumeState = makePendingResume('attempt-regression-test');
 
-  // current-learner-controller.ts의 setPendingDiagnosisResume 내부 로직과 동일한 패턴.
-  // pendingDiagnosticStartedAt: undefined 없이 spread만 하면 stale 필드가 남는다 — 이것이 fix가 타겟한 버그.
-  const nextProfile = {
-    ...profileBeforeExit,
-    pendingDiagnosisResume: resumeState,
-    pendingDiagnosticStartedAt: undefined, // ← 이 줄이 없으면 아래 assert 실패
-    updatedAt: new Date().toISOString(),
-  };
+  // 실제 컨트롤러가 사용하는 함수를 직접 호출 — fix 제거 시 아래 assert 실패
+  const nextProfile = buildProfileForPendingResume(profileBeforeExit, resumeState);
 
-  // Fix 핵심 invariant: setPendingDiagnosisResume 후 pendingDiagnosticStartedAt은 없어야 한다.
   assert.equal(
     nextProfile.pendingDiagnosticStartedAt,
     undefined,
-    'setPendingDiagnosisResume 후 pendingDiagnosticStartedAt이 남아있으면 안 된다 (컨트롤러 fix 회귀)',
+    'setPendingDiagnosisResume 후 pendingDiagnosticStartedAt이 남아있으면 안 된다',
   );
+  assert.deepEqual(nextProfile.pendingDiagnosisResume, resumeState);
 
   // 상태 머신도 올바른 상태를 반환하는지 확인
   const summary = makeSummary();
   const result = buildHomeJourneyState(summary, nextProfile);
-  assert.equal(
-    result.currentStateKey,
-    'diagnostic_analysis_pending',
-    'pendingDiagnosisResume이 있으면 diagnostic_analysis_pending이어야 한다',
-  );
+  assert.equal(result.currentStateKey, 'diagnostic_analysis_pending');
 });
 
 test('보너스: pendingDiagnosisResume.attemptId === latestDiagnosticSummary.attemptId → 무효 resume, diagnostic_in_progress 아님', () => {
