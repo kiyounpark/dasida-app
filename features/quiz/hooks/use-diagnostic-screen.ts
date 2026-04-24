@@ -559,14 +559,17 @@ export function useDiagnosticScreen({
     }
   };
 
+  const completedDiagnosisCount = state.isDiagnosing
+    ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
+    : 0;
+
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
 
-    const hasCompletedAnyAnalysis =
-      state.isDiagnosing &&
-      state.diagnosisQueue.some((i) => Boolean(state.answers[i]?.weaknessId));
+    const hasCompletedAnyAnalysis = state.isDiagnosing && completedDiagnosisCount > 0;
 
     if (hasCompletedAnyAnalysis) {
+      // 완료된 분석만 반영된 결과를 생성한다. 미완성 항목은 결과에서 제외되며, 이는 의도된 동작이다.
       finishDiagnosis();
       return;
     }
@@ -607,10 +610,6 @@ export function useDiagnosticScreen({
   const progressRatio = currentQuestionNumber / questionCount;
   const progressPercent = `${progressRatio * 100}%` as `${number}%`;
   const stepLabel = `${String(currentQuestionNumber).padStart(2, '0')} / ${String(questionCount).padStart(2, '0')}`;
-
-  const completedDiagnosisCount = state.isDiagnosing
-    ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
-    : 0;
 
   const quizStage =
     state.hasStarted && !state.isDiagnosing && currentProblem
