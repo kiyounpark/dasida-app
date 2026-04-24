@@ -561,6 +561,16 @@ export function useDiagnosticScreen({
 
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
+
+    const hasCompletedAnyAnalysis =
+      state.isDiagnosing &&
+      state.diagnosisQueue.some((i) => Boolean(state.answers[i]?.weaknessId));
+
+    if (hasCompletedAnyAnalysis) {
+      finishDiagnosis();
+      return;
+    }
+
     if (!state.attemptId || !state.startedAt) {
       router.replace('/(tabs)/quiz');
       return;
