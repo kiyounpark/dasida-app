@@ -10,6 +10,7 @@ import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 import { buildWeaknessPracticeAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import { useQuizSession } from '@/features/quiz/session';
+import { computeCanGraduate } from './can-graduate';
 
 type ScreenMode = 'weakness' | 'challenge' | 'review';
 
