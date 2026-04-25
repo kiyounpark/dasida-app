@@ -6,6 +6,7 @@ import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
 import { buildExamAttemptInput } from '../build-exam-attempt-input';
+import { computeExamTopWeaknesses } from '../compute-exam-top-weaknesses';
 import {
   getDiagnosisProgress,
   type ExamDiagnosisProgress,
@@ -39,6 +40,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [diagnosedProblems, setDiagnosedProblems] = useState<ExamDiagnosisProgress>({});
   const saveAttempted = useRef(false);
+  const hasNavigatedToReportRef = useRef(false);
 
   const result = state.result;
   const examTitle = result ? (EXAM_CATALOG_BY_ID[result.examId]?.title ?? result.examId) : '';
@@ -68,6 +70,32 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     }, [result]),
   );
 
+  const wrongCount = result
+    ? result.perProblem.filter((p) => !p.isCorrect && p.userAnswer !== null).length
+    : 0;
+  const diagnosedCount = Object.keys(diagnosedProblems).length;
+
+  // 모든 오답 진단 완료 시 리포트로 이동
+  useEffect(() => {
+    if (wrongCount === 0 || diagnosedCount < wrongCount) return;
+    if (!result) return;
+    if (hasNavigatedToReportRef.current) return;
+    hasNavigatedToReportRef.current = true;
+
+    const topWeaknesses = computeExamTopWeaknesses(diagnosedProblems);
+    router.replace({
+      pathname: '/quiz/result',
+      params: {
+        source: 'exam',
+        examId: result.examId,
+        examTotal: String(result.total),
+        examCorrect: String(result.correct),
+        examAccuracy: String(result.accuracy),
+        examTopWeaknesses: JSON.stringify(topWeaknesses),
+      },
+    });
+  }, [diagnosedCount, wrongCount, result, diagnosedProblems]);
+
   // 문제 타일 계산
   const problemTiles: ProblemTile[] = result
     ? result.perProblem
@@ -95,11 +123,6 @@ export function useExamResultScreen(): UseExamResultScreenResult {
           };
         })
     : [];
-
-  const wrongCount = result
-    ? result.perProblem.filter((p) => !p.isCorrect && p.userAnswer !== null).length
-    : 0;
-  const diagnosedCount = Object.keys(diagnosedProblems).length;
 
   return {
     result,
