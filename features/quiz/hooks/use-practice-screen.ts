@@ -13,19 +13,7 @@ import { useQuizSession } from '@/features/quiz/session';
 
 type ScreenMode = 'weakness' | 'challenge' | 'review';
 
-export function computeCanGraduate(params: {
-  activeMode: 'weakness' | 'challenge' | 'review';
-  solvedCount: number;
-  questionCount: number;
-  practiceGraduatedAt: string | undefined;
-}): boolean {
-  return (
-    params.activeMode === 'weakness' &&
-    params.questionCount > 0 &&
-    params.solvedCount >= params.questionCount &&
-    !params.practiceGraduatedAt
-  );
-}
+export { computeCanGraduate } from './can-graduate';
 
 export type QuizPracticeRouteParams = {
   fallbackWeaknessKey?: string;

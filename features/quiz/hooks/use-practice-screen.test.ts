@@ -1,4 +1,4 @@
-import { computeCanGraduate } from './use-practice-screen';
+import { computeCanGraduate } from './can-graduate';
 
 describe('computeCanGraduate', () => {
   const base = {
