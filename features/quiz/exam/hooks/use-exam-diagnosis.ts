@@ -25,10 +25,7 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
 
 import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
-import {
-  markProblemDiagnosed,
-  type ExamAttemptScope,
-} from '../exam-diagnosis-progress';
+import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
 
 export type ExamDiagEntry =

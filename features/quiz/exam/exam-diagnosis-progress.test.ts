@@ -90,6 +90,26 @@ describe('exam-diagnosis-progress', () => {
     });
   });
 
+  describe('markProblemDiagnosed — pendingWrite chain recovery', () => {
+    it('setItem이 실패해도 후속 쓰기가 정상 동작한다', async () => {
+      // 첫 번째 setItem은 reject, 이후는 resolve
+      mockedAsyncStorage.setItem.mockRejectedValueOnce(new Error('storage full'));
+      mockedAsyncStorage.getItem.mockResolvedValue(null);
+
+      // 첫 번째 호출: setItem이 실패 → resolve (throw하지 않아야 함)
+      await expect(markProblemDiagnosed(SCOPE, 7, 'calc_repeated_error')).resolves.toBeUndefined();
+
+      // 두 번째 호출: chain이 poisoned되지 않았으므로 정상 동작해야 함
+      await markProblemDiagnosed(SCOPE, 12, 'formula_understanding');
+
+      expect(mockedAsyncStorage.setItem).toHaveBeenCalledTimes(2);
+      expect(mockedAsyncStorage.setItem).toHaveBeenLastCalledWith(
+        EXPECTED_KEY,
+        JSON.stringify({ 12: 'formula_understanding' }),
+      );
+    });
+  });
+
   describe('purgeLegacyDiagnosisKey', () => {
     it('attemptId가 없는 옛날 키를 정확히 1번 삭제한다', async () => {
       await purgeLegacyDiagnosisKey('exam-x');
