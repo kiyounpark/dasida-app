@@ -176,7 +176,7 @@ export function useDiagnosticScreen({
 
     if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete && !hasResumedDiagnosisRef.current) {
       setHasNavigatedToStepComplete(true);
-      router.replace({
+      router.push({
         pathname: '/quiz/step-complete',
         params: { step: 'diagnostic' },
       });
