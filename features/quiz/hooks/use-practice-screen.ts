@@ -90,7 +90,7 @@ export function usePracticeScreen({
   fallbackWeaknessKey,
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
-  const { state, advancePractice, completeChallenge, resetSession } = useQuizSession();
+  const { state, advancePractice, completeChallenge, resetSession, seedPracticeQueue } = useQuizSession();
   const {
     clearPendingPractice,
     graduateToPractice,
@@ -136,18 +136,19 @@ export function usePracticeScreen({
       return activeReviewTask?.weaknessId;
     }
 
-    if (state.result && activeMode === 'weakness') {
+    if (activeMode === 'weakness' && state.practiceQueue.length > 0) {
       return state.practiceQueue[state.practiceIndex];
     }
 
-    return fallbackWeaknessId;
+    const recoveryWeakness = summary?.latestDiagnosticSummary?.topWeaknesses?.[0];
+    return recoveryWeakness ?? fallbackWeaknessId;
   }, [
     activeMode,
     activeReviewTask?.weaknessId,
     fallbackWeaknessId,
     state.practiceIndex,
     state.practiceQueue,
-    state.result,
+    summary?.latestDiagnosticSummary?.topWeaknesses,
   ]);
 
   useEffect(() => {
@@ -191,6 +192,18 @@ export function usePracticeScreen({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMode, activeProblem?.id]);
+
+  useEffect(() => {
+    if (activeMode !== 'weakness') return;
+    if (state.result) return;
+    if (state.practiceQueue.length > 0) return;
+    const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
+    if (!weaknesses?.length) return;
+    seedPracticeQueue(weaknesses);
+    // seedPracticeQueue은 dispatch wrapper로 안정적. topWeaknesses 대신
+    // attemptId를 dep로 써서 동일 콘텐츠 재시딩을 방지한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
     if (mode === 'challenge') {
@@ -287,7 +300,7 @@ export function usePracticeScreen({
       return;
     }
 
-    if (state.result && state.practiceMode === 'weakness') {
+    if (state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
       const isLast = state.practiceIndex >= state.practiceQueue.length - 1;
       advancePractice();
 
@@ -388,12 +401,12 @@ export function usePracticeScreen({
         : baseWeaknessLabel;
 
   const isLastWeakness =
-    state.result && state.practiceMode === 'weakness'
+    state.practiceMode === 'weakness' && state.practiceQueue.length > 0
       ? state.practiceIndex >= state.practiceQueue.length - 1
       : true;
 
   const counter = (() => {
-    if (activeMode === 'weakness' && state.result && state.practiceMode === 'weakness') {
+    if (activeMode === 'weakness' && state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
       const total = Math.max(state.practiceQueue.length, 1);
       const current = Math.min(state.practiceIndex + 1, total);
       return { current, total };
@@ -421,7 +434,7 @@ export function usePracticeScreen({
             ? '다음 복습 문제'
             : '홈으로 돌아가기'
           : isLastWeakness
-            ? state.result && state.practiceMode === 'weakness'
+            ? state.practiceMode === 'weakness' && state.practiceQueue.length > 0
               ? '연습 완료'
               : '피드백 화면으로 이동'
             : '다음 약점 문제',
