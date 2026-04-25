@@ -13,6 +13,8 @@ import { useQuizSession } from '@/features/quiz/session';
 
 type ScreenMode = 'weakness' | 'challenge' | 'review';
 
+export { computeCanGraduate } from './can-graduate';
+
 export type QuizPracticeRouteParams = {
   fallbackWeaknessKey?: string;
   requestedMode?: string;
@@ -442,7 +444,12 @@ export function usePracticeScreen({
 
       router.replace('/quiz/result');
     },
-    canGraduate: activeMode === 'weakness' && solvedCount > 0 && !profile?.practiceGraduatedAt,
+    canGraduate: computeCanGraduate({
+      activeMode,
+      solvedCount,
+      questionCount: counter.total,
+      practiceGraduatedAt: profile?.practiceGraduatedAt,
+    }),
     isGraduating,
     onGraduate: () => {
       if (isGraduating) {
