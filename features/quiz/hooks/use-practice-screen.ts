@@ -23,7 +23,7 @@ export function computeCanGraduate(params: {
     params.activeMode === 'weakness' &&
     params.questionCount > 0 &&
     params.solvedCount >= params.questionCount &&
-    params.practiceGraduatedAt === undefined
+    !params.practiceGraduatedAt
   );
 }
 
