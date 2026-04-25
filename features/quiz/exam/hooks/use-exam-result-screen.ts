@@ -73,7 +73,30 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   const wrongCount = result
     ? result.perProblem.filter((p) => !p.isCorrect && p.userAnswer !== null).length
     : 0;
-  const diagnosedCount = Object.keys(diagnosedProblems).length;
+
+  // AsyncStorage에는 이전 시도 데이터가 남아있을 수 있으므로
+  // 현재 시도의 오답 번호로 필터링하여 정확한 진단 완료 여부를 판단한다.
+  const currentWrongNumbers = useMemo(
+    () =>
+      new Set(
+        result?.perProblem
+          .filter((p) => !p.isCorrect && p.userAnswer !== null)
+          .map((p) => p.number) ?? [],
+      ),
+    [result],
+  );
+
+  const currentAttemptDiagnosed = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(diagnosedProblems).filter(([k]) =>
+          currentWrongNumbers.has(Number(k)),
+        ),
+      ) as ExamDiagnosisProgress,
+    [diagnosedProblems, currentWrongNumbers],
+  );
+
+  const diagnosedCount = Object.keys(currentAttemptDiagnosed).length;
 
   // 모든 오답 진단 완료 시 리포트로 이동
   useEffect(() => {
@@ -82,7 +105,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     if (hasNavigatedToReportRef.current) return;
     hasNavigatedToReportRef.current = true;
 
-    const topWeaknesses = computeExamTopWeaknesses(diagnosedProblems);
+    const topWeaknesses = computeExamTopWeaknesses(currentAttemptDiagnosed);
     router.replace({
       pathname: '/quiz/result',
       params: {
@@ -94,7 +117,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         examTopWeaknesses: JSON.stringify(topWeaknesses),
       },
     });
-  }, [diagnosedCount, wrongCount, result, diagnosedProblems]);
+  }, [diagnosedCount, wrongCount, result, currentAttemptDiagnosed]);
 
   // 문제 타일 계산
   const problemTiles: ProblemTile[] = result
@@ -117,7 +140,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
             status:
               p.userAnswer === null
                 ? 'blank'
-                : diagnosedProblems[p.number]
+                : currentAttemptDiagnosed[p.number]
                   ? 'done'
                   : 'undone',
           };
