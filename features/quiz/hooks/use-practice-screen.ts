@@ -198,6 +198,8 @@ export function usePracticeScreen({
     const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
     if (!weaknesses?.length) return;
     seedPracticeQueue(weaknesses);
+    // seedPracticeQueue은 dispatch wrapper로 안정적. topWeaknesses 대신
+    // attemptId를 dep로 써서 동일 콘텐츠 재시딩을 방지한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
 
