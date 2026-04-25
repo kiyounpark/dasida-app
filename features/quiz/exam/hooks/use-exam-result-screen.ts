@@ -8,6 +8,7 @@ import { getExamProblems } from '@/features/quiz/data/exam-problems';
 import { buildExamAttemptInput } from '../build-exam-attempt-input';
 import {
   getDiagnosisProgress,
+  purgeLegacyDiagnosisKey,
   type ExamDiagnosisProgress,
 } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
@@ -41,6 +42,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   const saveAttempted = useRef(false);
 
   const result = state.result;
+  const examId = result?.examId ?? null;
   const examTitle = result ? (EXAM_CATALOG_BY_ID[result.examId]?.title ?? result.examId) : '';
 
   const examProblems = useMemo(
@@ -64,9 +66,20 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   useFocusEffect(
     useCallback(() => {
       if (!result) return;
-      getDiagnosisProgress(result.examId).then(setDiagnosedProblems);
+      getDiagnosisProgress({
+        examId: result.examId,
+        attemptId: result.attemptId,
+        attemptDateISO: result.completedAt,
+      }).then(setDiagnosedProblems);
     }, [result]),
   );
+
+  // 옛날 키 형태(attemptId 없는 dasida/exam-diagnosis/{examId})를 한 번 정리.
+  // 진단 이력은 백엔드 attempt 레코드에 보존되므로 캐시 삭제는 안전하다.
+  useEffect(() => {
+    if (!examId) return;
+    purgeLegacyDiagnosisKey(examId);
+  }, [examId]);
 
   // 문제 타일 계산
   const problemTiles: ProblemTile[] = result
