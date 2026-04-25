@@ -125,6 +125,20 @@ if (activeMode === 'weakness' && state.practiceQueue.length > 0) {
 기존: `activeMode === 'weakness' && state.result && state.practiceMode === 'weakness'`
 변경: `activeMode === 'weakness' && state.practiceMode === 'weakness' && state.practiceQueue.length > 0`
 
+**⑤ `continueAfterPersistence` 약점 분기 조건 완화**
+
+답안 제출 후 다음 약점으로 이동하거나 마지막 약점에서 step-complete로 이동하는 핵심 로직.
+
+기존: `if (state.result && state.practiceMode === 'weakness')`
+변경: `if (state.practiceMode === 'weakness' && state.practiceQueue.length > 0)`
+
+**⑥ `continueLabel` 약점 모드 라벨 조건 완화**
+
+마지막 약점 문제에서 버튼 라벨 결정 분기.
+
+기존: `state.result && state.practiceMode === 'weakness'`
+변경: `state.practiceMode === 'weakness' && state.practiceQueue.length > 0`
+
 ---
 
 ## 엣지 케이스
@@ -152,4 +166,4 @@ if (activeMode === 'weakness' && state.practiceQueue.length > 0) {
 | 파일 | 변경 유형 |
 |---|---|
 | `features/quiz/session.tsx` | `SEED_PRACTICE_QUEUE` 액션 추가, `ADVANCE_PRACTICE` 가드 완화 |
-| `features/quiz/hooks/use-practice-screen.ts` | 시딩 useEffect 추가, `state.result` 의존 조건 3곳 완화 |
+| `features/quiz/hooks/use-practice-screen.ts` | 시딩 useEffect 추가, `state.result` 의존 조건 5곳 완화 |
