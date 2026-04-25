@@ -162,13 +162,13 @@ export function useDiagnosticScreen({
   ]);
 
   useEffect(() => {
-    if (!state.isDiagnosing) {
+    if (!state.isDiagnosing && !state.result) {
       hasNavigatedToAnalysisRef.current = false;
       hasResumedDiagnosisRef.current = false;
       autoCompletedRef.current = new Set<number>();
       shouldDelayResultNavRef.current = false;
     }
-  }, [state.isDiagnosing]);
+  }, [state.isDiagnosing, state.result]);
 
   useEffect(() => {
     if (isPreparingFreshSession) {
@@ -179,6 +179,7 @@ export function useDiagnosticScreen({
       hasNavigatedToAnalysisRef.current = true;
       if (shouldDelayResultNavRef.current) {
         setTimeout(() => {
+          if (!isMountedRef.current) return;
           router.replace('/quiz/result');
         }, 3000);
       } else {
