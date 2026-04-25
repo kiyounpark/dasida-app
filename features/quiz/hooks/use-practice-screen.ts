@@ -140,13 +140,15 @@ export function usePracticeScreen({
       return state.practiceQueue[state.practiceIndex];
     }
 
-    return fallbackWeaknessId;
+    const recoveryWeakness = summary?.latestDiagnosticSummary?.topWeaknesses?.[0];
+    return recoveryWeakness ?? fallbackWeaknessId;
   }, [
     activeMode,
     activeReviewTask?.weaknessId,
     fallbackWeaknessId,
     state.practiceIndex,
     state.practiceQueue,
+    summary?.latestDiagnosticSummary?.topWeaknesses,
   ]);
 
   useEffect(() => {
