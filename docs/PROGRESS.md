@@ -21,6 +21,37 @@
 
 ## 로그
 
+### 2026.04.25
+
+**앱 전체 점검 완료 (출시 전 사용자 여정 순서 점검)**
+
+- **점검 범위**: TypeScript 빌드 → 온보딩/로그인 → 홈 상태 머신 → 진단 → 분석 → 약점 연습 → 설정 → Firebase/앱스토어 → 네비게이션 (9개 구역)
+- **Critical 이슈**: 없음 (Firestore 피드백 저장 미구현은 출시 범위 외로 확정)
+- **수정 완료 (Minor → Fixed)**:
+  - `fix(quiz)`: `step-complete(diagnostic)` 이동 `router.push` → `router.replace` (스와이프백 재진입 방지)
+  - `fix(quiz)`: `onGraduate`/`step-complete X버튼` 경로에 `resetSession()` 추가 (Android 백 스택 보호)
+  - `fix(profile)`: `Linking.openURL` 실패 시 Alert 에러 처리 추가
+  - `fix(nav)`: `step-complete` 스크린 `gestureEnabled: false` 추가 (스와이프백 차단)
+  - `fix(quiz)`: `computeCanGraduate` import 누락 수정 (TS 에러 0건 복원)
+- **잔존 Minor (출시 후 패치)**:
+  - 온보딩 입력값 재시작 시 소실 (useState only, AsyncStorage 미사용)
+  - 분석 플로우 저장 실패 시 사용자 피드백 없는 재시도, AI 재시도 버튼 없음
+  - Firebase Functions 리전 미설정 (기본 us-central1, 한국 레이턴시 증가 가능)
+  - 앱스토어 항목 수동 확인 필요 (TestFlight, 스크린샷, 카테고리 등)
+- **기준선**: TS 에러 0건, jest 테스트 22/22 통과
+- 커밋: `d76ce6c`, `23e6b16`, `c730afe`, `c56e4d3`, 최종 `computeCanGraduate` fix
+
+### 2026.04.21
+
+**BUG-1/3/4 수정 — 학습 여정 7-state 모델 버그픽스 + 실기기 검증 완료**
+
+- **BUG-1** `functions/src/learning-history.ts`, `features/learning/local-learning-history-repository.ts`: 자유 약점 연습(mode='weakness', reviewStage 없음)을 recentActivity에 `kind='review'`로 기록 → state 6(`journey_complete_pending`) 전이 수정. `LearningAttemptSchema`에 `reviewStage` 옵셔널 필드 추가, 스케줄 연습 중복 방지
+- **BUG-4** `features/quiz/hooks/use-quiz-hub-screen.ts`, `features/quiz/components/quiz-hub-screen-view.tsx`: `showReviewHomeCard` 변수 도입(isGraduated 가드 포함) — 여정 진행 중 ReviewHomeCard 노출 방지
+- **BUG-3** `useQuizSession`을 Provider 밖(`app/(tabs)/quiz/`)에서 호출한 오류 수정 — `router.replace`가 `QuizSessionProvider` unmount하면서 세션 자연 초기화되므로 `resetSession()` 불필요
+- 테스트 3개 추가: 자유 약점 연습 kind=review 포함 / 스케줄 연습 중복 없음 / state 6 전이 조건 충족 (11/11 통과)
+- 실기기 검증 완료: state 1→2→3→4(state 6) 전이 + 졸업 플로우
+- 커밋: `fix/state6-weakness-practice-activity` → main 머지
+
 ### 2026.04.18
 
 **step-complete(practice) ✓✓✓→✦ 애니메이션 + X 닫기 버튼 구현**
@@ -790,6 +821,85 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.25 10:53
+- 해시: `7940c34` (`7940c34918c162ba4a0a54e26a016a69d106a327`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7940c34918c162ba4a0a54e26a016a69d106a327
+- 작성자: 박기윤
+- 메시지: docs(plan): 약점 연습 완료 버튼 노출 시점 개선 구현 계획
+- 본문: computeCanGraduate 순수 함수 추출 + 단위 테스트 TDD 계획. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.25 00:19
+- 해시: `c86b65f` (`c86b65fad60c13383cc9ea9a38339cbf91cdea8d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c86b65fad60c13383cc9ea9a38339cbf91cdea8d
+- 작성자: 박기윤
+- 메시지: chore(progress): 2026-04-24 진단 분석 대기 상태 머지 커밋 로그 추가
+- 본문: Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.04.24 23:24
+- 해시: `a434668` (`a434668a05a215b961ef53f592d322bdfc2cfff7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a434668a05a215b961ef53f592d322bdfc2cfff7
+- 작성자: 박기윤
+- 메시지: Merge feat/diagnostic-analysis-pending
+- 본문: diagnostic_analysis_pending 여정 상태 추가: / - JourneyStateKey/JourneyCtaAction에 신규 키 추가 / - hasValidPendingResume 헬퍼 + getCurrentState 분기 / - use-quiz-hub-screen 중복 오버라이드 제거 및 resume_diagnosis 케이스 / - switch never 가드로 미래 액션 추가 시 silent reset 방지
+
+### 커밋 2026.04.24 07:23
+- 해시: `21b0bdc` (`21b0bdcacf1b382626a5df609522c4094bd5e413`)
+- 브랜치: feat/diagnosis-resume-on-exit
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/21b0bdcacf1b382626a5df609522c4094bd5e413
+- 작성자: 박기윤
+- 메시지: fix(home): 말풍선 글자 크기 개선 — diagnostic 버블 확장 + 2줄 레이아웃
+- 본문: - diagnostic 버블 폭 44%→56%로 확장해 텍스트 영역 131px→176px 확보 / - numberOfLines 3→2, fontSize 17→18px, lineHeight 22→24 / - journey_not_started bubbleText: 반가워요!\n첫 진단 시작할게요 (2줄 고정) / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.23 23:08
+- 해시: `dcc852d` (`dcc852d2414de77e2e1d1418489985f0de5c89e1`)
+- 브랜치: fix/journey-board-fixed-position
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dcc852d2414de77e2e1d1418489985f0de5c89e1
+- 작성자: 박기윤
+- 메시지: docs: 스와이프 차단 스펙 및 구현 계획 추가
+
+### 커밋 2026.04.23 22:58
+- 해시: `2ef61ba` (`2ef61ba9f098f6eace3fca3ec1253adadd448a7e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2ef61ba9f098f6eace3fca3ec1253adadd448a7e
+- 작성자: 박기윤
+- 메시지: fix(home): 여정 말풍선 글자 작음 수정 — 문구 단축 + minimumFontScale 추가
+- 본문: 말풍선 컨테이너(~131px)보다 긴 문구로 인해 adjustsFontSizeToFit이 / 글자를 과도하게 축소하던 문제를 수정합니다. / - stateCopyTable 6개 bubbleText 단축 (최대 19자 → 최대 15자) / - minimumFontScale={0.85} 추가로 14.5px 이하 축소 방지 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.21 08:59
+- 해시: `92a6c01` (`92a6c01db575a552e6564d75c35eccd8a7391f1a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/92a6c01db575a552e6564d75c35eccd8a7391f1a
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/dreamy-davinci-9ccedc': 약점 연습 진단 스타일 리디자인
+- 본문: - 약점 연습 화면을 진단 10문제 풀이와 동일한 구조로 재구성 / - QuizSolveHeader/QuizQuestionCard/QuizSolveExitConfirmModal 공용화 / - QuizPracticeFooter(원형 선택기+피드백 분기), GraduateFloatingBar 신설 / - footerSafeArea prop으로 safe-area 이중 패딩 제거 / - use-practice-screen에 카운터/프로그레스/exit modal 파생값 추가
+
+### 커밋 2026.04.20 08:23
+- 해시: `27d2c77` (`27d2c77b0fa9de90ef79739ca51f54112a9cb23d`)
+- 브랜치: claude/remove-bottom-nav-aZXRe
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app/commit/27d2c77b0fa9de90ef79739ca51f54112a9cb23d
+- 작성자: Claude
+- 메시지: feat: 약점 학습 플로우 화면을 루트 Stack으로 이동하여 바텀 네비게이션 제거
+- 본문: - app/(tabs)/quiz/ 하위 플로우 화면 10개를 app/quiz/로 이동 / (diagnostic, result, practice, feedback, review-session, step-complete, exam/*) / - app/quiz/_layout.tsx 생성: QuizSessionProvider + 플로우 스크린 Stack / - app/quiz/exam/_layout.tsx 생성: ExamSessionProvider + exam 서브 Stack / - app/_layout.tsx: Root Stack에 quiz Screen 등록 / - app/(tabs)/quiz/_layout.tsx: index, exams만 유지하도록 정리 / - 허브(quiz/index)와 모의고사 목록(exams)은 (tabs) 유지 → 탭바 보임 / - 플로우 진행 중에는 Root Stack 화면으로 렌더링 → 탭바 없음 / https://claude.ai/code/session_017qee8dB95Yt2AKk4ZhAY2c
 
 ### 커밋 2026.04.18 13:33
 - 해시: `44aa720` (`44aa7204b2c6f3d48b45287180a2b784841eae96`)
