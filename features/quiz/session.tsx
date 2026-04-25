@@ -2,6 +2,7 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import { getDiagnosticProblems, type Problem } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
 import { useCurrentLearner } from '@/features/learner/provider';
+import type { PendingDiagnosisResumeState } from '@/features/learner/types';
 import {
   buildQuizResult,
   createInitialWeaknessScores,
@@ -22,9 +23,11 @@ type QuizSessionContextValue = {
     detailTrace?: DiagnosisDetailTrace,
   ) => void;
   finishDiagnosis: () => void;
+  resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
+  seedPracticeQueue: (weaknesses: WeaknessId[]) => void;
 };
 
 type Action =
@@ -48,7 +51,9 @@ type Action =
       };
     }
   | { type: 'FINISH_DIAGNOSIS' }
+  | { type: 'RESUME_DIAGNOSIS'; payload: PendingDiagnosisResumeState }
   | { type: 'ADVANCE_PRACTICE' }
+  | { type: 'SEED_PRACTICE_QUEUE'; payload: { weaknesses: WeaknessId[] } }
   | { type: 'COMPLETE_CHALLENGE' };
 
 function createAttemptId() {
@@ -142,7 +147,7 @@ function checkPhaseTransition(state: QuizSessionState): QuizSessionState {
   return finalizeQuiz(state);
 }
 
-function reducer(state: QuizSessionState, action: Action): QuizSessionState {
+export function reducer(state: QuizSessionState, action: Action): QuizSessionState {
   switch (action.type) {
     case 'RESET': {
       return createInitialState();
@@ -232,8 +237,31 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       return finalizeQuiz(state);
     }
 
+    case 'RESUME_DIAGNOSIS': {
+      const {
+        attemptId,
+        startedAt,
+        totalQuestions,
+        answers,
+        weaknessScores,
+        diagnosisQueue,
+      } = action.payload;
+      return {
+        ...createInitialState(),
+        hasStarted: true,
+        totalQuestions,
+        attemptId,
+        startedAt,
+        currentQuestionIndex: totalQuestions,
+        answers,
+        isDiagnosing: true,
+        diagnosisQueue,
+        weaknessScores,
+      };
+    }
+
     case 'ADVANCE_PRACTICE': {
-      if (!state.result || state.practiceMode !== 'weakness') return state;
+      if (state.practiceMode !== 'weakness' || state.practiceQueue.length === 0) return state;
 
       const nextIndex = state.practiceIndex + 1;
 
@@ -248,6 +276,18 @@ function reducer(state: QuizSessionState, action: Action): QuizSessionState {
       return {
         ...state,
         practiceIndex: nextIndex,
+      };
+    }
+
+    case 'SEED_PRACTICE_QUEUE': {
+      if (state.result || state.practiceQueue.length > 0) return state;
+      if (action.payload.weaknesses.length === 0) return state;
+      return {
+        ...state,
+        practiceMode: 'weakness',
+        practiceQueue: action.payload.weaknesses,
+        practiceIndex: 0,
+        practiceCompleted: false,
       };
     }
 
@@ -306,6 +346,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
       finishDiagnosis: () => {
         dispatch({ type: 'FINISH_DIAGNOSIS' });
       },
+      resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => {
+        dispatch({ type: 'RESUME_DIAGNOSIS', payload: resumeState });
+      },
       advancePractice: () => {
         dispatch({ type: 'ADVANCE_PRACTICE' });
       },
@@ -314,6 +357,9 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
       },
       resetSession: () => {
         dispatch({ type: 'RESET' });
+      },
+      seedPracticeQueue: (weaknesses: WeaknessId[]) => {
+        dispatch({ type: 'SEED_PRACTICE_QUEUE', payload: { weaknesses } });
       },
     }),
     [problems, state, totalQuestions],

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
@@ -13,6 +13,8 @@ import { useQuizSession } from '@/features/quiz/session';
 import { computeCanGraduate } from './can-graduate';
 
 type ScreenMode = 'weakness' | 'challenge' | 'review';
+
+export { computeCanGraduate } from './can-graduate';
 
 export type QuizPracticeRouteParams = {
   fallbackWeaknessKey?: string;
@@ -73,6 +75,13 @@ export type UsePracticeScreenResult = {
   screenTitle: string;
   selectedIndex: number | null;
   weaknessLabel: string;
+  currentQuestionNumber: number;
+  isExitModalVisible: boolean;
+  onCloseExitModal: () => void;
+  onConfirmExit: () => void;
+  onOpenExitModal: () => void;
+  progressPercent: `${number}%`;
+  questionCount: number;
 };
 
 const PERSIST_ERROR_MESSAGE = '연습 기록을 저장하지 못했어요. 다시 시도해 주세요.';
@@ -81,8 +90,16 @@ export function usePracticeScreen({
   fallbackWeaknessKey,
   requestedMode,
 }: QuizPracticeRouteParams): UsePracticeScreenResult {
-  const { state, advancePractice, completeChallenge, resetSession } = useQuizSession();
-  const { graduateToPractice, profile, recordAttempt, session, summary } = useCurrentLearner();
+  const { state, advancePractice, completeChallenge, resetSession, seedPracticeQueue } = useQuizSession();
+  const {
+    clearPendingPractice,
+    graduateToPractice,
+    markPendingPracticeStarted,
+    profile,
+    recordAttempt,
+    session,
+    summary,
+  } = useCurrentLearner();
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>();
@@ -93,6 +110,8 @@ export function usePracticeScreen({
   const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
   const [solvedCount, setSolvedCount] = useState(0);
   const [isGraduating, setIsGraduating] = useState(false);
+  const [isExitModalVisible, setIsExitModalVisible] = useState(false);
+  const reviewQueueInitialCountRef = useRef<number | null>(null);
 
   const fallbackWeaknessId = resolveWeaknessId(fallbackWeaknessKey);
   const reviewQueue = useMemo<ActiveReviewTaskSummary[]>(
@@ -117,7 +136,7 @@ export function usePracticeScreen({
       return activeReviewTask?.weaknessId;
     }
 
-    if (state.result && activeMode === 'weakness') {
+    if (activeMode === 'weakness' && state.practiceQueue.length > 0) {
       return state.practiceQueue[state.practiceIndex];
     }
 
@@ -128,8 +147,17 @@ export function usePracticeScreen({
     fallbackWeaknessId,
     state.practiceIndex,
     state.practiceQueue,
-    state.result,
   ]);
+
+  useEffect(() => {
+    if (activeMode !== 'review') {
+      reviewQueueInitialCountRef.current = null;
+      return;
+    }
+    if (reviewQueueInitialCountRef.current === null) {
+      reviewQueueInitialCountRef.current = reviewQueue.length;
+    }
+  }, [activeMode, reviewQueue.length]);
 
   const activeProblem =
     activeMode === 'challenge'
@@ -147,6 +175,32 @@ export function usePracticeScreen({
     setPersistErrorMessage(null);
     setProblemStartedAt(new Date().toISOString());
   }, [activeProblem?.id, activeReviewTask?.id]);
+
+  // state 5 감지용 플래그. weakness 모드에서 활성 문제가 잡혀 실제 풀이 중일 때만 SET.
+  // review/challenge 모드는 건드리지 않는다.
+  useEffect(() => {
+    if (activeMode !== 'weakness') {
+      return;
+    }
+    if (!activeProblem) {
+      return;
+    }
+    void markPendingPracticeStarted().catch((err) => {
+      console.warn('[PracticeScreen] markPendingPracticeStarted failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMode, activeProblem?.id]);
+
+  useEffect(() => {
+    if (activeMode !== 'weakness') return;
+    if (state.result) return;
+    if (state.practiceQueue.length > 0) return;
+    const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
+    if (!weaknesses?.length) return;
+    seedPracticeQueue(weaknesses);
+    // seedPracticeQueue는 useMemo 내부 함수라 deps 추가 시 state 변경마다 참조가 갱신되어 무한 루프 유발 — 의도적 제외
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
     if (mode === 'challenge') {
@@ -243,12 +297,15 @@ export function usePracticeScreen({
       return;
     }
 
-    if (state.result && state.practiceMode === 'weakness') {
+    if (state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
       const isLast = state.practiceIndex >= state.practiceQueue.length - 1;
       advancePractice();
 
       if (isLast) {
         resetSession();
+        void clearPendingPractice().catch((err) => {
+          console.warn('[PracticeScreen] clearPendingPractice failed', err);
+        });
         router.replace({
           pathname: '/quiz/step-complete',
           params: { step: 'practice' },
@@ -341,9 +398,28 @@ export function usePracticeScreen({
         : baseWeaknessLabel;
 
   const isLastWeakness =
-    state.result && state.practiceMode === 'weakness'
+    state.practiceMode === 'weakness' && state.practiceQueue.length > 0
       ? state.practiceIndex >= state.practiceQueue.length - 1
       : true;
+
+  const counter = (() => {
+    if (activeMode === 'weakness' && state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
+      const total = Math.max(state.practiceQueue.length, 1);
+      const current = Math.min(state.practiceIndex + 1, total);
+      return { current, total };
+    }
+
+    if (activeMode === 'review') {
+      const total = Math.max(reviewQueueInitialCountRef.current ?? reviewQueue.length, 1);
+      const remaining = reviewQueue.length;
+      const current = Math.min(Math.max(total - remaining + 1, 1), total);
+      return { current, total };
+    }
+
+    return { current: 1, total: 1 };
+  })();
+
+  const progressPercent = `${Math.round((counter.current / counter.total) * 100)}%` as `${number}%`;
 
   return {
     activeProblem,
@@ -355,7 +431,7 @@ export function usePracticeScreen({
             ? '다음 복습 문제'
             : '홈으로 돌아가기'
           : isLastWeakness
-            ? state.result && state.practiceMode === 'weakness'
+            ? state.practiceMode === 'weakness' && state.practiceQueue.length > 0
               ? '연습 완료'
               : '피드백 화면으로 이동'
             : '다음 약점 문제',
@@ -379,7 +455,12 @@ export function usePracticeScreen({
 
       router.replace('/quiz/result');
     },
-    canGraduate: activeMode === 'weakness' && solvedCount > 0 && !profile?.practiceGraduatedAt,
+    canGraduate: computeCanGraduate({
+      activeMode,
+      solvedCount,
+      questionCount: counter.total,
+      practiceGraduatedAt: profile?.practiceGraduatedAt,
+    }),
     isGraduating,
     onGraduate: () => {
       if (isGraduating) {
@@ -388,6 +469,10 @@ export function usePracticeScreen({
       setIsGraduating(true);
       void graduateToPractice()
         .then(() => {
+          void clearPendingPractice().catch((err) => {
+            console.warn('[PracticeScreen] clearPendingPractice failed', err);
+          });
+          resetSession();
           router.replace('/(tabs)/quiz');
         })
         .catch(() => {
@@ -403,5 +488,23 @@ export function usePracticeScreen({
           : '약점 기반 연습',
     selectedIndex,
     weaknessLabel,
+    currentQuestionNumber: counter.current,
+    isExitModalVisible,
+    onCloseExitModal: () => setIsExitModalVisible(false),
+    onConfirmExit: () => {
+      if (isGraduating) {
+        return;
+      }
+      setIsExitModalVisible(false);
+      router.replace('/(tabs)/quiz');
+    },
+    onOpenExitModal: () => {
+      if (isGraduating) {
+        return;
+      }
+      setIsExitModalVisible(true);
+    },
+    progressPercent,
+    questionCount: counter.total,
   };
 }
