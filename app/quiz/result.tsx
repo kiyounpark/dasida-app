@@ -13,6 +13,11 @@ export default function QuizResultRoute() {
       legacyWeaknessKey={
         getSingleParam(params.weaknessId) ?? getSingleParam(params.weakTag)
       }
+      examId={getSingleParam(params.examId)}
+      examTotal={getSingleParam(params.examTotal)}
+      examCorrect={getSingleParam(params.examCorrect)}
+      examAccuracy={getSingleParam(params.examAccuracy)}
+      examTopWeaknesses={getSingleParam(params.examTopWeaknesses)}
     />
   );
 }

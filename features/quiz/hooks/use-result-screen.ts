@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
+import type { WeaknessId } from '@/data/diagnosisMap';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
@@ -10,6 +11,7 @@ import {
   scheduleReviewNotifications,
 } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useQuizSession } from '@/features/quiz/session';
+import type { QuizResultSummary } from '@/features/quiz/types';
 
 const resultScreenReviewStore = new LocalReviewTaskStore();
 
@@ -17,6 +19,12 @@ export type QuizResultRouteParams = {
   legacyNextStep?: string;
   legacyWeaknessKey?: string;
   requestedSource?: string;
+  // exam source params
+  examId?: string;
+  examTotal?: string;
+  examCorrect?: string;
+  examAccuracy?: string;
+  examTopWeaknesses?: string;
 };
 
 export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -55,6 +63,11 @@ export function useResultScreen({
   legacyNextStep,
   legacyWeaknessKey,
   requestedSource,
+  examId,
+  examTotal,
+  examCorrect,
+  examAccuracy,
+  examTopWeaknesses,
 }: QuizResultRouteParams): UseResultScreenResult {
   const { state, resetSession } = useQuizSession();
   const {
@@ -67,7 +80,34 @@ export function useResultScreen({
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
-  const liveSummary = state.result;
+  const liveSessionSummary = state.result;
+
+  const examSummary = useMemo<QuizResultSummary | undefined>(() => {
+    if (requestedSource !== 'exam') return undefined;
+    if (!examTotal || !examCorrect || !examAccuracy || !examTopWeaknesses) return undefined;
+    const total = parseInt(examTotal, 10);
+    const correct = parseInt(examCorrect, 10);
+    const accuracy = parseInt(examAccuracy, 10);
+    let topWeaknesses: WeaknessId[] = [];
+    try {
+      topWeaknesses = JSON.parse(examTopWeaknesses) as WeaknessId[];
+    } catch {
+      topWeaknesses = [];
+    }
+    return {
+      attemptId: examId ?? 'exam',
+      startedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+      total,
+      correct,
+      wrong: total - correct,
+      accuracy,
+      allCorrect: correct === total,
+      topWeaknesses,
+    };
+  }, [requestedSource, examId, examTotal, examCorrect, examAccuracy, examTopWeaknesses]);
+
+  const liveSummary = examSummary ?? liveSessionSummary;
   const legacyWeaknessId = resolveWeaknessId(legacyWeaknessKey);
   const storedSummary = currentSummary?.latestDiagnosticSummary;
   const snapshotSummary =
@@ -82,6 +122,7 @@ export function useResultScreen({
   }
 
   const persistResult = useCallback(async () => {
+    if (requestedSource === 'exam') return; // exam result already saved by use-exam-result-screen
     if (!liveSummary || !profile || !session || saveState === 'saving') {
       return;
     }
@@ -103,7 +144,7 @@ export function useResultScreen({
       setSaveState('error');
       setSaveErrorMessage(getSaveErrorMessage(error));
     }
-  }, [liveSummary, profile, recordAttempt, saveState, session, state.answers]);
+  }, [liveSummary, profile, recordAttempt, requestedSource, saveState, session, state.answers]);
 
   useEffect(() => {
     if (!liveSummary) {
