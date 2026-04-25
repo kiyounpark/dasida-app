@@ -147,7 +147,6 @@ export function usePracticeScreen({
     fallbackWeaknessId,
     state.practiceIndex,
     state.practiceQueue,
-    state.result,
   ]);
 
   useEffect(() => {
@@ -199,6 +198,7 @@ export function usePracticeScreen({
     const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
     if (!weaknesses?.length) return;
     seedPracticeQueue(weaknesses);
+    // seedPracticeQueue는 useMemo 내부 함수라 deps 추가 시 state 변경마다 참조가 갱신되어 무한 루프 유발 — 의도적 제외
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
 

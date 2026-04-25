@@ -1,4 +1,5 @@
 import { reducer } from '@/features/quiz/session';
+import { createInitialWeaknessScores } from '@/features/quiz/engine';
 import type { WeaknessId } from '@/data/diagnosisMap';
 
 const baseState = {
@@ -10,7 +11,7 @@ const baseState = {
   answers: [],
   isDiagnosing: false,
   diagnosisQueue: [],
-  weaknessScores: {} as Record<WeaknessId, number>,
+  weaknessScores: createInitialWeaknessScores(),
   result: undefined,
   practiceMode: undefined as 'weakness' | 'challenge' | undefined,
   practiceQueue: [] as WeaknessId[],
@@ -104,5 +105,17 @@ describe('ADVANCE_PRACTICE (가드 완화)', () => {
     };
     const next = reducer(emptyQueueState, { type: 'ADVANCE_PRACTICE' });
     expect(next).toBe(emptyQueueState);
+  });
+
+  it('state.result 있는 기존 정상 흐름에서도 advance된다 (회귀 없음)', () => {
+    const stateWithResult = {
+      ...baseState,
+      result: { allCorrect: false, topWeaknesses: weaknesses } as any,
+      practiceMode: 'weakness' as const,
+      practiceQueue: weaknesses,
+      practiceIndex: 0,
+    };
+    const next = reducer(stateWithResult, { type: 'ADVANCE_PRACTICE' });
+    expect(next.practiceIndex).toBe(1);
   });
 });
