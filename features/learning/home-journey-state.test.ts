@@ -153,4 +153,34 @@ describe('getCurrentState', () => {
     );
     expect(state).toBe('diagnostic_analysis_pending');
   });
+
+  it('11: stale resume when attemptId matches latestDiagnosticSummary → skips diagnostic_analysis_pending', () => {
+    // same-attempt race: resume was saved but the attempt is already completed
+    // hasValidPendingResume stale guard ②: attemptId === latestDiagnosticSummary.attemptId → false
+    const sharedAttemptId = 'attempt-already-done';
+    const state = getCurrentState(
+      makeSummary({
+        latestDiagnosticSummary: {
+          attemptId: sharedAttemptId,
+          completedAt: '2026-04-20T10:00:00.000Z',
+          topWeaknesses: [],
+          accuracy: 0.8,
+          weaknessAccuracies: {},
+        },
+      }),
+      makeProfile({
+        pendingDiagnosisResume: {
+          schemaVersion: 1,
+          attemptId: sharedAttemptId, // same as completed → stale
+          startedAt: '2026-04-20T09:00:00.000Z',
+          savedAt: '2026-04-20T09:05:00.000Z',
+          totalQuestions: 10,
+          answers: [],
+          weaknessScores: {} as any,
+          diagnosisQueue: [1, 2, 3],
+        },
+      })
+    );
+    expect(state).toBe('result_pending');
+  });
 });
