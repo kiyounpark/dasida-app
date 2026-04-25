@@ -43,4 +43,10 @@ describe('buildProfileForPendingResume', () => {
     buildProfileForPendingResume(profile, RESUME_STATE);
     expect(profile.pendingDiagnosticStartedAt).toBe('2026-04-24T00:00:00Z');
   });
+
+  it('sets updatedAt to the provided now timestamp', () => {
+    const now = '2026-04-25T12:00:00Z';
+    const result = buildProfileForPendingResume(makeProfile(), RESUME_STATE, now);
+    expect(result.updatedAt).toBe(now);
+  });
 });

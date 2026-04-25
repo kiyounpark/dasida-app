@@ -154,6 +154,36 @@ describe('getCurrentState', () => {
     expect(state).toBe('diagnostic_analysis_pending');
   });
 
+  it('12: stale resume when savedAt is before latestDiagnosticSummary.completedAt (time-based guard ①)', () => {
+    // cross-device race: 다른 기기에서 새 attempt가 완료된 뒤 구기기의 오래된 resume을 열었을 때
+    // hasValidPendingResume stale guard ①: savedAt(08:00) <= completedAt(09:00) → false
+    // attemptId는 다르므로 guard ②는 발동 안 함 — guard ①만 단독으로 검증
+    const state = getCurrentState(
+      makeSummary({
+        latestDiagnosticSummary: {
+          attemptId: 'attempt-done',
+          completedAt: '2026-04-01T09:00:00Z',
+          topWeaknesses: [],
+          accuracy: 0.8,
+          weaknessAccuracies: {},
+        },
+      }),
+      makeProfile({
+        pendingDiagnosisResume: {
+          schemaVersion: 1,
+          attemptId: 'resume-different-attempt', // ②와 다름 — ①만 발동
+          startedAt: '2026-04-01T07:00:00Z',
+          savedAt: '2026-04-01T08:00:00Z', // completedAt(09:00)보다 이전 → stale
+          totalQuestions: 10,
+          answers: [],
+          weaknessScores: {} as any,
+          diagnosisQueue: [1, 2, 3],
+        },
+      })
+    );
+    expect(state).toBe('result_pending');
+  });
+
   it('11: stale resume when attemptId matches latestDiagnosticSummary → skips diagnostic_analysis_pending', () => {
     // same-attempt race: resume was saved but the attempt is already completed
     // hasValidPendingResume stale guard ②: attemptId === latestDiagnosticSummary.attemptId → false
