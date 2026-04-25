@@ -70,6 +70,8 @@ export function useExamDiagnosis(params: {
   const { examId, problemNumber, userAnswer, onComplete } = params;
   const { session, profile, recordAttempt } = useCurrentLearner();
   const { state } = useExamSession();
+  const attemptId = state.result?.attemptId ?? null;
+  const attemptDateISO = state.result?.completedAt ?? null;
 
   const problem = useMemo(
     () => getExamProblems(examId).find((p) => p.number === problemNumber),
@@ -280,6 +282,8 @@ export function useExamDiagnosis(params: {
     const weaknessId: WeaknessId = node.weaknessId;
     const completedAt = new Date().toISOString();
 
+    if (!attemptId || !attemptDateISO) return;
+
     setIsDone(true);
     logDiagnosisCompleted({
       accountKey: profile.accountKey,
@@ -289,10 +293,6 @@ export function useExamDiagnosis(params: {
       problemNumber,
     });
     setIsSaving(true);
-
-    const attemptId = state.result?.attemptId;
-    const attemptDateISO = state.result?.completedAt;
-    if (!attemptId || !attemptDateISO) return;
 
     Promise.all([
       markProblemDiagnosed(
@@ -328,7 +328,7 @@ export function useExamDiagnosis(params: {
       .finally(() => {
         if (isMountedRef.current) setIsSaving(false);
       });
-  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, state]);
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, attemptId, attemptDateISO]);
 
   return {
     problemNumber,
