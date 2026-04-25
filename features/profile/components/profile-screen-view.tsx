@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Alert,
   Linking,
   Modal,
   Pressable,
@@ -387,7 +388,7 @@ export function ProfileScreenView({
           </Text>
           <ActionButton
             label="개인정보처리방침"
-            onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy)}
+            onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy).catch(() => Alert.alert('오류', '링크를 열 수 없습니다.'))}
           />
         </View>
 
