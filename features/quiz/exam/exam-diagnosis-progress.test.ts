@@ -91,13 +91,7 @@ describe('exam-diagnosis-progress', () => {
   });
 
   describe('purgeLegacyDiagnosisKey', () => {
-    it('attemptId가 없는 옛날 키를 삭제한다', async () => {
-      await purgeLegacyDiagnosisKey('exam-x');
-
-      expect(mockedAsyncStorage.removeItem).toHaveBeenCalledWith(LEGACY_KEY);
-    });
-
-    it('removeItem을 정확히 1번만 호출한다', async () => {
+    it('attemptId가 없는 옛날 키를 정확히 1번 삭제한다', async () => {
       await purgeLegacyDiagnosisKey('exam-x');
 
       expect(mockedAsyncStorage.removeItem).toHaveBeenCalledTimes(1);

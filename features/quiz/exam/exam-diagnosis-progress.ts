@@ -54,9 +54,13 @@ export async function markProblemDiagnosed(
   weaknessId: WeaknessId,
 ): Promise<void> {
   pendingWrite = pendingWrite.then(async () => {
-    const current = await getDiagnosisProgress(scope);
-    const updated: ExamDiagnosisProgress = { ...current, [problemNumber]: weaknessId };
-    await AsyncStorage.setItem(storageKey(scope), JSON.stringify(updated));
+    try {
+      const current = await getDiagnosisProgress(scope);
+      const updated: ExamDiagnosisProgress = { ...current, [problemNumber]: weaknessId };
+      await AsyncStorage.setItem(storageKey(scope), JSON.stringify(updated));
+    } catch {
+      // 쓰기 실패 시 chain을 회복시켜 이후 호출이 영향받지 않도록 한다.
+    }
   });
   await pendingWrite;
 }
