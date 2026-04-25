@@ -312,7 +312,51 @@ useMemo 의존 배열도 함께 확인: `state.result` 대신 `state.practiceQue
     if (activeMode === 'weakness' && state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
 ```
 
-- [ ] **Step 2-5: 시딩 useEffect 추가**
+- [ ] **Step 2-5: `continueAfterPersistence` 약점 분기 조건 완화 (line 290)**
+
+답안 제출 후 다음 약점 문제로 넘기거나 마지막에 step-complete로 이동하는 핵심 로직. 시딩된 세션도 이 분기를 타야 advance가 동작한다.
+
+```ts
+// 변경 전 (line 290):
+    if (state.result && state.practiceMode === 'weakness') {
+      const isLast = state.practiceIndex >= state.practiceQueue.length - 1;
+      advancePractice();
+
+      if (isLast) {
+        resetSession();
+        ...
+
+// 변경 후:
+    if (state.practiceMode === 'weakness' && state.practiceQueue.length > 0) {
+      const isLast = state.practiceIndex >= state.practiceQueue.length - 1;
+      advancePractice();
+
+      if (isLast) {
+        resetSession();
+        ...
+```
+
+- [ ] **Step 2-6: `continueLabel` 약점 모드 라벨 조건 완화 (line 424)**
+
+마지막 약점에서 "연습 완료" 라벨을 표시하는 분기. 시딩된 세션도 같은 라벨을 보여야 한다.
+
+```ts
+// 변경 전 (line 422-426):
+          : isLastWeakness
+            ? state.result && state.practiceMode === 'weakness'
+              ? '연습 완료'
+              : '피드백 화면으로 이동'
+            : '다음 약점 문제',
+
+// 변경 후:
+          : isLastWeakness
+            ? state.practiceMode === 'weakness' && state.practiceQueue.length > 0
+              ? '연습 완료'
+              : '피드백 화면으로 이동'
+            : '다음 약점 문제',
+```
+
+- [ ] **Step 2-7: 시딩 useEffect 추가**
 
 `markPendingPracticeStarted` useEffect (line 181-193) **바로 아래**에 추가한다.
 
@@ -328,7 +372,7 @@ useMemo 의존 배열도 함께 확인: `state.result` 대신 `state.practiceQue
   }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
 ```
 
-- [ ] **Step 2-6: TypeScript 타입 체크**
+- [ ] **Step 2-8: TypeScript 타입 체크**
 
 ```bash
 npx tsc --noEmit 2>&1 | grep -E "session|practice-screen" | head -20
@@ -336,7 +380,7 @@ npx tsc --noEmit 2>&1 | grep -E "session|practice-screen" | head -20
 
 Expected: 관련 에러 없음
 
-- [ ] **Step 2-7: 기존 테스트 pass 확인**
+- [ ] **Step 2-9: 기존 테스트 pass 확인**
 
 ```bash
 npx jest features/quiz/ --no-coverage
@@ -344,7 +388,7 @@ npx jest features/quiz/ --no-coverage
 
 Expected: 전체 PASS
 
-- [ ] **Step 2-8: 커밋**
+- [ ] **Step 2-10: 커밋**
 
 ```bash
 git add features/quiz/hooks/use-practice-screen.ts
