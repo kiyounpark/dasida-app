@@ -25,7 +25,11 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
 
 import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
-import { markProblemDiagnosed } from '../exam-diagnosis-progress';
+import {
+  markProblemDiagnosed,
+  type ExamAttemptScope,
+} from '../exam-diagnosis-progress';
+import { useExamSession } from '../exam-session';
 
 export type ExamDiagEntry =
   | { kind: 'bubble'; id: string; role: 'assistant' | 'user'; text: string }
@@ -65,6 +69,7 @@ export function useExamDiagnosis(params: {
 }): UseExamDiagnosisResult {
   const { examId, problemNumber, userAnswer, onComplete } = params;
   const { session, profile, recordAttempt } = useCurrentLearner();
+  const { state } = useExamSession();
 
   const problem = useMemo(
     () => getExamProblems(examId).find((p) => p.number === problemNumber),
@@ -285,8 +290,16 @@ export function useExamDiagnosis(params: {
     });
     setIsSaving(true);
 
+    const attemptId = state.result?.attemptId;
+    const attemptDateISO = state.result?.completedAt;
+    if (!attemptId || !attemptDateISO) return;
+
     Promise.all([
-      markProblemDiagnosed(examId, problemNumber, weaknessId),
+      markProblemDiagnosed(
+        { examId, attemptId, attemptDateISO },
+        problemNumber,
+        weaknessId,
+      ),
       recordAttempt(
         buildExamDiagnosisAttemptInput({
           session,
@@ -315,7 +328,7 @@ export function useExamDiagnosis(params: {
       .finally(() => {
         if (isMountedRef.current) setIsSaving(false);
       });
-  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete]);
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, state]);
 
   return {
     problemNumber,
