@@ -21,6 +21,26 @@
 
 ## 로그
 
+### 2026.04.25
+
+**앱 전체 점검 완료 (출시 전 사용자 여정 순서 점검)**
+
+- **점검 범위**: TypeScript 빌드 → 온보딩/로그인 → 홈 상태 머신 → 진단 → 분석 → 약점 연습 → 설정 → Firebase/앱스토어 → 네비게이션 (9개 구역)
+- **Critical 이슈**: 없음 (Firestore 피드백 저장 미구현은 출시 범위 외로 확정)
+- **수정 완료 (Minor → Fixed)**:
+  - `fix(quiz)`: `step-complete(diagnostic)` 이동 `router.push` → `router.replace` (스와이프백 재진입 방지)
+  - `fix(quiz)`: `onGraduate`/`step-complete X버튼` 경로에 `resetSession()` 추가 (Android 백 스택 보호)
+  - `fix(profile)`: `Linking.openURL` 실패 시 Alert 에러 처리 추가
+  - `fix(nav)`: `step-complete` 스크린 `gestureEnabled: false` 추가 (스와이프백 차단)
+  - `fix(quiz)`: `computeCanGraduate` import 누락 수정 (TS 에러 0건 복원)
+- **잔존 Minor (출시 후 패치)**:
+  - 온보딩 입력값 재시작 시 소실 (useState only, AsyncStorage 미사용)
+  - 분석 플로우 저장 실패 시 사용자 피드백 없는 재시도, AI 재시도 버튼 없음
+  - Firebase Functions 리전 미설정 (기본 us-central1, 한국 레이턴시 증가 가능)
+  - 앱스토어 항목 수동 확인 필요 (TestFlight, 스크린샷, 카테고리 등)
+- **기준선**: TS 에러 0건, jest 테스트 22/22 통과
+- 커밋: `d76ce6c`, `23e6b16`, `c730afe`, `c56e4d3`, 최종 `computeCanGraduate` fix
+
 ### 2026.04.21
 
 **BUG-1/3/4 수정 — 학습 여정 7-state 모델 버그픽스 + 실기기 검증 완료**
@@ -801,6 +821,16 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.25 10:53
+- 해시: `7940c34` (`7940c34918c162ba4a0a54e26a016a69d106a327`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7940c34918c162ba4a0a54e26a016a69d106a327
+- 작성자: 박기윤
+- 메시지: docs(plan): 약점 연습 완료 버튼 노출 시점 개선 구현 계획
+- 본문: computeCanGraduate 순수 함수 추출 + 단위 테스트 TDD 계획. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.04.25 00:19
 - 해시: `c86b65f` (`c86b65fad60c13383cc9ea9a38339cbf91cdea8d`)
