@@ -206,8 +206,22 @@ function buildRecentActivity(
 ): LearnerSummaryCurrent['recentActivity'] {
   const activity: LearnerSummaryCurrent['recentActivity'] = [
     ...attempts
-      .filter((attempt) => attempt.source !== 'weakness-practice')
+      .filter((attempt) => attempt.source !== 'weakness-practice' || !attempt.reviewStage)
       .map((attempt) => {
+        if (attempt.source === 'weakness-practice') {
+          // reviewStage 없는 자유 약점 연습 (mode='weakness') — 복습 완료로 기록
+          return {
+            id: attempt.id,
+            kind: 'review' as const,
+            title: '복습 완료',
+            subtitle:
+              attempt.primaryWeaknessId !== null
+                ? diagnosisMap[attempt.primaryWeaknessId].labelKo
+                : `정답률 ${attempt.accuracy}%`,
+            occurredAt: attempt.completedAt,
+          };
+        }
+
         const kind: 'diagnostic' | 'exam' =
           attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
 

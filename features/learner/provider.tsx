@@ -33,6 +33,7 @@ import type {
   FeaturedExamState,
   LearnerProfile,
   LearnerTrack,
+  PendingDiagnosisResumeState,
   PreviewSeedState,
 } from '@/features/learner/types';
 import { type HomeLearningState } from '@/features/learning/home-state';
@@ -109,6 +110,13 @@ export type CurrentLearnerContextValue = {
     track?: LearnerTrack,
   ): Promise<void>;
   graduateToPractice(): Promise<void>;
+  markPendingDiagnosticStarted(): Promise<void>;
+  clearPendingDiagnostic(): Promise<void>;
+  setPendingDiagnosisResume(state: PendingDiagnosisResumeState): Promise<void>;
+  clearPendingDiagnosisResume(): Promise<void>;
+  markPendingPracticeStarted(): Promise<void>;
+  clearPendingPractice(): Promise<void>;
+  markDiagnosticResultViewed(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
@@ -274,6 +282,34 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       graduateToPractice: async () => {
         const snapshot = await learnerController.graduateToPractice();
+        setState(toLearnerState(snapshot));
+      },
+      markDiagnosticResultViewed: async () => {
+        const snapshot = await learnerController.markDiagnosticResultViewed();
+        setState(toLearnerState(snapshot));
+      },
+      markPendingDiagnosticStarted: async () => {
+        const snapshot = await learnerController.markPendingDiagnosticStarted();
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingDiagnostic: async () => {
+        const snapshot = await learnerController.clearPendingDiagnostic();
+        setState(toLearnerState(snapshot));
+      },
+      setPendingDiagnosisResume: async (resumeState) => {
+        const snapshot = await learnerController.setPendingDiagnosisResume(resumeState);
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingDiagnosisResume: async () => {
+        const snapshot = await learnerController.clearPendingDiagnosisResume();
+        setState(toLearnerState(snapshot));
+      },
+      markPendingPracticeStarted: async () => {
+        const snapshot = await learnerController.markPendingPracticeStarted();
+        setState(toLearnerState(snapshot));
+      },
+      clearPendingPractice: async () => {
+        const snapshot = await learnerController.clearPendingPractice();
         setState(toLearnerState(snapshot));
       },
       recordAttempt: async (input) => {

@@ -53,6 +53,7 @@ export type DiagnosticQuizStageModel = {
 
 export type UseDiagnosticScreenResult = {
   activeDiagnosisPageIndex: number;
+  completedDiagnosisCount: number;
   diagnosisPageWidth: number;
   diagnosisPages: DiagnosisPage[];
   diagnosisPagerRef: ReturnType<typeof useDiagnosisPager>['diagnosisPagerRef'];
@@ -64,7 +65,6 @@ export type UseDiagnosticScreenResult = {
   handleDiagnosisMomentumEnd: ReturnType<typeof useDiagnosisPager>['handleDiagnosisMomentumEnd'];
   handleDiagnosisRestoreHandled: ReturnType<typeof useDiagnosisPager>['handleDiagnosisRestoreHandled'];
   handleDiagnosisScrollOffsetChange: ReturnType<typeof useDiagnosisPager>['handleDiagnosisScrollOffsetChange'];
-  hasSeenDiagnosisIntro: boolean;
   hasStarted: boolean;
   hasStoredDiagnosisOffset: ReturnType<typeof useDiagnosisPager>['hasStoredDiagnosisOffset'];
   isCompactNavigator: boolean;
@@ -91,7 +91,6 @@ export type UseDiagnosticScreenResult = {
   onOpenExitModal: () => void;
   onScrollToDiagnosisPage: (pageIndex: number) => void;
   onScrollToIndexFailed: (index: number) => void;
-  onStartDiagnosisIntro: () => void;
   onStartSession: () => void;
 };
 
@@ -109,24 +108,19 @@ export function useDiagnosticScreen({
     confirmDiagnosisMethod,
     submitDiagnosisWeakness,
     finishDiagnosis,
+    resumeDiagnosis,
   } = useQuizSession();
-  const { profile } = useCurrentLearner();
+  const { profile, summary, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
   const { width: windowWidth } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(windowWidth, 1);
   const isMountedRef = useRef(true);
   const hasRequestedResetRef = useRef(false);
   const hasNavigatedToAnalysisRef = useRef(false);
+  const hasResumedDiagnosisRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
-  const [hasSeenDiagnosisIntro, setHasSeenDiagnosisIntro] = useState(false);
   const [hasNavigatedToStepComplete, setHasNavigatedToStepComplete] = useState(false);
-
-  useEffect(() => {
-    if (!state.hasStarted) {
-      setHasSeenDiagnosisIntro(false);
-    }
-  }, [state.hasStarted]);
 
   useEffect(() => {
     return () => {
@@ -171,6 +165,7 @@ export function useDiagnosticScreen({
     if (!state.isDiagnosing) {
       setHasNavigatedToStepComplete(false);
       hasNavigatedToAnalysisRef.current = false;
+      hasResumedDiagnosisRef.current = false;
     }
   }, [state.isDiagnosing]);
 
@@ -179,9 +174,9 @@ export function useDiagnosticScreen({
       return;
     }
 
-    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete) {
+    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete && !hasResumedDiagnosisRef.current) {
       setHasNavigatedToStepComplete(true);
-      router.push({
+      router.replace({
         pathname: '/quiz/step-complete',
         params: { step: 'diagnostic' },
       });
@@ -202,6 +197,31 @@ export function useDiagnosticScreen({
     }
   }, [isPreparingFreshSession, state.result]);
 
+  // 진단 결과가 기록되면 pending 플래그들을 순차적으로 클리어한다.
+  // 순서 중요: clearPendingDiagnostic → clearPendingDiagnosisResume.
+  // 역순이면 두 write 사이 window에서 isPendingDiagnosticFresh가 true로 평가되어
+  // 여정 보드가 diagnostic_in_progress를 잘못 표시할 수 있다.
+  // 단, 각 write는 독립적 try/catch이므로 write 1 실패 시에도 write 2가 실행된다.
+  // write 1 실패 + write 2 성공의 partial failure 케이스는 위 나쁜 상태로 남을 수 있다.
+  useEffect(() => {
+    if (!state.result) {
+      return;
+    }
+    void (async () => {
+      try {
+        await clearPendingDiagnostic();
+      } catch (err) {
+        console.warn('[DiagnosticScreen] clearPendingDiagnostic failed', err);
+      }
+      try {
+        await clearPendingDiagnosisResume();
+      } catch (err) {
+        console.warn('[DiagnosticScreen] clearPendingDiagnosisResume failed', err);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.result]);
+
   useEffect(() => {
     if (isPreparingFreshSession) {
       return;
@@ -211,6 +231,42 @@ export function useDiagnosticScreen({
       startSession();
     }
   }, [isPreparingFreshSession, shouldAutoStart, startSession, state.hasStarted]);
+
+  // pendingDiagnosisResume 감지 시 세션 자동 복원
+  useEffect(() => {
+    if (shouldResetOnMount || state.hasStarted || state.isDiagnosing) {
+      return;
+    }
+    const pendingResume = profile?.pendingDiagnosisResume;
+    if (
+      !pendingResume ||
+      pendingResume.schemaVersion !== 1 ||
+      pendingResume.diagnosisQueue.length === 0
+    ) {
+      return;
+    }
+    // §6.3: 이미 완료된 attemptId의 resume 상태는 복원하지 않는다.
+    if (summary?.latestDiagnosticSummary?.attemptId === pendingResume.attemptId) {
+      return;
+    }
+    hasResumedDiagnosisRef.current = true;
+    resumeDiagnosis(pendingResume);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.pendingDiagnosisResume]);
+
+  // state 2 감지용 플래그. hasStarted 전환 시마다 현재 시각으로 덮어쓴다(크로스 디바이스 stale 방지).
+  useEffect(() => {
+    if (isPreparingFreshSession) {
+      return;
+    }
+    if (!state.hasStarted) {
+      return;
+    }
+    void markPendingDiagnosticStarted().catch((err) => {
+      console.warn('[DiagnosticScreen] markPendingDiagnosticStarted failed', err);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreparingFreshSession, state.hasStarted]);
 
   const {
     appendNextNode,
@@ -503,9 +559,38 @@ export function useDiagnosticScreen({
     }
   };
 
+  const completedDiagnosisCount = state.isDiagnosing
+    ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
+    : 0;
+
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
-    finishDiagnosis();
+
+    const hasCompletedAnyAnalysis = state.isDiagnosing && completedDiagnosisCount > 0;
+
+    if (hasCompletedAnyAnalysis) {
+      // 완료된 분석만 반영된 결과를 생성한다. 미완성 항목은 결과에서 제외되며, 이는 의도된 동작이다.
+      finishDiagnosis();
+      return;
+    }
+
+    if (!state.attemptId || !state.startedAt) {
+      router.replace('/(tabs)/quiz');
+      return;
+    }
+    void setPendingDiagnosisResume({
+      schemaVersion: 1,
+      attemptId: state.attemptId,
+      startedAt: state.startedAt,
+      savedAt: new Date().toISOString(),
+      totalQuestions: state.totalQuestions,
+      answers: state.answers,
+      weaknessScores: state.weaknessScores,
+      diagnosisQueue: state.diagnosisQueue,
+    }).catch((err) => {
+      console.warn('[DiagnosticScreen] setPendingDiagnosisResume failed', err);
+    });
+    router.replace('/(tabs)/quiz');
   };
 
   const onQuestionSubmit = () => {
@@ -568,6 +653,7 @@ export function useDiagnosticScreen({
 
   return {
     activeDiagnosisPageIndex,
+    completedDiagnosisCount,
     diagnosisPageWidth,
     diagnosisPages,
     diagnosisPagerRef,
@@ -579,7 +665,6 @@ export function useDiagnosticScreen({
     handleDiagnosisMomentumEnd,
     handleDiagnosisRestoreHandled,
     handleDiagnosisScrollOffsetChange,
-    hasSeenDiagnosisIntro,
     hasStarted: state.hasStarted,
     hasStoredDiagnosisOffset,
     isCompactNavigator: diagnosisPages.length > 5,
@@ -613,7 +698,6 @@ export function useDiagnosticScreen({
         });
       }, 120);
     },
-    onStartDiagnosisIntro: () => setHasSeenDiagnosisIntro(true),
     onStartSession: startSession,
   };
 }

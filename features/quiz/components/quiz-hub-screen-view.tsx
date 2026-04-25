@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -5,7 +6,9 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
+import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
@@ -15,6 +18,7 @@ import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-se
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
 }
+
 
 function FeedbackCard({
   actionLabel,
@@ -85,14 +89,30 @@ export function QuizHubScreenView({
   onRefresh,
   profile,
   session,
+  showBrandHeader,
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
+  showReviewHomeCard,
+  showWeaknessSection,
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
+  const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  const posterTopPadding = insets.top + (isCompactLayout ? 14 : 24);
+  // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함
+  const bannerRaise = isCompactLayout ? 24 : 32;
+  // BrandHeader가 SafeAreaView edges={['top']}으로 insets.top을 처리하므로
+  // 졸업 후 상태에서는 insets.top을 제외한 콘텐츠 간격만 적용
+  const posterTopPadding = showBrandHeader
+    ? (isCompactLayout ? 14 : 24)
+    : insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
+  // Hero가 ScrollView 밖에 있으므로 Hero 컨테이너가 insets + bannerRaise를 담당한다.
+  const heroContainerPaddingTop = insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
+  // ScrollView는 Hero 아래 gap(14)만 갖는다 (졸업 후는 기존 brandHeader 케이스 그대로).
+  const scrollTopPadding = showJourneyHero
+    ? 14
+    : (isCompactLayout ? 14 : 24);
 
   if (!isReady) {
     return (
@@ -126,29 +146,43 @@ export function QuizHubScreenView({
 
   return (
     <View style={styles.screen}>
+      {showBrandHeader ? <BrandHeader compact /> : null}
+      {showJourneyHero ? (
+        <View
+          style={[styles.heroHeader, { paddingTop: heroContainerPaddingTop }]}
+          onLayout={(e) => {
+            const { y, height } = e.nativeEvent.layout;
+            setHeroLayoutBottom(y + height);
+          }}>
+          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+        </View>
+      ) : null}
+      {authNoticeMessage ? (
+        <View
+          style={[
+            styles.outerNotice,
+            showJourneyHero && heroLayoutBottom > 0 && styles.outerNoticeOverlay,
+            showJourneyHero && heroLayoutBottom > 0 && { top: heroLayoutBottom + 14 },
+          ]}>
+          <AuthNotice
+            isCompactLayout={isCompactLayout}
+            message={authNoticeMessage}
+            onDismiss={onDismissAuthNotice}
+          />
+        </View>
+      ) : null}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
           isTablet && styles.tabletPosterScreen,
           {
-            paddingTop: posterTopPadding,
+            paddingTop: scrollTopPadding,
             paddingBottom: bottomPadding,
-            justifyContent: homeState?.latestDiagnosticSummary ? 'flex-start' : 'center',
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {showJourneyHero ? (
-          <JourneyScreenHero isCompactLayout={isCompactLayout} />
-        ) : null}
-        {authNoticeMessage ? (
-          <AuthNotice
-            isCompactLayout={isCompactLayout}
-            message={authNoticeMessage}
-            onDismiss={onDismissAuthNotice}
-          />
-        ) : null}
-        {homeState?.nextReviewTask && homeState.todayReviewCount > 0 ? (
+        {showReviewHomeCard && homeState?.nextReviewTask ? (
           <ReviewHomeCard
             task={homeState.nextReviewTask}
             onPress={onPressReviewCard}
@@ -164,14 +198,23 @@ export function QuizHubScreenView({
           <JourneyBoard
             isCompactLayout={isCompactLayout}
             onPressCurrentStep={onPressJourneyCta}
-            onPressCta={onPressJourneyCta}
             state={journey}
           />
         ) : null}
-        {homeState ? (
+        {showWeaknessSection && homeState ? (
           <HomeWeaknessSection homeState={homeState} />
         ) : null}
       </ScrollView>
+      {showJourneyBoard ? (
+        <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 24 : 28) }]}>
+          <JourneyCtaButton
+            compact={isCompactLayout}
+            label={journey.ctaLabel}
+            onPress={onPressJourneyCta}
+            style={styles.ctaFooterButton}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -278,5 +321,34 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
+  },
+  ctaFooter: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 4,
+  },
+  ctaFooterButton: {
+    width: '70%',
+    maxWidth: 340,
+  },
+  heroHeader: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  outerNotice: {
+    width: '100%',
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    marginTop: 14,
+    zIndex: 10,
+  },
+  outerNoticeOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginTop: 0,
+    elevation: 10,
   },
 });

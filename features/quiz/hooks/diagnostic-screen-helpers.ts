@@ -186,6 +186,40 @@ export function createInitialDiagnosisWorkspace(
   };
 }
 
+export function createCompletedDiagnosisWorkspace(
+  answerIndex: number,
+  problem: Problem,
+): DiagnosisWorkspace {
+  return {
+    aiHelpState: null,
+    aiHelpUsed: false,
+    analysisErrorMessage: '',
+    answerIndex,
+    chatEntries: [
+      {
+        id: `${answerIndex}-problem`,
+        kind: 'problem',
+        question: problem.question,
+        topic: problem.topic,
+      },
+      {
+        id: `${answerIndex}-done`,
+        kind: 'bubble',
+        role: 'assistant',
+        text: '이 문제는 분석을 마쳤어요.',
+        tone: 'positive',
+      } as DiagnosisConversationEntry,
+    ],
+    diagnosisInput: '',
+    flowDraft: null,
+    isAnalyzing: false,
+    methodId: null,
+    problemId: problem.id,
+    routerResult: null,
+    status: 'completed',
+  };
+}
+
 export function getActiveFlowNode(workspace: DiagnosisWorkspace): DiagnosisFlowNode | null {
   if (!workspace.flowDraft) {
     return null;

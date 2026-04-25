@@ -128,8 +128,8 @@ const styles = StyleSheet.create({
   warningAccent: { backgroundColor: '#C9973E' },
   infoAccent: { backgroundColor: '#7B9079' },
   text: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 16,
+    lineHeight: 24,
   },
   assistantText: {
     color: DiagnosisTheme.ink,

@@ -5,15 +5,22 @@ import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 
 type DiagnosisExitConfirmModalProps = {
   visible: boolean;
+  completedCount: number;
   onContinue: () => void;
   onExit: () => void;
 };
 
 export function DiagnosisExitConfirmModal({
   visible,
+  completedCount,
   onContinue,
   onExit,
 }: DiagnosisExitConfirmModalProps) {
+  const bodyText =
+    completedCount > 0
+      ? '이미 분석한 약점은 저장돼요. 퀴즈는 다시 풀지 않아도 돼요.'
+      : '퀴즈는 다시 풀지 않아도 돼요. 약점 분석부터 이어서 할 수 있어요.';
+
   return (
     <Modal
       visible={visible}
@@ -25,10 +32,10 @@ export function DiagnosisExitConfirmModal({
         <View style={styles.card}>
           <View style={styles.topBand} />
           <Text selectable style={styles.title}>
-            오답 분석을 그만할까요?
+            잠시 멈추고 나갈까요?
           </Text>
           <Text selectable style={styles.body}>
-            완료하지 않은 분석은 저장되지 않아요. 완료한 분석만 결과에 반영할게요.
+            {bodyText}
           </Text>
           <View style={styles.actions}>
             <Pressable

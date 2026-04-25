@@ -1,10 +1,10 @@
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { BrandColors } from '@/constants/brand';
-import { DiagnosticQuestionCard } from '@/features/quiz/components/diagnostic-question-card';
+import { QuizQuestionCard } from '@/features/quiz/components/quiz-question-card';
 import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnostic-solve-bottom-panel';
-import { DiagnosticSolveExitModal } from '@/features/quiz/components/diagnostic-solve-exit-modal';
-import { DiagnosticSolveHeader } from '@/features/quiz/components/diagnostic-solve-header';
+import { QuizSolveExitConfirmModal } from '@/features/quiz/components/quiz-solve-exit-confirm-modal';
+import { QuizSolveHeader } from '@/features/quiz/components/quiz-solve-header';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
@@ -20,7 +20,7 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
     <View style={styles.screen}>
       <QuizSolveLayout
         body={
-          <DiagnosticQuestionCard
+          <QuizQuestionCard
             choices={quizStage.problem.choices}
             isCompactLayout={isCompactLayout}
             question={quizStage.problem.question}
@@ -40,20 +40,23 @@ export function DiagnosticQuizStage({ quizStage }: DiagnosticQuizStageProps) {
           />
         }
         header={
-          <DiagnosticSolveHeader
+          <QuizSolveHeader
             currentQuestionNumber={quizStage.currentQuestionNumber}
             isCompactLayout={isCompactLayout}
             onBackPress={quizStage.onOpenExitModal}
             progressPercent={quizStage.progressPercent}
             questionCount={quizStage.questionCount}
+            title="약점 진단"
           />
         }
         screenBackgroundColor={BrandColors.background}
       />
 
-      <DiagnosticSolveExitModal
+      <QuizSolveExitConfirmModal
+        body="지금까지 푼 답안은 저장되지 않아요. 나가면 처음부터 다시 시작해야 해요."
         onClose={quizStage.onCloseExitModal}
         onConfirmExit={quizStage.onConfirmExit}
+        title="진단을 나갈까요?"
         visible={quizStage.isExitModalVisible}
       />
     </View>

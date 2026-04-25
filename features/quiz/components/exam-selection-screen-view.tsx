@@ -60,7 +60,9 @@ export function ExamSelectionScreenView({
   onSelectExam,
 }: UseExamSelectionScreenResult) {
   const insets = useSafeAreaInsets();
-  const topPadding = insets.top + (isCompactLayout ? 38 : 42);
+  // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함
+  const bannerRaise = isCompactLayout ? 24 : 32;
+  const topPadding = insets.top + (isCompactLayout ? 38 : 42) + bannerRaise;
 
   return (
     <View style={styles.screen}>

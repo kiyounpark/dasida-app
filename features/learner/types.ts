@@ -1,5 +1,6 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
+import type { QuizAnswer } from '@/features/quiz/types';
 
 export type PreviewSeedState =
   | 'fresh'
@@ -39,6 +40,17 @@ export type FeaturedExamState = {
   lastOpenedAt?: string;
 };
 
+export type PendingDiagnosisResumeState = {
+  schemaVersion: 1;
+  attemptId: string;
+  startedAt: string;   // ISO
+  savedAt: string;     // ISO, stale 판정용
+  totalQuestions: number;
+  answers: QuizAnswer[];
+  weaknessScores: Record<WeaknessId, number>;
+  diagnosisQueue: number[];
+};
+
 export type LearnerProfile = {
   accountKey: string;
   learnerId: string;
@@ -48,4 +60,8 @@ export type LearnerProfile = {
   createdAt: string;
   updatedAt: string;
   practiceGraduatedAt?: string; // ISO 타임스탬프. 약점 연습 완료 버튼을 처음 누른 시각.
+  latestDiagnosticResultViewedAt?: string; // ISO 타임스탬프. 가장 최근 진단의 결과 화면을 처음 본 시각. 새 진단 완료 시 리셋된다.
+  pendingDiagnosticStartedAt?: string; // ISO 타임스탬프. 진단 진입 시 SET, 완료 시 CLEAR. stale 판정은 latestDiagnosticSummary.completedAt과 비교.
+  pendingPracticeStartedAt?: string; // ISO 타임스탬프. weakness 연습 진입 시 SET, 완료 시 CLEAR. stale 판정은 최신 진단 완료 시각과 비교.
+  pendingDiagnosisResume?: PendingDiagnosisResumeState;
 };

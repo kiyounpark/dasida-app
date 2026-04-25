@@ -43,6 +43,8 @@ export class LocalLearnerProfileStore implements LearnerProfileStore {
   }
 
   async save(profile: LearnerProfile): Promise<void> {
+    // JSON.stringify: undefined 필드는 직렬화에서 제외되어 미저장.
+    // 커스텀 replacer로 undefined를 보존할 경우 필드 삭제가 동작하지 않음.
     await AsyncStorage.setItem(
       getLearnerProfileStorageKey(profile.accountKey),
       JSON.stringify(profile),

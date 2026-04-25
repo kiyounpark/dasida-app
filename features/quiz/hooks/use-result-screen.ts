@@ -34,7 +34,6 @@ export type UseResultScreenResult = {
   legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string };
   legacyWeaknessId: ReturnType<typeof resolveWeaknessId>;
   liveSummary: ReturnType<typeof useQuizSession>['state']['result'];
-  onCloseReport: () => void;
   onOpenChallengePractice: () => void;
   onOpenLegacyPractice: () => void;
   onOpenSnapshotDiagnostic: () => void;
@@ -58,7 +57,13 @@ export function useResultScreen({
   requestedSource,
 }: QuizResultRouteParams): UseResultScreenResult {
   const { state, resetSession } = useQuizSession();
-  const { profile, recordAttempt, session, summary: currentSummary } = useCurrentLearner();
+  const {
+    markDiagnosticResultViewed,
+    profile,
+    recordAttempt,
+    session,
+    summary: currentSummary,
+  } = useCurrentLearner();
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
@@ -147,6 +152,26 @@ export function useResultScreen({
       .catch(console.warn);
   }, [saveState, session?.accountKey]);
 
+  // 결과 화면 첫 진입 시 "결과 봄" 이정표를 기록한다.
+  // 이미 값이 있으면 controller 측에서 no-op로 처리된다.
+  useEffect(() => {
+    const hasAnySummary = Boolean(liveSummary) || Boolean(snapshotSummary);
+    if (!hasAnySummary) {
+      return;
+    }
+    if (profile?.latestDiagnosticResultViewedAt) {
+      return;
+    }
+    void markDiagnosticResultViewed().catch((err) => {
+      console.warn('[Result] markDiagnosticResultViewed failed', err);
+    });
+  }, [
+    liveSummary,
+    markDiagnosticResultViewed,
+    profile?.latestDiagnosticResultViewedAt,
+    snapshotSummary,
+  ]);
+
   const snapshotSummaryTitle = useMemo(() => {
     if (!snapshotSummary || snapshotSummary.topWeaknesses.length === 0) {
       return null;
@@ -160,9 +185,6 @@ export function useResultScreen({
     legacyPracticeParams,
     legacyWeaknessId,
     liveSummary,
-    onCloseReport: () => {
-      router.replace('/quiz');
-    },
     onOpenChallengePractice: () => {
       router.push({
         pathname: '/quiz/practice',

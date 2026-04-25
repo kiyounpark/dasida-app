@@ -7,7 +7,6 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
-import { useQuizSession } from '@/features/quiz/session';
 
 const hubReviewStore = new LocalReviewTaskStore();
 
@@ -30,9 +29,12 @@ export type UseQuizHubScreenResult = {
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
+  showBrandHeader: boolean;
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
+  showReviewHomeCard: boolean;
+  showWeaknessSection: boolean;
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
@@ -47,7 +49,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     refresh,
     session,
   } = useCurrentLearner();
-  const { resetSession } = useQuizSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
   const isGraduatingRef = useRef(false);
 
@@ -91,10 +92,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   );
 
   const onStartDiagnostic = () => {
-    resetSession();
     router.push({
       pathname: '/quiz/diagnostic',
-      params: { autostart: '1' },
+      params: { autostart: '1', reset: '1' },
     });
   };
 
@@ -137,29 +137,35 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/(tabs)/quiz/exams');
   };
 
+  const onResumeDiagnosis = () => {
+    router.push('/quiz/diagnostic');
+  };
+
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
 
-    if (!action) {
+    if (!action || action === 'none') {
       return;
     }
 
     switch (action) {
+      case 'resume_diagnosis':
+        onResumeDiagnosis();
+        return;
       case 'open_result':
         onOpenRecentResult();
         return;
       case 'open_review':
         onOpenPractice();
         return;
-      case 'open_exam':
-        // practiceGraduatedAt 없으면 → 졸업 처리 (실전 여정 시작)
-        // practiceGraduatedAt 있으면 → JourneyBoard 자체가 숨겨져 있어 실제로 호출 안 됨
+      case 'graduate_practice':
         if (isGraduatingRef.current) return;
         isGraduatingRef.current = true;
         void graduateToPractice()
           .then(() => {
             isGraduatingRef.current = false;
-            resetSession();
+            // router.replace가 app/quiz/_layout.tsx 스택을 unmount하면서
+            // QuizSessionProvider도 소멸 → 세션 상태가 자연히 초기화됨
             router.replace('/(tabs)/quiz');
           })
           .catch((err) => {
@@ -167,24 +173,35 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
             console.warn('[QuizHub] graduateToPractice failed', err);
           });
         return;
-      default:
+      case 'start_diagnostic':
         onStartDiagnostic();
+        return;
+      default: {
+        const exhaustiveCheck: never = action;
+        console.warn('[QuizHub] unknown ctaAction', exhaustiveCheck);
+      }
     }
   };
 
-  // exam 단계 + 미졸업 시 ctaLabel 오버라이드
-  const baseJourney = homeState?.journey ?? null;
-  const journey =
-    baseJourney && baseJourney.ctaAction === 'open_exam' && !profile?.practiceGraduatedAt
-      ? { ...baseJourney, ctaLabel: '실전 여정으로 떠나기 →' }
-      : baseJourney;
+  const journey = homeState?.journey ?? null;
+  const isGraduated = journey?.currentStateKey === 'journey_graduated';
+  const isJourneyActive = !isGraduated;
 
-  const showJourneyHero = !profile?.practiceGraduatedAt;
-  const showJourneyBoard = !profile?.practiceGraduatedAt;
+  const showBrandHeader = isGraduated;
+  const showJourneyHero = isJourneyActive;
+  const showJourneyBoard = isJourneyActive;
+  // 여정 진행 중에는 NoReviewDayCard를 숨긴다. 졸업 후(isGraduated)에만 기존 조건을 평가.
   const showNoReviewDayCard =
+    isGraduated &&
     !!homeState?.nextReviewTask &&
-    homeState.todayReviewCount === 0 &&
-    !profile?.practiceGraduatedAt;
+    homeState.todayReviewCount === 0;
+  // 약점 섹션도 여정 완료 후에만 노출.
+  const showWeaknessSection = isGraduated;
+  // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
+  const showReviewHomeCard =
+    isGraduated &&
+    !!homeState?.nextReviewTask &&
+    homeState.todayReviewCount > 0;
 
   return {
     authNoticeMessage: localAuthNoticeMessage,
@@ -205,8 +222,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onStartDiagnostic,
     profile,
     session,
+    showBrandHeader,
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
+    showReviewHomeCard,
+    showWeaknessSection,
   };
 }

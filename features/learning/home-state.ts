@@ -253,7 +253,7 @@ function buildWeaknessProgressItems(
 }
 
 export function buildHomeLearningState(
-  _profile: LearnerProfile,
+  profile: LearnerProfile,
   summary: LearnerSummaryCurrent,
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
   allReviewTasks: ReviewTask[] = [],
@@ -272,7 +272,7 @@ export function buildHomeLearningState(
 
   return {
     ...heroContent,
-    journey: buildHomeJourneyState(summary),
+    journey: buildHomeJourneyState(summary, profile),
     peerPresence,
     latestDiagnosticSummary: summary.latestDiagnosticSummary,
     nextReviewTask,

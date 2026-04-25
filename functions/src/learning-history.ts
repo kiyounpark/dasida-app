@@ -1,6 +1,7 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
+import { stripUndefined } from './firestore-sanitize';
 import {
   buildImportWriteOperations,
   groupImportWriteOperations,
@@ -271,6 +272,7 @@ const LearningAttemptSchema = z.object({
   accuracy: z.number().int().min(0).max(100),
   primaryWeaknessId: WeaknessIdSchema.nullable(),
   topWeaknesses: z.array(WeaknessIdSchema).max(3),
+  reviewStage: ReviewStageSchema.optional(),
   schemaVersion: z.literal(1),
   createdAt: z.string().datetime(),
 });
@@ -688,8 +690,22 @@ function buildRecentActivity(
 ): LearnerSummaryCurrent['recentActivity'] {
   const activity: LearnerSummaryCurrent['recentActivity'] = [
     ...attempts
-      .filter((attempt) => attempt.source !== 'weakness-practice')
+      .filter((attempt) => attempt.source !== 'weakness-practice' || !attempt.reviewStage)
       .map((attempt) => {
+        if (attempt.source === 'weakness-practice') {
+          // reviewStage 없는 자유 약점 연습 (mode='weakness') — 복습 완료로 기록
+          return {
+            id: attempt.id,
+            kind: 'review' as const,
+            title: '복습 완료',
+            subtitle:
+              attempt.primaryWeaknessId !== null
+                ? weaknessLabels[attempt.primaryWeaknessId]
+                : `정답률 ${attempt.accuracy}%`,
+            occurredAt: attempt.completedAt,
+          };
+        }
+
         const kind: 'diagnostic' | 'exam' =
           attempt.source === 'featured-exam' ? 'exam' : 'diagnostic';
 
@@ -751,6 +767,7 @@ function buildAttempt(input: FinalizedAttemptInput, createdAt: string): Learning
     accuracy: input.accuracy,
     primaryWeaknessId: input.primaryWeaknessId,
     topWeaknesses: input.topWeaknesses,
+    reviewStage: input.reviewContext?.reviewStage,
     schemaVersion: 1,
     createdAt,
   });
@@ -985,12 +1002,12 @@ export async function recordLearningAttempt(input: FinalizedAttemptInput) {
   const reviewTaskMutations = diffReviewTasks(existingReviewTasks, nextReviewTasks);
   const batch = firestore.batch();
 
-  batch.set(attemptRef, attempt, { merge: true });
+  batch.set(attemptRef, stripUndefined(attempt), { merge: true });
   results.forEach((result) => {
-    batch.set(getAttemptResultsCollection(input.accountKey).doc(result.id), result, { merge: true });
+    batch.set(getAttemptResultsCollection(input.accountKey).doc(result.id), stripUndefined(result), { merge: true });
   });
   reviewTaskMutations.upserts.forEach((task) => {
-    batch.set(getReviewTasksCollection(input.accountKey).doc(task.id), task, { merge: true });
+    batch.set(getReviewTasksCollection(input.accountKey).doc(task.id), stripUndefined(task), { merge: true });
   });
   reviewTaskMutations.deletes.forEach((task) => {
     batch.delete(getReviewTasksCollection(input.accountKey).doc(task.id));
@@ -1006,7 +1023,7 @@ export async function recordLearningAttempt(input: FinalizedAttemptInput) {
     history.currentSummary,
   );
 
-  await getSummaryRef(input.accountKey).set(summary, { merge: true });
+  await getSummaryRef(input.accountKey).set(stripUndefined(summary), { merge: true });
 
   return {
     attempt,
@@ -1044,7 +1061,7 @@ export async function getLearnerSummary(accountKey: string) {
     history.reviewTasks,
     history.currentSummary,
   );
-  await getSummaryRef(accountKey).set(summary, { merge: true });
+  await getSummaryRef(accountKey).set(stripUndefined(summary), { merge: true });
   return summary;
 }
 
@@ -1103,7 +1120,7 @@ export async function saveFeaturedExamStateSummary(
     updatedAt: new Date().toISOString(),
   });
 
-  await getSummaryRef(accountKey).set(nextSummary, { merge: true });
+  await getSummaryRef(accountKey).set(stripUndefined(nextSummary), { merge: true });
   return nextSummary;
 }
 
@@ -1153,7 +1170,7 @@ export async function importLocalLearningHistory(params: {
     const batch = firestore.batch();
 
     batchOperations.forEach((operation) => {
-      batch.set(getImportWriteRef(targetAccountKey, operation), operation.data, { merge: true });
+      batch.set(getImportWriteRef(targetAccountKey, operation), stripUndefined(operation.data), { merge: true });
     });
 
     await batch.commit();
@@ -1171,7 +1188,7 @@ export async function importLocalLearningHistory(params: {
     },
   );
 
-  await getSummaryRef(targetAccountKey).set(summary, { merge: true });
+  await getSummaryRef(targetAccountKey).set(stripUndefined(summary), { merge: true });
 
   return {
     status: 'imported' as const,

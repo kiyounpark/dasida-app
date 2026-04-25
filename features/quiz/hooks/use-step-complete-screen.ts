@@ -50,8 +50,9 @@ export function useStepCompleteScreen(
   }, [stepKey, isGraduating, resetSession, graduateToPractice]);
 
   const onDismissCallback = useCallback(() => {
+    resetSession();
     router.replace('/(tabs)/quiz');
-  }, []);
+  }, [resetSession]);
 
   const onDismiss: (() => void) | undefined =
     stepKey === 'practice' ? onDismissCallback : undefined;

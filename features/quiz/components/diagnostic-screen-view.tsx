@@ -13,12 +13,12 @@ import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-conversation-page';
 import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
-import { DiagnosisIntroScreen } from '@/features/quiz/components/diagnosis-intro-screen';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
 import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 export function DiagnosticScreenView({
   activeDiagnosisPageIndex,
+  completedDiagnosisCount,
   diagnosisPageWidth,
   diagnosisPages,
   diagnosisPagerRef,
@@ -29,7 +29,6 @@ export function DiagnosticScreenView({
   handleDiagnosisMomentumEnd,
   handleDiagnosisRestoreHandled,
   handleDiagnosisScrollOffsetChange,
-  hasSeenDiagnosisIntro,
   hasStarted,
   hasStoredDiagnosisOffset,
   isDiagnosing,
@@ -55,7 +54,6 @@ export function DiagnosticScreenView({
   onOpenExitModal,
   onScrollToDiagnosisPage,
   onScrollToIndexFailed,
-  onStartDiagnosisIntro,
   onStartSession,
 }: UseDiagnosticScreenResult) {
   if (isLoadingState) {
@@ -72,10 +70,6 @@ export function DiagnosticScreenView({
   }
 
   if (isDiagnosing) {
-    if (!hasSeenDiagnosisIntro) {
-      return <DiagnosisIntroScreen onStartDiagnosis={onStartDiagnosisIntro} />;
-    }
-
     const totalCount = diagnosisPages.length;
     const completedIndices = diagnosisPages
       .map((page, i) => (page.workspace.status === 'completed' ? i : -1))
@@ -179,6 +173,7 @@ export function DiagnosticScreenView({
 
         <DiagnosisExitConfirmModal
           visible={isExitModalVisible}
+          completedCount={completedDiagnosisCount}
           onContinue={onCloseExitModal}
           onExit={onExitDiagnosis}
         />
