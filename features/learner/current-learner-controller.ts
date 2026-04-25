@@ -87,6 +87,8 @@ export type CurrentLearnerController = {
   pullReviewDueDates(): Promise<CurrentLearnerSnapshot>;
   clearLearningHistory(): Promise<CurrentLearnerSnapshot>;
   resetLocalProfile(): Promise<CurrentLearnerSnapshot>;
+  markPendingPracticeStarted(): Promise<CurrentLearnerSnapshot>;
+  clearPendingPractice(): Promise<CurrentLearnerSnapshot>;
 };
 
 type Dependencies = {
