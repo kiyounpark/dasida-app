@@ -120,6 +120,7 @@ export function DiagnosticScreenView({
                 diagnosisInput={item.workspace.diagnosisInput}
                 routerResult={item.workspace.routerResult}
                 suggestedMethods={item.suggestedMethods}
+                showAvatar={true}
                 analysisErrorMessage={item.workspace.analysisErrorMessage}
                 isAnalyzing={item.workspace.isAnalyzing}
                 aiHelpInput={item.workspace.aiHelpState?.input ?? ''}
