@@ -461,6 +461,7 @@ export function usePracticeScreen({
           void clearPendingPractice().catch((err) => {
             console.warn('[PracticeScreen] clearPendingPractice failed', err);
           });
+          resetSession();
           router.replace('/(tabs)/quiz');
         })
         .catch(() => {
