@@ -161,6 +161,8 @@ export function useDiagnosticScreen({
     state.result,
   ]);
 
+  // isDiagnosing→false와 result→set은 finalizeQuiz()에서 단일 dispatch로 동시에 일어난다.
+  // 따라서 이 effect는 결과 전환 시에는 발화하지 않으며, 세션이 완전히 비어있을 때만 ref를 초기화한다.
   useEffect(() => {
     if (!state.isDiagnosing && !state.result) {
       hasNavigatedToAnalysisRef.current = false;
@@ -178,10 +180,11 @@ export function useDiagnosticScreen({
     if (state.result && !hasNavigatedToAnalysisRef.current) {
       hasNavigatedToAnalysisRef.current = true;
       if (shouldDelayResultNavRef.current) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           if (!isMountedRef.current) return;
           router.replace('/quiz/result');
         }, 3000);
+        return () => clearTimeout(timeoutId);
       } else {
         router.replace('/quiz/result');
       }
