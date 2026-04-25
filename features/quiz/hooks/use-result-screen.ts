@@ -41,7 +41,7 @@ export type UseResultScreenResult = {
   legacyNextStep?: string;
   legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string };
   legacyWeaknessId: ReturnType<typeof resolveWeaknessId>;
-  liveSummary: ReturnType<typeof useQuizSession>['state']['result'];
+  liveSummary: QuizResultSummary | undefined;
   onOpenChallengePractice: () => void;
   onOpenLegacyPractice: () => void;
   onOpenSnapshotDiagnostic: () => void;
@@ -87,7 +87,7 @@ export function useResultScreen({
     if (!examTotal || !examCorrect || !examAccuracy || !examTopWeaknesses) return undefined;
     const total = parseInt(examTotal, 10);
     const correct = parseInt(examCorrect, 10);
-    const accuracy = parseInt(examAccuracy, 10);
+    const accuracy = Number(examAccuracy) || 0;
     let topWeaknesses: WeaknessId[] = [];
     try {
       topWeaknesses = JSON.parse(examTopWeaknesses) as WeaknessId[];
@@ -196,6 +196,7 @@ export function useResultScreen({
   // 결과 화면 첫 진입 시 "결과 봄" 이정표를 기록한다.
   // 이미 값이 있으면 controller 측에서 no-op로 처리된다.
   useEffect(() => {
+    if (requestedSource === 'exam') return; // exam visits don't set the diagnostic result viewed milestone
     const hasAnySummary = Boolean(liveSummary) || Boolean(snapshotSummary);
     if (!hasAnySummary) {
       return;
