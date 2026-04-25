@@ -27,8 +27,9 @@ export function QuizResultReportView({
 }: QuizResultReportViewProps) {
   const { width } = useWindowDimensions();
   const isCompactLayout = width < 390;
-  const visibleWeaknesses = summary.topWeaknesses.slice(0, 3);
-  const primaryWeaknessId = visibleWeaknesses[0];
+  const topWeaknesses = summary.topWeaknesses.slice(0, 3);
+  const extraWeaknesses = summary.topWeaknesses.slice(3);
+  const primaryWeaknessId = topWeaknesses[0];
 
   return (
     <View style={styles.screen}>
@@ -47,7 +48,7 @@ export function QuizResultReportView({
 
         <QuizResultReportHero
           isCompactLayout={isCompactLayout}
-          pointCount={visibleWeaknesses.length}
+          pointCount={topWeaknesses.length}
         />
 
         {saveState === 'saving' ? (
@@ -72,7 +73,7 @@ export function QuizResultReportView({
         ) : null}
 
         <View style={styles.cardList}>
-          {visibleWeaknesses.map((weaknessId) => {
+          {topWeaknesses.map((weaknessId) => {
             const info = diagnosisMap[weaknessId];
 
             return (
@@ -86,6 +87,29 @@ export function QuizResultReportView({
             );
           })}
         </View>
+
+        {extraWeaknesses.length > 0 && (
+          <View style={styles.extraSection}>
+            <Text style={styles.extraSectionLabel}>
+              그 외 약점 {extraWeaknesses.length}개
+            </Text>
+            <View style={styles.compactList}>
+              {extraWeaknesses.map((weaknessId) => {
+                const info = diagnosisMap[weaknessId];
+                return (
+                  <View key={weaknessId} style={styles.compactRow}>
+                    <View style={styles.topicChip}>
+                      <Text style={styles.topicChipText}>{info.topicLabel}</Text>
+                    </View>
+                    <Text style={styles.compactRowName} numberOfLines={1}>
+                      {info.labelKo}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         <View style={styles.ctaWrap}>
           <BrandButton
@@ -170,6 +194,50 @@ const styles = StyleSheet.create({
   },
   cardList: {
     gap: 12,
+  },
+  extraSection: {
+    gap: 8,
+  },
+  extraSectionLabel: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#1C2C19',
+  },
+  compactList: {
+    gap: 6,
+  },
+  compactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 252, 247, 0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(41, 59, 39, 0.10)',
+    borderRadius: 11,
+    borderCurve: 'continuous',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  topicChip: {
+    backgroundColor: 'rgba(74, 124, 89, 0.13)',
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    flexShrink: 0,
+  },
+  topicChipText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#2A5C38',
+  },
+  compactRowName: {
+    flex: 1,
+    fontFamily: FontFamilies.bold,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#1C2C19',
   },
   ctaWrap: {
     gap: 10,
