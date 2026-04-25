@@ -85,7 +85,6 @@ export type UseDiagnosticScreenResult = {
   onExplainContinue: (page: DiagnosisPage) => void;
   onExplainDontKnow: (page: DiagnosisPage) => void;
   onExitDiagnosis: () => void;
-  onFinalConfirm: (page: DiagnosisPage) => void;
   onInputChange: (answerIndex: number, text: string) => void;
   onManualSelect: (page: DiagnosisPage, methodId: SolveMethodId) => void;
   onOpenExitModal: () => void;
@@ -117,10 +116,11 @@ export function useDiagnosticScreen({
   const hasRequestedResetRef = useRef(false);
   const hasNavigatedToAnalysisRef = useRef(false);
   const hasResumedDiagnosisRef = useRef(false);
+  const autoCompletedRef = useRef(new Set<number>());
+  const shouldDelayResultNavRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
-  const [hasNavigatedToStepComplete, setHasNavigatedToStepComplete] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -163,9 +163,10 @@ export function useDiagnosticScreen({
 
   useEffect(() => {
     if (!state.isDiagnosing) {
-      setHasNavigatedToStepComplete(false);
       hasNavigatedToAnalysisRef.current = false;
       hasResumedDiagnosisRef.current = false;
+      autoCompletedRef.current = new Set<number>();
+      shouldDelayResultNavRef.current = false;
     }
   }, [state.isDiagnosing]);
 
@@ -174,26 +175,15 @@ export function useDiagnosticScreen({
       return;
     }
 
-    if (state.isDiagnosing && !state.result && !hasNavigatedToStepComplete && !hasResumedDiagnosisRef.current) {
-      setHasNavigatedToStepComplete(true);
-      router.push({
-        pathname: '/quiz/step-complete',
-        params: { step: 'diagnostic' },
-      });
-    }
-  }, [isPreparingFreshSession, state.isDiagnosing, state.result, hasNavigatedToStepComplete]);
-
-  useEffect(() => {
-    if (isPreparingFreshSession) {
-      return;
-    }
-
     if (state.result && !hasNavigatedToAnalysisRef.current) {
       hasNavigatedToAnalysisRef.current = true;
-      router.replace({
-        pathname: '/quiz/step-complete',
-        params: { step: 'analysis' },
-      });
+      if (shouldDelayResultNavRef.current) {
+        setTimeout(() => {
+          router.replace('/quiz/result');
+        }, 3000);
+      } else {
+        router.replace('/quiz/result');
+      }
     }
   }, [isPreparingFreshSession, state.result]);
 
@@ -331,6 +321,83 @@ export function useDiagnosticScreen({
     setDiagnosisInteracted,
     updateWorkspace,
   });
+
+  // 최종 노드 자동 저장 — final 노드에 도달한 페이지를 즉시 저장하고 3초 후 다음으로 이동
+  useEffect(() => {
+    if (!state.isDiagnosing) return;
+
+    for (const page of diagnosisPages) {
+      const { answerIndex, workspace } = page;
+      if (workspace.status === 'completed') continue;
+      if (autoCompletedRef.current.has(answerIndex)) continue;
+
+      const activeNode = getActiveFlowNode(workspace);
+      if (!activeNode || activeNode.kind !== 'final') continue;
+
+      autoCompletedRef.current.add(answerIndex);
+
+      const weaknessId = activeNode.weaknessId;
+
+      submitDiagnosisWeakness(
+        answerIndex,
+        weaknessId,
+        buildDiagnosisDetailTrace(workspace.flowDraft!, weaknessId),
+      );
+
+      updateWorkspace(answerIndex, (current) => ({
+        ...current,
+        aiHelpState: null,
+        chatEntries: [
+          ...freezeConversationEntries(current.chatEntries),
+          createBubbleEntry(answerIndex, 'user', activeNode.ctaLabel),
+          createBubbleEntry(answerIndex, 'assistant', '이 문제는 분석을 마쳤어요.', 'positive'),
+        ],
+        status: 'completed',
+      }));
+
+      setDiagnosisInteracted(answerIndex);
+      requestDiagnosisAutoScroll(answerIndex);
+
+      if (profile) {
+        logDiagnosisCompleted({
+          accountKey: profile.accountKey,
+          source: 'unit',
+          weaknessId,
+        });
+      }
+
+      const currentPageIndex = diagnosisPages.findIndex((p) => p.answerIndex === answerIndex);
+      const nextPageIndex =
+        currentPageIndex === -1
+          ? null
+          : findNextIncompleteDiagnosisPageIndex(diagnosisPages, currentPageIndex);
+
+      const isLastPage = nextPageIndex === null;
+      if (isLastPage) {
+        shouldDelayResultNavRef.current = true;
+      }
+
+      setTimeout(() => {
+        if (!isMountedRef.current) return;
+        if (nextPageIndex !== null) {
+          scrollToDiagnosisPage(nextPageIndex);
+        }
+      }, 3000);
+    }
+  }, [
+    state.isDiagnosing,
+    diagnosisPages,
+    submitDiagnosisWeakness,
+    updateWorkspace,
+    createBubbleEntry,
+    freezeConversationEntries,
+    buildDiagnosisDetailTrace,
+    setDiagnosisInteracted,
+    requestDiagnosisAutoScroll,
+    logDiagnosisCompleted,
+    scrollToDiagnosisPage,
+    profile,
+  ]);
 
   const onInputChange = (answerIndex: number, text: string) => {
     setDiagnosisInteracted(answerIndex);
@@ -499,66 +566,6 @@ export function useDiagnosticScreen({
     openAiHelpComposer(page, 'check');
   };
 
-  const onFinalConfirm = (page: DiagnosisPage) => {
-    const { answerIndex, workspace } = page;
-    const activeNode = getActiveFlowNode(workspace);
-    if (!workspace.flowDraft || !activeNode || activeNode.kind !== 'final') {
-      return;
-    }
-    if (workspace.status === 'completed') {
-      return;
-    }
-
-    setDiagnosisInteracted(answerIndex);
-    requestDiagnosisAutoScroll(answerIndex);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    const currentPageIndex = diagnosisPages.findIndex(
-      (diagnosisPage) => diagnosisPage.answerIndex === answerIndex,
-    );
-    const nextPageIndex =
-      currentPageIndex === -1
-        ? null
-        : findNextIncompleteDiagnosisPageIndex(diagnosisPages, currentPageIndex);
-
-    submitDiagnosisWeakness(
-      answerIndex,
-      activeNode.weaknessId,
-      buildDiagnosisDetailTrace(workspace.flowDraft, activeNode.weaknessId),
-    );
-
-    updateWorkspace(answerIndex, (current) => ({
-      ...current,
-      aiHelpState: null,
-      chatEntries: [
-        ...freezeConversationEntries(current.chatEntries),
-        createBubbleEntry(answerIndex, 'user', activeNode.ctaLabel),
-        createBubbleEntry(answerIndex, 'assistant', '이 문제는 분석을 마쳤어요.', 'positive'),
-      ],
-      status: 'completed',
-    }));
-
-    if (profile) {
-      logDiagnosisCompleted({
-        accountKey: profile.accountKey,
-        source: 'unit',
-        weaknessId: activeNode.weaknessId,
-      });
-    }
-
-    if (nextPageIndex !== null) {
-      requestAnimationFrame(() => {
-        if (!isMountedRef.current) {
-          return;
-        }
-
-        scrollToDiagnosisPage(nextPageIndex);
-      });
-    }
-  };
-
   const completedDiagnosisCount = state.isDiagnosing
     ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
     : 0;
@@ -685,7 +692,6 @@ export function useDiagnosticScreen({
     onExitDiagnosis,
     onExplainContinue,
     onExplainDontKnow,
-    onFinalConfirm,
     onInputChange,
     onManualSelect,
     onOpenExitModal: () => setIsExitModalVisible(true),

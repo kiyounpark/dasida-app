@@ -48,7 +48,6 @@ export function DiagnosticScreenView({
   onExitDiagnosis,
   onExplainContinue,
   onExplainDontKnow,
-  onFinalConfirm,
   onInputChange,
   onManualSelect,
   onOpenExitModal,
@@ -146,7 +145,6 @@ export function DiagnosticScreenView({
                 onExplainDontKnow={() => onExplainDontKnow(item)}
                 onCheckPress={(optionId) => onCheckPress(item, optionId)}
                 onCheckDontKnow={() => onCheckDontKnow(item)}
-                onFinalConfirm={() => onFinalConfirm(item)}
                 onAiHelpInputChange={(text) => onAiHelpInputChange(item.answerIndex, text)}
                 onAiHelpSubmit={() => onAiHelpSubmit(item)}
                 onAiHelpContinue={() => onAiHelpContinue(item)}

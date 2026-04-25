@@ -85,7 +85,6 @@ type DiagnosisConversationPageProps = {
   onExplainDontKnow: () => void;
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
-  onFinalConfirm: () => void;
   onAiHelpInputChange: (text: string) => void;
   onAiHelpSubmit: () => void;
   onAiHelpContinue: () => void;
@@ -137,7 +136,6 @@ export function DiagnosisConversationPage({
   onExplainDontKnow,
   onCheckPress,
   onCheckDontKnow,
-  onFinalConfirm,
   onAiHelpInputChange,
   onAiHelpSubmit,
   onAiHelpContinue,
@@ -303,7 +301,6 @@ export function DiagnosisConversationPage({
                     onExplainDontKnow={onExplainDontKnow}
                     onCheckPress={onCheckPress}
                     onCheckDontKnow={onCheckDontKnow}
-                    onFinalConfirm={onFinalConfirm}
                   />
                 </View>
               </Animated.View>
