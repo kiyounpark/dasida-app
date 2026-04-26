@@ -1,10 +1,12 @@
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
-import { BrandColors } from '@/constants/brand';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
+
+import { NoteCollectionBar } from '@/features/quiz/exam/components/note-collection-bar';
 
 import { QuizResultReportCard } from './quiz-result-report-card';
 import { QuizResultReportHeader } from './quiz-result-report-header';
@@ -16,6 +18,8 @@ type QuizResultReportViewProps = {
   saveErrorMessage: string | null;
   saveState: UseResultScreenResult['saveState'];
   summary: NonNullable<UseResultScreenResult['liveSummary']>;
+  source?: 'exam' | 'diagnostic';
+  totalNotes?: number;
 };
 
 export function QuizResultReportView({
@@ -24,6 +28,8 @@ export function QuizResultReportView({
   saveErrorMessage,
   saveState,
   summary,
+  source,
+  totalNotes,
 }: QuizResultReportViewProps) {
   const { width } = useWindowDimensions();
   const isCompactLayout = width < 390;
@@ -42,6 +48,23 @@ export function QuizResultReportView({
           styles.container,
           isCompactLayout && styles.containerCompact,
         ]}>
+        {source === 'exam' && totalNotes ? (
+          <View style={styles.climaxBanner}>
+            <Text style={styles.climaxEmoji}>🎉</Text>
+            <Text style={styles.climaxTitle}>{totalNotes}장 노트 모두 수집!</Text>
+            <Text style={styles.climaxSub}>전체 분석 완료 · 약점 {topWeaknesses.length}개 발견</Text>
+          </View>
+        ) : null}
+
+        {source === 'exam' && totalNotes ? (
+          <NoteCollectionBar
+            current={totalNotes}
+            total={totalNotes}
+            variant="full"
+            showRemainingHint={false}
+          />
+        ) : null}
+
         <Text selectable style={[styles.summaryLine, isCompactLayout && styles.summaryLineCompact]}>
           총 {summary.total}문제 중 {summary.correct}문제 정답 · 정답률 {summary.accuracy}%
         </Text>
@@ -249,5 +272,29 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     paddingVertical: 12,
     boxShadow: '0 14px 28px rgba(26, 38, 28, 0.12)',
+  },
+  climaxBanner: {
+    backgroundColor: '#C8EAC8',
+    borderColor: '#2A5C3855',
+    borderWidth: 1.5,
+    borderRadius: BrandRadius.lg,
+    padding: BrandSpacing.md,
+    alignItems: 'center' as const,
+    marginBottom: BrandSpacing.sm,
+  },
+  climaxEmoji: {
+    fontSize: 32,
+    marginBottom: 4,
+  },
+  climaxTitle: {
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 16,
+    color: '#1C2C19',
+    marginBottom: 2,
+  },
+  climaxSub: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 11,
+    color: '#4A4540',
   },
 });
