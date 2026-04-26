@@ -21,6 +21,7 @@ export function QuizResultScreenView({
   persistResult,
   saveErrorMessage,
   saveState,
+  source,
   snapshotSummary,
   snapshotSummaryTitle,
 }: UseResultScreenResult) {
@@ -124,6 +125,8 @@ export function QuizResultScreenView({
         saveErrorMessage={saveErrorMessage}
         saveState={saveState}
         summary={summary}
+        source={source}
+        totalNotes={source === 'exam' ? summary.wrong : undefined}
       />
     );
   }

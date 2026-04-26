@@ -25,6 +25,7 @@ export type QuizResultRouteParams = {
   examCorrect?: string;
   examAccuracy?: string;
   examTopWeaknesses?: string;
+  examWrong?: string;
 };
 
 export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -51,6 +52,7 @@ export type UseResultScreenResult = {
   persistResult: () => Promise<void>;
   saveErrorMessage: string | null;
   saveState: ResultSaveState;
+  source?: 'exam' | 'diagnostic';
   snapshotSummary: ReturnType<typeof useCurrentLearner>['summary'] extends infer Summary
     ? Summary extends { latestDiagnosticSummary?: infer Snapshot }
       ? Snapshot | undefined
@@ -68,6 +70,7 @@ export function useResultScreen({
   examCorrect,
   examAccuracy,
   examTopWeaknesses,
+  examWrong,
 }: QuizResultRouteParams): UseResultScreenResult {
   const { state, resetSession } = useQuizSession();
   const {
@@ -88,6 +91,9 @@ export function useResultScreen({
     const total = parseInt(examTotal, 10);
     const correct = parseInt(examCorrect, 10);
     const accuracy = Number(examAccuracy) || 0;
+    // Use the explicitly passed wrongCount (answered-but-wrong only, excluding blanks).
+    // Fall back to total - correct only when the param is absent (legacy navigation).
+    const wrong = examWrong ? parseInt(examWrong, 10) : total - correct;
     let topWeaknesses: WeaknessId[] = [];
     try {
       topWeaknesses = JSON.parse(examTopWeaknesses) as WeaknessId[];
@@ -100,12 +106,12 @@ export function useResultScreen({
       completedAt: new Date().toISOString(),
       total,
       correct,
-      wrong: total - correct,
+      wrong,
       accuracy,
       allCorrect: correct === total,
       topWeaknesses,
     };
-  }, [requestedSource, examId, examTotal, examCorrect, examAccuracy, examTopWeaknesses]);
+  }, [requestedSource, examId, examTotal, examCorrect, examAccuracy, examTopWeaknesses, examWrong]);
 
   const liveSummary = examSummary ?? liveSessionSummary;
   const legacyWeaknessId = resolveWeaknessId(legacyWeaknessKey);
@@ -227,6 +233,7 @@ export function useResultScreen({
     legacyPracticeParams,
     legacyWeaknessId,
     liveSummary,
+    source: requestedSource === 'exam' ? 'exam' : undefined,
     onOpenChallengePractice: () => {
       router.push({
         pathname: '/quiz/practice',

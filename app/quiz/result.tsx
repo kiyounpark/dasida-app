@@ -18,6 +18,7 @@ export default function QuizResultRoute() {
       examCorrect={getSingleParam(params.examCorrect)}
       examAccuracy={getSingleParam(params.examAccuracy)}
       examTopWeaknesses={getSingleParam(params.examTopWeaknesses)}
+      examWrong={getSingleParam(params.examWrong)}
     />
   );
 }

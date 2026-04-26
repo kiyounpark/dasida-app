@@ -119,6 +119,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         examCorrect: String(result.correct),
         examAccuracy: String(result.accuracy),
         examTopWeaknesses: JSON.stringify(topWeaknesses),
+        examWrong: String(wrongCount),
       },
     });
   }, [diagnosedCount, wrongCount, result, diagnosedProblems]);
