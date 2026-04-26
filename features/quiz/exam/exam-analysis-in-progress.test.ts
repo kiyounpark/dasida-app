@@ -1,7 +1,10 @@
+import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
   type AnalysisInProgressInput,
 } from '@/features/quiz/exam/exam-analysis-in-progress';
+
+const w = (s: string) => s as unknown as WeaknessId;
 
 describe('computeAnalysisInProgressState', () => {
   it('어템트 없으면 inactive', () => {
@@ -49,7 +52,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
         },
-        diagnosedProblems: { 1: 'w_basic', 2: 'w_advanced' } as Record<number, string>,
+        diagnosedProblems: { 1: w('w_basic'), 2: w('w_advanced') },
       }),
     ).toEqual({
       isInProgress: true,
@@ -73,7 +76,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
         },
-        diagnosedProblems: { 1: 'w1', 2: 'w2', 3: 'w3' } as Record<number, string>,
+        diagnosedProblems: { 1: w('w1'), 2: w('w2'), 3: w('w3') },
       }),
     ).toEqual({ isInProgress: false });
   });
@@ -87,7 +90,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2],
         },
-        diagnosedProblems: { 1: 'w1', 99: 'w_stale' } as Record<number, string>,
+        diagnosedProblems: { 1: w('w1'), 99: w('w_stale') },
       }),
     ).toEqual({
       isInProgress: true,
