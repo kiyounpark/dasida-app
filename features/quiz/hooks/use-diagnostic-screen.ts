@@ -117,7 +117,6 @@ export function useDiagnosticScreen({
   const hasNavigatedToAnalysisRef = useRef(false);
   const hasResumedDiagnosisRef = useRef(false);
   const autoCompletedRef = useRef(new Set<number>());
-  const shouldDelayResultNavRef = useRef(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
@@ -168,7 +167,6 @@ export function useDiagnosticScreen({
       hasNavigatedToAnalysisRef.current = false;
       hasResumedDiagnosisRef.current = false;
       autoCompletedRef.current = new Set<number>();
-      shouldDelayResultNavRef.current = false;
     }
   }, [state.isDiagnosing, state.result]);
 
@@ -179,15 +177,7 @@ export function useDiagnosticScreen({
 
     if (state.result && !hasNavigatedToAnalysisRef.current) {
       hasNavigatedToAnalysisRef.current = true;
-      if (shouldDelayResultNavRef.current) {
-        const timeoutId = setTimeout(() => {
-          if (!isMountedRef.current) return;
-          router.replace('/quiz/result');
-        }, 3000);
-        return () => clearTimeout(timeoutId);
-      } else {
-        router.replace('/quiz/result');
-      }
+      router.replace('/quiz/result');
     }
   }, [isPreparingFreshSession, state.result]);
 
@@ -326,7 +316,11 @@ export function useDiagnosticScreen({
     updateWorkspace,
   });
 
-  // 최종 노드 자동 저장 — final 노드에 도달한 페이지를 즉시 저장하고 3초 후 다음으로 이동
+  // 최종 노드 도달 시: "분석을 마쳤어요" 메시지를 즉시 노출하고, 3초 후에
+  // 약점 디스패치 + 다음 페이지 이동을 함께 수행한다. 마지막 페이지라면 디스패치가
+  // finalizeQuiz를 트리거해 result가 세팅되고 navigation effect가 즉시 /quiz/result로
+  // 이동한다 (디스패치를 즉시 호출하면 isDiagnosing이 즉시 false가 되어 페이저가
+  // 사라지고 3초간 흰 화면이 나타나는 문제를 방지).
   useEffect(() => {
     if (!state.isDiagnosing) return;
 
@@ -341,12 +335,7 @@ export function useDiagnosticScreen({
       autoCompletedRef.current.add(answerIndex);
 
       const weaknessId = activeNode.weaknessId;
-
-      submitDiagnosisWeakness(
-        answerIndex,
-        weaknessId,
-        buildDiagnosisDetailTrace(workspace.flowDraft!, weaknessId),
-      );
+      const detailTrace = buildDiagnosisDetailTrace(workspace.flowDraft!, weaknessId);
 
       updateWorkspace(answerIndex, (current) => ({
         ...current,
@@ -376,13 +365,9 @@ export function useDiagnosticScreen({
           ? null
           : findNextIncompleteDiagnosisPageIndex(diagnosisPages, currentPageIndex);
 
-      const isLastPage = nextPageIndex === null;
-      if (isLastPage) {
-        shouldDelayResultNavRef.current = true;
-      }
-
       setTimeout(() => {
         if (!isMountedRef.current) return;
+        submitDiagnosisWeakness(answerIndex, weaknessId, detailTrace);
         if (nextPageIndex !== null) {
           scrollToDiagnosisPage(nextPageIndex);
         }
