@@ -1,5 +1,5 @@
 // features/quiz/exam/screens/exam-diagnosis-session-screen.tsx
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +38,11 @@ export function ExamDiagnosisSessionScreen() {
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
+  const router = useRouter();
+
+  const handlePauseRequested = useCallback(() => {
+    router.replace('/(tabs)/quiz');
+  }, [router]);
 
   const { onSwipeEnd } = session;
 
@@ -92,6 +97,10 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(activeProblemNumber)}
             width={pageWidth}
             isActive={true}
+            totalNotes={wrongProblemNumbers.length}
+            currentNoteCountBeforeThis={session.diagnosedIndices.length}
+            isLastProblem={session.getNextProblemNumber(session.activeProblemIndex) === null}
+            onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(session.activeProblemIndex)}
           />
         )}
@@ -135,6 +144,14 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(problemNumber)}
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
+            totalNotes={wrongProblemNumbers.length}
+            currentNoteCountBeforeThis={
+              session.diagnosedIndices.includes(index)
+                ? session.diagnosedIndices.indexOf(index)
+                : session.diagnosedIndices.length
+            }
+            isLastProblem={session.getNextProblemNumber(index) === null}
+            onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(index)}
           />
         )}

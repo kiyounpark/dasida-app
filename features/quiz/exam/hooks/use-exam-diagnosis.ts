@@ -28,6 +28,14 @@ import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
 import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
+import {
+  detectMilestoneReached,
+} from '@/features/quiz/exam/diagnosis-milestone';
+import {
+  hasMilestoneShown,
+  markMilestoneShown,
+} from '@/features/quiz/exam/diagnosis-milestone-progress';
+import { buildMiniCardText } from '@/features/quiz/exam/diagnosis-mini-card-text';
 
 export type ExamDiagEntry =
   | { kind: 'bubble'; id: string; role: 'assistant' | 'user'; text: string }
@@ -74,15 +82,33 @@ export type UseExamDiagnosisResult = {
   onExplainDontKnow: () => void;
   onCheckPress: (optionId: string) => void;
   onCheckDontKnow: () => void;
+  onPause: () => void;
+  onAdvance: () => void;
 };
+
+function extractLastMeaningfulNodeText(draft: DiagnosisFlowDraft): string | null {
+  const flow = getDiagnosisFlow(draft.methodId);
+  const reversedIds = [...draft.visitedNodeIds].reverse();
+  for (const nodeId of reversedIds) {
+    const node = flow.nodes[nodeId];
+    if (!node) continue;
+    if (node.kind === 'explain') return node.body;
+    if (node.kind === 'check') return node.prompt ?? node.title;
+  }
+  return null;
+}
 
 export function useExamDiagnosis(params: {
   examId: string;
   problemNumber: number;
   userAnswer: number;
+  totalNotes: number;
+  currentNoteCountBeforeThis: number;
+  isLastProblem: boolean;
+  onPauseRequested: () => void;
   onComplete: () => void;
 }): UseExamDiagnosisResult {
-  const { examId, problemNumber, userAnswer, onComplete } = params;
+  const { examId, problemNumber, userAnswer, totalNotes, currentNoteCountBeforeThis, isLastProblem, onPauseRequested, onComplete } = params;
   const { session, profile, recordAttempt } = useCurrentLearner();
   const { state } = useExamSession();
   const attemptId = state.result?.attemptId ?? null;
@@ -287,7 +313,6 @@ export function useExamDiagnosis(params: {
     advanceDraft(advanceFromCheck(draft, undefined), '모르겠습니다');
   }, [draft, advanceDraft]);
 
-  // 최종 노드 자동 저장 — draft가 final을 가리키는 순간 즉시 저장, 1.5초 후 다음 문제 카드 등장
   useEffect(() => {
     if (!draft || !session || !profile || isDone) return;
     const flow = getDiagnosisFlow(draft.methodId);
@@ -309,6 +334,14 @@ export function useExamDiagnosis(params: {
     });
     setIsSaving(true);
 
+    const noteCountAfterThis = currentNoteCountBeforeThis + 1;
+    const milestoneFraction = detectMilestoneReached({
+      totalWrong: totalNotes,
+      currentNoteCount: noteCountAfterThis,
+    });
+    const methodLabel = methods.find((m) => m.id === draft.methodId)?.labelKo ?? null;
+    const lastNodeText = extractLastMeaningfulNodeText(draft);
+
     Promise.all([
       markProblemDiagnosed(
         { examId, attemptId, attemptDateISO },
@@ -329,21 +362,78 @@ export function useExamDiagnosis(params: {
         }),
       ),
     ])
-      .then(() => {
+      .then(async () => {
         if (!isMountedRef.current) return;
-        setTimeout(() => {
-          if (!isMountedRef.current || hasAdvancedRef.current) return;
-          hasAdvancedRef.current = true;
-          onComplete();
-        }, 3000);
+        setIsSaving(false);
+
+        let shouldShowMilestone = false;
+        if (milestoneFraction !== null) {
+          const seen = await hasMilestoneShown(
+            { examId, attemptId, attemptDateISO },
+            milestoneFraction,
+          );
+          if (!seen) {
+            shouldShowMilestone = true;
+            await markMilestoneShown({ examId, attemptId, attemptDateISO }, milestoneFraction);
+          }
+        }
+
+        if (!isMountedRef.current) return;
+
+        if (shouldShowMilestone && milestoneFraction !== null) {
+          freezeAndAppend([{
+            kind: 'milestone-banner',
+            id: `milestone-${milestoneFraction}-${problemNumber}`,
+            fraction: milestoneFraction,
+            noteCount: noteCountAfterThis,
+            totalNotes,
+          }]);
+        } else {
+          const { patternName, patternDescription } = buildMiniCardText({
+            methodLabel,
+            lastNodeText,
+          });
+          freezeAndAppend([{
+            kind: 'mini-card',
+            id: `mini-card-${problemNumber}`,
+            patternName,
+            patternDescription,
+            noteCount: noteCountAfterThis,
+            totalNotes,
+            problemNumber,
+            isLastProblem,
+          }]);
+        }
       })
       .catch(() => {
-        if (isMountedRef.current) setIsDone(false);
-      })
-      .finally(() => {
-        if (isMountedRef.current) setIsSaving(false);
+        if (!isMountedRef.current) return;
+        setIsSaving(false);
+        const { patternName, patternDescription } = buildMiniCardText({
+          methodLabel,
+          lastNodeText,
+        });
+        freezeAndAppend([{
+          kind: 'mini-card',
+          id: `mini-card-${problemNumber}`,
+          patternName,
+          patternDescription,
+          noteCount: noteCountAfterThis,
+          totalNotes,
+          problemNumber,
+          isLastProblem,
+        }]);
       });
-  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, attemptId, attemptDateISO]);
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
+
+  const onAdvance = useCallback(() => {
+    if (hasAdvancedRef.current) return;
+    hasAdvancedRef.current = true;
+    onComplete();
+  }, [onComplete]);
+
+  const onPause = useCallback(() => {
+    onPauseRequested();
+  }, [onPauseRequested]);
 
   return {
     problemNumber,
@@ -367,5 +457,7 @@ export function useExamDiagnosis(params: {
     onExplainDontKnow,
     onCheckPress,
     onCheckDontKnow,
+    onPause,
+    onAdvance,
   };
 }

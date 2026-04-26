@@ -19,6 +19,8 @@ import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-car
 import { DiagnosisMethodSelectorCard } from '@/features/quiz/components/diagnosis-method-selector-card';
 
 import { ExamProblemCard } from '../components/exam-problem-card';
+import { DiagnosisMiniCard } from '@/features/quiz/exam/components/diagnosis-mini-card';
+import { DiagnosisMilestoneBanner } from '@/features/quiz/exam/components/diagnosis-milestone-banner';
 import {
   useExamDiagnosis,
   type ExamDiagEntry,
@@ -29,9 +31,13 @@ type ExamDiagnosisPageProps = {
   examId: string;
   problemNumber: number;
   userAnswer: number;
-  width: number;          // FlatList page width
-  isActive: boolean;      // FlatList 현재 페이지 여부
-  onComplete: () => void;   // 진단 완료 시 호출
+  width: number;
+  isActive: boolean;
+  totalNotes: number;
+  currentNoteCountBeforeThis: number;
+  isLastProblem: boolean;
+  onPauseRequested: () => void;
+  onComplete: () => void;
 };
 
 export function ExamDiagnosisPage({
@@ -40,9 +46,22 @@ export function ExamDiagnosisPage({
   userAnswer,
   width,
   isActive,
+  totalNotes,
+  currentNoteCountBeforeThis,
+  isLastProblem,
+  onPauseRequested,
   onComplete,
 }: ExamDiagnosisPageProps) {
-  const hook = useExamDiagnosis({ examId, problemNumber, userAnswer, onComplete });
+  const hook = useExamDiagnosis({
+    examId,
+    problemNumber,
+    userAnswer,
+    totalNotes,
+    currentNoteCountBeforeThis,
+    isLastProblem,
+    onPauseRequested,
+    onComplete,
+  });
   const scrollRef = useRef<ScrollView>(null);
   const isTablet = useIsTablet();
 
@@ -205,6 +224,33 @@ function EntryRenderer({
         onExplainDontKnow={hook.onExplainDontKnow}
         onCheckPress={hook.onCheckPress}
         onCheckDontKnow={hook.onCheckDontKnow}
+      />
+    );
+  }
+
+  if (entry.kind === 'mini-card') {
+    return (
+      <DiagnosisMiniCard
+        problemNumber={entry.problemNumber}
+        patternName={entry.patternName}
+        patternDescription={entry.patternDescription}
+        noteCount={entry.noteCount}
+        totalNotes={entry.totalNotes}
+        onPause={hook.onPause}
+        onNext={hook.onAdvance}
+        isLastProblem={entry.isLastProblem}
+      />
+    );
+  }
+
+  if (entry.kind === 'milestone-banner') {
+    return (
+      <DiagnosisMilestoneBanner
+        fraction={entry.fraction}
+        noteCount={entry.noteCount}
+        totalNotes={entry.totalNotes}
+        onPause={hook.onPause}
+        onContinue={hook.onAdvance}
       />
     );
   }
