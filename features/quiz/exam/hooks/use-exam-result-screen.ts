@@ -64,18 +64,18 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       .then(() => setSaveState('saved'))
       .catch(() => setSaveState('error'));
 
-    // Persist latest attempt so quiz hub can detect in-progress analysis
+    // Persist latest attempt so quiz hub can detect in-progress analysis.
+    // Always save (even with empty wrongNums) to overwrite stale data from
+    // previous attempts — computeAnalysisInProgressState handles [] → isInProgress:false.
     const wrongNums = result.perProblem
       .filter((p) => !p.isCorrect && p.userAnswer !== null)
       .map((p) => p.number);
-    if (wrongNums.length > 0) {
-      void saveLatestExamAttempt({
-        examId: result.examId,
-        attemptId: result.attemptId,
-        attemptDateISO: result.completedAt,
-        wrongProblemNumbers: wrongNums,
-      });
-    }
+    void saveLatestExamAttempt({
+      examId: result.examId,
+      attemptId: result.attemptId,
+      attemptDateISO: result.completedAt,
+      wrongProblemNumbers: wrongNums,
+    });
   }, [result, profile, session, recordAttempt]);
 
   // 포커스 시 진단 진행 상태 갱신
