@@ -59,4 +59,37 @@ describe('buildMiniCardText', () => {
       patternDescription: '풀이의 핵심은 검산이에요.',
     });
   });
+
+  it('lastNodeText가 빈 문자열이면 null과 동일하게 methodLabel-only 경로로 처리', () => {
+    const input: MiniCardTextInput = {
+      methodLabel: '계산 실수',
+      lastNodeText: '',
+    };
+    expect(buildMiniCardText(input)).toEqual({
+      patternName: '계산 실수',
+      patternDescription: '이 패턴을 알아둔 거예요. 다음에 같은 유형이 나오면 한 번 더 떠올려보세요.',
+    });
+  });
+
+  it('lastNodeText가 정확히 80자이면 잘리지 않음', () => {
+    const exactly80 = 'a'.repeat(80);
+    const input: MiniCardTextInput = {
+      methodLabel: '계산 실수',
+      lastNodeText: exactly80,
+    };
+    const result = buildMiniCardText(input);
+    expect(result.patternDescription).toBe(exactly80);
+    expect(result.patternDescription).not.toMatch(/…$/);
+  });
+
+  it('lastNodeText가 정확히 81자이면 잘리고 ellipsis 추가', () => {
+    const exactly81 = 'a'.repeat(81);
+    const input: MiniCardTextInput = {
+      methodLabel: '계산 실수',
+      lastNodeText: exactly81,
+    };
+    const result = buildMiniCardText(input);
+    expect(result.patternDescription.length).toBe(80);
+    expect(result.patternDescription).toMatch(/…$/);
+  });
 });

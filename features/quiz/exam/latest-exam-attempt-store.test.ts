@@ -52,5 +52,10 @@ describe('latest-exam-attempt-store', () => {
       mockedAsyncStorage.getItem.mockRejectedValueOnce(new Error('storage error'));
       await expect(getLatestExamAttempt()).resolves.toBeNull();
     });
+
+    it('malformed JSON이 저장된 경우 null 반환', async () => {
+      mockedAsyncStorage.getItem.mockResolvedValueOnce('not-valid-json{{{');
+      await expect(getLatestExamAttempt()).resolves.toBeNull();
+    });
   });
 });

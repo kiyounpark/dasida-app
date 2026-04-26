@@ -51,4 +51,9 @@ describe('diagnosis-milestone-progress', () => {
     mockedAsyncStorage.getItem.mockRejectedValueOnce(new Error('storage failed'));
     await expect(hasMilestoneShown(SCOPE, 33)).resolves.toBe(false);
   });
+
+  it('markMilestoneShown: AsyncStorage 에러 시 예외를 전파하지 않음', async () => {
+    mockedAsyncStorage.setItem.mockRejectedValueOnce(new Error('storage full'));
+    await expect(markMilestoneShown(SCOPE, 33)).resolves.toBeUndefined();
+  });
 });
