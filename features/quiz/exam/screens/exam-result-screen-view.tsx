@@ -69,6 +69,10 @@ export function ExamResultScreenView({
             pointCount={wrongCount}
             message={`오늘 시험에서 ${wrongCount}문제를 분석해 볼게요.\n하나씩 같이 살펴봐요!`}
           />
+          <Text style={styles.frameMicrocopy}>
+            틀린 문제를 하나씩 분석하면서{`\n`}
+            <Text style={styles.frameMicrocopyEm}>학습 노트를 모아보세요</Text>
+          </Text>
         </View>
       )}
 
@@ -77,15 +81,20 @@ export function ExamResultScreenView({
 
         {/* 약점 분석 진행률 */}
         {wrongCount > 0 && (
-          <View style={styles.progWrap}>
-            <View style={styles.progHead}>
-              <Text selectable style={styles.progLabel}>약점 분석</Text>
-              <Text selectable style={styles.progCount}>{diagnosedCount} / {wrongCount} 완료</Text>
+          <>
+            <View style={styles.progWrap}>
+              <View style={styles.progHead}>
+                <Text selectable style={styles.progLabel}>약점 분석</Text>
+                <Text selectable style={styles.progCount}>{diagnosedCount} / {wrongCount} 완료</Text>
+              </View>
+              <View style={styles.progTrack}>
+                <View style={[styles.progFill, { width: `${progressPercent}%` }]} />
+              </View>
             </View>
-            <View style={styles.progTrack}>
-              <View style={[styles.progFill, { width: `${progressPercent}%` }]} />
-            </View>
-          </View>
+            <Text style={styles.bottomNote}>
+              {wrongCount}장 노트 모두 모으면 종합 리포트가 열려요
+            </Text>
+          </>
         )}
 
         {/* 저장 상태 */}
@@ -272,6 +281,25 @@ const styles = StyleSheet.create({
   heroWrap: {
     paddingHorizontal: 20,
     paddingTop: 16,
+  },
+  frameMicrocopy: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 12,
+    color: BrandColors.mutedText,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: 8,
+  },
+  frameMicrocopyEm: {
+    fontFamily: FontFamilies.bold,
+    color: BrandColors.text,
+  },
+  bottomNote: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 10,
+    color: BrandColors.mutedText,
+    textAlign: 'center',
+    marginTop: 4,
   },
 
   // ── 바디 ──
