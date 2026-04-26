@@ -145,11 +145,7 @@ export function ExamDiagnosisSessionScreen() {
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
             totalNotes={wrongProblemNumbers.length}
-            currentNoteCountBeforeThis={
-              session.diagnosedIndices.includes(index)
-                ? session.diagnosedIndices.indexOf(index)
-                : session.diagnosedIndices.length
-            }
+            currentNoteCountBeforeThis={session.diagnosedIndices.filter((i) => i < index).length}
             isLastProblem={session.getNextProblemNumber(index) === null}
             onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(index)}
