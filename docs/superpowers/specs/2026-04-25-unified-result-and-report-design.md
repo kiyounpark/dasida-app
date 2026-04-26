@@ -118,10 +118,12 @@ April 14 스펙(`diagnosis-final-auto-complete.md`, `diagnosis-auto-advance.md`)
 useEffect(() => {
   if (wrongCount > 0 && diagnosedCount === wrongCount) {
     // 모든 타일 완료 → 리포트 화면으로 이동
-    router.push({ pathname: 'quiz/result', params: { source: 'exam', examId } });
+    router.replace({ pathname: 'quiz/result', params: { source: 'exam', examId } });
   }
 }, [diagnosedCount, wrongCount]);
 ```
+
+`router.replace`를 사용하는 이유: `router.push`를 쓰면 사용자가 뒤로 가기 시 exam-result 화면으로 돌아오고, 거기서 `useFocusEffect`가 진행 상태를 다시 로드해 조건 재성립 → 리포트로 재이동하는 루프가 발생한다.
 
 `wrongCount === 0` (만점)이면 이 조건이 성립하지 않으므로 별도 처리 불필요.
 
