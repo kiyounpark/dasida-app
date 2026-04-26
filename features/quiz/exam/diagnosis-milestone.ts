@@ -12,8 +12,8 @@ export function computeMilestoneThresholds(totalWrong: number): MilestoneThresho
     return { at33: null, at67: null };
   }
   return {
-    at33: Math.floor(totalWrong / 3),
-    at67: Math.floor((totalWrong * 2) / 3),
+    at33: Math.floor(totalWrong * 0.33),
+    at67: Math.floor(totalWrong * 0.67),
   };
 }
 

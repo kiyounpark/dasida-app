@@ -11,12 +11,12 @@ describe('computeMilestoneThresholds', () => {
     expect(computeMilestoneThresholds(0)).toEqual({ at33: null, at67: null });
   });
 
-  it('오답 15개일 때 33%=5, 67%=10', () => {
-    expect(computeMilestoneThresholds(15)).toEqual({ at33: 5, at67: 10 });
+  it('오답 15개일 때 33%=4 (floor 4.95), 67%=10 (floor 10.05)', () => {
+    expect(computeMilestoneThresholds(15)).toEqual({ at33: 4, at67: 10 });
   });
 
-  it('오답 12개일 때 33%=4 (floor), 67%=8 (floor)', () => {
-    expect(computeMilestoneThresholds(12)).toEqual({ at33: 4, at67: 8 });
+  it('오답 12개일 때 33%=3 (floor 3.96), 67%=8 (floor 8.04)', () => {
+    expect(computeMilestoneThresholds(12)).toEqual({ at33: 3, at67: 8 });
   });
 
   it('오답 10개일 때 33%=3 (floor 3.3), 67%=6 (floor 6.7)', () => {
@@ -31,7 +31,7 @@ describe('computeMilestoneThresholds', () => {
 describe('detectMilestoneReached', () => {
   it('현재 노트 수가 33% 도달 시점이면 33 반환', () => {
     expect(
-      detectMilestoneReached({ totalWrong: 15, currentNoteCount: 5 }),
+      detectMilestoneReached({ totalWrong: 15, currentNoteCount: 4 }),
     ).toBe<MilestoneFraction>(33);
   });
 
@@ -42,7 +42,7 @@ describe('detectMilestoneReached', () => {
   });
 
   it('마일스톤 시점이 아니면 null 반환', () => {
-    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 4 })).toBeNull();
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 3 })).toBeNull();
     expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 11 })).toBeNull();
   });
 
