@@ -27,12 +27,30 @@ import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics'
 import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
+import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
 
 export type ExamDiagEntry =
   | { kind: 'bubble'; id: string; role: 'assistant' | 'user'; text: string }
   | { kind: 'problem-card'; id: string; imageKey: string; userAnswer: number; correctAnswer: number; problemType: 'multiple_choice' | 'short_answer' }
   | { kind: 'method-selector'; id: string; interactive: boolean }
-  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean };
+  | { kind: 'flow-node'; id: string; flow: DetailedDiagnosisFlow; draft: DiagnosisFlowDraft; interactive: boolean }
+  | {
+      kind: 'mini-card';
+      id: string;
+      patternName: string;
+      patternDescription: string;
+      noteCount: number;
+      totalNotes: number;
+      problemNumber: number;
+      isLastProblem: boolean;
+    }
+  | {
+      kind: 'milestone-banner';
+      id: string;
+      fraction: MilestoneFraction;
+      noteCount: number;
+      totalNotes: number;
+    };
 
 export type UseExamDiagnosisResult = {
   problemNumber: number;
