@@ -14,6 +14,9 @@ import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-section';
+import { ExamAnalysisResumeCard } from '@/features/quiz/exam/components/exam-analysis-resume-card';
+import { CollectedNotesList } from '@/features/quiz/exam/components/collected-notes-list';
+import { diagnosisMap } from '@/data/diagnosisMap';
 
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
@@ -77,7 +80,9 @@ function AuthNotice({
 }
 
 export function QuizHubScreenView({
+  analysisState,
   authNoticeMessage,
+  getExamTitle,
   homeState,
   isCompactLayout,
   isReady,
@@ -87,9 +92,12 @@ export function QuizHubScreenView({
   onPressJourneyCta,
   onPressReviewCard,
   onRefresh,
+  onResumeAnalysis,
   profile,
   session,
+  showAnalysisResumeCard,
   showBrandHeader,
+  showCollectedNotes,
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
@@ -182,28 +190,50 @@ export function QuizHubScreenView({
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {showReviewHomeCard && homeState?.nextReviewTask ? (
-          <ReviewHomeCard
-            task={homeState.nextReviewTask}
-            onPress={onPressReviewCard}
-          />
-        ) : null}
-        {showNoReviewDayCard ? (
-          <NoReviewDayCard
-            nextTask={homeState.nextReviewTask!}
-            onPressExam={onPressExam}
-          />
-        ) : null}
-        {showJourneyBoard ? (
-          <JourneyBoard
-            isCompactLayout={isCompactLayout}
-            onPressCurrentStep={onPressJourneyCta}
-            state={journey}
-          />
-        ) : null}
-        {showWeaknessSection && homeState ? (
-          <HomeWeaknessSection homeState={homeState} />
-        ) : null}
+        {!showAnalysisResumeCard ? (
+          <>
+            {showReviewHomeCard && homeState?.nextReviewTask ? (
+              <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
+            ) : null}
+            {showNoReviewDayCard ? (
+              <NoReviewDayCard nextTask={homeState.nextReviewTask!} onPressExam={onPressExam} />
+            ) : null}
+            {showJourneyBoard ? (
+              <JourneyBoard
+                isCompactLayout={isCompactLayout}
+                onPressCurrentStep={onPressJourneyCta}
+                state={journey}
+              />
+            ) : null}
+            {showWeaknessSection && homeState ? (
+              <HomeWeaknessSection homeState={homeState} />
+            ) : null}
+          </>
+        ) : (
+          <>
+            {/* 분석 진행 중 모드: 복습이 있으면 최상단 */}
+            {showReviewHomeCard && homeState?.nextReviewTask ? (
+              <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
+            ) : null}
+            {showAnalysisResumeCard && analysisState.isInProgress ? (
+              <ExamAnalysisResumeCard
+                examTitle={getExamTitle(analysisState.examId)}
+                noteCount={analysisState.noteCount}
+                totalNotes={analysisState.totalNotes}
+                onPress={onResumeAnalysis}
+              />
+            ) : null}
+            {showCollectedNotes && analysisState.isInProgress ? (
+              <CollectedNotesList
+                notes={analysisState.diagnosedNotes}
+                resolveLabel={(id) => diagnosisMap[id as keyof typeof diagnosisMap]?.labelKo ?? id}
+              />
+            ) : null}
+            {showWeaknessSection && homeState ? (
+              <HomeWeaknessSection homeState={homeState} />
+            ) : null}
+          </>
+        )}
       </ScrollView>
       {showJourneyBoard ? (
         <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 24 : 28) }]}>
