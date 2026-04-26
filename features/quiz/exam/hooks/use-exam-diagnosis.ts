@@ -317,7 +317,7 @@ export function useExamDiagnosis(params: {
           if (!isMountedRef.current || hasAdvancedRef.current) return;
           hasAdvancedRef.current = true;
           onComplete();
-        }, 1500);
+        }, 3000);
       })
       .catch(() => {
         if (isMountedRef.current) setIsDone(false);

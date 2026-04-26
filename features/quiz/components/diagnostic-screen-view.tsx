@@ -48,7 +48,6 @@ export function DiagnosticScreenView({
   onExitDiagnosis,
   onExplainContinue,
   onExplainDontKnow,
-  onFinalConfirm,
   onInputChange,
   onManualSelect,
   onOpenExitModal,
@@ -121,6 +120,7 @@ export function DiagnosticScreenView({
                 diagnosisInput={item.workspace.diagnosisInput}
                 routerResult={item.workspace.routerResult}
                 suggestedMethods={item.suggestedMethods}
+                showAvatar={true}
                 analysisErrorMessage={item.workspace.analysisErrorMessage}
                 isAnalyzing={item.workspace.isAnalyzing}
                 aiHelpInput={item.workspace.aiHelpState?.input ?? ''}
@@ -146,7 +146,6 @@ export function DiagnosticScreenView({
                 onExplainDontKnow={() => onExplainDontKnow(item)}
                 onCheckPress={(optionId) => onCheckPress(item, optionId)}
                 onCheckDontKnow={() => onCheckDontKnow(item)}
-                onFinalConfirm={() => onFinalConfirm(item)}
                 onAiHelpInputChange={(text) => onAiHelpInputChange(item.answerIndex, text)}
                 onAiHelpSubmit={() => onAiHelpSubmit(item)}
                 onAiHelpContinue={() => onAiHelpContinue(item)}

@@ -8,16 +8,19 @@ const REPORT_TEACHER_CHARACTER_SOURCE = require('../../../assets/quiz/result-rep
 type QuizResultReportHeroProps = {
   isCompactLayout: boolean;
   pointCount: number;
+  message?: string;
 };
 
 export function QuizResultReportHero({
   isCompactLayout,
   pointCount,
+  message,
 }: QuizResultReportHeroProps) {
-  const reportMessage =
+  const defaultMessage =
     pointCount <= 1
       ? '오늘 푼 10문제를 분석해 보니,\n이 1가지 포인트를 보완하면\n실력이 쑥쑥 늘 거예요!'
       : `오늘 푼 10문제를 분석해 보니,\n이 ${pointCount}가지 포인트를 보완하면\n실력이 쑥쑥 늘 거예요!`;
+  const reportMessage = message ?? defaultMessage;
 
   return (
     <View style={[styles.row, isCompactLayout && styles.rowCompact]}>

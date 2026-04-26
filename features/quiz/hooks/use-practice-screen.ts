@@ -187,7 +187,7 @@ export function usePracticeScreen({
     if (!activeProblem) {
       return;
     }
-    void markPendingPracticeStarted().catch((err) => {
+    void markPendingPracticeStarted().catch((err: unknown) => {
       console.warn('[PracticeScreen] markPendingPracticeStarted failed', err);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -306,7 +306,7 @@ export function usePracticeScreen({
 
       if (isLast) {
         resetSession();
-        void clearPendingPractice().catch((err) => {
+        void clearPendingPractice().catch((err: unknown) => {
           console.warn('[PracticeScreen] clearPendingPractice failed', err);
         });
         router.replace({

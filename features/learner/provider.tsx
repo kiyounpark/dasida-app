@@ -123,6 +123,8 @@ export type CurrentLearnerContextValue = {
   pullReviewDueDates(): Promise<void>;
   clearLearningHistory(): Promise<void>;
   resetLocalProfile(): Promise<void>;
+  markPendingPracticeStarted(): Promise<void>;
+  clearPendingPractice(): Promise<void>;
 };
 
 const CurrentLearnerContext = createContext<CurrentLearnerContextValue | undefined>(undefined);
