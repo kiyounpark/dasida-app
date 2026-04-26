@@ -45,8 +45,11 @@ export function ExamDiagnosisSessionScreen() {
     (index: number) => {
       session.onComplete(index);
       // Guard: if the user has manually swiped away during the 1.5s delay, skip auto-advance
-      if (index !== session.activeProblemIndexRef.current) return;
-      if (session.getNextProblemNumber(index) !== null) {
+      if (index !== session.activeProblemIndexRef.current) {
+        return;
+      }
+      const hasNext = session.getNextProblemNumber(index) !== null;
+      if (hasNext) {
         session.onScrollToNext(index);
       } else {
         session.onBackToResult();

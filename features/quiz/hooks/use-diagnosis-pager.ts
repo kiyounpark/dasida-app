@@ -24,6 +24,7 @@ export function useDiagnosisPager({
   const diagnosisPendingAutoScrollRef = useRef<Record<number, boolean>>({});
   const diagnosisPendingRestoreRef = useRef<Record<number, boolean>>({});
   const activeDiagnosisAnswerIndexRef = useRef<number | null>(null);
+  const animateNextScrollRef = useRef(false);
   const [activeDiagnosisPageIndex, setActiveDiagnosisPageIndex] = useState(0);
 
   useEffect(() => {
@@ -52,9 +53,12 @@ export function useDiagnosisPager({
       return;
     }
 
+    const animated = animateNextScrollRef.current;
+    animateNextScrollRef.current = false;
+
     const timeoutId = setTimeout(() => {
       diagnosisPagerRef.current?.scrollToIndex({
-        animated: false,
+        animated,
         index: targetIndex,
       });
     }, 0);
@@ -107,11 +111,8 @@ export function useDiagnosisPager({
       requestDiagnosisRestore(targetAnswerIndex);
     }
 
+    animateNextScrollRef.current = animated;
     setActiveDiagnosisPageIndex(pageIndex);
-    diagnosisPagerRef.current?.scrollToIndex({
-      animated,
-      index: pageIndex,
-    });
   };
 
   const handleDiagnosisMomentumEnd = (
