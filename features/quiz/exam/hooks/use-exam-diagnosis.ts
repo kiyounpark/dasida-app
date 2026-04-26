@@ -423,7 +423,7 @@ export function useExamDiagnosis(params: {
           isLastProblem,
         }]);
       });
-  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, onComplete, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
 
   const onAdvance = useCallback(() => {
     if (hasAdvancedRef.current) return;

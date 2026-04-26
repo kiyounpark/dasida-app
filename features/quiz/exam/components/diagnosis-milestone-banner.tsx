@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.border,
     borderWidth: 1.5,
     borderRadius: BrandRadius.md,
-    paddingVertical: 11,
+    paddingVertical: 13,
     alignItems: 'center',
   },
   btnGhostText: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.success,
     borderRadius: BrandRadius.md,
-    paddingVertical: 11,
+    paddingVertical: 13,
     alignItems: 'center',
   },
   btnPrimaryText: {

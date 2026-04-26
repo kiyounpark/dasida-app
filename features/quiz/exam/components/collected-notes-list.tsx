@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: FontFamilies.regular,
-    fontSize: 10,
+    fontSize: 11,
     color: BrandColors.mutedText,
   },
 });

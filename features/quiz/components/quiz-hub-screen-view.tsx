@@ -18,6 +18,10 @@ import { ExamAnalysisResumeCard } from '@/features/quiz/exam/components/exam-ana
 import { CollectedNotesList } from '@/features/quiz/exam/components/collected-notes-list';
 import { diagnosisMap } from '@/data/diagnosisMap';
 
+function resolveLabel(id: string): string {
+  return diagnosisMap[id as keyof typeof diagnosisMap]?.labelKo ?? id;
+}
+
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
 }
@@ -226,7 +230,7 @@ export function QuizHubScreenView({
             {showCollectedNotes && analysisState.isInProgress ? (
               <CollectedNotesList
                 notes={analysisState.diagnosedNotes}
-                resolveLabel={(id) => diagnosisMap[id as keyof typeof diagnosisMap]?.labelKo ?? id}
+                resolveLabel={resolveLabel}
               />
             ) : null}
             {showWeaknessSection && homeState ? (
