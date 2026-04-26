@@ -13,6 +13,7 @@ import {
   type ExamDiagnosisProgress,
 } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
+import { saveLatestExamAttempt } from '../latest-exam-attempt-store';
 import type { ExamResultSummary } from '../types';
 
 export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -62,6 +63,19 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     recordAttempt(buildExamAttemptInput({ session, profile, result }))
       .then(() => setSaveState('saved'))
       .catch(() => setSaveState('error'));
+
+    // Persist latest attempt so quiz hub can detect in-progress analysis
+    const wrongNums = result.perProblem
+      .filter((p) => !p.isCorrect && p.userAnswer !== null)
+      .map((p) => p.number);
+    if (wrongNums.length > 0) {
+      void saveLatestExamAttempt({
+        examId: result.examId,
+        attemptId: result.attemptId,
+        attemptDateISO: result.completedAt,
+        wrongProblemNumbers: wrongNums,
+      });
+    }
   }, [result, profile, session, recordAttempt]);
 
   // 포커스 시 진단 진행 상태 갱신

@@ -7,13 +7,23 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
+import {
+  computeAnalysisInProgressState,
+  type AnalysisInProgressState,
+  type LatestExamAttemptSummary,
+} from '@/features/quiz/exam/exam-analysis-in-progress';
+import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
+import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
+import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
 const hubReviewStore = new LocalReviewTaskStore();
 
 type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
 export type UseQuizHubScreenResult = {
+  analysisState: AnalysisInProgressState;
   authNoticeMessage: string | null;
+  getExamTitle: (examId: string) => string;
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
@@ -26,10 +36,13 @@ export type UseQuizHubScreenResult = {
   onPressReviewCard: () => void;
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
+  onResumeAnalysis: () => void;
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
+  showAnalysisResumeCard: boolean;
   showBrandHeader: boolean;
+  showCollectedNotes: boolean;
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
@@ -50,6 +63,10 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     session,
   } = useCurrentLearner();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
+  const [latestAttempt, setLatestAttempt] = useState<LatestExamAttemptSummary | null>(null);
+  const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({
+    isInProgress: false,
+  });
   const isGraduatingRef = useRef(false);
 
   useEffect(() => {
@@ -89,6 +106,33 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       void refresh();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountKey]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      void (async () => {
+        const attempt = await getLatestExamAttempt();
+        if (cancelled) return;
+        setLatestAttempt(attempt);
+        if (!attempt) {
+          setAnalysisState({ isInProgress: false });
+          return;
+        }
+        const diagnosed = await getDiagnosisProgress({
+          examId: attempt.examId,
+          attemptId: attempt.attemptId,
+          attemptDateISO: attempt.attemptDateISO,
+        });
+        if (cancelled) return;
+        setAnalysisState(
+          computeAnalysisInProgressState({ latestAttempt: attempt, diagnosedProblems: diagnosed }),
+        );
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
   );
 
   const onStartDiagnostic = () => {
@@ -141,6 +185,18 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/quiz/diagnostic');
   };
 
+  const onResumeAnalysis = useCallback(() => {
+    if (!latestAttempt) return;
+    router.push({
+      pathname: '/quiz/exam/diagnosis-session',
+      params: {
+        examId: latestAttempt.examId,
+        wrongProblemNumbers: JSON.stringify(latestAttempt.wrongProblemNumbers),
+        startIndex: '0',
+      },
+    });
+  }, [latestAttempt]);
+
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
 
@@ -186,15 +242,17 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const journey = homeState?.journey ?? null;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
+  const isAnalysisInProgress = analysisState.isInProgress;
 
   const showBrandHeader = isGraduated;
-  const showJourneyHero = isJourneyActive;
-  const showJourneyBoard = isJourneyActive;
+  const showJourneyHero = isJourneyActive && !isAnalysisInProgress;
+  const showJourneyBoard = isJourneyActive && !isAnalysisInProgress;
   // 여정 진행 중에는 NoReviewDayCard를 숨긴다. 졸업 후(isGraduated)에만 기존 조건을 평가.
   const showNoReviewDayCard =
     isGraduated &&
     !!homeState?.nextReviewTask &&
-    homeState.todayReviewCount === 0;
+    homeState.todayReviewCount === 0 &&
+    !isAnalysisInProgress;
   // 약점 섹션도 여정 완료 후에만 노출.
   const showWeaknessSection = isGraduated;
   // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
@@ -202,9 +260,13 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     isGraduated &&
     !!homeState?.nextReviewTask &&
     homeState.todayReviewCount > 0;
+  const showAnalysisResumeCard = isAnalysisInProgress;
+  const showCollectedNotes = isAnalysisInProgress;
 
   return {
+    analysisState,
     authNoticeMessage: localAuthNoticeMessage,
+    getExamTitle: (examId: string) => EXAM_CATALOG_BY_ID[examId]?.title ?? examId,
     homeState,
     isCompactLayout: width < 390 || height < 780,
     isReady,
@@ -219,10 +281,13 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onPressReviewCard,
     onRediagnose: onStartDiagnostic,
     onRefresh: refresh,
+    onResumeAnalysis,
     onStartDiagnostic,
     profile,
     session,
+    showAnalysisResumeCard,
     showBrandHeader,
+    showCollectedNotes,
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
