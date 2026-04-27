@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   btnPrimaryText: {
     fontFamily: FontFamilies.bold,
     fontSize: 12,
-    color: '#FFFFFF',
+    color: BrandColors.card,
   },
   btnPressed: {
     opacity: 0.7,

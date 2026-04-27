@@ -395,20 +395,10 @@ export function useExamDiagnosis(params: {
       .catch(() => {
         if (!isMountedRef.current) return;
         setIsSaving(false);
-        const { patternName, patternDescription } = buildMiniCardText({
-          methodLabel,
-          lastNodeText,
-        });
-        freezeAndAppend([{
-          kind: 'mini-card',
-          id: `mini-card-${problemNumber}`,
-          patternName,
-          patternDescription,
-          noteCount: noteCountAfterThis,
-          totalNotes,
-          problemNumber,
-          isLastProblem,
-        }]);
+        // 저장 실패 시 미니 카드를 표시하지 않고 isDone을 리셋해 자동 재시도.
+        // 미니 카드를 표시하면 onAdvance → onComplete가 호출되지만 AsyncStorage에 기록이 없어
+        // 홈 재진입 시 진단 완주 조건을 영구적으로 충족하지 못한다.
+        setIsDone(false);
       });
   }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
 
@@ -419,6 +409,8 @@ export function useExamDiagnosis(params: {
   }, [onComplete]);
 
   const onPause = useCallback(() => {
+    if (hasAdvancedRef.current) return;
+    hasAdvancedRef.current = true;
     onPauseRequested();
   }, [onPauseRequested]);
 

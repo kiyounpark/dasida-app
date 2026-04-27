@@ -86,4 +86,44 @@ describe('latest-exam-attempt-store', () => {
       expect(mockedAsyncStorage.getItem).toHaveBeenCalledWith(KEY);
     });
   });
+
+  describe('레거시 키 마이그레이션', () => {
+    const LEGACY_KEY = 'dasida/latest-exam-attempt';
+
+    it('계정 키 없고 레거시 키 있으면 마이그레이션 후 반환', async () => {
+      mockedAsyncStorage.getItem
+        .mockResolvedValueOnce(null) // account key → 없음
+        .mockResolvedValueOnce(JSON.stringify(SAMPLE_ATTEMPT)); // legacy key → 있음
+      mockedAsyncStorage.setItem.mockResolvedValueOnce(undefined);
+      mockedAsyncStorage.removeItem.mockResolvedValueOnce(undefined);
+
+      const result = await getLatestExamAttempt(ACCOUNT_KEY);
+      expect(result).toEqual(SAMPLE_ATTEMPT);
+      // setItem 먼저, removeItem 나중 (데이터 유실 방지)
+      const setItemOrder = mockedAsyncStorage.setItem.mock.invocationCallOrder[0];
+      const removeItemOrder = mockedAsyncStorage.removeItem.mock.invocationCallOrder[0];
+      expect(setItemOrder).toBeLessThan(removeItemOrder);
+      expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith(KEY, JSON.stringify(SAMPLE_ATTEMPT));
+      expect(mockedAsyncStorage.removeItem).toHaveBeenCalledWith(LEGACY_KEY);
+    });
+
+    it('레거시 키도 없으면 null 반환', async () => {
+      mockedAsyncStorage.getItem
+        .mockResolvedValueOnce(null) // account key
+        .mockResolvedValueOnce(null); // legacy key
+      await expect(getLatestExamAttempt(ACCOUNT_KEY)).resolves.toBeNull();
+      expect(mockedAsyncStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    it('레거시 키가 malformed이면 null 반환 후 레거시 키 삭제', async () => {
+      mockedAsyncStorage.getItem
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('not-valid-json');
+      mockedAsyncStorage.removeItem.mockResolvedValueOnce(undefined);
+
+      await expect(getLatestExamAttempt(ACCOUNT_KEY)).resolves.toBeNull();
+      expect(mockedAsyncStorage.setItem).not.toHaveBeenCalled();
+      expect(mockedAsyncStorage.removeItem).toHaveBeenCalledWith(LEGACY_KEY);
+    });
+  });
 });

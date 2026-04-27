@@ -49,10 +49,6 @@ export function ExamDiagnosisSessionScreen() {
   const handlePageComplete = useCallback(
     (index: number) => {
       session.onComplete(index);
-      // Guard: if the user has manually swiped away during the 1.5s delay, skip auto-advance
-      if (index !== session.activeProblemIndexRef.current) {
-        return;
-      }
       const hasNext = session.getNextProblemNumber(index) !== null;
       if (hasNext) {
         session.onScrollToNext(index);
@@ -145,7 +141,7 @@ export function ExamDiagnosisSessionScreen() {
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
             totalNotes={wrongProblemNumbers.length}
-            currentNoteCountBeforeThis={session.diagnosedIndices.filter((i) => i < index).length}
+            currentNoteCountBeforeThis={session.diagnosedIndices.length}
             isLastProblem={session.getNextProblemNumber(index) === null}
             onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(index)}

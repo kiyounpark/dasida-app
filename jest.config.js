@@ -6,6 +6,7 @@ module.exports = {
     '/tests/',        // Playwright E2E — 건드리지 않는다
     '/functions/',    // Cloud Functions — 자체 jest 설정 사용
     '/.expo/',
+    '/.worktrees/', // 버려진 worktree의 stale 테스트 제외
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',

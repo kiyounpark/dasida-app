@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   checkText: {
     fontFamily: FontFamilies.bold,
-    color: '#FFFFFF',
+    color: BrandColors.card,
     fontSize: 22,
   },
   completionLabel: {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   btnPrimaryText: {
     fontFamily: FontFamilies.bold,
     fontSize: 12,
-    color: '#FFFFFF',
+    color: BrandColors.card,
   },
   btnPressed: {
     opacity: 0.7,

@@ -194,6 +194,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   const onResumeAnalysis = useCallback(() => {
     if (!latestAttempt) return;
+    // diagnosedNotes.length를 startIndex로 사용하는 것은 진단 세션이 순차적으로 저장된다는
+    // 불변성에 의존한다 (문제 N+1은 N이 저장된 후에만 저장 가능).
+    // 비순차 완료가 가능해지면 findIndex 방식으로 교체 필요.
     const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
     router.push({
       pathname: '/quiz/exam/diagnosis-session',

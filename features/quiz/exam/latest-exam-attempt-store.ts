@@ -34,11 +34,14 @@ export async function getLatestExamAttempt(
     if (raw) return parseAttempt(raw);
 
     // one-shot migration from pre-multi-account key
+    // Assumes legacy data belongs to the first account to call this on this device (pre-multi-account invariant).
     const legacyRaw = await AsyncStorage.getItem(LEGACY_KEY);
     if (!legacyRaw) return null;
     const attempt = parseAttempt(legacyRaw);
-    await AsyncStorage.removeItem(LEGACY_KEY);
+    // Write to new key first — if removeItem fails, worst case is migration reruns next launch (safe).
+    // If we removed first and setItem threw, data would be permanently lost.
     if (attempt) await AsyncStorage.setItem(makeKey(accountKey), legacyRaw);
+    await AsyncStorage.removeItem(LEGACY_KEY);
     return attempt;
   } catch {
     return null;

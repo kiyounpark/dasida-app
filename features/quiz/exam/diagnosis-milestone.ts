@@ -1,4 +1,4 @@
-const MILESTONE_MIN_TOTAL = 10;
+export const MILESTONE_MIN_TOTAL = 10;
 
 export type MilestoneFraction = 33 | 67;
 
