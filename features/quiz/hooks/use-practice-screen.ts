@@ -141,7 +141,7 @@ export function usePracticeScreen({
     }
 
     const recoveryWeakness = summary?.latestDiagnosticSummary?.topWeaknesses?.[0];
-    return recoveryWeakness ?? fallbackWeaknessId;
+    return fallbackWeaknessId ?? recoveryWeakness;
   }, [
     activeMode,
     activeReviewTask?.weaknessId,
@@ -197,13 +197,14 @@ export function usePracticeScreen({
     if (activeMode !== 'weakness') return;
     if (state.result) return;
     if (state.practiceQueue.length > 0) return;
+    if (fallbackWeaknessId) return; // URL param이 있으면 그것을 사용 (모의고사/특정 약점 진입)
     const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
     if (!weaknesses?.length) return;
     seedPracticeQueue(weaknesses);
     // seedPracticeQueue은 dispatch wrapper로 안정적. topWeaknesses 대신
     // attemptId를 dep로 써서 동일 콘텐츠 재시딩을 방지한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId]);
+  }, [activeMode, state.result, state.practiceQueue.length, summary?.latestDiagnosticSummary?.attemptId, fallbackWeaknessId]);
 
   const toFeedbackParams = (mode: 'weakness' | 'challenge', weaknessId?: WeaknessId) => {
     if (mode === 'challenge') {
