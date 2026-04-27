@@ -852,7 +852,7 @@ export function buildReviewTasks(
     return sortReviewTasks(nextTasks);
   }
 
-  if (input.source !== 'diagnostic') {
+  if (input.source !== 'diagnostic' && input.source !== 'featured-exam') {
     return sortReviewTasks(existingTasks);
   }
 
@@ -863,7 +863,10 @@ export function buildReviewTasks(
 
   const sourceId = input.sourceEntityId ?? input.attemptId;
   const nextTasks = existingTasks.filter(
-    (task) => task.completed || !reviewWeaknesses.includes(task.weaknessId),
+    (task) =>
+      task.completed
+      || task.source !== input.source
+      || !reviewWeaknesses.includes(task.weaknessId),
   );
 
   reviewWeaknesses.forEach((weaknessId) => {
