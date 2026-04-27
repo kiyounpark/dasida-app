@@ -49,6 +49,13 @@ describe('buildExamAttemptInput', () => {
     expect(input.wrongCount).toBe(3); // 2 + 1
     expect(input.correctCount + input.wrongCount).toBe(input.questionCount);
   });
+
+  it('questionId에 슬래시가 없다 (Firestore path 규칙)', () => {
+    const input = buildExamAttemptInput({ session: SESSION, profile: PROFILE, result: RESULT });
+    for (const q of input.questions) {
+      expect(q.questionId).not.toContain('/');
+    }
+  });
 });
 
 describe('buildExamAttemptInputWithDiagnosis', () => {

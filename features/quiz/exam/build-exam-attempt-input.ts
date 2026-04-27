@@ -29,7 +29,7 @@ export function buildExamAttemptInput(params: {
     primaryWeaknessId: null,
     topWeaknesses: [],
     questions: result.perProblem.map((p) => ({
-      questionId: `${result.examId}/${p.number}`,
+      questionId: `${result.examId}-${p.number}`,
       questionNumber: p.number,
       topic: 'exam',
       selectedIndex: p.userAnswer,

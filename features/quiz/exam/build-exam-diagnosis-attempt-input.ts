@@ -48,7 +48,7 @@ export function buildExamDiagnosisAttemptInput(params: {
     topWeaknesses: [weaknessId],
     questions: [
       {
-        questionId: `${examId}/${problemNumber}`,
+        questionId: `${examId}-${problemNumber}`,
         questionNumber: problemNumber,
         topic,
         selectedIndex: null,
