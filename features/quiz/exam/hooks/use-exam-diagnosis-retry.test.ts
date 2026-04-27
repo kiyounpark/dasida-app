@@ -100,7 +100,7 @@ function setupBaselineMocks(recordAttempt: jest.Mock) {
     session: MOCK_SESSION,
     profile: MOCK_PROFILE,
     recordAttempt,
-  } as ReturnType<typeof useCurrentLearner>);
+  } as unknown as ReturnType<typeof useCurrentLearner>);
 
   mockedUseExamSession.mockReturnValue({
     state: {

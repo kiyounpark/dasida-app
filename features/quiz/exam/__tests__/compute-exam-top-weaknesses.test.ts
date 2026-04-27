@@ -39,9 +39,9 @@ describe('computeExamTopWeaknesses', () => {
     const progress: ExamDiagnosisProgress = {
       1: 'formula_understanding',
       2: 'calc_repeated_error',
-      3: 'sequence_limit',
-      4: 'integral_basic',
-      5: 'function_limit',
+      3: 'g3_sequence',
+      4: 'g2_integral_basic',
+      5: 'g2_function_domain',
     };
     const result = computeExamTopWeaknesses(progress);
     expect(result).toHaveLength(3);
