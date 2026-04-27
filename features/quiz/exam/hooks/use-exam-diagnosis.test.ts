@@ -45,16 +45,8 @@ describe('useExamDiagnosis 오케스트레이션 — resolveMilestoneToShow 분�
     ).resolves.toBeNull();
   });
 
-  it('append 후 mark 순서 보장 — markMilestoneShown은 항상 배너 렌더 이후', async () => {
+  it('markMilestoneShown은 resolveMilestoneToShow 결과로 AsyncStorage에 기록', async () => {
     mockedAsyncStorage.getItem.mockResolvedValueOnce(null); // 33 not seen
-
-    const callOrder: string[] = [];
-    // appendBanner는 동기 setState이므로 즉시 'append' 기록
-    const appendBanner = jest.fn(() => callOrder.push('append'));
-
-    mockedAsyncStorage.setItem.mockImplementationOnce(async () => {
-      callOrder.push('mark');
-    });
 
     const fraction = await resolveMilestoneToShow({
       scope: SCOPE,
@@ -62,14 +54,15 @@ describe('useExamDiagnosis 오케스트레이션 — resolveMilestoneToShow 분�
       noteCountAfterThis: 5,
     });
 
-    // 실제 훅의 순서: append → markMilestoneShown
-    if (fraction !== null) {
-      appendBanner(fraction);
-      await markMilestoneShown(SCOPE, fraction);
-    }
+    expect(fraction).toBe(33);
 
-    expect(callOrder).toEqual(['append', 'mark']);
-    expect(appendBanner).toHaveBeenCalledWith(33);
+    // 훅은 appendBanner(동기 setState) 직후 markMilestoneShown을 호출한다.
+    // markMilestoneShown이 실제 AsyncStorage.setItem을 호출하는지 검증.
+    await markMilestoneShown(SCOPE, fraction!);
+    expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith(
+      expect.stringContaining('/33'),
+      '1',
+    );
   });
 
   it('마운트 해제 시 append/mark 미실행 — isMountedRef 가드 동작', async () => {

@@ -54,12 +54,13 @@ describe('resolveMilestoneToShow', () => {
     ).resolves.toBe(67);
   });
 
-  it('dot-jump: 임계값 초과(count=11, at33=4)해도 33 반환', async () => {
-    // at67=10도 달성이지만 33을 먼저 체크
+  it('dot-jump: at33(=4) 초과한 count=5에도 33 반환 (>= 비교)', async () => {
+    // at67=10은 미달 — 33만 단독 달성
     mockedAsyncStorage.getItem.mockResolvedValueOnce(null); // 33 not seen → return 33
     await expect(
-      resolveMilestoneToShow({ scope: SCOPE, totalNotes: 15, noteCountAfterThis: 11 }),
+      resolveMilestoneToShow({ scope: SCOPE, totalNotes: 15, noteCountAfterThis: 5 }),
     ).resolves.toBe(33);
+    expect(mockedAsyncStorage.getItem).toHaveBeenCalledTimes(1);
   });
 
   it('두 임계값 동시 돌파: 33 미표시 → 33 반환 (낮은 것 우선)', async () => {
