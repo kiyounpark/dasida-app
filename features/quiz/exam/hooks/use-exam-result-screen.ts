@@ -5,9 +5,9 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
+import { buildDiagnosisQueue } from '../build-diagnosis-queue';
 import { buildExamAttemptInput, buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
 import { computeExamTopWeaknesses } from '../compute-exam-top-weaknesses';
-import { buildDiagnosisQueue } from '../build-diagnosis-queue';
 import {
   getDiagnosisProgress,
   purgeLegacyDiagnosisKey,
@@ -190,7 +190,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         params: {
           examId: result.examId,
           wrongProblemNumbers: JSON.stringify(queue),
-          startIndex: '0',
+          startIndex: '0', // buildDiagnosisQueue가 클릭한 문제를 큐 첫 자리에 두므로 항상 0
         },
       });
     },
