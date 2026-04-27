@@ -2,6 +2,8 @@ import type { AuthSession } from '@/features/auth/types';
 import type { FinalizedAttemptInput } from '@/features/learning/history-repository';
 import type { LearnerProfile } from '@/features/learner/types';
 
+import { computeExamTopWeaknesses } from './compute-exam-top-weaknesses';
+import type { ExamDiagnosisProgress } from './exam-diagnosis-progress';
 import type { ExamResultSummary } from './types';
 
 export function buildExamAttemptInput(params: {
@@ -40,5 +42,30 @@ export function buildExamAttemptInput(params: {
       usedDontKnow: false,
       usedAiHelp: false,
     })),
+  };
+}
+
+export function buildExamAttemptInputWithDiagnosis(params: {
+  session: AuthSession;
+  profile: LearnerProfile;
+  result: ExamResultSummary;
+  diagnosedProblems: ExamDiagnosisProgress;
+}): FinalizedAttemptInput {
+  const { session, profile, result, diagnosedProblems } = params;
+  const topWeaknesses = computeExamTopWeaknesses(diagnosedProblems);
+  const base = buildExamAttemptInput({ session, profile, result });
+
+  return {
+    ...base,
+    primaryWeaknessId: topWeaknesses[0] ?? null,
+    topWeaknesses,
+    questions: base.questions.map((q) => {
+      const weaknessId = diagnosedProblems[q.questionNumber] ?? null;
+      return {
+        ...q,
+        finalWeaknessId: weaknessId,
+        diagnosisCompleted: weaknessId !== null,
+      };
+    }),
   };
 }
