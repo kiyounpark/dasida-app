@@ -822,6 +822,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.26 21:54
+- 해시: `0162851` (`0162851a13306069b0b18204f92acc1e85c24bac`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0162851a13306069b0b18204f92acc1e85c24bac
+- 작성자: 박기윤
+- 메시지: docs(plan): 진단 미니 카드 + 노트 컬렉션 + 홈 분기 구현 계획
+- 본문: 7개 Phase, 18개 Task (TDD 4개 유틸 + 컴포넌트 5개 + 흐름 통합 3개 + 화면 카피 + 종합 리포트 배너 + 홈 분기 + 시뮬레이터 검증). / 각 Task: 정확한 파일 경로, 완전 코드 블록, 테스트 코드, 명령어 + 기대 출력, 커밋 메시지. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.25 10:53
 - 해시: `7940c34` (`7940c34918c162ba4a0a54e26a016a69d106a327`)
 - 브랜치: main
