@@ -7,6 +7,7 @@ import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
 import { buildExamAttemptInput, buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
 import { computeExamTopWeaknesses } from '../compute-exam-top-weaknesses';
+import { buildDiagnosisQueue } from '../build-diagnosis-queue';
 import {
   getDiagnosisProgress,
   purgeLegacyDiagnosisKey,
@@ -179,16 +180,17 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     wrongCount,
     onAnalyzeProblem: (problemNumber: number) => {
       if (!result) return;
-      const wrongProblemNumbers = result.perProblem
+      const allWrong = result.perProblem
         .filter((p) => !p.isCorrect && p.userAnswer !== null)
         .map((p) => p.number);
-      const startIndex = wrongProblemNumbers.indexOf(problemNumber);
+      const queue = buildDiagnosisQueue(allWrong, diagnosedProblems, problemNumber);
+      if (queue.length === 0) return;
       router.push({
         pathname: '/quiz/exam/diagnosis-session',
         params: {
           examId: result.examId,
-          wrongProblemNumbers: JSON.stringify(wrongProblemNumbers),
-          startIndex: String(Math.max(0, startIndex)),
+          wrongProblemNumbers: JSON.stringify(queue),
+          startIndex: '0',
         },
       });
     },
