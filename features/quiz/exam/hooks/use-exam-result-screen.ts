@@ -103,6 +103,8 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   const diagnosedCount = Object.keys(diagnosedProblems).length;
 
   // 모든 오답 진단 완료 시 리포트로 이동
+  // wrongCount === 0: 만점 또는 전부 공란(userAnswer === null). 공란은 diagnosedProblems에 기록되지 않으므로
+  // 진단 대상이 없다. attempt 재기록 없이 바로 리포트로 이동한다.
   useEffect(() => {
     if (wrongCount === 0 || diagnosedCount < wrongCount) return;
     if (!result || !profile || !session) return;
@@ -116,9 +118,10 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       result,
       diagnosedProblems,
     });
-    void recordAttempt(diagnosedInput).catch((err) =>
-      console.warn('[Exam] attempt weakness update failed', err),
-    );
+    void recordAttempt(diagnosedInput).catch((err) => {
+      console.warn('[Exam] attempt weakness update failed', err);
+      hasNavigatedToReportRef.current = false;
+    });
 
     const topWeaknesses = computeExamTopWeaknesses(diagnosedProblems);
     router.replace({

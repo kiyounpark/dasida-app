@@ -34,6 +34,11 @@ function legacyStorageKey(examId: string): string {
   return StorageKeys.examDiagnosisProgressPrefix + examId;
 }
 
+// pendingWrite: 모든 쓰기를 단일 Promise 체인으로 직렬화한다.
+// getDiagnosisProgress(read) → setItem(write)가 항상 순서대로 실행되어
+// 동시 진단 완료 시 덮어쓰기 레이스를 방지한다.
+// 읽기(getDiagnosisProgress)는 이 체인 밖에서 직접 호출하면 레이스가 발생할 수 있다.
+// use-exam-result-screen의 useFocusEffect 읽기는 쓰기가 없는 단순 조회이므로 안전하다.
 let pendingWrite = Promise.resolve();
 
 export async function getDiagnosisProgress(
@@ -65,11 +70,16 @@ export async function markProblemDiagnosed(
   await pendingWrite;
 }
 
+// 앱 세션 내에서 이미 정리한 examId를 추적 — 리마운트 시 재실행 방지
+const purgedLegacyExamIds = new Set<string>();
+
 /**
  * 옛날 키 형태(`dasida/exam-diagnosis/{examId}`, attemptId 없음)를 한 번 삭제한다.
  * 결과 화면 첫 진입 시 호출 — 진단 이력은 백엔드 attempt 레코드에 보존되므로
- * AsyncStorage 캐시 삭제는 안전하다.
+ * AsyncStorage 캐시 삭제는 안전하다. 앱 세션당 examId별로 1회만 실행된다.
  */
 export async function purgeLegacyDiagnosisKey(examId: string): Promise<void> {
+  if (purgedLegacyExamIds.has(examId)) return;
+  purgedLegacyExamIds.add(examId);
   await AsyncStorage.removeItem(legacyStorageKey(examId));
 }
