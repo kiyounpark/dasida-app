@@ -822,6 +822,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.27 18:19
+- 해시: `a0b6cc4` (`a0b6cc49ad7b077ee8f545834cfd0c8cf2cefdf2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a0b6cc49ad7b077ee8f545834cfd0c8cf2cefdf2
+- 작성자: 박기윤
+- 메시지: fix(exam-diagnosis): fix completedAt drift on retry and stuck UI on save failure
+- 본문: - completedAt is now stored in a ref set only on the first attempt, / preventing timestamp from drifting on each useEffect retry / - SaveErrorEscape button renders in both phone and tablet paths when / saveError=true, giving users a way to exit after all retries fail / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.26 21:54
 - 해시: `0162851` (`0162851a13306069b0b18204f92acc1e85c24bac`)
 - 브랜치: main
