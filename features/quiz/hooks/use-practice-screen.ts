@@ -11,6 +11,7 @@ import { formatReviewStageLabel } from '@/features/learning/review-stage';
 import { buildWeaknessPracticeAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import { useQuizSession } from '@/features/quiz/session';
 import { computeCanGraduate } from './can-graduate';
+import { pickActiveWeaknessId, resolveQueueSeed } from './practice-weakness-helpers';
 
 type ScreenMode = 'weakness' | 'challenge' | 'review';
 
@@ -131,25 +132,25 @@ export function usePracticeScreen({
             : 'weakness';
 
   const activeReviewTask = activeMode === 'review' ? reviewQueue[0] : undefined;
-  const activeWeaknessId: WeaknessId | undefined = useMemo(() => {
-    if (activeMode === 'review') {
-      return activeReviewTask?.weaknessId;
-    }
-
-    if (activeMode === 'weakness' && state.practiceQueue.length > 0) {
-      return state.practiceQueue[state.practiceIndex];
-    }
-
-    const recoveryWeakness = summary?.latestDiagnosticSummary?.topWeaknesses?.[0];
-    return fallbackWeaknessId ?? recoveryWeakness;
-  }, [
-    activeMode,
-    activeReviewTask?.weaknessId,
-    fallbackWeaknessId,
-    state.practiceIndex,
-    state.practiceQueue,
-    summary?.latestDiagnosticSummary?.topWeaknesses,
-  ]);
+  const activeWeaknessId: WeaknessId | undefined = useMemo(
+    () =>
+      pickActiveWeaknessId({
+        activeMode,
+        activeReviewTaskWeaknessId: activeReviewTask?.weaknessId,
+        practiceQueue: state.practiceQueue,
+        practiceIndex: state.practiceIndex,
+        fallbackWeaknessId,
+        recoveryWeakness: summary?.latestDiagnosticSummary?.topWeaknesses?.[0],
+      }),
+    [
+      activeMode,
+      activeReviewTask?.weaknessId,
+      fallbackWeaknessId,
+      state.practiceIndex,
+      state.practiceQueue,
+      summary?.latestDiagnosticSummary?.topWeaknesses,
+    ],
+  );
 
   useEffect(() => {
     if (activeMode !== 'review') {
@@ -194,13 +195,16 @@ export function usePracticeScreen({
   }, [activeMode, activeProblem?.id]);
 
   useEffect(() => {
-    if (activeMode !== 'weakness') return;
-    if (state.result) return;
-    if (state.practiceQueue.length > 0) return;
-    if (fallbackWeaknessId) return; // URL param이 있으면 그것을 사용 (모의고사/특정 약점 진입)
-    const weaknesses = summary?.latestDiagnosticSummary?.topWeaknesses;
-    if (!weaknesses?.length) return;
-    seedPracticeQueue(weaknesses);
+    const toSeed = resolveQueueSeed({
+      activeMode,
+      hasResult: !!state.result,
+      practiceQueueLength: state.practiceQueue.length,
+      fallbackWeaknessId,
+      topWeaknesses: summary?.latestDiagnosticSummary?.topWeaknesses,
+    });
+    if (toSeed) {
+      seedPracticeQueue(toSeed);
+    }
     // seedPracticeQueue은 dispatch wrapper로 안정적. topWeaknesses 대신
     // attemptId를 dep로 써서 동일 콘텐츠 재시딩을 방지한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
