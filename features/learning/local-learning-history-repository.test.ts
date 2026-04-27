@@ -129,6 +129,52 @@ describe('buildReviewTasks', () => {
     );
     expect(examTask).toBeDefined();
   });
+
+  test('reverse cross-source: existing featured-exam task is preserved when diagnostic push runs (누락 #2)', () => {
+    // A pending featured-exam task already exists
+    const featuredExamTask = makePendingTask({
+      id: 'exam-2025-csat__formula_understanding__day1',
+      source: 'featured-exam',
+      sourceId: 'exam-2025-csat',
+      weaknessId: 'formula_understanding',
+    });
+
+    // Now a new diagnostic attempt is recorded
+    const diagnosticInput = makeDiagnosticInput({
+      topWeaknesses: ['formula_understanding'],
+    });
+
+    const result = buildReviewTasks(diagnosticInput, [featuredExamTask]);
+
+    // The featured-exam task must still be present
+    const featuredExamTaskInResult = result.find((t) => t.id === featuredExamTask.id);
+    expect(featuredExamTaskInResult).toBeDefined();
+    expect(featuredExamTaskInResult?.source).toBe('featured-exam');
+  });
+
+  // Test B: all-blanks — no topWeaknesses means no new tasks.
+  // Note: This is intentionally similar to the existing 'empty topWeaknesses creates no ReviewTask'
+  // test but explicitly names the all-blanks semantic (wrongCount === 0 → no diagnosis → empty
+  // topWeaknesses). Since the behaviour is identical the two tests are near-duplicates. We keep
+  // this one as a semantic anchor for the all-blanks edge case and accept the overlap.
+  test('all-blanks attempt: wrongCount===0 produces empty topWeaknesses, so no ReviewTask is created (누락 #5)', () => {
+    const allBlanksInput = makeExamInput({ topWeaknesses: [], wrongCount: 0 });
+    const result = buildReviewTasks(allBlanksInput, []);
+
+    expect(result).toHaveLength(0);
+  });
+
+  test('featured-exam with null sourceEntityId falls back to attemptId for sourceId (Min #7)', () => {
+    const input = makeExamInput({ sourceEntityId: null, attemptId: 'exam-attempt-1' });
+    const result = buildReviewTasks(input, []);
+
+    const task = result.find((t) => t.weaknessId === 'formula_understanding');
+    expect(task).toBeDefined();
+    // sourceId should fall back to attemptId when sourceEntityId is null
+    expect(task?.sourceId).toBe('exam-attempt-1');
+    // ID format: ${sourceId}__${weaknessId}__${stage}
+    expect(task?.id).toBe('exam-attempt-1__formula_understanding__day1');
+  });
 });
 
 describe('buildSummary', () => {
