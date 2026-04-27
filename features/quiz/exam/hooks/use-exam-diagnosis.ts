@@ -68,6 +68,7 @@ export type UseExamDiagnosisResult = {
   isAnalyzing: boolean;
   isDone: boolean;
   isSaving: boolean;
+  saveError: boolean;
   onInputChange: (text: string) => void;
   onAnalyze: () => void;
   onManualSelect: (id: SolveMethodId) => void;
@@ -164,8 +165,12 @@ export function useExamDiagnosis(params: {
   });
   const [isDone, setIsDone] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const startedAt = useRef(new Date().toISOString());
   const hasAdvancedRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const diagnosedRef = useRef(false);     // markProblemDiagnosed 성공 여부 (멱등, 재시도 안전)
+  const attemptRecordedRef = useRef(false); // recordAttempt 성공 여부 (비멱등, 재시도 skip)
 
   const suggestedMethods: DiagnosisMethodCardOption[] = useMemo(() => {
     if (!routerResult?.needsManualSelection) return [];
@@ -320,40 +325,52 @@ export function useExamDiagnosis(params: {
     if (!attemptId || !attemptDateISO) return;
 
     setIsDone(true);
-    logDiagnosisCompleted({
-      accountKey: profile.accountKey,
-      source: 'exam',
-      weaknessId,
-      examId,
-      problemNumber,
-    });
+    // 첫 시도에만 analytics 발화 (재시도 시 중복 방지)
+    if (!diagnosedRef.current && !attemptRecordedRef.current) {
+      logDiagnosisCompleted({
+        accountKey: profile.accountKey,
+        source: 'exam',
+        weaknessId,
+        examId,
+        problemNumber,
+      });
+    }
     setIsSaving(true);
 
     const noteCountAfterThis = currentNoteCountBeforeThis + 1;
     const methodLabel = methods.find((m) => m.id === draft.methodId)?.labelKo ?? null;
     const lastNodeText = extractLastMeaningfulNodeText(draft);
 
-    Promise.all([
-      markProblemDiagnosed(
-        { examId, attemptId, attemptDateISO },
-        problemNumber,
-        weaknessId,
-      ),
-      recordAttempt(
-        buildExamDiagnosisAttemptInput({
-          session,
-          profile,
-          examId,
-          problemNumber,
-          topic: problem?.topic ?? 'exam',
-          methodId: draft.methodId,
-          weaknessId,
-          startedAt: startedAt.current,
-          completedAt,
-        }),
-      ),
-    ])
-      .then(async () => {
+    // 순차 실행 + skip-if-done: recordAttempt는 비멱등 POST이므로 성공 후 재시도 금지.
+    // markProblemDiagnosed(AsyncStorage)는 멱등이지만 동일하게 skip 처리.
+    void (async () => {
+      try {
+        if (!diagnosedRef.current) {
+          await markProblemDiagnosed(
+            { examId, attemptId, attemptDateISO },
+            problemNumber,
+            weaknessId,
+          );
+          diagnosedRef.current = true;
+        }
+
+        if (!attemptRecordedRef.current) {
+          await recordAttempt(
+            buildExamDiagnosisAttemptInput({
+              session,
+              profile,
+              examId,
+              problemNumber,
+              topic: problem?.topic ?? 'exam',
+              methodId: draft.methodId,
+              weaknessId,
+              startedAt: startedAt.current,
+              completedAt,
+            }),
+          );
+          attemptRecordedRef.current = true;
+        }
+
         if (!isMountedRef.current) return;
         setIsSaving(false);
 
@@ -391,15 +408,24 @@ export function useExamDiagnosis(params: {
             isLastProblem,
           }]);
         }
-      })
-      .catch(() => {
+      } catch {
         if (!isMountedRef.current) return;
         setIsSaving(false);
-        // 저장 실패 시 미니 카드를 표시하지 않고 isDone을 리셋해 자동 재시도.
-        // 미니 카드를 표시하면 onAdvance → onComplete가 호출되지만 AsyncStorage에 기록이 없어
-        // 홈 재진입 시 진단 완주 조건을 영구적으로 충족하지 못한다.
+        retryCountRef.current += 1;
+        if (retryCountRef.current >= 3) {
+          setSaveError(true);
+          freezeAndAppend([{
+            kind: 'bubble',
+            id: `save-error-${problemNumber}`,
+            role: 'assistant',
+            text: '저장에 실패했어요. 잠시 후 다시 시도해 주세요.',
+          }]);
+          return;
+        }
+        // isDone 리셋 → useEffect 재트리거 → 자동 재시도 (최대 3회)
         setIsDone(false);
-      });
+      }
+    })();
   }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
 
   const onAdvance = useCallback(() => {
@@ -427,6 +453,7 @@ export function useExamDiagnosis(params: {
     isAnalyzing,
     isDone,
     isSaving,
+    saveError,
     onInputChange,
     onAnalyze,
     onManualSelect,
