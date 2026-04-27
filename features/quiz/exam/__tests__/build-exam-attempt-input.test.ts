@@ -42,6 +42,15 @@ const RESULT: ExamResultSummary = {
   ],
 };
 
+describe('buildExamAttemptInput', () => {
+  it('wrongCount는 wrong + unanswered (공란 포함)', () => {
+    const input = buildExamAttemptInput({ session: SESSION, profile: PROFILE, result: RESULT });
+    // RESULT: wrong=2, unanswered=1, total=30
+    expect(input.wrongCount).toBe(3); // 2 + 1
+    expect(input.correctCount + input.wrongCount).toBe(input.questionCount);
+  });
+});
+
 describe('buildExamAttemptInputWithDiagnosis', () => {
   it('finalWeaknessId를 diagnosedProblems에서 채운다', () => {
     const diagnosedProblems: ExamDiagnosisProgress = {

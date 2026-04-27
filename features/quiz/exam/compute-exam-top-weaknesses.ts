@@ -8,5 +8,6 @@ export function computeExamTopWeaknesses(progress: ExamDiagnosisProgress): Weakn
   }
   return [...freq.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([id]) => id);
+    .map(([id]) => id)
+    .slice(0, 3);
 }

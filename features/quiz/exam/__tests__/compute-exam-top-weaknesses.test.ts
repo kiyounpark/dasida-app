@@ -34,4 +34,16 @@ describe('computeExamTopWeaknesses', () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toBe('formula_understanding');
   });
+
+  it('returns at most 3 items even with more distinct weaknesses', () => {
+    const progress: ExamDiagnosisProgress = {
+      1: 'formula_understanding',
+      2: 'calc_repeated_error',
+      3: 'sequence_limit',
+      4: 'integral_basic',
+      5: 'function_limit',
+    };
+    const result = computeExamTopWeaknesses(progress);
+    expect(result).toHaveLength(3);
+  });
 });

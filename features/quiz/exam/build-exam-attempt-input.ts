@@ -24,7 +24,7 @@ export function buildExamAttemptInput(params: {
     completedAt: result.completedAt,
     questionCount: result.total,
     correctCount: result.correct,
-    wrongCount: result.wrong,
+    wrongCount: result.wrong + result.unanswered,
     accuracy: result.accuracy,
     primaryWeaknessId: null,
     topWeaknesses: [],
