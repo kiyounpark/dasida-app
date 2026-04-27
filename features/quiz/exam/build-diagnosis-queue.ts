@@ -17,6 +17,7 @@ export function buildDiagnosisQueue(
   progress: ExamDiagnosisProgress,
   clickedProblemNumber: number,
 ): number[] {
+  // `in` 연산자는 좌변을 string으로 강제 변환하므로 AsyncStorage JSON.parse 결과의 string 키도 안전하게 처리된다.
   const undone = allWrong.filter((n) => !(n in progress));
   if (!undone.includes(clickedProblemNumber)) return [];
   return [clickedProblemNumber, ...undone.filter((n) => n !== clickedProblemNumber)];
