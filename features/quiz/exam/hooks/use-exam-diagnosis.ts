@@ -321,12 +321,13 @@ export function useExamDiagnosis(params: {
     if (node.kind !== 'final') return;
 
     const weaknessId: WeaknessId = node.weaknessId;
+
+    if (!attemptId || !attemptDateISO) return;
+
     if (!completedAtRef.current) {
       completedAtRef.current = new Date().toISOString();
     }
     const completedAt = completedAtRef.current;
-
-    if (!attemptId || !attemptDateISO) return;
 
     setIsDone(true);
     // 첫 시도에만 analytics 발화 (재시도 시 중복 방지)
@@ -417,6 +418,8 @@ export function useExamDiagnosis(params: {
         setIsSaving(false);
         retryCountRef.current += 1;
         if (retryCountRef.current >= 3) {
+          // saveError=true 이후에는 isDone이 true로 유지되고 retryCountRef=3이므로
+          // useEffect가 재트리거되지 않는다. UI에서 onPause만이 유일한 탈출 경로.
           setSaveError(true);
           freezeAndAppend([{
             kind: 'bubble',
