@@ -104,7 +104,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
 
   // 모든 오답 진단 완료 시 리포트로 이동
   // wrongCount === 0: 만점 또는 전부 공란(userAnswer === null). 공란은 diagnosedProblems에 기록되지 않으므로
-  // 진단 대상이 없다. attempt 재기록 없이 바로 리포트로 이동한다.
+  // 진단 대상이 없다. 이 분기에서는 attempt 재기록도 라우팅도 하지 않고 결과 화면에 머문다.
   useEffect(() => {
     if (wrongCount === 0 || diagnosedCount < wrongCount) return;
     if (!result || !profile || !session) return;
@@ -118,6 +118,10 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       result,
       diagnosedProblems,
     });
+    // recordAttempt는 비동기이지만 라우팅은 즉시 진행한다 (사용자 경험 우선, spec 명시).
+    // 실패 시 ref를 리셋해 두면, 컴포넌트가 unmount 전에 useFocusEffect로 diagnosedProblems가
+    // 한 번 더 갱신되는 좁은 윈도우에서 useEffect가 재실행될 때 한 번 더 시도할 수 있다.
+    // 컴포넌트가 이미 unmount된 뒤라면 무의미하지만 부작용도 없다.
     void recordAttempt(diagnosedInput).catch((err) => {
       console.warn('[Exam] attempt weakness update failed', err);
       hasNavigatedToReportRef.current = false;
