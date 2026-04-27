@@ -5,7 +5,7 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
-import { buildExamAttemptInput } from '../build-exam-attempt-input';
+import { buildExamAttemptInput, buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
 import { computeExamTopWeaknesses } from '../compute-exam-top-weaknesses';
 import {
   getDiagnosisProgress,
@@ -105,9 +105,20 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   // 모든 오답 진단 완료 시 리포트로 이동
   useEffect(() => {
     if (wrongCount === 0 || diagnosedCount < wrongCount) return;
-    if (!result) return;
+    if (!result || !profile || !session) return;
     if (hasNavigatedToReportRef.current) return;
     hasNavigatedToReportRef.current = true;
+
+    // 진단 결과로 attempt 갱신 + ReviewTask 생성
+    const diagnosedInput = buildExamAttemptInputWithDiagnosis({
+      session,
+      profile,
+      result,
+      diagnosedProblems,
+    });
+    void recordAttempt(diagnosedInput).catch((err) =>
+      console.warn('[Exam] attempt weakness update failed', err),
+    );
 
     const topWeaknesses = computeExamTopWeaknesses(diagnosedProblems);
     router.replace({
@@ -122,7 +133,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         examWrong: String(wrongCount),
       },
     });
-  }, [diagnosedCount, wrongCount, result, diagnosedProblems]);
+  }, [diagnosedCount, wrongCount, result, diagnosedProblems, profile, session, recordAttempt]);
 
   // 문제 타일 계산
   const problemTiles: ProblemTile[] = result
