@@ -41,9 +41,22 @@ describe('detectMilestoneReached', () => {
     ).toBe<MilestoneFraction>(67);
   });
 
-  it('마일스톤 시점이 아니면 null 반환', () => {
+  it('임계값 미만이면 null 반환', () => {
+    // at33=4, at67=10 — 3은 둘 다 미달
     expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 3 })).toBeNull();
-    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 11 })).toBeNull();
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 0 })).toBeNull();
+  });
+
+  it('임계값을 초과(dot-jump)해도 해당 마일스톤 반환 (>= 비교)', () => {
+    // at33=4: count=5도 33 반환, at67=10: count=11도 67 반환
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 5 })).toBe(33);
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 11 })).toBe(67);
+  });
+
+  it('67 임계값 이상이면 항상 67 반환 (33보다 우선)', () => {
+    // at67=10 이상은 33이 함께 충족돼도 67 우선
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 10 })).toBe(67);
+    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 15 })).toBe(67);
   });
 
   it('오답 9개 이하는 항상 null', () => {

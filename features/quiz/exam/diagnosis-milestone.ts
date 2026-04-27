@@ -22,7 +22,8 @@ export function detectMilestoneReached(input: {
   currentNoteCount: number;
 }): MilestoneFraction | null {
   const thresholds = computeMilestoneThresholds(input.totalWrong);
-  if (thresholds.at33 !== null && input.currentNoteCount === thresholds.at33) return 33;
-  if (thresholds.at67 !== null && input.currentNoteCount === thresholds.at67) return 67;
+  // 67 먼저 체크: 높은 마일스톤 우선. >= 비교로 dot-jump 시 스킵 방지
+  if (thresholds.at67 !== null && input.currentNoteCount >= thresholds.at67) return 67;
+  if (thresholds.at33 !== null && input.currentNoteCount >= thresholds.at33) return 33;
   return null;
 }

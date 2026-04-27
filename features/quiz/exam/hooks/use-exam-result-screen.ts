@@ -70,7 +70,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     const wrongNums = result.perProblem
       .filter((p) => !p.isCorrect && p.userAnswer !== null)
       .map((p) => p.number);
-    void saveLatestExamAttempt({
+    void saveLatestExamAttempt(session.accountKey, {
       examId: result.examId,
       attemptId: result.attemptId,
       attemptDateISO: result.completedAt,

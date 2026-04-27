@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: BrandColors.mutedText,
     marginBottom: BrandSpacing.xs,
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   row: {

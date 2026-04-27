@@ -9,14 +9,17 @@ export type NoteCollectionBarProps = {
   showRemainingHint?: boolean; // "10장 더 모으면 종합 리포트" 표시 여부
 };
 
+const MAX_DOTS = 45;
+
 export function NoteCollectionBar({
   current,
   total,
   variant = 'full',
   showRemainingHint = true,
 }: NoteCollectionBarProps) {
-  const dots = Array.from({ length: total }, (_, i) => i < current);
-  const remaining = total - current;
+  const safeTotal = Math.min(total, MAX_DOTS);
+  const dots = Array.from({ length: safeTotal }, (_, i) => i < current);
+  const remaining = safeTotal - current;
   const isCompact = variant === 'compact';
 
   return (
@@ -25,7 +28,7 @@ export function NoteCollectionBar({
         <Text style={[styles.title, isCompact && styles.titleCompact]}>📔 학습 노트</Text>
         <Text style={[styles.count, isCompact && styles.countCompact]}>
           {current}
-          <Text style={styles.countSuffix}>{isCompact ? ` / ${total}` : '장'}</Text>
+          <Text style={styles.countSuffix}>{isCompact ? ` / ${safeTotal}` : '장'}</Text>
         </Text>
       </View>
 
@@ -49,8 +52,8 @@ export function NoteCollectionBar({
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#EDF7ED',
-    borderColor: '#2A5C3833',
+    backgroundColor: BrandColors.examPaleGreen,
+    borderColor: BrandColors.examForestBorder,
     borderWidth: 1,
     borderRadius: BrandRadius.md,
     padding: BrandSpacing.md,
@@ -68,7 +71,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamilies.bold,
     fontSize: 12,
-    color: '#2A5C38',
+    color: BrandColors.examForest,
     letterSpacing: 0.6,
   },
   titleCompact: {

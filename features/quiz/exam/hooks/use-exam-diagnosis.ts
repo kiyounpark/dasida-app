@@ -374,7 +374,6 @@ export function useExamDiagnosis(params: {
           );
           if (!seen) {
             shouldShowMilestone = true;
-            await markMilestoneShown({ examId, attemptId, attemptDateISO }, milestoneFraction);
           }
         }
 
@@ -388,6 +387,8 @@ export function useExamDiagnosis(params: {
             noteCount: noteCountAfterThis,
             totalNotes,
           }]);
+          // append 성공 후 mark — 앱 비정상 종료 시 "봤다" 오기록 방지
+          await markMilestoneShown({ examId, attemptId, attemptDateISO }, milestoneFraction);
         } else {
           const { patternName, patternDescription } = buildMiniCardText({
             methodLabel,
