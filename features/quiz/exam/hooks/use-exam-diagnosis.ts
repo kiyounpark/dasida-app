@@ -28,13 +28,8 @@ import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
 import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
-import {
-  detectMilestoneReached,
-} from '@/features/quiz/exam/diagnosis-milestone';
-import {
-  hasMilestoneShown,
-  markMilestoneShown,
-} from '@/features/quiz/exam/diagnosis-milestone-progress';
+import { markMilestoneShown } from '@/features/quiz/exam/diagnosis-milestone-progress';
+import { resolveMilestoneToShow } from '../exam-milestone-resolver';
 import { buildMiniCardText } from '@/features/quiz/exam/diagnosis-mini-card-text';
 
 export type ExamDiagEntry =
@@ -335,10 +330,6 @@ export function useExamDiagnosis(params: {
     setIsSaving(true);
 
     const noteCountAfterThis = currentNoteCountBeforeThis + 1;
-    const milestoneFraction = detectMilestoneReached({
-      totalWrong: totalNotes,
-      currentNoteCount: noteCountAfterThis,
-    });
     const methodLabel = methods.find((m) => m.id === draft.methodId)?.labelKo ?? null;
     const lastNodeText = extractLastMeaningfulNodeText(draft);
 
@@ -366,28 +357,24 @@ export function useExamDiagnosis(params: {
         if (!isMountedRef.current) return;
         setIsSaving(false);
 
-        let shouldShowMilestone = false;
-        if (milestoneFraction !== null) {
-          const seen = await hasMilestoneShown(
-            { examId, attemptId, attemptDateISO },
-            milestoneFraction,
-          );
-          if (!seen) {
-            shouldShowMilestone = true;
-            await markMilestoneShown({ examId, attemptId, attemptDateISO }, milestoneFraction);
-          }
-        }
+        const milestoneToShow = await resolveMilestoneToShow({
+          scope: { examId, attemptId, attemptDateISO },
+          totalNotes,
+          noteCountAfterThis,
+        });
 
         if (!isMountedRef.current) return;
 
-        if (shouldShowMilestone && milestoneFraction !== null) {
+        if (milestoneToShow !== null) {
           freezeAndAppend([{
             kind: 'milestone-banner',
-            id: `milestone-${milestoneFraction}-${problemNumber}`,
-            fraction: milestoneFraction,
+            id: `milestone-${milestoneToShow}-${problemNumber}`,
+            fraction: milestoneToShow,
             noteCount: noteCountAfterThis,
             totalNotes,
           }]);
+          // append 성공 후 mark — 앱 비정상 종료 시 "봤다" 오기록 방지
+          await markMilestoneShown({ examId, attemptId, attemptDateISO }, milestoneToShow);
         } else {
           const { patternName, patternDescription } = buildMiniCardText({
             methodLabel,

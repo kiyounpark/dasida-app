@@ -110,9 +110,15 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   useFocusEffect(
     useCallback(() => {
+      const accountKey = session?.accountKey;
       let cancelled = false;
       void (async () => {
-        const attempt = await getLatestExamAttempt();
+        if (!accountKey) {
+          setLatestAttempt(null);
+          setAnalysisState({ isInProgress: false });
+          return;
+        }
+        const attempt = await getLatestExamAttempt(accountKey);
         if (cancelled) return;
         setLatestAttempt(attempt);
         if (!attempt) {
@@ -132,7 +138,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return () => {
         cancelled = true;
       };
-    }, []),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.accountKey]),
   );
 
   const onStartDiagnostic = () => {
@@ -187,15 +194,16 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   const onResumeAnalysis = useCallback(() => {
     if (!latestAttempt) return;
+    const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
     router.push({
       pathname: '/quiz/exam/diagnosis-session',
       params: {
         examId: latestAttempt.examId,
         wrongProblemNumbers: JSON.stringify(latestAttempt.wrongProblemNumbers),
-        startIndex: '0',
+        startIndex: String(startIndex),
       },
     });
-  }, [latestAttempt]);
+  }, [latestAttempt, analysisState]);
 
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;

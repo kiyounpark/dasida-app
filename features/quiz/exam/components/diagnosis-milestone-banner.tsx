@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
   },
   banner: {
-    backgroundColor: '#FFF8EF',
-    borderColor: '#A89F8C66',
+    backgroundColor: BrandColors.examWarmCream,
+    borderColor: BrandColors.examWarmBorder,
     borderWidth: 1.5,
     borderRadius: BrandRadius.lg,
     paddingVertical: 22,
@@ -73,17 +73,17 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamilies.extrabold,
     fontSize: 17,
-    color: '#1C2C19',
+    color: BrandColors.examDeepGreen,
   },
   subtitle: {
     fontFamily: FontFamilies.medium,
     fontSize: 12,
-    color: '#4A4540',
+    color: BrandColors.examWarmDark,
     textAlign: 'center',
     lineHeight: 18,
   },
   fracPill: {
-    backgroundColor: '#EDF7ED',
+    backgroundColor: BrandColors.examPaleGreen,
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 999,

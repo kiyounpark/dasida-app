@@ -43,8 +43,8 @@ export function ExamAnalysisResumeCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#C8EAC8',
-    borderColor: '#2A5C3833',
+    backgroundColor: BrandColors.examSoftGreen,
+    borderColor: BrandColors.examForestBorder,
     borderWidth: 1,
     borderRadius: BrandRadius.lg,
     padding: BrandSpacing.md,
@@ -55,20 +55,20 @@ const styles = StyleSheet.create({
   kicker: {
     fontFamily: FontFamilies.bold,
     fontSize: 11,
-    color: '#2A5C38',
+    color: BrandColors.examForest,
     letterSpacing: 0.7,
     marginBottom: 4,
   },
   title: {
     fontFamily: FontFamilies.extrabold,
     fontSize: 16,
-    color: '#1C2C19',
+    color: BrandColors.examDeepGreen,
     marginBottom: 2,
   },
   sub: {
     fontFamily: FontFamilies.medium,
     fontSize: 11,
-    color: '#2A5C38',
+    color: BrandColors.examForest,
     marginBottom: BrandSpacing.sm,
   },
   collection: {
@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: FontFamilies.bold,
     fontSize: 13,
-    color: '#F8F3E8',
+    color: BrandColors.examLightText,
   },
 });

@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.sm,
   },
   completionBlock: {
-    backgroundColor: '#C8EAC8',
-    borderColor: '#6BAA7244',
+    backgroundColor: BrandColors.examSoftGreen,
+    borderColor: BrandColors.examSoftGreenBorder,
     borderWidth: 1,
     borderRadius: BrandRadius.md,
     padding: BrandSpacing.md,
@@ -83,17 +83,17 @@ const styles = StyleSheet.create({
   completionLabel: {
     fontFamily: FontFamilies.bold,
     fontSize: 14,
-    color: '#1C2C19',
+    color: BrandColors.examDeepGreen,
   },
   problemLabel: {
     fontFamily: FontFamilies.medium,
     fontSize: 11,
-    color: '#4A4540',
+    color: BrandColors.examWarmDark,
   },
   patternBlock: {
     backgroundColor: BrandColors.card,
     borderRadius: BrandRadius.sm,
-    borderColor: '#2E7A2E1F',
+    borderColor: BrandColors.examForestSubtleBorder,
     borderWidth: 1,
     padding: BrandSpacing.sm,
     width: '100%',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   patternDesc: {
     fontFamily: FontFamilies.regular,
     fontSize: 11,
-    color: '#4A4540',
+    color: BrandColors.examWarmDark,
     lineHeight: 17,
   },
   buttonRow: {

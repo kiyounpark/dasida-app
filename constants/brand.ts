@@ -11,6 +11,19 @@ export const BrandColors = {
   danger: '#D64545',
   warning: '#D98E04',
   disabled: '#BFCABC',
+
+  // Exam analysis green theme (diagnosis flow)
+  examSoftGreen: '#C8EAC8',
+  examSoftGreenBorder: '#6BAA7244',
+  examPaleGreen: '#EDF7ED',
+  examForest: '#2A5C38',
+  examForestBorder: '#2A5C3833',
+  examForestSubtleBorder: '#2E7A2E1F',
+  examWarmCream: '#FFF8EF',
+  examWarmBorder: '#A89F8C66',
+  examDeepGreen: '#1C2C19',
+  examWarmDark: '#4A4540',
+  examLightText: '#F8F3E8',
 } as const;
 
 export const BrandRadius = {

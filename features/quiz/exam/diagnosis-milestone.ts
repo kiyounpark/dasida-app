@@ -16,13 +16,3 @@ export function computeMilestoneThresholds(totalWrong: number): MilestoneThresho
     at67: Math.floor(totalWrong * 0.67),
   };
 }
-
-export function detectMilestoneReached(input: {
-  totalWrong: number;
-  currentNoteCount: number;
-}): MilestoneFraction | null {
-  const thresholds = computeMilestoneThresholds(input.totalWrong);
-  if (thresholds.at33 !== null && input.currentNoteCount === thresholds.at33) return 33;
-  if (thresholds.at67 !== null && input.currentNoteCount === thresholds.at67) return 67;
-  return null;
-}

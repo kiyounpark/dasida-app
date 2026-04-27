@@ -1,7 +1,5 @@
 import {
   computeMilestoneThresholds,
-  detectMilestoneReached,
-  type MilestoneFraction,
 } from '@/features/quiz/exam/diagnosis-milestone';
 
 describe('computeMilestoneThresholds', () => {
@@ -25,34 +23,5 @@ describe('computeMilestoneThresholds', () => {
 
   it('오답 11개일 때 33%=3 (floor 3.63), 67%=7 (floor 7.37)', () => {
     expect(computeMilestoneThresholds(11)).toEqual({ at33: 3, at67: 7 });
-  });
-});
-
-describe('detectMilestoneReached', () => {
-  it('현재 노트 수가 33% 도달 시점이면 33 반환', () => {
-    expect(
-      detectMilestoneReached({ totalWrong: 15, currentNoteCount: 4 }),
-    ).toBe<MilestoneFraction>(33);
-  });
-
-  it('현재 노트 수가 67% 도달 시점이면 67 반환', () => {
-    expect(
-      detectMilestoneReached({ totalWrong: 15, currentNoteCount: 10 }),
-    ).toBe<MilestoneFraction>(67);
-  });
-
-  it('마일스톤 시점이 아니면 null 반환', () => {
-    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 3 })).toBeNull();
-    expect(detectMilestoneReached({ totalWrong: 15, currentNoteCount: 11 })).toBeNull();
-  });
-
-  it('오답 9개 이하는 항상 null', () => {
-    expect(detectMilestoneReached({ totalWrong: 9, currentNoteCount: 3 })).toBeNull();
-    expect(detectMilestoneReached({ totalWrong: 9, currentNoteCount: 6 })).toBeNull();
-  });
-
-  it('오답 10개: floor(3.3)=3, floor(6.7)=6 — 안 겹침', () => {
-    expect(detectMilestoneReached({ totalWrong: 10, currentNoteCount: 3 })).toBe(33);
-    expect(detectMilestoneReached({ totalWrong: 10, currentNoteCount: 6 })).toBe(67);
   });
 });
