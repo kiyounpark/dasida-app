@@ -65,25 +65,4 @@ describe('useExamDiagnosis 오케스트레이션 — resolveMilestoneToShow 분�
     );
   });
 
-  it('마운트 해제 시 append/mark 미실행 — isMountedRef 가드 동작', async () => {
-    mockedAsyncStorage.getItem.mockResolvedValueOnce(null);
-
-    const fraction = await resolveMilestoneToShow({
-      scope: SCOPE,
-      totalNotes: 15,
-      noteCountAfterThis: 5,
-    });
-
-    const isMounted = false; // 컴포넌트 언마운트 상태
-    const appendBanner = jest.fn();
-
-    // 실제 훅의 isMountedRef 체크 시뮬레이션
-    if (fraction !== null && isMounted) {
-      appendBanner(fraction);
-      await markMilestoneShown(SCOPE, fraction);
-    }
-
-    expect(appendBanner).not.toHaveBeenCalled();
-    expect(mockedAsyncStorage.setItem).not.toHaveBeenCalled();
-  });
 });

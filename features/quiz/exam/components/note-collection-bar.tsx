@@ -19,7 +19,7 @@ export function NoteCollectionBar({
 }: NoteCollectionBarProps) {
   const safeTotal = Math.min(total, MAX_DOTS);
   const dots = Array.from({ length: safeTotal }, (_, i) => i < current);
-  const remaining = safeTotal - current;
+  const remaining = total - current;
   const isCompact = variant === 'compact';
 
   return (
@@ -28,7 +28,7 @@ export function NoteCollectionBar({
         <Text style={[styles.title, isCompact && styles.titleCompact]}>📔 학습 노트</Text>
         <Text style={[styles.count, isCompact && styles.countCompact]}>
           {current}
-          <Text style={styles.countSuffix}>{isCompact ? ` / ${safeTotal}` : '장'}</Text>
+          <Text style={styles.countSuffix}>{isCompact ? ` / ${total}` : '장'}</Text>
         </Text>
       </View>
 
