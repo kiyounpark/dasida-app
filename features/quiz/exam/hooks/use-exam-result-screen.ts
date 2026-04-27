@@ -183,7 +183,8 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       const allWrong = result.perProblem
         .filter((p) => !p.isCorrect && p.userAnswer !== null)
         .map((p) => p.number);
-      // diagnosedProblems는 useFocusEffect로 진단 세션 복귀 시마다 갱신되므로 항상 최신 상태.
+      // diagnosedProblems는 useFocusEffect로 진단 세션 복귀 시 비동기 갱신된다.
+      // async 읽기 완료 전 짧은 stale 윈도우가 있을 수 있으나, 빈 큐 가드가 방어한다.
       const queue = buildDiagnosisQueue(allWrong, diagnosedProblems, problemNumber);
       if (queue.length === 0) return;
       router.push({
