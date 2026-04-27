@@ -5,6 +5,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,7 +13,8 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { BrandColors } from '@/constants/brand';
+import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { FontFamilies } from '@/constants/typography';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { DiagnosisChatBubble } from '@/features/quiz/components/diagnosis-chat-bubble';
 import { DiagnosisFlowCard } from '@/features/quiz/components/diagnosis-flow-card';
@@ -128,6 +130,7 @@ export function ExamDiagnosisPage({
                 <Text style={styles.savingText}>저장 중...</Text>
               </View>
             )}
+            {hook.saveError && <SaveErrorEscape onPause={hook.onPause} />}
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
@@ -158,8 +161,19 @@ export function ExamDiagnosisPage({
             <Text style={styles.savingText}>저장 중...</Text>
           </View>
         )}
+        {hook.saveError && <SaveErrorEscape onPause={hook.onPause} />}
       </ScrollView>
     </View>
+  );
+}
+
+function SaveErrorEscape({ onPause }: { onPause: () => void }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.saveErrorBtn, pressed && styles.saveErrorBtnPressed]}
+      onPress={onPause}>
+      <Text style={styles.saveErrorBtnText}>잠시 쉬기</Text>
+    </Pressable>
   );
 }
 
@@ -309,5 +323,22 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 40,
     gap: 12,
+  },
+  saveErrorBtn: {
+    backgroundColor: 'transparent',
+    borderColor: BrandColors.border,
+    borderWidth: 1.5,
+    borderRadius: BrandRadius.md,
+    paddingVertical: 13,
+    alignItems: 'center',
+    marginHorizontal: BrandSpacing.xs,
+  },
+  saveErrorBtnText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 12,
+    color: BrandColors.mutedText,
+  },
+  saveErrorBtnPressed: {
+    opacity: 0.7,
   },
 });

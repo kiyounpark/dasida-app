@@ -167,6 +167,7 @@ export function useExamDiagnosis(params: {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const startedAt = useRef(new Date().toISOString());
+  const completedAtRef = useRef<string | null>(null);
   const hasAdvancedRef = useRef(false);
   const retryCountRef = useRef(0);
   const diagnosedRef = useRef(false);     // markProblemDiagnosed 성공 여부 (멱등, 재시도 안전)
@@ -320,7 +321,10 @@ export function useExamDiagnosis(params: {
     if (node.kind !== 'final') return;
 
     const weaknessId: WeaknessId = node.weaknessId;
-    const completedAt = new Date().toISOString();
+    if (!completedAtRef.current) {
+      completedAtRef.current = new Date().toISOString();
+    }
+    const completedAt = completedAtRef.current;
 
     if (!attemptId || !attemptDateISO) return;
 
