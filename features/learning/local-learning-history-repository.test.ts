@@ -1,3 +1,4 @@
+import type { WeaknessId } from '@/data/diagnosisMap';
 import type { FinalizedAttemptInput } from './history-repository';
 import { buildReviewTasks, buildSummary } from './local-learning-history-repository';
 import type { ReviewTask } from './types';
@@ -146,7 +147,7 @@ describe('buildSummary', () => {
       wrongCount: 2,
       accuracy: 93,
       primaryWeaknessId: 'formula_understanding' as const,
-      topWeaknesses: ['formula_understanding', 'calc_repeated_error'] as const,
+      topWeaknesses: ['formula_understanding', 'calc_repeated_error'] as WeaknessId[],
       reviewStage: undefined,
       schemaVersion: 1 as const,
       createdAt: '2026-04-27T10:00:00Z',
