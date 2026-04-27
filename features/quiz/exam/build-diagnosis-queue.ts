@@ -4,7 +4,7 @@ import type { ExamDiagnosisProgress } from './exam-diagnosis-progress';
  * 모의고사 결과 화면에서 진단 세션에 전달할 큐를 만든다.
  *
  * 동작:
- * - 이미 진단 완료된 문제는 제외 (allWrong - diagnosed)
+ * - 이미 진단 완료된 문제는 제외 (allWrong - progress)
  * - 클릭한 문제를 큐의 첫 자리에 둔다
  * - 나머지 미진단 문제는 allWrong의 원래 순서를 유지한다
  *
@@ -14,10 +14,10 @@ import type { ExamDiagnosisProgress } from './exam-diagnosis-progress';
  */
 export function buildDiagnosisQueue(
   allWrong: number[],
-  diagnosed: ExamDiagnosisProgress,
-  startProblem: number,
+  progress: ExamDiagnosisProgress,
+  clickedProblemNumber: number,
 ): number[] {
-  const undone = allWrong.filter((n) => !(n in diagnosed));
-  if (!undone.includes(startProblem)) return [];
-  return [startProblem, ...undone.filter((n) => n !== startProblem)];
+  const undone = allWrong.filter((n) => !(n in progress));
+  if (!undone.includes(clickedProblemNumber)) return [];
+  return [clickedProblemNumber, ...undone.filter((n) => n !== clickedProblemNumber)];
 }
