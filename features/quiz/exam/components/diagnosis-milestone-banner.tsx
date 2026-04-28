@@ -1,8 +1,11 @@
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+
+import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { NoteCollectionBar } from '@/features/quiz/exam/components/note-collection-bar';
+import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
+
+const MASCOT_SOURCE = require('../../../../assets/images/characters/char_07.png');
 
 export type DiagnosisMilestoneBannerProps = {
   fraction: MilestoneFraction; // 33 | 67
@@ -12,6 +15,16 @@ export type DiagnosisMilestoneBannerProps = {
   onContinue: () => void;
 };
 
+function getHeadline(fraction: MilestoneFraction): string {
+  return fraction === 33 ? '벌써 절반 왔어.' : '한 문제만 더.';
+}
+
+function getSub(fraction: MilestoneFraction, noteCount: number): string {
+  return fraction === 33
+    ? `${noteCount}문제 분석 완료 · 잘 하고 있어`
+    : `${noteCount}문제 분석 완료 · 거의 다 왔어`;
+}
+
 export function DiagnosisMilestoneBanner({
   fraction,
   noteCount,
@@ -19,34 +32,46 @@ export function DiagnosisMilestoneBanner({
   onPause,
   onContinue,
 }: DiagnosisMilestoneBannerProps) {
-  const isFirst = fraction === 33;
-  const icon = isFirst ? '🌱' : '🌿';
-  const title = isFirst ? '1/3 도달' : '2/3 도달';
-  const subtitle = isFirst
-    ? `노트 ${noteCount}장 모았어요\n여기까지 잘 왔어요`
-    : `노트 ${noteCount}장 모았어요\n조금만 더 가면 끝이에요`;
+  const pct = Math.min(Math.max(totalNotes > 0 ? noteCount / totalNotes : 0, 0), 1);
 
   return (
     <View style={styles.outer}>
-      <View style={styles.banner}>
-        <Text style={styles.icon}>{icon}</Text>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        <View style={styles.fracPill}>
-          <Text style={styles.fracText}>
-            {noteCount} / {totalNotes}
-          </Text>
+      <View style={styles.milestoneCard}>
+        <View style={styles.topStripe} />
+
+        <Image
+          source={MASCOT_SOURCE}
+          contentFit="contain"
+          style={styles.mascot}
+          transition={0}
+        />
+
+        <Text style={styles.headline}>{getHeadline(fraction)}</Text>
+        <Text style={styles.sub}>{getSub(fraction, noteCount)}</Text>
+
+        <View style={styles.fractionRow}>
+          <Text style={styles.fractionNum}>{noteCount}</Text>
+          <Text style={styles.fractionDen}> / {totalNotes}</Text>
+        </View>
+
+        <View style={styles.barTrack}>
+          <View style={[styles.barFill, { flex: pct }]} />
+          <View style={{ flex: 1 - pct }} />
         </View>
       </View>
 
-      <NoteCollectionBar current={noteCount} total={totalNotes} variant="full" showRemainingHint={false} />
-
-      <View style={styles.buttonRow}>
-        <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.btnPressed]} onPress={onPause}>
-          <Text style={styles.btnGhostText}>잠시 쉬기</Text>
-        </Pressable>
-        <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPressed]} onPress={onContinue}>
+      <View style={styles.buttonCol}>
+        <Pressable
+          style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPressed]}
+          onPress={onContinue}
+          accessibilityRole="button">
           <Text style={styles.btnPrimaryText}>계속하기 →</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.btnGhost, pressed && styles.btnGhostPressed]}
+          onPress={onPause}
+          accessibilityRole="button">
+          <Text style={styles.btnGhostText}>잠시 쉬기</Text>
         </Pressable>
       </View>
     </View>
@@ -57,74 +82,110 @@ const styles = StyleSheet.create({
   outer: {
     gap: BrandSpacing.sm,
   },
-  banner: {
-    backgroundColor: BrandColors.examWarmCream,
-    borderColor: BrandColors.examWarmBorder,
-    borderWidth: 1.5,
+  milestoneCard: {
+    backgroundColor: '#FFFCF4',
+    borderWidth: 2,
+    borderColor: '#1A1916',
     borderRadius: BrandRadius.lg,
-    paddingVertical: 22,
-    paddingHorizontal: BrandSpacing.md,
+    borderCurve: 'continuous',
+    paddingHorizontal: BrandSpacing.lg,
+    paddingTop: 20,
+    paddingBottom: 22,
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    overflow: 'hidden',
   },
-  icon: {
-    fontSize: 40,
+  topStripe: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#5C8C5A',
   },
-  title: {
+  mascot: {
+    width: 76,
+    height: 76,
+  },
+  headline: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 17,
-    color: BrandColors.examDeepGreen,
-  },
-  subtitle: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 12,
-    color: BrandColors.examWarmDark,
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: -0.4,
+    color: '#1A1916',
     textAlign: 'center',
+  },
+  sub: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,
     lineHeight: 18,
+    color: '#6B675E',
+    textAlign: 'center',
   },
-  fracPill: {
-    backgroundColor: BrandColors.examPaleGreen,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    marginTop: 6,
-  },
-  fracText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 12,
-    color: BrandColors.success,
-  },
-  buttonRow: {
+  fractionRow: {
     flexDirection: 'row',
-    gap: BrandSpacing.xs,
+    alignItems: 'baseline',
+    marginTop: 4,
+  },
+  fractionNum: {
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 40,
+    lineHeight: 44,
+    letterSpacing: -1,
+    color: '#293B27',
+  },
+  fractionDen: {
+    fontFamily: FontFamilies.semibold,
+    fontSize: 20,
+    color: '#6B675E',
+  },
+  barTrack: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 8,
+    backgroundColor: '#F2EDDC',
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: '#ECE4CD',
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  barFill: {
+    backgroundColor: '#5C8C5A',
+    borderRadius: 999,
+  },
+  buttonCol: {
+    gap: 4,
+  },
+  btnPrimary: {
+    backgroundColor: '#293B27',
+    borderWidth: 2.5,
+    borderColor: '#1A1916',
+    borderRadius: BrandRadius.md,
+    borderCurve: 'continuous',
+    paddingVertical: 16,
+    alignItems: 'center',
+    boxShadow: '0 3px 0 #1A1916',
+  },
+  btnPrimaryText: {
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 15,
+    color: '#FAF6EC',
+    letterSpacing: -0.2,
+  },
+  btnPressed: {
+    opacity: 0.85,
   },
   btnGhost: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderColor: BrandColors.border,
-    borderWidth: 1.5,
-    borderRadius: BrandRadius.md,
-    paddingVertical: 13,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   btnGhostText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 12,
-    color: BrandColors.mutedText,
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,
+    color: '#6B675E',
   },
-  btnPrimary: {
-    flex: 1,
-    backgroundColor: BrandColors.success,
-    borderRadius: BrandRadius.md,
-    paddingVertical: 13,
-    alignItems: 'center',
-  },
-  btnPrimaryText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 12,
-    color: BrandColors.card,
-  },
-  btnPressed: {
-    opacity: 0.7,
+  btnGhostPressed: {
+    opacity: 0.6,
   },
 });
