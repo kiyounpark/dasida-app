@@ -1,41 +1,32 @@
-import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-
-const FRAME_SOURCE = require('./frame_note_with_stamp_transparent_cropped.png');
-const FRAME_ASPECT_RATIO = 1542 / 437;
 
 type QuizResultReportHeaderProps = {
   isCompactLayout: boolean;
 };
 
-export function QuizResultReportHeader({ isCompactLayout }: QuizResultReportHeaderProps) {
-  const bannerPaddingTop = isCompactLayout ? 28 : 36;
+export function QuizResultReportHeader(_props: QuizResultReportHeaderProps) {
+  const router = useRouter();
+  const today = new Date()
+    .toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+    .replace(/\. /g, '·')
+    .replace('.', '');
+
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <View style={[styles.bannerWrap, { paddingTop: bannerPaddingTop }]}>
-        <View style={styles.frameBlock}>
-          <View
-            style={[
-              styles.frameWrap,
-              isCompactLayout && styles.frameWrapCompact,
-              styles.frameWrapRaised,
-              isCompactLayout && styles.frameWrapRaisedCompact,
-            ]}>
-            <Image contentFit="contain" source={FRAME_SOURCE} style={styles.frameImage} transition={0} />
-            <View style={styles.frameContent}>
-              <Text
-                selectable
-                numberOfLines={1}
-                style={[styles.title, isCompactLayout && styles.titleCompact]}>
-                나의 약점 분석 리포트
-              </Text>
-            </View>
-          </View>
-        </View>
+      <View style={styles.bar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
+          <Text style={styles.backIcon}>‹</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }} />
+        <Text style={styles.date}>{today}</Text>
       </View>
     </SafeAreaView>
   );
@@ -45,52 +36,29 @@ const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: '#F8F3E8',
   },
-  bannerWrap: {
-    paddingHorizontal: 14,
-  },
-  frameBlock: {
-    width: '100%',
+  bar: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
-  frameWrap: {
-    width: '100%',
-    maxWidth: 430,
-    aspectRatio: FRAME_ASPECT_RATIO,
-    position: 'relative',
-  },
-  frameWrapCompact: {
-    maxWidth: 390,
-  },
-  frameWrapRaised: {
-    transform: [{ translateY: -32 }],
-  },
-  frameWrapRaisedCompact: {
-    transform: [{ translateY: -24 }],
-  },
-  frameImage: {
-    width: '100%',
-    height: '100%',
-  },
-  frameContent: {
-    ...StyleSheet.absoluteFillObject,
+  backBtn: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: '13%',
-    paddingRight: '17%',
-    paddingBottom: '3%',
   },
-  title: {
-    width: '100%',
-    fontFamily: FontFamilies.extrabold,
-    fontSize: 25,
-    lineHeight: 31,
-    letterSpacing: -0.9,
-    color: BrandColors.primaryDark,
-    textAlign: 'center',
-    transform: [{ translateX: 4 }],
+  backIcon: {
+    fontSize: 28,
+    color: '#1A1916',
+    fontWeight: '300',
+    lineHeight: 32,
+    marginTop: -2,
   },
-  titleCompact: {
-    fontSize: 22,
-    lineHeight: 28,
+  date: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 12,
+    color: '#6B675E',
+    fontVariant: ['tabular-nums'],
   },
 });
