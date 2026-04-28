@@ -34,6 +34,11 @@ export function ExamDiagnosisSessionScreen() {
     ),
   );
 
+  const totalNotes =
+    Number(getSingleParam(params.totalNotes)) || wrongProblemNumbers.length;
+  const diagnosedCountBefore =
+    Number(getSingleParam(params.diagnosedCountBefore)) || 0;
+
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
@@ -93,8 +98,8 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(activeProblemNumber)}
             width={pageWidth}
             isActive={true}
-            totalNotes={wrongProblemNumbers.length}
-            currentNoteCountBeforeThis={session.diagnosedIndices.length}
+            totalNotes={totalNotes}
+            currentNoteCountBeforeThis={diagnosedCountBefore + session.diagnosedIndices.length}
             isLastProblem={session.getNextProblemNumber(session.activeProblemIndex) === null}
             onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(session.activeProblemIndex)}
@@ -140,8 +145,8 @@ export function ExamDiagnosisSessionScreen() {
             userAnswer={session.getUserAnswer(problemNumber)}
             width={pageWidth}
             isActive={index === session.activeProblemIndex}
-            totalNotes={wrongProblemNumbers.length}
-            currentNoteCountBeforeThis={session.diagnosedIndices.length}
+            totalNotes={totalNotes}
+            currentNoteCountBeforeThis={diagnosedCountBefore + session.diagnosedIndices.length}
             isLastProblem={session.getNextProblemNumber(index) === null}
             onPauseRequested={handlePauseRequested}
             onComplete={() => handlePageComplete(index)}
