@@ -822,6 +822,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.27 23:40
+- 해시: `f55460e` (`f55460ec1eb6a4f0d9c765dfe4a9228ee356d8f7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f55460ec1eb6a4f0d9c765dfe4a9228ee356d8f7
+- 작성자: 박기윤
+- 메시지: docs(exam): in 연산자 coercion 및 diagnosedProblems 최신성 주석 추가
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.27 18:19
 - 해시: `a0b6cc4` (`a0b6cc49ad7b077ee8f545834cfd0c8cf2cefdf2`)
 - 브랜치: main

@@ -286,8 +286,10 @@ export const LearningAttemptResultSchema = z.object({
   questionId: z.string().min(1).max(120),
   questionNumber: z.number().int().min(1).max(200),
   topic: z.string().min(1).max(120),
-  firstSelectedIndex: z.number().int().min(0).max(20).nullable().optional(),
-  selectedIndex: z.number().int().min(0).max(20).nullable(),
+  // MC: 선택지 번호(1~5). 단답형: 사용자가 직접 입력한 숫자 값(수능 규칙상 0~999).
+  // TODO: 두 유형이 같은 필드에 섞여 저장되므로 나중에 shortAnswerValue 같은 별도 필드로 분리 필요.
+  firstSelectedIndex: z.number().int().min(0).max(999).nullable().optional(),
+  selectedIndex: z.number().int().min(0).max(999).nullable(),
   isCorrect: z.boolean(),
   finalWeaknessId: WeaknessIdSchema.nullable(),
   methodId: SolveMethodIdSchema.nullable(),
@@ -307,8 +309,10 @@ const FinalizedAttemptQuestionInputSchema = z.object({
   questionId: z.string().min(1).max(120),
   questionNumber: z.number().int().min(1).max(200),
   topic: z.string().min(1).max(120),
-  firstSelectedIndex: z.number().int().min(0).max(20).nullable().optional(),
-  selectedIndex: z.number().int().min(0).max(20).nullable(),
+  // MC: 선택지 번호(1~5). 단답형: 사용자가 직접 입력한 숫자 값(수능 규칙상 0~999).
+  // TODO: 두 유형이 같은 필드에 섞여 저장되므로 나중에 shortAnswerValue 같은 별도 필드로 분리 필요.
+  firstSelectedIndex: z.number().int().min(0).max(999).nullable().optional(),
+  selectedIndex: z.number().int().min(0).max(999).nullable(),
   isCorrect: z.boolean(),
   finalWeaknessId: WeaknessIdSchema.nullable(),
   methodId: SolveMethodIdSchema.nullable(),
