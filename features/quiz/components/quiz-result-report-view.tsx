@@ -92,6 +92,7 @@ export function QuizResultReportView({
           <View style={styles.cardList}>
             {secondaryWeaknesses.map((weaknessId) => {
               const info = diagnosisMap[weaknessId as keyof typeof diagnosisMap];
+              if (!info) return null;
               return (
                 <QuizResultReportCard
                   key={weaknessId}
@@ -113,6 +114,7 @@ export function QuizResultReportView({
             <View style={styles.compactList}>
               {extraWeaknesses.map((weaknessId) => {
                 const info = diagnosisMap[weaknessId as keyof typeof diagnosisMap];
+                if (!info) return null;
                 return (
                   <View key={weaknessId} style={styles.compactRow}>
                     <View style={styles.topicChip}>

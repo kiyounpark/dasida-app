@@ -21,7 +21,6 @@ export function QuizResultScreenView({
   persistResult,
   saveErrorMessage,
   saveState,
-  source,
   snapshotSummary,
   snapshotSummaryTitle,
 }: UseResultScreenResult) {
