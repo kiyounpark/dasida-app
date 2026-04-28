@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,19 +11,28 @@ type QuizResultReportHeaderProps = {
 
 export function QuizResultReportHeader(_props: QuizResultReportHeaderProps) {
   const router = useRouter();
-  const today = new Date()
-    .toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
-    .replace(/\. /g, '·')
-    .replace(/\.$/, '');
+  const today = useMemo(
+    () =>
+      new Date()
+        .toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        })
+        .replace(/\. /g, '·')
+        .replace(/\.$/, ''),
+    [],
+  );
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.bar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
+        <TouchableOpacity
+          onPress={() => router.replace('/(tabs)/quiz')}
+          style={styles.backBtn}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로 가기">
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />

@@ -109,7 +109,7 @@ export function QuizResultReportView({
         {extraWeaknesses.length > 0 ? (
           <View style={styles.extraSection}>
             <Text style={styles.extraSectionLabel}>
-              그 외 약점 {extraWeaknesses.length}개
+              그 외 약점 {extraWeaknesses.filter((id) => id in diagnosisMap).length}개
             </Text>
             <View style={styles.compactList}>
               {extraWeaknesses.map((weaknessId) => {
@@ -179,6 +179,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(53, 72, 50, 0.16)',
     borderRadius: BrandRadius.lg,
+    borderCurve: 'continuous',
     backgroundColor: 'rgba(255, 255, 255, 0.82)',
     paddingHorizontal: 18,
     paddingVertical: 16,
@@ -261,6 +262,7 @@ const styles = StyleSheet.create({
   primaryCta: {
     minHeight: 52,
     borderRadius: 999,
+    borderCurve: 'continuous',
     paddingVertical: 14,
   },
   ghostBtn: {

@@ -29,7 +29,7 @@ export function QuizResultReportHero({
 
       <Text style={[styles.headline, isCompactLayout && styles.headlineCompact]}>
         {info.labelKo}에서{'\n'}
-        <Text style={styles.missedHighlight}>{missedCount}번 모두 막혔어요.</Text>
+        <Text style={styles.missedHighlight}>{missedCount}번 막혔어요.</Text>
       </Text>
 
       <Text style={[styles.desc, isCompactLayout && styles.descCompact]}>
