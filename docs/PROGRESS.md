@@ -21,6 +21,21 @@
 
 ## 로그
 
+### 2026.04.28
+
+**약점 분석 리포트 리디자인 완료**
+
+- **변경 파일**: `QuizResultReportView` / `Header` / `Hero` 전면 교체, `quiz-result-screen-view.tsx` 호출처 정리, `exam-result-screen-view.tsx` Hero 의존 제거
+- **데이터 모델**: `QuizResultSummary.wrongByWeakness?: Record<WeaknessId, number>` optional 필드 노출 (기존 `weaknessScores` 그대로 노출, 하위 호환)
+- **Hero 변경**: 캐릭터/말풍선 제거 → 약점명 헤드라인 + 오답 횟수 강조(`BrandColors.danger`) + tip 박스
+- **View 변경**: `climaxBanner` / `NoteCollectionBar` / `summaryLine` 제거, `source`/`totalNotes` prop 제거
+- **카피 정중체 통일**: "막혔어" → "막혔어요.", "고쳐보자" → "고쳐봐요"
+- **CTA 동적 문구**: "{약점명}부터 다시 풀기" + "나중에 풀게요" ghost 버튼 → `/(tabs)/quiz` 라우팅
+- **자산 정리**: `Gemini_Generated_Image_84kar584kar584ka.png` 삭제 (캐릭터 이미지 미사용)
+- **테스트**: `engine.test.ts` 신규 — `wrongByWeakness` TDD, 전체 112건 PASS
+
+---
+
 ### 2026.04.25
 
 **앱 전체 점검 완료 (출시 전 사용자 여정 순서 점검)**
