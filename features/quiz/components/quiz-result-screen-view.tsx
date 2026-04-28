@@ -125,8 +125,6 @@ export function QuizResultScreenView({
         saveErrorMessage={saveErrorMessage}
         saveState={saveState}
         summary={summary}
-        source={source}
-        totalNotes={source === 'exam' ? summary.wrong : undefined}
       />
     );
   }

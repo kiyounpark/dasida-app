@@ -3,7 +3,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { QuizResultReportHero } from '@/features/quiz/components/quiz-result-report-hero';
 
 import type { ProblemTile, UseExamResultScreenResult } from '../hooks/use-exam-result-screen';
 import type { ExamResultSummary } from '../types';
@@ -61,15 +60,10 @@ export function ExamResultScreenView({
         </View>
       </View>
 
-      {/* 선생님 아바타 + 약점 분석 안내 */}
       {wrongCount > 0 && (
         <View style={styles.heroWrap}>
-          <QuizResultReportHero
-            isCompactLayout={false}
-            pointCount={wrongCount}
-            message={`오늘 시험에서 ${wrongCount}문제를 분석해 볼게요.\n하나씩 같이 살펴봐요!`}
-          />
           <Text style={styles.frameMicrocopy}>
+            오늘 시험에서 {wrongCount}문제를 분석해 볼게요.{`\n`}
             틀린 문제를 하나씩 분석하면서{`\n`}
             <Text style={styles.frameMicrocopyEm}>학습 노트를 모아보세요</Text>
           </Text>

@@ -1,12 +1,11 @@
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
-
-import { NoteCollectionBar } from '@/features/quiz/exam/components/note-collection-bar';
 
 import { QuizResultReportCard } from './quiz-result-report-card';
 import { QuizResultReportHeader } from './quiz-result-report-header';
@@ -18,8 +17,6 @@ type QuizResultReportViewProps = {
   saveErrorMessage: string | null;
   saveState: UseResultScreenResult['saveState'];
   summary: NonNullable<UseResultScreenResult['liveSummary']>;
-  source?: 'exam' | 'diagnostic';
-  totalNotes?: number;
 };
 
 export function QuizResultReportView({
@@ -28,14 +25,21 @@ export function QuizResultReportView({
   saveErrorMessage,
   saveState,
   summary,
-  source,
-  totalNotes,
 }: QuizResultReportViewProps) {
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const isCompactLayout = width < 390;
-  const topWeaknesses = summary.topWeaknesses.slice(0, 3);
+
+  const primaryWeaknessId = summary.topWeaknesses[0];
+  const primaryInfo = primaryWeaknessId
+    ? diagnosisMap[primaryWeaknessId as keyof typeof diagnosisMap]
+    : null;
+  const missedCount = primaryWeaknessId
+    ? summary.wrongByWeakness?.[primaryWeaknessId] ?? 1
+    : 1;
+
+  const secondaryWeaknesses = summary.topWeaknesses.slice(1, 3);
   const extraWeaknesses = summary.topWeaknesses.slice(3);
-  const primaryWeaknessId = topWeaknesses[0];
 
   return (
     <View style={styles.screen}>
@@ -48,36 +52,10 @@ export function QuizResultReportView({
           styles.container,
           isCompactLayout && styles.containerCompact,
         ]}>
-        {source === 'exam' && totalNotes ? (
-          <View style={styles.climaxBanner}>
-            <Text style={styles.climaxEmoji}>🎉</Text>
-            <Text style={styles.climaxTitle}>{totalNotes}장 노트 모두 수집!</Text>
-            <Text style={styles.climaxSub}>전체 분석 완료 · 약점 {topWeaknesses.length}개 발견</Text>
-          </View>
-        ) : null}
-
-        {source === 'exam' && totalNotes ? (
-          <NoteCollectionBar
-            current={totalNotes}
-            total={totalNotes}
-            variant="full"
-            showRemainingHint={false}
-          />
-        ) : null}
-
-        <Text selectable style={[styles.summaryLine, isCompactLayout && styles.summaryLineCompact]}>
-          총 {summary.total}문제 중 {summary.correct}문제 정답 · 정답률 {summary.accuracy}%
-        </Text>
-
-        <QuizResultReportHero
-          isCompactLayout={isCompactLayout}
-          pointCount={topWeaknesses.length}
-        />
-
         {saveState === 'saving' ? (
           <View style={styles.statusCard}>
-            <Text selectable style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
-            <Text selectable style={styles.statusBody}>
+            <Text style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
+            <Text style={styles.statusBody}>
               결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
             </Text>
           </View>
@@ -85,40 +63,56 @@ export function QuizResultReportView({
 
         {saveState === 'error' ? (
           <View style={[styles.statusCard, styles.errorCard]}>
-            <Text selectable style={styles.statusTitle}>결과 저장이 완료되지 않았어요</Text>
-            <Text selectable style={styles.statusBody}>
+            <Text style={styles.statusTitle}>결과 저장이 완료되지 않았어요</Text>
+            <Text style={styles.statusBody}>
               {saveErrorMessage ?? '네트워크를 확인한 뒤 다시 시도해 주세요.'}
             </Text>
             <View style={styles.statusButtonWrap}>
-              <BrandButton title="다시 저장하기" variant="danger" onPress={() => void persistResult()} />
+              <BrandButton
+                title="다시 저장하기"
+                variant="danger"
+                onPress={() => void persistResult()}
+              />
             </View>
           </View>
         ) : null}
 
-        <View style={styles.cardList}>
-          {topWeaknesses.map((weaknessId) => {
-            const info = diagnosisMap[weaknessId];
+        {primaryWeaknessId ? (
+          <>
+            <QuizResultReportHero
+              isCompactLayout={isCompactLayout}
+              primaryWeaknessId={primaryWeaknessId}
+              missedCount={missedCount}
+            />
+            <View style={styles.divider} />
+          </>
+        ) : null}
 
-            return (
-              <QuizResultReportCard
-                key={weaknessId}
-                description={info.desc}
-                isCompactLayout={isCompactLayout}
-                tip={info.tip}
-                title={info.labelKo}
-              />
-            );
-          })}
-        </View>
+        {secondaryWeaknesses.length > 0 ? (
+          <View style={styles.cardList}>
+            {secondaryWeaknesses.map((weaknessId) => {
+              const info = diagnosisMap[weaknessId as keyof typeof diagnosisMap];
+              return (
+                <QuizResultReportCard
+                  key={weaknessId}
+                  description={info.desc}
+                  isCompactLayout={isCompactLayout}
+                  tip={info.tip}
+                  title={info.labelKo}
+                />
+              );
+            })}
+          </View>
+        ) : null}
 
-        {extraWeaknesses.length > 0 && (
+        {extraWeaknesses.length > 0 ? (
           <View style={styles.extraSection}>
             <Text style={styles.extraSectionLabel}>
               그 외 약점 {extraWeaknesses.length}개
             </Text>
             <View style={styles.compactList}>
               {extraWeaknesses.map((weaknessId) => {
-                const info = diagnosisMap[weaknessId];
+                const info = diagnosisMap[weaknessId as keyof typeof diagnosisMap];
                 return (
                   <View key={weaknessId} style={styles.compactRow}>
                     <View style={styles.topicChip}>
@@ -132,22 +126,28 @@ export function QuizResultReportView({
               })}
             </View>
           </View>
-        )}
+        ) : null}
 
         <View style={styles.ctaWrap}>
           <BrandButton
-            title="약점 기반 연습문제 풀러가기"
+            title={
+              primaryInfo
+                ? `${primaryInfo.labelKo}부터 다시 풀기`
+                : '약점 기반 연습문제 풀기'
+            }
             variant="neutral"
             disabled={!primaryWeaknessId}
             onPress={() => {
-              if (!primaryWeaknessId) {
-                return;
-              }
-
+              if (!primaryWeaknessId) return;
               onOpenWeaknessPractice(primaryWeaknessId);
             }}
             style={styles.primaryCta}
           />
+          <TouchableOpacity
+            style={styles.ghostBtn}
+            onPress={() => router.replace('/(tabs)/quiz')}>
+            <Text style={styles.ghostBtnText}>나중에 풀게요</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -165,32 +165,18 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 24,
-    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 32,
+    gap: 14,
   },
   containerCompact: {
     paddingHorizontal: 14,
-    paddingTop: 4,
-    gap: 16,
-  },
-  summaryLine: {
-    alignSelf: 'center',
-    fontFamily: FontFamilies.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#576157',
-    textAlign: 'center',
-  },
-  summaryLineCompact: {
-    fontSize: 13,
-    lineHeight: 18,
+    gap: 12,
   },
   statusCard: {
     borderWidth: 1,
     borderColor: 'rgba(53, 72, 50, 0.16)',
-    borderRadius: 18,
-    borderCurve: 'continuous',
+    borderRadius: BrandRadius.lg,
     backgroundColor: 'rgba(255, 255, 255, 0.82)',
     paddingHorizontal: 18,
     paddingVertical: 16,
@@ -202,18 +188,22 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontFamily: FontFamilies.bold,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 22,
     color: BrandColors.text,
   },
   statusBody: {
     fontFamily: FontFamilies.medium,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 13,
+    lineHeight: 20,
     color: '#4F5B52',
   },
   statusButtonWrap: {
     marginTop: 10,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#ECE4CD',
   },
   cardList: {
     gap: 12,
@@ -223,9 +213,11 @@ const styles = StyleSheet.create({
   },
   extraSectionLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 18,
-    color: '#1C2C19',
+    color: '#6B675E',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   compactList: {
     gap: 6,
@@ -238,7 +230,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(41, 59, 39, 0.10)',
     borderRadius: 11,
-    borderCurve: 'continuous',
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
@@ -247,7 +238,6 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    flexShrink: 0,
   },
   topicChipText: {
     fontFamily: FontFamilies.bold,
@@ -263,38 +253,21 @@ const styles = StyleSheet.create({
     color: '#1C2C19',
   },
   ctaWrap: {
-    gap: 10,
-    paddingTop: 4,
+    gap: 8,
+    paddingTop: 6,
   },
   primaryCta: {
-    minHeight: 50,
+    minHeight: 52,
     borderRadius: 999,
-    borderCurve: 'continuous',
+    paddingVertical: 14,
+  },
+  ghostBtn: {
+    alignItems: 'center',
     paddingVertical: 12,
-    boxShadow: '0 14px 28px rgba(26, 38, 28, 0.12)',
   },
-  climaxBanner: {
-    backgroundColor: '#C8EAC8',
-    borderColor: '#2A5C3855',
-    borderWidth: 1.5,
-    borderRadius: BrandRadius.lg,
-    padding: BrandSpacing.md,
-    alignItems: 'center' as const,
-    marginBottom: BrandSpacing.sm,
-  },
-  climaxEmoji: {
-    fontSize: 32,
-    marginBottom: 4,
-  },
-  climaxTitle: {
-    fontFamily: FontFamilies.extrabold,
-    fontSize: 16,
-    color: '#1C2C19',
-    marginBottom: 2,
-  },
-  climaxSub: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 11,
-    color: '#4A4540',
+  ghostBtnText: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,
+    color: '#6B675E',
   },
 });
