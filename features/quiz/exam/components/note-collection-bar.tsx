@@ -18,8 +18,9 @@ export function NoteCollectionBar({
   showRemainingHint = true,
 }: NoteCollectionBarProps) {
   const safeTotal = Math.min(total, MAX_DOTS);
-  const dots = Array.from({ length: safeTotal }, (_, i) => i < current);
-  const remaining = total - current;
+  const safeCurrent = Math.min(current, total);
+  const dots = Array.from({ length: safeTotal }, (_, i) => i < safeCurrent);
+  const remaining = total - safeCurrent;
   const isCompact = variant === 'compact';
 
   return (

@@ -20,6 +20,8 @@ export default function ExamDiagnosisRedirect() {
           examId,
           wrongProblemNumbers: JSON.stringify([Number(problemNumber)]),
           startIndex: '0',
+          // totalNotes / diagnosedCountBefore 의도적으로 생략 —
+          // 단일 문제 진입이므로 세션 화면 fallback이 totalNotes=1, diagnosedCountBefore=0으로 처리
         },
       }}
     />

@@ -34,8 +34,11 @@ export function ExamDiagnosisSessionScreen() {
     ),
   );
 
+  const rawTotalNotes = Number(getSingleParam(params.totalNotes));
   const totalNotes =
-    Number(getSingleParam(params.totalNotes)) || wrongProblemNumbers.length;
+    Number.isFinite(rawTotalNotes) && rawTotalNotes > 0
+      ? rawTotalNotes
+      : wrongProblemNumbers.length;
   const diagnosedCountBefore =
     Number(getSingleParam(params.diagnosedCountBefore)) || 0;
 
