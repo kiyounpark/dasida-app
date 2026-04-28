@@ -204,6 +204,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         examId: latestAttempt.examId,
         wrongProblemNumbers: JSON.stringify(latestAttempt.wrongProblemNumbers),
         startIndex: String(startIndex),
+        totalNotes: String(latestAttempt.wrongProblemNumbers.length),
+        diagnosedCountBefore: String(startIndex),
       },
     });
   }, [latestAttempt, analysisState]);

@@ -17,7 +17,7 @@ export function QuizResultReportHeader(_props: QuizResultReportHeaderProps) {
       day: '2-digit',
     })
     .replace(/\. /g, '·')
-    .replace('.', '');
+    .replace(/\.$/, '');
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
