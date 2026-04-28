@@ -559,10 +559,36 @@ export function useDiagnosticScreen({
     ? state.diagnosisQueue.filter((i) => Boolean(state.answers[i]?.weaknessId)).length
     : 0;
 
+  // onExitDiagnosis은 매 렌더에서 재생성되므로 항상 최신 state와 diagnosisPages를 캡처한다.
+  // 이 수정이 의존하는 속성이므로 useCallback으로 감싸지 않는다.
   const onExitDiagnosis = () => {
     setIsExitModalVisible(false);
 
-    const hasCompletedAnyAnalysis = state.isDiagnosing && completedDiagnosisCount > 0;
+    // 3초 타이머가 아직 안 터진 경우: workspace는 completed지만 state.answers엔 weaknessId가 없음.
+    // 나가기 시점에 즉시 제출해서 finishDiagnosis가 올바른 topWeaknesses를 만들도록 한다.
+    const pendingSubmitPages = state.isDiagnosing
+      ? diagnosisPages.filter(
+          (p) => p.workspace.status === 'completed' && !state.answers[p.answerIndex]?.weaknessId,
+        )
+      : [];
+
+    let submittedNowCount = 0;
+    for (const page of pendingSubmitPages) {
+      const activeNode = getActiveFlowNode(page.workspace);
+      // Invariant: 'completed' workspace는 항상 final 노드를 통해 도달한다.
+      // 이 guard는 미래에 다른 경로로 completed가 되는 케이스에 대한 방어적 처리다.
+      if (!activeNode || activeNode.kind !== 'final' || !page.workspace.flowDraft) continue;
+      const weaknessId = activeNode.weaknessId;
+      submitDiagnosisWeakness(
+        page.answerIndex,
+        weaknessId,
+        buildDiagnosisDetailTrace(page.workspace.flowDraft, weaknessId),
+      );
+      submittedNowCount++;
+    }
+
+    const hasCompletedAnyAnalysis =
+      state.isDiagnosing && (completedDiagnosisCount > 0 || submittedNowCount > 0);
 
     if (hasCompletedAnyAnalysis) {
       // 완료된 분석만 반영된 결과를 생성한다. 미완성 항목은 결과에서 제외되며, 이는 의도된 동작이다.
