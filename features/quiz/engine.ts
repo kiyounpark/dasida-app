@@ -61,5 +61,6 @@ export function buildQuizResult(
     accuracy,
     allCorrect,
     topWeaknesses,
+    wrongByWeakness: weaknessScores,
   };
 }

@@ -55,6 +55,7 @@ export type QuizResultSummary = {
   accuracy: number;
   allCorrect: boolean;
   topWeaknesses: WeaknessId[];
+  wrongByWeakness?: Record<WeaknessId, number>;
 };
 
 export type PracticeMode = 'weakness' | 'challenge';
