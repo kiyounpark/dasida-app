@@ -30,4 +30,9 @@ describe('buildDiagnosisQueue', () => {
   it('allWrong에 없는 번호 클릭 — 빈 배열 (방어)', () => {
     expect(buildDiagnosisQueue([1, 3, 5], {}, 99)).toEqual([]);
   });
+
+  it('JSON.parse 결과처럼 string 키여도 동작 (in 연산자 coercion)', () => {
+    const diagnosed = JSON.parse('{"5":"formula_understanding"}') as ExamDiagnosisProgress;
+    expect(buildDiagnosisQueue([1, 3, 5], diagnosed, 1)).toEqual([1, 3]);
+  });
 });
