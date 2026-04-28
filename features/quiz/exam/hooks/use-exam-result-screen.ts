@@ -193,6 +193,8 @@ export function useExamResultScreen(): UseExamResultScreenResult {
           examId: result.examId,
           wrongProblemNumbers: JSON.stringify(queue),
           startIndex: '0', // buildDiagnosisQueue가 클릭한 문제를 큐 첫 자리에 두므로 항상 0
+          totalNotes: String(wrongCount),
+          diagnosedCountBefore: String(diagnosedCount),
         },
       });
     },
