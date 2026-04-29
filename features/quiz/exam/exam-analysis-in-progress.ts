@@ -1,10 +1,12 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { ExamResultSummary } from './types';
 
 export type LatestExamAttemptSummary = {
   examId: string;
   attemptId: string;
   attemptDateISO: string;
   wrongProblemNumbers: number[];
+  result: ExamResultSummary | null;
 };
 
 export type AnalysisInProgressInput = {
