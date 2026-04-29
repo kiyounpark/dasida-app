@@ -15,6 +15,7 @@ type ExamSessionContextValue = {
   goToIndex: (index: number) => void;
   submitExam: () => void;
   resetExam: () => void;
+  hydrateResult: (result: ExamResultSummary) => void;
 };
 
 // ── Actions ────────────────────────────────────────────────────────────────────
@@ -26,7 +27,8 @@ type Action =
   | { type: 'GO_TO_PREV' }
   | { type: 'GO_TO_INDEX'; payload: { index: number } }
   | { type: 'SUBMIT_EXAM' }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'HYDRATE_RESULT'; payload: { result: ExamResultSummary } };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -142,6 +144,19 @@ function reducer(state: ExamSessionState, action: Action): ExamSessionState {
       return { ...state, isFinished: true, result };
     }
 
+    case 'HYDRATE_RESULT': {
+      const { result } = action.payload;
+      return {
+        ...createInitialState(),
+        examId: result.examId,
+        attemptId: result.attemptId,
+        startedAt: result.startedAt,
+        hasStarted: true,
+        isFinished: true,
+        result,
+      };
+    }
+
     case 'RESET':
       return createInitialState();
 
@@ -167,6 +182,7 @@ export function ExamSessionProvider({ children }: { children: ReactNode }) {
       goToIndex: (index) => dispatch({ type: 'GO_TO_INDEX', payload: { index } }),
       submitExam: () => dispatch({ type: 'SUBMIT_EXAM' }),
       resetExam: () => dispatch({ type: 'RESET' }),
+      hydrateResult: (result) => dispatch({ type: 'HYDRATE_RESULT', payload: { result } }),
     }),
     [state],
   );
