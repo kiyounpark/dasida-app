@@ -848,6 +848,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.29 13:44
+- 해시: `fedf3d5` (`fedf3d5f54cfc79c0382eb940718f04ef6111784`)
+- 브랜치: claude/weakness-accumulation-phase-2-dlTNd
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:33673/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:33673/git/kiyounpark/dasida-app/commit/fedf3d5f54cfc79c0382eb940718f04ef6111784
+- 작성자: Claude
+- 메시지: refactor(quiz): apply 2nd review feedback - korean util extraction, jsx safety, notFound dedup, tests
+
 ### 커밋 2026.04.29 01:51
 - 해시: `d6e993a` (`d6e993a2a8249ca6662b625d8f0267ef3bf4391c`)
 - 브랜치: claude/weakness-accumulation-phase-2-dlTNd
