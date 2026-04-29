@@ -30,7 +30,16 @@ export function DiagnosisMiniCard({
       {/* badgeRow — 작은 인라인 배지 */}
       <View style={styles.badgeRow}>
         <View style={styles.badgeCircle}>
-          <Text style={styles.badgeCheck}>✓</Text>
+          <Svg width={11} height={11} viewBox="0 0 24 24" fill="none">
+            <Polyline
+              points="20 6 9 17 4 12"
+              stroke="#FAF6EC"
+              strokeWidth={3.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
         </View>
         <Text style={styles.badgeLabel}>{problemNumber}번 분석 완료</Text>
       </View>
@@ -63,7 +72,9 @@ export function DiagnosisMiniCard({
             <Line x1="16" y1="13" x2="8" y2="13" stroke="#5C8C5A" strokeWidth={2.5} strokeLinecap="round" />
             <Line x1="16" y1="17" x2="8" y2="17" stroke="#5C8C5A" strokeWidth={2.5} strokeLinecap="round" />
           </Svg>
-          <Text style={styles.noteLabel}>약점 노트로 정리됨</Text>
+          <Text style={styles.noteLabel} numberOfLines={1}>
+            약점 노트로 정리됨
+          </Text>
           <View style={styles.notePill}>
             <Text style={styles.notePillText}>
               {noteCount} / {totalNotes}
@@ -113,12 +124,6 @@ const styles = StyleSheet.create({
     borderColor: '#1A1916',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  badgeCheck: {
-    fontFamily: FontFamilies.extrabold,
-    fontSize: 11,
-    lineHeight: 13,
-    color: '#FAF6EC',
   },
   badgeLabel: {
     fontFamily: FontFamilies.bold,
