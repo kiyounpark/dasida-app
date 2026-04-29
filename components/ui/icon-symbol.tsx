@@ -18,6 +18,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'book.fill': 'menu-book',
   'doc.text.magnifyingglass': 'find-in-page',
+  'pencil.and.list.clipboard': 'assignment',
   'clock.fill': 'history',
   'note.text': 'sticky-note-2',
   'person.fill': 'person',
