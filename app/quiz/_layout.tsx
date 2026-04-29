@@ -12,6 +12,7 @@ export default function QuizFlowLayout() {
         <Stack.Screen name="review-session" options={{ title: '복습 세션' }} />
         <Stack.Screen name="step-complete" options={{ title: '완료', gestureEnabled: false }} />
         <Stack.Screen name="exam" />
+        <Stack.Screen name="weakness/[weaknessId]" options={{ title: '약점 상세' }} />
       </Stack>
     </QuizSessionProvider>
   );
