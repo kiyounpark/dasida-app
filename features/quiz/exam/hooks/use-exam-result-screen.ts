@@ -86,7 +86,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       wrongProblemNumbers: wrongNums,
       result,
     });
-  }, [result, profile, session, recordAttempt]);
+  }, [result, profile, session, recordAttempt, isResumed]);
 
   // 포커스 시 진단 진행 상태 갱신
   useFocusEffect(

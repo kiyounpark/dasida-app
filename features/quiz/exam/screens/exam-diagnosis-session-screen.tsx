@@ -65,13 +65,17 @@ export function ExamDiagnosisSessionScreen() {
       if (hasNext) {
         session.onScrollToNext(index);
       } else {
-        // 모든 약점 진단 완료 → result 화면으로 명시 navigate.
-        // resume 흐름(스택에 result 없음)에서도 일관되게 동작하도록 router.back() 대신 replace 사용.
-        // resumed=1: result 화면이 새 mount 시 초기 recordAttempt(비멱등 POST) 중복 호출을 방지.
-        router.replace(isResumed ? '/quiz/exam/result?resumed=1' : '/quiz/exam/result');
+        // fresh flow: result가 스택에 있으므로 back()으로 복원 → remount 없어 이중 POST 없음.
+        // resume flow: 스택에 result 없으므로 replace로 명시 navigate.
+        //   resumed=1: result 화면 새 mount 시 초기 recordAttempt(비멱등 POST) 건너뜀.
+        if (isResumed) {
+          router.replace('/quiz/exam/result?resumed=1');
+        } else {
+          router.back();
+        }
       }
     },
-    [session, router],
+    [session, router, isResumed],
   );
 
   // 스와이프 완료 시 activeProblemIndex 동기화 (onDotPress 아님 — scroll 재호출 방지)

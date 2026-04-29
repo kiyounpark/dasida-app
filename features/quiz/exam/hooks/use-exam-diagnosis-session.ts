@@ -94,12 +94,18 @@ export function useExamDiagnosisSession({
     [total, scrollToIndex],
   );
 
+  const isResumed = state.problems.length === 0;
+
   const onBackToResult = useCallback(() => {
-    // replace가 아닌 back()을 사용하지 않는 이유:
-    // resume 흐름(hub → diagnosis-session)에서는 스택에 result가 없어 back()이 hub로 이동.
-    // "← 채점 결과" 레이블과 일치하도록 fresh/resume 모두 result 화면으로 명시 navigate.
-    router.replace('/quiz/exam/result');
-  }, []);
+    // fresh: result가 스택에 있으므로 back()으로 돌아감 → remount 없어 이중 POST 없음.
+    // resume: 스택에 result 없으므로 replace로 명시 navigate.
+    //   resumed=1: result 화면 새 mount 시 초기 recordAttempt(비멱등 POST) 건너뜀.
+    if (isResumed) {
+      router.replace('/quiz/exam/result?resumed=1');
+    } else {
+      router.back();
+    }
+  }, [isResumed]);
 
   const progressPercent = total > 0 ? ((activeProblemIndex + 1) / total) * 100 : 0;
 
