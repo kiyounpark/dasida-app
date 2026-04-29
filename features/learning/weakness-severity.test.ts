@@ -1,3 +1,4 @@
+import type { WeaknessId } from '@/data/diagnosisMap';
 import type { LearningAttempt } from './types';
 import { computeRecentAppearanceCount, computeSeverity } from './weakness-severity';
 
@@ -23,17 +24,20 @@ function makeAttempt(overrides: Partial<LearningAttempt>): LearningAttempt {
   };
 }
 
+const W1 = 'fn-limit' as WeaknessId;
+const W2 = 'integral' as WeaknessId;
+
 describe('computeRecentAppearanceCount', () => {
   it('최근 5번의 학습 중 약점이 등장한 횟수를 센다', () => {
     const attempts = [
-      makeAttempt({ id: 'a1', completedAt: '2026-04-05T00:00:00Z', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a2', completedAt: '2026-04-04T00:00:00Z', topWeaknesses: ['fn-limit', 'integral'] }),
+      makeAttempt({ id: 'a1', completedAt: '2026-04-05T00:00:00Z', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a2', completedAt: '2026-04-04T00:00:00Z', topWeaknesses: [W1, W2] }),
       makeAttempt({ id: 'a3', completedAt: '2026-04-03T00:00:00Z', topWeaknesses: [] }),
-      makeAttempt({ id: 'a4', completedAt: '2026-04-02T00:00:00Z', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a5', completedAt: '2026-04-01T00:00:00Z', topWeaknesses: ['integral'] }),
+      makeAttempt({ id: 'a4', completedAt: '2026-04-02T00:00:00Z', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a5', completedAt: '2026-04-01T00:00:00Z', topWeaknesses: [W2] }),
     ];
-    expect(computeRecentAppearanceCount('fn-limit', attempts)).toBe(3);
-    expect(computeRecentAppearanceCount('integral', attempts)).toBe(2);
+    expect(computeRecentAppearanceCount(W1, attempts)).toBe(3);
+    expect(computeRecentAppearanceCount(W2, attempts)).toBe(2);
   });
 
   it('5번을 초과하는 attempt는 최신 5번만 본다', () => {
@@ -41,18 +45,18 @@ describe('computeRecentAppearanceCount', () => {
       makeAttempt({
         id: `a${i}`,
         completedAt: `2026-04-${String(20 - i).padStart(2, '0')}T00:00:00Z`,
-        topWeaknesses: i < 3 ? ['fn-limit'] : [],
+        topWeaknesses: i < 3 ? [W1] : [],
       }),
     );
-    expect(computeRecentAppearanceCount('fn-limit', attempts)).toBe(3);
+    expect(computeRecentAppearanceCount(W1, attempts)).toBe(3);
   });
 
   it('diagnostic / featured-exam 외 source는 무시한다', () => {
     const attempts = [
-      makeAttempt({ id: 'a1', source: 'weakness-practice', completedAt: '2026-04-05T00:00:00Z', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a2', source: 'featured-exam', completedAt: '2026-04-04T00:00:00Z', topWeaknesses: ['fn-limit'] }),
+      makeAttempt({ id: 'a1', source: 'weakness-practice', completedAt: '2026-04-05T00:00:00Z', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a2', source: 'featured-exam', completedAt: '2026-04-04T00:00:00Z', topWeaknesses: [W1] }),
     ];
-    expect(computeRecentAppearanceCount('fn-limit', attempts)).toBe(1);
+    expect(computeRecentAppearanceCount(W1, attempts)).toBe(1);
   });
 });
 

@@ -21,6 +21,17 @@
 
 ## 로그
 
+### 2026.04.29
+
+**약점 누적 집계 뷰 + 상세 화면 (Phase 2) 구현 완료**
+
+- 홈 "내 약점" 카드 재설계: 4단계 점 → 심각도 점 (●●● 단골 / ●● 자주 / ● 가끔)
+- 약점 상세 화면 신규 (`app/quiz/weakness/[weaknessId]`): 헤더 / 복습 진도 / 정답률 추이 (재사용) / 등장 기록 / "지금 바로 연습하기" CTA
+- 일정과 무관하게 약점 연습 진입 가능해짐 ("맨날 못하는 구조" 해결)
+- 섹션 노출 게이트 완화: `latestDiagnosticSummary` → `items.length > 0` (모의고사만 풀어도 노출)
+- 신규 순수 함수: `weakness-severity.ts` (7 tests), `weakness-appearances.ts` (6 tests)
+- 검증: TS 에러 0건, jest 전체 PASS (154 tests), 시뮬레이터 검증 예정
+
 ### 2026.04.28
 
 **약점 분석 리포트 리디자인 완료**

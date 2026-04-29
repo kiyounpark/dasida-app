@@ -1,3 +1,4 @@
+import type { WeaknessId } from '@/data/diagnosisMap';
 import type { LearningAttempt } from './types';
 import { buildWeaknessAppearances } from './weakness-appearances';
 
@@ -23,24 +24,27 @@ function makeAttempt(overrides: Partial<LearningAttempt>): LearningAttempt {
   };
 }
 
+const W1 = 'fn-limit' as WeaknessId;
+const W2 = 'integral' as WeaknessId;
+
 describe('buildWeaknessAppearances', () => {
   it('해당 약점이 포함된 attempt만 반환', () => {
     const attempts = [
-      makeAttempt({ id: 'a1', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a2', topWeaknesses: ['integral'] }),
-      makeAttempt({ id: 'a3', topWeaknesses: ['fn-limit', 'integral'] }),
+      makeAttempt({ id: 'a1', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a2', topWeaknesses: [W2] }),
+      makeAttempt({ id: 'a3', topWeaknesses: [W1, W2] }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result.map((a) => a.attemptId)).toEqual(['a1', 'a3']);
   });
 
   it('최신순(completedAt desc)으로 정렬', () => {
     const attempts = [
-      makeAttempt({ id: 'a1', completedAt: '2026-02-10T00:00:00Z', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a2', completedAt: '2026-04-15T00:00:00Z', topWeaknesses: ['fn-limit'] }),
-      makeAttempt({ id: 'a3', completedAt: '2026-03-20T00:00:00Z', topWeaknesses: ['fn-limit'] }),
+      makeAttempt({ id: 'a1', completedAt: '2026-02-10T00:00:00Z', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a2', completedAt: '2026-04-15T00:00:00Z', topWeaknesses: [W1] }),
+      makeAttempt({ id: 'a3', completedAt: '2026-03-20T00:00:00Z', topWeaknesses: [W1] }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result.map((a) => a.attemptId)).toEqual(['a2', 'a3', 'a1']);
   });
 
@@ -50,10 +54,10 @@ describe('buildWeaknessAppearances', () => {
         id: 'a1',
         source: 'featured-exam',
         sourceEntityId: 'g3-stats-mock-2025-09',
-        topWeaknesses: ['fn-limit'],
+        topWeaknesses: [W1],
       }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result[0].sourceLabel).toBe('2025년 9월 고3 확률과통계 모의고사');
   });
 
@@ -64,10 +68,10 @@ describe('buildWeaknessAppearances', () => {
         source: 'featured-exam',
         sourceEntityId: 'unknown-exam-id',
         completedAt: '2026-04-15T00:00:00Z',
-        topWeaknesses: ['fn-limit'],
+        topWeaknesses: [W1],
       }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result[0].sourceLabel).toBe('2026년 4월 모의고사');
   });
 
@@ -78,18 +82,18 @@ describe('buildWeaknessAppearances', () => {
         source: 'diagnostic',
         sourceEntityId: null,
         completedAt: '2026-04-15T05:30:00Z',
-        topWeaknesses: ['fn-limit'],
+        topWeaknesses: [W1],
       }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result[0].sourceLabel).toBe('2026년 4월 진단');
   });
 
   it('weakness-practice 등 그 외 source는 제외', () => {
     const attempts = [
-      makeAttempt({ id: 'a1', source: 'weakness-practice', topWeaknesses: ['fn-limit'] }),
+      makeAttempt({ id: 'a1', source: 'weakness-practice', topWeaknesses: [W1] }),
     ];
-    const result = buildWeaknessAppearances('fn-limit', attempts);
+    const result = buildWeaknessAppearances(W1, attempts);
     expect(result).toEqual([]);
   });
 });
