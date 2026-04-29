@@ -77,13 +77,15 @@ export function DiagnosisMiniCard({
         <Pressable
           style={({ pressed }) => [styles.btnGhost, pressed && styles.btnGhostPressed]}
           onPress={onPause}
-          accessibilityRole="button">
+          accessibilityRole="button"
+          accessibilityLabel="잠시 쉬기">
           <Text style={styles.btnGhostText}>잠시 쉬기</Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPrimaryPressed]}
           onPress={onNext}
-          accessibilityRole="button">
+          accessibilityRole="button"
+          accessibilityLabel={isLastProblem ? '리포트 보기' : '다음 문제'}>
           <Text style={styles.btnPrimaryText}>{isLastProblem ? '리포트 보기 →' : '다음 문제 →'}</Text>
         </Pressable>
       </View>
