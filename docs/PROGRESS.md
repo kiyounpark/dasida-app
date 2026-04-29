@@ -897,6 +897,16 @@
 - 작성자: Claude
 - 메시지: docs(progress): record Phase 2 weakness cumulative + detail screen completion
 
+### 커밋 2026.04.29 01:14
+- 해시: `2a62733` (`2a627331844e5ab931703110bbff96110187512c`)
+- 브랜치: claude/diagnosis-minicard-v1inline-ghIwD
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:36689/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:36689/git/kiyounpark/dasida-app/commit/2a627331844e5ab931703110bbff96110187512c
+- 작성자: Claude
+- 메시지: feat(quiz): DiagnosisMiniCard V1Inline 리디자인 적용
+- 본문: - 큰 초록 completionBlock과 44px checkCircle 제거 / - 작은 인라인 배지(22px 서클 + 텍스트)로 "분석 완료" 조용히 처리 / - 패턴 카드를 메인 시각 요소로 (굵은 테두리 + offset shadow) / - NoteCollectionBar import 제거, 카드 하단 노트 태그(pill)로 통합 / - DiagnosisMilestoneBanner와 동일 디자인 언어(raw hex, boxShadow CSS) / - Props 인터페이스 동일, 호출부 영향 없음 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.04.28 22:50
 - 해시: `e85f69b` (`e85f69b3331509c7b6e5121be034701399e55974`)
 - 브랜치: main
