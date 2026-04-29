@@ -76,6 +76,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       attemptId: result.attemptId,
       attemptDateISO: result.completedAt,
       wrongProblemNumbers: wrongNums,
+      result,
     });
   }, [result, profile, session, recordAttempt]);
 
