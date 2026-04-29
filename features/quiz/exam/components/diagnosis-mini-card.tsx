@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   noteLabel: {
     fontFamily: FontFamilies.semibold,
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#355135',
     flex: 1,
   },
