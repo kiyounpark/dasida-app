@@ -36,12 +36,13 @@ export function useWeaknessDetailScreen(
     weaknessId == null
       ? null
       : homeState?.weaknessProgressItems.find((i) => i.weaknessId === weaknessId) ?? null;
+  const notFound = homeState != null && weaknessId != null && item == null;
 
   useEffect(() => {
-    if (homeState != null && weaknessId != null && item == null) {
+    if (notFound) {
       router.replace('/(tabs)/quiz');
     }
-  }, [homeState, weaknessId, item]);
+  }, [notFound]);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,7 +84,7 @@ export function useWeaknessDetailScreen(
 
   return {
     loading,
-    notFound: homeState != null && weaknessId != null && item == null,
+    notFound,
     item,
     appearances,
     onPracticeNow,

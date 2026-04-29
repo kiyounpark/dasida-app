@@ -5,9 +5,9 @@ import type { WeaknessProgressItem } from '@/features/learning/types';
 import {
   SEVERITY_DOTS,
   SEVERITY_LABEL,
-  getKoreanSubjectParticle,
   severityColor,
 } from '@/features/quiz/components/weakness-severity-ui';
+import { getKoreanSubjectParticle } from '@/utils/korean';
 
 export function WeaknessDetailHeader({ item }: { item: WeaknessProgressItem }) {
   const color = severityColor(item.severity, item.completed);
@@ -19,7 +19,7 @@ export function WeaknessDetailHeader({ item }: { item: WeaknessProgressItem }) {
         <Text style={styles.topicChipText}>{item.topicLabel}</Text>
       </View>
       <Text style={styles.headline}>
-        {item.weaknessLabel}{getKoreanSubjectParticle(item.weaknessLabel)} 잘 안 잡혀
+        {`${item.weaknessLabel}${getKoreanSubjectParticle(item.weaknessLabel)} 잘 안 잡혀`}
       </Text>
 
       {item.completed ? (
