@@ -12,6 +12,7 @@ import {
   type AnalysisInProgressState,
   type LatestExamAttemptSummary,
 } from '@/features/quiz/exam/exam-analysis-in-progress';
+import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
 import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
@@ -196,10 +197,15 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   const onResumeAnalysis = useCallback(() => {
     if (!latestAttempt || !latestAttempt.result) return;
-    // diagnosedNotes.length를 startIndex로 사용하는 것은 진단 세션이 순차적으로 저장된다는
-    // 불변성에 의존한다 (문제 N+1은 N이 저장된 후에만 저장 가능).
-    // 비순차 완료가 가능해지면 findIndex 방식으로 교체 필요.
-    const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
+    if (!analysisState.isInProgress) return;
+
+    // 미진단 문제만 원래 번호 순서대로 추린다. 비순차 진단(결과 화면에서
+    // 점수 높은 문제부터 클릭한 케이스 등)에서도 누락 없이 정확한 큐를 만든다.
+    const queue = buildResumeAnalysisQueue(
+      latestAttempt.wrongProblemNumbers,
+      analysisState.diagnosedNotes,
+    );
+    if (queue.length === 0) return;
 
     // dispatch(HYDRATE_RESULT)는 동기적이므로 router.push 이전에 state 업데이트가 완료된다.
     // diagnosis-session이 mount될 때 state.result가 이미 hydrate된 상태임이 보장된다.
@@ -209,10 +215,10 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       pathname: '/quiz/exam/diagnosis-session',
       params: {
         examId: latestAttempt.examId,
-        wrongProblemNumbers: JSON.stringify(latestAttempt.wrongProblemNumbers),
-        startIndex: String(startIndex),
+        wrongProblemNumbers: JSON.stringify(queue),
+        startIndex: '0',
         totalNotes: String(latestAttempt.wrongProblemNumbers.length),
-        diagnosedCountBefore: String(startIndex),
+        diagnosedCountBefore: String(analysisState.diagnosedNotes.length),
       },
     });
   }, [latestAttempt, analysisState, hydrateResult]);
