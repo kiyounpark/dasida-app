@@ -187,7 +187,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   };
 
   const onPressExam = () => {
-    router.push('/(tabs)/quiz/exams');
+    router.push('/(tabs)/exam');
   };
 
   const onResumeDiagnosis = () => {
