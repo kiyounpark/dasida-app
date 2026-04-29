@@ -42,7 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="quiz"
         options={{
-          title: '문제 풀기',
+          title: '홈',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="doc.text.magnifyingglass" color={color} />
           ),
@@ -57,6 +57,16 @@ export default function TabLayout() {
             }
           },
         })}
+      />
+      <Tabs.Screen
+        name="exam"
+        options={{
+          title: '기출',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="pencil.and.list.clipboard" color={color} />
+          ),
+          tabBarStyle: isGraduated ? defaultTabBarStyle : { display: 'none' },
+        }}
       />
       <Tabs.Screen
         name="history"
