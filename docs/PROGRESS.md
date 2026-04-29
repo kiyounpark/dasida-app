@@ -837,6 +837,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.29 01:44
+- 해시: `a566d17` (`a566d1742adcd91e1065447630131f78c40a1c79`)
+- 브랜치: claude/fix-diagnosis-bugs-O5Nql
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app/commit/a566d1742adcd91e1065447630131f78c40a1c79
+- 작성자: Claude
+- 메시지: fix(quiz): address code review — back button, solve guard, resumed=1, comments
+
 ### 커밋 2026.04.29 01:22
 - 해시: `64a5643` (`64a5643dbe30a1e39d03dbe660300a5c0c40e04f`)
 - 브랜치: claude/fix-diagnosis-bugs-O5Nql
