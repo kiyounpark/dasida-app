@@ -38,6 +38,9 @@ export function computeAnalysisInProgressState(
   if (!latestAttempt || latestAttempt.wrongProblemNumbers.length === 0) {
     return { isInProgress: false };
   }
+  if (latestAttempt.result === null) {
+    return { isInProgress: false };
+  }
 
   const totalNotes = latestAttempt.wrongProblemNumbers.length;
   const diagnosedNotes: DiagnosedNote[] = latestAttempt.wrongProblemNumbers

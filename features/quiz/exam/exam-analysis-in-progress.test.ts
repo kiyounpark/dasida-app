@@ -1,10 +1,30 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { ExamResultSummary } from '@/features/quiz/exam/types';
 import {
   computeAnalysisInProgressState,
   type AnalysisInProgressInput,
 } from '@/features/quiz/exam/exam-analysis-in-progress';
 
 const w = (s: string) => s as unknown as WeaknessId;
+
+const SAMPLE_RESULT: ExamResultSummary = {
+  attemptId: 'a1',
+  examId: 'e1',
+  startedAt: '2026-04-26T00:00:00.000Z',
+  completedAt: '2026-04-26T01:00:00.000Z',
+  total: 3,
+  correct: 0,
+  wrong: 3,
+  unanswered: 0,
+  accuracy: 0,
+  totalScore: 0,
+  maxScore: 9,
+  perProblem: [
+    { number: 1, userAnswer: 2, correctAnswer: 1, isCorrect: false, earnedScore: 0 },
+    { number: 2, userAnswer: 3, correctAnswer: 2, isCorrect: false, earnedScore: 0 },
+    { number: 3, userAnswer: 1, correctAnswer: 4, isCorrect: false, earnedScore: 0 },
+  ],
+};
 
 describe('computeAnalysisInProgressState', () => {
   it('어템트 없으면 inactive', () => {
@@ -16,7 +36,22 @@ describe('computeAnalysisInProgressState', () => {
   it('오답 0개면 inactive', () => {
     expect(
       computeAnalysisInProgressState({
-        latestAttempt: { examId: 'e1', attemptId: 'a1', attemptDateISO: '2026-04-26', wrongProblemNumbers: [] },
+        latestAttempt: { examId: 'e1', attemptId: 'a1', attemptDateISO: '2026-04-26', wrongProblemNumbers: [], result: null },
+        diagnosedProblems: {},
+      }),
+    ).toEqual({ isInProgress: false });
+  });
+
+  it('legacy data (result == null)면 inactive', () => {
+    expect(
+      computeAnalysisInProgressState({
+        latestAttempt: {
+          examId: 'e1',
+          attemptId: 'a1',
+          attemptDateISO: '2026-04-26',
+          wrongProblemNumbers: [1, 2, 3],
+          result: null,
+        },
         diagnosedProblems: {},
       }),
     ).toEqual({ isInProgress: false });
@@ -30,6 +65,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
+          result: SAMPLE_RESULT,
         },
         diagnosedProblems: {},
       }),
@@ -51,6 +87,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
+          result: SAMPLE_RESULT,
         },
         diagnosedProblems: { 1: w('w_basic'), 2: w('w_advanced') },
       }),
@@ -75,6 +112,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
+          result: SAMPLE_RESULT,
         },
         diagnosedProblems: { 1: w('w1'), 2: w('w2'), 3: w('w3') },
       }),
@@ -89,6 +127,7 @@ describe('computeAnalysisInProgressState', () => {
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2],
+          result: SAMPLE_RESULT,
         },
         diagnosedProblems: { 1: w('w1'), 99: w('w_stale') },
       }),
