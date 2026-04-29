@@ -837,6 +837,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.04.29 01:22
+- 해시: `64a5643` (`64a5643dbe30a1e39d03dbe660300a5c0c40e04f`)
+- 브랜치: claude/fix-diagnosis-bugs-O5Nql
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app/commit/64a5643dbe30a1e39d03dbe660300a5c0c40e04f
+- 작성자: Claude
+- 메시지: fix(quiz): navigate to result on diagnosis completion to ensure report shows (Bug 2)
+
 ### 커밋 2026.04.27 23:40
 - 해시: `f55460e` (`f55460ec1eb6a4f0d9c765dfe4a9228ee356d8f7`)
 - 브랜치: main
