@@ -61,11 +61,14 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
 
   // 채점 완료 시 결과 화면으로
   useEffect(() => {
-    if (state.isFinished && state.result) {
+    // problems.length > 0: SUBMIT_EXAM 경로임을 보장.
+    // ExamSessionProvider가 루트로 호이스트된 이후 hydrateResult()가 호출되면
+    // isFinished=true, result={...}가 되지만 problems=[]이므로 이 effect가 발화하지 않는다.
+    if (state.isFinished && state.result && state.problems.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.replace('/quiz/exam/result' as any);
     }
-  }, [state.isFinished, state.result]);
+  }, [state.isFinished, state.result, state.problems.length]);
 
   const currentProblem = state.problems[state.currentIndex] ?? null;
   const currentAnswer = state.answers[state.currentIndex] ?? null;

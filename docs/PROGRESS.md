@@ -854,7 +854,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/b76feb6e5b79198ff0f3ea371c897c520195efdb
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: docs(plan): 약점 누적 집계 뷰 + 상세 화면 Phase 2 구현 계획 작성
 - 본문: 12개 task로 분해 (TDD 순수 함수 → 데이터 계층 확장 → 홈 카드 재설계 → 상세 화면 신규). / 정렬 우선순위 (심각도/등장 횟수/최근 등장 시점) 명시, 시뮬레이터 검증 시나리오 10개 포함. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -864,7 +864,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/595d29fc00780f698d0281d8d5bc7381c4bb18f4
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: docs(quiz): add spec and plan for diagnosis-mini-card V1Inline redesign
 - 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -874,7 +874,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/f96219bb616160fc5f8456d01da4593e31587bd3
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: docs(quiz): add spec and plan for resume-analysis state hydration
 - 본문: 홈 "이어서 분석하기" 진입 시 발생하는 두 버그(약점 선택 후 advance 안 됨, 모든 약점 완료 후 리포트 미노출)를 해결하기 위한 설계 문서와 구현 계획. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -884,7 +884,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/95170cc258c5a2a068a991c41b8538a16bde06c8
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: fix(quiz): 마일스톤 배너 코드 리뷰 제안 사항 반영
 - 본문: - barFill borderRadius 제거 (부모 overflow:hidden에 마스킹됨) / - fractionRow/barTrack marginTop 제거 (gap과 누적 방지) / - pct===1일 때 filler View 조건부 렌더로 변경 / - getHeadline/getSub를 diagnosis-milestone-banner-text.ts로 분리 / - 분리된 순수 함수에 단위 테스트 5개 추가 (141/141 통과) / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -896,6 +896,24 @@
 - 링크: http://local_proxy@127.0.0.1:44871/git/kiyounpark/dasida-app/commit/d6e993a2a8249ca6662b625d8f0267ef3bf4391c
 - 작성자: Claude
 - 메시지: docs(progress): record Phase 2 weakness cumulative + detail screen completion
+
+### 커밋 2026.04.29 01:44
+- 해시: `a566d17` (`a566d1742adcd91e1065447630131f78c40a1c79`)
+- 브랜치: claude/fix-diagnosis-bugs-O5Nql
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app/commit/a566d1742adcd91e1065447630131f78c40a1c79
+- 작성자: Claude
+- 메시지: fix(quiz): address code review — back button, solve guard, resumed=1, comments
+
+### 커밋 2026.04.29 01:22
+- 해시: `64a5643` (`64a5643dbe30a1e39d03dbe660300a5c0c40e04f`)
+- 브랜치: claude/fix-diagnosis-bugs-O5Nql
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app/commit/64a5643dbe30a1e39d03dbe660300a5c0c40e04f
+- 작성자: Claude
+- 메시지: fix(quiz): navigate to result on diagnosis completion to ensure report shows (Bug 2)
 
 ### 커밋 2026.04.29 01:14
 - 해시: `2a62733` (`2a627331844e5ab931703110bbff96110187512c`)
@@ -913,7 +931,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/e85f69b3331509c7b6e5121be034701399e55974
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: feat(quiz): 진단 마일스톤 배너 리디자인 적용
 - 본문: - 이모지/NoteCollectionBar 제거, char_07 마스코트 + 큰 분수 + 얇은 진행 바로 교체 / - 헤드라인 "벌써 절반 왔어." / "한 문제만 더." 로 변경 / - 버튼 세로 스택 (primary 위, ghost 아래) / - progress bar pct 클램프 [0, 1] 추가 (음수 flex 방지) / - Props signature 변경 없음 (호출부/hook 영향 없음) / Spec: docs/superpowers/specs/2026-04-28-diagnosis-milestone-banner-redesign-design.md / Plan: docs/superpowers/plans/2026-04-28-diagnosis-milestone-banner-redesign.md / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -923,7 +941,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/b1e892355ff7d8f74cb982aa4e39caa34e03e66a
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: fix(quiz): address code review — back button, copy, a11y, count, style
 - 본문: - Header: router.back() → router.replace('/(tabs)/quiz') (스택 비어있는 경로) / - Header: accessibilityRole/Label 추가, useMemo로 날짜 연산 최적화 / - Hero: "N번 모두 막혔어요" → "N번 막혔어요" (단수 어색함 제거) / - View: 그 외 약점 카운트를 diagnosisMap 존재 항목 기준으로 수정 / - View: statusCard/primaryCta에 borderCurve: continuous 복원 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
@@ -933,7 +951,7 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/3c23f15b1763d47f37eac09983fbe807fb2a87ae
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: docs(progress): 약점 분석 리포트 리디자인 기록
 - 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 

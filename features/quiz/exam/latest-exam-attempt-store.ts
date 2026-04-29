@@ -11,7 +11,14 @@ function parseAttempt(raw: string): LatestExamAttemptSummary | null {
     if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.wrongProblemNumbers)) {
       return null;
     }
-    return parsed as LatestExamAttemptSummary;
+    const result = parsed.result && typeof parsed.result === 'object' ? parsed.result : null;
+    return {
+      examId: parsed.examId,
+      attemptId: parsed.attemptId,
+      attemptDateISO: parsed.attemptDateISO,
+      wrongProblemNumbers: parsed.wrongProblemNumbers,
+      result,
+    };
   } catch {
     return null;
   }

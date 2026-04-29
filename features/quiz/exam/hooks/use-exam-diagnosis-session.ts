@@ -1,8 +1,8 @@
 // features/quiz/exam/hooks/use-exam-diagnosis-session.ts
-import { router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import type { FlatList } from 'react-native';
 
+import { navigateBackToExamResult } from '../exam-result-navigation';
 import { useExamSession } from '../exam-session';
 
 type UseExamDiagnosisSessionParams = {
@@ -17,6 +17,7 @@ export type UseExamDiagnosisSessionResult = {
   activeProblemIndex: number;
   activeProblemIndexRef: React.MutableRefObject<number>;
   diagnosedIndices: number[];
+  isResumed: boolean;
   pagerRef: React.RefObject<FlatList<number> | null>;
   progressLabel: string;
   progressPercent: number;
@@ -94,9 +95,13 @@ export function useExamDiagnosisSession({
     [total, scrollToIndex],
   );
 
+  // HYDRATE_RESULT는 problems를 비워두고 result만 채운다 (exam-session.tsx).
+  // SUBMIT_EXAM은 problems를 보존하므로 length === 0이 resume 신호로 충분하다.
+  const isResumed = state.problems.length === 0;
+
   const onBackToResult = useCallback(() => {
-    router.back();
-  }, []);
+    navigateBackToExamResult(isResumed);
+  }, [isResumed]);
 
   const progressPercent = total > 0 ? ((activeProblemIndex + 1) / total) * 100 : 0;
 
@@ -106,6 +111,7 @@ export function useExamDiagnosisSession({
     activeProblemIndex,
     activeProblemIndexRef,
     diagnosedIndices,
+    isResumed,
     pagerRef,
     progressLabel: `${activeProblemIndex + 1} / ${total}`,
     progressPercent,

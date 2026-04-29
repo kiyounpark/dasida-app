@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
+import { ExamSessionProvider } from '@/features/quiz/exam/exam-session';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 Notifications.setNotificationHandler({
@@ -131,13 +132,15 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CurrentLearnerProvider>
-        <AuthGateRedirector />
-        <Stack>
-          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
-        </Stack>
+        <ExamSessionProvider>
+          <AuthGateRedirector />
+          <Stack>
+            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
+          </Stack>
+        </ExamSessionProvider>
       </CurrentLearnerProvider>
       <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
     </ThemeProvider>

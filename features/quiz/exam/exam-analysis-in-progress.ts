@@ -1,10 +1,12 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
+import type { ExamResultSummary } from './types';
 
 export type LatestExamAttemptSummary = {
   examId: string;
   attemptId: string;
   attemptDateISO: string;
   wrongProblemNumbers: number[];
+  result: ExamResultSummary | null;
 };
 
 export type AnalysisInProgressInput = {
@@ -34,6 +36,9 @@ export function computeAnalysisInProgressState(
   const { latestAttempt, diagnosedProblems } = input;
 
   if (!latestAttempt || latestAttempt.wrongProblemNumbers.length === 0) {
+    return { isInProgress: false };
+  }
+  if (latestAttempt.result === null) {
     return { isInProgress: false };
   }
 

@@ -10,6 +10,7 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
+import { navigateBackToExamResult } from '../exam-result-navigation';
 import { useExamDiagnosisSession } from '../hooks/use-exam-diagnosis-session';
 
 function parseProblemNumbers(raw: string | undefined): number[] {
@@ -61,7 +62,7 @@ export function ExamDiagnosisSessionScreen() {
       if (hasNext) {
         session.onScrollToNext(index);
       } else {
-        session.onBackToResult();
+        navigateBackToExamResult(session.isResumed);
       }
     },
     [session],

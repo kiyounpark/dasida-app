@@ -14,6 +14,7 @@ import {
 } from '@/features/quiz/exam/exam-analysis-in-progress';
 import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
 import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
+import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
 const hubReviewStore = new LocalReviewTaskStore();
@@ -62,6 +63,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     refresh,
     session,
   } = useCurrentLearner();
+  const { hydrateResult } = useExamSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
   const [latestAttempt, setLatestAttempt] = useState<LatestExamAttemptSummary | null>(null);
   const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({
@@ -193,11 +195,16 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   };
 
   const onResumeAnalysis = useCallback(() => {
-    if (!latestAttempt) return;
+    if (!latestAttempt || !latestAttempt.result) return;
     // diagnosedNotes.length를 startIndex로 사용하는 것은 진단 세션이 순차적으로 저장된다는
     // 불변성에 의존한다 (문제 N+1은 N이 저장된 후에만 저장 가능).
     // 비순차 완료가 가능해지면 findIndex 방식으로 교체 필요.
     const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
+
+    // dispatch(HYDRATE_RESULT)는 동기적이므로 router.push 이전에 state 업데이트가 완료된다.
+    // diagnosis-session이 mount될 때 state.result가 이미 hydrate된 상태임이 보장된다.
+    hydrateResult(latestAttempt.result);
+
     router.push({
       pathname: '/quiz/exam/diagnosis-session',
       params: {
@@ -208,7 +215,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         diagnosedCountBefore: String(startIndex),
       },
     });
-  }, [latestAttempt, analysisState]);
+  }, [latestAttempt, analysisState, hydrateResult]);
 
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
