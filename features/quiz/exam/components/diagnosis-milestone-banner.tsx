@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
+import { getHeadline, getSub } from '@/features/quiz/exam/diagnosis-milestone-banner-text';
 
 const MASCOT_SOURCE = require('../../../../assets/images/characters/char_07.png');
 
@@ -14,16 +15,6 @@ export type DiagnosisMilestoneBannerProps = {
   onPause: () => void;
   onContinue: () => void;
 };
-
-function getHeadline(fraction: MilestoneFraction): string {
-  return fraction === 33 ? '벌써 절반 왔어.' : '한 문제만 더.';
-}
-
-function getSub(fraction: MilestoneFraction, noteCount: number): string {
-  return fraction === 33
-    ? `${noteCount}문제 분석 완료 · 잘 하고 있어`
-    : `${noteCount}문제 분석 완료 · 거의 다 왔어`;
-}
 
 export function DiagnosisMilestoneBanner({
   fraction,
@@ -56,7 +47,7 @@ export function DiagnosisMilestoneBanner({
 
         <View style={styles.barTrack}>
           <View style={[styles.barFill, { flex: pct }]} />
-          <View style={{ flex: 1 - pct }} />
+          {pct < 1 && <View style={{ flex: 1 - pct }} />}
         </View>
       </View>
 
@@ -125,7 +116,6 @@ const styles = StyleSheet.create({
   fractionRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginTop: 4,
   },
   fractionNum: {
     fontFamily: FontFamilies.extrabold,
@@ -148,11 +138,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#ECE4CD',
     overflow: 'hidden',
-    marginTop: 4,
   },
   barFill: {
     backgroundColor: '#5C8C5A',
-    borderRadius: 999,
   },
   buttonCol: {
     gap: 4,
