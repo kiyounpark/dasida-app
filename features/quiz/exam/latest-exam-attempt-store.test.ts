@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LatestExamAttemptSummary } from '@/features/quiz/exam/exam-analysis-in-progress';
+import type { ExamResultSummary } from '@/features/quiz/exam/types';
 import {
   saveLatestExamAttempt,
   getLatestExamAttempt,
@@ -10,11 +11,31 @@ const mockedAsyncStorage = jest.mocked(AsyncStorage);
 const ACCOUNT_KEY = 'user-abc';
 const KEY = `dasida/latest-exam-attempt/${ACCOUNT_KEY}`;
 
+const SAMPLE_RESULT: ExamResultSummary = {
+  attemptId: 'attempt-abc',
+  examId: 'exam-001',
+  startedAt: '2026-04-27T00:00:00.000Z',
+  completedAt: '2026-04-27T00:30:00.000Z',
+  total: 30,
+  correct: 27,
+  wrong: 3,
+  unanswered: 0,
+  accuracy: 90,
+  totalScore: 95,
+  maxScore: 100,
+  perProblem: [
+    { number: 3, userAnswer: 1, correctAnswer: 2, isCorrect: false, earnedScore: 0 },
+    { number: 7, userAnswer: 3, correctAnswer: 4, isCorrect: false, earnedScore: 0 },
+    { number: 12, userAnswer: 2, correctAnswer: 1, isCorrect: false, earnedScore: 0 },
+  ],
+};
+
 const SAMPLE_ATTEMPT: LatestExamAttemptSummary = {
   examId: 'exam-001',
   attemptId: 'attempt-abc',
   attemptDateISO: '2026-04-27T00:00:00.000Z',
   wrongProblemNumbers: [3, 7, 12],
+  result: SAMPLE_RESULT,
 };
 
 describe('latest-exam-attempt-store', () => {
@@ -84,6 +105,21 @@ describe('latest-exam-attempt-store', () => {
       mockedAsyncStorage.getItem.mockResolvedValueOnce(null);
       await getLatestExamAttempt(ACCOUNT_KEY);
       expect(mockedAsyncStorage.getItem).toHaveBeenCalledWith(KEY);
+    });
+
+    it('result 필드 없는 페이로드 → result: null로 정상화', async () => {
+      const legacyPayload = {
+        examId: 'exam-001',
+        attemptId: 'attempt-abc',
+        attemptDateISO: '2026-04-27T00:00:00.000Z',
+        wrongProblemNumbers: [3, 7, 12],
+        // result 없음 — legacy
+      };
+      mockedAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(legacyPayload));
+      await expect(getLatestExamAttempt(ACCOUNT_KEY)).resolves.toEqual({
+        ...legacyPayload,
+        result: null,
+      });
     });
   });
 
