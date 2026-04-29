@@ -1,4 +1,4 @@
-import { useFocusEffect, router } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -40,6 +40,9 @@ export type UseExamResultScreenResult = {
 export function useExamResultScreen(): UseExamResultScreenResult {
   const { state, resetExam } = useExamSession();
   const { profile, recordAttempt, session } = useCurrentLearner();
+  const { resumed } = useLocalSearchParams<{ resumed?: string }>();
+  // resumed=1: diagnosis 완료 후 resume 경로에서 진입. 초기 recordAttempt는 이미 최초 채점 시 호출됨.
+  const isResumed = resumed === '1';
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [diagnosedProblems, setDiagnosedProblems] = useState<ExamDiagnosisProgress>({});
   const saveAttempted = useRef(false);
@@ -60,10 +63,15 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     if (saveAttempted.current) return;
     saveAttempted.current = true;
 
-    setSaveState('saving');
-    recordAttempt(buildExamAttemptInput({ session, profile, result }))
-      .then(() => setSaveState('saved'))
-      .catch(() => setSaveState('error'));
+    if (isResumed) {
+      // resume 경로: 최초 채점 시 이미 저장됨. 비멱등 POST 중복 방지.
+      setSaveState('saved');
+    } else {
+      setSaveState('saving');
+      recordAttempt(buildExamAttemptInput({ session, profile, result }))
+        .then(() => setSaveState('saved'))
+        .catch(() => setSaveState('error'));
+    }
 
     // Persist latest attempt so quiz hub can detect in-progress analysis.
     // Always save (even with empty wrongNums) to overwrite stale data from

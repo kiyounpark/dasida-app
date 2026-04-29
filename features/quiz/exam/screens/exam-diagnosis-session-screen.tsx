@@ -11,6 +11,7 @@ import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
 import { useExamDiagnosisSession } from '../hooks/use-exam-diagnosis-session';
+import { useExamSession } from '../exam-session';
 
 function parseProblemNumbers(raw: string | undefined): number[] {
   try {
@@ -43,6 +44,9 @@ export function ExamDiagnosisSessionScreen() {
     Number(getSingleParam(params.diagnosedCountBefore)) || 0;
 
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
+  // HYDRATE_RESULT 경유 시 problems=[] → resume 흐름 식별. result 화면에서 초기 recordAttempt 중복 방지용.
+  const { state: examState } = useExamSession();
+  const isResumed = examState.problems.length === 0;
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
@@ -63,7 +67,8 @@ export function ExamDiagnosisSessionScreen() {
       } else {
         // 모든 약점 진단 완료 → result 화면으로 명시 navigate.
         // resume 흐름(스택에 result 없음)에서도 일관되게 동작하도록 router.back() 대신 replace 사용.
-        router.replace('/quiz/exam/result');
+        // resumed=1: result 화면이 새 mount 시 초기 recordAttempt(비멱등 POST) 중복 호출을 방지.
+        router.replace(isResumed ? '/quiz/exam/result?resumed=1' : '/quiz/exam/result');
       }
     },
     [session, router],

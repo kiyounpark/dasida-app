@@ -95,7 +95,10 @@ export function useExamDiagnosisSession({
   );
 
   const onBackToResult = useCallback(() => {
-    router.back();
+    // replace가 아닌 back()을 사용하지 않는 이유:
+    // resume 흐름(hub → diagnosis-session)에서는 스택에 result가 없어 back()이 hub로 이동.
+    // "← 채점 결과" 레이블과 일치하도록 fresh/resume 모두 result 화면으로 명시 navigate.
+    router.replace('/quiz/exam/result');
   }, []);
 
   const progressPercent = total > 0 ? ((activeProblemIndex + 1) / total) * 100 : 0;

@@ -146,6 +146,8 @@ function reducer(state: ExamSessionState, action: Action): ExamSessionState {
 
     case 'HYDRATE_RESULT': {
       const { result } = action.payload;
+      // result 전용 상태: problems/answers는 의도적으로 비어있음.
+      // problems.length === 0을 통해 다운스트림(use-exam-solve-screen 등)이 SUBMIT_EXAM과 구분 가능.
       return {
         ...createInitialState(),
         examId: result.examId,

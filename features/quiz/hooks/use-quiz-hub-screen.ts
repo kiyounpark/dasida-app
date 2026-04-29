@@ -201,8 +201,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     // 비순차 완료가 가능해지면 findIndex 방식으로 교체 필요.
     const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
 
-    // ExamSessionProvider에 결과를 hydrate — useExamDiagnosis가 attemptId/attemptDateISO,
-    // getUserAnswer가 perProblem을 정상적으로 읽도록 한다.
+    // dispatch(HYDRATE_RESULT)는 동기적이므로 router.push 이전에 state 업데이트가 완료된다.
+    // diagnosis-session이 mount될 때 state.result가 이미 hydrate된 상태임이 보장된다.
     hydrateResult(latestAttempt.result);
 
     router.push({

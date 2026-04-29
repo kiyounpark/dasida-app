@@ -88,6 +88,8 @@ function MockExamResultWrapper() {
 
 export default function DevExamResultScreen() {
   return (
+    // 루트의 ExamSessionProvider와 별도로 격리된 provider를 사용한다.
+    // dev 화면에서 initExam/submitExam을 직접 호출하므로 실제 세션 상태를 오염시키지 않도록 한다.
     <ExamSessionProvider>
       <MockExamResultWrapper />
     </ExamSessionProvider>
