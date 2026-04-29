@@ -13,7 +13,8 @@ function stageDotsFilled(stage: ReviewStage, completed: boolean): number {
 function nextStageLabel(stage: ReviewStage, completed: boolean): string {
   if (completed) return '완료';
   const idx = STAGE_ORDER.indexOf(stage);
-  if (idx === -1 || idx === STAGE_ORDER.length - 1) return '완료까지 한 단계';
+  if (idx === -1) return '';
+  if (idx === STAGE_ORDER.length - 1) return '다음 복습을 완료하면 약점 해결!';
   return `다음 복습: ${STAGE_ORDER[idx + 1]}`;
 }
 

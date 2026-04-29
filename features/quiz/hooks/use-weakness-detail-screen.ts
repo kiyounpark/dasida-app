@@ -28,7 +28,8 @@ export function useWeaknessDetailScreen(
 ): UseWeaknessDetailScreenResult {
   const { homeState, loadRecentAttempts } = useCurrentLearner();
   const [appearances, setAppearances] = useState<WeaknessAppearance[]>([]);
-  const [loading, setLoading] = useState(true);
+  // weaknessId가 없으면 useFocusEffect가 early return하여 setLoading(false)가 호출되지 않으므로 초기값을 false로 설정
+  const [loading, setLoading] = useState(params.weaknessId != null);
 
   const weaknessId = params.weaknessId as WeaknessId | undefined;
   const item =
@@ -49,6 +50,7 @@ export function useWeaknessDetailScreen(
       (async () => {
         setLoading(true);
         try {
+          // 상세 화면은 홈(limit 10)보다 넓은 범위로 로드해 등장 기록을 풍부하게 표시
           const [diagnostic, exam] = await Promise.all([
             loadRecentAttempts({ source: 'diagnostic', limit: 50 }),
             loadRecentAttempts({ source: 'featured-exam', limit: 50 }),

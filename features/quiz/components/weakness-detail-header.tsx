@@ -1,32 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import type { WeaknessProgressItem, WeaknessSeverity } from '@/features/learning/types';
-
-const SEVERITY_LABEL: Record<WeaknessSeverity, string> = {
-  frequent: '단골 약점',
-  often: '자주 등장',
-  occasional: '가끔 등장',
-};
-
-const SEVERITY_DOTS: Record<WeaknessSeverity, number> = {
-  frequent: 3,
-  often: 2,
-  occasional: 1,
-};
-
-function severityColor(severity: WeaknessSeverity, completed: boolean): string {
-  if (completed) return '#4A7C59';
-  switch (severity) {
-    case 'frequent':
-      return BrandColors.danger ?? '#D9534F';
-    case 'often':
-      return '#E8A547';
-    case 'occasional':
-      return '#4A7C59';
-  }
-}
+import type { WeaknessProgressItem } from '@/features/learning/types';
+import {
+  SEVERITY_DOTS,
+  SEVERITY_LABEL,
+  getKoreanSubjectParticle,
+  severityColor,
+} from '@/features/quiz/components/weakness-severity-ui';
 
 export function WeaknessDetailHeader({ item }: { item: WeaknessProgressItem }) {
   const color = severityColor(item.severity, item.completed);
@@ -37,7 +18,9 @@ export function WeaknessDetailHeader({ item }: { item: WeaknessProgressItem }) {
       <View style={styles.topicChip}>
         <Text style={styles.topicChipText}>{item.topicLabel}</Text>
       </View>
-      <Text style={styles.headline}>{item.weaknessLabel}이 잘 안 잡혀</Text>
+      <Text style={styles.headline}>
+        {item.weaknessLabel}{getKoreanSubjectParticle(item.weaknessLabel)} 잘 안 잡혀
+      </Text>
 
       {item.completed ? (
         <Text style={[styles.severity, { color }]}>✓ 해결됐어요!</Text>

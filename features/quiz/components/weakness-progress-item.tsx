@@ -1,35 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import type {
-  WeaknessProgressItem as WeaknessProgressItemType,
-  WeaknessSeverity,
-} from '@/features/learning/types';
-
-const SEVERITY_LABEL: Record<WeaknessSeverity, string> = {
-  frequent: '단골 약점',
-  often: '자주 등장',
-  occasional: '가끔 등장',
-};
-
-const SEVERITY_DOTS: Record<WeaknessSeverity, number> = {
-  frequent: 3,
-  often: 2,
-  occasional: 1,
-};
-
-function severityColor(severity: WeaknessSeverity, completed: boolean): string {
-  if (completed) return '#4A7C59';
-  switch (severity) {
-    case 'frequent':
-      return BrandColors.danger ?? '#D9534F';
-    case 'often':
-      return '#E8A547';
-    case 'occasional':
-      return '#4A7C59';
-  }
-}
+import type { WeaknessProgressItem as WeaknessProgressItemType } from '@/features/learning/types';
+import {
+  SEVERITY_DOTS,
+  SEVERITY_LABEL,
+  severityColor,
+} from '@/features/quiz/components/weakness-severity-ui';
 
 export function WeaknessProgressItem({
   item,
