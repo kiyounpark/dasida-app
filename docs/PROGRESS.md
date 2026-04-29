@@ -21,6 +21,17 @@
 
 ## 로그
 
+### 2026.04.29
+
+**약점 누적 집계 뷰 + 상세 화면 (Phase 2) 구현 완료**
+
+- 홈 "내 약점" 카드 재설계: 4단계 점 → 심각도 점 (●●● 단골 / ●● 자주 / ● 가끔)
+- 약점 상세 화면 신규 (`app/quiz/weakness/[weaknessId]`): 헤더 / 복습 진도 / 정답률 추이 (재사용) / 등장 기록 / "지금 바로 연습하기" CTA
+- 일정과 무관하게 약점 연습 진입 가능해짐 ("맨날 못하는 구조" 해결)
+- 섹션 노출 게이트 완화: `latestDiagnosticSummary` → `items.length > 0` (모의고사만 풀어도 노출)
+- 신규 순수 함수: `weakness-severity.ts` (7 tests), `weakness-appearances.ts` (6 tests)
+- 검증: TS 에러 0건, jest 전체 PASS (154 tests), 시뮬레이터 검증 예정
+
 ### 2026.04.28
 
 **약점 분석 리포트 리디자인 완료**
@@ -836,6 +847,15 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.04.29 01:51
+- 해시: `d6e993a` (`d6e993a2a8249ca6662b625d8f0267ef3bf4391c`)
+- 브랜치: claude/weakness-accumulation-phase-2-dlTNd
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:44871/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:44871/git/kiyounpark/dasida-app/commit/d6e993a2a8249ca6662b625d8f0267ef3bf4391c
+- 작성자: Claude
+- 메시지: docs(progress): record Phase 2 weakness cumulative + detail screen completion
 
 ### 커밋 2026.04.27 23:40
 - 해시: `f55460e` (`f55460ec1eb6a4f0d9c765dfe4a9228ee356d8f7`)

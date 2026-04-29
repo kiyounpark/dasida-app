@@ -244,14 +244,23 @@ export function createCurrentLearnerController({
       summary: LearnerSummaryCurrent;
     },
   ): Promise<CurrentLearnerSnapshot> => {
-    const [peerPresence, reviewTasks, recentReviewAttempts] = await Promise.all([
+    const [peerPresence, reviewTasks, recentReviewAttempts, diagnosticAttempts, examAttempts] = await Promise.all([
       peerPresenceStore.load(),
       reviewTaskStore.load(params.session.accountKey),
       learningHistoryRepository.listAttempts(params.session.accountKey, {
         source: 'weakness-practice',
         limit: 20,
       }),
+      learningHistoryRepository.listAttempts(params.session.accountKey, {
+        source: 'diagnostic',
+        limit: 10,
+      }),
+      learningHistoryRepository.listAttempts(params.session.accountKey, {
+        source: 'featured-exam',
+        limit: 10,
+      }),
     ]);
+    const recentExamAndDiagnosticAttempts = [...diagnosticAttempts, ...examAttempts];
 
     return {
       authGateState: params.authGateState,
@@ -267,6 +276,7 @@ export function createCurrentLearnerController({
         peerPresence,
         reviewTasks,
         recentReviewAttempts,
+        recentExamAndDiagnosticAttempts,
       ),
     };
   };

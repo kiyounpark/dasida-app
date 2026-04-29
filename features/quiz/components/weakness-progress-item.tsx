@@ -1,30 +1,39 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
-import type { ReviewStage } from '@/features/learning/history-types';
 import type { WeaknessProgressItem as WeaknessProgressItemType } from '@/features/learning/types';
+import {
+  SEVERITY_DOTS,
+  SEVERITY_LABEL,
+  severityColor,
+} from '@/features/quiz/components/weakness-severity-ui';
 
-function stageDotsFilled(stage: ReviewStage, completed: boolean): number {
-  if (completed) return 4;
-  switch (stage) {
-    case 'day1':
-      return 1;
-    case 'day3':
-      return 2;
-    case 'day7':
-      return 3;
-    case 'day30':
-      return 4;
-  }
-}
-
-export function WeaknessProgressItem({ item }: { item: WeaknessProgressItemType }) {
-  const filled = stageDotsFilled(item.stage, item.completed);
+export function WeaknessProgressItem({
+  item,
+  onPress,
+}: {
+  item: WeaknessProgressItemType;
+  onPress?: (weaknessId: string) => void;
+}) {
+  const dotsFilled = SEVERITY_DOTS[item.severity];
+  const color = severityColor(item.severity, item.completed);
+  const severityLabel = item.completed ? '해결됐어요 ✓' : SEVERITY_LABEL[item.severity];
   const badgeText = item.completed ? '해결됐어요 ✓' : '점점 나아지는 중';
-  const stageLabel = item.completed ? '완료' : item.stage;
+
+  const handlePress = () => onPress?.(item.weaknessId);
 
   return (
-    <View style={[styles.container, item.completed && styles.containerDone]}>
+    <Pressable
+      onPress={handlePress}
+      android_ripple={{ color: 'rgba(41, 59, 39, 0.06)' }}
+      style={({ pressed }) => [
+        styles.container,
+        item.completed && styles.containerDone,
+        pressed && styles.containerPressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.weaknessLabel}, ${severityLabel}`}
+    >
       <View style={styles.left}>
         <View style={styles.topicChip}>
           <Text style={styles.topicChipText}>{item.topicLabel}</Text>
@@ -37,16 +46,23 @@ export function WeaknessProgressItem({ item }: { item: WeaknessProgressItemType 
         </View>
       </View>
       <View style={styles.right}>
-        <View style={styles.dots}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={[styles.dot, i <= filled && styles.dotFilled]} />
-          ))}
+        <View style={styles.severityRow}>
+          <View style={styles.dots}>
+            {[1, 2, 3].map((i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  i <= dotsFilled && { backgroundColor: color },
+                ]}
+              />
+            ))}
+          </View>
+          <Text style={[styles.severityLabel, { color }]}>{severityLabel}</Text>
         </View>
-        <Text style={[styles.stageLabel, item.completed && styles.stageLabelDone]}>
-          {stageLabel}
-        </Text>
+        <Text style={styles.chevron}>›</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -67,11 +83,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(74, 124, 89, 0.06)',
     borderColor: 'rgba(74, 124, 89, 0.18)',
   },
-  left: {
-    flex: 1,
-    gap: 3,
-    minWidth: 0,
+  containerPressed: {
+    opacity: 0.7,
   },
+  left: { flex: 1, gap: 3, minWidth: 0 },
   topicChip: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(74, 124, 89, 0.13)',
@@ -103,6 +118,11 @@ const styles = StyleSheet.create({
   },
   right: {
     flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  severityRow: {
     alignItems: 'flex-end',
     gap: 3,
   },
@@ -116,15 +136,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: 'rgba(41, 59, 39, 0.12)',
   },
-  dotFilled: {
-    backgroundColor: '#4A7C59',
-  },
-  stageLabel: {
+  severityLabel: {
     fontFamily: FontFamilies.bold,
-    fontSize: 10,
-    color: 'rgba(72, 67, 58, 0.4)',
+    fontSize: 11,
   },
-  stageLabelDone: {
-    color: '#4A7C59',
+  chevron: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 18,
+    color: 'rgba(41, 59, 39, 0.35)',
+    marginLeft: 2,
   },
 });

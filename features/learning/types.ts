@@ -109,6 +109,15 @@ export type PeerPresenceSnapshot = {
   updatedAt: string;
 };
 
+export type WeaknessSeverity = 'frequent' | 'often' | 'occasional';
+
+export type WeaknessAppearance = {
+  attemptId: string;
+  source: LearningSource;
+  sourceLabel: string;
+  attemptedAt: string;
+};
+
 export type WeaknessProgressItem = {
   weaknessId: WeaknessId;
   topicLabel: string;
@@ -117,4 +126,7 @@ export type WeaknessProgressItem = {
   completed: boolean;
   diagnosticAccuracy?: number;
   reviewAccuracyByStage: Partial<Record<ReviewStage, number>>;
+  recentAppearanceCount: number;
+  severity: WeaknessSeverity;
+  appearances: WeaknessAppearance[];
 };

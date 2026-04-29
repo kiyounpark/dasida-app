@@ -11,7 +11,9 @@ import {
 } from '@/features/learning/home-journey-state';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
-import type { LearnerSummaryCurrent, LearningAttempt, PeerPresenceSnapshot, ReviewTask, WeaknessProgressItem } from './types';
+import { buildWeaknessAppearances } from './weakness-appearances';
+import { computeRecentAppearanceCount, computeSeverity } from './weakness-severity';
+import type { LearnerSummaryCurrent, LearningAttempt, PeerPresenceSnapshot, ReviewTask, WeaknessSeverity, WeaknessProgressItem } from './types';
 import type { ReviewStage } from './history-types';
 
 export type PeerPresenceState =
@@ -191,6 +193,7 @@ function buildWeaknessProgressItems(
   summary: LearnerSummaryCurrent,
   allReviewTasks: ReviewTask[],
   recentReviewAttempts: LearningAttempt[],
+  recentExamAndDiagnosticAttempts: LearningAttempt[],
 ): WeaknessProgressItem[] {
   // 활성 태스크 (미완료) 먼저, stage 높은 순
   const activeTasks = allReviewTasks
@@ -221,7 +224,13 @@ function buildWeaknessProgressItems(
 
   const STAGE_ORDER: ReviewStage[] = ['day1', 'day3', 'day7', 'day30'];
 
-  return deduped.slice(0, 3).map((t) => {
+  const SEVERITY_RANK: Record<WeaknessSeverity, number> = {
+    frequent: 3,
+    often: 2,
+    occasional: 1,
+  };
+
+  const items: WeaknessProgressItem[] = deduped.map((t) => {
     const diagnosticAccuracy =
       summary.latestDiagnosticSummary?.weaknessAccuracies?.[t.weaknessId];
 
@@ -240,6 +249,16 @@ function buildWeaknessProgressItems(
       }
     }
 
+    const recentAppearanceCount = computeRecentAppearanceCount(
+      t.weaknessId,
+      recentExamAndDiagnosticAttempts,
+    );
+    const severity = computeSeverity(recentAppearanceCount);
+    const appearances = buildWeaknessAppearances(
+      t.weaknessId,
+      recentExamAndDiagnosticAttempts,
+    );
+
     return {
       weaknessId: t.weaknessId,
       topicLabel: diagnosisMap[t.weaknessId]?.topicLabel ?? '',
@@ -248,8 +267,24 @@ function buildWeaknessProgressItems(
       completed: t.completed,
       diagnosticAccuracy,
       reviewAccuracyByStage,
+      recentAppearanceCount,
+      severity,
+      appearances,
     };
   });
+
+  return items
+    .sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      const sev = SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity];
+      if (sev !== 0) return sev;
+      const cnt = b.recentAppearanceCount - a.recentAppearanceCount;
+      if (cnt !== 0) return cnt;
+      const aLatest = a.appearances[0]?.attemptedAt ?? '';
+      const bLatest = b.appearances[0]?.attemptedAt ?? '';
+      return bLatest.localeCompare(aLatest);
+    })
+    .slice(0, 3);
 }
 
 export function buildHomeLearningState(
@@ -258,6 +293,7 @@ export function buildHomeLearningState(
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
   allReviewTasks: ReviewTask[] = [],
   recentReviewAttempts: LearningAttempt[] = [],
+  recentExamAndDiagnosticAttempts: LearningAttempt[] = [],
 ): HomeLearningState {
   const nextReviewTask = summary.nextReviewTask;
   const dueReviewTasks = summary.dueReviewTasks ?? [];
@@ -282,6 +318,6 @@ export function buildHomeLearningState(
     },
     recentResultCard,
     recentActivity: buildRecentActivity(summary),
-    weaknessProgressItems: buildWeaknessProgressItems(summary, allReviewTasks, recentReviewAttempts),
+    weaknessProgressItems: buildWeaknessProgressItems(summary, allReviewTasks, recentReviewAttempts, recentExamAndDiagnosticAttempts),
   };
 }
