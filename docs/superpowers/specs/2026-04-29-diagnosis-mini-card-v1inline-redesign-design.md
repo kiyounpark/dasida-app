@@ -48,11 +48,11 @@ type DiagnosisMiniCardProps = {
    - 22px 서클 (`#5C8C5A` 배경, `#1A1916` 1.5px 테두리, 흰색 체크 아이콘)
    - "{problemNumber}번 분석 완료" 텍스트 (`#355135`, fontSize 12.5, bold)
 2. **`patternCard`** — 메인 시각 요소
-   - 배경 `#FFFCF4`, 테두리 2px `#1A1916`, radius 18, `boxShadow: '3px 3px 0 #1A1916'`
+   - 배경 `#FFFCF4`, 테두리 2px `#1A1916`, radius 20 (`BrandRadius.lg`), `boxShadow: '3px 3px 0 #1A1916'`
    - `patternKicker` — "오답 패턴" uppercase, fontSize 10, `#355135`, letterSpacing 0.1em
    - `patternName` — `{patternName}`, fontSize 20, extrabold, `#1A1916`
    - `patternDesc` — `{patternDescription}`, fontSize 13.5, lineHeight 1.65, `#3A3833`
-   - **구분선** (`#ECE4CD` 1px, marginTop 12, paddingTop 9)
+   - **구분선** (`#ECE4CD` 1px, marginTop 12, marginBottom 9)
    - **`noteRow`** — 가로 배치
      - 노트 아이콘 (lucide `file-text` 11px, `#5C8C5A`)
      - "약점 노트로 정리됨" (`#355135`, fontSize 10.5)
@@ -107,7 +107,7 @@ boxShadow: '0 3px 0 #1A1916'    // Primary 버튼
 
 - 배지 텍스트, 키커, 패턴명, Primary 버튼 → `FontFamilies.extrabold` 또는 `FontFamilies.bold`
 - 본문 설명 → `FontFamilies.medium`
-- Ghost 버튼, 보조 텍스트 → `FontFamilies.medium`
+- Ghost 버튼, 보조 텍스트 → `FontFamilies.semibold`
 
 기존 컴포넌트와 milestone-banner의 사용 패턴을 따른다.
 
