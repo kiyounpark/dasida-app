@@ -10,8 +10,8 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
+import { navigateBackToExamResult } from '../exam-result-navigation';
 import { useExamDiagnosisSession } from '../hooks/use-exam-diagnosis-session';
-import { useExamSession } from '../exam-session';
 
 function parseProblemNumbers(raw: string | undefined): number[] {
   try {
@@ -44,9 +44,6 @@ export function ExamDiagnosisSessionScreen() {
     Number(getSingleParam(params.diagnosedCountBefore)) || 0;
 
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
-  // HYDRATE_RESULT 경유 시 problems=[] → resume 흐름 식별. result 화면에서 초기 recordAttempt 중복 방지용.
-  const { state: examState } = useExamSession();
-  const isResumed = examState.problems.length === 0;
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
@@ -65,17 +62,10 @@ export function ExamDiagnosisSessionScreen() {
       if (hasNext) {
         session.onScrollToNext(index);
       } else {
-        // fresh flow: result가 스택에 있으므로 back()으로 복원 → remount 없어 이중 POST 없음.
-        // resume flow: 스택에 result 없으므로 replace로 명시 navigate.
-        //   resumed=1: result 화면 새 mount 시 초기 recordAttempt(비멱등 POST) 건너뜀.
-        if (isResumed) {
-          router.replace('/quiz/exam/result?resumed=1');
-        } else {
-          router.back();
-        }
+        navigateBackToExamResult(session.isResumed);
       }
     },
-    [session, router, isResumed],
+    [session],
   );
 
   // 스와이프 완료 시 activeProblemIndex 동기화 (onDotPress 아님 — scroll 재호출 방지)

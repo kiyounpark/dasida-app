@@ -3,6 +3,8 @@
  *
  * The hook orchestrates two recordAttempt calls:
  *   1. Initial save — called once on first render (saveAttempted.current guard)
+ *      SKIPPED entirely when isResumed=true (phase 1 already happened during the
+ *      original exam submission; calling again would double-POST).
  *   2. Diagnosis-complete save — called once when all wrong problems are diagnosed
  *      (hasNavigatedToReportRef.current guard prevents a third call)
  *
@@ -79,14 +81,21 @@ async function runHookCallSequence(
   recordAttempt: jest.Mock,
   options: {
     triggerDiagnosisCompleteTwice?: boolean;
+    isResumed?: boolean;
+    skipDiagnosisComplete?: boolean;
   } = {},
 ) {
-  // ---- Phase 1: initial save ----
+  // ---- Phase 1: initial save (SKIPPED when isResumed=true) ----
   const saveAttempted = { current: false };
   if (!saveAttempted.current) {
     saveAttempted.current = true;
-    await recordAttempt(buildExamAttemptInput({ session: SESSION, profile: PROFILE, result: RESULT }));
+    if (!options.isResumed) {
+      await recordAttempt(buildExamAttemptInput({ session: SESSION, profile: PROFILE, result: RESULT }));
+    }
+    // isResumed=true에서는 setSaveState('saved')만 수행하고 POST는 스킵 — recordAttempt 미호출.
   }
+
+  if (options.skipDiagnosisComplete) return;
 
   // ---- Phase 2: diagnosis-complete save (guarded by hasNavigatedToReportRef) ----
   const hasNavigatedToReportRef = { current: false };
@@ -193,5 +202,40 @@ describe('use-exam-result-screen: recordAttempt call-count contract', () => {
     const secondAttemptId = recordAttempt.mock.calls[1][0].attemptId;
     expect(firstAttemptId).toBe(secondAttemptId);
     expect(firstAttemptId).toBe(RESULT.attemptId);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Resume-flow regression guard (b07d478)
+  // 이전 회귀: 진단 완료 후 router.replace로 result에 재진입할 때 saveAttempted 새 mount에서
+  // 초기화되어 recordAttempt가 두 번째로 호출되는 이중 POST 발생. resumed=1 쿼리로 phase 1을
+  // 명시적으로 스킵하도록 수정. 이 분기를 lock-in.
+  // ---------------------------------------------------------------------------
+
+  it('isResumed=true: phase 1 (initial save) recordAttempt를 호출하지 않는다', async () => {
+    const recordAttempt = jest.fn().mockResolvedValue(undefined);
+
+    await runHookCallSequence(recordAttempt, { isResumed: true, skipDiagnosisComplete: true });
+
+    expect(recordAttempt).not.toHaveBeenCalled();
+  });
+
+  it('isResumed=true + 진단 완료: phase 2만 호출 (총 1회)', async () => {
+    const recordAttempt = jest.fn().mockResolvedValue(undefined);
+
+    await runHookCallSequence(recordAttempt, { isResumed: true });
+
+    expect(recordAttempt).toHaveBeenCalledTimes(1);
+    // 단 한 번의 호출은 진단 결과로 정제된 phase 2 input.
+    expect(recordAttempt.mock.calls[0][0].topWeaknesses.length).toBeGreaterThan(0);
+  });
+
+  it('isResumed=false: phase 1이 정상 실행 — 초기 save에서 recordAttempt 1회 호출', async () => {
+    const recordAttempt = jest.fn().mockResolvedValue(undefined);
+
+    await runHookCallSequence(recordAttempt, { isResumed: false, skipDiagnosisComplete: true });
+
+    expect(recordAttempt).toHaveBeenCalledTimes(1);
+    // phase 1은 진단 전이므로 topWeaknesses 비어있음.
+    expect(recordAttempt.mock.calls[0][0].topWeaknesses).toEqual([]);
   });
 });

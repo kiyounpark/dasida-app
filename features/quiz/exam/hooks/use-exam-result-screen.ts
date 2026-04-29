@@ -13,6 +13,7 @@ import {
   purgeLegacyDiagnosisKey,
   type ExamDiagnosisProgress,
 } from '../exam-diagnosis-progress';
+import { RESUMED_PARAM_VALUE } from '../exam-result-navigation';
 import { useExamSession } from '../exam-session';
 import { saveLatestExamAttempt } from '../latest-exam-attempt-store';
 import type { ExamResultSummary } from '../types';
@@ -42,7 +43,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   const { profile, recordAttempt, session } = useCurrentLearner();
   const { resumed } = useLocalSearchParams<{ resumed?: string }>();
   // resumed=1: diagnosis 완료 후 resume 경로에서 진입. 초기 recordAttempt는 이미 최초 채점 시 호출됨.
-  const isResumed = resumed === '1';
+  const isResumed = resumed === RESUMED_PARAM_VALUE;
   const [saveState, setSaveState] = useState<ResultSaveState>('idle');
   const [diagnosedProblems, setDiagnosedProblems] = useState<ExamDiagnosisProgress>({});
   const saveAttempted = useRef(false);
