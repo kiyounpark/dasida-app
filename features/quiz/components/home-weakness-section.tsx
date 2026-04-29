@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { FontFamilies } from '@/constants/typography';
 import type { HomeLearningState } from '@/features/learning/home-state';
@@ -40,11 +41,18 @@ export function HomeWeaknessSection({
 }: {
   homeState: HomeLearningState;
 }) {
-  if (!homeState.latestDiagnosticSummary) {
+  const { weaknessProgressItems, peerPresence } = homeState;
+
+  if (weaknessProgressItems.length === 0) {
     return null;
   }
 
-  const { weaknessProgressItems, peerPresence } = homeState;
+  const handleWeaknessPress = (weaknessId: string) => {
+    router.push({
+      pathname: '/quiz/weakness/[weaknessId]',
+      params: { weaknessId },
+    });
+  };
 
   return (
     <View style={styles.section}>
@@ -53,14 +61,16 @@ export function HomeWeaknessSection({
         <PeerChip peers={peerPresence} />
         <WeaknessAccuracyChart items={weaknessProgressItems} />
 
-        {weaknessProgressItems.length > 0 ? (
-          <View style={styles.weaknessList}>
-            <Text style={styles.sectionLabel}>내 약점</Text>
-            {weaknessProgressItems.map((item) => (
-              <WeaknessProgressItem key={item.weaknessId} item={item} />
-            ))}
-          </View>
-        ) : null}
+        <View style={styles.weaknessList}>
+          <Text style={styles.sectionLabel}>내 약점</Text>
+          {weaknessProgressItems.map((item) => (
+            <WeaknessProgressItem
+              key={item.weaknessId}
+              item={item}
+              onPress={handleWeaknessPress}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
