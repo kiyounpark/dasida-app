@@ -72,20 +72,21 @@ describe('buildHeroV2', () => {
     expect(hero.averageAccuracyValue).toBe('83%');
   });
 
-  it('3회 응시: 정답률 평균을 반올림하여 표시 (84+72+90 → 82%)', () => {
+  it('3회 응시: 정답률 평균을 반올림하여 표시 (84+74+90 → 83%)', () => {
     const hero = buildHeroV2({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 3, reviewAttempts: 0 },
       }),
       recentExamAttempts: [
         makeExamAttempt({ id: 'a1', accuracy: 84 }),
-        makeExamAttempt({ id: 'a2', accuracy: 72 }),
+        makeExamAttempt({ id: 'a2', accuracy: 74 }),
         makeExamAttempt({ id: 'a3', accuracy: 90 }),
       ],
       analysisState: NOT_IN_PROGRESS,
     });
 
-    expect(hero.averageAccuracyValue).toBe('82%');
+    // 248 / 3 = 82.67 → Math.round = 83 (Math.floor would give 82)
+    expect(hero.averageAccuracyValue).toBe('83%');
   });
 
   it('repeatedWeaknesses 상위 3개를 label과 함께 노출', () => {
