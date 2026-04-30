@@ -5,12 +5,16 @@ import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
+import { useCurrentLearner } from '@/features/learner/provider';
 import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
+import { buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
+import { getDiagnosisProgress } from '../exam-diagnosis-progress';
 import { navigateBackToExamResult } from '../exam-result-navigation';
+import { useExamSession } from '../exam-session';
 import { useExamDiagnosisSession } from '../hooks/use-exam-diagnosis-session';
 
 function parseProblemNumbers(raw: string | undefined): number[] {
@@ -48,10 +52,35 @@ export function ExamDiagnosisSessionScreen() {
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
   const router = useRouter();
+  const { profile, session: authSession, recordAttempt } = useCurrentLearner();
+  const { state: examState } = useExamSession();
 
   const handlePauseRequested = useCallback(() => {
-    router.replace('/(tabs)/quiz');
-  }, [router]);
+    void (async () => {
+      const result = examState.result;
+      if (result && profile && authSession) {
+        try {
+          const diagnosed = await getDiagnosisProgress({
+            examId: result.examId,
+            attemptId: result.attemptId,
+            attemptDateISO: result.completedAt,
+          });
+          const input = buildExamAttemptInputWithDiagnosis({
+            session: authSession,
+            profile,
+            result,
+            diagnosedProblems: diagnosed,
+          });
+          await recordAttempt(input).catch((err) => {
+            console.warn('[Exam] sync on pause failed', err);
+          });
+        } catch (err) {
+          console.warn('[Exam] sync on pause failed', err);
+        }
+      }
+      router.replace('/(tabs)/quiz');
+    })();
+  }, [router, examState.result, profile, authSession, recordAttempt]);
 
   const { onSwipeEnd } = session;
 
