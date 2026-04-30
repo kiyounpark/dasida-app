@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { buildHistoryInsights } from '@/features/history/history-insights';
+import { buildHistoryInsights, type HistoryExamHistoryItem } from '@/features/history/history-insights';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
 import type { WeaknessId } from '@/data/diagnosisMap';
@@ -13,6 +13,8 @@ import {
 import { buildExamResultSummaryFromAttempt } from '@/features/quiz/exam/build-exam-result-summary-from-attempt';
 import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
+
+import { onPressExamHistoryItemImpl } from './use-history-screen-handlers';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
 
@@ -195,6 +197,13 @@ export function useHistoryScreen() {
     router.push('/(tabs)/exam');
   }
 
+  const onPressExamHistoryItem = useCallback(
+    (item: HistoryExamHistoryItem) => {
+      void onPressExamHistoryItemImpl(item, latestAttempt, hydrateResult);
+    },
+    [latestAttempt, hydrateResult],
+  );
+
   return {
     insights,
     isLoadingAttempts,
@@ -202,6 +211,7 @@ export function useHistoryScreen() {
     isRefreshing,
     onPrimaryAction,
     onPressEmptyStateCta,
+    onPressExamHistoryItem,
     onRefresh,
   };
 }
