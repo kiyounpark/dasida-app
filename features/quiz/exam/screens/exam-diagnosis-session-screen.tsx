@@ -12,6 +12,7 @@ import { getSingleParam } from '@/utils/get-single-param';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
 import { buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
+import { useAppBackgroundSync } from '../use-app-background-sync';
 import { getDiagnosisProgress } from '../exam-diagnosis-progress';
 import { navigateBackToExamResult } from '../exam-result-navigation';
 import { useExamSession } from '../exam-session';
@@ -81,6 +82,30 @@ export function ExamDiagnosisSessionScreen() {
       router.replace('/(tabs)/quiz');
     })();
   }, [router, examState.result, profile, authSession, recordAttempt]);
+
+  useAppBackgroundSync(() => {
+    void (async () => {
+      const result = examState.result;
+      if (!result || !profile || !authSession) return;
+      try {
+        const diagnosed = await getDiagnosisProgress({
+          examId: result.examId,
+          attemptId: result.attemptId,
+          attemptDateISO: result.completedAt,
+        });
+        await recordAttempt(
+          buildExamAttemptInputWithDiagnosis({
+            session: authSession,
+            profile,
+            result,
+            diagnosedProblems: diagnosed,
+          }),
+        );
+      } catch {
+        /* 다음 sync point에서 회복 */
+      }
+    })();
+  });
 
   const { onSwipeEnd } = session;
 

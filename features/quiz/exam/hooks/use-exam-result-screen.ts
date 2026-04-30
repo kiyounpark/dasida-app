@@ -7,6 +7,7 @@ import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
 import { buildDiagnosisQueue } from '../build-diagnosis-queue';
 import { buildExamAttemptInput, buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
+import { useAppBackgroundSync } from '../use-app-background-sync';
 import { computeExamTopWeaknesses } from '../compute-exam-top-weaknesses';
 import {
   getDiagnosisProgress,
@@ -152,6 +153,19 @@ export function useExamResultScreen(): UseExamResultScreenResult {
       },
     });
   }, [diagnosedCount, wrongCount, result, diagnosedProblems, profile, session, recordAttempt]);
+
+  useAppBackgroundSync(() => {
+    if (!result || !profile || !session) return;
+    const input = buildExamAttemptInputWithDiagnosis({
+      session,
+      profile,
+      result,
+      diagnosedProblems,
+    });
+    void recordAttempt(input).catch(() => {
+      /* 다음 sync point에서 회복 */
+    });
+  });
 
   // 문제 타일 계산
   const problemTiles: ProblemTile[] = result
