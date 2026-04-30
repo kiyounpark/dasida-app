@@ -19,13 +19,13 @@ export type ExamAttemptScope = {
   attemptDateISO: string; // ISO 타임스탬프 (예: result.completedAt)
 };
 
-function formatKstDate(iso: string): string {
+export function formatKstDate(iso: string): string {
   const utcMs = new Date(iso).getTime();
   const kstMs = utcMs + 9 * 60 * 60 * 1000;
   return new Date(kstMs).toISOString().slice(0, 10);
 }
 
-function storageKey(scope: ExamAttemptScope): string {
+export function storageKey(scope: ExamAttemptScope): string {
   const date = formatKstDate(scope.attemptDateISO);
   return `${StorageKeys.examDiagnosisProgressPrefix}${scope.examId}/${date}-${scope.attemptId}`;
 }

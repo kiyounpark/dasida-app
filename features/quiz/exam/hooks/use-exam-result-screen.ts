@@ -208,7 +208,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         },
       });
     },
-    onReturnHome: async () => {
+    onReturnHome: () => {
       if (result && profile && session) {
         const diagnosedInput = buildExamAttemptInputWithDiagnosis({
           session,

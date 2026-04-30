@@ -248,7 +248,7 @@ describe('use-exam-result-screen: recordAttempt call-count contract', () => {
     const router = { replace: jest.fn() };
 
     const partialDiagnosedProblems: ExamDiagnosisProgress = {
-      5: 'topic-grasping',
+      5: 'formula_understanding',
     };
 
     // Simulate onReturnHome handler logic directly
@@ -266,7 +266,7 @@ describe('use-exam-result-screen: recordAttempt call-count contract', () => {
     const callArg = recordAttempt.mock.calls[0][0];
     const q5 = callArg.questions.find((q: { questionNumber: number }) => q.questionNumber === 5);
     expect(q5?.diagnosisCompleted).toBe(true);
-    expect(q5?.finalWeaknessId).toBe('topic-grasping');
+    expect(q5?.finalWeaknessId).toBe('formula_understanding');
 
     expect(router.replace).toHaveBeenCalledWith('/quiz');
   });

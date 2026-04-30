@@ -50,8 +50,8 @@ describe('syncDiagnosisProgressFromServer', () => {
   it('writes a map of diagnosed problems with weakness ids', async () => {
     const results = [
       makeResult(1, { isCorrect: true }),
-      makeResult(2, { diagnosisCompleted: true, finalWeaknessId: 'topic-grasping' }),
-      makeResult(5, { diagnosisCompleted: true, finalWeaknessId: 'inference' }),
+      makeResult(2, { diagnosisCompleted: true, finalWeaknessId: 'formula_understanding' }),
+      makeResult(5, { diagnosisCompleted: true, finalWeaknessId: 'calc_repeated_error' }),
       makeResult(7, { diagnosisCompleted: false, finalWeaknessId: null }),
     ];
 
@@ -59,26 +59,26 @@ describe('syncDiagnosisProgressFromServer', () => {
 
     expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith(
       EXPECTED_KEY,
-      JSON.stringify({ 2: 'topic-grasping', 5: 'inference' }),
+      JSON.stringify({ 2: 'formula_understanding', 5: 'calc_repeated_error' }),
     );
 
     // verify getDiagnosisProgress reads from the same key
     mockedAsyncStorage.getItem.mockResolvedValueOnce(
-      JSON.stringify({ 2: 'topic-grasping', 5: 'inference' }),
+      JSON.stringify({ 2: 'formula_understanding', 5: 'calc_repeated_error' }),
     );
     const progress = await getDiagnosisProgress(SCOPE);
-    expect(progress).toEqual({ 2: 'topic-grasping', 5: 'inference' });
+    expect(progress).toEqual({ 2: 'formula_understanding', 5: 'calc_repeated_error' });
   });
 
   it('overwrites existing local progress (server is authoritative)', async () => {
     // first call
     await syncDiagnosisProgressFromServer(SCOPE, [
-      makeResult(2, { diagnosisCompleted: true, finalWeaknessId: 'topic-grasping' }),
+      makeResult(2, { diagnosisCompleted: true, finalWeaknessId: 'formula_understanding' }),
     ]);
 
     // second call — should overwrite
     await syncDiagnosisProgressFromServer(SCOPE, [
-      makeResult(5, { diagnosisCompleted: true, finalWeaknessId: 'inference' }),
+      makeResult(5, { diagnosisCompleted: true, finalWeaknessId: 'calc_repeated_error' }),
     ]);
 
     const calls = mockedAsyncStorage.setItem.mock.calls;
@@ -87,7 +87,7 @@ describe('syncDiagnosisProgressFromServer', () => {
     expect(calls[0][0]).toBe(EXPECTED_KEY);
     expect(calls[1][0]).toBe(EXPECTED_KEY);
     // second call contains only the new result (full overwrite)
-    expect(calls[1][1]).toBe(JSON.stringify({ 5: 'inference' }));
+    expect(calls[1][1]).toBe(JSON.stringify({ 5: 'calc_repeated_error' }));
   });
 
   it('writes empty object when no diagnosed results present', async () => {

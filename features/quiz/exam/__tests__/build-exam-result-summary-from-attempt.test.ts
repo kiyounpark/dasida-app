@@ -11,7 +11,7 @@ function makeAttempt(overrides?: Partial<LearningAttempt>): LearningAttempt {
     learnerId: 'learner-1',
     source: 'featured-exam',
     sourceEntityId: FAKE_EXAM_ID,
-    gradeSnapshot: 'high2',
+    gradeSnapshot: 'g3',
     startedAt: '2024-09-01T09:00:00.000Z',
     completedAt: '2024-09-01T10:00:00.000Z',
     questionCount: 3,

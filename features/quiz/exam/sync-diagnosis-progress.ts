@@ -1,20 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { StorageKeys } from '@/constants/storage-keys';
 import type { LearningAttemptResult } from '@/features/learning/types';
 
 import type { ExamAttemptScope, ExamDiagnosisProgress } from './exam-diagnosis-progress';
-
-function formatKstDate(iso: string): string {
-  const utcMs = new Date(iso).getTime();
-  const kstMs = utcMs + 9 * 60 * 60 * 1000;
-  return new Date(kstMs).toISOString().slice(0, 10);
-}
-
-function storageKey(scope: ExamAttemptScope): string {
-  const date = formatKstDate(scope.attemptDateISO);
-  return `${StorageKeys.examDiagnosisProgressPrefix}${scope.examId}/${date}-${scope.attemptId}`;
-}
+import { storageKey } from './exam-diagnosis-progress';
 
 export async function syncDiagnosisProgressFromServer(
   scope: ExamAttemptScope,
