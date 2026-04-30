@@ -1,4 +1,3 @@
-import { compareTimestampsAsc } from '@/functions/shared/timestamp-utils';
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import type { ReviewStage } from '@/features/learning/history-types';
