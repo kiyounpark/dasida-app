@@ -84,6 +84,7 @@ export function useHistoryScreen() {
     }, [session?.accountKey]),
   );
 
+  const latestAttemptId = recentExamAttempts[0]?.id ?? null;
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -135,6 +136,7 @@ export function useHistoryScreen() {
           );
         } catch {
           if (cancelled) return;
+          setLatestAttempt(null);
           setAnalysisState({ isInProgress: false });
         }
       })();
@@ -142,7 +144,7 @@ export function useHistoryScreen() {
         cancelled = true;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [recentExamAttempts]),
+    }, [latestAttemptId]),
   );
 
   const insights = useMemo(() => {

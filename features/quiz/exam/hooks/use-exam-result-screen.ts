@@ -155,16 +155,28 @@ export function useExamResultScreen(): UseExamResultScreenResult {
   }, [diagnosedCount, wrongCount, result, diagnosedProblems, profile, session, recordAttempt]);
 
   useAppBackgroundSync(() => {
-    if (!result || !profile || !session) return;
-    const input = buildExamAttemptInputWithDiagnosis({
-      session,
-      profile,
-      result,
-      diagnosedProblems,
-    });
-    void recordAttempt(input).catch(() => {
-      /* 다음 sync point에서 회복 */
-    });
+    void (async () => {
+      if (!result || !profile || !session) return;
+      try {
+        const diagnosed = await getDiagnosisProgress({
+          examId: result.examId,
+          attemptId: result.attemptId,
+          attemptDateISO: result.completedAt,
+        });
+        await recordAttempt(
+          buildExamAttemptInputWithDiagnosis({
+            session,
+            profile,
+            result,
+            diagnosedProblems: diagnosed,
+          }),
+        ).catch(() => {
+          /* 다음 sync point에서 회복 */
+        });
+      } catch {
+        /* 다음 sync point에서 회복 */
+      }
+    })();
   });
 
   // 문제 타일 계산
