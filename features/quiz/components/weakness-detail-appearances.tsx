@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   date: {
     fontFamily: FontFamilies.medium,
     fontSize: 11,
-    color: 'rgba(72,67,58,0.5)',
+    color: 'rgba(72, 67, 58, 0.5)',
     flexShrink: 0,
   },
 });
