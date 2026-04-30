@@ -21,6 +21,20 @@
 
 ## 로그
 
+### 2026.05.01
+
+**기록 탭 분석중 항목 탭 → 결과화면 이동 (다기기 지원) 구현 완료**
+
+- 기록 탭 `analysisState` 계산을 폰 AsyncStorage → 서버 `listAttemptResults` 기반으로 전환
+- 분석중 항목 탭 시 결과화면(`/quiz/exam/result?resumed=1`)으로 이동 + chevron(`›`) UI 추가
+- 4개 sync point에서 `recordAttempt` 호출: 잠시 쉬기 / 홈으로 / 모두 완료 / 앱 백그라운드
+- 신규 파일: `build-exam-result-summary-from-attempt.ts`, `sync-diagnosis-progress.ts`, `use-app-background-sync.ts`
+- 135 tests pass, tsc 0 errors
+- Spec: `docs/superpowers/specs/2026-04-30-history-in-progress-item-tap-design.md`
+- Commits: eefa7e2 → a9d9d81
+
+---
+
 ### 2026.04.29
 
 **약점 누적 집계 뷰 + 상세 화면 (Phase 2) 구현 완료**
@@ -847,6 +861,45 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.05.01 01:39
+- 해시: `a9d9d81` (`a9d9d813535d75c0427c09b60e334a5cb784ad69`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a9d9d813535d75c0427c09b60e334a5cb784ad69
+- 작성자: 박기윤
+- 메시지: fix(history): disable non-tappable items, add a11y label, remove unused mock
+
+### 커밋 2026.05.01 01:31
+- 해시: `94c0276` (`94c02767c162c75c773a3bb1070d82f92a795dfe`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/94c02767c162c75c773a3bb1070d82f92a795dfe
+- 작성자: 박기윤
+- 메시지: fix(history,exam): stabilize useFocusEffect dep and prevent double background sync
+- 본문: - use-history-screen: derive latestAttemptId scalar from recentExamAttempts[0]?.id / so the second useFocusEffect no longer re-fires on every setRecentExamAttempts / reference change; also add setLatestAttempt(null) in the catch block / - use-app-background-sync: add prevStateRef guard so iOS active→inactive→background / sequence only triggers onSync once (prev==='active' gate) / - use-exam-result-screen: background sync callback now reads getDiagnosisProgress / fresh from AsyncStorage instead of closing over potentially-empty React state / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.30 20:41
+- 해시: `77127a5` (`77127a514c9a06e4a341189fb3b6731ac7119f06`)
+- 브랜치: feat/history-tab-exam-only
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/77127a514c9a06e4a341189fb3b6731ac7119f06
+- 작성자: 박기윤
+- 메시지: feat(history): 최근 시험 이력 카드 신설
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.04.30 00:35
+- 해시: `9c401ad` (`9c401ad7f4f83c5a00f289fd7252879b4dbd6f96`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9c401ad7f4f83c5a00f289fd7252879b4dbd6f96
+- 작성자: 박기윤
+- 메시지: fix(quiz): onResumeAnalysis 큐 방식으로 통일
+- 본문: 비순차 진단 케이스에서 일부 문제가 누락되거나, 끝까지 풀어도 / 리포트가 안 뜨던 버그 수정. / - startIndex 가정 제거 → wrongProblemNumbers 자체를 미진단 큐로 전달 / - onAnalyzeProblem(buildDiagnosisQueue)와 동일한 멘탈 모델로 통일
 
 ### 커밋 2026.04.29 10:32
 - 해시: `b76feb6` (`b76feb6e5b79198ff0f3ea371c897c520195efdb`)
