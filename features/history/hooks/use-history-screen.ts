@@ -71,8 +71,9 @@ export function useHistoryScreen() {
       const now = Date.now();
       if (now - lastFocusRefreshAtRef.current < 5_000) return;
       lastFocusRefreshAtRef.current = now;
+      // refresh()가 summary.updatedAt을 갱신하면 위의 useEffect가 loadAttempts를 트리거한다.
+      // 여기서 loadAttempts를 직접 호출하면 같은 focus에서 두 번 fetch가 발생하므로 호출하지 않는다.
       void refresh();
-      void loadAttempts();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountKey]),
   );
