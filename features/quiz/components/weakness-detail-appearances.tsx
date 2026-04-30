@@ -3,6 +3,18 @@ import { StyleSheet, Text, View } from 'react-native';
 import { FontFamilies } from '@/constants/typography';
 import type { WeaknessAppearance } from '@/features/learning/types';
 
+export function formatAppearanceDateKst(iso: string): string {
+  const kstMs = new Date(iso).getTime() + 9 * 60 * 60 * 1000;
+  const d = new Date(kstMs);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  const nowKstMs = Date.now() + 9 * 60 * 60 * 1000;
+  const currentYear = new Date(nowKstMs).getUTCFullYear();
+  if (year === currentYear) return `${month}월 ${day}일`;
+  return `${year}년 ${month}월 ${day}일`;
+}
+
 export function WeaknessDetailAppearances({
   appearances,
 }: {
