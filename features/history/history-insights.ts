@@ -2,6 +2,37 @@ import { compareTimestampsAsc } from '@/functions/shared/timestamp-utils';
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import type { ReviewStage } from '@/features/learning/history-types';
+import type { AnalysisInProgressState } from '@/features/quiz/exam/exam-analysis-in-progress';
+
+export type HistoryHeroStateV2 = {
+  examAttempts: number;
+  averageAccuracyValue: string; // '—' | 'N%'
+  topWeaknesses: Array<{
+    weaknessId: WeaknessId;
+    label: string;
+    count: number;
+  }>;
+  ctaKind: 'resume_analysis' | null;
+  ctaLabel: string | null;
+};
+
+export type HistoryExamHistoryItem = {
+  attemptId: string;
+  examId: string;
+  examTitle: string;
+  occurredAtLabel: string;
+  accuracyLabel: string;
+  status: 'completed' | 'in_progress' | 'not_started';
+  statusLabel: string;
+  isLatest: boolean;
+};
+
+export type HistoryScreenInsightsV2 = {
+  isEmpty: boolean;
+  hero: HistoryHeroStateV2;
+  weaknessProgress: HistoryWeaknessProgressItem[];
+  examHistory: HistoryExamHistoryItem[];
+};
 
 export type HistoryHeroState = {
   reviewAttempts: number;
@@ -180,5 +211,41 @@ export function buildHistoryInsights(
     hero: buildHero(summary, recentDiagnosticAttempts, options?.isLoadingAttempts ?? false),
     weaknessProgress: buildWeaknessProgress(summary),
     pulseItems: buildPulseItems(summary),
+  };
+}
+
+export function buildHeroV2(input: {
+  summary: LearnerSummaryCurrent;
+  recentExamAttempts: LearningAttempt[];
+  analysisState: AnalysisInProgressState;
+}): HistoryHeroStateV2 {
+  const { summary, recentExamAttempts } = input;
+  const examAttempts = summary.totals.featuredExamAttempts;
+
+  let averageAccuracyValue = '—';
+  if (recentExamAttempts.length > 0) {
+    const total = recentExamAttempts.reduce((sum, a) => sum + a.accuracy, 0);
+    const avg = Math.round(total / recentExamAttempts.length);
+    averageAccuracyValue = `${avg}%`;
+  }
+
+  const topWeaknesses = (summary.repeatedWeaknesses ?? [])
+    .slice(0, 3)
+    .map((rw) => ({
+      weaknessId: rw.weaknessId,
+      label: getWeaknessLabel(rw.weaknessId),
+      count: rw.count,
+    }));
+
+  const ctaKind: HistoryHeroStateV2['ctaKind'] =
+    input.analysisState.isInProgress ? 'resume_analysis' : null;
+  const ctaLabel = ctaKind === 'resume_analysis' ? '이어서 분석하기 →' : null;
+
+  return {
+    examAttempts,
+    averageAccuracyValue,
+    topWeaknesses,
+    ctaKind,
+    ctaLabel,
   };
 }
