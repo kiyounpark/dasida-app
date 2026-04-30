@@ -1,17 +1,39 @@
-import { compareTimestampsAsc } from '@/functions/shared/timestamp-utils';
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import type { ReviewStage } from '@/features/learning/history-types';
+import type { AnalysisInProgressState } from '@/features/quiz/exam/exam-analysis-in-progress';
+import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
 export type HistoryHeroState = {
-  reviewAttempts: number;
-  dueWeaknesses: Array<{ weaknessId: WeaknessId; label: string; stageLabel: string }>;
-  accuracyValue: string;
-  accuracyBadgeText: string | null;
-  accuracyBadgeTone: 'positive' | 'neutral' | 'warning';
-  ctaLabel: string;
-  ctaKind: 'review' | 'diagnostic';
+  examAttempts: number;
+  averageAccuracyValue: string; // '—' | 'N%'
+  topWeaknesses: Array<{
+    weaknessId: WeaknessId;
+    label: string;
+    count: number;
+  }>;
+  ctaKind: 'resume_analysis' | null;
+  ctaLabel: string | null;
 };
+
+export type HistoryExamHistoryItem = {
+  attemptId: string;
+  examId: string;
+  examTitle: string;
+  occurredAtLabel: string;
+  accuracyLabel: string;
+  status: 'completed' | 'in_progress' | 'not_started';
+  statusLabel: string;
+  isLatest: boolean;
+};
+
+export type HistoryScreenInsights = {
+  isEmpty: boolean;
+  hero: HistoryHeroState;
+  weaknessProgress: HistoryWeaknessProgressItem[];
+  examHistory: HistoryExamHistoryItem[];
+};
+
 
 export type HistoryWeaknessProgressItem = {
   weaknessId: WeaknessId;
@@ -22,20 +44,7 @@ export type HistoryWeaknessProgressItem = {
   nextLabel: string;
 };
 
-export type HistoryPulseItem = {
-  id: string;
-  kind: 'diagnostic' | 'review' | 'exam';
-  kindLabel: string;
-  title: string;
-  occurredAtLabel: string;
-  valueBadge: string | null;
-};
 
-export type HistoryScreenInsights = {
-  hero: HistoryHeroState;
-  weaknessProgress: HistoryWeaknessProgressItem[];
-  pulseItems: HistoryPulseItem[];
-};
 
 const STAGE_LABELS: Record<ReviewStage, string> = {
   day1: '1단계',
@@ -77,59 +86,6 @@ function formatNextLabel(scheduledFor: string, isDue: boolean): string {
   return `${diffDays}일 후 복습`;
 }
 
-function buildHero(
-  summary: LearnerSummaryCurrent,
-  attempts: LearningAttempt[],
-  isLoadingAttempts: boolean,
-): HistoryHeroState {
-  const dueReviewTasks = summary.dueReviewTasks ?? [];
-  const hasDue = dueReviewTasks.length > 0;
-  const dueWeaknesses = dueReviewTasks.slice(0, 3).map((task) => ({
-    weaknessId: task.weaknessId,
-    label: getWeaknessLabel(task.weaknessId),
-    stageLabel: STAGE_LABELS[task.stage],
-  }));
-
-  const sorted = [...attempts].sort((a, b) =>
-    compareTimestampsAsc(a.completedAt, b.completedAt),
-  );
-  let accuracyValue = '—';
-  let accuracyBadgeText: string | null = null;
-  let accuracyBadgeTone: HistoryHeroState['accuracyBadgeTone'] = 'neutral';
-
-  if (!isLoadingAttempts && sorted.length > 0) {
-    const latest = sorted[sorted.length - 1];
-    accuracyValue = `${latest.accuracy}%`;
-    if (sorted.length >= 2) {
-      const previous = sorted[sorted.length - 2];
-      const delta = latest.accuracy - previous.accuracy;
-      accuracyBadgeText = delta >= 0 ? `▲ +${delta}%p` : `▼ ${Math.abs(delta)}%p`;
-      accuracyBadgeTone = delta >= 0 ? 'positive' : 'warning';
-    }
-  }
-
-  let ctaLabel: string;
-  if (hasDue) {
-    ctaLabel =
-      dueReviewTasks.length > 1
-        ? `오늘 복습 ${dueReviewTasks.length}개 시작하기 →`
-        : '오늘 복습 시작하기 →';
-  } else if (summary.latestDiagnosticSummary) {
-    ctaLabel = '빠른 재진단 하기 →';
-  } else {
-    ctaLabel = '첫 진단 시작하기 →';
-  }
-
-  return {
-    reviewAttempts: summary.totals.reviewAttempts,
-    dueWeaknesses,
-    accuracyValue,
-    accuracyBadgeText,
-    accuracyBadgeTone,
-    ctaLabel,
-    ctaKind: hasDue ? 'review' : 'diagnostic',
-  };
-}
 
 function buildWeaknessProgress(
   summary: LearnerSummaryCurrent,
@@ -156,29 +112,98 @@ function buildWeaknessProgress(
   });
 }
 
-function buildPulseItems(summary: LearnerSummaryCurrent): HistoryPulseItem[] {
-  return summary.recentActivity.slice(0, 3).map((item) => {
-    const kindLabel =
-      item.kind === 'diagnostic' ? '진단' : item.kind === 'review' ? '복습' : '실전';
+
+
+export function buildHero(input: {
+  summary: LearnerSummaryCurrent;
+  recentExamAttempts: LearningAttempt[];
+  analysisState: AnalysisInProgressState;
+}): HistoryHeroState {
+  const { summary, recentExamAttempts } = input;
+  const examAttempts = summary.totals.featuredExamAttempts;
+
+  let averageAccuracyValue = '—';
+  if (recentExamAttempts.length > 0) {
+    const total = recentExamAttempts.reduce((sum, a) => sum + a.accuracy, 0);
+    const avg = Math.round(total / recentExamAttempts.length);
+    averageAccuracyValue = `${avg}%`;
+  }
+
+  const topWeaknesses = (summary.repeatedWeaknesses ?? [])
+    .slice(0, 3)
+    .map((rw) => ({
+      weaknessId: rw.weaknessId,
+      label: getWeaknessLabel(rw.weaknessId),
+      count: rw.count,
+    }));
+
+  const ctaKind: HistoryHeroState['ctaKind'] =
+    input.analysisState.isInProgress ? 'resume_analysis' : null;
+  const ctaLabel = ctaKind === 'resume_analysis' ? '이어서 분석하기 →' : null;
+
+  return {
+    examAttempts,
+    averageAccuracyValue,
+    topWeaknesses,
+    ctaKind,
+    ctaLabel,
+  };
+}
+
+export function buildExamHistoryItems(input: {
+  recentExamAttempts: LearningAttempt[];
+  latestAttemptId: string | null;
+  analysisState: AnalysisInProgressState;
+}): HistoryExamHistoryItem[] {
+  const { recentExamAttempts, latestAttemptId, analysisState } = input;
+
+  return recentExamAttempts.map((attempt) => {
+    const examId = attempt.sourceEntityId ?? '';
+    const examTitle = EXAM_CATALOG_BY_ID[examId]?.title ?? examId;
+    const isLatest = attempt.id === latestAttemptId;
+
+    let status: HistoryExamHistoryItem['status'];
+    let statusLabel: string;
+    if (isLatest && analysisState.isInProgress) {
+      status = 'in_progress';
+      statusLabel = `진행 중 ${analysisState.noteCount}/${analysisState.totalNotes}`;
+    } else if (attempt.primaryWeaknessId !== null) {
+      status = 'completed';
+      statusLabel = '분석 완료';
+    } else if (attempt.wrongCount === 0) {
+      status = 'completed';
+      statusLabel = '만점';
+    } else {
+      status = 'not_started';
+      statusLabel = '분석 미시작';
+    }
+
     return {
-      id: item.id,
-      kind: item.kind,
-      kindLabel,
-      title: item.title,
-      occurredAtLabel: formatDateTime(item.occurredAt),
-      valueBadge: item.kind === 'diagnostic' ? item.subtitle : null,
+      attemptId: attempt.id,
+      examId,
+      examTitle,
+      occurredAtLabel: formatDateTime(attempt.completedAt),
+      accuracyLabel: `정답률 ${attempt.accuracy}%`,
+      status,
+      statusLabel,
+      isLatest,
     };
   });
 }
 
-export function buildHistoryInsights(
-  summary: LearnerSummaryCurrent,
-  recentDiagnosticAttempts: LearningAttempt[],
-  options?: { isLoadingAttempts?: boolean },
-): HistoryScreenInsights {
+export function buildHistoryInsights(input: {
+  summary: LearnerSummaryCurrent;
+  recentExamAttempts: LearningAttempt[];
+  latestAttemptId: string | null;
+  analysisState: AnalysisInProgressState;
+}): HistoryScreenInsights {
+  const { summary, recentExamAttempts, latestAttemptId, analysisState } = input;
+  const isEmpty = summary.totals.featuredExamAttempts === 0;
+
   return {
-    hero: buildHero(summary, recentDiagnosticAttempts, options?.isLoadingAttempts ?? false),
+    isEmpty,
+    hero: buildHero({ summary, recentExamAttempts, analysisState }),
     weaknessProgress: buildWeaknessProgress(summary),
-    pulseItems: buildPulseItems(summary),
+    examHistory: buildExamHistoryItems({ recentExamAttempts, latestAttemptId, analysisState }),
   };
 }

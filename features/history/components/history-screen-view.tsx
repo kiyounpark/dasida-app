@@ -7,23 +7,12 @@ import { BrandTypography } from '@/constants/typography';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import type { UseHistoryScreenResult } from '@/features/history/hooks/use-history-screen';
 
-function getAccuracyBadgeStyle(tone: 'positive' | 'neutral' | 'warning') {
-  switch (tone) {
-    case 'positive':
-      return { bg: 'rgba(47,158,68,0.3)', color: '#7AE89A' };
-    case 'warning':
-      return { bg: 'rgba(217,142,4,0.2)', color: '#FFD066' };
-    default:
-      return { bg: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' };
-  }
-}
-
 export function HistoryScreenView({
   insights,
-  isLoadingAttempts,
   isReady,
   isRefreshing,
   onPrimaryAction,
+  onPressEmptyStateCta,
   onRefresh,
 }: UseHistoryScreenResult) {
   const isTablet = useIsTablet();
@@ -35,10 +24,10 @@ export function HistoryScreenView({
         <View style={[styles.feedbackWrap, { paddingTop: insets.top + BrandSpacing.xxl }]}>
           <View style={styles.feedbackCard}>
             <Text selectable style={styles.feedbackTitle}>
-              내 기록을 준비 중이에요
+              기록을 준비 중이에요
             </Text>
             <Text selectable style={styles.feedbackBody}>
-              최근 진단 흐름과 오늘 다시 볼 약점을 불러오고 있습니다.
+              학평·모의고사 응시 이력을 불러오고 있습니다.
             </Text>
           </View>
         </View>
@@ -64,7 +53,23 @@ export function HistoryScreenView({
     );
   }
 
-  const accuracyBadge = getAccuracyBadgeStyle(insights.hero.accuracyBadgeTone);
+  if (insights.isEmpty) {
+    return (
+      <View style={styles.screen}>
+        <View style={[styles.feedbackWrap, { paddingTop: insets.top + BrandSpacing.xxl }]}>
+          <View style={styles.feedbackCard}>
+            <Text selectable style={styles.feedbackTitle}>
+              아직 학평/모의고사 기록이 없어요
+            </Text>
+            <Text selectable style={styles.feedbackBody}>
+              첫 시험을 풀고 나면 응시 횟수, 정답률, 자주 발견된 약점이 여기에 쌓입니다.
+            </Text>
+            <BrandButton title="시험 풀러 가기 →" onPress={onPressEmptyStateCta} />
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
@@ -82,55 +87,47 @@ export function HistoryScreenView({
             onRefresh={() => void onRefresh()}
             tintColor={BrandColors.primarySoft}
           />
-        }>
-
-        {/* 히어로 카드 */}
+        }
+      >
+        {/* 히어로 카드 — 누적 성취 */}
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <View style={styles.heroMain}>
-              <Text selectable style={styles.heroLabel}>복습 완료</Text>
+              <Text selectable style={styles.heroLabel}>총 응시</Text>
               <View style={styles.heroCountRow}>
-                <Text selectable style={styles.heroCount}>
-                  {insights.hero.reviewAttempts}
-                </Text>
+                <Text selectable style={styles.heroCount}>{insights.hero.examAttempts}</Text>
                 <Text selectable style={styles.heroCountUnit}>회</Text>
               </View>
-              <Text selectable style={styles.heroSubtext}>지금까지 쌓은 복습 기록</Text>
+              <Text selectable style={styles.heroSubtext}>학평·모의고사·수능 누적</Text>
             </View>
-            {insights.hero.dueWeaknesses.length > 0 ? (
-              <View style={styles.heroPanel}>
-                <Text selectable style={styles.heroPanelLabel}>진행 중인 약점</Text>
-                {insights.hero.dueWeaknesses.map((item) => (
-                  <View key={item.weaknessId} style={styles.heroPanelRow}>
-                    <Text selectable style={styles.heroPanelWeakness} numberOfLines={1}>
-                      {item.label}
-                    </Text>
-                    <View style={styles.heroPanelStagePill}>
-                      <Text selectable style={styles.heroPanelStageText}>
-                        {item.stageLabel}
-                      </Text>
-                    </View>
+            <View style={styles.heroPanel}>
+              <Text selectable style={styles.heroPanelLabel}>평균 정답률</Text>
+              <Text selectable style={styles.heroPanelValue}>
+                {insights.hero.averageAccuracyValue}
+              </Text>
+              <Text selectable style={styles.heroPanelMeta}>최근 5회 평균</Text>
+            </View>
+          </View>
+
+          {insights.hero.topWeaknesses.length > 0 ? (
+            <View style={styles.heroWeaknessSection}>
+              <Text selectable style={styles.heroSectionLabel}>자주 발견된 약점</Text>
+              {insights.hero.topWeaknesses.map((item) => (
+                <View key={item.weaknessId} style={styles.heroWeaknessRow}>
+                  <Text selectable style={styles.heroWeaknessLabel} numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <View style={styles.heroWeaknessCountPill}>
+                    <Text selectable style={styles.heroWeaknessCountText}>{item.count}회</Text>
                   </View>
-                ))}
-              </View>
-            ) : null}
-          </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
 
-          <View style={styles.heroAccuracyRow}>
-            <Text selectable style={styles.heroAccuracyLabel}>최근 정답률</Text>
-            <Text selectable style={styles.heroAccuracyValue}>
-              {isLoadingAttempts ? '—' : insights.hero.accuracyValue}
-            </Text>
-            {!isLoadingAttempts && insights.hero.accuracyBadgeText !== null ? (
-              <View style={[styles.heroAccuracyBadge, { backgroundColor: accuracyBadge.bg }]}>
-                <Text selectable style={[styles.heroAccuracyBadgeText, { color: accuracyBadge.color }]}>
-                  {insights.hero.accuracyBadgeText}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <BrandButton title={insights.hero.ctaLabel} onPress={onPrimaryAction} />
+          {insights.hero.ctaKind === 'resume_analysis' && insights.hero.ctaLabel ? (
+            <BrandButton title={insights.hero.ctaLabel} onPress={onPrimaryAction} />
+          ) : null}
         </View>
 
         {/* 약점별 진행 단계 카드 */}
@@ -166,40 +163,39 @@ export function HistoryScreenView({
           </View>
         ) : null}
 
-        {/* 최근 활동 카드 */}
-        {insights.pulseItems.length > 0 ? (
+        {/* 최근 시험 이력 카드 */}
+        {insights.examHistory.length > 0 ? (
           <View style={styles.card}>
-            <Text selectable style={styles.cardKicker}>최근 활동</Text>
-            <View style={styles.pulseList}>
-              {insights.pulseItems.map((item) => (
-                <View key={item.id} style={styles.pulseItem}>
-                  <View style={styles.pulseCopy}>
-                    <Text selectable style={styles.pulseTitle}>{item.title}</Text>
-                    <Text selectable style={styles.pulseTime}>{item.occurredAtLabel}</Text>
+            <Text selectable style={styles.cardKicker}>최근 시험 이력</Text>
+            <View style={styles.examHistoryList}>
+              {insights.examHistory.map((item) => (
+                <View key={item.attemptId} style={styles.examHistoryItem}>
+                  <View style={styles.examHistoryCopy}>
+                    <Text selectable style={styles.examHistoryTitle} numberOfLines={2}>
+                      {item.examTitle}
+                    </Text>
+                    <Text selectable style={styles.examHistoryMeta}>
+                      {item.occurredAtLabel} · {item.accuracyLabel}
+                    </Text>
                   </View>
-                  {item.valueBadge ? (
-                    <View style={styles.pulseBadge}>
-                      <Text selectable style={[styles.pulseBadgeText, styles.pulseBadgeValueText]}>{item.valueBadge}</Text>
-                    </View>
-                  ) : (
-                    <View style={[styles.pulseBadge, styles.pulseBadgeKind]}>
-                      <Text selectable style={[styles.pulseBadgeText, styles.pulseBadgeKindText]}>
-                        {item.kindLabel}
-                      </Text>
-                    </View>
-                  )}
+                  <View style={[
+                    styles.examHistoryBadge,
+                    item.status === 'in_progress' && styles.examHistoryBadgeInProgress,
+                    item.status === 'completed' && styles.examHistoryBadgeCompleted,
+                    item.status === 'not_started' && styles.examHistoryBadgeNotStarted,
+                  ]}>
+                    <Text selectable style={[
+                      styles.examHistoryBadgeText,
+                      item.status === 'in_progress' && styles.examHistoryBadgeTextInProgress,
+                      item.status === 'completed' && styles.examHistoryBadgeTextCompleted,
+                      item.status === 'not_started' && styles.examHistoryBadgeTextNotStarted,
+                    ]}>
+                      {item.statusLabel}
+                    </Text>
+                  </View>
                 </View>
               ))}
             </View>
-          </View>
-        ) : null}
-
-        {/* 빈 상태 — 약점 진행 및 활동 둘 다 없을 때 */}
-        {insights.weaknessProgress.length === 0 && insights.pulseItems.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text selectable style={styles.emptyText}>
-              진단을 완료하면 복습 기록이 여기에 쌓입니다
-            </Text>
           </View>
         ) : null}
 
@@ -227,8 +223,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-
-  // 히어로 카드
   heroCard: {
     backgroundColor: '#293B27',
     borderRadius: 18,
@@ -286,59 +280,51 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.5)',
     fontSize: 10,
   },
-  heroPanelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 6,
-  },
-  heroPanelWeakness: {
+  heroPanelValue: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
-    flex: 1,
+    fontSize: 22,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
-  heroPanelStagePill: {
-    backgroundColor: 'rgba(122,232,154,0.25)',
-    borderRadius: 999,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  heroPanelStageText: {
-    color: '#7AE89A',
+  heroPanelMeta: {
+    color: 'rgba(255,255,255,0.45)',
     fontSize: 10,
-    fontWeight: '700',
   },
-  heroAccuracyRow: {
+  heroWeaknessSection: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.1)',
     paddingTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
-  heroAccuracyLabel: {
+  heroSectionLabel: {
     color: 'rgba(255,255,255,0.5)',
     fontSize: 11,
+    letterSpacing: 0.3,
   },
-  heroAccuracyValue: {
+  heroWeaknessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  heroWeaknessLabel: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
   },
-  heroAccuracyBadge: {
+  heroWeaknessCountPill: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
-  heroAccuracyBadgeText: {
+  heroWeaknessCountText: {
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
-
-  // 세컨더리 카드 공통
   card: {
     borderWidth: 1,
     borderColor: BrandColors.border,
@@ -353,8 +339,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-
-  // 약점 진행 단계
   progressList: {
     gap: 10,
   },
@@ -392,65 +376,57 @@ const styles = StyleSheet.create({
   progressFillDue: {
     backgroundColor: '#E07D10',
   },
-
-  // 최근 활동
-  pulseList: {
-    gap: BrandSpacing.xs,
+  examHistoryList: {
+    gap: BrandSpacing.sm,
   },
-  pulseItem: {
+  examHistoryItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: BrandSpacing.xs,
+    justifyContent: 'space-between',
+    gap: BrandSpacing.sm,
+    paddingVertical: 6,
   },
-  pulseCopy: {
+  examHistoryCopy: {
     flex: 1,
     gap: 2,
   },
-  pulseTitle: {
+  examHistoryTitle: {
     ...BrandTypography.bodyStrong,
     color: BrandColors.text,
   },
-  pulseTime: {
+  examHistoryMeta: {
     ...BrandTypography.tiny,
     color: BrandColors.mutedText,
   },
-  pulseBadge: {
+  examHistoryBadge: {
     borderRadius: 999,
-    backgroundColor: '#EDF5EF',
     paddingHorizontal: 9,
     paddingVertical: 5,
+    backgroundColor: '#EDF0E8',
   },
-  pulseBadgeKind: {
-    backgroundColor: '#F0F4EE',
+  examHistoryBadgeInProgress: {
+    backgroundColor: 'rgba(224, 125, 16, 0.15)',
   },
-  pulseBadgeText: {
+  examHistoryBadgeCompleted: {
+    backgroundColor: 'rgba(47, 158, 68, 0.15)',
+  },
+  examHistoryBadgeNotStarted: {
+    backgroundColor: '#EDF0E8',
+  },
+  examHistoryBadgeText: {
     ...BrandTypography.tiny,
+    color: BrandColors.primarySoft,
+    fontWeight: '700',
+  },
+  examHistoryBadgeTextInProgress: {
+    color: '#E07D10',
+  },
+  examHistoryBadgeTextCompleted: {
     color: BrandColors.success,
   },
-  pulseBadgeValueText: {
-    fontVariant: ['tabular-nums'],
-  },
-  pulseBadgeKindText: {
-    color: BrandColors.primarySoft,
-  },
-
-  // 빈 상태
-  emptyCard: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.md,
-    backgroundColor: '#FFFFFF',
-    padding: 14,
-    alignItems: 'center',
-  },
-  emptyText: {
-    ...BrandTypography.body,
+  examHistoryBadgeTextNotStarted: {
     color: BrandColors.mutedText,
-    textAlign: 'center',
   },
-
-  // 로딩/오류 상태
   feedbackWrap: {
     flex: 1,
     paddingHorizontal: BrandSpacing.lg,

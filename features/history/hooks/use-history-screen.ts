@@ -1,17 +1,29 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildHistoryInsights } from '@/features/history/history-insights';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { LearningAttempt } from '@/features/learning/types';
+import {
+  computeAnalysisInProgressState,
+  type AnalysisInProgressState,
+  type LatestExamAttemptSummary,
+} from '@/features/quiz/exam/exam-analysis-in-progress';
+import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
+import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
+import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
+import { useExamSession } from '@/features/quiz/exam/exam-session';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
 
 export function useHistoryScreen() {
-  const { isReady, refresh, loadRecentAttempts, summary } = useCurrentLearner();
-  const [recentDiagnosticAttempts, setRecentDiagnosticAttempts] = useState<LearningAttempt[]>([]);
+  const { isReady, refresh, loadRecentAttempts, summary, session } = useCurrentLearner();
+  const { hydrateResult } = useExamSession();
+  const [recentExamAttempts, setRecentExamAttempts] = useState<LearningAttempt[]>([]);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [latestAttempt, setLatestAttempt] = useState<LatestExamAttemptSummary | null>(null);
+  const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({ isInProgress: false });
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -22,38 +34,25 @@ export function useHistoryScreen() {
 
   const loadAttempts = useCallback(async () => {
     if (!isReady || !summary?.accountKey) {
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      setRecentDiagnosticAttempts([]);
+      if (!isMountedRef.current) return;
+      setRecentExamAttempts([]);
       setIsLoadingAttempts(false);
       return;
     }
 
     setIsLoadingAttempts(true);
-
     try {
       const attempts = await loadRecentAttempts({
-        source: 'diagnostic',
+        source: 'featured-exam',
         limit: 5,
       });
-
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      setRecentDiagnosticAttempts(attempts);
-    } catch (error) {
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      setRecentDiagnosticAttempts([]);
+      if (!isMountedRef.current) return;
+      setRecentExamAttempts(attempts);
+    } catch {
+      if (!isMountedRef.current) return;
+      setRecentExamAttempts([]);
     } finally {
-      if (isMountedRef.current) {
-        setIsLoadingAttempts(false);
-      }
+      if (isMountedRef.current) setIsLoadingAttempts(false);
     }
   }, [isReady, loadRecentAttempts, summary?.accountKey]);
 
@@ -61,19 +60,70 @@ export function useHistoryScreen() {
     void loadAttempts();
   }, [loadAttempts, summary?.updatedAt]);
 
-  const insights = useMemo(() => {
-    if (!summary) {
-      return null;
-    }
+  const isFirstFocusRef = useRef(true);
+  const lastFocusRefreshAtRef = useRef(0);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocusRef.current) {
+        isFirstFocusRef.current = false;
+        return;
+      }
+      const now = Date.now();
+      if (now - lastFocusRefreshAtRef.current < 5_000) return;
+      lastFocusRefreshAtRef.current = now;
+      // refresh()가 summary.updatedAt을 갱신하면 위의 useEffect가 loadAttempts를 트리거한다.
+      // 여기서 loadAttempts를 직접 호출하면 같은 focus에서 두 번 fetch가 발생하므로 호출하지 않는다.
+      void refresh();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.accountKey]),
+  );
 
-    return buildHistoryInsights(summary, recentDiagnosticAttempts, {
-      isLoadingAttempts,
+  useFocusEffect(
+    useCallback(() => {
+      const accountKey = session?.accountKey;
+      let cancelled = false;
+      void (async () => {
+        if (!accountKey) {
+          setLatestAttempt(null);
+          setAnalysisState({ isInProgress: false });
+          return;
+        }
+        const attempt = await getLatestExamAttempt(accountKey);
+        if (cancelled) return;
+        setLatestAttempt(attempt);
+        if (!attempt) {
+          setAnalysisState({ isInProgress: false });
+          return;
+        }
+        const diagnosed = await getDiagnosisProgress({
+          examId: attempt.examId,
+          attemptId: attempt.attemptId,
+          attemptDateISO: attempt.attemptDateISO,
+        });
+        if (cancelled) return;
+        setAnalysisState(
+          computeAnalysisInProgressState({ latestAttempt: attempt, diagnosedProblems: diagnosed }),
+        );
+      })();
+      return () => {
+        cancelled = true;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.accountKey]),
+  );
+
+  const insights = useMemo(() => {
+    if (!summary) return null;
+    return buildHistoryInsights({
+      summary,
+      recentExamAttempts,
+      latestAttemptId: latestAttempt?.attemptId ?? null,
+      analysisState,
     });
-  }, [isLoadingAttempts, recentDiagnosticAttempts, summary]);
+  }, [summary, recentExamAttempts, latestAttempt?.attemptId, analysisState]);
 
   async function onRefresh() {
     setIsRefreshing(true);
-
     try {
       await refresh();
       await loadAttempts();
@@ -83,27 +133,35 @@ export function useHistoryScreen() {
   }
 
   function onPrimaryAction() {
-    if (!insights || !summary) {
-      return;
-    }
+    if (!insights) return;
 
-    if (insights.hero.ctaKind === 'review' && (summary.dueReviewTasks?.length ?? 0) > 0) {
+    if (insights.hero.ctaKind === 'resume_analysis') {
+      if (!latestAttempt || !latestAttempt.result) return;
+      if (!analysisState.isInProgress) return;
+
+      const queue = buildResumeAnalysisQueue(
+        latestAttempt.wrongProblemNumbers,
+        analysisState.diagnosedNotes,
+      );
+      if (queue.length === 0) return;
+
+      hydrateResult(latestAttempt.result);
       router.push({
-        pathname: '/quiz/practice',
+        pathname: '/quiz/exam/diagnosis-session',
         params: {
-          mode: 'review',
+          examId: latestAttempt.examId,
+          wrongProblemNumbers: JSON.stringify(queue),
+          startIndex: '0',
+          totalNotes: String(latestAttempt.wrongProblemNumbers.length),
+          diagnosedCountBefore: String(analysisState.diagnosedNotes.length),
         },
       });
       return;
     }
+  }
 
-    router.push({
-      pathname: '/quiz/diagnostic',
-      params: {
-        autostart: '1',
-        reset: '1',
-      },
-    });
+  function onPressEmptyStateCta() {
+    router.push('/(tabs)/exam');
   }
 
   return {
@@ -112,6 +170,7 @@ export function useHistoryScreen() {
     isReady,
     isRefreshing,
     onPrimaryAction,
+    onPressEmptyStateCta,
     onRefresh,
   };
 }
