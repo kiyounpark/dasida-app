@@ -208,7 +208,18 @@ export function useExamResultScreen(): UseExamResultScreenResult {
         },
       });
     },
-    onReturnHome: () => {
+    onReturnHome: async () => {
+      if (result && profile && session) {
+        const diagnosedInput = buildExamAttemptInputWithDiagnosis({
+          session,
+          profile,
+          result,
+          diagnosedProblems,
+        });
+        void recordAttempt(diagnosedInput).catch((err) => {
+          console.warn('[Exam] sync on returnHome failed', err);
+        });
+      }
       resetExam();
       router.replace('/quiz');
     },

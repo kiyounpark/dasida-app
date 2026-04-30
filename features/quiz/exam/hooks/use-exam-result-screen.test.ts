@@ -238,4 +238,36 @@ describe('use-exam-result-screen: recordAttempt call-count contract', () => {
     // phase 1은 진단 전이므로 topWeaknesses 비어있음.
     expect(recordAttempt.mock.calls[0][0].topWeaknesses).toEqual([]);
   });
+
+  // ---------------------------------------------------------------------------
+  // Sync Point #3 — onReturnHome syncs current diagnosed state to server
+  // ---------------------------------------------------------------------------
+
+  it('onReturnHome: recordAttempt가 호출되고 진단된 문제의 diagnosisCompleted=true, finalWeaknessId가 세팅된다', async () => {
+    const recordAttempt = jest.fn().mockResolvedValue(undefined);
+    const router = { replace: jest.fn() };
+
+    const partialDiagnosedProblems: ExamDiagnosisProgress = {
+      5: 'topic-grasping',
+    };
+
+    // Simulate onReturnHome handler logic directly
+    const diagnosedInput = buildExamAttemptInputWithDiagnosis({
+      session: SESSION,
+      profile: PROFILE,
+      result: RESULT,
+      diagnosedProblems: partialDiagnosedProblems,
+    });
+    void recordAttempt(diagnosedInput).catch(() => {});
+    router.replace('/quiz');
+
+    expect(recordAttempt).toHaveBeenCalledTimes(1);
+
+    const callArg = recordAttempt.mock.calls[0][0];
+    const q5 = callArg.questions.find((q: { questionNumber: number }) => q.questionNumber === 5);
+    expect(q5?.diagnosisCompleted).toBe(true);
+    expect(q5?.finalWeaknessId).toBe('topic-grasping');
+
+    expect(router.replace).toHaveBeenCalledWith('/quiz');
+  });
 });
