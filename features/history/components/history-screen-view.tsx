@@ -175,7 +175,9 @@ export function HistoryScreenView({
                   <Pressable
                     key={item.attemptId}
                     onPress={isTappable ? () => onPressExamHistoryItem(item) : undefined}
+                    disabled={!isTappable}
                     accessibilityRole={isTappable ? 'button' : undefined}
+                    accessibilityLabel={isTappable ? `${item.examTitle} 결과 보기` : undefined}
                     style={({ pressed }) => [
                       styles.examHistoryItem,
                       isTappable && pressed && styles.examHistoryItemPressed,

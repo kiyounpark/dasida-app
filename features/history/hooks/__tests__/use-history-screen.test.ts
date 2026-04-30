@@ -5,10 +5,6 @@ jest.mock('expo-router', () => ({
   useFocusEffect: () => undefined,
 }));
 
-jest.mock('@/features/quiz/exam/exam-session', () => ({
-  useExamSession: () => ({ hydrateResult: jest.fn() }),
-}));
-
 jest.mock('@/features/quiz/exam/sync-diagnosis-progress', () => ({
   syncDiagnosisProgressFromServer: jest.fn(),
 }));
