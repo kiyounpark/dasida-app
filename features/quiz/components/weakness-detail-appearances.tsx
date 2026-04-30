@@ -30,6 +30,7 @@ export function WeaknessDetailAppearances({
           <View key={a.attemptId} style={styles.row}>
             <Text style={styles.bullet}>·</Text>
             <Text style={styles.label}>{a.sourceLabel}</Text>
+            <Text style={styles.date}>{formatAppearanceDateKst(a.attemptedAt)}</Text>
           </View>
         ))
       )}
@@ -51,8 +52,9 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 6,
+    justifyContent: 'space-between',
   },
   bullet: {
     fontFamily: FontFamilies.bold,
@@ -69,5 +71,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontSize: 13,
     color: 'rgba(72, 67, 58, 0.5)',
+  },
+  date: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 11,
+    color: 'rgba(72,67,58,0.5)',
+    flexShrink: 0,
   },
 });
