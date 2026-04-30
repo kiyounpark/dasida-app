@@ -3,6 +3,18 @@ import { StyleSheet, Text, View } from 'react-native';
 import { FontFamilies } from '@/constants/typography';
 import type { WeaknessAppearance } from '@/features/learning/types';
 
+export function formatAppearanceDateKst(iso: string): string {
+  const kstMs = new Date(iso).getTime() + 9 * 60 * 60 * 1000;
+  const d = new Date(kstMs);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  const nowKstMs = Date.now() + 9 * 60 * 60 * 1000;
+  const currentYear = new Date(nowKstMs).getUTCFullYear();
+  if (year === currentYear) return `${month}월 ${day}일`;
+  return `${year}년 ${month}월 ${day}일`;
+}
+
 export function WeaknessDetailAppearances({
   appearances,
 }: {
@@ -18,6 +30,7 @@ export function WeaknessDetailAppearances({
           <View key={a.attemptId} style={styles.row}>
             <Text style={styles.bullet}>·</Text>
             <Text style={styles.label}>{a.sourceLabel}</Text>
+            <Text style={styles.date}>{formatAppearanceDateKst(a.attemptedAt)}</Text>
           </View>
         ))
       )}
@@ -39,8 +52,9 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 6,
+    justifyContent: 'space-between',
   },
   bullet: {
     fontFamily: FontFamilies.bold,
@@ -57,5 +71,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontSize: 13,
     color: 'rgba(72, 67, 58, 0.5)',
+  },
+  date: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 11,
+    color: 'rgba(72, 67, 58, 0.5)',
+    flexShrink: 0,
   },
 });
