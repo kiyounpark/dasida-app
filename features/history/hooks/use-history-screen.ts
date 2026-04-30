@@ -13,6 +13,7 @@ import {
 import { buildExamResultSummaryFromAttempt } from '@/features/quiz/exam/build-exam-result-summary-from-attempt';
 import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
+import { syncDiagnosisProgressFromServer } from '@/features/quiz/exam/sync-diagnosis-progress';
 
 import { onPressExamHistoryItemImpl } from './use-history-screen-handlers';
 
@@ -121,6 +122,18 @@ export function useHistoryScreen() {
               diagnosed[r.questionNumber] = r.finalWeaknessId;
             }
           }
+
+          // Seed local AsyncStorage cache so any entry path (hero CTA, tap row) starts
+          // from server state and avoids overwriting with partial local data on next sync.
+          await syncDiagnosisProgressFromServer(
+            {
+              examId: latest.sourceEntityId ?? '',
+              attemptId: latest.id,
+              attemptDateISO: latest.completedAt,
+            },
+            results,
+          );
+          if (cancelled) return;
 
           setAnalysisState(
             computeAnalysisInProgressState({

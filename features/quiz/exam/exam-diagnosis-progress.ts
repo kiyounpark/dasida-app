@@ -70,6 +70,20 @@ export async function markProblemDiagnosed(
   await pendingWrite;
 }
 
+export async function replaceProgress(
+  scope: ExamAttemptScope,
+  next: ExamDiagnosisProgress,
+): Promise<void> {
+  pendingWrite = pendingWrite.then(async () => {
+    try {
+      await AsyncStorage.setItem(storageKey(scope), JSON.stringify(next));
+    } catch (err) {
+      console.warn('[ExamDiagnosisProgress] replaceProgress failed', err);
+    }
+  });
+  await pendingWrite;
+}
+
 // 앱 세션 내에서 이미 정리한 examId를 추적 — 리마운트 시 재실행 방지
 const purgedLegacyExamIds = new Set<string>();
 

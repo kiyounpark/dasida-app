@@ -1,9 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import type { LearningAttemptResult } from '@/features/learning/types';
 
 import type { ExamAttemptScope, ExamDiagnosisProgress } from './exam-diagnosis-progress';
-import { storageKey } from './exam-diagnosis-progress';
+import { replaceProgress } from './exam-diagnosis-progress';
 
 export async function syncDiagnosisProgressFromServer(
   scope: ExamAttemptScope,
@@ -15,9 +13,5 @@ export async function syncDiagnosisProgressFromServer(
       next[r.questionNumber] = r.finalWeaknessId;
     }
   }
-  try {
-    await AsyncStorage.setItem(storageKey(scope), JSON.stringify(next));
-  } catch {
-    // 시드 실패 시에도 결과화면 진입은 가능하므로 silently 진행.
-  }
+  await replaceProgress(scope, next);
 }
