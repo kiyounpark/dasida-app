@@ -9,6 +9,7 @@ import {
   type AnalysisInProgressState,
   type LatestExamAttemptSummary,
 } from '@/features/quiz/exam/exam-analysis-in-progress';
+import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
 import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
@@ -135,16 +136,23 @@ export function useHistoryScreen() {
 
     if (insights.hero.ctaKind === 'resume_analysis') {
       if (!latestAttempt || !latestAttempt.result) return;
-      const startIndex = analysisState.isInProgress ? analysisState.diagnosedNotes.length : 0;
+      if (!analysisState.isInProgress) return;
+
+      const queue = buildResumeAnalysisQueue(
+        latestAttempt.wrongProblemNumbers,
+        analysisState.diagnosedNotes,
+      );
+      if (queue.length === 0) return;
+
       hydrateResult(latestAttempt.result);
       router.push({
         pathname: '/quiz/exam/diagnosis-session',
         params: {
           examId: latestAttempt.examId,
-          wrongProblemNumbers: JSON.stringify(latestAttempt.wrongProblemNumbers),
-          startIndex: String(startIndex),
+          wrongProblemNumbers: JSON.stringify(queue),
+          startIndex: '0',
           totalNotes: String(latestAttempt.wrongProblemNumbers.length),
-          diagnosedCountBefore: String(startIndex),
+          diagnosedCountBefore: String(analysisState.diagnosedNotes.length),
         },
       });
       return;
