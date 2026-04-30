@@ -22,7 +22,7 @@ import { LearningHistoryMigrationService } from '@/features/learning/learning-hi
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
 import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
-import type { LearnerSummaryCurrent, LearningAttempt, ReviewTask } from '@/features/learning/types';
+import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult, ReviewTask } from '@/features/learning/types';
 
 import type { LearnerProfileStore } from './profile-store';
 import type {
@@ -58,6 +58,7 @@ export type CurrentLearnerController = {
     source?: LearningSource;
     limit?: number;
   }): Promise<LearningAttempt[]>;
+  loadAttemptResults(attemptId: string): Promise<LearningAttemptResult[]>;
   continueAsDevGuest(): Promise<CurrentLearnerSnapshot>;
   signIn(provider: SupportedAuthProvider): Promise<CurrentLearnerSnapshot>;
   signOut(): Promise<CurrentLearnerSnapshot>;
@@ -400,6 +401,10 @@ export function createCurrentLearnerController({
     loadRecentAttempts: async (options) => {
       const { session } = await readAccessibleSnapshot();
       return learningHistoryRepository.listAttempts(session.accountKey, options);
+    },
+    loadAttemptResults: async (attemptId) => {
+      const { session } = await readAccessibleSnapshot();
+      return learningHistoryRepository.listAttemptResults(session.accountKey, attemptId);
     },
     continueAsDevGuest: async () => {
       if (!devGuestEnabled) {

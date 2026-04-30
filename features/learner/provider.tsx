@@ -41,7 +41,7 @@ import { LearningHistoryMigrationService } from '@/features/learning/learning-hi
 import { LocalLearningHistoryRepository } from '@/features/learning/local-learning-history-repository';
 import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-learning-history-snapshot-store';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
-import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
+import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
 import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
 import { deleteAccountUrl } from '@/constants/env';
 
@@ -97,6 +97,7 @@ export type CurrentLearnerContextValue = {
   dismissAuthNotice(): void;
   refresh(): Promise<void>;
   loadRecentAttempts(options?: { source?: LearningSource; limit?: number }): Promise<LearningAttempt[]>;
+  loadAttemptResults(attemptId: string): Promise<LearningAttemptResult[]>;
   continueAsDevGuest(): Promise<void>;
   signIn(provider: SupportedAuthProvider): Promise<void>;
   signOut(): Promise<void>;
@@ -235,6 +236,13 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const loadAttemptResults = useCallback(
+    (attemptId: string) => {
+      return learnerController.loadAttemptResults(attemptId);
+    },
+    [],
+  );
+
   const value = useMemo<CurrentLearnerContextValue>(
     () => ({
       ...state,
@@ -250,6 +258,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         setState(toLearnerState(snapshot));
       },
       loadRecentAttempts,
+      loadAttemptResults,
       continueAsDevGuest: async () => {
         const snapshot = await learnerController.continueAsDevGuest();
         setState(toLearnerState(snapshot));
@@ -339,7 +348,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         setState(toLearnerState(snapshot));
       },
     }),
-    [loadRecentAttempts, state],
+    [loadAttemptResults, loadRecentAttempts, state],
   );
 
   return <CurrentLearnerContext.Provider value={value}>{children}</CurrentLearnerContext.Provider>;
