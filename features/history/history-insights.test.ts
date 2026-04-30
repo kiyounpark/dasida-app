@@ -182,4 +182,65 @@ describe('buildExamHistoryItems', () => {
     expect(items[0].isLatest).toBe(true);
     expect(typeof items[0].occurredAtLabel).toBe('string');
   });
+
+  it('latest attempt + analysisInProgress: status "in_progress", "진행 중 N/M"', () => {
+    const items = buildExamHistoryItems({
+      recentExamAttempts: [
+        makeExamAttempt({ id: 'att-latest', wrongCount: 5, primaryWeaknessId: null }),
+      ],
+      latestAttemptId: 'att-latest',
+      analysisState: {
+        isInProgress: true,
+        examId: 'g3-calc-mock-2025-09',
+        attemptId: 'att-latest',
+        noteCount: 2,
+        totalNotes: 5,
+        diagnosedNotes: [],
+      },
+    });
+
+    expect(items[0].status).toBe('in_progress');
+    expect(items[0].statusLabel).toBe('진행 중 2/5');
+  });
+
+  it('primaryWeaknessId 있음: status "completed", "분석 완료"', () => {
+    const items = buildExamHistoryItems({
+      recentExamAttempts: [
+        makeExamAttempt({ id: 'att1', primaryWeaknessId: w('w_calc_def'), wrongCount: 3 }),
+      ],
+      latestAttemptId: 'att1',
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(items[0].status).toBe('completed');
+    expect(items[0].statusLabel).toBe('분석 완료');
+  });
+
+  it('wrongCount 0 (만점): status "completed", "만점"', () => {
+    const items = buildExamHistoryItems({
+      recentExamAttempts: [
+        makeExamAttempt({ id: 'att1', primaryWeaknessId: null, wrongCount: 0, accuracy: 100 }),
+      ],
+      latestAttemptId: null,
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(items[0].status).toBe('completed');
+    expect(items[0].statusLabel).toBe('만점');
+  });
+
+  it('primaryWeaknessId null + wrongCount > 0 + not latest: status "not_started"', () => {
+    const items = buildExamHistoryItems({
+      recentExamAttempts: [
+        makeExamAttempt({ id: 'att-old', primaryWeaknessId: null, wrongCount: 4 }),
+        makeExamAttempt({ id: 'att-latest', primaryWeaknessId: null, wrongCount: 4 }),
+      ],
+      latestAttemptId: 'att-latest',
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(items[0].status).toBe('not_started');
+    expect(items[0].statusLabel).toBe('분석 미시작');
+    expect(items[1].status).toBe('not_started');
+  });
 });
