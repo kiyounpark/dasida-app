@@ -3,26 +3,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildHistoryInsights } from '@/features/history/history-insights';
 import { useCurrentLearner } from '@/features/learner/provider';
-import type { LearningAttempt } from '@/features/learning/types';
+import type { LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
+import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
   type AnalysisInProgressState,
   type LatestExamAttemptSummary,
 } from '@/features/quiz/exam/exam-analysis-in-progress';
+import { buildExamResultSummaryFromAttempt } from '@/features/quiz/exam/build-exam-result-summary-from-attempt';
 import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
-import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
-import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
 
+type LocalLatestAttempt = LatestExamAttemptSummary & {
+  results: LearningAttemptResult[];
+};
+
 export function useHistoryScreen() {
-  const { isReady, refresh, loadRecentAttempts, summary, session } = useCurrentLearner();
+  const { isReady, refresh, loadRecentAttempts, loadAttemptResults, summary, session } = useCurrentLearner();
   const { hydrateResult } = useExamSession();
   const [recentExamAttempts, setRecentExamAttempts] = useState<LearningAttempt[]>([]);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [latestAttempt, setLatestAttempt] = useState<LatestExamAttemptSummary | null>(null);
+  const [latestAttempt, setLatestAttempt] = useState<LocalLatestAttempt | null>(null);
   const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({ isInProgress: false });
   const isMountedRef = useRef(true);
 
@@ -80,36 +84,63 @@ export function useHistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const accountKey = session?.accountKey;
       let cancelled = false;
       void (async () => {
-        if (!accountKey) {
+        // recentExamAttempts가 비어있으면 분석 상태도 없음
+        if (recentExamAttempts.length === 0) {
           setLatestAttempt(null);
           setAnalysisState({ isInProgress: false });
           return;
         }
-        const attempt = await getLatestExamAttempt(accountKey);
-        if (cancelled) return;
-        setLatestAttempt(attempt);
-        if (!attempt) {
+        const latest = recentExamAttempts[0];
+        try {
+          const results = await loadAttemptResults(latest.id);
+          if (cancelled) return;
+
+          const wrongResults = results.filter(
+            (r) => !r.isCorrect && r.selectedIndex !== null,
+          );
+          const wrongProblemNumbers = wrongResults.map((r) => r.questionNumber);
+          const resultSummary = buildExamResultSummaryFromAttempt({ attempt: latest, results });
+
+          setLatestAttempt({
+            examId: latest.sourceEntityId ?? '',
+            attemptId: latest.id,
+            attemptDateISO: latest.completedAt,
+            wrongProblemNumbers,
+            result: resultSummary,
+            results,
+          });
+
+          const diagnosed: Record<number, WeaknessId> = {};
+          for (const r of results) {
+            if (r.diagnosisCompleted && r.finalWeaknessId !== null) {
+              diagnosed[r.questionNumber] = r.finalWeaknessId;
+            }
+          }
+
+          setAnalysisState(
+            computeAnalysisInProgressState({
+              latestAttempt: {
+                examId: latest.sourceEntityId ?? '',
+                attemptId: latest.id,
+                attemptDateISO: latest.completedAt,
+                wrongProblemNumbers,
+                result: resultSummary,
+              },
+              diagnosedProblems: diagnosed,
+            }),
+          );
+        } catch {
+          if (cancelled) return;
           setAnalysisState({ isInProgress: false });
-          return;
         }
-        const diagnosed = await getDiagnosisProgress({
-          examId: attempt.examId,
-          attemptId: attempt.attemptId,
-          attemptDateISO: attempt.attemptDateISO,
-        });
-        if (cancelled) return;
-        setAnalysisState(
-          computeAnalysisInProgressState({ latestAttempt: attempt, diagnosedProblems: diagnosed }),
-        );
       })();
       return () => {
         cancelled = true;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session?.accountKey]),
+    }, [recentExamAttempts]),
   );
 
   const insights = useMemo(() => {
