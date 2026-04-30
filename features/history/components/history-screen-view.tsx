@@ -9,7 +9,6 @@ import type { UseHistoryScreenResult } from '@/features/history/hooks/use-histor
 
 export function HistoryScreenView({
   insights,
-  isLoadingAttempts,
   isReady,
   isRefreshing,
   onPrimaryAction,
@@ -104,7 +103,7 @@ export function HistoryScreenView({
             <View style={styles.heroPanel}>
               <Text selectable style={styles.heroPanelLabel}>평균 정답률</Text>
               <Text selectable style={styles.heroPanelValue}>
-                {isLoadingAttempts ? '—' : insights.hero.averageAccuracyValue}
+                {insights.hero.averageAccuracyValue}
               </Text>
               <Text selectable style={styles.heroPanelMeta}>최근 5회 평균</Text>
             </View>
