@@ -42,7 +42,7 @@ function makeExamAttempt(overrides: Partial<LearningAttempt> = {}): LearningAtte
 
 const NOT_IN_PROGRESS: AnalysisInProgressState = { isInProgress: false };
 
-import { buildHeroV2 } from './history-insights';
+import { buildHeroV2, buildExamHistoryItems } from './history-insights';
 
 describe('buildHeroV2', () => {
   it('응시 0회: examAttempts 0, averageAccuracyValue "—", topWeaknesses [], cta null', () => {
@@ -144,5 +144,42 @@ describe('buildHeroV2', () => {
 
     expect(hero.ctaKind).toBeNull();
     expect(hero.ctaLabel).toBeNull();
+  });
+});
+
+describe('buildExamHistoryItems', () => {
+  it('빈 attempts → 빈 배열', () => {
+    expect(
+      buildExamHistoryItems({
+        recentExamAttempts: [],
+        latestAttemptId: null,
+        analysisState: NOT_IN_PROGRESS,
+      }),
+    ).toEqual([]);
+  });
+
+  it('1건 attempt: examTitle/accuracyLabel/occurredAtLabel/isLatest 매핑', () => {
+    const items = buildExamHistoryItems({
+      recentExamAttempts: [
+        makeExamAttempt({
+          id: 'att1',
+          sourceEntityId: 'g3-calc-mock-2025-09',
+          accuracy: 73,
+          completedAt: '2025-09-04T13:00:00.000Z',
+          primaryWeaknessId: null,
+          wrongCount: 5,
+        }),
+      ],
+      latestAttemptId: 'att1',
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0].attemptId).toBe('att1');
+    expect(items[0].examId).toBe('g3-calc-mock-2025-09');
+    expect(items[0].examTitle).toContain('미적분');
+    expect(items[0].accuracyLabel).toBe('정답률 73%');
+    expect(items[0].isLatest).toBe(true);
+    expect(typeof items[0].occurredAtLabel).toBe('string');
   });
 });

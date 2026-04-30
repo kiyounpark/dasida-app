@@ -3,6 +3,7 @@ import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import type { ReviewStage } from '@/features/learning/history-types';
 import type { AnalysisInProgressState } from '@/features/quiz/exam/exam-analysis-in-progress';
+import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
 export type HistoryHeroStateV2 = {
   examAttempts: number;
@@ -248,4 +249,45 @@ export function buildHeroV2(input: {
     ctaKind,
     ctaLabel,
   };
+}
+
+export function buildExamHistoryItems(input: {
+  recentExamAttempts: LearningAttempt[];
+  latestAttemptId: string | null;
+  analysisState: AnalysisInProgressState;
+}): HistoryExamHistoryItem[] {
+  const { recentExamAttempts, latestAttemptId, analysisState } = input;
+
+  return recentExamAttempts.map((attempt) => {
+    const examId = attempt.sourceEntityId ?? '';
+    const examTitle = EXAM_CATALOG_BY_ID[examId]?.title ?? examId;
+    const isLatest = attempt.id === latestAttemptId;
+
+    let status: HistoryExamHistoryItem['status'];
+    let statusLabel: string;
+    if (isLatest && analysisState.isInProgress) {
+      status = 'in_progress';
+      statusLabel = `진행 중 ${analysisState.noteCount}/${analysisState.totalNotes}`;
+    } else if (attempt.primaryWeaknessId !== null) {
+      status = 'completed';
+      statusLabel = '분석 완료';
+    } else if (attempt.wrongCount === 0) {
+      status = 'completed';
+      statusLabel = '만점';
+    } else {
+      status = 'not_started';
+      statusLabel = '분석 미시작';
+    }
+
+    return {
+      attemptId: attempt.id,
+      examId,
+      examTitle,
+      occurredAtLabel: formatDateTime(attempt.completedAt),
+      accuracyLabel: `정답률 ${attempt.accuracy}%`,
+      status,
+      statusLabel,
+      isLatest,
+    };
+  });
 }
