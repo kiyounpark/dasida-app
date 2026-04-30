@@ -42,11 +42,11 @@ function makeExamAttempt(overrides: Partial<LearningAttempt> = {}): LearningAtte
 
 const NOT_IN_PROGRESS: AnalysisInProgressState = { isInProgress: false };
 
-import { buildHeroV2, buildExamHistoryItems } from './history-insights';
+import { buildHero, buildExamHistoryItems, buildHistoryInsights } from './history-insights';
 
-describe('buildHeroV2', () => {
+describe('buildHero', () => {
   it('응시 0회: examAttempts 0, averageAccuracyValue "—", topWeaknesses [], cta null', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({ totals: { diagnosticAttempts: 0, featuredExamAttempts: 0, reviewAttempts: 0 } }),
       recentExamAttempts: [],
       analysisState: NOT_IN_PROGRESS,
@@ -60,7 +60,7 @@ describe('buildHeroV2', () => {
   });
 
   it('1회 응시: averageAccuracyValue "83%"', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 1, reviewAttempts: 0 },
       }),
@@ -73,7 +73,7 @@ describe('buildHeroV2', () => {
   });
 
   it('3회 응시: 정답률 평균을 반올림하여 표시 (84+74+90 → 83%)', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 3, reviewAttempts: 0 },
       }),
@@ -90,7 +90,7 @@ describe('buildHeroV2', () => {
   });
 
   it('repeatedWeaknesses 상위 3개를 label과 함께 노출', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 5, reviewAttempts: 0 },
         repeatedWeaknesses: [
@@ -112,7 +112,7 @@ describe('buildHeroV2', () => {
   });
 
   it('analysisState.isInProgress === true: ctaKind "resume_analysis", ctaLabel 노출', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 1, reviewAttempts: 0 },
       }),
@@ -135,7 +135,7 @@ describe('buildHeroV2', () => {
   });
 
   it('analysisState.isInProgress === false: cta null', () => {
-    const hero = buildHeroV2({
+    const hero = buildHero({
       summary: makeSummary({
         totals: { diagnosticAttempts: 0, featuredExamAttempts: 1, reviewAttempts: 0 },
       }),
@@ -243,5 +243,36 @@ describe('buildExamHistoryItems', () => {
     expect(items[0].status).toBe('not_started');
     expect(items[0].statusLabel).toBe('분석 미시작');
     expect(items[1].status).toBe('not_started');
+  });
+});
+
+describe('buildHistoryInsights', () => {
+  it('응시 0회: isEmpty true', () => {
+    const insights = buildHistoryInsights({
+      summary: makeSummary({
+        totals: { diagnosticAttempts: 0, featuredExamAttempts: 0, reviewAttempts: 0 },
+      }),
+      recentExamAttempts: [],
+      latestAttemptId: null,
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(insights.isEmpty).toBe(true);
+  });
+
+  it('응시 1회 이상: isEmpty false, hero/weaknessProgress/examHistory 채워짐', () => {
+    const insights = buildHistoryInsights({
+      summary: makeSummary({
+        totals: { diagnosticAttempts: 0, featuredExamAttempts: 1, reviewAttempts: 0 },
+      }),
+      recentExamAttempts: [makeExamAttempt({ accuracy: 80 })],
+      latestAttemptId: 'att1',
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(insights.isEmpty).toBe(false);
+    expect(insights.hero.examAttempts).toBe(1);
+    expect(insights.examHistory).toHaveLength(1);
+    expect(Array.isArray(insights.weaknessProgress)).toBe(true);
   });
 });
