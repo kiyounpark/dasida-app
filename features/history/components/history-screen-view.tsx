@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand/BrandButton';
@@ -13,6 +13,7 @@ export function HistoryScreenView({
   isRefreshing,
   onPrimaryAction,
   onPressEmptyStateCta,
+  onPressExamHistoryItem,
   onRefresh,
 }: UseHistoryScreenResult) {
   const isTablet = useIsTablet();
@@ -168,33 +169,49 @@ export function HistoryScreenView({
           <View style={styles.card}>
             <Text selectable style={styles.cardKicker}>최근 시험 이력</Text>
             <View style={styles.examHistoryList}>
-              {insights.examHistory.map((item) => (
-                <View key={item.attemptId} style={styles.examHistoryItem}>
-                  <View style={styles.examHistoryCopy}>
-                    <Text selectable style={styles.examHistoryTitle} numberOfLines={2}>
-                      {item.examTitle}
-                    </Text>
-                    <Text selectable style={styles.examHistoryMeta}>
-                      {item.occurredAtLabel} · {item.accuracyLabel}
-                    </Text>
-                  </View>
-                  <View style={[
-                    styles.examHistoryBadge,
-                    item.status === 'in_progress' && styles.examHistoryBadgeInProgress,
-                    item.status === 'completed' && styles.examHistoryBadgeCompleted,
-                    item.status === 'not_started' && styles.examHistoryBadgeNotStarted,
-                  ]}>
-                    <Text selectable style={[
-                      styles.examHistoryBadgeText,
-                      item.status === 'in_progress' && styles.examHistoryBadgeTextInProgress,
-                      item.status === 'completed' && styles.examHistoryBadgeTextCompleted,
-                      item.status === 'not_started' && styles.examHistoryBadgeTextNotStarted,
-                    ]}>
-                      {item.statusLabel}
-                    </Text>
-                  </View>
-                </View>
-              ))}
+              {insights.examHistory.map((item) => {
+                const isTappable = item.status === 'in_progress';
+                return (
+                  <Pressable
+                    key={item.attemptId}
+                    onPress={isTappable ? () => onPressExamHistoryItem(item) : undefined}
+                    accessibilityRole={isTappable ? 'button' : undefined}
+                    style={({ pressed }) => [
+                      styles.examHistoryItem,
+                      isTappable && pressed && styles.examHistoryItemPressed,
+                    ]}
+                  >
+                    <View style={styles.examHistoryCopy}>
+                      <Text selectable style={styles.examHistoryTitle} numberOfLines={2}>
+                        {item.examTitle}
+                      </Text>
+                      <Text selectable style={styles.examHistoryMeta}>
+                        {item.occurredAtLabel} · {item.accuracyLabel}
+                      </Text>
+                    </View>
+                    <View style={styles.examHistoryRight}>
+                      <View style={[
+                        styles.examHistoryBadge,
+                        item.status === 'in_progress' && styles.examHistoryBadgeInProgress,
+                        item.status === 'completed' && styles.examHistoryBadgeCompleted,
+                        item.status === 'not_started' && styles.examHistoryBadgeNotStarted,
+                      ]}>
+                        <Text selectable style={[
+                          styles.examHistoryBadgeText,
+                          item.status === 'in_progress' && styles.examHistoryBadgeTextInProgress,
+                          item.status === 'completed' && styles.examHistoryBadgeTextCompleted,
+                          item.status === 'not_started' && styles.examHistoryBadgeTextNotStarted,
+                        ]}>
+                          {item.statusLabel}
+                        </Text>
+                      </View>
+                      {isTappable ? (
+                        <Text style={styles.examHistoryChevron}>›</Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         ) : null}
@@ -426,6 +443,19 @@ const styles = StyleSheet.create({
   },
   examHistoryBadgeTextNotStarted: {
     color: BrandColors.mutedText,
+  },
+  examHistoryItemPressed: {
+    opacity: 0.6,
+  },
+  examHistoryRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  examHistoryChevron: {
+    fontSize: 14,
+    color: BrandColors.mutedText,
+    fontWeight: '600',
   },
   feedbackWrap: {
     flex: 1,
