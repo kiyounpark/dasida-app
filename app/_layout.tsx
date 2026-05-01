@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Asset } from 'expo-asset';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -37,6 +37,91 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+function SplashGate() {
+  const { authGateState, isReady } = useCurrentLearner();
+  const splashHiddenRef = useRef(false);
+  const pendingTaskIdRef = useRef<string | null>(null);
+
+  const [fontsLoaded, fontError] = useFonts({
+    'SUIT-Regular': require('../assets/fonts/SUIT-Regular.ttf'),
+    'SUIT-Medium': require('../assets/fonts/SUIT-Medium.ttf'),
+    'SUIT-SemiBold': require('../assets/fonts/SUIT-SemiBold.ttf'),
+    'SUIT-Bold': require('../assets/fonts/SUIT-Bold.ttf'),
+    'SUIT-ExtraBold': require('../assets/fonts/SUIT-ExtraBold.ttf'),
+  });
+
+  const hideSplash = useCallback(() => {
+    if (splashHiddenRef.current) return;
+    splashHiddenRef.current = true;
+    void SplashScreen.hideAsync().catch(() => {});
+    if (pendingTaskIdRef.current) {
+      router.push({
+        pathname: '/quiz/review-session',
+        params: { taskId: pendingTaskIdRef.current },
+      });
+      pendingTaskIdRef.current = null;
+    }
+  }, []);
+
+  // 콜드스타트 알림 페이로드 캡처 (Stack 마운트 전에 ref에만 저장)
+  useEffect(() => {
+    const lastResponse = Notifications.getLastNotificationResponse();
+    if (lastResponse) {
+      const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
+      if (taskId) {
+        pendingTaskIdRef.current = taskId;
+      }
+    }
+
+    // 포그라운드/백그라운드 알림 탭
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const taskId = response.notification.request.content.data?.taskId as string | undefined;
+      if (taskId) {
+        router.push({ pathname: '/quiz/review-session', params: { taskId } });
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // 캐릭터 이미지 프리로드 (스플래시 유지 시간을 활용)
+  useEffect(() => {
+    void Asset.loadAsync([
+      require('../assets/images/characters/char_04.png'),
+      require('../assets/images/characters/char_07.png'),
+      require('../assets/images/characters/char_sparkle_sunglasses.png'),
+    ]).catch(() => {});
+  }, []);
+
+  // 폰트 에러 로그
+  useEffect(() => {
+    if (fontError) {
+      console.warn('SUIT font loading failed, using system fallback instead.', fontError);
+    }
+  }, [fontError]);
+
+  // 정상 케이스: 폰트 + 인증 둘 다 ready되면 스플래시 내림
+  useEffect(() => {
+    const fontsReady = fontsLoaded || !!fontError;
+    const authReady = isReady && authGateState !== 'loading';
+    if (fontsReady && authReady) {
+      hideSplash();
+    }
+  }, [fontsLoaded, fontError, isReady, authGateState, hideSplash]);
+
+  // 안전장치: 3초가 지나도 스플래시가 떠 있으면 강제로 내림
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!splashHiddenRef.current) {
+        console.warn('[splash] forced hide after 3s timeout');
+        hideSplash();
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [hideSplash]);
+
+  return null;
+}
+
 function AuthGateRedirector() {
   const { authGateState, isReady, profile } = useCurrentLearner();
   const segments = useSegments();
@@ -71,68 +156,12 @@ function AuthGateRedirector() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const pendingTaskId = useRef<string | null>(null);
-
-  useEffect(() => {
-    // 콜드스타트: Stack이 아직 마운트되지 않았으므로 ref에만 저장
-    const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse) {
-      const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
-      if (taskId) {
-        pendingTaskId.current = taskId;
-      }
-    }
-
-    // 포그라운드/백그라운드: 앱 실행 중 알림 탭 (Stack 이미 마운트됨)
-    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const taskId = response.notification.request.content.data?.taskId as string | undefined;
-      if (taskId) {
-        router.push({ pathname: '/quiz/review-session', params: { taskId } });
-      }
-    });
-    return () => subscription.remove();
-  }, []);
-
-  useEffect(() => {
-    void Asset.loadAsync([
-      require('../assets/images/characters/char_04.png'),
-      require('../assets/images/characters/char_07.png'),
-      require('../assets/images/characters/char_sparkle_sunglasses.png'),
-    ]).catch(() => {});
-  }, []);
-
-  const [fontsLoaded, fontError] = useFonts({
-    'SUIT-Regular': require('../assets/fonts/SUIT-Regular.ttf'),
-    'SUIT-Medium': require('../assets/fonts/SUIT-Medium.ttf'),
-    'SUIT-SemiBold': require('../assets/fonts/SUIT-SemiBold.ttf'),
-    'SUIT-Bold': require('../assets/fonts/SUIT-Bold.ttf'),
-    'SUIT-ExtraBold': require('../assets/fonts/SUIT-ExtraBold.ttf'),
-  });
-
-  useEffect(() => {
-    if (fontError) {
-      console.warn('SUIT font loading failed, using system fallback instead.', fontError);
-    }
-
-    if (fontsLoaded || fontError) {
-      void SplashScreen.hideAsync();
-
-      // Stack이 마운트된 이후 → cold-start pending 알림 처리
-      if (pendingTaskId.current) {
-        router.push({ pathname: '/quiz/review-session', params: { taskId: pendingTaskId.current } });
-        pendingTaskId.current = null;
-      }
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CurrentLearnerProvider>
         <ExamSessionProvider>
+          <SplashGate />
           <AuthGateRedirector />
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
