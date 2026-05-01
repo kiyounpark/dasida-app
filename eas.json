@@ -23,12 +23,8 @@
       "env": {
         "APP_VARIANT": "dev"
       },
-      "ios": {
-        "bundleIdentifier": "com.dasida.app.dev"
-      },
       "android": {
-        "buildType": "apk",
-        "applicationId": "com.dasida.app.dev"
+        "buildType": "apk"
       }
     },
     "preview": {
