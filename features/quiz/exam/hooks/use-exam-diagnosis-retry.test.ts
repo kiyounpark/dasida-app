@@ -91,11 +91,10 @@ const defaultHookArgs = {
   onComplete: jest.fn(),
 };
 
-function setupBaselineMocks(recordAttempt: jest.Mock) {
+function setupBaselineMocks() {
   mockedUseCurrentLearner.mockReturnValue({
     session: MOCK_SESSION,
     profile: MOCK_PROFILE,
-    recordAttempt,
   } as unknown as ReturnType<typeof useCurrentLearner>);
 
   mockedUseExamSession.mockReturnValue({
@@ -122,9 +121,8 @@ describe('useExamDiagnosis — 재시도(retry) 루프', () => {
   });
 
   it('3회 모두 실패하면 saveError=true이고 에러 버블이 추가됨', async () => {
-    const mockRecordAttempt = jest.fn().mockResolvedValue(undefined);
     mockedMarkProblemDiagnosed.mockRejectedValue(new Error('storage full'));
-    setupBaselineMocks(mockRecordAttempt);
+    setupBaselineMocks();
 
     const { result } = renderHook(() => useExamDiagnosis(defaultHookArgs));
 
@@ -149,8 +147,6 @@ describe('useExamDiagnosis — 재시도(retry) 루프', () => {
 
     // markProblemDiagnosed는 재시도마다 diagnosedRef=false이므로 정확히 3번 호출됨
     expect(mockedMarkProblemDiagnosed).toHaveBeenCalledTimes(3);
-    // recordAttempt는 한 번도 호출되지 않음 (markProblemDiagnosed가 먼저 실패)
-    expect(mockRecordAttempt).not.toHaveBeenCalled();
   });
 
 });

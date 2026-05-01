@@ -325,7 +325,6 @@ export function useExamDiagnosis(params: {
     if (!completedAtRef.current) {
       completedAtRef.current = new Date().toISOString();
     }
-    const completedAt = completedAtRef.current;
 
     setIsDone(true);
     // 첫 시도에만 analytics 발화 (재시도 시 중복 방지)
