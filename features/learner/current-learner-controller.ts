@@ -260,9 +260,9 @@ export function createCurrentLearnerController({
       learningHistoryRepository
         .listAttempts(params.session.accountKey, {
           source: 'featured-exam',
-          limit: 10,
+          limit: 200,
         })
-        .then(filterLegacyPerProblemAttempts),
+        .then((attempts) => filterLegacyPerProblemAttempts(attempts).slice(0, 10)),
     ]);
     const recentExamAndDiagnosticAttempts = [...diagnosticAttempts, ...examAttempts];
 
@@ -403,13 +403,19 @@ export function createCurrentLearnerController({
     refresh: readCurrentSnapshot,
     loadRecentAttempts: async (options) => {
       const { session } = await readAccessibleSnapshot();
-      const attempts = await learningHistoryRepository.listAttempts(session.accountKey, options);
-      // featured-exam 쿼리에는 legacy per-problem 진단 attempt(`exam-diag-` prefix)가 섞여
-      // 들어올 수 있어 클라이언트에서 차폐. 신규 record는 생성되지 않지만 기존 누적 데이터를 처리.
       if (options?.source === 'featured-exam') {
-        return filterLegacyPerProblemAttempts(attempts);
+        // featured-exam 쿼리에는 legacy per-problem 진단 attempt(`exam-diag-` prefix)가 섞여
+        // 들어올 수 있어 클라이언트에서 차폐. caller의 limit보다 넉넉히 fetch한 뒤
+        // 필터 후 slice해야 per-problem record가 limit 슬롯을 채우는 포화 버그를 막을 수 있다.
+        const requestedLimit = options.limit;
+        const rawAttempts = await learningHistoryRepository.listAttempts(session.accountKey, {
+          ...options,
+          limit: 200,
+        });
+        const filtered = filterLegacyPerProblemAttempts(rawAttempts);
+        return requestedLimit !== undefined ? filtered.slice(0, requestedLimit) : filtered;
       }
-      return attempts;
+      return learningHistoryRepository.listAttempts(session.accountKey, options);
     },
     loadAttemptResults: async (attemptId) => {
       const { session } = await readAccessibleSnapshot();

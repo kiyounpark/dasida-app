@@ -62,4 +62,15 @@ describe('filterLegacyPerProblemAttempts', () => {
 
     expect(filterLegacyPerProblemAttempts(attempts)).toEqual([]);
   });
+
+  it('handles saturated per-problem case (100 per-problem + 1 exam)', () => {
+    const perProblems = Array.from({ length: 100 }, (_, i) =>
+      makeAttempt(`exam-diag-exam-1-p${i}-${i}`, '2026-05-02T11:00:00.000Z'),
+    );
+    const examAttempt = makeAttempt('exam-attempt-1', '2026-05-02T09:00:00.000Z');
+
+    const result = filterLegacyPerProblemAttempts([...perProblems, examAttempt]);
+
+    expect(result.map((a) => a.id)).toEqual(['exam-attempt-1']);
+  });
 });
