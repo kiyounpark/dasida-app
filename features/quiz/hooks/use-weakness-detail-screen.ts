@@ -54,6 +54,7 @@ export function useWeaknessDetailScreen(
           // 상세 화면은 홈(limit 10)보다 넓은 범위로 로드해 등장 기록을 풍부하게 표시
           const [diagnostic, exam] = await Promise.all([
             loadRecentAttempts({ source: 'diagnostic', limit: 50 }),
+            // controller가 featured-exam 쿼리에서 legacy per-problem record를 자동 차폐.
             loadRecentAttempts({ source: 'featured-exam', limit: 50 }),
           ]);
           if (cancelled) return;

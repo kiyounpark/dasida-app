@@ -41,6 +41,9 @@ const DEV_GUEST_REQUIRED_ERROR_MESSAGE =
 const AUTO_IMPORT_FAILURE_NOTICE =
   '이 기기 기록을 자동으로 옮기지 못했습니다. 설정에서 다시 시도할 수 있어요.';
 
+/** featured-exam 쿼리에서 legacy per-problem record를 필터하기 위한 내부 over-fetch 한도. */
+const FEATURED_EXAM_OVERFETCH_LIMIT = 200;
+
 export type CurrentLearnerSnapshot = {
   authGateState: Exclude<AuthGateState, 'loading'>;
   authBlockingReason: AuthBlockingReason;
@@ -260,7 +263,7 @@ export function createCurrentLearnerController({
       learningHistoryRepository
         .listAttempts(params.session.accountKey, {
           source: 'featured-exam',
-          limit: 200,
+          limit: FEATURED_EXAM_OVERFETCH_LIMIT,
         })
         .then((attempts) => filterLegacyPerProblemAttempts(attempts).slice(0, 10)),
     ]);
@@ -410,7 +413,7 @@ export function createCurrentLearnerController({
         const requestedLimit = options.limit;
         const rawAttempts = await learningHistoryRepository.listAttempts(session.accountKey, {
           ...options,
-          limit: 200,
+          limit: FEATURED_EXAM_OVERFETCH_LIMIT,
         });
         const filtered = filterLegacyPerProblemAttempts(rawAttempts);
         return requestedLimit !== undefined ? filtered.slice(0, requestedLimit) : filtered;
