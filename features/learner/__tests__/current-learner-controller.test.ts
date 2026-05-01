@@ -3,11 +3,14 @@
  *
  * filterLegacyPerProblemAttempts의 단위 테스트는
  * filter-legacy-per-problem-attempts.test.ts에서 다룬다.
- * 여기서는 controller가 (1) limit: 200으로 over-fetch하고,
+ * 여기서는 controller가 (1) limit: FEATURED_EXAM_OVERFETCH_LIMIT으로 over-fetch하고,
  * (2) 필터 후 caller의 limit으로 slice하는지 확인한다.
  */
 
-import { createCurrentLearnerController } from '../current-learner-controller';
+import {
+  createCurrentLearnerController,
+  FEATURED_EXAM_OVERFETCH_LIMIT,
+} from '../current-learner-controller';
 import { createEmptyLearnerSummary } from '@/features/learning/history-repository';
 import type { LearningAttempt } from '@/features/learning/types';
 
@@ -20,6 +23,11 @@ jest.mock('@/features/learning/home-state', () => ({
 jest.mock('@/features/auth/firebase-config', () => ({
   isFirebaseAuthConfigured: jest.fn().mockReturnValue(false),
 }));
+
+type ListAttemptsCall = [
+  accountKey: string,
+  options?: { source?: string; limit?: number },
+];
 
 function makeAttempt(id: string): LearningAttempt {
   return {
@@ -58,55 +66,61 @@ const MOCK_PROFILE = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
+/**
+ * loadRecentAttempts에 필요한 최소 의존성만 mock한다.
+ * Dependencies 타입이 확장되면 `as any` 가드가 새 키를 silently 통과시키지만,
+ * 그 비용은 controller 내부에서 곧 실패(undefined.method)로 surface되므로 감수.
+ *
+ * `mockListAttempts`는 호출자가 `mockImplementation`로 source별 응답을 주입한다.
+ */
+function makeMockDeps(mockListAttempts: jest.Mock) {
+  return {
+    authClient: {
+      loadSession: jest.fn().mockResolvedValue(MOCK_SESSION),
+      getSupportedProviders: jest.fn().mockReturnValue([]),
+    },
+    profileStore: {
+      load: jest.fn().mockResolvedValue(MOCK_PROFILE),
+      createInitial: jest.fn().mockResolvedValue(MOCK_PROFILE),
+    },
+    learningHistoryRepository: {
+      loadCurrentSummary: jest
+        .fn()
+        .mockResolvedValue(createEmptyLearnerSummary('test-account')),
+      listAttempts: mockListAttempts,
+      listAttemptResults: jest.fn().mockResolvedValue([]),
+      recordAttempt: jest.fn(),
+      saveFeaturedExamState: jest.fn(),
+      listReviewTasks: jest.fn().mockResolvedValue([]),
+    },
+    localLearningHistoryRepository: {
+      reset: jest.fn(),
+    },
+    migrationService: {
+      resumePendingImports: jest.fn(),
+      loadStatus: jest.fn().mockResolvedValue({ state: 'empty', targetAccountKey: '' }),
+      importFromLocal: jest.fn(),
+    },
+    peerPresenceStore: {
+      load: jest.fn().mockResolvedValue(null),
+      clearPreviewSnapshot: jest.fn(),
+    },
+    reviewTaskStore: {
+      load: jest.fn().mockResolvedValue([]),
+      saveAll: jest.fn(),
+    },
+    deleteAccountUrl: 'https://example.com/delete',
+  };
+}
+
 describe('createCurrentLearnerController — loadRecentAttempts (featured-exam)', () => {
   let mockListAttempts: jest.Mock;
   let controller: ReturnType<typeof createCurrentLearnerController>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     mockListAttempts = jest.fn().mockResolvedValue([]);
-
-    // 의존성 최소 mock — loadRecentAttempts에 필요한 것만 구성.
-    const deps = {
-      authClient: {
-        loadSession: jest.fn().mockResolvedValue(MOCK_SESSION),
-        getSupportedProviders: jest.fn().mockReturnValue([]),
-      },
-      profileStore: {
-        load: jest.fn().mockResolvedValue(MOCK_PROFILE),
-        createInitial: jest.fn().mockResolvedValue(MOCK_PROFILE),
-      },
-      learningHistoryRepository: {
-        loadCurrentSummary: jest
-          .fn()
-          .mockResolvedValue(createEmptyLearnerSummary('test-account')),
-        listAttempts: mockListAttempts,
-        listAttemptResults: jest.fn().mockResolvedValue([]),
-        recordAttempt: jest.fn(),
-        saveFeaturedExamState: jest.fn(),
-        listReviewTasks: jest.fn().mockResolvedValue([]),
-      },
-      localLearningHistoryRepository: {
-        reset: jest.fn(),
-      },
-      migrationService: {
-        resumePendingImports: jest.fn(),
-        loadStatus: jest.fn().mockResolvedValue({ state: 'empty', targetAccountKey: '' }),
-        importFromLocal: jest.fn(),
-      },
-      peerPresenceStore: {
-        load: jest.fn().mockResolvedValue(null),
-        clearPreviewSnapshot: jest.fn(),
-      },
-      reviewTaskStore: {
-        load: jest.fn().mockResolvedValue([]),
-        saveAll: jest.fn(),
-      },
-      deleteAccountUrl: 'https://example.com/delete',
-    };
-
-    controller = createCurrentLearnerController(deps as any);
+    controller = createCurrentLearnerController(makeMockDeps(mockListAttempts) as any);
   });
 
   it('exam-diag-* 레코드를 필터하고 caller limit으로 slice한다', async () => {
@@ -138,32 +152,48 @@ describe('createCurrentLearnerController — loadRecentAttempts (featured-exam)'
     ]);
   });
 
-  it('내부 listAttempts는 caller limit이 아닌 FEATURED_EXAM_OVERFETCH_LIMIT(200)으로 fetch한다', async () => {
+  it(`내부 listAttempts는 caller limit이 아닌 FEATURED_EXAM_OVERFETCH_LIMIT(${FEATURED_EXAM_OVERFETCH_LIMIT})으로 fetch한다`, async () => {
     mockListAttempts.mockResolvedValue([]);
 
     await controller.loadRecentAttempts({ source: 'featured-exam', limit: 5 });
 
-    // featured-exam으로 호출된 listAttempts 전체가 limit: 200을 사용해야 함.
-    // (buildSnapshot 내부 호출 + loadRecentAttempts 직접 호출 모두 포함)
-    const featuredExamCalls = mockListAttempts.mock.calls.filter(
-      ([, options]: [string, { source?: string; limit?: number }]) =>
-        options?.source === 'featured-exam',
-    );
+    // featured-exam 호출 limit 수집 — buildSnapshot 내부 호출 + loadRecentAttempts 직접 호출 둘 다 포함
+    const featuredExamLimits = (mockListAttempts.mock.calls as ListAttemptsCall[])
+      .filter(([, options]) => options?.source === 'featured-exam')
+      .map(([, options]) => options?.limit);
 
-    expect(featuredExamCalls.length).toBeGreaterThanOrEqual(1);
-    featuredExamCalls.forEach(([, options]: [string, { source?: string; limit?: number }]) => {
-      expect(options.limit).toBe(200);
-    });
-
-    // caller의 limit: 5로 호출된 적이 없어야 함
-    const smallLimitCalls = mockListAttempts.mock.calls.filter(
-      ([, options]: [string, { source?: string; limit?: number }]) =>
-        options?.source === 'featured-exam' && options?.limit === 5,
-    );
-    expect(smallLimitCalls).toHaveLength(0);
+    // buildSnapshot 1회 + loadRecentAttempts 1회 = 정확히 2번 호출되어야 함
+    // (한 쪽이 사라지면 회귀이므로 정확한 카운트로 잠금)
+    expect(featuredExamLimits).toHaveLength(2);
+    // 모든 호출이 over-fetch limit 사용 — caller의 5는 절대 repository에 도달하지 않음
+    expect(featuredExamLimits.every((l) => l === FEATURED_EXAM_OVERFETCH_LIMIT)).toBe(true);
   });
 
-  it('diagnostic source는 필터 없이 그대로 반환한다', async () => {
+  it('limit이 undefined이면 slice 없이 필터 결과 전체 반환', async () => {
+    // controller line 419의 분기 (`requestedLimit !== undefined ? slice : filtered`) 검증
+    const realAttempts = Array.from({ length: 12 }, (_, i) => makeAttempt(`exam-attempt-${i}`));
+    mockListAttempts.mockImplementation((_accountKey: string, options?: { source?: string }) => {
+      if (options?.source === 'featured-exam') {
+        return Promise.resolve(realAttempts);
+      }
+      return Promise.resolve([]);
+    });
+
+    const result = await controller.loadRecentAttempts({ source: 'featured-exam' });
+
+    expect(result).toHaveLength(12);
+  });
+
+  it('repository가 빈 배열을 반환하면 빈 배열을 그대로 반환', async () => {
+    // 회귀 보호: slice/filter가 undefined나 throw 되지 않도록
+    mockListAttempts.mockResolvedValue([]);
+
+    const result = await controller.loadRecentAttempts({ source: 'featured-exam', limit: 5 });
+
+    expect(result).toEqual([]);
+  });
+
+  it('diagnostic source는 필터 없이 그대로 반환한다 — exam-diag-* ID도 보존', async () => {
     // exam-diag-* ID를 가진 attempt가 diagnostic source로 섞여있어도 필터 안 함
     const mixedAttempts = [
       makeAttempt('exam-diag-exam-1-p1-abc'),
@@ -179,7 +209,30 @@ describe('createCurrentLearnerController — loadRecentAttempts (featured-exam)'
 
     const result = await controller.loadRecentAttempts({ source: 'diagnostic' });
 
-    // diagnostic은 필터 적용 없으므로 2개 모두 반환
+    // diagnostic은 필터 미적용 — 2개 모두 반환되며, 특히 legacy-prefix ID도 보존되어야 함
     expect(result).toHaveLength(2);
+    expect(result.map((a) => a.id)).toContain('exam-diag-exam-1-p1-abc');
+    expect(result.map((a) => a.id)).toContain('attempt-regular-1');
+  });
+
+  it('weakness-practice source는 controller의 early return 경로를 사용한다', async () => {
+    // controller line 421의 비-featured-exam early return 분기 검증
+    const reviewAttempt = makeAttempt('review-attempt-1');
+    mockListAttempts.mockImplementation((_accountKey: string, options?: { source?: string }) => {
+      if (options?.source === 'weakness-practice') {
+        return Promise.resolve([reviewAttempt]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const result = await controller.loadRecentAttempts({ source: 'weakness-practice', limit: 10 });
+
+    expect(result).toEqual([reviewAttempt]);
+    // weakness-practice 호출은 caller의 limit를 그대로 전달해야 함 (over-fetch 분기 진입 안 함)
+    const weaknessCalls = (mockListAttempts.mock.calls as ListAttemptsCall[]).filter(
+      ([, options]) => options?.source === 'weakness-practice',
+    );
+    // buildSnapshot이 limit: 20으로 호출 + loadRecentAttempts가 limit: 10으로 호출
+    expect(weaknessCalls.map(([, o]) => o?.limit)).toEqual(expect.arrayContaining([20, 10]));
   });
 });

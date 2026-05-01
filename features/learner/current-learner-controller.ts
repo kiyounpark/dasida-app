@@ -42,7 +42,7 @@ const AUTO_IMPORT_FAILURE_NOTICE =
   '이 기기 기록을 자동으로 옮기지 못했습니다. 설정에서 다시 시도할 수 있어요.';
 
 /** featured-exam 쿼리에서 legacy per-problem record를 필터하기 위한 내부 over-fetch 한도. */
-const FEATURED_EXAM_OVERFETCH_LIMIT = 200;
+export const FEATURED_EXAM_OVERFETCH_LIMIT = 200;
 
 export type CurrentLearnerSnapshot = {
   authGateState: Exclude<AuthGateState, 'loading'>;
