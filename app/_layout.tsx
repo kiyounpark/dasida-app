@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Asset } from 'expo-asset';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -39,7 +39,7 @@ export const unstable_settings = {
 
 function SplashGate() {
   const { authGateState, isReady } = useCurrentLearner();
-  const splashHiddenRef = useRef(false);
+  const [splashHidden, setSplashHidden] = useState(false);
   const pendingTaskIdRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -51,17 +51,24 @@ function SplashGate() {
   });
 
   const hideSplash = useCallback(() => {
-    if (splashHiddenRef.current) return;
-    splashHiddenRef.current = true;
-    void SplashScreen.hideAsync().catch(() => {});
-    if (pendingTaskIdRef.current) {
-      router.push({
-        pathname: '/quiz/review-session',
-        params: { taskId: pendingTaskIdRef.current },
-      });
-      pendingTaskIdRef.current = null;
-    }
+    setSplashHidden((prev) => {
+      if (prev) return prev;
+      void SplashScreen.hideAsync().catch(() => {});
+      return true;
+    });
   }, []);
+
+  // splash가 내려가고 인증이 정상 상태일 때만 cold-start 알림 라우팅 실행.
+  // 3초 강제 타임아웃이 발동해도 인증이 'required'/'loading'이면 sign-in으로 튕기므로 보류.
+  useEffect(() => {
+    if (!splashHidden) return;
+    if (!isReady) return;
+    if (authGateState !== 'authenticated' && authGateState !== 'guest-dev') return;
+    if (!pendingTaskIdRef.current) return;
+    const taskId = pendingTaskIdRef.current;
+    pendingTaskIdRef.current = null;
+    router.push({ pathname: '/quiz/review-session', params: { taskId } });
+  }, [splashHidden, isReady, authGateState]);
 
   // 콜드스타트 알림 페이로드 캡처 (Stack 마운트 전에 ref에만 저장)
   useEffect(() => {
@@ -110,14 +117,13 @@ function SplashGate() {
 
   // 안전장치: 3초가 지나도 스플래시가 떠 있으면 강제로 내림
   useEffect(() => {
+    if (splashHidden) return;
     const timer = setTimeout(() => {
-      if (!splashHiddenRef.current) {
-        console.warn('[splash] forced hide after 3s timeout');
-        hideSplash();
-      }
+      console.warn('[splash] forced hide after 3s timeout');
+      hideSplash();
     }, 3000);
     return () => clearTimeout(timer);
-  }, [hideSplash]);
+  }, [splashHidden, hideSplash]);
 
   return null;
 }
