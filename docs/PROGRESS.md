@@ -862,6 +862,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.02 04:57
+- 해시: `2eea56e` (`2eea56e2aec94fd50119fc6a6acefa00d99762fb`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2eea56e2aec94fd50119fc6a6acefa00d99762fb
+- 작성자: 박기윤
+- 메시지: refactor(learner): over-fetch 한도 상수화 + 약점 상세 controller 필터 주석
+- 본문: FEATURED_EXAM_OVERFETCH_LIMIT 상수로 중복 200 리터럴 제거. / use-weakness-detail-screen의 featured-exam 쿼리에 controller 자동 차폐 / 사실 주석 추가. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.05.02 03:52
+- 해시: `f084f5c` (`f084f5c9efc34cfe8627a8a888c504f7c0cd84c5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f084f5c9efc34cfe8627a8a888c504f7c0cd84c5
+- 작성자: 박기윤
+- 메시지: fix(history): per-problem 진단 attempt 필터링으로 분석중 회귀 수정
+- 본문: 기록 탭 회차 목록에서 per-problem 진단 attempt(`exam-diag-` prefix)를 / 제외해, 1문제 진단 후 "잠시 쉬기"한 회차에 "분석중" 라벨이 / 정상 표시되도록 한다. fetch limit는 5 → 200으로 늘리고 필터 후 / slice(0,5)로 잘라낸다 (회차당 진단 30문항 × 5회차 가정). / Fixes regression introduced in commit e4079e0 (analysisState / 출처를 폰 메모 → 서버 listAttemptResults로 교체). / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.05.01 01:39
 - 해시: `a9d9d81` (`a9d9d813535d75c0427c09b60e334a5cb784ad69`)
 - 브랜치: main

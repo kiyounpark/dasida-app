@@ -63,3 +63,4 @@ app-example
 
 playwright-report/
 test-results/
+coverage/
