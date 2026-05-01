@@ -2,7 +2,6 @@
  * useExamDiagnosis 재시도(retry) 루프 동작 검증
  *
  * - 3회 연속 실패 시 saveError=true
- * - 재시도 전반에 걸쳐 completedAt이 동일한 값을 유지
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react-native';
@@ -57,7 +56,6 @@ jest.mock('@/features/quiz/exam/exam-session');
 jest.mock('@/features/quiz/exam/exam-diagnosis-progress');
 jest.mock('@/features/quiz/exam/exam-milestone-resolver');
 jest.mock('@/features/analytics/diagnosis-analytics');
-jest.mock('@/features/quiz/exam/build-exam-diagnosis-attempt-input');
 jest.mock('@/features/quiz/exam/diagnosis-mini-card-text');
 jest.mock('@/features/quiz/diagnosis-router');
 jest.mock('@/features/quiz/exam/diagnosis-milestone-progress');
@@ -68,7 +66,6 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { markProblemDiagnosed } from '@/features/quiz/exam/exam-diagnosis-progress';
 import { resolveMilestoneToShow } from '@/features/quiz/exam/exam-milestone-resolver';
-import { buildExamDiagnosisAttemptInput } from '@/features/quiz/exam/build-exam-diagnosis-attempt-input';
 import { buildMiniCardText } from '@/features/quiz/exam/diagnosis-mini-card-text';
 import { useExamDiagnosis } from './use-exam-diagnosis';
 
@@ -76,7 +73,6 @@ const mockedUseCurrentLearner = jest.mocked(useCurrentLearner);
 const mockedUseExamSession = jest.mocked(useExamSession);
 const mockedMarkProblemDiagnosed = jest.mocked(markProblemDiagnosed);
 const mockedResolveMilestoneToShow = jest.mocked(resolveMilestoneToShow);
-const mockedBuildExamDiagnosisAttemptInput = jest.mocked(buildExamDiagnosisAttemptInput);
 const mockedBuildMiniCardText = jest.mocked(buildMiniCardText);
 
 // ── 픽스처 ────────────────────────────────────────────────────────────────────
@@ -116,10 +112,6 @@ function setupBaselineMocks(recordAttempt: jest.Mock) {
     patternName: '패턴',
     patternDescription: '설명',
   });
-  // buildExamDiagnosisAttemptInput은 completedAt을 그대로 노출
-  mockedBuildExamDiagnosisAttemptInput.mockImplementation(
-    (params) => ({ completedAt: params.completedAt } as ReturnType<typeof buildExamDiagnosisAttemptInput>),
-  );
 }
 
 // ── 테스트 ────────────────────────────────────────────────────────────────────
@@ -161,36 +153,4 @@ describe('useExamDiagnosis — 재시도(retry) 루프', () => {
     expect(mockRecordAttempt).not.toHaveBeenCalled();
   });
 
-  it('recordAttempt 첫 시도 실패 후 재시도 시 completedAt이 동일', async () => {
-    const capturedInputs: Array<{ completedAt: string }> = [];
-    const mockRecordAttempt = jest.fn().mockImplementation((input: { completedAt: string }) => {
-      capturedInputs.push(input);
-      if (capturedInputs.length === 1) {
-        return Promise.reject(new Error('network error'));
-      }
-      return Promise.resolve();
-    });
-
-    mockedMarkProblemDiagnosed.mockResolvedValue(undefined);
-    setupBaselineMocks(mockRecordAttempt);
-
-    const { result } = renderHook(() => useExamDiagnosis(defaultHookArgs));
-
-    await act(async () => {
-      result.current.onManualSelect('formula_application' as Parameters<typeof result.current.onManualSelect>[0]);
-    });
-
-    // 2회 recordAttempt 호출 (1회 실패 + 1회 성공)을 기다린다
-    await waitFor(
-      () => {
-        expect(mockRecordAttempt).toHaveBeenCalledTimes(2);
-      },
-      { timeout: 5000 },
-    );
-
-    // 두 호출의 completedAt이 동일해야 한다
-    expect(capturedInputs[0].completedAt).toBe(capturedInputs[1].completedAt);
-    // 저장에 성공했으므로 saveError는 false여야 한다
-    expect(result.current.saveError).toBe(false);
-  });
 });

@@ -10,6 +10,15 @@ function createAttemptId(examId: string, problemNumber: number) {
   return `${EXAM_DIAG_ATTEMPT_PREFIX}${examId}-p${problemNumber}-${Date.now().toString(36)}`;
 }
 
+/**
+ * @deprecated 2026-05-02부터 호출되지 않음. per-problem attempt 생성은
+ * sync point #1~#4(회차 단위 갱신)와 redundant이므로 use-exam-diagnosis에서
+ * 호출이 제거되었다. `EXAM_DIAG_ATTEMPT_PREFIX` 상수는 legacy 데이터 차폐
+ * 필터(`features/learner/filter-legacy-per-problem-attempts.ts`)에서 사용 중.
+ *
+ * 함수 자체는 future re-introduction 또는 historical reference를 위해 retain.
+ * 새 코드에서 호출하지 말 것.
+ */
 export function buildExamDiagnosisAttemptInput(params: {
   session: AuthSession;
   profile: LearnerProfile;

@@ -24,7 +24,6 @@ import {
 import { useCurrentLearner } from '@/features/learner/provider';
 import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
 
-import { buildExamDiagnosisAttemptInput } from '../build-exam-diagnosis-attempt-input';
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
 import type { MilestoneFraction } from '@/features/quiz/exam/diagnosis-milestone';
@@ -105,7 +104,7 @@ export function useExamDiagnosis(params: {
   onComplete: () => void;
 }): UseExamDiagnosisResult {
   const { examId, problemNumber, userAnswer, totalNotes, currentNoteCountBeforeThis, isLastProblem, onPauseRequested, onComplete } = params;
-  const { session, profile, recordAttempt } = useCurrentLearner();
+  const { session, profile } = useCurrentLearner();
   const { state } = useExamSession();
   const attemptId = state.result?.attemptId ?? null;
   const attemptDateISO = state.result?.completedAt ?? null;
@@ -171,7 +170,6 @@ export function useExamDiagnosis(params: {
   const hasAdvancedRef = useRef(false);
   const retryCountRef = useRef(0);
   const diagnosedRef = useRef(false);     // markProblemDiagnosed 성공 여부 (멱등, 재시도 안전)
-  const attemptRecordedRef = useRef(false); // recordAttempt 성공 여부 (비멱등, 재시도 skip)
 
   const suggestedMethods: DiagnosisMethodCardOption[] = useMemo(() => {
     if (!routerResult?.needsManualSelection) return [];
@@ -331,7 +329,7 @@ export function useExamDiagnosis(params: {
 
     setIsDone(true);
     // 첫 시도에만 analytics 발화 (재시도 시 중복 방지)
-    if (!diagnosedRef.current && !attemptRecordedRef.current) {
+    if (!diagnosedRef.current) {
       logDiagnosisCompleted({
         accountKey: profile.accountKey,
         source: 'exam',
@@ -346,8 +344,8 @@ export function useExamDiagnosis(params: {
     const methodLabel = methods.find((m) => m.id === draft.methodId)?.labelKo ?? null;
     const lastNodeText = extractLastMeaningfulNodeText(draft);
 
-    // 순차 실행 + skip-if-done: recordAttempt는 비멱등 POST이므로 성공 후 재시도 금지.
-    // markProblemDiagnosed(AsyncStorage)는 멱등이지만 동일하게 skip 처리.
+    // markProblemDiagnosed(AsyncStorage)는 멱등이지만 skip-if-done으로 중복 호출 방지.
+    // 회차 단위 attempt 상태는 sync point에서 갱신되므로 여기서 별도 recordAttempt 안 함.
     void (async () => {
       try {
         if (!diagnosedRef.current) {
@@ -357,23 +355,6 @@ export function useExamDiagnosis(params: {
             weaknessId,
           );
           diagnosedRef.current = true;
-        }
-
-        if (!attemptRecordedRef.current) {
-          await recordAttempt(
-            buildExamDiagnosisAttemptInput({
-              session,
-              profile,
-              examId,
-              problemNumber,
-              topic: problem?.topic ?? 'exam',
-              methodId: draft.methodId,
-              weaknessId,
-              startedAt: startedAt.current,
-              completedAt,
-            }),
-          );
-          attemptRecordedRef.current = true;
         }
 
         if (!isMountedRef.current) return;
@@ -433,7 +414,7 @@ export function useExamDiagnosis(params: {
         setIsDone(false);
       }
     })();
-  }, [draft, isDone, session, profile, examId, problemNumber, problem, recordAttempt, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
+  }, [draft, isDone, session, profile, examId, problemNumber, problem, attemptId, attemptDateISO, currentNoteCountBeforeThis, totalNotes, isLastProblem, methods, freezeAndAppend]);
 
   const onAdvance = useCallback(() => {
     if (hasAdvancedRef.current) return;
