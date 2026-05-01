@@ -1,0 +1,82 @@
+const IS_DEV = process.env.APP_VARIANT === 'dev';
+
+module.exports = {
+  expo: {
+    name: IS_DEV ? '다시다 Dev' : '다시다',
+    slug: 'dasida-app',
+    version: '1.0.1',
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: IS_DEV ? 'dasidaapp-dev' : 'dasidaapp',
+    userInterfaceStyle: 'automatic',
+    newArchEnabled: true,
+    updates: {
+      url: 'https://u.expo.dev/e398244b-6a71-42d3-bad0-1f69e0fe2148',
+    },
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    ios: {
+      bundleIdentifier: IS_DEV ? 'com.dasida.app.dev' : 'com.dasida.app',
+      buildNumber: '1',
+      usesAppleSignIn: true,
+      supportsTablet: true,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
+    },
+    android: {
+      versionCode: 1,
+      adaptiveIcon: {
+        backgroundColor: '#ffffff',
+        foregroundImage: './assets/images/android-icon-foreground.png',
+        backgroundImage: './assets/images/android-icon-background.png',
+        monochromeImage: './assets/images/android-icon-monochrome.png',
+      },
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
+      package: IS_DEV ? 'com.dasida.app.dev' : 'com.dasida.app',
+      googleServicesFile: './google-services.json',
+    },
+    web: {
+      output: 'static',
+      favicon: './assets/images/favicon.png',
+    },
+    plugins: [
+      'expo-router',
+      'expo-apple-authentication',
+      [
+        'expo-notifications',
+        {
+          androidMode: 'default',
+        },
+      ],
+      [
+        'expo-splash-screen',
+        {
+          image: './assets/images/splash-icon.png',
+          imageWidth: 200,
+          resizeMode: 'contain',
+          backgroundColor: '#ffffff',
+          dark: {
+            backgroundColor: '#000000',
+          },
+        },
+      ],
+      'expo-secure-store',
+      '@react-native-google-signin/google-signin',
+    ],
+    experiments: {
+      typedRoutes: true,
+      reactCompiler: true,
+    },
+    extra: {
+      router: {},
+      eas: {
+        projectId: 'e398244b-6a71-42d3-bad0-1f69e0fe2148',
+      },
+      privacyPolicyUrl: 'https://dasida-app.web.app/privacy',
+    },
+    owner: 'xsalsswmxzxc',
+  },
+};

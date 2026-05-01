@@ -1,3 +1,4 @@
+import { View } from 'react-native';
 import { Redirect } from 'expo-router';
 
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -6,7 +7,7 @@ export default function IndexRoute() {
   const { authGateState, isReady, profile } = useCurrentLearner();
 
   if (!isReady || authGateState === 'loading') {
-    return null;
+    return <View style={{ flex: 1, backgroundColor: '#F6F2E7' }} />;
   }
 
   if (authGateState === 'required') {

@@ -64,6 +64,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508273060403:android:9b57d3fe6a4a4dfdfed146",
+        "android_client_info": {
+          "package_name": "com.dasida.app.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "508273060403-f6rcd1snmf8p1qih7ll2auv8p5j8tbcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvR4WEKvolcBkUqYQvA3I3CmL4Z6CeNJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "508273060403-f6rcd1snmf8p1qih7ll2auv8p5j8tbcp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "508273060403-eam1pvp5nueq3cgkv0n2i157ojgacdc3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dasida.app"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
