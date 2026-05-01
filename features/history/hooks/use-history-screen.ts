@@ -15,7 +15,6 @@ import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-anal
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { syncDiagnosisProgressFromServer } from '@/features/quiz/exam/sync-diagnosis-progress';
 
-import { filterRecentExamAttempts } from './filter-recent-exam-attempts';
 import { onPressExamHistoryItemImpl } from './use-history-screen-handlers';
 
 export type UseHistoryScreenResult = ReturnType<typeof useHistoryScreen>;
@@ -50,17 +49,12 @@ export function useHistoryScreen() {
 
     setIsLoadingAttempts(true);
     try {
-      // per-problem 진단 attempt(`exam-diag-` prefix)가 같은 source로 섞여 있어
-      // 5 한도로는 회차 attempt가 잘릴 수 있다. 넉넉히 200까지 fetch한 뒤
-      // filterRecentExamAttempts에서 prefix 제외 + 5개로 자른다.
-      // ⚠ 임시 상한: per-problem attempt가 누적 200개를 초과하면 동일 회귀 재발 가능.
-      // 근본 수정은 source를 'featured-exam-diagnosis'로 분리해야 한다 (Option B).
       const attempts = await loadRecentAttempts({
         source: 'featured-exam',
-        limit: 200,
+        limit: 5,
       });
       if (!isMountedRef.current) return;
-      setRecentExamAttempts(filterRecentExamAttempts(attempts, 5));
+      setRecentExamAttempts(attempts);
     } catch {
       if (!isMountedRef.current) return;
       setRecentExamAttempts([]);
