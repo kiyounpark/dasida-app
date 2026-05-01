@@ -33,6 +33,7 @@ import type {
   PreviewSeedState,
 } from './types';
 import { buildProfileForPendingResume } from './learner-profile-builders';
+import { filterLegacyPerProblemAttempts } from './filter-legacy-per-problem-attempts';
 
 const AUTH_REQUIRED_ERROR_MESSAGE = 'Authentication is required before accessing learner data.';
 const DEV_GUEST_REQUIRED_ERROR_MESSAGE =
@@ -256,10 +257,12 @@ export function createCurrentLearnerController({
         source: 'diagnostic',
         limit: 10,
       }),
-      learningHistoryRepository.listAttempts(params.session.accountKey, {
-        source: 'featured-exam',
-        limit: 10,
-      }),
+      learningHistoryRepository
+        .listAttempts(params.session.accountKey, {
+          source: 'featured-exam',
+          limit: 10,
+        })
+        .then(filterLegacyPerProblemAttempts),
     ]);
     const recentExamAndDiagnosticAttempts = [...diagnosticAttempts, ...examAttempts];
 
@@ -400,7 +403,13 @@ export function createCurrentLearnerController({
     refresh: readCurrentSnapshot,
     loadRecentAttempts: async (options) => {
       const { session } = await readAccessibleSnapshot();
-      return learningHistoryRepository.listAttempts(session.accountKey, options);
+      const attempts = await learningHistoryRepository.listAttempts(session.accountKey, options);
+      // featured-exam 쿼리에는 legacy per-problem 진단 attempt(`exam-diag-` prefix)가 섞여
+      // 들어올 수 있어 클라이언트에서 차폐. 신규 record는 생성되지 않지만 기존 누적 데이터를 처리.
+      if (options?.source === 'featured-exam') {
+        return filterLegacyPerProblemAttempts(attempts);
+      }
+      return attempts;
     },
     loadAttemptResults: async (attemptId) => {
       const { session } = await readAccessibleSnapshot();
