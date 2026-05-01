@@ -4,8 +4,10 @@ import type { AuthSession } from '@/features/auth/types';
 import type { FinalizedAttemptInput } from '@/features/learning/history-repository';
 import type { LearnerProfile } from '@/features/learner/types';
 
+export const EXAM_DIAG_ATTEMPT_PREFIX = 'exam-diag-';
+
 function createAttemptId(examId: string, problemNumber: number) {
-  return `exam-diag-${examId}-p${problemNumber}-${Date.now().toString(36)}`;
+  return `${EXAM_DIAG_ATTEMPT_PREFIX}${examId}-p${problemNumber}-${Date.now().toString(36)}`;
 }
 
 export function buildExamDiagnosisAttemptInput(params: {
