@@ -12,6 +12,7 @@ module.exports = {
     newArchEnabled: true,
     updates: {
       url: 'https://u.expo.dev/e398244b-6a71-42d3-bad0-1f69e0fe2148',
+      assetPatternsToBeBundled: [],
     },
     runtimeVersion: {
       policy: 'appVersion',
