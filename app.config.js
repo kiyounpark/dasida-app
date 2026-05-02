@@ -57,9 +57,9 @@ module.exports = {
           image: './assets/images/splash-icon.png',
           imageWidth: 200,
           resizeMode: 'contain',
-          backgroundColor: '#F6F2E7',
+          backgroundColor: '#FFFFFF',
           dark: {
-            backgroundColor: '#F6F2E7',
+            backgroundColor: '#FFFFFF',
           },
         },
       ],
