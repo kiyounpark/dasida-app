@@ -79,6 +79,8 @@ A의 핵심:
 
 DASIDA repo에서는 Karpathy 4원칙 + DASIDA 자체 룰(Notion 연동, Expo 검증, superpowers 워크플로우)이 함께 적용됨. 둘은 레이어가 달라(Karpathy=*행동*, DASIDA/superpowers=*프로세스*) 충돌 거의 없음.
 
+> **단서**: Karpathy §2(Simplicity First "시킨 것 외 추가 금지")와 §3(Surgical Changes "무관한 리팩터링 금지")는 *사용자 요청 범위 내*에서 적용된다. 사용자가 명시적으로 `superpowers:brainstorming`이나 `plan-eng-review` 같은 *범위 확장형 워크플로우*를 호출하면, 그 워크플로우가 수행하는 범위 탐색·대안 제시·spec 확장은 그 자체가 user request 영역이므로 §2/§3와 마찰하지 않는다. Karpathy 원칙은 사용자가 *시키지 않은* 즉흥적 확장을 막는 것이지, 사용자가 *호출한* 사고 도구를 막는 게 아님.
+
 ---
 
 ## 변경 범위
