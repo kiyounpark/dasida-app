@@ -74,18 +74,24 @@ Expected: `NEW`
 
 - [ ] **Step 1: 헤더 작성 (heredoc으로 파일 생성)**
 
-Run:
-```bash
+Run (markdown 렌더링 방지를 위해 outer fence는 4-tick):
+````bash
 cat > ~/.claude/karpathy-guidelines.md <<'HEADER_EOF'
 # Karpathy Guidelines
 
 > 원본: https://github.com/forrestchang/andrej-karpathy-skills/blob/main/CLAUDE.md
-> 업데이트: `curl -o ~/.claude/karpathy-guidelines.md https://raw.githubusercontent.com/forrestchang/andrej-karpathy-skills/main/CLAUDE.md` 실행 후 이 헤더(이 4줄)를 다시 추가
+> 본문(이 헤더 아래 `---` 다음)만 갱신할 것. 헤더는 보존:
+> ```bash
+> RAW=https://raw.githubusercontent.com/forrestchang/andrej-karpathy-skills/main/CLAUDE.md
+> curl -sf "$RAW" -o /tmp/karpathy.new && \
+>   { sed -n '1,/^---$/p' ~/.claude/karpathy-guidelines.md; echo; cat /tmp/karpathy.new; } \
+>   > /tmp/karpathy.merged && mv /tmp/karpathy.merged ~/.claude/karpathy-guidelines.md && rm /tmp/karpathy.new
+> ```
 
 ---
 
 HEADER_EOF
-```
+````
 
 Expected: 명령어 무출력 (성공). 헤더만 들어간 파일 생성됨.
 

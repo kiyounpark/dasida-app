@@ -37,18 +37,24 @@ A의 핵심:
 
 ### 신규: `~/.claude/karpathy-guidelines.md`
 
-원본 `forrestchang/andrej-karpathy-skills/CLAUDE.md` 내용을 그대로 복사하되, 맨 위에 출처 헤더 추가:
+원본 `forrestchang/andrej-karpathy-skills/CLAUDE.md` 내용을 그대로 복사하되, 맨 위에 출처/업데이트 헤더 추가 (outer fence는 4-tick으로 markdown 렌더링 충돌 방지):
 
-```markdown
+````markdown
 # Karpathy Guidelines
 
 > 원본: https://github.com/forrestchang/andrej-karpathy-skills/blob/main/CLAUDE.md
-> 업데이트: `curl -o ~/.claude/karpathy-guidelines.md <원본 raw URL>` 실행 후 이 헤더(이 4줄)를 다시 추가
+> 본문(이 헤더 아래 `---` 다음)만 갱신할 것. 헤더는 보존:
+> ```bash
+> RAW=https://raw.githubusercontent.com/forrestchang/andrej-karpathy-skills/main/CLAUDE.md
+> curl -sf "$RAW" -o /tmp/karpathy.new && \
+>   { sed -n '1,/^---$/p' ~/.claude/karpathy-guidelines.md; echo; cat /tmp/karpathy.new; } \
+>   > /tmp/karpathy.merged && mv /tmp/karpathy.merged ~/.claude/karpathy-guidelines.md && rm /tmp/karpathy.new
+> ```
 
 ---
 
-[원본 CLAUDE.md 내용 verbatim — 약 60줄, 4원칙]
-```
+[원본 CLAUDE.md 내용 verbatim — 4원칙]
+````
 
 ### 수정: `~/.claude/CLAUDE.md`
 
