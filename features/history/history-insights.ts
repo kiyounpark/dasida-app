@@ -166,9 +166,9 @@ export function buildExamHistoryItems(input: {
     let statusLabel: string;
     if (isLatest && analysisState.isInProgress) {
       status = 'in_progress';
-      const firstItem = analysisState.isInProgress ? analysisState.items[0] : null;
-      statusLabel = firstItem
-        ? `진행 중 ${firstItem.noteCount}/${firstItem.totalNotes}`
+      const matched = analysisState.items.find((i) => i.attemptId === attempt.id);
+      statusLabel = matched
+        ? `진행 중 ${matched.noteCount}/${matched.totalNotes}`
         : '진행 중';
     } else if (attempt.primaryWeaknessId !== null) {
       status = 'completed';

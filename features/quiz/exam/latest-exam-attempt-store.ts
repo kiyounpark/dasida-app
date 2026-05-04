@@ -6,6 +6,10 @@ const LEGACY_KEY = 'dasida/latest-exam-attempt';
 const MAX_ATTEMPTS = 3;
 const makeKey = (accountKey: string) => `dasida/latest-exam-attempt/${accountKey}`;
 
+// Serialize writes to avoid read-modify-write races when multiple attempts
+// finish in rapid succession (or save races a focus-triggered refresh).
+let writeChain: Promise<void> = Promise.resolve();
+
 function isValidAttempt(v: unknown): v is LatestExamAttemptSummary {
   if (!v || typeof v !== 'object') return false;
   const o = v as Record<string, unknown>;
@@ -41,17 +45,13 @@ export async function getLatestExamAttempts(
     if (raw) return parseStored(raw);
 
     // one-shot migration from pre-multi-account legacy key
-    const legacyRaw = await AsyncStorage.getItem(LEGACY_KEY);
-    if (!legacyRaw) return [];
-    const list = parseStored(legacyRaw);
-    if (list.length > 0) {
-      // write to new key first; if removeItem fails, migration safely reruns next launch
-      // preserve legacy raw string — parseStored handles single-object format on next read
-      await AsyncStorage.setItem(makeKey(accountKey), legacyRaw);
-    }
+    // Pre-multi-account legacy key has no owner attribution. Discarding rather than
+    // copying avoids cross-account data leak when device is shared between accounts.
+    // User's next exam attempt will repopulate the per-account key correctly.
     await AsyncStorage.removeItem(LEGACY_KEY);
-    return list;
-  } catch {
+    return [];
+  } catch (err) {
+    console.warn('[latest-exam-attempt-store] read failed', err);
     return [];
   }
 }
@@ -60,17 +60,22 @@ export async function prependLatestExamAttempt(
   accountKey: string,
   attempt: LatestExamAttemptSummary,
 ): Promise<void> {
-  try {
-    const current = await getLatestExamAttempts(accountKey);
-    const existingIdx = current.findIndex((a) => a.attemptId === attempt.attemptId);
-    let next: LatestExamAttemptSummary[];
-    if (existingIdx >= 0) {
-      // in-place update; preserve existing order
-      next = [...current];
-      next[existingIdx] = attempt;
-    } else {
-      next = [attempt, ...current].slice(0, MAX_ATTEMPTS);
+  const next = writeChain.then(async () => {
+    try {
+      const current = await getLatestExamAttempts(accountKey);
+      const existingIdx = current.findIndex((a) => a.attemptId === attempt.attemptId);
+      let nextList: LatestExamAttemptSummary[];
+      if (existingIdx >= 0) {
+        nextList = [...current];
+        nextList[existingIdx] = attempt;
+      } else {
+        nextList = [attempt, ...current].slice(0, MAX_ATTEMPTS);
+      }
+      await AsyncStorage.setItem(makeKey(accountKey), JSON.stringify(nextList));
+    } catch (err) {
+      console.warn('[latest-exam-attempt-store] prepend failed', err);
     }
-    await AsyncStorage.setItem(makeKey(accountKey), JSON.stringify(next));
-  } catch {}
+  });
+  writeChain = next;
+  return next;
 }

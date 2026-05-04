@@ -37,20 +37,15 @@ describe('getLatestExamAttempts', () => {
     expect(await getLatestExamAttempts(ACCOUNT)).toEqual([]);
   });
 
-  it('legacy 단일 객체 저장값 → 길이 1 배열로 마이그레이션', async () => {
-    const legacy = attempt('exam-A', 'a1', '2026-05-01T00:00:00Z');
-    mockedAsyncStorage.getItem
-      .mockResolvedValueOnce(null) // new key empty
-      .mockResolvedValueOnce(JSON.stringify(legacy)); // legacy key has single object
+  it('legacy 단일 객체 저장값 → 빈 배열 + legacy 키 삭제 (cross-account leak 방지)', async () => {
+    mockedAsyncStorage.getItem.mockResolvedValueOnce(null); // new key empty
 
     const result = await getLatestExamAttempts(ACCOUNT);
 
-    expect(result).toEqual([legacy]);
-    expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith(
-      KEY,
-      JSON.stringify(legacy),
-    );
+    expect(result).toEqual([]);
     expect(mockedAsyncStorage.removeItem).toHaveBeenCalledWith(LEGACY_KEY);
+    // No setItem to the new key — we discard rather than copy
+    expect(mockedAsyncStorage.setItem).not.toHaveBeenCalled();
   });
 
   it('새 키에 단일 객체가 저장돼 있으면 → 길이 1 배열로 정규화', async () => {
