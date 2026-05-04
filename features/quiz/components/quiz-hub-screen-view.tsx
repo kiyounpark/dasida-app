@@ -14,7 +14,10 @@ import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-section';
-import { ExamAnalysisResumeCard } from '@/features/quiz/exam/components/exam-analysis-resume-card';
+import {
+  ExamAnalysisResumeCarousel,
+  type ExamAnalysisResumeCarouselItem,
+} from '@/features/quiz/exam/components/exam-analysis-resume-carousel';
 import { CollectedNotesList } from '@/features/quiz/exam/components/collected-notes-list';
 import { diagnosisMap } from '@/data/diagnosisMap';
 
@@ -220,11 +223,14 @@ export function QuizHubScreenView({
               <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
             ) : null}
             {showAnalysisResumeCard && analysisState.isInProgress ? (
-              <ExamAnalysisResumeCard
-                examTitle={getExamTitle(analysisState.items[0]?.examId ?? '')}
-                noteCount={analysisState.items[0]?.noteCount ?? 0}
-                totalNotes={analysisState.items[0]?.totalNotes ?? 0}
-                onPress={() => onResumeAnalysis(analysisState.items[0]?.attemptId ?? '')}
+              <ExamAnalysisResumeCarousel
+                items={analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
+                  attemptId: item.attemptId,
+                  examTitle: getExamTitle(item.examId),
+                  noteCount: item.noteCount,
+                  totalNotes: item.totalNotes,
+                }))}
+                onPressItem={onResumeAnalysis}
               />
             ) : null}
             {showCollectedNotes && analysisState.isInProgress ? (
