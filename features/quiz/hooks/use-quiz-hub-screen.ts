@@ -14,7 +14,7 @@ import {
 } from '@/features/quiz/exam/exam-analysis-in-progress';
 import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
-import { getLatestExamAttempt } from '@/features/quiz/exam/latest-exam-attempt-store';
+import { getLatestExamAttempts } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
@@ -121,8 +121,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
           setAnalysisState({ isInProgress: false });
           return;
         }
-        const attempt = await getLatestExamAttempt(accountKey);
+        const attempts = await getLatestExamAttempts(accountKey);
         if (cancelled) return;
+        const attempt = attempts[0] ?? null;
         setLatestAttempt(attempt);
         if (!attempt) {
           setAnalysisState({ isInProgress: false });

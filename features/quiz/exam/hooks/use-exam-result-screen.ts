@@ -16,7 +16,7 @@ import {
 } from '../exam-diagnosis-progress';
 import { RESUMED_PARAM_VALUE } from '../exam-result-navigation';
 import { useExamSession } from '../exam-session';
-import { saveLatestExamAttempt } from '../latest-exam-attempt-store';
+import { prependLatestExamAttempt } from '../latest-exam-attempt-store';
 import type { ExamResultSummary } from '../types';
 
 export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -81,7 +81,7 @@ export function useExamResultScreen(): UseExamResultScreenResult {
     const wrongNums = result.perProblem
       .filter((p) => !p.isCorrect && p.userAnswer !== null)
       .map((p) => p.number);
-    void saveLatestExamAttempt(session.accountKey, {
+    void prependLatestExamAttempt(session.accountKey, {
       examId: result.examId,
       attemptId: result.attemptId,
       attemptDateISO: result.completedAt,
