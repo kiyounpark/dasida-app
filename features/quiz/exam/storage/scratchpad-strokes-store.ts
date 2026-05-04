@@ -52,7 +52,9 @@ export async function saveScratchpad(
       makeKey(accountKey, scratchpad.examId, scratchpad.problemNumber),
       JSON.stringify(scratchpad),
     );
-  } catch {}
+  } catch (error) {
+    console.warn('[scratchpad] saveScratchpad failed', error);
+  }
 }
 
 export async function loadScratchpad(
@@ -63,7 +65,8 @@ export async function loadScratchpad(
   try {
     const raw = await AsyncStorage.getItem(makeKey(accountKey, examId, problemNumber));
     return raw ? parse(raw) : null;
-  } catch {
+  } catch (error) {
+    console.warn('[scratchpad] loadScratchpad failed', error);
     return null;
   }
 }

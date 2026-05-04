@@ -39,6 +39,7 @@ type Action =
   | { type: 'append'; point: StrokePoint }
   | { type: 'end' }
   | { type: 'erase-at'; x: number; y: number; radius: number }
+  | { type: 'commit-erase'; snapshot: Stroke[] }
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'clear' };
@@ -92,10 +93,18 @@ function reducer(state: State, action: Action): State {
         (s) => !s.points.some((pt) => (pt.x - x) ** 2 + (pt.y - y) ** 2 <= r2),
       );
       if (remaining.length === state.strokes.length) return state;
+      // Undo snapshot is pushed once at gesture end via 'commit-erase', not per point
       return {
         ...state,
         strokes: remaining,
-        undoStack: pushUndo(state.undoStack, state.strokes),
+      };
+    }
+    case 'commit-erase': {
+      // Push the pre-gesture snapshot so a single undo restores the entire erase swipe
+      if (action.snapshot === state.strokes) return state;
+      return {
+        ...state,
+        undoStack: pushUndo(state.undoStack, action.snapshot),
         redoStack: [],
       };
     }
@@ -175,6 +184,9 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
   const toolRef = useRef<ActiveTool>(initialState.tool);
   const colorRef = useRef<string>(initialState.color);
   const sizeRef = useRef<number>(initialState.size);
+  // Snapshot of strokes captured at the start of an erase gesture, so a single undo
+  // restores the entire swipe. Reset to null between gestures.
+  const eraseSnapshotRef = useRef<Stroke[] | null>(null);
 
   // Hydrate on (account, exam, problem) change
   useEffect(() => {
@@ -246,6 +258,8 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
 
   const beginStroke = useCallback((p: StrokePoint) => {
     if (toolRef.current === 'eraser') {
+      // Capture pre-gesture snapshot for single-undo restoration
+      eraseSnapshotRef.current = stateRef.current.strokes;
       dispatch({ type: 'erase-at', x: p.x, y: p.y, radius: sizeRef.current / 2 });
       return;
     }
@@ -271,7 +285,12 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
   }, []);
 
   const endStroke = useCallback(() => {
-    if (toolRef.current === 'eraser') return;
+    if (toolRef.current === 'eraser') {
+      const snapshot = eraseSnapshotRef.current;
+      eraseSnapshotRef.current = null;
+      if (snapshot) dispatch({ type: 'commit-erase', snapshot });
+      return;
+    }
     dispatch({ type: 'end' });
   }, []);
 

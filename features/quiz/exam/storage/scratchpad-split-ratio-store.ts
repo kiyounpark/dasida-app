@@ -15,7 +15,9 @@ function clamp01(n: number): number {
 export async function saveSplitRatio(accountKey: string, ratio: number): Promise<void> {
   try {
     await AsyncStorage.setItem(makeKey(accountKey), String(clamp01(ratio)));
-  } catch {}
+  } catch (error) {
+    console.warn('[scratchpad] saveSplitRatio failed', error);
+  }
 }
 
 export async function loadSplitRatio(accountKey: string): Promise<number | null> {
@@ -25,7 +27,8 @@ export async function loadSplitRatio(accountKey: string): Promise<number | null>
     const n = Number(raw);
     if (!Number.isFinite(n)) return null;
     return n;
-  } catch {
+  } catch (error) {
+    console.warn('[scratchpad] loadSplitRatio failed', error);
     return null;
   }
 }

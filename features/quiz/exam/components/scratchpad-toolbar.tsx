@@ -16,12 +16,14 @@ type ToolbarProps = {
   size: number;
   canUndo: boolean;
   canRedo: boolean;
+  pencilOnly: boolean;
   onSetTool: (t: ActiveTool) => void;
   onSetColor: (c: string) => void;
   onSetSize: (s: number) => void;
   onUndo: () => void;
   onRedo: () => void;
   onClear: () => void;
+  onTogglePencilOnly: () => void;
 };
 
 export function ScratchpadToolbar({
@@ -30,12 +32,14 @@ export function ScratchpadToolbar({
   size,
   canUndo,
   canRedo,
+  pencilOnly,
   onSetTool,
   onSetColor,
   onSetSize,
   onUndo,
   onRedo,
   onClear,
+  onTogglePencilOnly,
 }: ToolbarProps) {
   const sizes = SIZES_BY_TOOL[tool];
   const colorDisabled = tool === 'eraser';
@@ -109,6 +113,16 @@ export function ScratchpadToolbar({
           <Text style={styles.actionLabel}>🗑</Text>
         </Pressable>
       </View>
+
+      <View style={styles.divider} />
+
+      <Pressable
+        onPress={onTogglePencilOnly}
+        accessibilityLabel="펜슬 전용 모드"
+        accessibilityState={{ selected: pencilOnly }}
+        style={[styles.actionBtn, pencilOnly && styles.toolBtnActive]}>
+        <Text style={[styles.actionLabel, !pencilOnly && styles.actionDisabled]}>✎</Text>
+      </Pressable>
     </View>
   );
 }

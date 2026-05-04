@@ -9,7 +9,7 @@ import {
   vec,
   type SkPath,
 } from '@shopify/react-native-skia';
-import { useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
@@ -28,6 +28,8 @@ type ScratchpadCanvasProps = {
   width: number;
   height: number;
   scratchpad: CanvasScratchpadProps;
+  /** When true, only Apple Pencil (stylus) input is accepted. Finger/palm touches are ignored. */
+  pencilOnly?: boolean;
 };
 
 const LINE_GAP = 32;
@@ -69,28 +71,35 @@ function strokeWidthFor(s: Stroke): number {
 
 type CachedPath = { path: SkPath; color: string; width: number; opacity: number };
 
-export function ScratchpadCanvas({ width, height, scratchpad }: ScratchpadCanvasProps) {
+export function ScratchpadCanvas({ width, height, scratchpad, pencilOnly = false }: ScratchpadCanvasProps) {
   const { strokes, liveStroke, beginStroke, appendPoint, endStroke } = scratchpad;
 
-  // Cache built Skia paths by stroke id — only rebuild new strokes, not the whole array
+  // Cache built Skia paths by stroke id. Add-only inside useMemo to keep render pure;
+  // pruning happens in a useEffect below.
   const pathCacheRef = useRef<Map<string, CachedPath>>(new Map());
   const committedPaths = useMemo(() => {
     const cache = pathCacheRef.current;
-    const currentIds = new Set(strokes.map((s) => s.id));
-    for (const id of cache.keys()) {
-      if (!currentIds.has(id)) cache.delete(id);
-    }
     return strokes.map((s) => {
-      if (!cache.has(s.id)) {
-        cache.set(s.id, {
+      let entry = cache.get(s.id);
+      if (!entry) {
+        entry = {
           path: buildPath(s.points),
           color: s.color,
           width: strokeWidthFor(s),
           opacity: strokeOpacity(s),
-        });
+        };
+        cache.set(s.id, entry);
       }
-      return { id: s.id, ...cache.get(s.id)! };
+      return { id: s.id, ...entry };
     });
+  }, [strokes]);
+
+  useEffect(() => {
+    const cache = pathCacheRef.current;
+    const currentIds = new Set(strokes.map((s) => s.id));
+    for (const id of Array.from(cache.keys())) {
+      if (!currentIds.has(id)) cache.delete(id);
+    }
   }, [strokes]);
 
   const livePath = useMemo(
@@ -105,16 +114,29 @@ export function ScratchpadCanvas({ width, height, scratchpad }: ScratchpadCanvas
     [],
   );
 
+  // Track whether the in-flight gesture originated from a stylus (Apple Pencil).
+  // RNGH 2.20+ sets `event.stylusData` on PanGestureHandlerEventPayload when the
+  // input is a pencil. We use it for both pencil-only filtering and real pressure.
+  const pencilOnlyRef = useRef(pencilOnly);
+  pencilOnlyRef.current = pencilOnly;
+  const isStylusGestureRef = useRef(false);
+
   const pan = Gesture.Pan()
     .maxPointers(1)
     .minDistance(0)
     .onBegin((e) => {
-      beginStroke({ x: e.x, y: e.y, p: 0.5 });
+      isStylusGestureRef.current = !!e.stylusData;
+      if (pencilOnlyRef.current && !isStylusGestureRef.current) return;
+      const p = e.stylusData?.pressure ?? 0.5;
+      beginStroke({ x: e.x, y: e.y, p });
     })
     .onUpdate((e) => {
-      appendPoint({ x: e.x, y: e.y, p: 0.5 });
+      if (pencilOnlyRef.current && !isStylusGestureRef.current) return;
+      const p = e.stylusData?.pressure ?? 0.5;
+      appendPoint({ x: e.x, y: e.y, p });
     })
     .onFinalize(() => {
+      if (pencilOnlyRef.current && !isStylusGestureRef.current) return;
       endStroke();
     });
 
