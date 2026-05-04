@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native';
+
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { NoteCollectionBar } from '@/features/quiz/exam/components/note-collection-bar';
 
 export type ExamAnalysisResumeCardProps = {
   examTitle: string;
@@ -16,22 +16,39 @@ export function ExamAnalysisResumeCard({
   totalNotes,
   onPress,
 }: ExamAnalysisResumeCardProps) {
+  const safeCurrent = Math.min(Math.max(noteCount, 0), totalNotes);
+  const fillPercent: DimensionValue = totalNotes > 0 ? `${(safeCurrent / totalNotes) * 100}%` : '0%';
+
   return (
     <Pressable
+      testID="exam-resume-card"
+      accessibilityRole="button"
+      accessibilityLabel={`${examTitle} 분석 이어가기, 학습 노트 ${noteCount} / ${totalNotes} 진행 중`}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={onPress}
-    >
-      <Text style={styles.kicker}>📔 모의고사 분석 진행 중</Text>
-      <Text style={styles.title}>{examTitle}</Text>
-      <Text style={styles.sub}>지난 분석을 이어서 해보세요</Text>
+      onPress={onPress}>
+      <View style={styles.pill}>
+        <View style={styles.pillDot} />
+        <Text style={styles.pillText}>분석 진행 중</Text>
+      </View>
 
-      <View style={styles.collection}>
-        <NoteCollectionBar
-          current={noteCount}
-          total={totalNotes}
-          variant="compact"
-          showRemainingHint={false}
-        />
+      <Text style={styles.title}>{examTitle}</Text>
+
+      <View style={styles.progressSection}>
+        <View style={styles.progressLabelRow}>
+          <Text style={styles.progressLabel}>학습 노트</Text>
+          <Text style={styles.progressCount}>
+            {noteCount} / {totalNotes}
+          </Text>
+        </View>
+        <View
+          style={styles.progressTrack}
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: totalNotes, now: noteCount }}>
+          <View
+            testID="exam-resume-progress-fill"
+            style={[styles.progressFill, { width: fillPercent }]}
+          />
+        </View>
       </View>
 
       <View style={styles.cta}>
@@ -43,37 +60,79 @@ export function ExamAnalysisResumeCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: BrandColors.examSoftGreen,
-    borderColor: BrandColors.examForestBorder,
-    borderWidth: 1,
+    backgroundColor: BrandColors.examPaleGreen,
+    borderColor: BrandColors.examSoftGreen,
+    borderWidth: 1.5,
     borderRadius: BrandRadius.lg,
     padding: BrandSpacing.md,
   },
   cardPressed: {
     opacity: 0.85,
   },
-  kicker: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 11,
-    color: BrandColors.examForest,
-    letterSpacing: 0.7,
-    marginBottom: 4,
+
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: BrandColors.examSoftGreen,
+    gap: 6,
+    marginBottom: BrandSpacing.sm,
   },
+  pillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: BrandColors.primarySoft,
+  },
+  pillText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 12,
+    color: BrandColors.examForest,
+  },
+
   title: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 16,
+    fontSize: 17,
+    lineHeight: 23,
+    letterSpacing: -0.3,
     color: BrandColors.examDeepGreen,
-    marginBottom: 2,
+    marginBottom: BrandSpacing.md,
   },
-  sub: {
+
+  progressSection: {
+    marginBottom: BrandSpacing.md,
+  },
+  progressLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressLabel: {
     fontFamily: FontFamilies.medium,
-    fontSize: 11,
+    fontSize: 13,
+    color: BrandColors.mutedText,
+  },
+  progressCount: {
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 13,
     color: BrandColors.examForest,
-    marginBottom: BrandSpacing.sm,
   },
-  collection: {
-    marginBottom: BrandSpacing.sm,
+  progressTrack: {
+    width: '100%',
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: BrandColors.examSoftGreen,
+    overflow: 'hidden',
   },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: BrandColors.primarySoft,
+  },
+
   cta: {
     backgroundColor: BrandColors.primary,
     borderRadius: BrandRadius.md,
