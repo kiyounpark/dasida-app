@@ -164,6 +164,13 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
   const lastSavedStrokesRef = useRef<Stroke[]>(initialState.strokes);
   const stateRef = useRef(state);
   stateRef.current = state;
+  // Mutable refs so flush-on-unmount always writes to the current key, not the mount-time key
+  const accountKeyRef = useRef(accountKey);
+  const examIdRef = useRef(examId);
+  const problemNumberRef = useRef(problemNumber);
+  accountKeyRef.current = accountKey;
+  examIdRef.current = examId;
+  problemNumberRef.current = problemNumber;
   // Mutable refs for tool/color/size so callbacks read latest values even within a batched act()
   const toolRef = useRef<ActiveTool>(initialState.tool);
   const colorRef = useRef<string>(initialState.color);
@@ -211,11 +218,12 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
     return () => {
       if (writeTimer.current) clearTimeout(writeTimer.current);
       const current = stateRef.current;
-      if (!accountKey || !current.loaded) return;
+      const key = accountKeyRef.current;
+      if (!key || !current.loaded) return;
       if (current.strokes === lastSavedStrokesRef.current) return;
-      void saveScratchpad(accountKey, {
-        examId,
-        problemNumber,
+      void saveScratchpad(key, {
+        examId: examIdRef.current,
+        problemNumber: problemNumberRef.current,
         strokes: current.strokes,
         updatedAt: Date.now(),
       });

@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -17,6 +17,7 @@ export function SplitDivider({ onDragStart, onDrag, onDragEnd }: SplitDividerPro
   const active = useSharedValue(0);
 
   const pan = Gesture.Pan()
+    .hitSlop({ left: 8, right: 8 })
     .onBegin(() => {
       active.value = withTiming(1, { duration: 120 });
       runOnJS(onDragStart)();
@@ -24,7 +25,7 @@ export function SplitDivider({ onDragStart, onDrag, onDragEnd }: SplitDividerPro
     .onUpdate((e) => {
       runOnJS(onDrag)(e.translationX);
     })
-    .onEnd(() => {
+    .onFinalize(() => {
       active.value = withTiming(0, { duration: 120 });
       runOnJS(onDragEnd)();
     });
@@ -35,9 +36,7 @@ export function SplitDivider({ onDragStart, onDrag, onDragEnd }: SplitDividerPro
 
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={[styles.bar, bgStyle]}>
-        <View style={styles.hitArea} />
-      </Animated.View>
+      <Animated.View style={[styles.bar, bgStyle]} />
     </GestureDetector>
   );
 }
@@ -46,12 +45,5 @@ const styles = StyleSheet.create({
   bar: {
     width: 8,
     height: '100%',
-  },
-  hitArea: {
-    position: 'absolute',
-    left: -8,
-    right: -8,
-    top: 0,
-    bottom: 0,
   },
 });

@@ -7,8 +7,9 @@ import {
   Text as SkiaText,
   matchFont,
   vec,
+  type SkPath,
 } from '@shopify/react-native-skia';
-import { useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
@@ -66,20 +67,31 @@ function strokeWidthFor(s: Stroke): number {
   return s.size * (0.4 + 0.6 * avgP);
 }
 
+type CachedPath = { path: SkPath; color: string; width: number; opacity: number };
+
 export function ScratchpadCanvas({ width, height, scratchpad }: ScratchpadCanvasProps) {
   const { strokes, liveStroke, beginStroke, appendPoint, endStroke } = scratchpad;
 
-  const committedPaths = useMemo(
-    () =>
-      strokes.map((s) => ({
-        id: s.id,
-        path: buildPath(s.points),
-        color: s.color,
-        width: strokeWidthFor(s),
-        opacity: strokeOpacity(s),
-      })),
-    [strokes],
-  );
+  // Cache built Skia paths by stroke id — only rebuild new strokes, not the whole array
+  const pathCacheRef = useRef<Map<string, CachedPath>>(new Map());
+  const committedPaths = useMemo(() => {
+    const cache = pathCacheRef.current;
+    const currentIds = new Set(strokes.map((s) => s.id));
+    for (const id of cache.keys()) {
+      if (!currentIds.has(id)) cache.delete(id);
+    }
+    return strokes.map((s) => {
+      if (!cache.has(s.id)) {
+        cache.set(s.id, {
+          path: buildPath(s.points),
+          color: s.color,
+          width: strokeWidthFor(s),
+          opacity: strokeOpacity(s),
+        });
+      }
+      return { id: s.id, ...cache.get(s.id)! };
+    });
+  }, [strokes]);
 
   const livePath = useMemo(
     () => (liveStroke ? buildPath(liveStroke.points) : null),
@@ -89,7 +101,7 @@ export function ScratchpadCanvas({ width, height, scratchpad }: ScratchpadCanvas
   const lineCount = Math.floor((height - 24) / LINE_GAP);
 
   const wordmarkFont = useMemo(
-    () => matchFont({ fontFamily: 'monospace', fontSize: 13 }),
+    () => matchFont({ fontFamily: 'Courier New', fontSize: 13 }),
     [],
   );
 
@@ -100,12 +112,9 @@ export function ScratchpadCanvas({ width, height, scratchpad }: ScratchpadCanvas
       beginStroke({ x: e.x, y: e.y, p: 0.5 });
     })
     .onUpdate((e) => {
-      const force = typeof (e as { force?: number }).force === 'number'
-        ? (e as { force?: number }).force!
-        : 0.5;
-      appendPoint({ x: e.x, y: e.y, p: force });
+      appendPoint({ x: e.x, y: e.y, p: 0.5 });
     })
-    .onEnd(() => {
+    .onFinalize(() => {
       endStroke();
     });
 
