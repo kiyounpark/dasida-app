@@ -21,6 +21,9 @@ export function ExamAnalysisResumeCard({
 
   return (
     <Pressable
+      testID="exam-resume-card"
+      accessibilityRole="button"
+      accessibilityLabel={`${examTitle} 분석 이어가기, 학습 노트 ${noteCount} / ${totalNotes} 진행 중`}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={onPress}>
       <View style={styles.pill}>
@@ -37,9 +40,12 @@ export function ExamAnalysisResumeCard({
             {noteCount} / {totalNotes}
           </Text>
         </View>
-        <View style={styles.progressTrack}>
+        <View
+          style={styles.progressTrack}
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: totalNotes, now: noteCount }}>
           <View
-            testID="progress-fill"
+            testID="exam-resume-progress-fill"
             style={[styles.progressFill, { width: fillPercent }]}
           />
         </View>

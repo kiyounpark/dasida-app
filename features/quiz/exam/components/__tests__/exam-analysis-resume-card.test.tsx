@@ -32,7 +32,7 @@ describe('ExamAnalysisResumeCard', () => {
 
   it('진행률 바 fill width 가 noteCount/totalNotes 비율(25%)로 설정된다', () => {
     render(<ExamAnalysisResumeCard {...defaultProps} />);
-    const fill = screen.getByTestId('progress-fill');
+    const fill = screen.getByTestId('exam-resume-progress-fill');
     const flatStyle = Array.isArray(fill.props.style)
       ? Object.assign({}, ...fill.props.style.flat())
       : fill.props.style;
@@ -41,7 +41,7 @@ describe('ExamAnalysisResumeCard', () => {
 
   it('totalNotes=0 이면 fill width 가 "0%" 로 안전하게 표시된다', () => {
     render(<ExamAnalysisResumeCard {...defaultProps} noteCount={0} totalNotes={0} />);
-    const fill = screen.getByTestId('progress-fill');
+    const fill = screen.getByTestId('exam-resume-progress-fill');
     const flatStyle = Array.isArray(fill.props.style)
       ? Object.assign({}, ...fill.props.style.flat())
       : fill.props.style;
@@ -50,7 +50,7 @@ describe('ExamAnalysisResumeCard', () => {
 
   it('카드 Pressable 클릭 시 onPress 콜백이 호출된다', () => {
     render(<ExamAnalysisResumeCard {...defaultProps} />);
-    fireEvent.press(screen.getByText('이어서 분석하기 →'));
+    fireEvent.press(screen.getByTestId('exam-resume-card'));
     expect(defaultProps.onPress).toHaveBeenCalledTimes(1);
   });
 });
