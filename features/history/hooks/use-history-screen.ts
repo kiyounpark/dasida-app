@@ -137,14 +137,16 @@ export function useHistoryScreen() {
 
           setAnalysisState(
             computeAnalysisInProgressState({
-              latestAttempt: {
-                examId: latest.sourceEntityId ?? '',
-                attemptId: latest.id,
-                attemptDateISO: latest.completedAt,
-                wrongProblemNumbers,
-                result: resultSummary,
-              },
-              diagnosedProblems: diagnosed,
+              latestAttempts: [
+                {
+                  examId: latest.sourceEntityId ?? '',
+                  attemptId: latest.id,
+                  attemptDateISO: latest.completedAt,
+                  wrongProblemNumbers,
+                  result: resultSummary,
+                },
+              ],
+              diagnosedProblemsByAttempt: { [latest.id]: diagnosed },
             }),
           );
         } catch {
@@ -187,9 +189,11 @@ export function useHistoryScreen() {
       if (!latestAttempt || !latestAttempt.result) return;
       if (!analysisState.isInProgress) return;
 
+      const firstItem = analysisState.isInProgress ? analysisState.items[0] : null;
+      if (!firstItem) return;
       const queue = buildResumeAnalysisQueue(
         latestAttempt.wrongProblemNumbers,
-        analysisState.diagnosedNotes,
+        firstItem.diagnosedNotes,
       );
       if (queue.length === 0) return;
 
@@ -201,7 +205,7 @@ export function useHistoryScreen() {
           wrongProblemNumbers: JSON.stringify(queue),
           startIndex: '0',
           totalNotes: String(latestAttempt.wrongProblemNumbers.length),
-          diagnosedCountBefore: String(analysisState.diagnosedNotes.length),
+          diagnosedCountBefore: String(firstItem.diagnosedNotes.length),
         },
       });
       return;

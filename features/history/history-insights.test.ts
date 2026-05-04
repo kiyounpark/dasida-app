@@ -119,13 +119,18 @@ describe('buildHero', () => {
       recentExamAttempts: [makeExamAttempt()],
       analysisState: {
         isInProgress: true,
-        examId: 'g3-calc-mock-2025-09',
-        attemptId: 'att1',
-        noteCount: 2,
-        totalNotes: 5,
-        diagnosedNotes: [
-          { problemNumber: 1, weaknessId: w('w_calc_def') },
-          { problemNumber: 2, weaknessId: w('w_calc_chain') },
+        items: [
+          {
+            examId: 'g3-calc-mock-2025-09',
+            attemptId: 'att1',
+            attemptDateISO: '2026-04-29T11:00:00.000Z',
+            noteCount: 2,
+            totalNotes: 5,
+            diagnosedNotes: [
+              { problemNumber: 1, weaknessId: w('w_calc_def') },
+              { problemNumber: 2, weaknessId: w('w_calc_chain') },
+            ],
+          },
         ],
       },
     });
@@ -192,11 +197,16 @@ describe('buildExamHistoryItems', () => {
       latestAttemptId: 'att-latest',
       analysisState: {
         isInProgress: true,
-        examId: 'g3-calc-mock-2025-09',
-        attemptId: 'att-latest',
-        noteCount: 2,
-        totalNotes: 5,
-        diagnosedNotes: [],
+        items: [
+          {
+            examId: 'g3-calc-mock-2025-09',
+            attemptId: 'att-latest',
+            attemptDateISO: '2026-04-29T11:00:00.000Z',
+            noteCount: 2,
+            totalNotes: 5,
+            diagnosedNotes: [],
+          },
+        ],
       },
     });
 

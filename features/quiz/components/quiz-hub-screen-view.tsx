@@ -221,15 +221,15 @@ export function QuizHubScreenView({
             ) : null}
             {showAnalysisResumeCard && analysisState.isInProgress ? (
               <ExamAnalysisResumeCard
-                examTitle={getExamTitle(analysisState.examId)}
-                noteCount={analysisState.noteCount}
-                totalNotes={analysisState.totalNotes}
-                onPress={onResumeAnalysis}
+                examTitle={getExamTitle(analysisState.items[0]?.examId ?? '')}
+                noteCount={analysisState.items[0]?.noteCount ?? 0}
+                totalNotes={analysisState.items[0]?.totalNotes ?? 0}
+                onPress={() => onResumeAnalysis(analysisState.items[0]?.attemptId ?? '')}
               />
             ) : null}
             {showCollectedNotes && analysisState.isInProgress ? (
               <CollectedNotesList
-                notes={analysisState.diagnosedNotes}
+                notes={analysisState.items[0]?.diagnosedNotes ?? []}
                 resolveLabel={resolveLabel}
               />
             ) : null}

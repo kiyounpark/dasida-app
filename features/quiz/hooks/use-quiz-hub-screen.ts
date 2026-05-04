@@ -7,6 +7,7 @@ import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
+import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
   type AnalysisInProgressState,
@@ -38,7 +39,7 @@ export type UseQuizHubScreenResult = {
   onPressReviewCard: () => void;
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
-  onResumeAnalysis: () => void;
+  onResumeAnalysis: (attemptId: string) => void;
   onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
@@ -66,7 +67,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   } = useCurrentLearner();
   const { hydrateResult } = useExamSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
-  const [latestAttempt, setLatestAttempt] = useState<LatestExamAttemptSummary | null>(null);
+  const [latestAttempts, setLatestAttempts] = useState<LatestExamAttemptSummary[]>([]);
   const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({
     isInProgress: false,
   });
@@ -117,26 +118,31 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       let cancelled = false;
       void (async () => {
         if (!accountKey) {
-          setLatestAttempt(null);
+          setLatestAttempts([]);
           setAnalysisState({ isInProgress: false });
           return;
         }
         const attempts = await getLatestExamAttempts(accountKey);
         if (cancelled) return;
-        const attempt = attempts[0] ?? null;
-        setLatestAttempt(attempt);
-        if (!attempt) {
+        setLatestAttempts(attempts);
+        if (attempts.length === 0) {
           setAnalysisState({ isInProgress: false });
           return;
         }
-        const diagnosed = await getDiagnosisProgress({
-          examId: attempt.examId,
-          attemptId: attempt.attemptId,
-          attemptDateISO: attempt.attemptDateISO,
-        });
-        if (cancelled) return;
+        const diagnosedProblemsByAttempt: Record<string, Record<number, WeaknessId>> = {};
+        for (const attempt of attempts) {
+          diagnosedProblemsByAttempt[attempt.attemptId] = await getDiagnosisProgress({
+            examId: attempt.examId,
+            attemptId: attempt.attemptId,
+            attemptDateISO: attempt.attemptDateISO,
+          });
+          if (cancelled) return;
+        }
         setAnalysisState(
-          computeAnalysisInProgressState({ latestAttempt: attempt, diagnosedProblems: diagnosed }),
+          computeAnalysisInProgressState({
+            latestAttempts: attempts,
+            diagnosedProblemsByAttempt,
+          }),
         );
       })();
       return () => {
@@ -196,33 +202,36 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/quiz/diagnostic');
   };
 
-  const onResumeAnalysis = useCallback(() => {
-    if (!latestAttempt || !latestAttempt.result) return;
-    if (!analysisState.isInProgress) return;
+  const onResumeAnalysis = useCallback(
+    (attemptId: string) => {
+      const attempt = latestAttempts.find((a) => a.attemptId === attemptId);
+      if (!attempt || !attempt.result) return;
+      if (!analysisState.isInProgress) return;
 
-    // 미진단 문제만 원래 번호 순서대로 추린다. 비순차 진단(결과 화면에서
-    // 점수 높은 문제부터 클릭한 케이스 등)에서도 누락 없이 정확한 큐를 만든다.
-    const queue = buildResumeAnalysisQueue(
-      latestAttempt.wrongProblemNumbers,
-      analysisState.diagnosedNotes,
-    );
-    if (queue.length === 0) return;
+      const item = analysisState.items.find((i) => i.attemptId === attemptId);
+      if (!item) return;
 
-    // dispatch(HYDRATE_RESULT)는 동기적이므로 router.push 이전에 state 업데이트가 완료된다.
-    // diagnosis-session이 mount될 때 state.result가 이미 hydrate된 상태임이 보장된다.
-    hydrateResult(latestAttempt.result);
+      const queue = buildResumeAnalysisQueue(
+        attempt.wrongProblemNumbers,
+        item.diagnosedNotes,
+      );
+      if (queue.length === 0) return;
 
-    router.push({
-      pathname: '/quiz/exam/diagnosis-session',
-      params: {
-        examId: latestAttempt.examId,
-        wrongProblemNumbers: JSON.stringify(queue),
-        startIndex: '0',
-        totalNotes: String(latestAttempt.wrongProblemNumbers.length),
-        diagnosedCountBefore: String(analysisState.diagnosedNotes.length),
-      },
-    });
-  }, [latestAttempt, analysisState, hydrateResult]);
+      hydrateResult(attempt.result);
+
+      router.push({
+        pathname: '/quiz/exam/diagnosis-session',
+        params: {
+          examId: attempt.examId,
+          wrongProblemNumbers: JSON.stringify(queue),
+          startIndex: '0',
+          totalNotes: String(attempt.wrongProblemNumbers.length),
+          diagnosedCountBefore: String(item.diagnosedNotes.length),
+        },
+      });
+    },
+    [latestAttempts, analysisState, hydrateResult],
+  );
 
   const onPressJourneyCta = () => {
     const action = homeState?.journey.ctaAction;
