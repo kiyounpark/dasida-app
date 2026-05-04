@@ -9,4 +9,6 @@ export const StorageKeys = {
   learningHistoryMigrationPrefix: 'dasida/history-migration/',
   featuredExamAttemptPrefix: 'dasida/featured-exam/',
   examDiagnosisProgressPrefix: 'dasida/exam-diagnosis/',
+  scratchpadPrefix: 'dasida/scratchpad/',
+  scratchpadSplitRatioPrefix: 'dasida/scratchpad-split-ratio/',
 } as const;

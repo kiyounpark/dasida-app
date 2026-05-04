@@ -6,6 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { router, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
@@ -164,21 +165,23 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <CurrentLearnerProvider>
-        <ExamSessionProvider>
-          <SplashGate />
-          <AuthGateRedirector />
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
-          </Stack>
-        </ExamSessionProvider>
-      </CurrentLearnerProvider>
-      <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <CurrentLearnerProvider>
+          <ExamSessionProvider>
+            <SplashGate />
+            <AuthGateRedirector />
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
+            </Stack>
+          </ExamSessionProvider>
+        </CurrentLearnerProvider>
+        <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
