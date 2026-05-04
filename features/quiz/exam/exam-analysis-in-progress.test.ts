@@ -28,7 +28,7 @@ const SAMPLE_RESULT: ExamResultSummary = {
 
 describe('computeAnalysisInProgressState', () => {
   it('어템트 없으면 inactive', () => {
-    expect(computeAnalysisInProgressState({ latestAttempt: null, diagnosedProblems: {} })).toEqual({
+    expect(computeAnalysisInProgressState({ latestAttempts: [], diagnosedProblemsByAttempt: {} })).toEqual({
       isInProgress: false,
     });
   });
@@ -36,8 +36,8 @@ describe('computeAnalysisInProgressState', () => {
   it('오답 0개면 inactive', () => {
     expect(
       computeAnalysisInProgressState({
-        latestAttempt: { examId: 'e1', attemptId: 'a1', attemptDateISO: '2026-04-26', wrongProblemNumbers: [], result: null },
-        diagnosedProblems: {},
+        latestAttempts: [{ examId: 'e1', attemptId: 'a1', attemptDateISO: '2026-04-26', wrongProblemNumbers: [], result: null }],
+        diagnosedProblemsByAttempt: {},
       }),
     ).toEqual({ isInProgress: false });
   });
@@ -45,32 +45,37 @@ describe('computeAnalysisInProgressState', () => {
   it('legacy data (result == null)면 inactive', () => {
     expect(
       computeAnalysisInProgressState({
-        latestAttempt: {
-          examId: 'e1',
-          attemptId: 'a1',
-          attemptDateISO: '2026-04-26',
-          wrongProblemNumbers: [1, 2, 3],
-          result: null,
-        },
-        diagnosedProblems: {},
+        latestAttempts: [
+          {
+            examId: 'e1',
+            attemptId: 'a1',
+            attemptDateISO: '2026-04-26',
+            wrongProblemNumbers: [1, 2, 3],
+            result: null,
+          },
+        ],
+        diagnosedProblemsByAttempt: {},
       }),
     ).toEqual({ isInProgress: false });
   });
 
   it('진단 0/N: 진행 중', () => {
-    expect(
-      computeAnalysisInProgressState({
-        latestAttempt: {
+    const state = computeAnalysisInProgressState({
+      latestAttempts: [
+        {
           examId: 'e1',
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
           result: SAMPLE_RESULT,
         },
-        diagnosedProblems: {},
-      }),
-    ).toEqual({
-      isInProgress: true,
+      ],
+      diagnosedProblemsByAttempt: {},
+    });
+    expect(state.isInProgress).toBe(true);
+    if (!state.isInProgress) return;
+    expect(state.items).toHaveLength(1);
+    expect(state.items[0]).toMatchObject({
       examId: 'e1',
       attemptId: 'a1',
       noteCount: 0,
@@ -80,19 +85,21 @@ describe('computeAnalysisInProgressState', () => {
   });
 
   it('진단 2/3: 진행 중, noteCount 2', () => {
-    expect(
-      computeAnalysisInProgressState({
-        latestAttempt: {
+    const state = computeAnalysisInProgressState({
+      latestAttempts: [
+        {
           examId: 'e1',
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2, 3],
           result: SAMPLE_RESULT,
         },
-        diagnosedProblems: { 1: w('w_basic'), 2: w('w_advanced') },
-      }),
-    ).toEqual({
-      isInProgress: true,
+      ],
+      diagnosedProblemsByAttempt: { a1: { 1: w('w_basic'), 2: w('w_advanced') } },
+    });
+    expect(state.isInProgress).toBe(true);
+    if (!state.isInProgress) return;
+    expect(state.items[0]).toMatchObject({
       examId: 'e1',
       attemptId: 'a1',
       noteCount: 2,
@@ -107,32 +114,36 @@ describe('computeAnalysisInProgressState', () => {
   it('진단 3/3 (완료): inactive (종합 리포트가 노출되어야 함)', () => {
     expect(
       computeAnalysisInProgressState({
-        latestAttempt: {
-          examId: 'e1',
-          attemptId: 'a1',
-          attemptDateISO: '2026-04-26',
-          wrongProblemNumbers: [1, 2, 3],
-          result: SAMPLE_RESULT,
-        },
-        diagnosedProblems: { 1: w('w1'), 2: w('w2'), 3: w('w3') },
+        latestAttempts: [
+          {
+            examId: 'e1',
+            attemptId: 'a1',
+            attemptDateISO: '2026-04-26',
+            wrongProblemNumbers: [1, 2, 3],
+            result: SAMPLE_RESULT,
+          },
+        ],
+        diagnosedProblemsByAttempt: { a1: { 1: w('w1'), 2: w('w2'), 3: w('w3') } },
       }),
     ).toEqual({ isInProgress: false });
   });
 
-  it('diagnosedProblems에 wrongProblemNumbers 외 키가 있어도 무시 (재시도 케이스)', () => {
-    expect(
-      computeAnalysisInProgressState({
-        latestAttempt: {
+  it('diagnosedProblemsByAttempt에 wrongProblemNumbers 외 키가 있어도 무시 (재시도 케이스)', () => {
+    const state = computeAnalysisInProgressState({
+      latestAttempts: [
+        {
           examId: 'e1',
           attemptId: 'a1',
           attemptDateISO: '2026-04-26',
           wrongProblemNumbers: [1, 2],
           result: SAMPLE_RESULT,
         },
-        diagnosedProblems: { 1: w('w1'), 99: w('w_stale') },
-      }),
-    ).toEqual({
-      isInProgress: true,
+      ],
+      diagnosedProblemsByAttempt: { a1: { 1: w('w1'), 99: w('w_stale') } },
+    });
+    expect(state.isInProgress).toBe(true);
+    if (!state.isInProgress) return;
+    expect(state.items[0]).toMatchObject({
       examId: 'e1',
       attemptId: 'a1',
       noteCount: 1,

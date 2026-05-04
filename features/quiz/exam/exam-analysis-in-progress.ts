@@ -9,54 +9,57 @@ export type LatestExamAttemptSummary = {
   result: ExamResultSummary | null;
 };
 
-export type AnalysisInProgressInput = {
-  latestAttempt: LatestExamAttemptSummary | null;
-  diagnosedProblems: Record<number, WeaknessId>;
-};
-
 export type DiagnosedNote = {
   problemNumber: number;
   weaknessId: WeaknessId;
 };
 
+export type AnalysisInProgressItem = {
+  examId: string;
+  attemptId: string;
+  attemptDateISO: string;
+  noteCount: number;
+  totalNotes: number;
+  diagnosedNotes: DiagnosedNote[];
+};
+
+export type AnalysisInProgressInput = {
+  latestAttempts: LatestExamAttemptSummary[];
+  diagnosedProblemsByAttempt: Record<string, Record<number, WeaknessId>>;
+};
+
 export type AnalysisInProgressState =
   | { isInProgress: false }
-  | {
-      isInProgress: true;
-      examId: string;
-      attemptId: string;
-      noteCount: number;
-      totalNotes: number;
-      diagnosedNotes: DiagnosedNote[];
-    };
+  | { isInProgress: true; items: AnalysisInProgressItem[] };
 
 export function computeAnalysisInProgressState(
   input: AnalysisInProgressInput,
 ): AnalysisInProgressState {
-  const { latestAttempt, diagnosedProblems } = input;
+  const { latestAttempts, diagnosedProblemsByAttempt } = input;
 
-  if (!latestAttempt || latestAttempt.wrongProblemNumbers.length === 0) {
-    return { isInProgress: false };
+  const items: AnalysisInProgressItem[] = [];
+  for (const attempt of latestAttempts) {
+    if (attempt.result === null) continue;
+    if (attempt.wrongProblemNumbers.length === 0) continue;
+
+    const totalNotes = attempt.wrongProblemNumbers.length;
+    const diagnosed = diagnosedProblemsByAttempt[attempt.attemptId] ?? {};
+    const diagnosedNotes: DiagnosedNote[] = attempt.wrongProblemNumbers
+      .filter((n) => diagnosed[n] !== undefined)
+      .map((n) => ({ problemNumber: n, weaknessId: diagnosed[n]! }));
+
+    if (diagnosedNotes.length >= totalNotes) continue;
+
+    items.push({
+      examId: attempt.examId,
+      attemptId: attempt.attemptId,
+      attemptDateISO: attempt.attemptDateISO,
+      noteCount: diagnosedNotes.length,
+      totalNotes,
+      diagnosedNotes,
+    });
   }
-  if (latestAttempt.result === null) {
-    return { isInProgress: false };
-  }
 
-  const totalNotes = latestAttempt.wrongProblemNumbers.length;
-  const diagnosedNotes: DiagnosedNote[] = latestAttempt.wrongProblemNumbers
-    .filter((n) => diagnosedProblems[n] !== undefined)
-    .map((n) => ({ problemNumber: n, weaknessId: diagnosedProblems[n]! }));
-
-  if (diagnosedNotes.length >= totalNotes) {
-    return { isInProgress: false };
-  }
-
-  return {
-    isInProgress: true,
-    examId: latestAttempt.examId,
-    attemptId: latestAttempt.attemptId,
-    noteCount: diagnosedNotes.length,
-    totalNotes,
-    diagnosedNotes,
-  };
+  if (items.length === 0) return { isInProgress: false };
+  return { isInProgress: true, items };
 }

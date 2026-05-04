@@ -166,7 +166,10 @@ export function buildExamHistoryItems(input: {
     let statusLabel: string;
     if (isLatest && analysisState.isInProgress) {
       status = 'in_progress';
-      statusLabel = `진행 중 ${analysisState.noteCount}/${analysisState.totalNotes}`;
+      const matched = analysisState.items.find((i) => i.attemptId === attempt.id);
+      statusLabel = matched
+        ? `진행 중 ${matched.noteCount}/${matched.totalNotes}`
+        : '진행 중';
     } else if (attempt.primaryWeaknessId !== null) {
       status = 'completed';
       statusLabel = '분석 완료';
