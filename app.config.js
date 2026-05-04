@@ -4,7 +4,7 @@ module.exports = {
   expo: {
     name: IS_DEV ? '다시다 Dev' : '다시다',
     slug: 'dasida-app',
-    version: '1.0.2',
+    version: '1.0.3',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: IS_DEV ? 'dasidaapp-dev' : 'dasidaapp',
