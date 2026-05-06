@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -402,6 +403,13 @@ export function ProfileScreenView({
             label="개인정보처리방침"
             onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy).catch(() => Alert.alert('오류', '링크를 열 수 없습니다.'))}
           />
+          {__DEV__ ? (
+            <ActionButton
+              label="🛠 개발자 도구"
+              subtle
+              onPress={() => router.push('/dev')}
+            />
+          ) : null}
         </View>
 
       </ScrollView>
