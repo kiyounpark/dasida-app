@@ -6,6 +6,7 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
+import { NotificationOptInCard } from '@/features/quiz/components/notification-opt-in-card';
 import { QuizResultReportView } from '@/features/quiz/components/quiz-result-report-view';
 
 export function QuizResultScreenView({
@@ -18,6 +19,7 @@ export function QuizResultScreenView({
   onOpenSnapshotPractice,
   onOpenWeaknessPractice,
   onRestartQuiz,
+  optInCard,
   persistResult,
   saveErrorMessage,
   saveState,
@@ -210,6 +212,12 @@ export function QuizResultScreenView({
             </View>
           </View>
         )}
+        <NotificationOptInCard
+          weaknessLabels={optInCard.weaknessLabels}
+          state={optInCard.state}
+          onEnable={optInCard.onEnable}
+          onDismiss={optInCard.onDismiss}
+        />
       </ScrollView>
     </View>
   );
