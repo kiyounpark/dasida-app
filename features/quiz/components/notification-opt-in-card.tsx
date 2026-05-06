@@ -45,7 +45,7 @@ export function NotificationOptInCard({ weaknessLabels, state, onEnable, onDismi
           onPress={onDismiss}
           disabled={isBusy}
           accessibilityRole="button"
-          accessibilityLabel="알림 나중에 켜기">
+          accessibilityLabel="나중에 결정">
           <Text style={styles.secondaryButtonText}>나중에</Text>
         </Pressable>
       </View>
