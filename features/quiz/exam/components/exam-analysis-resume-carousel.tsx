@@ -75,6 +75,7 @@ export function ExamAnalysisResumeCarousel({
 
   return (
     <View
+      style={{ width: '100%' }}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width;
         if (w > 0) setContainerWidth(w);
