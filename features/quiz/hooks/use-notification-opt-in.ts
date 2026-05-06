@@ -47,6 +47,7 @@ export function useNotificationOptIn({ accountKey, hasWeaknesses }: Params): Res
         if (cancelled) return;
         if (status === 'granted') {
           setState('granted');
+          if (cancelled) return;
           await scheduleReviewNotifications(accountKey, reviewStore).catch((err: unknown) => {
             console.warn('[useNotificationOptIn] schedule failed', err);
           });
@@ -75,6 +76,7 @@ export function useNotificationOptIn({ accountKey, hasWeaknesses }: Params): Res
     if (!mountedRef.current) return;
     if (granted) {
       setState('granted');
+      if (!mountedRef.current) return;
       await scheduleReviewNotifications(accountKey, reviewStore).catch((err: unknown) => {
         console.warn('[useNotificationOptIn] schedule failed', err);
       });

@@ -56,6 +56,7 @@ describe('useNotificationOptIn', () => {
       useNotificationOptIn({ accountKey: undefined, hasWeaknesses: true }),
     );
     await waitFor(() => expect(result.current.state).toBe('dismissed'));
+    expect(mockGetPermissions).not.toHaveBeenCalled();
   });
 
   it('onEnable: 요청 → 허용 → granted + 스케줄링', async () => {
