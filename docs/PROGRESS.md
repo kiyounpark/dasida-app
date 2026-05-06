@@ -21,6 +21,26 @@
 
 ## 로그
 
+### 2026.05.06
+
+**iPad 세로 고정 + 학습 여정 사이즈 튜닝 구현 완료**
+
+- iPad 가로 모드 깨짐 + 세로 양옆 빈 공간 어색함 해결
+- `app.config.js`에 `requireFullScreen: true` + `UISupportedInterfaceOrientations~ipad` (Portrait만) 추가
+  - **트레이드오프**: `requireFullScreen: true`는 iPad multitasking(Split View / Slide Over / Stage Manager)을 비활성화함. Apple ITMS-90474 제약상 portrait-only를 강제하려면 이 플래그가 필수 (없으면 Expo 플러그인이 4 orientation 강제 병합)
+  - `app.json`은 dead config (Expo가 `app.config.js`를 우선) — iOS 설정 단일 소스를 `app.config.js`로 통일
+- `useIsTablet` (744pt 기준) 으로 학습 여정 4 컴포넌트 사이즈 분기:
+  - `JourneyBoard` boardMaxWidth: `Math.min(screenWidth × 0.7, 640)`
+  - `PosterTitleBanner` 태블릿 사이즈 (maxWidth 560 / translateY -40 / fontSize 38)
+  - `JourneyCtaButton` maxWidth 480
+  - `QuizHubScreenView` posterScreen gap 20 / paddingHorizontal 24
+- iPhone 회귀 없음 (모든 분기 `isTablet === true`일 때만 적용)
+- Spec: `docs/superpowers/specs/2026-05-06-ipad-portrait-tuning-design.md`
+- Plan: `docs/superpowers/plans/2026-05-06-ipad-portrait-tuning.md`
+- Commits: 3b567df → 4bd22af
+
+---
+
 ### 2026.05.01
 
 **기록 탭 분석중 항목 탭 → 결과화면 이동 (다기기 지원) 구현 완료**

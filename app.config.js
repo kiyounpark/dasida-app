@@ -22,8 +22,15 @@ module.exports = {
       buildNumber: '1',
       usesAppleSignIn: true,
       supportsTablet: true,
+      // requireFullScreen disables iPad multitasking (Split View/Slide Over).
+      // UISupportedInterfaceOrientations~ipad below must stay portrait-only while this is true.
+      requireFullScreen: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        'UISupportedInterfaceOrientations~ipad': [
+          'UIInterfaceOrientationPortrait',
+          'UIInterfaceOrientationPortraitUpsideDown',
+        ],
       },
     },
     android: {
