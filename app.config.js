@@ -22,8 +22,13 @@ module.exports = {
       buildNumber: '1',
       usesAppleSignIn: true,
       supportsTablet: true,
+      requireFullScreen: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        'UISupportedInterfaceOrientations~ipad': [
+          'UIInterfaceOrientationPortrait',
+          'UIInterfaceOrientationPortraitUpsideDown',
+        ],
       },
     },
     android: {
