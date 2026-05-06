@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen, userEvent } from '@testing-library/react-native';
 import { NotificationOptInCard } from './notification-opt-in-card';
 
 describe('NotificationOptInCard', () => {
@@ -35,12 +35,13 @@ describe('NotificationOptInCard', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('state가 requesting이면 버튼 비활성', () => {
+  it('state가 requesting이면 버튼 비활성', async () => {
     const onEnable = jest.fn();
-    const { getByText } = render(
+    const user = userEvent.setup();
+    render(
       <NotificationOptInCard {...baseProps} state="requesting" onEnable={onEnable} />,
     );
-    fireEvent.press(getByText('켜기'));
+    await user.press(screen.getByText('켜기'));
     expect(onEnable).not.toHaveBeenCalled();
   });
 
