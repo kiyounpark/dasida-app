@@ -25,8 +25,14 @@ function resolveLabel(id: string): string {
   return diagnosisMap[id as keyof typeof diagnosisMap]?.labelKo ?? id;
 }
 
-function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
-  return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
+function JourneyScreenHero({
+  isCompactLayout,
+  isTablet,
+}: {
+  isCompactLayout: boolean;
+  isTablet: boolean;
+}) {
+  return <PosterTitleBanner isCompactLayout={isCompactLayout} isTablet={isTablet} title="학습 여정" />;
 }
 
 
@@ -133,7 +139,7 @@ export function QuizHubScreenView({
     return (
       <View style={styles.screen}>
         <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
           <FeedbackCard
             title="학습 여정을 준비 중이에요"
             body="지금 할 일과 최근 흐름을 여정판으로 정리하고 있습니다."
@@ -147,7 +153,7 @@ export function QuizHubScreenView({
     return (
       <View style={styles.screen}>
         <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
           <FeedbackCard
             title="홈 상태를 다시 불러와야 해요"
             body="현재 학습자 상태를 완전히 복원하지 못했습니다. 한 번 더 불러오면 대부분 바로 해결됩니다."
@@ -169,7 +175,7 @@ export function QuizHubScreenView({
             const { y, height } = e.nativeEvent.layout;
             setHeroLayoutBottom(y + height);
           }}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} />
+          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
         </View>
       ) : null}
       {authNoticeMessage ? (
@@ -191,6 +197,7 @@ export function QuizHubScreenView({
         contentContainerStyle={[
           styles.posterScreen,
           isTablet && styles.tabletPosterScreen,
+          isTablet && styles.posterScreenTabletSpacing,
           {
             paddingTop: scrollTopPadding,
             paddingBottom: bottomPadding,
@@ -251,7 +258,7 @@ export function QuizHubScreenView({
             compact={isCompactLayout}
             label={journey.ctaLabel}
             onPress={onPressJourneyCta}
-            style={styles.ctaFooterButton}
+            style={[styles.ctaFooterButton, isTablet && { maxWidth: 480 }]}
           />
         </View>
       ) : null}
@@ -361,6 +368,10 @@ const styles = StyleSheet.create({
     maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
+  },
+  posterScreenTabletSpacing: {
+    gap: 20,
+    paddingHorizontal: 24,
   },
   ctaFooter: {
     width: '100%',
