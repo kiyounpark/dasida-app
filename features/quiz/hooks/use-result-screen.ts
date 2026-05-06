@@ -3,17 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
 import type { WeaknessId } from '@/data/diagnosisMap';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
-import {
-  requestNotificationPermission,
-  scheduleReviewNotifications,
-} from '@/features/quiz/notifications/review-notification-scheduler';
+import type { NotificationOptInCardState } from '@/features/quiz/components/notification-opt-in-card';
+import { useNotificationOptIn } from '@/features/quiz/hooks/use-notification-opt-in';
 import { useQuizSession } from '@/features/quiz/session';
 import type { QuizResultSummary } from '@/features/quiz/types';
-
-const resultScreenReviewStore = new LocalReviewTaskStore();
 
 export type QuizResultRouteParams = {
   legacyNextStep?: string;
@@ -59,6 +54,12 @@ export type UseResultScreenResult = {
       : never
     : never;
   snapshotSummaryTitle: string | null;
+  optInCard: {
+    state: NotificationOptInCardState;
+    weaknessLabels: string[];
+    onEnable: () => Promise<void>;
+    onDismiss: () => void;
+  };
 };
 
 export function useResultScreen({
@@ -114,6 +115,19 @@ export function useResultScreen({
   }, [requestedSource, examId, examTotal, examCorrect, examAccuracy, examTopWeaknesses, examWrong]);
 
   const liveSummary = examSummary ?? liveSessionSummary;
+
+  const optIn = useNotificationOptIn({
+    accountKey: session?.accountKey,
+    hasWeaknesses: (liveSummary?.topWeaknesses?.length ?? 0) > 0,
+  });
+
+  const weaknessLabels = useMemo(() => {
+    const ids = liveSummary?.topWeaknesses?.slice(0, 2) ?? [];
+    return ids
+      .map((id) => diagnosisMap[id as WeaknessId]?.labelKo)
+      .filter((label): label is string => Boolean(label));
+  }, [liveSummary?.topWeaknesses]);
+
   const legacyWeaknessId = resolveWeaknessId(legacyWeaknessKey);
   const storedSummary = currentSummary?.latestDiagnosticSummary;
   const snapshotSummary =
@@ -184,20 +198,6 @@ export function useResultScreen({
 
     void persistResult();
   }, [liveSummary, persistResult, profile, saveState, session, storedSummary?.attemptId]);
-
-  // 진단 완료 저장 후 알림 권한 요청 + Day1 알림 예약
-  useEffect(() => {
-    if (saveState !== 'saved' || !liveSummary || !session?.accountKey) {
-      return;
-    }
-    const accountKey = session.accountKey;
-    requestNotificationPermission()
-      .then((granted) => {
-        if (!granted) return;
-        return scheduleReviewNotifications(accountKey, resultScreenReviewStore);
-      })
-      .catch(console.warn);
-  }, [saveState, session?.accountKey]);
 
   // 결과 화면 첫 진입 시 "결과 봄" 이정표를 기록한다.
   // 이미 값이 있으면 controller 측에서 no-op로 처리된다.
@@ -280,5 +280,11 @@ export function useResultScreen({
     saveState,
     snapshotSummary,
     snapshotSummaryTitle,
+    optInCard: {
+      state: optIn.state,
+      weaknessLabels,
+      onEnable: optIn.onEnable,
+      onDismiss: optIn.onDismiss,
+    },
   };
 }
