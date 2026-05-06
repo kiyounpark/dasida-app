@@ -3,6 +3,7 @@ import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
 import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import type {
   HomeJourneyState,
   HomeJourneyStep,
@@ -151,7 +152,10 @@ export function JourneyBoard({
   state: HomeJourneyState;
 }) {
   const { width: screenWidth } = useWindowDimensions();
-  const boardMaxWidth = isCompactLayout ? 430 : 470;
+  const isTablet = useIsTablet();
+  const boardMaxWidth = isTablet
+    ? Math.min(screenWidth * 0.7, 640)
+    : isCompactLayout ? 430 : 470;
   const boardWidth = Math.min(screenWidth - BOARD_CONTAINER_PADDING, boardMaxWidth);
   const stepTitleFontSize = calcSvgFontSize(TARGET_STEP_TITLE_PX, boardWidth);
   const statusFontSize = calcSvgFontSize(TARGET_STATUS_PX, boardWidth);
@@ -182,7 +186,7 @@ export function JourneyBoard({
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.board, isCompactLayout && styles.boardCompact]}>
+      <View style={[styles.board, isCompactLayout && styles.boardCompact, { maxWidth: boardMaxWidth }]}>
         <View pointerEvents="none" style={styles.textureOverlay} />
         <JourneyActiveBubble
           bubbleText={state.currentBubbleText}

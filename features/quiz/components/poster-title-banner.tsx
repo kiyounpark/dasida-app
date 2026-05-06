@@ -9,11 +9,13 @@ const HERO_FRAME_ASPECT_RATIO = 1542 / 437;
 
 type PosterTitleBannerProps = {
   isCompactLayout: boolean;
+  isTablet?: boolean;
   title: string;
 };
 
 export function PosterTitleBanner({
   isCompactLayout,
+  isTablet = false,
   title,
 }: PosterTitleBannerProps) {
   return (
@@ -24,6 +26,8 @@ export function PosterTitleBanner({
           styles.heroFrameWrapRaised,
           isCompactLayout && styles.heroFrameWrapCompact,
           isCompactLayout && styles.heroFrameWrapRaisedCompact,
+          isTablet && styles.heroFrameWrapTablet,
+          isTablet && styles.heroFrameWrapRaisedTablet,
         ]}>
         <Image contentFit="contain" source={HERO_FRAME_SOURCE} style={styles.heroFrameImage} transition={0} />
         <View style={styles.heroFrameContent}>
@@ -32,7 +36,7 @@ export function PosterTitleBanner({
             adjustsFontSizeToFit
             minimumFontScale={0.72}
             numberOfLines={1}
-            style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact]}>
+            style={[styles.heroTitle, isCompactLayout && styles.heroTitleCompact, isTablet && styles.heroTitleTablet]}>
             {title}
           </Text>
         </View>
@@ -86,5 +90,15 @@ const styles = StyleSheet.create({
   heroTitleCompact: {
     fontSize: 28,
     lineHeight: 34,
+  },
+  heroFrameWrapTablet: {
+    maxWidth: 560,
+  },
+  heroFrameWrapRaisedTablet: {
+    transform: [{ translateY: -40 }],
+  },
+  heroTitleTablet: {
+    fontSize: 38,
+    lineHeight: 46,
   },
 });
