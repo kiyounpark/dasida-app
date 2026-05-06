@@ -18,12 +18,6 @@ import {
   ExamAnalysisResumeCarousel,
   type ExamAnalysisResumeCarouselItem,
 } from '@/features/quiz/exam/components/exam-analysis-resume-carousel';
-import { CollectedNotesList } from '@/features/quiz/exam/components/collected-notes-list';
-import { diagnosisMap } from '@/data/diagnosisMap';
-
-function resolveLabel(id: string): string {
-  return diagnosisMap[id as keyof typeof diagnosisMap]?.labelKo ?? id;
-}
 
 function JourneyScreenHero({ isCompactLayout }: { isCompactLayout: boolean }) {
   return <PosterTitleBanner isCompactLayout={isCompactLayout} title="학습 여정" />;
@@ -104,7 +98,6 @@ export function QuizHubScreenView({
   session,
   showAnalysisResumeCard,
   showBrandHeader,
-  showCollectedNotes,
   showJourneyHero,
   showJourneyBoard,
   showNoReviewDayCard,
@@ -231,12 +224,6 @@ export function QuizHubScreenView({
                   totalNotes: item.totalNotes,
                 }))}
                 onPressItem={onResumeAnalysis}
-              />
-            ) : null}
-            {showCollectedNotes && analysisState.isInProgress ? (
-              <CollectedNotesList
-                notes={analysisState.items[0]?.diagnosedNotes ?? []}
-                resolveLabel={resolveLabel}
               />
             ) : null}
             {showWeaknessSection && homeState ? (

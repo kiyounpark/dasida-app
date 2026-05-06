@@ -45,7 +45,6 @@ export type UseQuizHubScreenResult = {
   session: CurrentLearnerSnapshot['session'];
   showAnalysisResumeCard: boolean;
   showBrandHeader: boolean;
-  showCollectedNotes: boolean;
   showJourneyHero: boolean;
   showJourneyBoard: boolean;
   showNoReviewDayCard: boolean;
@@ -297,7 +296,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     !!homeState?.nextReviewTask &&
     homeState.todayReviewCount > 0;
   const showAnalysisResumeCard = isAnalysisInProgress;
-  const showCollectedNotes = isAnalysisInProgress;
 
   return {
     analysisState,
@@ -323,7 +321,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     session,
     showAnalysisResumeCard,
     showBrandHeader,
-    showCollectedNotes,
     showJourneyHero,
     showJourneyBoard,
     showNoReviewDayCard,
