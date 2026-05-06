@@ -6,6 +6,7 @@ import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
+import { NotificationOptInCard } from '@/features/quiz/components/notification-opt-in-card';
 
 import { QuizResultReportCard } from './quiz-result-report-card';
 import { QuizResultReportHeader } from './quiz-result-report-header';
@@ -13,6 +14,7 @@ import { QuizResultReportHero } from './quiz-result-report-hero';
 
 type QuizResultReportViewProps = {
   onOpenWeaknessPractice: (weaknessId: string) => void;
+  optInCard: UseResultScreenResult['optInCard'];
   persistResult: () => Promise<void>;
   saveErrorMessage: string | null;
   saveState: UseResultScreenResult['saveState'];
@@ -21,6 +23,7 @@ type QuizResultReportViewProps = {
 
 export function QuizResultReportView({
   onOpenWeaknessPractice,
+  optInCard,
   persistResult,
   saveErrorMessage,
   saveState,
@@ -129,6 +132,13 @@ export function QuizResultReportView({
             </View>
           </View>
         ) : null}
+
+        <NotificationOptInCard
+          weaknessLabels={optInCard.weaknessLabels}
+          state={optInCard.state}
+          onEnable={optInCard.onEnable}
+          onDismiss={optInCard.onDismiss}
+        />
 
         <View style={styles.ctaWrap}>
           <BrandButton

@@ -18,6 +18,7 @@ export function QuizResultScreenView({
   onOpenSnapshotPractice,
   onOpenWeaknessPractice,
   onRestartQuiz,
+  optInCard,
   persistResult,
   saveErrorMessage,
   saveState,
@@ -120,6 +121,7 @@ export function QuizResultScreenView({
     return (
       <QuizResultReportView
         onOpenWeaknessPractice={onOpenWeaknessPractice}
+        optInCard={optInCard}
         persistResult={persistResult}
         saveErrorMessage={saveErrorMessage}
         saveState={saveState}
