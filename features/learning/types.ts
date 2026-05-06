@@ -74,11 +74,11 @@ export type LearnerSummaryCurrent = {
   updatedAt: string;
   lastAttemptAt?: string;
   latestDiagnosticSummary?: DiagnosticSummarySnapshot;
-  repeatedWeaknesses: Array<{
+  repeatedWeaknesses: {
     weaknessId: WeaknessId;
     count: number;
     lastSeenAt: string;
-  }>;
+  }[];
   nextReviewTask?: ActiveReviewTaskSummary;
   dueReviewTasks: ActiveReviewTaskSummary[];
   featuredExamState: FeaturedExamState;
@@ -87,13 +87,13 @@ export type LearnerSummaryCurrent = {
     featuredExamAttempts: number;
     reviewAttempts: number;
   };
-  recentActivity: Array<{
+  recentActivity: {
     id: string;
     kind: 'diagnostic' | 'review' | 'exam';
     title: string;
     subtitle: string;
     occurredAt: string;
-  }>;
+  }[];
 };
 
 export type PeerPresenceItem = {

@@ -51,13 +51,13 @@ export type HomeLearningState = {
     body: string;
     ctaLabel: string;
   };
-  recentActivity: Array<{
+  recentActivity: {
     id: string;
     kind: 'diagnostic' | 'review' | 'exam';
     title: string;
     subtitle: string;
     occurredAt: string;
-  }>;
+  }[];
   weaknessProgressItems: WeaknessProgressItem[];
 };
 

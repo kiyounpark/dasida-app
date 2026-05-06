@@ -112,7 +112,7 @@ function parseRemoteDiagnosisResponse(
 
 function mergeCandidateMethodIds(
   allowedMethodIds: SolveMethodId[],
-  results: Array<DiagnosisRouterResult | null>
+  results: (DiagnosisRouterResult | null)[]
 ): SolveMethodId[] {
   const merged = new Set<SolveMethodId>();
 

@@ -51,7 +51,7 @@ export function useExamSelectionScreen(): UseExamSelectionScreenResult {
   });
 
   const onSelectExam = (examId: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     router.push({ pathname: '/quiz/exam/solve' as any, params: { examId } });
   };
 

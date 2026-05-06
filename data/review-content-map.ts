@@ -4,7 +4,7 @@ export type ThinkingStep = {
   title: string;
   body: string;
   example?: string;
-  choices: Array<{ text: string; correct: boolean }>;
+  choices: { text: string; correct: boolean }[];
 };
 
 type ReviewContent = {

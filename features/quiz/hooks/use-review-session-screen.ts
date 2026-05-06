@@ -62,7 +62,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const isFetchingRef = useRef(false);
   const sessionStartedAtRef = useRef(new Date().toISOString());
-  const firstAttemptCorrectRef = useRef<Array<boolean | null>>([]);
+  const firstAttemptCorrectRef = useRef<(boolean | null)[]>([]);
 
   // task 로드
   useEffect(() => {

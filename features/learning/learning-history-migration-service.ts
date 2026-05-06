@@ -124,7 +124,7 @@ function canAutomaticallyResumeMarker(marker: MigrationMarker) {
 
 async function listPendingMigrationMarkers(
   targetAccountKey: string,
-): Promise<Array<MigrationMarker & { storageKey: string }>> {
+): Promise<(MigrationMarker & { storageKey: string })[]> {
   const markerPrefix = getMigrationMarkerStoragePrefix(targetAccountKey);
   const markerKeys = (await AsyncStorage.getAllKeys()).filter((key) => key.startsWith(markerPrefix));
   const markers = (

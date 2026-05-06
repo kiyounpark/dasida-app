@@ -8,12 +8,12 @@ export type ChoiceNode = {
   kind: 'choice';
   title: string;
   body?: string;
-  options: Array<{
+  options: {
     id: string;
     text: string;
     nextNodeId: string;
     weaknessId?: WeaknessId;
-  }>;
+  }[];
 };
 
 export type ExplainNode = {
@@ -32,13 +32,13 @@ export type CheckNode = {
   kind: 'check';
   title: string;
   prompt?: string;
-  options: Array<{
+  options: {
     id: string;
     text: string;
     isCorrect: boolean;
     nextNodeId: string;
     weaknessId?: WeaknessId;
-  }>;
+  }[];
   dontKnowNextNodeId: string;
 };
 
@@ -67,11 +67,11 @@ type ExplainCopy = {
 type CheckPromptDefinition = {
   title: string;
   prompt?: string;
-  options: Array<{
+  options: {
     id: string;
     text: string;
     isCorrect: boolean;
-  }>;
+  }[];
 };
 
 const CONTINUE_LABEL = '확인 문제로 넘어갈게요';
@@ -530,7 +530,7 @@ const _requiredCheckNodeWeaknesses = [
   'g3_counting',
   'g3_integral',
   'g3_diff',
-] as const satisfies ReadonlyArray<WeaknessId>;
+] as const satisfies readonly WeaknessId[];
 
 _requiredCheckNodeWeaknesses.forEach((id) => {
   if (!(id in checkPromptByWeakness)) {
@@ -587,7 +587,7 @@ function buildCheckNode(
   onWrongNextNodeId: string,
 ): CheckNode {
   // Guarded by hasCheckNode above — if we reach here, the entry is always present
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const definition = checkPromptByWeakness[weaknessId]!;
 
   return {

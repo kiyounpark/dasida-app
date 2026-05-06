@@ -872,7 +872,7 @@ export function createCurrentLearnerController({
 
         // weakness-practice 시도 기록 → totals.reviewAttempts = 6
         const practiceAt = ts(4);
-        const practiceItems: Array<{ weaknessId: WeaknessId; stages: ReviewStage[] }> = [
+        const practiceItems: { weaknessId: WeaknessId; stages: ReviewStage[] }[] = [
           { weaknessId: w0, stages: ['day1', 'day3', 'day7'] },
           { weaknessId: w1, stages: ['day1', 'day3'] },
           { weaknessId: w2, stages: ['day1'] },
