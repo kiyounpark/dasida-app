@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
@@ -24,6 +24,13 @@ type Result = {
 
 export function useNotificationOptIn({ accountKey, hasWeaknesses }: Params): Result {
   const [state, setState] = useState<NotificationOptInCardState>('dismissed');
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +72,7 @@ export function useNotificationOptIn({ accountKey, hasWeaknesses }: Params): Res
     if (!accountKey) return;
     setState('requesting');
     const granted = await requestNotificationPermission().catch(() => false);
+    if (!mountedRef.current) return;
     if (granted) {
       setState('granted');
       await scheduleReviewNotifications(accountKey, reviewStore).catch((err: unknown) => {
