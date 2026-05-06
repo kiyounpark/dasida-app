@@ -37,12 +37,12 @@ const MARGIN_X = 52;
 const WORDMARK = 'DASIDA';
 
 function buildPath(points: StrokePoint[]) {
-  const path = Skia.Path.Make();
-  if (points.length === 0) return path;
-  path.moveTo(points[0].x, points[0].y);
+  const builder = Skia.PathBuilder.Make();
+  if (points.length === 0) return builder.build();
+  builder.moveTo(points[0].x, points[0].y);
   if (points.length === 1) {
-    path.lineTo(points[0].x + 0.01, points[0].y + 0.01);
-    return path;
+    builder.lineTo(points[0].x + 0.01, points[0].y + 0.01);
+    return builder.build();
   }
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i];
@@ -53,9 +53,9 @@ function buildPath(points: StrokePoint[]) {
     const c1y = p1.y + (p2.y - p0.y) / 6;
     const c2x = p2.x - (p3.x - p1.x) / 6;
     const c2y = p2.y - (p3.y - p1.y) / 6;
-    path.cubicTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+    builder.cubicTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
   }
-  return path;
+  return builder.build();
 }
 
 function strokeOpacity(s: Stroke): number {
@@ -121,7 +121,9 @@ export function ScratchpadCanvas({ width, height, scratchpad, pencilOnly = false
   pencilOnlyRef.current = pencilOnly;
   const isStylusGestureRef = useRef(false);
 
+  // .runOnJS(true): gesture callbacks call JS-thread state setters (beginStroke, etc.) and read JS refs; running on UI thread crashes / triggers worklet warnings.
   const pan = Gesture.Pan()
+    .runOnJS(true)
     .maxPointers(1)
     .minDistance(0)
     .onBegin((e) => {
