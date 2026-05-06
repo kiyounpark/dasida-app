@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0.1] - 2026-05-07
+
+### Added
+- **개발자 도구 진입점**: 개발 빌드(`__DEV__`)에서 설정 탭 > 앱 정보 하단에 "🛠 개발자 도구" 버튼 노출, `/dev` 허브로 이동
+- **복습 세션 목업**: `/dev` 허브에 `taskId=__mock__`으로 복습 세션을 바로 테스트할 수 있는 항목 추가
+
 ## [0.1.0.0] - 2026-04-27
 
 ### Added
