@@ -234,7 +234,19 @@ export function ProfileScreenView({
         {errorMessage ? <SecondaryNotice tone="error" message={errorMessage} /> : null}
         {noticeMessage ? <SecondaryNotice tone="success" message={noticeMessage} /> : null}
 
-        {session?.status === 'authenticated' ? (
+        {session?.status === 'anonymous' ? (
+          <View style={styles.card}>
+            <Text selectable style={styles.cardTitle}>
+              개발용 익명 계정
+            </Text>
+            <ActionButton
+              label={busyAction === 'sign-out' ? '로그아웃 중...' : '로그아웃'}
+              disabled={busyAction !== null}
+              subtle
+              onPress={() => void onSignOut()}
+            />
+          </View>
+        ) : session?.status === 'authenticated' ? (
           <View style={styles.card}>
             <Text selectable style={styles.cardTitle}>
               계정 관리
