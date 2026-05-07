@@ -22,8 +22,18 @@ module.exports = {
       buildNumber: '1',
       usesAppleSignIn: true,
       supportsTablet: true,
+      requireFullScreen: true, // iPad 멀티태스킹 비활성화
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        UISupportedInterfaceOrientations: [
+          'UIInterfaceOrientationPortrait',
+        ],
+        'UISupportedInterfaceOrientations~ipad': [
+          'UIInterfaceOrientationPortrait',
+          'UIInterfaceOrientationPortraitUpsideDown',
+          'UIInterfaceOrientationLandscapeLeft',
+          'UIInterfaceOrientationLandscapeRight',
+        ],
       },
     },
     android: {
