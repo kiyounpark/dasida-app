@@ -33,14 +33,20 @@ import {
   writeLearningHistoryJson,
 } from './local-learning-history-storage';
 
+function toLocalDateString(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
   return `${sourceId}__${weaknessId}__${stage}`;
 }
 
-function addDays(timestamp: string, days: number) {
-  const nextDate = new Date(timestamp);
-  nextDate.setUTCDate(nextDate.getUTCDate() + days);
-  return nextDate.toISOString();
+function addDays(timestamp: string, days: number): string {
+  const d = new Date(timestamp);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
@@ -65,9 +71,9 @@ function toReviewTaskSummary(task: ReviewTask): ActiveReviewTaskSummary {
 function buildReviewTaskState(reviewTasks: ReviewTask[]) {
   const pendingReviewTasks = sortReviewTasks(reviewTasks.filter((task) => !task.completed));
   const nextReviewTask = pendingReviewTasks[0];
-  const now = new Date().toISOString();
+  const today = toLocalDateString(new Date());
   const dueReviewTasks = pendingReviewTasks.filter((task) =>
-    isTimestampOnOrBefore(task.scheduledFor, now),
+    task.scheduledFor.slice(0, 10) <= today,
   );
 
   return {
