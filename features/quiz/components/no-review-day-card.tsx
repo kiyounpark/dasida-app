@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { useIsTablet } from '@/hooks/use-is-tablet';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 
 function getDaysUntil(scheduledFor: string): number {
@@ -18,11 +19,12 @@ type Props = {
 };
 
 export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
+  const isTablet = useIsTablet();
   const daysUntil = getDaysUntil(nextTask.scheduledFor);
   const pillText = `오늘은 복습 없는 날이에요 · 다음 복습 D-${daysUntil}`;
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, isTablet && { maxWidth: undefined }]}>
       <View style={styles.pill}>
         <Text style={styles.pillText}>{pillText}</Text>
       </View>

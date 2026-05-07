@@ -154,7 +154,7 @@ export function JourneyBoard({
   const { width: screenWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
   const boardMaxWidth = isTablet
-    ? Math.min(screenWidth * 0.7, 640)
+    ? Math.min(screenWidth * 0.7, 680)
     : isCompactLayout ? 430 : 470;
   const boardWidth = Math.min(screenWidth - BOARD_CONTAINER_PADDING, boardMaxWidth);
   const stepTitleFontSize = calcSvgFontSize(TARGET_STEP_TITLE_PX, boardWidth);
