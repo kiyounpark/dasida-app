@@ -73,11 +73,8 @@ export async function scheduleReviewNotifications(
   if (status !== 'granted') return;
 
   const tasks = await store.load(accountKey);
-  const incompleteTasks = tasks
-    .filter((t) => !t.completed)
-    .sort((a, b) => a.scheduledFor.slice(0, 10).localeCompare(b.scheduledFor.slice(0, 10)));
-
-  const representativeTask = incompleteTasks[0];
+  const today = toLocalDateString(new Date());
+  const representativeTask = pickTodayRepresentativeTask(tasks, today);
   if (!representativeTask) return;
 
   const label = representativeTask.weaknessId
@@ -96,27 +93,9 @@ export async function scheduleReviewNotifications(
 
   const now = new Date();
 
-  // Normalize to YYYY-MM-DD (handles both YYYY-MM-DD and full ISO strings).
-  let scheduledDateString = representativeTask.scheduledFor.slice(0, 10);
-
-  let morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
-  let eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
-
-  // Fallback: if both slots have already passed (e.g. user completed diagnostic after 20:00),
-  // advance to tomorrow so at least the next morning slot fires.
-  // Also update the store so applyOverduePenalties does not wrongly penalize this task.
-  if (morningDate <= now && eveningDate <= now) {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    scheduledDateString = toLocalDateString(tomorrow);
-    morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
-    eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
-
-    const updatedTasks = tasks.map((t) =>
-      t.id === representativeTask.id ? { ...t, scheduledFor: scheduledDateString } : t,
-    );
-    await store.saveAll(accountKey, updatedTasks);
-  }
+  const scheduledDateString = representativeTask.scheduledFor.slice(0, 10);
+  const morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
+  const eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
 
   if (morningDate > now) {
     await Notifications.scheduleNotificationAsync({
