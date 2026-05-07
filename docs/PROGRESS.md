@@ -882,6 +882,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.07 23:50
+- 해시: `6dc9e50` (`6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd`)
+- 브랜치: claude/busy-wescoff-b48f17
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd
+- 작성자: 박기윤
+- 메시지: test(notification-card): remove stale colocated test (replaced by __tests__/)
+
 ### 커밋 2026.05.02 04:57
 - 해시: `2eea56e` (`2eea56e2aec94fd50119fc6a6acefa00d99762fb`)
 - 브랜치: main
