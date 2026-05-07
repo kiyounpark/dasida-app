@@ -5,7 +5,6 @@ import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import {
-  BOARD_CONTAINER_PADDING,
   VIEWBOX_HEIGHT,
   VIEWBOX_WIDTH,
   calcJourneyBoardWidth,
@@ -141,6 +140,7 @@ const TARGET_STEP_TITLE_PX = 16;
 const TARGET_STATUS_PX = 14;
 
 function calcSvgFontSize(targetPx: number, boardWidth: number): number {
+  if (boardWidth <= 0) return targetPx;
   return Math.round(targetPx * (VIEWBOX_WIDTH / boardWidth));
 }
 
