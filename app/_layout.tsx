@@ -11,6 +11,7 @@ import 'react-native-reanimated';
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
 import { ExamSessionProvider } from '@/features/quiz/exam/exam-session';
+import { lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 Notifications.setNotificationHandler({
@@ -163,6 +164,10 @@ function AuthGateRedirector() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    lockToPortrait();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
