@@ -131,6 +131,7 @@ export function QuizHubScreenView({
 
   // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 480) 중 작은 값.
   // 보드의 가용 높이를 산출할 때 이 추정 높이만큼을 미리 빼둔다.
+  // 아래 maxWidth(340/480)는 styles.ctaFooterButton과 ctaFooter 인라인 maxWidth(480)에 맞춰져야 한다 — 한쪽만 바꾸면 STEP 4가 다시 잘릴 수 있음.
   const ctaButtonAspectRatio = 1497 / 373;
   const ctaButtonMaxWidth = isTablet ? 480 : 340;
   const ctaButtonRenderedWidth = Math.min(screenWidth * 0.7, ctaButtonMaxWidth);

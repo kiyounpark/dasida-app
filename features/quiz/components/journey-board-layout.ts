@@ -2,6 +2,7 @@ export const VIEWBOX_WIDTH = 768;
 export const VIEWBOX_HEIGHT = 960;
 export const BOARD_CONTAINER_PADDING = 28;
 export const BOARD_MARGIN_TOP = 52;
+/** JourneyActiveBubble이 보드 위쪽으로 `top: -14%`만큼 튀어나오는 영역을 보호하기 위한 안전 마진. 줄이면 iPad 세로에서 말풍선 클리핑 위험. */
 export const BUBBLE_OVERFLOW_RESERVE = 24;
 
 const VIEWBOX_RATIO = VIEWBOX_WIDTH / VIEWBOX_HEIGHT;

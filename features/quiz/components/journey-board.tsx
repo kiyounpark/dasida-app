@@ -192,7 +192,7 @@ export function JourneyBoard({
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.board, isCompactLayout && styles.boardCompact, { width: boardWidth, maxWidth: boardWidth }]}>
+      <View style={[styles.board, { width: boardWidth, maxWidth: boardWidth }]}>
         <View pointerEvents="none" style={styles.textureOverlay} />
         <JourneyActiveBubble
           bubbleText={state.currentBubbleText}
@@ -264,14 +264,10 @@ const styles = StyleSheet.create({
   },
   board: {
     width: '100%',
-    maxWidth: 470,
     aspectRatio: VIEWBOX_WIDTH / VIEWBOX_HEIGHT,
     position: 'relative',
     overflow: 'visible',
     marginTop: 52,
-  },
-  boardCompact: {
-    maxWidth: 430,
   },
   textureOverlay: {
     ...StyleSheet.absoluteFillObject,
