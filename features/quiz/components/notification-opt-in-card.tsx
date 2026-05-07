@@ -1,5 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, { Circle, G } from 'react-native-svg';
 
 import { FontFamilies } from '@/constants/typography';
@@ -34,6 +41,23 @@ const COLORS = {
 } as const;
 
 export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+
+  useEffect(() => {
+    const config = {
+      duration: 320,
+      easing: Easing.bezier(0.2, 0.8, 0.2, 1),
+    };
+    opacity.value = withTiming(1, config);
+    translateY.value = withTiming(0, config);
+  }, [opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
   if (state === 'granted' || state === 'dismissed' || state === 'denied') {
     return null;
   }
@@ -41,7 +65,7 @@ export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
   const isBusy = state === 'requesting';
 
   return (
-    <View style={styles.cardOuter} accessibilityRole="alert">
+    <Animated.View style={[styles.cardOuter, animatedStyle]} accessibilityRole="alert">
       <LinearGradient
         colors={[COLORS.forestStart, COLORS.forestEnd]}
         locations={[0, 0.55]}
@@ -78,7 +102,7 @@ export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
           </Pressable>
         </View>
       </LinearGradient>
-    </View>
+    </Animated.View>
   );
 }
 
