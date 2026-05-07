@@ -882,6 +882,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.08 00:33
+- 해시: `f2eb358` (`f2eb358cb667d6fc32ceace2ad4dd756fcae589e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f2eb358cb667d6fc32ceace2ad4dd756fcae589e
+- 작성자: 박기윤
+- 메시지: feat(notification-card): merge A1 design (gradient + svg gauge + timeline)
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.05.08 00:12
 - 해시: `967cc3b` (`967cc3b9bf7db1173e7ba4c1ba9072cdd3408ad9`)
 - 브랜치: main
@@ -2525,3 +2535,4 @@
 
 <!-- 새 작업 로그는 위 형식으로 날짜별로 추가 -->
 - 2026-05-06: 알림 권한 요청 타이밍 재배치 — 묵음 OS 다이얼로그 → 결과 화면 옵트인 카드 (rev2 spec)
+- 2026-05-08: iPad 가로모드(exam-solve) 코드리뷰 fix — 회전 안내 배너 데드 코드 경로 해소, orientation listener와 useScratchpad를 화면 훅(`use-exam-solve-screen`)으로 호이스트, `useExamScreenOrientation` 훅 분리 + 단위 테스트 추가, iPad 가드(`isTablet`) 추가. CHANGELOG에 `requireFullScreen: true`로 인한 iPad Split View 비활성화 명시.

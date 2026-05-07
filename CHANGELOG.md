@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **iPad 가로모드 부분 지원 (시험 풀이 화면)**: iPad에서 시험 풀이 진입 시 4방향 회전 허용, 가로 시 좌(문제) + 우(필기 캔버스) 분할 레이아웃 표시. 비율은 드래그로 조정·저장. 세로 상태에서 회전 안내 배너 1회 노출.
+
+### Fixed
+- **iPad 회전 안내 배너 노출 결함**: tablet portrait에서 배너가 표시되지 않던 데드 코드 경로 수정 (호이스트로 화면 레벨에서 조건부 렌더링).
+- **회전 도중 필기 stroke 끊김 누락**: orientation listener 등록 위치를 화면 훅으로 옮겨 portrait↔landscape 전환 도중에도 in-progress stroke을 안전하게 종료.
+
+### Changed
+- **iPad 멀티태스킹 비활성화**: `requireFullScreen: true`로 설정하여 iPad Split View / Slide Over / Stage Manager가 비활성화됩니다. 시험 풀이의 풀스크린 안정성을 우선한 trade-off로, 향후 사용자 데이터 추적 후 재검토 예정.
+
 ## [0.1.0.1] - 2026-05-07
 
 ### Added

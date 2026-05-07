@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { useIsTablet } from '@/hooks/use-is-tablet';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import examImages from '@/features/quiz/data/exam-images';
 
@@ -11,6 +10,7 @@ import { ExamNumberPanel } from '../components/exam-number-panel';
 import { ExamProgressPanel } from '../components/exam-progress-panel';
 import { ExamShortAnswerPanel } from '../components/exam-short-answer-panel';
 import { ExamSolveHeader } from '../components/exam-solve-header';
+import { LandscapeHintBanner } from '../components/landscape-hint-banner';
 import { useExamSolveScreen } from '../hooks/use-exam-solve-screen';
 
 type ExamSolveScreenProps = {
@@ -27,6 +27,10 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     currentAnswer,
     shortAnswerText,
     isCompactLayout,
+    useTabletLayout,
+    showLandscapeHint,
+    onDismissLandscapeHint,
+    scratchpad,
     canGoPrev,
     isLast,
     imageKey,
@@ -39,10 +43,6 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     onNext,
     onExit,
   } = useExamSolveScreen(examId);
-
-  const isTablet = useIsTablet();
-  const { width, height } = useWindowDimensions();
-  const useTabletLayout = isTablet && width > height;
 
   // 이미지 자연 비율을 동적으로 측정
   const [imageAspectRatio, setImageAspectRatio] = useState<number | undefined>(undefined);
@@ -119,26 +119,29 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     />
   );
 
-  if (useTabletLayout) {
-    return (
-      <ExamSolveTabletLayout
-        examId={examId}
-        problemNumber={currentProblem.number}
-        header={header}
-        problemPanel={
-          <View style={styles.tabletProblemPanel}>
-            <View style={styles.tabletBody}>{body}</View>
-            <View>{footer}</View>
-          </View>
-        }
-      />
-    );
-  }
-
-  return <QuizSolveLayout header={header} body={body} footer={footer} />;
+  return (
+    <View style={styles.root}>
+      {showLandscapeHint ? <LandscapeHintBanner onDismiss={onDismissLandscapeHint} /> : null}
+      {useTabletLayout ? (
+        <ExamSolveTabletLayout
+          header={header}
+          scratchpad={scratchpad}
+          problemPanel={
+            <View style={styles.tabletProblemPanel}>
+              <View style={styles.tabletBody}>{body}</View>
+              <View>{footer}</View>
+            </View>
+          }
+        />
+      ) : (
+        <QuizSolveLayout header={header} body={body} footer={footer} />
+      )}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   body: {
     padding: 16,
     gap: 16,
