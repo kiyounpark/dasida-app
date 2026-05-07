@@ -4,6 +4,11 @@ import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { BrandColors } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { useIsTablet } from '@/hooks/use-is-tablet';
+import {
+  VIEWBOX_HEIGHT,
+  VIEWBOX_WIDTH,
+  calcJourneyBoardWidth,
+} from '@/features/quiz/components/journey-board-layout';
 import type {
   HomeJourneyState,
   HomeJourneyStep,
@@ -13,8 +18,6 @@ import { JourneyActiveBubble } from '@/features/quiz/components/journey-active-b
 import { JourneyStepNode } from '@/features/quiz/components/journey-step-node';
 
 const VIEWBOX_Y = 280;
-const VIEWBOX_WIDTH = 768;
-const VIEWBOX_HEIGHT = 960;
 const JOURNEY_DASH_PATTERN = '20 18';
 
 const journeyImageSources: Record<JourneyStepKey, number> = {
@@ -132,31 +135,34 @@ function getStepTitleColor(status: HomeJourneyStep['status']) {
   return status === 'active' ? '#111111' : 'rgba(72, 67, 58, 0.5)';
 }
 
-// posterScreen paddingHorizontal(14) × 2
-const BOARD_CONTAINER_PADDING = 28;
 // 화면에서 실제로 보이기를 원하는 목표 px 크기
 const TARGET_STEP_TITLE_PX = 16;
 const TARGET_STATUS_PX = 14;
 
 function calcSvgFontSize(targetPx: number, boardWidth: number): number {
+  if (boardWidth <= 0) return targetPx;
   return Math.round(targetPx * (VIEWBOX_WIDTH / boardWidth));
 }
 
 export function JourneyBoard({
+  availableHeight,
   isCompactLayout,
   onPressCurrentStep,
   state,
 }: {
+  availableHeight: number;
   isCompactLayout: boolean;
   onPressCurrentStep: () => void;
   state: HomeJourneyState;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
-  const boardMaxWidth = isTablet
-    ? Math.min(screenWidth * 0.7, 680)
-    : isCompactLayout ? 430 : 470;
-  const boardWidth = Math.min(screenWidth - BOARD_CONTAINER_PADDING, boardMaxWidth);
+  const boardWidth = calcJourneyBoardWidth({
+    screenWidth,
+    availableHeight,
+    isTablet,
+    isCompactLayout,
+  });
   const stepTitleFontSize = calcSvgFontSize(TARGET_STEP_TITLE_PX, boardWidth);
   const statusFontSize = calcSvgFontSize(TARGET_STATUS_PX, boardWidth);
   const topGuideStart = getNodeAnchor('diagnostic', { x: 0.56, y: -0.12 });
@@ -186,7 +192,7 @@ export function JourneyBoard({
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.board, isCompactLayout && styles.boardCompact, { maxWidth: boardMaxWidth }]}>
+      <View style={[styles.board, { width: boardWidth, maxWidth: boardWidth }]}>
         <View pointerEvents="none" style={styles.textureOverlay} />
         <JourneyActiveBubble
           bubbleText={state.currentBubbleText}
@@ -258,14 +264,10 @@ const styles = StyleSheet.create({
   },
   board: {
     width: '100%',
-    maxWidth: 470,
     aspectRatio: VIEWBOX_WIDTH / VIEWBOX_HEIGHT,
     position: 'relative',
     overflow: 'visible',
     marginTop: 52,
-  },
-  boardCompact: {
-    maxWidth: 430,
   },
   textureOverlay: {
     ...StyleSheet.absoluteFillObject,

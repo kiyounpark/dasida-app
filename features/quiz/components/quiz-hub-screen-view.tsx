@@ -110,6 +110,7 @@ export function QuizHubScreenView({
   showReviewHomeCard,
   showWeaknessSection,
 }: UseQuizHubScreenResult) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isTablet = useIsTablet();
   const { width: screenWidth } = useWindowDimensions();
   const tabletContainerMaxWidth = isTablet ? Math.min(screenWidth * 0.92, 1040) : undefined;
@@ -129,6 +130,28 @@ export function QuizHubScreenView({
   const scrollTopPadding = showJourneyHero
     ? 14
     : (isCompactLayout ? 14 : 24);
+
+  // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 480) 중 작은 값.
+  // 보드의 가용 높이를 산출할 때 이 추정 높이만큼을 미리 빼둔다.
+  // 아래 maxWidth(340/480)는 styles.ctaFooterButton과 ctaFooter 인라인 maxWidth(480)에 맞춰져야 한다 — 한쪽만 바꾸면 STEP 4가 다시 잘릴 수 있음.
+  const ctaButtonAspectRatio = 1497 / 373;
+  const ctaButtonMaxWidth = isTablet ? 480 : 340;
+  const ctaButtonRenderedWidth = Math.min(screenWidth * 0.7, ctaButtonMaxWidth);
+  const ctaButtonEstimatedHeight = ctaButtonRenderedWidth / ctaButtonAspectRatio;
+  const ctaFooterHeight =
+    showJourneyBoard
+      ? 4 /* paddingTop */ + ctaButtonEstimatedHeight + insets.bottom + (isCompactLayout ? 24 : 28)
+      : 0;
+
+  // heroLayoutBottom이 0(첫 렌더, onLayout 전)이면 0을 전달해 JourneyBoard가 width-only로 동작하게 한다.
+  // onLayout 후 heroLayoutBottom이 채워지면 정상 height 제약이 적용된다.
+  const boardAvailableHeight =
+    heroLayoutBottom === 0
+      ? 0
+      : Math.max(
+          0,
+          screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
+        );
 
   if (!isReady) {
     return (
@@ -210,6 +233,7 @@ export function QuizHubScreenView({
             ) : null}
             {showJourneyBoard ? (
               <JourneyBoard
+                availableHeight={boardAvailableHeight}
                 isCompactLayout={isCompactLayout}
                 onPressCurrentStep={onPressJourneyCta}
                 state={journey}
