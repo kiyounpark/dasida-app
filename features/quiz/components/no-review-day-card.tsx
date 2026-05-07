@@ -24,7 +24,7 @@ export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
   const pillText = `오늘은 복습 없는 날이에요 · 다음 복습 D-${daysUntil}`;
 
   return (
-    <View style={[styles.wrap, isTablet && { maxWidth: 9999 }]}>
+    <View style={[styles.wrap, isTablet && { maxWidth: undefined }]}>
       <View style={styles.pill}>
         <Text style={styles.pillText}>{pillText}</Text>
       </View>
