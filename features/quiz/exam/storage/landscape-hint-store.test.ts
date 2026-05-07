@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { StorageKeys } from '@/constants/storage-keys';
+
 import { hasSeenLandscapeHint, markLandscapeHintSeen } from './landscape-hint-store';
 
 const mocked = jest.mocked(AsyncStorage);
@@ -39,7 +41,7 @@ describe('landscape-hint-store', () => {
       mocked.setItem.mockResolvedValueOnce(undefined);
       await markLandscapeHintSeen();
       expect(mocked.setItem).toHaveBeenCalledWith(
-        'dasida/landscape-hint-seen',
+        StorageKeys.landscapeHintSeen,
         '1',
       );
     });
