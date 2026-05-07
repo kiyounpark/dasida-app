@@ -4,13 +4,15 @@ import type { ReviewTaskStore } from './review-task-store';
 import type { ReviewStage } from './history-types';
 
 function toDateString(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function addDaysToToday(days: number): string {
   const d = new Date();
-  d.setUTCDate(d.getUTCDate() + days);
-  return toDateString(d);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
 }
 
 /**
@@ -98,7 +100,7 @@ export async function applyOverduePenalties(
   const today = toDateString(new Date());
 
   const updated = tasks.map((task) => {
-    if (task.completed || task.scheduledFor >= today) {
+    if (task.completed || task.scheduledFor.slice(0, 10) >= today) {
       return task;
     }
     const currentIndex = REVIEW_STAGE_ORDER.indexOf(task.stage);
