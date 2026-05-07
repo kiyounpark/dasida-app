@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
@@ -110,6 +110,7 @@ export function QuizHubScreenView({
   showReviewHomeCard,
   showWeaknessSection,
 }: UseQuizHubScreenResult) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
@@ -127,6 +128,24 @@ export function QuizHubScreenView({
   const scrollTopPadding = showJourneyHero
     ? 14
     : (isCompactLayout ? 14 : 24);
+
+  // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 480) 중 작은 값.
+  // 보드의 가용 높이를 산출할 때 이 추정 높이만큼을 미리 빼둔다.
+  const ctaButtonAspectRatio = 1497 / 373;
+  const ctaButtonMaxWidth = isTablet ? 480 : 340;
+  const ctaButtonRenderedWidth = Math.min(screenWidth * 0.7, ctaButtonMaxWidth);
+  const ctaButtonEstimatedHeight = ctaButtonRenderedWidth / ctaButtonAspectRatio;
+  const ctaFooterHeight =
+    showJourneyBoard
+      ? 4 /* paddingTop */ + ctaButtonEstimatedHeight + insets.bottom + (isCompactLayout ? 24 : 28)
+      : 0;
+
+  // ScrollView가 보드에 줄 수 있는 세로 공간. heroLayoutBottom이 0(첫 렌더)이면 0으로 떨어지고,
+  // JourneyBoard 내부에서 width-only 분기로 동작한다 (onLayout 후 한 번 더 렌더되며 정상화).
+  const boardAvailableHeight = Math.max(
+    0,
+    screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
+  );
 
   if (!isReady) {
     return (
@@ -207,6 +226,7 @@ export function QuizHubScreenView({
             ) : null}
             {showJourneyBoard ? (
               <JourneyBoard
+                availableHeight={boardAvailableHeight}
                 isCompactLayout={isCompactLayout}
                 onPressCurrentStep={onPressJourneyCta}
                 state={journey}
