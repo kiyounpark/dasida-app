@@ -38,7 +38,7 @@
 
 ## Premises
 
-1. **`react-native-svg` 15.12.1, `react-native-reanimated` 4.1.1, `expo-linear-gradient`(이미 설치됨) 사용 가능**.
+1. **`react-native-svg` 15.12.1, `react-native-reanimated` 4.1.1 이미 설치됨**. **`expo-linear-gradient`는 미설치 → 설치 필요** (Plan Task 1에서 다룬다).
 2. **OS 권한 상태가 진실 공급원**: `Notifications.getPermissionsAsync()`가 `granted`/`denied`면 카드 자체가 안 뜸. "나중에"는 메모리 상태로만 처리.
 3. **`/quiz/result` 화면은 단일 세션 결과 표시** — 누적 약점이 아니라 이번 회차 약점만 보여줌. 카드 노출 빈도 제어를 위한 추가 로직 불필요.
 4. **모의고사 진단 완료 후 자동으로 `/quiz/result?source=exam`으로 router.replace** ([use-exam-result-screen.ts:142-154](../../../features/quiz/exam/hooks/use-exam-result-screen.ts#L142-L154)). 즉 카드는 진단/연습/모의고사 모든 흐름의 종점에서 동일하게 노출된다.
