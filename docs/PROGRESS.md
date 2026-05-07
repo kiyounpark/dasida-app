@@ -882,6 +882,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.08 00:42
+- 해시: `0bedc7e` (`0bedc7ec758edbca34435ca789bee8921416cb00`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0bedc7ec758edbca34435ca789bee8921416cb00
+- 작성자: 박기윤
+- 메시지: fix(ipad): exam-solve 가로모드 코드리뷰 반영 — 배너/리스너/scratchpad 화면 훅 호이스트
+- 본문: - 회전 안내 배너가 portrait에서 실제로 노출되도록 화면 레벨에서 조건부 렌더 (Critical #1) / - orientation listener와 useScratchpad를 useExamSolveScreen으로 호이스트해 / portrait↔landscape 전환 도중에도 endStroke가 안전하게 동작 (Critical #2) / - useExamScreenOrientation 훅 분리 + 단위 테스트 4건으로 회전 라이프사이클 회귀망 마련 / - isTablet 가드 추가 — iPhone에서 불필요한 unlockAsync 호출 제거 / - CHANGELOG/PROGRESS에 requireFullScreen=true로 인한 iPad Split View 비활성화 명시 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.05.08 00:33
 - 해시: `f2eb358` (`f2eb358cb667d6fc32ceace2ad4dd756fcae589e`)
 - 브랜치: main
