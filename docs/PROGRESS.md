@@ -882,6 +882,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.08 00:12
+- 해시: `967cc3b` (`967cc3b9bf7db1173e7ba4c1ba9072cdd3408ad9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/967cc3b9bf7db1173e7ba4c1ba9072cdd3408ad9
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/amazing-wescoff-becdea': iPad 가로 모드 부분 지원 (exam-solve)
+- 본문: # Conflicts: / #	app.config.js
+
 ### 커밋 2026.05.07 22:38
 - 해시: `a695cda` (`a695cda4869f85c4fb428604713f915d10426e86`)
 - 브랜치: main

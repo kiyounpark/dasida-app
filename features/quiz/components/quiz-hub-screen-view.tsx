@@ -112,7 +112,6 @@ export function QuizHubScreenView({
 }: UseQuizHubScreenResult) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isTablet = useIsTablet();
-  const { width: screenWidth } = useWindowDimensions();
   const tabletContainerMaxWidth = isTablet ? Math.min(screenWidth * 0.92, 1040) : undefined;
   const insets = useSafeAreaInsets();
   const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
