@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diagnosisMap } from '@/data/diagnosisMap';
+import type { ReviewTask } from '@/features/learning/types';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
 const MORNING_HOUR = 7;
@@ -25,6 +26,19 @@ function buildScheduledDate(dateString: string, hour: number, minute: number): D
   const datePart = dateString.slice(0, 10);
   const [year, month, day] = datePart.split('-').map(Number);
   return new Date(year, month - 1, day, hour, minute, 0, 0);
+}
+
+/**
+ * 미완료 태스크 중 오늘 날짜(`scheduledFor`의 YYYY-MM-DD가 today와 일치)인 첫 번째 태스크를 반환.
+ * 오늘 태스크가 없으면 undefined.
+ */
+export function pickTodayRepresentativeTask(
+  tasks: ReviewTask[],
+  today: string,
+): ReviewTask | undefined {
+  return tasks.find(
+    (t) => !t.completed && t.scheduledFor.slice(0, 10) === today,
+  );
 }
 
 /**
@@ -59,11 +73,8 @@ export async function scheduleReviewNotifications(
   if (status !== 'granted') return;
 
   const tasks = await store.load(accountKey);
-  const incompleteTasks = tasks
-    .filter((t) => !t.completed)
-    .sort((a, b) => a.scheduledFor.slice(0, 10).localeCompare(b.scheduledFor.slice(0, 10)));
-
-  const representativeTask = incompleteTasks[0];
+  const today = toLocalDateString(new Date());
+  const representativeTask = pickTodayRepresentativeTask(tasks, today);
   if (!representativeTask) return;
 
   const label = representativeTask.weaknessId
@@ -82,27 +93,9 @@ export async function scheduleReviewNotifications(
 
   const now = new Date();
 
-  // Normalize to YYYY-MM-DD (handles both YYYY-MM-DD and full ISO strings).
-  let scheduledDateString = representativeTask.scheduledFor.slice(0, 10);
-
-  let morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
-  let eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
-
-  // Fallback: if both slots have already passed (e.g. user completed diagnostic after 20:00),
-  // advance to tomorrow so at least the next morning slot fires.
-  // Also update the store so applyOverduePenalties does not wrongly penalize this task.
-  if (morningDate <= now && eveningDate <= now) {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    scheduledDateString = toLocalDateString(tomorrow);
-    morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
-    eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
-
-    const updatedTasks = tasks.map((t) =>
-      t.id === representativeTask.id ? { ...t, scheduledFor: scheduledDateString } : t,
-    );
-    await store.saveAll(accountKey, updatedTasks);
-  }
+  const scheduledDateString = representativeTask.scheduledFor.slice(0, 10);
+  const morningDate = buildScheduledDate(scheduledDateString, MORNING_HOUR, MORNING_MINUTE);
+  const eveningDate = buildScheduledDate(scheduledDateString, EVENING_HOUR, EVENING_MINUTE);
 
   if (morningDate > now) {
     await Notifications.scheduleNotificationAsync({

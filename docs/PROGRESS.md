@@ -882,14 +882,52 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.08 00:12
+- 해시: `967cc3b` (`967cc3b9bf7db1173e7ba4c1ba9072cdd3408ad9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/967cc3b9bf7db1173e7ba4c1ba9072cdd3408ad9
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/amazing-wescoff-becdea': iPad 가로 모드 부분 지원 (exam-solve)
+- 본문: # Conflicts: / #	app.config.js
+
 ### 커밋 2026.05.07 23:50
 - 해시: `6dc9e50` (`6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd`)
 - 브랜치: claude/busy-wescoff-b48f17
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: test(notification-card): remove stale colocated test (replaced by __tests__/)
+
+### 커밋 2026.05.07 22:38
+- 해시: `a695cda` (`a695cda4869f85c4fb428604713f915d10426e86`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a695cda4869f85c4fb428604713f915d10426e86
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/vigorous-dewdney-7da03e': iPad 홈화면 레이아웃 100% 채움 개선
+
+### 커밋 2026.05.07 20:34
+- 해시: `f6238e1` (`f6238e19dfac61293d38c95bac3bb45ad3a3e5d6`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f6238e19dfac61293d38c95bac3bb45ad3a3e5d6
+- 작성자: 박기윤
+- 메시지: feat(notifications): scope review alarms to today's tasks only
+- 본문: - Use pickTodayRepresentativeTask to filter today scheduledFor / - Remove fallback that auto-advanced overdue today task to tomorrow / - Overdue tasks are handled by home UI dueReviewTasks; alarm should / not point to overdue or future tasks
+
+### 커밋 2026.05.07 00:06
+- 해시: `f71bb05` (`f71bb055c25ddc033b4e49ccc6843109337b3da0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f71bb055c25ddc033b4e49ccc6843109337b3da0
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/affectionate-williams-982db8': iPad 세로 고정 + 학습 여정 사이즈 튜닝
 
 ### 커밋 2026.05.02 04:57
 - 해시: `2eea56e` (`2eea56e2aec94fd50119fc6a6acefa00d99762fb`)

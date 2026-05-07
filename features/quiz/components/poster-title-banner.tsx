@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   heroFrameWrapTablet: {
-    maxWidth: 560,
+    maxWidth: 700,
   },
   heroFrameWrapRaisedTablet: {
     transform: [{ translateY: -40 }],

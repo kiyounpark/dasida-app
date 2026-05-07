@@ -23,13 +23,18 @@ module.exports = {
       usesAppleSignIn: true,
       supportsTablet: true,
       // requireFullScreen disables iPad multitasking (Split View/Slide Over).
-      // UISupportedInterfaceOrientations~ipad below must stay portrait-only while this is true.
+      // iPad는 4방향 허용 → 기본 lockToPortrait + exam-solve-screen에서만 unlock
       requireFullScreen: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        UISupportedInterfaceOrientations: [
+          'UIInterfaceOrientationPortrait',
+        ],
         'UISupportedInterfaceOrientations~ipad': [
           'UIInterfaceOrientationPortrait',
           'UIInterfaceOrientationPortraitUpsideDown',
+          'UIInterfaceOrientationLandscapeLeft',
+          'UIInterfaceOrientationLandscapeRight',
         ],
       },
     },
