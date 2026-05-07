@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
@@ -111,6 +111,8 @@ export function QuizHubScreenView({
   showWeaknessSection,
 }: UseQuizHubScreenResult) {
   const isTablet = useIsTablet();
+  const { width: screenWidth } = useWindowDimensions();
+  const tabletContainerMaxWidth = isTablet ? Math.min(screenWidth * 0.92, 1040) : undefined;
   const insets = useSafeAreaInsets();
   const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
@@ -190,6 +192,7 @@ export function QuizHubScreenView({
         contentContainerStyle={[
           styles.posterScreen,
           isTablet && styles.tabletPosterScreen,
+          isTablet && { maxWidth: tabletContainerMaxWidth },
           isTablet && styles.posterScreenTabletSpacing,
           {
             paddingTop: scrollTopPadding,
@@ -245,7 +248,7 @@ export function QuizHubScreenView({
             compact={isCompactLayout}
             label={journey.ctaLabel}
             onPress={onPressJourneyCta}
-            style={[styles.ctaFooterButton, isTablet && { maxWidth: 480 }]}
+            style={[styles.ctaFooterButton, isTablet && { maxWidth: 600 }]}
           />
         </View>
       ) : null}
@@ -352,7 +355,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   tabletPosterScreen: {
-    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },
