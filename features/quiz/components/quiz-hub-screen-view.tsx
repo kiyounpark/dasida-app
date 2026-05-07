@@ -140,12 +140,15 @@ export function QuizHubScreenView({
       ? 4 /* paddingTop */ + ctaButtonEstimatedHeight + insets.bottom + (isCompactLayout ? 24 : 28)
       : 0;
 
-  // ScrollView가 보드에 줄 수 있는 세로 공간. heroLayoutBottom이 0(첫 렌더)이면 0으로 떨어지고,
-  // JourneyBoard 내부에서 width-only 분기로 동작한다 (onLayout 후 한 번 더 렌더되며 정상화).
-  const boardAvailableHeight = Math.max(
-    0,
-    screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
-  );
+  // heroLayoutBottom이 0(첫 렌더, onLayout 전)이면 0을 전달해 JourneyBoard가 width-only로 동작하게 한다.
+  // onLayout 후 heroLayoutBottom이 채워지면 정상 height 제약이 적용된다.
+  const boardAvailableHeight =
+    heroLayoutBottom === 0
+      ? 0
+      : Math.max(
+          0,
+          screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
+        );
 
   if (!isReady) {
     return (
