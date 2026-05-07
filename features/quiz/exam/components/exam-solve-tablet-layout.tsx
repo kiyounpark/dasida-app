@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import * as ScreenOrientation from 'expo-screen-orientation';
+
 import { useCurrentLearner } from '@/features/learner/provider';
 import { ScratchpadCanvas } from '@/features/quiz/exam/components/scratchpad-canvas';
 import { ScratchpadToolbar } from '@/features/quiz/exam/components/scratchpad-toolbar';
 import { SplitDivider } from '@/features/quiz/exam/components/split-divider';
 import { useScratchpad } from '@/features/quiz/exam/hooks/use-scratchpad';
 import {
+  hasSeenLandscapeHint,
+  markLandscapeHintSeen,
+} from '@/features/quiz/exam/storage/landscape-hint-store';
+import {
   loadSplitRatio,
   saveSplitRatio,
 } from '@/features/quiz/exam/storage/scratchpad-split-ratio-store';
+import { LandscapeHintBanner } from './landscape-hint-banner';
 
 type Props = {
   examId: string;
@@ -46,6 +53,34 @@ export function ExamSolveTabletLayout({ examId, problemNumber, header, problemPa
   );
   const [pencilOnly, setPencilOnly] = useState(false);
   const scratchpad = useScratchpad(examId, problemNumber);
+
+  useEffect(() => {
+    const subscription = ScreenOrientation.addOrientationChangeListener(() => {
+      scratchpad.endStroke();
+    });
+    return () => {
+      ScreenOrientation.removeOrientationChangeListener(subscription);
+    };
+  }, [scratchpad]);
+
+  const [showHint, setShowHint] = useState(false);
+  const isPortrait = height >= width;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isPortrait) return;
+    hasSeenLandscapeHint().then((seen) => {
+      if (!cancelled && !seen) setShowHint(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isPortrait]);
+
+  const handleDismissHint = () => {
+    setShowHint(false);
+    void markLandscapeHintSeen();
+  };
 
   useEffect(() => {
     if (!accountKey) return;
@@ -85,6 +120,7 @@ export function ExamSolveTabletLayout({ examId, problemNumber, header, problemPa
 
   return (
     <View style={styles.root}>
+      {showHint ? <LandscapeHintBanner onDismiss={handleDismissHint} /> : null}
       {header}
       <View style={styles.split}>
         <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>

@@ -1,6 +1,8 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, useWindowDimensions } from 'react-native';
+
+import { lockToPortrait, unlockAllOrientations } from '@/hooks/use-orientation-lock';
 
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
@@ -69,6 +71,15 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
       router.replace('/quiz/exam/result' as any);
     }
   }, [state.isFinished, state.result, state.problems.length]);
+
+  useFocusEffect(
+    useCallback(() => {
+      unlockAllOrientations();
+      return () => {
+        lockToPortrait();
+      };
+    }, []),
+  );
 
   const currentProblem = state.problems[state.currentIndex] ?? null;
   const currentAnswer = state.answers[state.currentIndex] ?? null;
