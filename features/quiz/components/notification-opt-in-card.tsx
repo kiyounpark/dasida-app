@@ -1,6 +1,14 @@
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import Svg, { Circle, G } from 'react-native-svg';
 
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 
 export type NotificationOptInCardState =
@@ -11,98 +19,308 @@ export type NotificationOptInCardState =
   | 'dismissed';
 
 type Props = {
-  weaknessLabels: string[];
+  weaknessLabels: string[]; // 호환을 위해 유지. A1 카피에서는 사용 안 함.
   state: NotificationOptInCardState;
   onEnable: () => void;
   onDismiss: () => void;
 };
 
-export function NotificationOptInCard({ weaknessLabels, state, onEnable, onDismiss }: Props) {
+const COLORS = {
+  forestStart: '#4A6F4A',
+  forestEnd: '#293B27',
+  honey: '#F4B942',
+  forest400: '#87B084',
+  forest300: '#AECBAA',
+  paper: '#FFFCF4',
+  inkOnPaper: '#293B27',
+  whiteFaint10: 'rgba(255,255,255,0.10)',
+  whiteFaint12: 'rgba(255,255,255,0.12)',
+  whiteFaint18: 'rgba(255,255,255,0.18)',
+  whiteFaint25: 'rgba(255,255,255,0.25)',
+  whiteFaint35: 'rgba(255,255,255,0.35)',
+} as const;
+
+export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+
+  useEffect(() => {
+    const config = {
+      duration: 320,
+      easing: Easing.bezier(0.2, 0.8, 0.2, 1),
+    };
+    opacity.value = withTiming(1, config);
+    translateY.value = withTiming(0, config);
+  }, [opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
   if (state === 'granted' || state === 'dismissed' || state === 'denied') {
     return null;
   }
 
   const isBusy = state === 'requesting';
-  const labelText = weaknessLabels.slice(0, 2).join(', ');
 
   return (
-    <View style={styles.card} accessibilityRole="alert">
-      <Text style={styles.title}>🔔 복습 알림 받기</Text>
-      <Text style={styles.body}>
-        {labelText} — 내일이면 절반 이상 잊혀져요
-      </Text>
-      <View style={styles.buttonRow}>
-        <Pressable
-          style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-          onPress={onEnable}
-          disabled={isBusy}
-          accessibilityRole="button"
-          accessibilityLabel="복습 알림 켜기">
-          <Text style={styles.primaryButtonText}>켜기</Text>
-        </Pressable>
-        <Pressable
-          style={styles.secondaryButton}
-          onPress={onDismiss}
-          disabled={isBusy}
-          accessibilityRole="button"
-          accessibilityLabel="나중에 결정">
-          <Text style={styles.secondaryButtonText}>나중에</Text>
-        </Pressable>
+    <Animated.View style={[styles.cardOuter, animatedStyle]} accessibilityRole="alert">
+      <LinearGradient
+        colors={[COLORS.forestStart, COLORS.forestEnd]}
+        locations={[0, 0.55]}
+        start={{ x: 0.8, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}>
+        <View style={styles.topRow}>
+          <View style={styles.textBlock}>
+            <Text style={styles.eyebrow}>망각 곡선 경고</Text>
+            <Text style={styles.headline}>
+              내일이면 오늘 배운 것{'\n'}
+              <Text style={styles.headlineEm}>58%가 사라져요.</Text>
+            </Text>
+          </View>
+          <ForgettingGauge />
+        </View>
+        <ForgettingTimeline />
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
+            onPress={onEnable}
+            disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="알림 켜기">
+            <Text style={styles.primaryButtonText}>알림 켜기</Text>
+          </Pressable>
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={onDismiss}
+            disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="나중에 결정">
+            <Text style={styles.secondaryButtonText}>나중에</Text>
+          </Pressable>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+function ForgettingGauge() {
+  const size = 64;
+  const strokeWidth = 5.5;
+  const radius = 27;
+  const circumference = 2 * Math.PI * radius;
+  const progress = circumference * 0.58;
+
+  return (
+    <View style={gaugeStyles.wrap}>
+      <Svg width={size} height={size}>
+        <G rotation={-90} origin={`${size / 2}, ${size / 2}`}>
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={COLORS.whiteFaint10}
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={COLORS.honey}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${progress} ${circumference}`}
+            fill="none"
+          />
+        </G>
+      </Svg>
+      <View style={gaugeStyles.center} pointerEvents="none">
+        <Text style={gaugeStyles.percent}>58%</Text>
+        <Text style={gaugeStyles.label}>망각</Text>
       </View>
     </View>
   );
 }
 
+function ForgettingTimeline() {
+  return (
+    <View style={timelineStyles.wrap}>
+      <View style={timelineStyles.track}>
+        <LinearGradient
+          colors={[COLORS.forest400, COLORS.honey]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={timelineStyles.fill}
+        />
+      </View>
+      <View style={timelineStyles.markerRow}>
+        <TimelineMarker time="지금" pct="100%" pctColor={COLORS.forest400} />
+        <TimelineMarker time="내일" pct="42%" pctColor={COLORS.honey} />
+        <TimelineMarker time="3일 후" pct="20%" pctColor={COLORS.whiteFaint25} />
+        <TimelineMarker time="1주 후" pct="10%" pctColor={COLORS.whiteFaint18} />
+      </View>
+      <Text style={timelineStyles.source}>에빙하우스 망각 곡선</Text>
+    </View>
+  );
+}
+
+function TimelineMarker({
+  time,
+  pct,
+  pctColor,
+}: {
+  time: string;
+  pct: string;
+  pctColor: string;
+}) {
+  return (
+    <View style={timelineStyles.marker}>
+      <Text style={[timelineStyles.markerPct, { color: pctColor }]}>{pct}</Text>
+      <Text style={timelineStyles.markerTime}>{time}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: BrandColors.card,
-    borderRadius: BrandRadius.md,
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.sm,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
+  cardOuter: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 14,
   },
-  title: {
+  gradient: {
+    paddingTop: 20,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    gap: 14,
+  },
+  textBlock: {
+    flex: 1,
+    gap: 6,
+  },
+  eyebrow: {
     fontFamily: FontFamilies.bold,
-    fontSize: 16,
-    color: BrandColors.text,
+    fontSize: 10.5,
+    color: COLORS.forest300,
+    letterSpacing: 0.1 * 10.5,
+    textTransform: 'uppercase',
   },
-  body: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 14,
-    color: BrandColors.mutedText,
-    lineHeight: 20,
+  headline: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 19,
+    lineHeight: 25.65,
+    color: '#FFFCF4',
+    letterSpacing: -0.015 * 19,
+  },
+  headlineEm: {
+    color: COLORS.honey,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: BrandSpacing.sm,
-    marginTop: BrandSpacing.xs,
+    padding: 16,
+    gap: 10,
   },
   primaryButton: {
     flex: 1,
-    backgroundColor: BrandColors.primary,
-    paddingVertical: 12,
-    borderRadius: BrandRadius.sm,
+    paddingVertical: 14,
+    backgroundColor: COLORS.paper,
+    borderRadius: 14,
     alignItems: 'center',
   },
   primaryButtonText: {
     fontFamily: FontFamilies.bold,
-    color: '#ffffff',
-    fontSize: 14,
+    fontSize: 15,
+    color: COLORS.inkOnPaper,
+    letterSpacing: -0.01 * 15,
   },
   secondaryButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: BrandRadius.sm,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: COLORS.whiteFaint12,
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    justifyContent: 'center',
   },
   secondaryButtonText: {
     fontFamily: FontFamilies.medium,
-    color: BrandColors.mutedText,
-    fontSize: 14,
+    fontSize: 13,
+    color: COLORS.whiteFaint35,
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+});
+
+const gaugeStyles = StyleSheet.create({
+  wrap: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  center: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  percent: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 14,
+    color: COLORS.honey,
+    fontVariant: ['tabular-nums'],
+  },
+  label: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 8.5,
+    color: COLORS.forest300,
+  },
+});
+
+const timelineStyles = StyleSheet.create({
+  wrap: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    gap: 8,
+  },
+  track: {
+    height: 3,
+    backgroundColor: COLORS.whiteFaint10,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  fill: {
+    width: '28%',
+    height: '100%',
+    borderRadius: 999,
+  },
+  markerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  marker: {
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  markerPct: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 10,
+    fontVariant: ['tabular-nums'],
+  },
+  markerTime: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 9.5,
+    color: 'rgba(255,255,255,0.45)',
+  },
+  source: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 10,
+    color: COLORS.whiteFaint25,
+    textAlign: 'right',
   },
 });

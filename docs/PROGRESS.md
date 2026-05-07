@@ -892,6 +892,15 @@
 - 메시지: Merge branch 'claude/amazing-wescoff-becdea': iPad 가로 모드 부분 지원 (exam-solve)
 - 본문: # Conflicts: / #	app.config.js
 
+### 커밋 2026.05.07 23:50
+- 해시: `6dc9e50` (`6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd`)
+- 브랜치: claude/busy-wescoff-b48f17
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6dc9e50fb04e27e530ad8f51ec1cedf1c87e7ecd
+- 작성자: 박기윤
+- 메시지: test(notification-card): remove stale colocated test (replaced by __tests__/)
+
 ### 커밋 2026.05.07 22:38
 - 해시: `a695cda` (`a695cda4869f85c4fb428604713f915d10426e86`)
 - 브랜치: main

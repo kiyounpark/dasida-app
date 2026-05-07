@@ -165,6 +165,18 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   getAllKeys: jest.fn(),
 }));
 
+jest.mock('expo-linear-gradient', () => {
+  const React = require('react');
+  const MockGradient = React.forwardRef(({ children, ...props }, ref) =>
+    React.createElement('View', { ref, ...props }, children)
+  );
+  return {
+    __esModule: true,
+    LinearGradient: MockGradient,
+    default: MockGradient,
+  };
+});
+
 jest.mock('react-native-svg', () => {
   const React = require('react');
   // Create a simple mock component that accepts any props and renders nothing
