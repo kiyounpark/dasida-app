@@ -131,7 +131,7 @@ export function ReviewSessionScreenView({
   const inputCardContent =
     stepPhase === 'input' ? (
       <>
-        {!isTextMode && (
+        {!isTextMode ? (
           <>
             <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
             <View style={styles.choices}>
@@ -160,6 +160,24 @@ export function ReviewSessionScreenView({
               <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
               <View style={styles.dividerLine} />
             </View>
+          </>
+        ) : (
+          <>
+            {selectedChoiceIndex !== null && (
+              <View style={styles.choiceChipRow}>
+                <View style={styles.choiceChip}>
+                  <Text style={styles.choiceChipLabel}>선택했던 보기</Text>
+                  <Text style={styles.choiceChipText} numberOfLines={2}>
+                    {step.choices[selectedChoiceIndex]?.text}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {selectedChoiceFeedback ? (
+              <View style={styles.choiceFeedbackCard}>
+                <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
+              </View>
+            ) : null}
           </>
         )}
         <TextInput
@@ -511,6 +529,28 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.regular,
     fontSize: 14,
     lineHeight: 20,
+    color: BrandColors.primary,
+  },
+  choiceChipRow: {
+    marginBottom: BrandSpacing.sm,
+  },
+  choiceChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: BrandRadius.md,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    gap: 2,
+  },
+  choiceChipLabel: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 11,
+    color: BrandColors.mutedText,
+  },
+  choiceChipText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
     color: BrandColors.primary,
   },
   divider: {
