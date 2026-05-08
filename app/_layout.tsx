@@ -11,7 +11,9 @@ import 'react-native-reanimated';
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
 import { ExamSessionProvider } from '@/features/quiz/exam/exam-session';
-import { lockToPortrait } from '@/hooks/use-orientation-lock';
+import { Dimensions, Platform } from 'react-native';
+
+import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 Notifications.setNotificationHandler({
@@ -166,7 +168,17 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    lockToPortrait();
+    // iOS는 Info.plist의 UISupportedInterfaceOrientations(~ipad 포함)가 정적으로 처리.
+    // Android는 디바이스-클래스 분기가 manifest 차원에 없어 런타임 lock 사용.
+    if (Platform.OS !== 'android') return;
+    const screen = Dimensions.get('screen');
+    const shorterEdge = Math.min(screen.width, screen.height);
+    const isTabletDevice = shorterEdge >= 600;
+    if (isTabletDevice) {
+      void lockToLandscape();
+    } else {
+      void lockToPortrait();
+    }
   }, []);
 
   return (
