@@ -882,14 +882,25 @@
 
 <!-- COMMIT_LOGS_START -->
 
-### 커밋 2026.05.09 00:04
-- 해시: `b4374ec` (`b4374ec88697049961fad4be02afea10831b9bd4`)
-- 브랜치: claude/sad-lichterman-b03998
+### 커밋 2026.05.09 01:02
+- 해시: `abeeabf` (`abeeabfbf9909e8f917d9da9a423ff94b0e12d56`)
+- 브랜치: claude/brave-jennings-fa2423
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/b4374ec88697049961fad4be02afea10831b9bd4
+- 링크: https://github.com/kiyounpark/dasida-app/commit/abeeabfbf9909e8f917d9da9a423ff94b0e12d56
 - 작성자: 박기윤
-- 메시지: docs(progress): log diagnosis original-strokes sheet
+- 메시지: fix(diagnosis): guard onContentSizeChange with isActive + comment rAF asymmetry
+- 본문: 코드 리뷰 반영: / - 비활성 페이지(가로 페이저 스와이프 직후)에서 늦게 발생하는 onContentSizeChange가 / 잘못된 페이지를 스크롤하지 않도록 isActive 가드 추가. useEffect/onLayout 경로와 일관성 확보. / - 폴백 경로의 rAF 부재가 의도된 비대칭임을 주석으로 명시(미래의 잘못된 consistency refactor 방지). / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.05.09 00:55
+- 해시: `3d8140d` (`3d8140de84f818e51d7e17866fd141e70d459339`)
+- 브랜치: claude/brave-jennings-fa2423
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3d8140de84f818e51d7e17866fd141e70d459339
+- 작성자: 박기윤
+- 메시지: fix(diagnosis): consume pendingScroll in onLayout to prevent stuck state
+- 본문: onContentSizeChange보다 onLayout이 늦게 발생할 때 pendingScrollRef가 / 영구적으로 true로 남는 버그 수정. onLayout에서도 pending 스크롤을 실행한다. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.05.08 00:42
 - 해시: `0bedc7e` (`0bedc7ec758edbca34435ca789bee8921416cb00`)
@@ -2555,4 +2566,3 @@
 <!-- 새 작업 로그는 위 형식으로 날짜별로 추가 -->
 - 2026-05-06: 알림 권한 요청 타이밍 재배치 — 묵음 OS 다이얼로그 → 결과 화면 옵트인 카드 (rev2 spec)
 - 2026-05-08: iPad 가로모드(exam-solve) 코드리뷰 fix — 회전 안내 배너 데드 코드 경로 해소, orientation listener와 useScratchpad를 화면 훅(`use-exam-solve-screen`)으로 호이스트, `useExamScreenOrientation` 훅 분리 + 단위 테스트 추가, iPad 가드(`isTablet`) 추가. CHANGELOG에 `requireFullScreen: true`로 인한 iPad Split View 비활성화 명시.
-- 2026-05-09: 약점 진단 화면에 원본 풀이 읽기 전용 half-sheet 도입 — `useProblemStrokes` 신규 훅(단위 테스트 4개), `ScratchpadCanvas` readOnly 모드 추가, `DiagnosisDarkHeader` 토글 버튼 슬롯 추가, `OriginalStrokesSheet` half-sheet 모달 신규, `exam-diagnosis-session-screen` 통합. 추가 네이티브 의존성 없음.
