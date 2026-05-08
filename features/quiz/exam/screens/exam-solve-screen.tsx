@@ -10,7 +10,6 @@ import { ExamNumberPanel } from '../components/exam-number-panel';
 import { ExamProgressPanel } from '../components/exam-progress-panel';
 import { ExamShortAnswerPanel } from '../components/exam-short-answer-panel';
 import { ExamSolveHeader } from '../components/exam-solve-header';
-import { LandscapeHintBanner } from '../components/landscape-hint-banner';
 import { useExamSolveScreen } from '../hooks/use-exam-solve-screen';
 
 type ExamSolveScreenProps = {
@@ -27,9 +26,7 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     currentAnswer,
     shortAnswerText,
     isCompactLayout,
-    useTabletLayout,
-    showLandscapeHint,
-    onDismissLandscapeHint,
+    isTablet,
     scratchpad,
     canGoPrev,
     isLast,
@@ -121,7 +118,7 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
 
   return (
     <View style={styles.root}>
-      {useTabletLayout ? (
+      {isTablet ? (
         <ExamSolveTabletLayout
           header={header}
           scratchpad={scratchpad}
@@ -135,7 +132,6 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
       ) : (
         <QuizSolveLayout header={header} body={body} footer={footer} />
       )}
-      {showLandscapeHint ? <LandscapeHintBanner onDismiss={onDismissLandscapeHint} /> : null}
     </View>
   );
 }

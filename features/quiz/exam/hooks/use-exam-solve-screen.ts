@@ -1,17 +1,12 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, useWindowDimensions } from 'react-native';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
-import {
-  hasSeenLandscapeHint,
-  markLandscapeHintSeen,
-} from '../storage/landscape-hint-store';
 import { useExamSession } from '../exam-session';
-import { useExamScreenOrientation } from './use-exam-screen-orientation';
 import { useScratchpad, type UseScratchpadResult } from './use-scratchpad';
 
 export type UseExamSolveScreenResult = {
@@ -25,10 +20,6 @@ export type UseExamSolveScreenResult = {
   shortAnswerText: string;
   isCompactLayout: boolean;
   isTablet: boolean;
-  isPortrait: boolean;
-  useTabletLayout: boolean;
-  showLandscapeHint: boolean;
-  onDismissLandscapeHint: () => void;
   scratchpad: UseScratchpadResult;
   canGoPrev: boolean;
   isLast: boolean;
@@ -48,8 +39,6 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
   const { width, height } = useWindowDimensions();
   const isCompactLayout = width < 390 || height < 780;
   const isTablet = useIsTablet();
-  const isPortrait = height >= width;
-  const useTabletLayout = isTablet && !isPortrait;
   const initialized = useRef(false);
 
   // 단답형 입력 로컬 상태 (문자열)
@@ -94,37 +83,6 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
   // 필기 캔버스 상태는 useTabletLayout 분기와 무관하게 화면 단위로 단일 인스턴스를 유지한다.
   // tablet layout이 portrait↔landscape 회전 시 unmount/remount 되어도 in-memory stroke이 보존된다.
   const scratchpad = useScratchpad(state.examId || examId, currentProblem?.number ?? 0);
-
-  // 회전 도중 휘발 stroke을 끊어 Reanimated/Skia 충돌을 방지.
-  const handleOrientationChange = useCallback(() => {
-    scratchpad.endStroke();
-  }, [scratchpad.endStroke]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useExamScreenOrientation({
-    isTablet,
-    onOrientationChange: handleOrientationChange,
-  });
-
-  // 가로 회전 안내 배너: tablet이고 portrait일 때만, 한 번만 노출.
-  const [showLandscapeHint, setShowLandscapeHint] = useState(false);
-  useEffect(() => {
-    if (!isTablet || !isPortrait) {
-      setShowLandscapeHint(false);
-      return;
-    }
-    let cancelled = false;
-    hasSeenLandscapeHint().then((seen) => {
-      if (!cancelled && !seen) setShowLandscapeHint(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isTablet, isPortrait]);
-
-  const handleDismissLandscapeHint = useCallback(() => {
-    setShowLandscapeHint(false);
-    void markLandscapeHintSeen();
-  }, []);
 
   const handleNext = () => {
     const isLast = state.currentIndex === state.problems.length - 1;
@@ -195,10 +153,6 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     shortAnswerText,
     isCompactLayout,
     isTablet,
-    isPortrait,
-    useTabletLayout,
-    showLandscapeHint,
-    onDismissLandscapeHint: handleDismissLandscapeHint,
     scratchpad,
     canGoPrev: state.currentIndex > 0,
     isLast: state.currentIndex === state.problems.length - 1,
