@@ -128,7 +128,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const onSelectChoice = (index: number) => {
     setSelectedChoiceIndex(index);
     const choice = steps[currentStepIndex]?.choices[index];
-    setSelectedChoiceFeedback(choice?.feedback || null);
+    setSelectedChoiceFeedback(choice?.feedback ?? null);
     if (stepPhase === 'input' && firstAttemptCorrectRef.current[currentStepIndex] === null) {
       const isCorrect = choice?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
@@ -215,7 +215,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       setChatMessages([...allMessages, { role: 'ai', text: result.replyText }]);
       setAiResponseCount((c) => c + 1);
     } catch {
-      // 실패 시 카운트 증가 X
+      // 실패 시 사용자 메시지를 롤백해 중복 전송 방지
+      setChatMessages((prev) => prev.slice(0, -1));
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);

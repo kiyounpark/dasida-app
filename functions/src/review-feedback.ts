@@ -12,7 +12,7 @@ export const ReviewFeedbackRequestSchema = z.object({
   weaknessId: z.string().min(1).max(60),
   stepTitle: z.string().min(1).max(100),
   stepBody: z.string().min(1).max(400),
-  selectedChoiceText: z.string().min(1).max(200).optional(),
+  selectedChoiceText: z.string().min(1).max(200).transform((s) => s.replace(/[\n\r]/g, ' ')).optional(),
   selectedChoiceCorrect: z.boolean().optional(),
   messages: z
     .array(
