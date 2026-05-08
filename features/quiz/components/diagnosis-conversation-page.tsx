@@ -182,10 +182,19 @@ export function DiagnosisConversationPage({
       return;
     }
 
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-      onAutoScrollHandled(answerIndex);
-    });
+    const targetY = anchorYRef.current;
+    if (targetY != null) {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({
+          y: Math.max(targetY - 16, 0),
+          animated: true,
+        });
+        onAutoScrollHandled(answerIndex);
+      });
+      return;
+    }
+
+    pendingScrollRef.current = true;
   }, [answerIndex, isActive, onAutoScrollHandled, shouldAutoScrollToEnd]);
 
   return (
