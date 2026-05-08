@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -145,6 +145,16 @@ export function DiagnosisConversationPage({
   onRestoreHandled,
 }: DiagnosisConversationPageProps) {
   const scrollRef = useRef<ScrollView | null>(null);
+
+  const anchorEntryId = useMemo(() => {
+    for (let i = chatEntries.length - 1; i >= 0; i -= 1) {
+      const entry = chatEntries[i];
+      if (entry.kind === 'bubble' && entry.role === 'user') {
+        return entry.id;
+      }
+    }
+    return null;
+  }, [chatEntries]);
 
   useEffect(() => {
     if (!isActive || !shouldRestoreScroll) {
