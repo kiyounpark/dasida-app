@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -146,6 +146,23 @@ export function DiagnosisConversationPage({
 }: DiagnosisConversationPageProps) {
   const scrollRef = useRef<ScrollView | null>(null);
 
+  const anchorEntryId = useMemo(() => {
+    for (let i = chatEntries.length - 1; i >= 0; i -= 1) {
+      const entry = chatEntries[i];
+      if (entry.kind === 'bubble' && entry.role === 'user') {
+        return entry.id;
+      }
+    }
+    return null;
+  }, [chatEntries]);
+
+  const anchorYRef = useRef<number | null>(null);
+  const pendingScrollRef = useRef(false);
+
+  useEffect(() => {
+    anchorYRef.current = null;
+  }, [anchorEntryId]);
+
   useEffect(() => {
     if (!isActive || !shouldRestoreScroll) {
       return;
@@ -165,10 +182,21 @@ export function DiagnosisConversationPage({
       return;
     }
 
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-      onAutoScrollHandled(answerIndex);
-    });
+    const targetY = anchorYRef.current;
+    if (targetY != null) {
+      // 폴백 경로(onLayout/onContentSizeChange)는 콜백 시점에 측정값이 이미 fresh이므로
+      // rAF 없이 동기 호출. 해피 패스만 새 entry paint를 한 프레임 기다린다.
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({
+          y: Math.max(targetY - 16, 0),
+          animated: true,
+        });
+        onAutoScrollHandled(answerIndex);
+      });
+      return;
+    }
+
+    pendingScrollRef.current = true;
   }, [answerIndex, isActive, onAutoScrollHandled, shouldAutoScrollToEnd]);
 
   return (
@@ -188,6 +216,21 @@ export function DiagnosisConversationPage({
           scrollEventThrottle={16}
           onScroll={(event) => {
             onScrollOffsetChange(answerIndex, event.nativeEvent.contentOffset.y);
+          }}
+          onContentSizeChange={() => {
+            if (!pendingScrollRef.current || !isActive) {
+              return;
+            }
+            const targetY = anchorYRef.current;
+            if (targetY == null) {
+              return;
+            }
+            pendingScrollRef.current = false;
+            scrollRef.current?.scrollTo({
+              y: Math.max(targetY - 16, 0),
+              animated: true,
+            });
+            onAutoScrollHandled(answerIndex);
           }}>
           {chatEntries.map((entry, entryIndex) => {
             const isAfterProblemPrompt =
@@ -208,10 +251,26 @@ export function DiagnosisConversationPage({
             }
 
             if (entry.kind === 'bubble') {
+              const isAnchor = entry.id === anchorEntryId;
               return (
                 <Animated.View
                   key={entry.id}
                   entering={getEntryAnimation(entry)}
+                  onLayout={
+                    isAnchor
+                      ? (event) => {
+                          anchorYRef.current = event.nativeEvent.layout.y;
+                          if (pendingScrollRef.current && isActive) {
+                            pendingScrollRef.current = false;
+                            scrollRef.current?.scrollTo({
+                              y: Math.max(event.nativeEvent.layout.y - 16, 0),
+                              animated: true,
+                            });
+                            onAutoScrollHandled(answerIndex);
+                          }
+                        }
+                      : undefined
+                  }
                   style={isAfterProblemPrompt ? styles.promptEntry : null}>
                   <DiagnosisChatBubble
                     role={entry.role}
