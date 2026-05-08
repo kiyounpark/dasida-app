@@ -2546,3 +2546,4 @@
 <!-- 새 작업 로그는 위 형식으로 날짜별로 추가 -->
 - 2026-05-06: 알림 권한 요청 타이밍 재배치 — 묵음 OS 다이얼로그 → 결과 화면 옵트인 카드 (rev2 spec)
 - 2026-05-08: iPad 가로모드(exam-solve) 코드리뷰 fix — 회전 안내 배너 데드 코드 경로 해소, orientation listener와 useScratchpad를 화면 훅(`use-exam-solve-screen`)으로 호이스트, `useExamScreenOrientation` 훅 분리 + 단위 테스트 추가, iPad 가드(`isTablet`) 추가. CHANGELOG에 `requireFullScreen: true`로 인한 iPad Split View 비활성화 명시.
+- 2026-05-09: 약점 진단 화면에 원본 풀이 읽기 전용 half-sheet 도입 — `useProblemStrokes` 신규 훅(단위 테스트 4개), `ScratchpadCanvas` readOnly 모드 추가, `DiagnosisDarkHeader` 토글 버튼 슬롯 추가, `OriginalStrokesSheet` half-sheet 모달 신규, `exam-diagnosis-session-screen` 통합. 추가 네이티브 의존성 없음.
