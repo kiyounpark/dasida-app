@@ -152,7 +152,7 @@ export function ExamDiagnosisSessionScreen() {
     return (
       <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
         <DiagnosisDarkHeader
-          title={`${activeProblemNumber ?? ''}번`}
+          title={`${wrongProblemNumbers[session.activeProblemIndex] ?? ''}번`}
           backLabel="← 채점 결과"
           progressLabel={session.progressLabel}
           progressPercent={session.progressPercent}
