@@ -8,10 +8,10 @@ export async function lockToPortrait(): Promise<void> {
   }
 }
 
-export async function unlockAllOrientations(): Promise<void> {
+export async function lockToLandscape(): Promise<void> {
   try {
-    await ScreenOrientation.unlockAsync();
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
   } catch (error) {
-    console.warn('[orientation-lock] unlockAllOrientations failed', error);
+    console.warn('[orientation-lock] lockToLandscape failed', error);
   }
 }
