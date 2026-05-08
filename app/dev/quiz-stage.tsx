@@ -3,7 +3,28 @@ import { router } from 'expo-router';
 
 import { problemData } from '@/data/problemData';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
+import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
+
+const stubScratchpad: IndexedScratchpadApi = {
+  loaded: true,
+  strokes: [],
+  liveStroke: null,
+  tool: 'pen',
+  color: '#1A1916',
+  size: 2,
+  setTool: () => {},
+  setColor: () => {},
+  setSize: () => {},
+  beginStroke: () => {},
+  appendPoint: () => {},
+  endStroke: () => {},
+  undo: () => {},
+  redo: () => {},
+  clear: () => {},
+  canUndo: false,
+  canRedo: false,
+};
 
 const problems = problemData.filter((p) => p.grade === 'g1').slice(0, 10);
 const TOTAL = problems.length;
@@ -33,5 +54,14 @@ export default function DevQuizStageScreen() {
     onConfirmExit: () => { setExitModalVisible(false); router.back(); },
   };
 
-  return <DiagnosticQuizStage quizStage={quizStage} />;
+  return (
+    <DiagnosticQuizStage
+      quizStage={quizStage}
+      scratchpad={stubScratchpad}
+      isTablet={false}
+      isPortrait={true}
+      showLandscapeHint={false}
+      onDismissLandscapeHint={() => {}}
+    />
+  );
 }
