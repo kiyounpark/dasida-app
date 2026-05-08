@@ -8,10 +8,12 @@ import { requestReviewFeedbackFromOpenAI } from './openai-client';
 const openAiApiKey = defineSecret('OPENAI_API_KEY');
 const openAiModel = defineString('OPENAI_MODEL', { default: 'gpt-4.1' });
 
-const ReviewFeedbackRequestSchema = z.object({
+export const ReviewFeedbackRequestSchema = z.object({
   weaknessId: z.string().min(1).max(60),
   stepTitle: z.string().min(1).max(100),
   stepBody: z.string().min(1).max(400),
+  selectedChoiceText: z.string().min(1).max(200).optional(),
+  selectedChoiceCorrect: z.boolean().optional(),
   messages: z
     .array(
       z.object({
@@ -70,7 +72,7 @@ export const reviewFeedback = onRequest(
       return;
     }
 
-    const { stepTitle, stepBody, messages } = parsed.data;
+    const { stepTitle, stepBody, messages, selectedChoiceText: _selectedChoiceText, selectedChoiceCorrect: _selectedChoiceCorrect } = parsed.data;
 
     // 첫 번째 user 메시지에 단계 컨텍스트를 prepend
     const stepContext = `단계: ${stepTitle}\n설명: ${stepBody}\n\n`;
