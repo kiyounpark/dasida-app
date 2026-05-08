@@ -214,6 +214,21 @@ export function DiagnosisConversationPage({
           scrollEventThrottle={16}
           onScroll={(event) => {
             onScrollOffsetChange(answerIndex, event.nativeEvent.contentOffset.y);
+          }}
+          onContentSizeChange={() => {
+            if (!pendingScrollRef.current) {
+              return;
+            }
+            const targetY = anchorYRef.current;
+            if (targetY == null) {
+              return;
+            }
+            pendingScrollRef.current = false;
+            scrollRef.current?.scrollTo({
+              y: Math.max(targetY - 16, 0),
+              animated: true,
+            });
+            onAutoScrollHandled(answerIndex);
           }}>
           {chatEntries.map((entry, entryIndex) => {
             const isAfterProblemPrompt =
