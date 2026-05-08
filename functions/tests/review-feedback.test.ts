@@ -2,7 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { SYSTEM_PROMPT, ReviewFeedbackRequestSchema } from '../src/review-feedback.js';
+import {
+  SYSTEM_PROMPT,
+  ReviewFeedbackRequestSchema,
+  decideMode,
+  buildSystemPrompt,
+} from '../src/review-feedback.js';
 
 test('SYSTEM_PROMPT가 원칙 기반 판단 기준을 포함한다', () => {
   assert.ok(
@@ -21,6 +26,44 @@ test('SYSTEM_PROMPT가 원칙 기반 판단 기준을 포함한다', () => {
     SYSTEM_PROMPT.includes('추임새'),
     'SYSTEM_PROMPT에 추임새 거부 규칙이 있어야 한다',
   );
+});
+
+test('decideMode: assistant 응답 0개면 explore', () => {
+  const result = decideMode([{ role: 'user' }]);
+  assert.equal(result, 'explore');
+});
+
+test('decideMode: assistant 응답 1개면 close', () => {
+  const result = decideMode([
+    { role: 'user' },
+    { role: 'assistant' },
+    { role: 'user' },
+  ]);
+  assert.equal(result, 'close');
+});
+
+test('buildSystemPrompt(explore)에는 탐색 모드 안내가 포함된다', () => {
+  const prompt = buildSystemPrompt('explore');
+  assert.ok(prompt.includes('탐색 모드'));
+  assert.ok(prompt.includes('힌트'));
+});
+
+test('buildSystemPrompt(close)에는 마무리 모드 안내가 포함된다', () => {
+  const prompt = buildSystemPrompt('close');
+  assert.ok(prompt.includes('마무리 모드'));
+  assert.ok(prompt.includes('명시'));
+});
+
+test('buildSystemPrompt에 selectedChoice가 있으면 컨텍스트가 주입된다', () => {
+  const prompt = buildSystemPrompt('explore', { text: '음수 부호', correct: false });
+  assert.ok(prompt.includes('선택지 컨텍스트'));
+  assert.ok(prompt.includes('음수 부호'));
+  assert.ok(prompt.includes('오답'));
+});
+
+test('buildSystemPrompt에 selectedChoice가 없으면 컨텍스트가 없다', () => {
+  const prompt = buildSystemPrompt('explore');
+  assert.ok(!prompt.includes('선택지 컨텍스트'));
 });
 
 test('zod 스키마는 selectedChoiceText/selectedChoiceCorrect를 옵셔널로 받는다', () => {
