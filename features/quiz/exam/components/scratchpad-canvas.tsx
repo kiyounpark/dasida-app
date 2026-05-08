@@ -15,14 +15,24 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import type { Stroke, StrokePoint } from '@/features/quiz/exam/storage/scratchpad-strokes-store';
 
-// Minimal scratchpad interface — only what Canvas needs
-type CanvasScratchpadProps = {
+// Two distinct modes: read-only (no gesture handlers) vs. edit (all handlers required).
+type ReadOnlyScratchpadProps = {
   strokes: Stroke[];
-  liveStroke?: Stroke | null;
-  beginStroke?: (p: StrokePoint) => void;
-  appendPoint?: (p: StrokePoint) => void;
-  endStroke?: () => void;
+  liveStroke?: never;
+  beginStroke?: never;
+  appendPoint?: never;
+  endStroke?: never;
 };
+
+type EditScratchpadProps = {
+  strokes: Stroke[];
+  liveStroke: Stroke | null;
+  beginStroke: (p: StrokePoint) => void;
+  appendPoint: (p: StrokePoint) => void;
+  endStroke: () => void;
+};
+
+type CanvasScratchpadProps = ReadOnlyScratchpadProps | EditScratchpadProps;
 
 type ScratchpadCanvasProps = {
   width: number;
