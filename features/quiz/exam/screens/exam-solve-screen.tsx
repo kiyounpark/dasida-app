@@ -121,7 +121,6 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
 
   return (
     <View style={styles.root}>
-      {showLandscapeHint ? <LandscapeHintBanner onDismiss={onDismissLandscapeHint} /> : null}
       {useTabletLayout ? (
         <ExamSolveTabletLayout
           header={header}
@@ -136,6 +135,7 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
       ) : (
         <QuizSolveLayout header={header} body={body} footer={footer} />
       )}
+      {showLandscapeHint ? <LandscapeHintBanner onDismiss={onDismissLandscapeHint} /> : null}
     </View>
   );
 }
