@@ -184,6 +184,8 @@ export function DiagnosisConversationPage({
 
     const targetY = anchorYRef.current;
     if (targetY != null) {
+      // 폴백 경로(onLayout/onContentSizeChange)는 콜백 시점에 측정값이 이미 fresh이므로
+      // rAF 없이 동기 호출. 해피 패스만 새 entry paint를 한 프레임 기다린다.
       requestAnimationFrame(() => {
         scrollRef.current?.scrollTo({
           y: Math.max(targetY - 16, 0),
@@ -216,7 +218,7 @@ export function DiagnosisConversationPage({
             onScrollOffsetChange(answerIndex, event.nativeEvent.contentOffset.y);
           }}
           onContentSizeChange={() => {
-            if (!pendingScrollRef.current) {
+            if (!pendingScrollRef.current || !isActive) {
               return;
             }
             const targetY = anchorYRef.current;
