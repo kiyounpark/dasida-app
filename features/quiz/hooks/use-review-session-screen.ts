@@ -215,8 +215,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       setChatMessages([...allMessages, { role: 'ai', text: result.replyText }]);
       setAiResponseCount((c) => c + 1);
     } catch {
-      // 실패 시 사용자 메시지를 롤백해 중복 전송 방지
+      // 실패 시 사용자 메시지 롤백 + 입력 텍스트 복원 (재시도 보장)
       setChatMessages((prev) => prev.slice(0, -1));
+      setChatText(userInput);
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
