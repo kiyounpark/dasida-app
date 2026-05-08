@@ -160,8 +160,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     isFetchingRef.current = true;
     setIsLoadingFeedback(true);
-    setChatMessages([firstUserEntry]);
-    setStepPhase('chat');
 
     try {
       const apiMessages: ChatMessage[] = [{ role: 'user', content: firstUserContent }];
@@ -174,9 +172,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         messages: apiMessages,
       });
       setChatMessages([firstUserEntry, { role: 'ai', text: result.replyText }]);
+      setStepPhase('chat');
       setAiResponseCount(1);
     } catch {
-      // 실패 시 카운트 증가 X (재시도 허용)
+      // 실패 시 stepPhase 유지 ('input'), 재시도 가능
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
