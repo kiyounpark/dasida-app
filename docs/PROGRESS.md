@@ -882,25 +882,25 @@
 
 <!-- COMMIT_LOGS_START -->
 
-### 커밋 2026.05.09 01:02
-- 해시: `abeeabf` (`abeeabfbf9909e8f917d9da9a423ff94b0e12d56`)
-- 브랜치: claude/brave-jennings-fa2423
+### 커밋 2026.05.09 01:29
+- 해시: `98b17c7` (`98b17c75fe6243b5ab1b34741b5ac95fd427b939`)
+- 브랜치: claude/nervous-ptolemy-70bf11
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/abeeabfbf9909e8f917d9da9a423ff94b0e12d56
+- 링크: https://github.com/kiyounpark/dasida-app/commit/98b17c75fe6243b5ab1b34741b5ac95fd427b939
 - 작성자: 박기윤
-- 메시지: fix(diagnosis): guard onContentSizeChange with isActive + comment rAF asymmetry
-- 본문: 코드 리뷰 반영: / - 비활성 페이지(가로 페이저 스와이프 직후)에서 늦게 발생하는 onContentSizeChange가 / 잘못된 페이지를 스크롤하지 않도록 isActive 가드 추가. useEffect/onLayout 경로와 일관성 확보. / - 폴백 경로의 rAF 부재가 의도된 비대칭임을 주석으로 명시(미래의 잘못된 consistency refactor 방지). / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+- 메시지: fix(review): 코드리뷰 반영 — 채팅 롤백/피드백 null guard/zod transform/콘텐츠 테스트
+- 본문: - onSendChatMessage: 실패 시 사용자 메시지 롤백 (중복 전송 방지) / - onSelectChoice: feedback || null → ?? null (빈 문자열 null 변환 방지) / - ReviewFeedbackRequestSchema: selectedChoiceText에 줄바꿈 제거 transform 추가 / - data/review-content-map.test.ts: 모든 약점 선택지 feedback 비어있지 않음 검증 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
-### 커밋 2026.05.09 00:55
-- 해시: `3d8140d` (`3d8140de84f818e51d7e17866fd141e70d459339`)
-- 브랜치: claude/brave-jennings-fa2423
+### 커밋 2026.05.09 01:15
+- 해시: `7ce2102` (`7ce2102e9fec70f06e5342260deaba5f2f338b84`)
+- 브랜치: claude/nervous-ptolemy-70bf11
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/3d8140de84f818e51d7e17866fd141e70d459339
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7ce2102e9fec70f06e5342260deaba5f2f338b84
 - 작성자: 박기윤
-- 메시지: fix(diagnosis): consume pendingScroll in onLayout to prevent stuck state
-- 본문: onContentSizeChange보다 onLayout이 늦게 발생할 때 pendingScrollRef가 / 영구적으로 true로 남는 버그 수정. onLayout에서도 pending 스크롤을 실행한다. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+- 메시지: feat(review-view): AI 응답 2회 후 입력창 숨김 + 버튼 라벨 통일
+- 본문: Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ### 커밋 2026.05.08 00:42
 - 해시: `0bedc7e` (`0bedc7ec758edbca34435ca789bee8921416cb00`)
