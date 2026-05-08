@@ -156,6 +156,13 @@ export function DiagnosisConversationPage({
     return null;
   }, [chatEntries]);
 
+  const anchorYRef = useRef<number | null>(null);
+  const pendingScrollRef = useRef(false);
+
+  useEffect(() => {
+    anchorYRef.current = null;
+  }, [anchorEntryId]);
+
   useEffect(() => {
     if (!isActive || !shouldRestoreScroll) {
       return;
