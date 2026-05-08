@@ -15,8 +15,16 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import type { Stroke, StrokePoint } from '@/features/quiz/exam/storage/scratchpad-strokes-store';
 
-// Minimal scratchpad interface — only what Canvas needs
-type CanvasScratchpadProps = {
+// Two distinct modes: read-only (no gesture handlers) vs. edit (all handlers required).
+type ReadOnlyScratchpadProps = {
+  strokes: Stroke[];
+  liveStroke?: never;
+  beginStroke?: never;
+  appendPoint?: never;
+  endStroke?: never;
+};
+
+type EditScratchpadProps = {
   strokes: Stroke[];
   liveStroke: Stroke | null;
   beginStroke: (p: StrokePoint) => void;
@@ -24,12 +32,16 @@ type CanvasScratchpadProps = {
   endStroke: () => void;
 };
 
+type CanvasScratchpadProps = ReadOnlyScratchpadProps | EditScratchpadProps;
+
 type ScratchpadCanvasProps = {
   width: number;
   height: number;
   scratchpad: CanvasScratchpadProps;
   /** When true, only Apple Pencil (stylus) input is accepted. Finger/palm touches are ignored. */
   pencilOnly?: boolean;
+  /** When true, gestures are disabled and the canvas only renders strokes. */
+  readOnly?: boolean;
 };
 
 const LINE_GAP = 32;
@@ -71,8 +83,14 @@ function strokeWidthFor(s: Stroke): number {
 
 type CachedPath = { path: SkPath; color: string; width: number; opacity: number };
 
-export function ScratchpadCanvas({ width, height, scratchpad, pencilOnly = false }: ScratchpadCanvasProps) {
-  const { strokes, liveStroke, beginStroke, appendPoint, endStroke } = scratchpad;
+export function ScratchpadCanvas({
+  width,
+  height,
+  scratchpad,
+  pencilOnly = false,
+  readOnly = false,
+}: ScratchpadCanvasProps) {
+  const { strokes, liveStroke = null, beginStroke, appendPoint, endStroke } = scratchpad;
 
   // Cache built Skia paths by stroke id. Add-only inside useMemo to keep render pure;
   // pruning happens in a useEffect below.
@@ -121,7 +139,85 @@ export function ScratchpadCanvas({ width, height, scratchpad, pencilOnly = false
   pencilOnlyRef.current = pencilOnly;
   const isStylusGestureRef = useRef(false);
 
-  // .runOnJS(true): gesture callbacks call JS-thread state setters (beginStroke, etc.) and read JS refs; running on UI thread crashes / triggers worklet warnings.
+  if (width <= 0 || height <= 0) return null;
+
+  const canvas = (
+    <Canvas style={{ width, height }}>
+      {/* 줄노트 가로선 */}
+      <Group opacity={0.15}>
+        {Array.from({ length: lineCount }).map((_, i) => {
+          const y = 24 + i * LINE_GAP;
+          return (
+            <Line
+              key={i}
+              p1={vec(0, y)}
+              p2={vec(width, y)}
+              color="#6FA8C9"
+              strokeWidth={1}
+            />
+          );
+        })}
+      </Group>
+
+      {/* 마진선 */}
+      <Line
+        p1={vec(MARGIN_X, 0)}
+        p2={vec(MARGIN_X, height)}
+        color="#E85A4F"
+        strokeWidth={1}
+        opacity={0.18}
+      />
+
+      {/* committed strokes */}
+      {committedPaths.map((s) => (
+        <Path
+          key={s.id}
+          path={s.path}
+          style="stroke"
+          strokeWidth={s.width}
+          strokeCap="round"
+          strokeJoin="round"
+          color={s.color}
+          opacity={s.opacity}
+        />
+      ))}
+
+      {/* live stroke */}
+      {livePath && liveStroke && (
+        <Path
+          path={livePath}
+          style="stroke"
+          strokeWidth={strokeWidthFor(liveStroke)}
+          strokeCap="round"
+          strokeJoin="round"
+          color={liveStroke.color}
+          opacity={strokeOpacity(liveStroke)}
+        />
+      )}
+
+      {/* DASIDA 워드마크 */}
+      <SkiaText
+        x={12}
+        y={height - 14}
+        text={WORDMARK}
+        font={wordmarkFont}
+        color="#5C8C5A"
+        opacity={0.5}
+      />
+    </Canvas>
+  );
+
+  if (readOnly) {
+    return <View style={[styles.wrap, { width, height }]}>{canvas}</View>;
+  }
+
+  // Defensive: editing handlers must exist when not read-only.
+  if (!beginStroke || !appendPoint || !endStroke) {
+    return <View style={[styles.wrap, { width, height }]}>{canvas}</View>;
+  }
+
+  // .runOnJS(true): gesture callbacks call JS-thread state setters and read JS refs;
+  // running on UI thread crashes / triggers worklet warnings.
   const pan = Gesture.Pan()
     .runOnJS(true)
     .maxPointers(1)
@@ -142,75 +238,9 @@ export function ScratchpadCanvas({ width, height, scratchpad, pencilOnly = false
       endStroke();
     });
 
-  if (width <= 0 || height <= 0) return null;
-
   return (
     <View style={[styles.wrap, { width, height }]}>
-      <GestureDetector gesture={pan}>
-        <Canvas style={{ width, height }}>
-          {/* 줄노트 가로선 */}
-          <Group opacity={0.15}>
-            {Array.from({ length: lineCount }).map((_, i) => {
-              const y = 24 + i * LINE_GAP;
-              return (
-                <Line
-                  key={i}
-                  p1={vec(0, y)}
-                  p2={vec(width, y)}
-                  color="#6FA8C9"
-                  strokeWidth={1}
-                />
-              );
-            })}
-          </Group>
-
-          {/* 마진선 */}
-          <Line
-            p1={vec(MARGIN_X, 0)}
-            p2={vec(MARGIN_X, height)}
-            color="#E85A4F"
-            strokeWidth={1}
-            opacity={0.18}
-          />
-
-          {/* committed strokes */}
-          {committedPaths.map((s) => (
-            <Path
-              key={s.id}
-              path={s.path}
-              style="stroke"
-              strokeWidth={s.width}
-              strokeCap="round"
-              strokeJoin="round"
-              color={s.color}
-              opacity={s.opacity}
-            />
-          ))}
-
-          {/* live stroke */}
-          {livePath && liveStroke && (
-            <Path
-              path={livePath}
-              style="stroke"
-              strokeWidth={strokeWidthFor(liveStroke)}
-              strokeCap="round"
-              strokeJoin="round"
-              color={liveStroke.color}
-              opacity={strokeOpacity(liveStroke)}
-            />
-          )}
-
-          {/* DASIDA 워드마크 */}
-          <SkiaText
-            x={12}
-            y={height - 14}
-            text={WORDMARK}
-            font={wordmarkFont}
-            color="#5C8C5A"
-            opacity={0.5}
-          />
-        </Canvas>
-      </GestureDetector>
+      <GestureDetector gesture={pan}>{canvas}</GestureDetector>
     </View>
   );
 }
