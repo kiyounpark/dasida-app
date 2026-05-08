@@ -258,6 +258,14 @@ export function DiagnosisConversationPage({
                     isAnchor
                       ? (event) => {
                           anchorYRef.current = event.nativeEvent.layout.y;
+                          if (pendingScrollRef.current && isActive) {
+                            pendingScrollRef.current = false;
+                            scrollRef.current?.scrollTo({
+                              y: Math.max(event.nativeEvent.layout.y - 16, 0),
+                              animated: true,
+                            });
+                            onAutoScrollHandled(answerIndex);
+                          }
                         }
                       : undefined
                   }
