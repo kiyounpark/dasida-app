@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   ScrollView,
@@ -14,6 +15,7 @@ import { DiagnosisConversationPage } from '@/features/quiz/components/diagnosis-
 import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
 import { DiagnosisExitConfirmModal } from '@/features/quiz/components/diagnosis-exit-confirm-modal';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
+import { OriginalStrokesSheet } from '@/features/quiz/exam/components/original-strokes-sheet';
 import type { UseDiagnosticScreenResult } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 export function DiagnosticScreenView({
@@ -60,6 +62,17 @@ export function DiagnosticScreenView({
   showLandscapeHint,
   onDismissLandscapeHint,
 }: UseDiagnosticScreenResult) {
+  const [strokesSheetVisible, setStrokesSheetVisible] = useState(false);
+
+  useEffect(() => {
+    setStrokesSheetVisible(false);
+  }, [activeDiagnosisPageIndex]);
+
+  const activePage = diagnosisPages[activeDiagnosisPageIndex];
+  const activeAnswerIndex = activePage?.answerIndex ?? 0;
+  const activeStrokes = scratchpadStore.getStrokes(activeAnswerIndex);
+  const hasActiveStrokes = scratchpadStore.hasStrokes(activeAnswerIndex);
+
   if (isLoadingState) {
     return (
       <View style={styles.screen}>
@@ -97,6 +110,8 @@ export function DiagnosticScreenView({
           activeIndex={activeDiagnosisPageIndex}
           onBack={onOpenExitModal}
           onDotPress={onScrollToDiagnosisPage}
+          showOriginalStrokesButton={hasActiveStrokes}
+          onPressOriginalStrokes={() => setStrokesSheetVisible(true)}
         />
 
         <View style={styles.diagnosisShell}>
@@ -174,6 +189,13 @@ export function DiagnosticScreenView({
             onScrollToIndexFailed={({ index }) => onScrollToIndexFailed(index)}
           />
         </View>
+
+        <OriginalStrokesSheet
+          visible={strokesSheetVisible}
+          strokes={activeStrokes}
+          loaded={true}
+          onClose={() => setStrokesSheetVisible(false)}
+        />
 
         <DiagnosisExitConfirmModal
           visible={isExitModalVisible}
