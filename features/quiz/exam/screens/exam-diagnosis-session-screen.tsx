@@ -1,6 +1,6 @@
 // features/quiz/exam/screens/exam-diagnosis-session-screen.tsx
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +9,9 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { DiagnosisDarkHeader } from '@/features/quiz/components/diagnosis-dark-header';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { getSingleParam } from '@/utils/get-single-param';
+
+import { OriginalStrokesSheet } from '@/features/quiz/exam/components/original-strokes-sheet';
+import { useProblemStrokes } from '@/features/quiz/exam/hooks/use-problem-strokes';
 
 import { ExamDiagnosisPage } from './exam-diagnosis-screen';
 import { buildExamAttemptInputWithDiagnosis } from '../build-exam-attempt-input';
@@ -49,6 +52,19 @@ export function ExamDiagnosisSessionScreen() {
     Number(getSingleParam(params.diagnosedCountBefore)) || 0;
 
   const session = useExamDiagnosisSession({ examId, wrongProblemNumbers, startIndex });
+
+  const activeProblemNumber = wrongProblemNumbers[session.activeProblemIndex] ?? 0;
+  const { strokes, loaded: strokesLoaded, hasStrokes } = useProblemStrokes(
+    examId,
+    activeProblemNumber,
+  );
+
+  const [strokesSheetVisible, setStrokesSheetVisible] = useState(false);
+
+  useEffect(() => {
+    setStrokesSheetVisible(false);
+  }, [session.activeProblemIndex]);
+
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = useIsTablet();
@@ -133,8 +149,6 @@ export function ExamDiagnosisSessionScreen() {
 
   // 태블릿: FlatList 없이 현재 문제 하나만 렌더링
   if (isTablet) {
-    const activeProblemNumber = wrongProblemNumbers[session.activeProblemIndex];
-
     return (
       <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
         <DiagnosisDarkHeader
@@ -147,8 +161,10 @@ export function ExamDiagnosisSessionScreen() {
           activeIndex={session.activeProblemIndex}
           onBack={session.onBackToResult}
           onDotPress={session.onDotPress}
+          showOriginalStrokesButton={hasStrokes}
+          onPressOriginalStrokes={() => setStrokesSheetVisible(true)}
         />
-        {activeProblemNumber !== undefined && (
+        {activeProblemNumber !== 0 && (
           <ExamDiagnosisPage
             key={activeProblemNumber}
             examId={examId}
@@ -163,6 +179,12 @@ export function ExamDiagnosisSessionScreen() {
             onComplete={() => handlePageComplete(session.activeProblemIndex)}
           />
         )}
+        <OriginalStrokesSheet
+          visible={strokesSheetVisible}
+          strokes={strokes}
+          loaded={strokesLoaded}
+          onClose={() => setStrokesSheetVisible(false)}
+        />
       </View>
     );
   }
@@ -179,6 +201,8 @@ export function ExamDiagnosisSessionScreen() {
         activeIndex={session.activeProblemIndex}
         onBack={session.onBackToResult}
         onDotPress={session.onDotPress}
+        showOriginalStrokesButton={hasStrokes}
+        onPressOriginalStrokes={() => setStrokesSheetVisible(true)}
       />
       <FlatList
         ref={session.pagerRef}
@@ -212,6 +236,12 @@ export function ExamDiagnosisSessionScreen() {
         )}
         style={styles.pager}
         keyboardDismissMode="on-drag"
+      />
+      <OriginalStrokesSheet
+        visible={strokesSheetVisible}
+        strokes={strokes}
+        loaded={strokesLoaded}
+        onClose={() => setStrokesSheetVisible(false)}
       />
     </View>
   );
