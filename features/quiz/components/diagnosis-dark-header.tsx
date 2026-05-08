@@ -14,6 +14,10 @@ type DiagnosisDarkHeaderProps = {
   activeIndex: number;        // 현재 페이지 인덱스 (0-based)
   onBack: () => void;
   onDotPress: (index: number) => void;
+  /** When provided AND `showOriginalStrokesButton` is true, renders a button on the
+   * right of the top row that opens the original-strokes sheet. */
+  onPressOriginalStrokes?: () => void;
+  showOriginalStrokesButton?: boolean;
 };
 
 export function DiagnosisDarkHeader({
@@ -26,6 +30,8 @@ export function DiagnosisDarkHeader({
   activeIndex,
   onBack,
   onDotPress,
+  onPressOriginalStrokes,
+  showOriginalStrokesButton = false,
 }: DiagnosisDarkHeaderProps) {
   // totalCount > 5: show 5 dots only + '···'
   // Window centered around activeIndex
@@ -45,7 +51,19 @@ export function DiagnosisDarkHeader({
           <Pressable onPress={onBack} accessibilityRole="button" style={styles.backButton}>
             <Text style={styles.backLabel}>{backLabel}</Text>
           </Pressable>
-          <Text style={styles.progressLabel}>{progressLabel}</Text>
+          <View style={styles.topRowRight}>
+            {showOriginalStrokesButton && onPressOriginalStrokes ? (
+              <Pressable
+                onPress={onPressOriginalStrokes}
+                accessibilityRole="button"
+                accessibilityLabel="원본 풀이 보기"
+                hitSlop={8}
+                style={styles.strokesButton}>
+                <Text style={styles.strokesButtonLabel}>당시 풀이</Text>
+              </Pressable>
+            ) : null}
+            <Text style={styles.progressLabel}>{progressLabel}</Text>
+          </View>
         </View>
 
         {/* 제목 */}
@@ -171,5 +189,22 @@ const styles = StyleSheet.create({
   progFill: {
     height: '100%',
     backgroundColor: '#7FC87A',
+  },
+  topRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  strokesButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  strokesButtonLabel: {
+    color: '#FAF6EC',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
