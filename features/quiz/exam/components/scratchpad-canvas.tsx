@@ -45,7 +45,7 @@ function buildPath(points: StrokePoint[]) {
     return builder.build();
   }
   for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
+    const p0 = points[Math.max(0, i - 1)];
     const p1 = points[i];
     const p2 = points[i + 1];
     const p3 = points[i + 2] ?? p2;
