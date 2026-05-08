@@ -225,10 +225,18 @@ export function DiagnosisConversationPage({
             }
 
             if (entry.kind === 'bubble') {
+              const isAnchor = entry.id === anchorEntryId;
               return (
                 <Animated.View
                   key={entry.id}
                   entering={getEntryAnimation(entry)}
+                  onLayout={
+                    isAnchor
+                      ? (event) => {
+                          anchorYRef.current = event.nativeEvent.layout.y;
+                        }
+                      : undefined
+                  }
                   style={isAfterProblemPrompt ? styles.promptEntry : null}>
                   <DiagnosisChatBubble
                     role={entry.role}
