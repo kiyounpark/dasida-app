@@ -54,6 +54,11 @@ export function DiagnosticScreenView({
   onScrollToDiagnosisPage,
   onScrollToIndexFailed,
   onStartSession,
+  scratchpadStore,
+  isTablet,
+  isPortrait,
+  showLandscapeHint,
+  onDismissLandscapeHint,
 }: UseDiagnosticScreenResult) {
   if (isLoadingState) {
     return (
@@ -216,7 +221,14 @@ export function DiagnosticScreenView({
           </ScrollView>
         </>
       ) : quizStage ? (
-        <DiagnosticQuizStage quizStage={quizStage} />
+        <DiagnosticQuizStage
+  quizStage={quizStage}
+  scratchpad={scratchpadStore.forIndex(quizStage.currentQuestionNumber - 1)}
+  isTablet={isTablet}
+  isPortrait={isPortrait}
+  showLandscapeHint={showLandscapeHint}
+  onDismissLandscapeHint={onDismissLandscapeHint}
+/>
       ) : null}
     </View>
   );
