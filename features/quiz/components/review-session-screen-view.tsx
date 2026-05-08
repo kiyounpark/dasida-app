@@ -196,7 +196,7 @@ export function ReviewSessionScreenView({
           {isLoadingFeedback ? (
             <ActivityIndicator color="#F6F2EA" size="small" />
           ) : (
-            <Text style={styles.primaryBtnText}>이해했어요, 다음으로</Text>
+            <Text style={styles.primaryBtnText}>{continueLabel}</Text>
           )}
         </Pressable>
       </>
@@ -235,28 +235,30 @@ export function ReviewSessionScreenView({
             </View>
           )}
         </View>
-        <View style={styles.chatInputRow}>
-          <TextInput
-            style={styles.chatInput}
-            value={chatText}
-            onChangeText={onChangeChatText}
-            onFocus={scrollToBottom}
-            placeholder="계속 써보세요..."
-            placeholderTextColor={BrandColors.disabled}
-            editable={!isLoadingFeedback}
-            returnKeyType="send"
-            onSubmitEditing={onSendChatMessage}
-          />
-          <Pressable
-            style={[
-              styles.sendBtn,
-              (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
-            ]}
-            onPress={onSendChatMessage}
-            disabled={!chatText.trim() || isLoadingFeedback}>
-            <Text style={styles.sendBtnText}>↑</Text>
-          </Pressable>
-        </View>
+        {aiResponseCount < 2 && (
+          <View style={styles.chatInputRow}>
+            <TextInput
+              style={styles.chatInput}
+              value={chatText}
+              onChangeText={onChangeChatText}
+              onFocus={scrollToBottom}
+              placeholder="계속 써보세요..."
+              placeholderTextColor={BrandColors.disabled}
+              editable={!isLoadingFeedback}
+              returnKeyType="send"
+              onSubmitEditing={onSendChatMessage}
+            />
+            <Pressable
+              style={[
+                styles.sendBtn,
+                (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
+              ]}
+              onPress={onSendChatMessage}
+              disabled={!chatText.trim() || isLoadingFeedback}>
+              <Text style={styles.sendBtnText}>↑</Text>
+            </Pressable>
+          </View>
+        )}
         <Pressable
           style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
           onPress={onPressContinue}
