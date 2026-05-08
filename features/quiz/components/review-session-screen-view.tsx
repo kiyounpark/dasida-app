@@ -32,6 +32,9 @@ export function ReviewSessionScreenView({
   isLoadingFeedback,
   sessionComplete,
   hasInput,
+  selectedChoiceFeedback,
+  aiResponseCount,
+  isTextMode,
   onBack,
   onSelectChoice,
   onChangeText,
@@ -122,34 +125,61 @@ export function ReviewSessionScreenView({
     );
   }
 
-  const continueLabel = isLastStep ? '이해했어요, 완료 →' : '이해했어요, 다음 단계 →';
+  const continueLabel = isLastStep ? '이해했어요, 완료' : '이해했어요, 다음으로';
 
   // ── 입력 카드 공통 내부 (mobile + tablet 공유) ──────────────────────────────
   const inputCardContent =
     stepPhase === 'input' ? (
       <>
-        <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
-        <View style={styles.choices}>
-          {step.choices.map((choice, i) => (
-            <Pressable
-              key={i}
-              style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
-              onPress={() => onSelectChoice(i)}>
-              <Text
-                style={[
-                  styles.choiceBtnText,
-                  selectedChoiceIndex === i && styles.choiceBtnTextSelected,
-                ]}>
-                {choice.text}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        {!isTextMode ? (
+          <>
+            <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
+            <View style={styles.choices}>
+              {step.choices.map((choice, i) => (
+                <Pressable
+                  key={i}
+                  style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
+                  onPress={() => onSelectChoice(i)}>
+                  <Text
+                    style={[
+                      styles.choiceBtnText,
+                      selectedChoiceIndex === i && styles.choiceBtnTextSelected,
+                    ]}>
+                    {choice.text}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {selectedChoiceFeedback ? (
+              <View style={styles.choiceFeedbackCard}>
+                <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
+              </View>
+            ) : null}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
+              <View style={styles.dividerLine} />
+            </View>
+          </>
+        ) : (
+          <>
+            {selectedChoiceIndex !== null && (
+              <View style={styles.choiceChipRow}>
+                <View style={styles.choiceChip}>
+                  <Text style={styles.choiceChipLabel}>선택했던 보기</Text>
+                  <Text style={styles.choiceChipText} numberOfLines={2}>
+                    {step.choices[selectedChoiceIndex]?.text}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {selectedChoiceFeedback ? (
+              <View style={styles.choiceFeedbackCard}>
+                <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
+              </View>
+            ) : null}
+          </>
+        )}
         <TextInput
           style={styles.textInput}
           value={userText}
@@ -161,12 +191,12 @@ export function ReviewSessionScreenView({
         />
         <Pressable
           style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
-          onPress={onPressNext}
+          onPress={hasInput && !userText.trim() ? onPressContinue : onPressNext}
           disabled={!hasInput || isLoadingFeedback}>
           {isLoadingFeedback ? (
             <ActivityIndicator color="#F6F2EA" size="small" />
           ) : (
-            <Text style={styles.primaryBtnText}>다음으로</Text>
+            <Text style={styles.primaryBtnText}>{continueLabel}</Text>
           )}
         </Pressable>
       </>
@@ -205,28 +235,30 @@ export function ReviewSessionScreenView({
             </View>
           )}
         </View>
-        <View style={styles.chatInputRow}>
-          <TextInput
-            style={styles.chatInput}
-            value={chatText}
-            onChangeText={onChangeChatText}
-            onFocus={scrollToBottom}
-            placeholder="계속 써보세요..."
-            placeholderTextColor={BrandColors.disabled}
-            editable={!isLoadingFeedback}
-            returnKeyType="send"
-            onSubmitEditing={onSendChatMessage}
-          />
-          <Pressable
-            style={[
-              styles.sendBtn,
-              (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
-            ]}
-            onPress={onSendChatMessage}
-            disabled={!chatText.trim() || isLoadingFeedback}>
-            <Text style={styles.sendBtnText}>↑</Text>
-          </Pressable>
-        </View>
+        {aiResponseCount < 2 && (
+          <View style={styles.chatInputRow}>
+            <TextInput
+              style={styles.chatInput}
+              value={chatText}
+              onChangeText={onChangeChatText}
+              onFocus={scrollToBottom}
+              placeholder="계속 써보세요..."
+              placeholderTextColor={BrandColors.disabled}
+              editable={!isLoadingFeedback}
+              returnKeyType="send"
+              onSubmitEditing={onSendChatMessage}
+            />
+            <Pressable
+              style={[
+                styles.sendBtn,
+                (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
+              ]}
+              onPress={onSendChatMessage}
+              disabled={!chatText.trim() || isLoadingFeedback}>
+              <Text style={styles.sendBtnText}>↑</Text>
+            </Pressable>
+          </View>
+        )}
         <Pressable
           style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
           onPress={onPressContinue}
@@ -485,6 +517,42 @@ const styles = StyleSheet.create({
   },
   choiceBtnTextSelected: {
     fontFamily: FontFamilies.bold,
+    color: BrandColors.primary,
+  },
+  choiceFeedbackCard: {
+    marginTop: BrandSpacing.sm,
+    padding: BrandSpacing.md,
+    backgroundColor: '#F0FDF4',
+    borderRadius: BrandRadius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: BrandColors.primary,
+  },
+  choiceFeedbackText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: BrandColors.primary,
+  },
+  choiceChipRow: {
+    marginBottom: BrandSpacing.sm,
+  },
+  choiceChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: BrandRadius.md,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    gap: 2,
+  },
+  choiceChipLabel: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 11,
+    color: BrandColors.mutedText,
+  },
+  choiceChipText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 13,
     color: BrandColors.primary,
   },
   divider: {

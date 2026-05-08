@@ -30,6 +30,9 @@ export type UseReviewSessionScreenResult = {
   isLoadingFeedback: boolean;
   sessionComplete: boolean;
   hasInput: boolean;
+  selectedChoiceFeedback: string | null;  // 신규
+  aiResponseCount: number;                // 신규
+  isTextMode: boolean;                    // 신규: userText.length > 0
   onBack: () => void;
   onSelectChoice: (index: number) => void;
   onChangeText: (text: string) => void;
@@ -59,6 +62,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const [chatText, setChatText] = useState('');
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [selectedChoiceFeedback, setSelectedChoiceFeedback] = useState<string | null>(null);
+  const [aiResponseCount, setAiResponseCount] = useState(0);
 
   const isFetchingRef = useRef(false);
   const sessionStartedAtRef = useRef(new Date().toISOString());
@@ -116,12 +121,16 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     setChatMessages([]);
     setChatText('');
     setStepPhase('input');
+    setSelectedChoiceFeedback(null);
+    setAiResponseCount(0);
   };
 
   const onSelectChoice = (index: number) => {
     setSelectedChoiceIndex(index);
+    const choice = steps[currentStepIndex]?.choices[index];
+    setSelectedChoiceFeedback(choice?.feedback ?? null);
     if (stepPhase === 'input' && firstAttemptCorrectRef.current[currentStepIndex] === null) {
-      const isCorrect = steps[currentStepIndex]?.choices[index]?.correct ?? false;
+      const isCorrect = choice?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
     }
   };
@@ -136,25 +145,21 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onPressNext = async () => {
     if (isFetchingRef.current) return;
+    if (aiResponseCount >= 2) return;
     const step = steps[currentStepIndex];
     if (!step || !task) return;
 
-    const hasChoice = selectedChoiceIndex !== null;
     const hasText = userText.trim().length > 0;
-    if (!hasChoice && !hasText) return;
+    if (!hasText) return;
 
-    // 첫 번째 user 메시지 조합
-    const parts: string[] = [];
-    if (hasChoice) parts.push(`선택: ${step.choices[selectedChoiceIndex!]?.text ?? ''}`);
-    if (hasText) parts.push(hasChoice ? `직접 쓴 내용: ${userText.trim()}` : userText.trim());
-    const firstUserContent = parts.join('\n');
-
+    const firstUserContent = userText.trim();
     const firstUserEntry: ChatEntry = { role: 'user', text: firstUserContent };
+
+    const choice =
+      selectedChoiceIndex !== null ? step.choices[selectedChoiceIndex] : null;
 
     isFetchingRef.current = true;
     setIsLoadingFeedback(true);
-    setChatMessages([firstUserEntry]);
-    setStepPhase('chat');
 
     try {
       const apiMessages: ChatMessage[] = [{ role: 'user', content: firstUserContent }];
@@ -162,11 +167,15 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         weaknessId: task.weaknessId,
         stepTitle: step.title,
         stepBody: step.body,
+        selectedChoiceText: choice?.text,
+        selectedChoiceCorrect: choice?.correct,
         messages: apiMessages,
       });
       setChatMessages([firstUserEntry, { role: 'ai', text: result.replyText }]);
+      setStepPhase('chat');
+      setAiResponseCount(1);
     } catch {
-      // 에러 시 AI 응답 없이 계속 진행 가능
+      // 실패 시 stepPhase 유지 ('input'), 재시도 가능
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
@@ -175,12 +184,15 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onSendChatMessage = async () => {
     if (isFetchingRef.current || !chatText.trim() || !task) return;
+    if (aiResponseCount >= 2) return;
     const step = steps[currentStepIndex];
     if (!step) return;
 
     const userInput = chatText.trim();
     const newUserEntry: ChatEntry = { role: 'user', text: userInput };
     const allMessages = [...chatMessages, newUserEntry];
+    const choice =
+      selectedChoiceIndex !== null ? step.choices[selectedChoiceIndex] : null;
 
     setChatMessages(allMessages);
     setChatText('');
@@ -196,11 +208,16 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         weaknessId: task.weaknessId,
         stepTitle: step.title,
         stepBody: step.body,
+        selectedChoiceText: choice?.text,
+        selectedChoiceCorrect: choice?.correct,
         messages: apiMessages,
       });
       setChatMessages([...allMessages, { role: 'ai', text: result.replyText }]);
+      setAiResponseCount((c) => c + 1);
     } catch {
-      // 에러 시 사용자 메시지만 보임, 계속 진행 가능
+      // 실패 시 사용자 메시지 롤백 + 입력 텍스트 복원 (재시도 보장)
+      setChatMessages((prev) => prev.slice(0, -1));
+      setChatText(userInput);
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
@@ -309,6 +326,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     isLoadingFeedback,
     sessionComplete,
     hasInput,
+    selectedChoiceFeedback,
+    aiResponseCount,
+    isTextMode: userText.length > 0,
     onBack: router.back,
     onSelectChoice,
     onChangeText,

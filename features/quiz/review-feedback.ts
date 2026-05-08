@@ -10,6 +10,8 @@ export type ReviewFeedbackInput = {
   weaknessId: string;
   stepTitle: string;
   stepBody: string;
+  selectedChoiceText?: string;
+  selectedChoiceCorrect?: boolean;
   messages: ChatMessage[];
 };
 
