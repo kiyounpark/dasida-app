@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 type ActiveTool = 'pen' | 'highlighter' | 'eraser';
@@ -26,7 +27,7 @@ type ToolbarProps = {
   onTogglePencilOnly: () => void;
 };
 
-export function ScratchpadToolbar({
+function ScratchpadToolbarImpl({
   tool,
   color,
   size,
@@ -191,3 +192,8 @@ const styles = StyleSheet.create({
   actionLabel: { fontSize: 18, color: '#1A1916' },
   actionDisabled: { color: '#A8A296' },
 });
+
+// Shallow-compare memoization. Tool/color/size primitives + useCallback'd handlers
+// from useScratchpad / forIndex stay referentially stable, so the toolbar avoids
+// re-rendering on every parent render.
+export const ScratchpadToolbar = memo(ScratchpadToolbarImpl);

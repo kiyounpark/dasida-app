@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 
 import { useCurrentLearner } from '@/features/learner/provider';
 import {
@@ -298,23 +298,47 @@ export function useScratchpad(examId: string, problemNumber: number): UseScratch
   const redo = useCallback(() => dispatch({ type: 'redo' }), []);
   const clear = useCallback(() => dispatch({ type: 'clear' }), []);
 
-  return {
-    loaded: state.loaded,
-    strokes: state.strokes,
-    liveStroke: state.liveStroke,
-    tool: state.tool,
-    color: state.color,
-    size: state.size,
-    setTool,
-    setColor,
-    setSize,
-    beginStroke,
-    appendPoint,
-    endStroke,
-    undo,
-    redo,
-    clear,
-    canUndo: state.undoStack.length > 0,
-    canRedo: state.redoStack.length > 0,
-  };
+  // Stabilize wrapper identity: only change when state subset that consumers actually
+  // observe changes. Without this, every render produces a new object even if
+  // underlying primitives/callbacks didn't change, defeating downstream React.memo.
+  return useMemo<UseScratchpadResult>(
+    () => ({
+      loaded: state.loaded,
+      strokes: state.strokes,
+      liveStroke: state.liveStroke,
+      tool: state.tool,
+      color: state.color,
+      size: state.size,
+      setTool,
+      setColor,
+      setSize,
+      beginStroke,
+      appendPoint,
+      endStroke,
+      undo,
+      redo,
+      clear,
+      canUndo: state.undoStack.length > 0,
+      canRedo: state.redoStack.length > 0,
+    }),
+    [
+      state.loaded,
+      state.strokes,
+      state.liveStroke,
+      state.tool,
+      state.color,
+      state.size,
+      state.undoStack,
+      state.redoStack,
+      setTool,
+      setColor,
+      setSize,
+      beginStroke,
+      appendPoint,
+      endStroke,
+      undo,
+      redo,
+      clear,
+    ],
+  );
 }
