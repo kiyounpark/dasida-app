@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -193,6 +193,20 @@ export function QuizHubScreenView({
     );
   }
 
+  const renderTabletSplitBoard = useCallback(
+    (containerWidth: number) =>
+      journey ? (
+        <JourneyBoard
+          availableHeight={0}
+          containerWidth={containerWidth}
+          isCompactLayout={isCompactLayout}
+          onPressCurrentStep={onPressJourneyCta}
+          state={journey}
+        />
+      ) : null,
+    [isCompactLayout, journey, onPressJourneyCta],
+  );
+
   if (useTabletSplitLayout) {
     const analysisResumeItems = analysisState.isInProgress
       ? analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
@@ -219,15 +233,7 @@ export function QuizHubScreenView({
               />
             ) : null
           }
-          leftBoard={(containerWidth) => (
-            <JourneyBoard
-              availableHeight={0}
-              containerWidth={containerWidth}
-              isCompactLayout={isCompactLayout}
-              onPressCurrentStep={onPressJourneyCta}
-              state={journey!}
-            />
-          )}
+          leftBoard={renderTabletSplitBoard}
           rightPanel={
             <JourneyHubRightPanel
               analysisResumeItems={analysisResumeItems}
