@@ -51,7 +51,12 @@ test('buildSystemPrompt(explore)에는 탐색 모드 안내가 포함된다', ()
 test('buildSystemPrompt(close)에는 마무리 모드 안내가 포함된다', () => {
   const prompt = buildSystemPrompt('close');
   assert.ok(prompt.includes('마무리 모드'));
-  assert.ok(prompt.includes('명시'));
+  assert.ok(prompt.includes('인정'), 'close 모드는 학생 인정 비트를 강제해야 한다');
+  assert.ok(prompt.includes('클로징'), 'close 모드는 따뜻한 클로징을 강제해야 한다');
+  assert.ok(
+    !prompt.includes('더 이상 떠넘기지'),
+    '차가운 표현이 제거되어야 한다',
+  );
 });
 
 test('buildSystemPrompt에 selectedChoice가 있으면 컨텍스트가 주입된다', () => {
