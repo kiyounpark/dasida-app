@@ -67,12 +67,20 @@ export function ExamDiagnosisPage({
   const scrollRef = useRef<ScrollView>(null);
   const isTablet = useIsTablet();
 
-  useEffect(() => {
-    const id = setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    }, 200);
-    return () => clearTimeout(id);
-  }, [hook.entries.length]);
+  // entries 증가를 렌더 중에 감지해서 플래그 세팅 → onContentSizeChange가
+  // 새 콘텐츠 레이아웃 직후 정확한 끝으로 스크롤
+  const autoScrollFlagRef = useRef(false);
+  const prevEntriesLengthRef = useRef(0);
+  if (hook.entries.length > prevEntriesLengthRef.current) {
+    autoScrollFlagRef.current = true;
+  }
+  prevEntriesLengthRef.current = hook.entries.length;
+
+  const handleContentSizeChange = () => {
+    if (!autoScrollFlagRef.current) return;
+    autoScrollFlagRef.current = false;
+    scrollRef.current?.scrollToEnd({ animated: true });
+  };
 
   useEffect(() => {
     if (!isActive) {
@@ -110,7 +118,8 @@ export function ExamDiagnosisPage({
             style={styles.tabletRightScroll}
             contentContainerStyle={styles.tabletRightContent}
             keyboardDismissMode="on-drag"
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={handleContentSizeChange}>
             {interactionEntries.map((entry) => (
               <Animated.View
                 key={entry.id}
@@ -144,7 +153,8 @@ export function ExamDiagnosisPage({
         keyboardShouldPersistTaps="handled"
         style={styles.canvas}
         contentContainerStyle={styles.canvasContent}
-        keyboardDismissMode="on-drag">
+        keyboardDismissMode="on-drag"
+        onContentSizeChange={handleContentSizeChange}>
         {hook.entries.map((entry) => (
           <Animated.View
             key={entry.id}
