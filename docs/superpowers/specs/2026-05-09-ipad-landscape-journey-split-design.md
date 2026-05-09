@@ -111,26 +111,28 @@ iPad/Android 태블릿을 가로 고정으로 전환한 이후 (2026-05-09 lands
 
 ```
 1. STEP 카드 (항상 표시, rich/compact 자동)
-2. 분석 재개 카루셀 (analysisState.isInProgress 일 때만)
-3. 약점 카드 (homeState.weakness 데이터 있을 때만)
-4. 복습 카드 (homeState.nextReviewTask 있을 때만)
+2. 분석 재개 카루셀 (analysisState.isInProgress === true 일 때만)
    ─── 스크롤 영역 끝 ───
-5. CTA 버튼 (하단 고정, 우측 패널 footer)
+3. CTA 버튼 (하단 고정, 우측 패널 footer)
 ```
 
-**현재 코드와 차이점:**
-- 현재는 `showAnalysisResumeCard` 분기로 두 가지 모드(분석 진행 중 / 일반)를 갈라 다른 컴포넌트 트리를 그림 → 태블릿에서는 **이 분기를 우측 패널 안에서만 처리**, 좌측(보드)은 항상 동일하게 표시
-- `HomeWeaknessSection`은 보드 아래 → 우측 패널로 이동
-- `ReviewHomeCard` / `NoReviewDayCard` → 우측 패널로 이동
-- `JourneyCtaButton`의 footer 컴포넌트는 폰에서만 사용. 태블릿은 우측 패널 안 인라인
+**중요 — 현재 hook의 gating 규칙 (변경 안 함):**
+- `showWeaknessSection`, `showReviewHomeCard`, `showNoReviewDayCard` 는 모두 `isGraduated`(여정 졸업 후)에만 true
+- 즉, **split layout이 적용되는 상태(여정 진행 중 + 보드 표시)에서는 약점/복습/리뷰 카드 자체가 본래 뜨지 않음**
+- 졸업 후에는 보드 자체가 사라지므로 split layout 미적용. 따라서 약점/복습 카드는 우측 패널에 등장할 일이 없음
+- 이번 spec은 **이 gating 규칙을 그대로 유지**한다 (약점을 여정 중에 보이게 하는 건 별개의 디자인 결정으로 분리)
+
+**현재 코드와 차이점 (구조적 변화):**
+- `JourneyCtaButton`의 화면 footer 컴포넌트 → 태블릿에서는 우측 패널 안 인라인 footer로 이동. 폰에서는 그대로
+- `showAnalysisResumeCard` 모드의 두 갈래 트리는 태블릿에서는 **우측 패널 안에서만 분기**, 좌측 보드는 항상 동일
+- 약점 섹션(`HomeWeaknessSection`), 복습 카드(`ReviewHomeCard`), 노리뷰 카드(`NoReviewDayCard`)는 **본래 졸업 후에만 뜨므로 위치 이동 불필요**. 졸업 후 화면(stack 구조 유지)에서 그대로 노출
 
 ## 6. 사용자 상태별 우측 패널 시나리오
 
 | # | 상태 조건 | 우측 패널 구성 |
 |---|---|---|
-| ① | 처음 사용자 (진단 전, 약점 없음, 분석 진행 안 함) | STEP 카드(rich) + CTA |
-| ② | 분석 진행 중 | STEP 카드(compact) + 분석 재개 카루셀 + CTA |
-| ③ | 학습 진행 중 (약점 데이터 쌓임) | STEP 카드(compact) + 약점 카드 + 복습 카드 + CTA |
+| ① | 처음 사용자 (진단 전, 분석 진행 안 함) | STEP 카드(rich) + CTA |
+| ② | 분석 진행 중 (`analysisState.isInProgress`) | STEP 카드(compact) + 분석 재개 카루셀 + CTA |
 
 ## 7. 좌우 분할을 적용하지 않는 예외 상태
 
@@ -178,9 +180,8 @@ iPad/Android 태블릿을 가로 고정으로 전환한 이후 (2026-05-09 lands
 
 - [ ] ① 처음 사용자 — STEP 1 카드(rich) + CTA. 우측 패널 휑하지 않음
 - [ ] ② 분석 진행 중 — STEP 카드(compact) + 분석 재개 카루셀 + CTA
-- [ ] ③ 학습 진행 중 — STEP 카드(compact) + 약점 카드 + 복습 카드 + CTA
-- [ ] 약점 카드만 있고 분석 재개 없음 — 정상 렌더
-- [ ] 분석 재개만 있고 약점 없음 — 정상 렌더
+- [ ] STEP 1~4 각 단계에서 STEP 카드 카피 정상 표시
+- [ ] STEP 2~4에서 분석 진행 안 함 → STEP 카드 rich fallback 정상
 
 ### 9.3 예외 상태
 
