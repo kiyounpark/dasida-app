@@ -1,25 +1,30 @@
 // features/quiz/components/review-session-screen-view.tsx
 import { useEffect, useRef } from 'react';
-import { Image } from 'expo-image';
 import {
-  ActivityIndicator,
   Animated,
+  Easing,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-review-session-screen';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+
+import { ChatSection } from './review-session/chat-section';
+import { DoneView } from './review-session/done-view';
+import { InputSection } from './review-session/input-section';
+import { LoadingView } from './review-session/loading-view';
+import { Paper } from './review-session/paper-tokens';
+import { ProgressDots } from './review-session/progress-dots';
+import { StepCard } from './review-session/step-card';
 
 export function ReviewSessionScreenView({
   task,
@@ -51,32 +56,67 @@ export function ReviewSessionScreenView({
   const scrollRef = useRef<ScrollView>(null);
   const tabletInputScrollRef = useRef<ScrollView>(null);
   const inputFadeAnim = useRef(new Animated.Value(1)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-      tabletInputScrollRef.current?.scrollToEnd({ animated: true });
-    }, 250);
+  // 채팅 길이 증가를 렌더 중 감지 → onContentSizeChange가 새 콘텐츠 레이아웃 직후
+  // 정확한 끝으로 스크롤 (참고: commit f96f2df).
+  const autoScrollFlagRef = useRef(false);
+  const prevChatLengthRef = useRef(0);
+  if (chatMessages.length > prevChatLengthRef.current) {
+    autoScrollFlagRef.current = true;
+  }
+  prevChatLengthRef.current = chatMessages.length;
+
+  const handleContentSizeChange = () => {
+    if (!autoScrollFlagRef.current) return;
+    autoScrollFlagRef.current = false;
+    scrollRef.current?.scrollToEnd({ animated: true });
+    tabletInputScrollRef.current?.scrollToEnd({ animated: true });
   };
 
-  useEffect(() => {
-    if (chatMessages.length > 0) {
-      scrollToBottom();
-    }
-  }, [chatMessages.length]);
+  const handleInputFocus = () => {
+    autoScrollFlagRef.current = true;
+  };
 
   useEffect(() => {
     if (aiResponseCount >= 2) {
       Animated.timing(inputFadeAnim, {
-        toValue: 0,
-        duration: 150,
+        toValue: 0.35,
+        duration: 200,
         useNativeDriver: true,
       }).start();
     } else {
       inputFadeAnim.stopAnimation();
       inputFadeAnim.setValue(1);
     }
+    return () => {
+      inputFadeAnim.stopAnimation();
+    };
   }, [aiResponseCount]);
+
+  useEffect(() => {
+    if (!task) {
+      const loop = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+      loop.start();
+      return () => {
+        loop.stop();
+        spinAnim.stopAnimation();
+      };
+    }
+    spinAnim.stopAnimation();
+  }, [task]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const appBar = (
     <SafeAreaView edges={['top']} style={styles.appBar}>
@@ -86,7 +126,7 @@ export function ReviewSessionScreenView({
           style={styles.backBtn}
           accessibilityLabel="뒤로가기"
           accessibilityRole="button">
-          <IconSymbol name="chevron.left" size={24} color={BrandColors.primary} />
+          <IconSymbol name="chevron.left" size={24} color={Paper.ink} />
         </Pressable>
         <Text style={styles.appBarTitle}>오늘의 복습</Text>
         <View style={styles.appBarSpacer} />
@@ -98,233 +138,81 @@ export function ReviewSessionScreenView({
     return (
       <View style={styles.screen}>
         {appBar}
-        <View style={styles.loadingContent}>
-          <Text style={styles.loadingText}>복습 데이터를 불러오는 중...</Text>
-        </View>
+        <LoadingView spin={spin} />
       </View>
     );
   }
 
   const weaknessLabel = diagnosisMap[task.weaknessId]?.labelKo ?? task.weaknessId;
   const step = steps[currentStepIndex];
-  const isLastStep = currentStepIndex === steps.length - 1;
+  const totalSteps = steps.length;
 
   if (sessionComplete || !step) {
     return (
       <View style={styles.screen}>
         {appBar}
-        <View style={[styles.doneScreen, { paddingBottom: insets.bottom + 24 }]}>
-          <Text style={styles.doneEmoji}>🌿</Text>
-          <Text style={styles.doneTitle}>모든 단계 완료!</Text>
-          <Text style={styles.doneSub}>{weaknessLabel} 흐름을{'\n'}다시 확인했어요.</Text>
-
-          <View style={styles.scheduleBox}>
-            <Text style={styles.scheduleLabel}>다음 복습 일정</Text>
-            <Text style={styles.scheduleVal}>
-              {task.stage === 'day1' ? '3일 후' :
-               task.stage === 'day3' ? '7일 후' :
-               task.stage === 'day7' ? '30일 후' : '졸업 🎓'}
-            </Text>
-          </View>
-
-          <View style={styles.doneButtons}>
-            <Pressable style={styles.retryBtn} onPress={onPressRetry}>
-              <Text style={styles.retryBtnText}>🤔 다시 볼게요</Text>
-            </Pressable>
-            <Pressable style={styles.rememberBtn} onPress={onPressRemember}>
-              <Text style={styles.rememberBtnText}>✓ 기억났어요!</Text>
-            </Pressable>
-          </View>
-        </View>
+        <DoneView
+          task={task}
+          weaknessLabel={weaknessLabel}
+          paddingBottom={insets.bottom + 24}
+          onPressRetry={onPressRetry}
+          onPressRemember={onPressRemember}
+        />
       </View>
     );
   }
 
+  const isLastStep = currentStepIndex === steps.length - 1;
   const continueLabel = isLastStep ? '이해했어요, 완료' : '이해했어요, 다음으로';
+  const hasFeedback = selectedChoiceFeedback !== null;
 
-  // ── 입력 카드 공통 내부 (mobile + tablet 공유) ──────────────────────────────
   const inputCardContent =
     stepPhase === 'input' ? (
-      <>
-        {!isTextMode ? (
-          <>
-            <Text style={styles.inputLabel}>💭 이 단계, 어떻게 이해했나요?</Text>
-            <View style={styles.choices}>
-              {step.choices.map((choice, i) => (
-                <Pressable
-                  key={i}
-                  style={[styles.choiceBtn, selectedChoiceIndex === i && styles.choiceBtnSelected]}
-                  onPress={() => onSelectChoice(i)}>
-                  <Text
-                    style={[
-                      styles.choiceBtnText,
-                      selectedChoiceIndex === i && styles.choiceBtnTextSelected,
-                    ]}>
-                    {choice.text}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {selectedChoiceFeedback && selectedChoiceIndex !== null ? (
-              <View
-                style={[
-                  styles.choiceFeedbackCard,
-                  step.choices[selectedChoiceIndex]?.correct === false &&
-                    styles.choiceFeedbackCardWrong,
-                ]}>
-                <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
-              </View>
-            ) : null}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>또는 직접 써도 돼요</Text>
-              <View style={styles.dividerLine} />
-            </View>
-          </>
-        ) : (
-          <>
-            {selectedChoiceIndex !== null && (
-              <View style={styles.choiceChipRow}>
-                <View style={styles.choiceChip}>
-                  <Text style={styles.choiceChipLabel}>선택했던 보기</Text>
-                  <Text style={styles.choiceChipText} numberOfLines={2}>
-                    {step.choices[selectedChoiceIndex]?.text}
-                  </Text>
-                </View>
-              </View>
-            )}
-            {selectedChoiceFeedback && selectedChoiceIndex !== null ? (
-              <View
-                style={[
-                  styles.choiceFeedbackCard,
-                  step.choices[selectedChoiceIndex]?.correct === false &&
-                    styles.choiceFeedbackCardWrong,
-                ]}>
-                <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
-              </View>
-            ) : null}
-          </>
-        )}
-        <TextInput
-          style={styles.textInput}
-          value={userText}
-          onChangeText={onChangeText}
-          onFocus={scrollToBottom}
-          placeholder="자유롭게 써보세요..."
-          placeholderTextColor={BrandColors.disabled}
-          multiline
-        />
-        <Pressable
-          style={[styles.primaryBtn, (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled]}
-          onPress={hasInput && !userText.trim() ? onPressContinue : onPressNext}
-          disabled={!hasInput || isLoadingFeedback}>
-          {isLoadingFeedback ? (
-            <ActivityIndicator color="#F6F2EA" size="small" />
-          ) : (
-            <Text style={styles.primaryBtnText}>{continueLabel}</Text>
-          )}
-        </Pressable>
-      </>
+      <InputSection
+        step={step}
+        selectedChoiceIndex={selectedChoiceIndex}
+        userText={userText}
+        isTextMode={isTextMode}
+        hasInput={hasInput}
+        hasFeedback={hasFeedback}
+        isLoadingFeedback={isLoadingFeedback}
+        selectedChoiceFeedback={selectedChoiceFeedback}
+        continueLabel={continueLabel}
+        onSelectChoice={onSelectChoice}
+        onChangeText={onChangeText}
+        onPressNext={onPressNext}
+        onPressContinue={onPressContinue}
+        onInputFocus={handleInputFocus}
+      />
     ) : (
-      <>
-        <View style={styles.chatMessages}>
-          {chatMessages.map((msg, i) => (
-            <View
-              key={i}
-              style={[
-                styles.bubbleRow,
-                msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAi,
-              ]}>
-              {msg.role === 'ai' && (
-                <View style={styles.aiBadgeIconWrapper}>
-                  <Image source={require('@/assets/review/ai-coach-avatar.png')} style={styles.aiBadgeIconImg} contentFit="contain" />
-                </View>
-              )}
-              <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAi]}>
-                {msg.text ? (
-                  <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>
-                    {msg.text}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
-          ))}
-          {isLoadingFeedback && (
-            <View style={[styles.bubbleRow, styles.bubbleRowAi]}>
-              <View style={styles.aiBadgeIconWrapper}>
-                <Image source={require('@/assets/review/ai-coach-avatar.png')} style={styles.aiBadgeIconImg} contentFit="contain" />
-              </View>
-              <View style={[styles.bubble, styles.bubbleAi]}>
-                <ActivityIndicator size="small" color={BrandColors.primary} />
-              </View>
-            </View>
-          )}
-        </View>
-        <Animated.View
-          style={[styles.chatInputRow, { opacity: inputFadeAnim }]}
-          pointerEvents={aiResponseCount >= 2 ? 'none' : 'auto'}>
-          <TextInput
-            style={styles.chatInput}
-            value={chatText}
-            onChangeText={onChangeChatText}
-            onFocus={scrollToBottom}
-            placeholder="계속 써보세요..."
-            placeholderTextColor={BrandColors.disabled}
-            editable={!isLoadingFeedback && aiResponseCount < 2}
-            returnKeyType="send"
-            onSubmitEditing={onSendChatMessage}
-          />
-          <Pressable
-            style={[
-              styles.sendBtn,
-              (!chatText.trim() || isLoadingFeedback || aiResponseCount >= 2) &&
-                styles.sendBtnDisabled,
-            ]}
-            onPress={onSendChatMessage}
-            disabled={!chatText.trim() || isLoadingFeedback || aiResponseCount >= 2}>
-            <Text style={styles.sendBtnText}>↑</Text>
-          </Pressable>
-        </Animated.View>
-        <Pressable
-          style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
-          onPress={onPressContinue}
-          disabled={isLoadingFeedback}>
-          <Text style={styles.primaryBtnText}>{continueLabel}</Text>
-        </Pressable>
-      </>
+      <ChatSection
+        chatMessages={chatMessages}
+        chatText={chatText}
+        isLoadingFeedback={isLoadingFeedback}
+        aiResponseCount={aiResponseCount}
+        continueLabel={continueLabel}
+        inputFadeAnim={inputFadeAnim}
+        onChangeChatText={onChangeChatText}
+        onSendChatMessage={onSendChatMessage}
+        onPressContinue={onPressContinue}
+        onInputFocus={handleInputFocus}
+      />
     );
 
   if (isTablet) {
     return (
       <View style={styles.screen}>
         {appBar}
-        <View style={[styles.progressBar, styles.tabletProgressBar]}>
-          {steps.map((_, i) => (
-            <View
-              key={i}
-              style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
-            />
-          ))}
-        </View>
+        <ProgressDots
+          totalSteps={totalSteps}
+          currentStepIndex={currentStepIndex}
+          containerStyle={styles.tabletProgressBar}
+        />
         <View style={styles.tabletRow}>
           <ScrollView
-            style={styles.tabletLeft}
+            style={[styles.tabletLeft, styles.tabletDivider]}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}>
-            <View style={styles.stepCard}>
-              <View style={styles.stepNumRow}>
-                <View style={styles.stepNumBadge}>
-                  <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
-                </View>
-                <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
-              </View>
-              <Text style={styles.stepTitle}>{step.title}</Text>
-              <Text style={styles.stepBody}>{step.body}</Text>
-              {step.example ? (
-                <View style={styles.stepExampleBox}>
-                  <Text style={styles.stepExampleText}>{step.example}</Text>
-                </View>
-              ) : null}
-            </View>
+            <StepCard step={step} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
           </ScrollView>
           <KeyboardAvoidingView
             style={styles.tabletRight}
@@ -332,10 +220,11 @@ export function ReviewSessionScreenView({
             enabled={process.env.EXPO_OS !== 'ios'}>
             <ScrollView
               ref={tabletInputScrollRef}
-              style={{ backgroundColor: '#FFFFFF' }}
+              style={{ backgroundColor: Paper.cream }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
               keyboardShouldPersistTaps="handled"
-              automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}>
+              automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
+              onContentSizeChange={handleContentSizeChange}>
               <View style={styles.inputCard}>{inputCardContent}</View>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -356,30 +245,10 @@ export function ReviewSessionScreenView({
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}>
-          <View style={styles.progressBar}>
-            {steps.map((_, i) => (
-              <View
-                key={i}
-                style={[styles.progressSeg, i <= currentStepIndex && styles.progressSegDone]}
-              />
-            ))}
-          </View>
-          <View style={styles.stepCard}>
-            <View style={styles.stepNumRow}>
-              <View style={styles.stepNumBadge}>
-                <Text style={styles.stepNumText}>{currentStepIndex + 1}</Text>
-              </View>
-              <Text style={styles.stepNumLabel}>{`${currentStepIndex + 1} / ${steps.length} 단계`}</Text>
-            </View>
-            <Text style={styles.stepTitle}>{step.title}</Text>
-            <Text style={styles.stepBody}>{step.body}</Text>
-            {step.example ? (
-              <View style={styles.stepExampleBox}>
-                <Text style={styles.stepExampleText}>{step.example}</Text>
-              </View>
-            ) : null}
-          </View>
+          automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
+          onContentSizeChange={handleContentSizeChange}>
+          <ProgressDots totalSteps={totalSteps} currentStepIndex={currentStepIndex} />
+          <StepCard step={step} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
           <View style={styles.inputCard}>{inputCardContent}</View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -390,15 +259,14 @@ export function ReviewSessionScreenView({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F6F2EA',
+    backgroundColor: Paper.cream,
   },
-  flex: {
-    flex: 1,
-  },
+  flex: { flex: 1 },
+
   appBar: {
-    backgroundColor: '#fff',
+    backgroundColor: Paper.cream,
     borderBottomWidth: 1,
-    borderBottomColor: BrandColors.border,
+    borderBottomColor: Paper.edge,
   },
   appBarInner: {
     height: 44,
@@ -416,392 +284,38 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamilies.bold,
     fontSize: 16,
-    color: BrandColors.primary,
+    color: Paper.ink,
+    letterSpacing: -0.2,
     textAlign: 'center',
   },
-  appBarSpacer: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  loadingContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  appBarSpacer: { width: 44 },
+
+  scrollView: { flex: 1 },
   scrollContent: {
-    padding: BrandSpacing.md,
-    gap: BrandSpacing.sm,
+    padding: 16,
+    gap: 14,
   },
-  loadingText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 15,
-    color: BrandColors.mutedText,
-    textAlign: 'center',
-    marginTop: 40,
-  },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: BrandSpacing.sm,
-  },
-  progressSeg: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D6E2D4',
-  },
-  progressSegDone: {
-    backgroundColor: BrandColors.primary,
-  },
-  stepCard: {
-    backgroundColor: '#fff',
-    borderRadius: BrandRadius.lg,
-    padding: BrandSpacing.lg,
-    gap: BrandSpacing.xs,
-    borderWidth: 1.5,
-    borderColor: '#D6E2D4',
-  },
-  stepNumRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  stepNumBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: BrandColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 13,
-    color: '#F6F2EA',
-  },
-  stepNumLabel: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 12,
-    color: BrandColors.mutedText,
-  },
-  stepTitle: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 17,
-    color: BrandColors.primary,
-  },
-  stepBody: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 14,
-    color: BrandColors.text,
-    lineHeight: 22,
-  },
-  stepExampleBox: {
-    backgroundColor: '#F6F2EA',
-    borderRadius: BrandRadius.sm,
-    padding: 10,
-    marginTop: 4,
-  },
-  stepExampleText: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 13,
-    color: BrandColors.primarySoft,
-  },
+
   inputCard: {
-    backgroundColor: '#fff',
-    borderRadius: BrandRadius.lg,
-    padding: BrandSpacing.md,
-    gap: BrandSpacing.sm,
-    borderWidth: 1.5,
-    borderColor: '#D6E2D4',
-  },
-  inputLabel: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 13,
-    color: BrandColors.primary,
-  },
-  choices: {
-    gap: 6,
-  },
-  choiceBtn: {
-    backgroundColor: '#F6F2EA',
-    borderWidth: 1.5,
-    borderColor: '#D6E2D4',
-    borderRadius: BrandRadius.sm,
-    padding: 12,
-  },
-  choiceBtnSelected: {
-    backgroundColor: '#eef3ec',
-    borderColor: BrandColors.primary,
-  },
-  choiceBtnText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    color: BrandColors.text,
-  },
-  choiceBtnTextSelected: {
-    fontFamily: FontFamilies.bold,
-    color: BrandColors.primary,
-  },
-  choiceFeedbackCard: {
-    marginTop: BrandSpacing.sm,
-    padding: BrandSpacing.md,
-    backgroundColor: '#F0FDF4',
-    borderRadius: BrandRadius.md,
-    borderLeftWidth: 3,
-    borderLeftColor: BrandColors.primary,
-  },
-  choiceFeedbackCardWrong: {
-    backgroundColor: '#FBEAEA',
-    borderLeftColor: BrandColors.danger,
-  },
-  choiceFeedbackText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 14,
-    lineHeight: 20,
-    color: BrandColors.primary,
-  },
-  choiceChipRow: {
-    marginBottom: BrandSpacing.sm,
-  },
-  choiceChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: BrandRadius.md,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    gap: 2,
-  },
-  choiceChipLabel: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 11,
-    color: BrandColors.mutedText,
-  },
-  choiceChipText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    color: BrandColors.primary,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#D6E2D4',
-  },
-  dividerText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 11,
-    color: BrandColors.disabled,
-  },
-  textInput: {
-    backgroundColor: '#F6F2EA',
-    borderWidth: 1,
-    borderColor: '#D6E2D4',
-    borderRadius: BrandRadius.sm,
-    padding: 11,
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    color: BrandColors.text,
-    minHeight: 64,
-    textAlignVertical: 'top',
-  },
-  // 채팅 UI
-  chatMessages: {
+    paddingTop: 4,
     gap: 10,
   },
-  bubbleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  bubbleRowUser: {
-    justifyContent: 'flex-end',
-  },
-  bubbleRowAi: {
-    justifyContent: 'flex-start',
-  },
-  bubble: {
-    borderRadius: 12,
-    padding: 10,
-    maxWidth: '82%',
-  },
-  bubbleUser: {
-    backgroundColor: BrandColors.primary,
-    borderBottomRightRadius: 2,
-  },
-  bubbleAi: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#D6E2D4',
-    borderTopLeftRadius: 2,
-  },
-  bubbleText: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    color: BrandColors.text,
-    lineHeight: 20,
-  },
-  bubbleTextUser: {
-    color: '#fff',
-  },
-  aiBadgeIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 2,
-  },
-  aiBadgeIconImg: {
-    width: 36,
-    height: 36,
-  },
-  chatInputRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  chatInput: {
-    flex: 1,
-    backgroundColor: '#F6F2EA',
-    borderWidth: 1,
-    borderColor: '#D6E2D4',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    color: BrandColors.text,
-  },
-  sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: BrandColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendBtnDisabled: {
-    backgroundColor: BrandColors.disabled,
-  },
-  sendBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: FontFamilies.bold,
-  },
-  primaryBtn: {
-    backgroundColor: BrandColors.primary,
-    borderRadius: BrandRadius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryBtnDisabled: {
-    backgroundColor: BrandColors.disabled,
-  },
-  primaryBtnText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 15,
-    color: '#F6F2EA',
-  },
-  // 완료 화면
-  doneScreen: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: BrandSpacing.xl,
-    gap: BrandSpacing.sm,
-  },
-  doneEmoji: {
-    fontSize: 52,
-    marginBottom: 4,
-  },
-  doneTitle: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 20,
-    color: BrandColors.primary,
-    textAlign: 'center',
-  },
-  doneSub: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 14,
-    color: BrandColors.mutedText,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  scheduleBox: {
-    backgroundColor: '#fff',
-    borderRadius: BrandRadius.md,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#D6E2D4',
-    alignItems: 'center',
-    width: '100%',
-    marginVertical: 4,
-  },
-  scheduleLabel: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 11,
-    color: BrandColors.mutedText,
-    marginBottom: 4,
-  },
-  scheduleVal: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 15,
-    color: BrandColors.success,
-  },
-  doneButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    width: '100%',
-    marginTop: 4,
-  },
-  retryBtn: {
-    flex: 1,
-    backgroundColor: '#F6F2EA',
-    borderRadius: BrandRadius.lg,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#D6E2D4',
-  },
-  retryBtnText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 14,
-    color: BrandColors.mutedText,
-  },
-  rememberBtn: {
-    flex: 2,
-    backgroundColor: BrandColors.primary,
-    borderRadius: BrandRadius.lg,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  rememberBtnText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 14,
-    color: '#F6F2EA',
-  },
-  // 태블릿 레이아웃
+
+  // 태블릿
   tabletProgressBar: {
-    marginHorizontal: 16,
-    marginTop: 12,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 6,
   },
   tabletRow: {
     flex: 1,
     flexDirection: 'row',
   },
-  tabletLeft: {
-    flex: 55,
+  tabletLeft: { flex: 1.18 },
+  tabletDivider: {
     borderRightWidth: 1,
-    borderRightColor: '#D6E2D4',
+    borderRightColor: Paper.edge,
+    borderStyle: 'dashed',
   },
-  tabletRight: {
-    flex: 45,
-  },
+  tabletRight: { flex: 1 },
 });
