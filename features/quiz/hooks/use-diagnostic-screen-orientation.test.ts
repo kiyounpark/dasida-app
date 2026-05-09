@@ -34,9 +34,13 @@ describe('useDiagnosticScreenOrientation', () => {
     mockedLock.lockToPortrait.mockResolvedValue(undefined);
   });
 
-  it('isTablet=true 진입 시 unlockAllOrientations 호출', () => {
+  it('isTablet=true 진입 시 unlockAllOrientations 호출, cleanup 시 lockToPortrait 호출', () => {
     renderHook(() => useDiagnosticScreenOrientation({ isTablet: true }));
     expect(mockedLock.unlockAllOrientations).toHaveBeenCalledTimes(1);
+    expect(mockedLock.lockToPortrait).not.toHaveBeenCalled();
+
+    capturedCleanup?.();
+    expect(mockedLock.lockToPortrait).toHaveBeenCalledTimes(1);
   });
 
   it('isTablet=false 진입 시 unlock 호출 안 함', () => {

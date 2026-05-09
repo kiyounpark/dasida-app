@@ -127,8 +127,8 @@ export function useDiagnosticScreen({
     resumeDiagnosis,
   } = useQuizSession();
   const { profile, summary, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
-  const { width: windowWidth, width, height } = useWindowDimensions();
-  const diagnosisPageWidth = Math.max(windowWidth, 1);
+  const { width, height } = useWindowDimensions();
+  const diagnosisPageWidth = Math.max(width, 1);
   const isTablet = useIsTablet();
   const isPortrait = height >= width;
 
