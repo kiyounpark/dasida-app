@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { useCurrentLearner } from '@/features/learner/provider';
 import { ScratchpadCanvas } from '@/features/quiz/exam/components/scratchpad-canvas';
 import { ScratchpadToolbar } from '@/features/quiz/exam/components/scratchpad-toolbar';
 import { SplitDivider } from '@/features/quiz/exam/components/split-divider';
+import {
+  HEADER_HEIGHT_ESTIMATE,
+  SCRATCHPAD_TOOLBAR_WIDTH as TOOLBAR_WIDTH,
+  SPLIT_DEFAULT_RATIO as DEFAULT_RATIO,
+  SPLIT_DIVIDER_WIDTH as DIVIDER_WIDTH,
+  SPLIT_LEFT_PX_CEILING as LEFT_PX_CEILING,
+  SPLIT_LEFT_PX_FLOOR as LEFT_PX_FLOOR,
+  SPLIT_LEFT_RATIO_MAX as LEFT_RATIO_MAX,
+  SPLIT_LEFT_RATIO_MIN as LEFT_RATIO_MIN,
+} from '@/features/quiz/exam/components/tablet-layout-constants';
 import {
   loadSplitRatio,
   saveSplitRatio,
@@ -16,17 +26,6 @@ type Props = {
   problemPanel: ReactNode;
   scratchpad: IndexedScratchpadApi;
 };
-
-// ExamSolveTabletLayout과 동일 baseline (11" iPad landscape 1194pt → 좌측 520pt 기본).
-// 분할 비율 store를 공유하므로 모의고사에서 조정한 비율이 약점진단에도 그대로 적용된다.
-const DEFAULT_RATIO = 520 / (1194 - 8);
-const DIVIDER_WIDTH = 8;
-const TOOLBAR_WIDTH = 58;
-const LEFT_RATIO_MIN = 0.3;
-const LEFT_RATIO_MAX = 0.6;
-const LEFT_PX_FLOOR = 320;
-const LEFT_PX_CEILING = 820;
-const HEADER_HEIGHT_ESTIMATE = 56;
 
 export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }: Props) {
   const { width, height } = useWindowDimensions();
@@ -74,6 +73,27 @@ export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }
     void saveSplitRatio(accountKey, ratio);
   };
 
+  // Stable wrapper passed to memo'd ScratchpadCanvas. Without this, every
+  // parent re-render creates a new object literal and defeats React.memo.
+  const canvasScratchpad = useMemo(
+    () => ({
+      strokes: scratchpad.strokes,
+      liveStroke: scratchpad.liveStroke,
+      beginStroke: scratchpad.beginStroke,
+      appendPoint: scratchpad.appendPoint,
+      endStroke: scratchpad.endStroke,
+    }),
+    [
+      scratchpad.strokes,
+      scratchpad.liveStroke,
+      scratchpad.beginStroke,
+      scratchpad.appendPoint,
+      scratchpad.endStroke,
+    ],
+  );
+
+  const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
+
   return (
     <View style={styles.root}>
       {header}
@@ -107,18 +127,12 @@ export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }
             onUndo={scratchpad.undo}
             onRedo={scratchpad.redo}
             onClear={scratchpad.clear}
-            onTogglePencilOnly={() => setPencilOnly((v) => !v)}
+            onTogglePencilOnly={togglePencilOnly}
           />
           <ScratchpadCanvas
             width={canvasWidth}
             height={bodyHeight}
-            scratchpad={{
-              strokes: scratchpad.strokes,
-              liveStroke: scratchpad.liveStroke,
-              beginStroke: scratchpad.beginStroke,
-              appendPoint: scratchpad.appendPoint,
-              endStroke: scratchpad.endStroke,
-            }}
+            scratchpad={canvasScratchpad}
             pencilOnly={pencilOnly}
           />
         </View>

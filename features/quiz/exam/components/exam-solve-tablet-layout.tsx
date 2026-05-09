@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { useCurrentLearner } from '@/features/learner/provider';
 import { ScratchpadCanvas } from '@/features/quiz/exam/components/scratchpad-canvas';
 import { ScratchpadToolbar } from '@/features/quiz/exam/components/scratchpad-toolbar';
 import { SplitDivider } from '@/features/quiz/exam/components/split-divider';
+import {
+  HEADER_HEIGHT_ESTIMATE,
+  SCRATCHPAD_TOOLBAR_WIDTH as TOOLBAR_WIDTH,
+  SPLIT_DEFAULT_RATIO as DEFAULT_RATIO,
+  SPLIT_DIVIDER_WIDTH as DIVIDER_WIDTH,
+  SPLIT_LEFT_PX_CEILING as LEFT_PX_CEILING,
+  SPLIT_LEFT_PX_FLOOR as LEFT_PX_FLOOR,
+  SPLIT_LEFT_RATIO_MAX as LEFT_RATIO_MAX,
+  SPLIT_LEFT_RATIO_MIN as LEFT_RATIO_MIN,
+} from '@/features/quiz/exam/components/tablet-layout-constants';
 import type { UseScratchpadResult } from '@/features/quiz/exam/hooks/use-scratchpad';
 import {
   loadSplitRatio,
@@ -16,22 +26,6 @@ type Props = {
   problemPanel: ReactNode;
   scratchpad: UseScratchpadResult;
 };
-
-// 11" iPad landscape baseline: 1194pt wide. The reference design used a 520pt left
-// panel out of the 1186pt non-divider area, giving the default ratio below.
-// Stored ratio is device-independent so an 11" → 12.9" iPad transition adapts naturally.
-const DEFAULT_RATIO = 520 / (1194 - 8);
-const DIVIDER_WIDTH = 8;
-const TOOLBAR_WIDTH = 58;
-// Proportional clamps so the same ratio behaves correctly across iPad sizes
-// (11" 1194pt ↔ 12.9" 1366pt). Absolute floor/ceiling guards extreme aspect ratios.
-const LEFT_RATIO_MIN = 0.3;
-const LEFT_RATIO_MAX = 0.6;
-const LEFT_PX_FLOOR = 320;
-const LEFT_PX_CEILING = 820;
-// Best-effort first-paint height so the canvas isn't a blank frame before onLayout.
-// The exam header is roughly 56pt; onLayout corrects the value on the next frame.
-const HEADER_HEIGHT_ESTIMATE = 56;
 
 export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Props) {
   const { width, height } = useWindowDimensions();
@@ -81,6 +75,8 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
     void saveSplitRatio(accountKey, ratio);
   };
 
+  const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
+
   return (
     <View style={styles.root}>
       {header}
@@ -114,7 +110,7 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
             onUndo={scratchpad.undo}
             onRedo={scratchpad.redo}
             onClear={scratchpad.clear}
-            onTogglePencilOnly={() => setPencilOnly((v) => !v)}
+            onTogglePencilOnly={togglePencilOnly}
           />
           <ScratchpadCanvas
             width={canvasWidth}
