@@ -908,6 +908,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.09 13:52
+- 해시: `296c86c` (`296c86c336bbd0a3b2a9264ac73df3926a3f2b65`)
+- 브랜치: claude/clever-hertz-f674b3
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/296c86c336bbd0a3b2a9264ac73df3926a3f2b65
+- 작성자: 박기윤
+- 메시지: feat(review-session): notebook tone reskin (11 states) + structural split
+- 본문: 복습 세션 화면을 종이 노트 디자인 톤으로 전면 리스킨. 시안의 11개 / state 모두 적용 (로딩 / Input 초기·정답·오답·textMode / Chat 응답·로딩·충분히 / / 완료·졸업 / 태블릿). 비즈니스 로직은 0 변경. / - Gowun Batang Regular/Bold 임베드: 도장 / NoteInput 손글씨 / 스케줄 / 값 등 시안의 serif 톤 재현. constants/typography.ts에 serifRegular/ / serifBold 토큰 추가 / - NoteInput 신규 컴포넌트: 줄노트 + 빨간 마진선 + onContentSizeChange / 기반 동적 줄 추가, 입력 시 serif 손글씨로 자동 전환 / - 화면 분리: 1492줄 단일 파일 → review-session/ 폴더 7개 컴포넌트 / (paper-tokens / progress-dots / step-card / loading-view / done-view / / input-section / chat-section)로 분리. 메인 view는 321줄 라우터로 축소 / - 인라인 피드백: 정답은 forest800 + ✓, 오답은 rust-soft + × + 좌측 / 빨간 마진선 메모지 형태 / - 채팅 말풍선: AI는 종이 메모 + 꿀색 마스킹테이프, 유저는 forest800 / + 손글씨체. 타이핑은 잎사귀 점 3개 (opacity 0.3/0.55/1) / - 완료 화면: rustDeep 도장(rotate -7°) + 점선 일정 카드. day30 완료 / 시 forest800 도장 + 졸업 화면으로 분기 / - onContentSizeChange 기반 자동 스크롤 (commit f96f2df 패턴 채택) / - accessibilityLabel/Role/State 추가 (보기 / Primary / Send / 완료 버튼) / - Animated.loop / inputFadeAnim에 useEffect cleanup 추가 / - 태블릿: 점선 세로 분리선 + 좌(카드) / 우(입력) 분할 유지 / 폰트 추가 후 검정화면 방지를 위해 머지 직후 prebuild 필요: / npx expo prebuild --clean && npx expo run:ios / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.09 01:29
 - 해시: `98b17c7` (`98b17c75fe6243b5ab1b34741b5ac95fd427b939`)
 - 브랜치: claude/nervous-ptolemy-70bf11
