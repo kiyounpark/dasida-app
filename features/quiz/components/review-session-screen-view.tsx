@@ -150,8 +150,13 @@ export function ReviewSessionScreenView({
                 </Pressable>
               ))}
             </View>
-            {selectedChoiceFeedback ? (
-              <View style={styles.choiceFeedbackCard}>
+            {selectedChoiceFeedback && selectedChoiceIndex !== null ? (
+              <View
+                style={[
+                  styles.choiceFeedbackCard,
+                  step.choices[selectedChoiceIndex]?.correct === false &&
+                    styles.choiceFeedbackCardWrong,
+                ]}>
                 <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
               </View>
             ) : null}
@@ -173,8 +178,13 @@ export function ReviewSessionScreenView({
                 </View>
               </View>
             )}
-            {selectedChoiceFeedback ? (
-              <View style={styles.choiceFeedbackCard}>
+            {selectedChoiceFeedback && selectedChoiceIndex !== null ? (
+              <View
+                style={[
+                  styles.choiceFeedbackCard,
+                  step.choices[selectedChoiceIndex]?.correct === false &&
+                    styles.choiceFeedbackCardWrong,
+                ]}>
                 <Text style={styles.choiceFeedbackText}>{selectedChoiceFeedback}</Text>
               </View>
             ) : null}
@@ -526,6 +536,10 @@ const styles = StyleSheet.create({
     borderRadius: BrandRadius.md,
     borderLeftWidth: 3,
     borderLeftColor: BrandColors.primary,
+  },
+  choiceFeedbackCardWrong: {
+    backgroundColor: '#FBEAEA',
+    borderLeftColor: BrandColors.danger,
   },
   choiceFeedbackText: {
     fontFamily: FontFamilies.regular,
