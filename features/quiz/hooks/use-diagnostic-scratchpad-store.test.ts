@@ -82,6 +82,26 @@ describe('useDiagnosticScratchpadStore', () => {
     expect(result.current.getStrokes(0)).toHaveLength(1);
   });
 
+  it('회전 시 endStroke 호출 시뮬레이션: liveStroke가 정상 종료되어 strokes에 커밋', () => {
+    // useDiagnosticScreen은 orientation listener가 발화하면 활성 idx의 endStroke를 호출한다.
+    // 이 통합 시나리오를 store 레벨에서 직접 검증한다 (회전 listener 자체는 별도 테스트).
+    const { result } = renderHook(() => useDiagnosticScratchpadStore());
+    act(() => {
+      const api = result.current.forIndex(0);
+      api.beginStroke({ x: 0, y: 0, p: 0.5 });
+      api.appendPoint({ x: 5, y: 5, p: 0.5 });
+    });
+    // 진행 중 상태 — strokes에 아직 커밋 X, liveStroke는 존재
+    expect(result.current.getStrokes(0)).toHaveLength(0);
+    expect(result.current.forIndex(0).liveStroke).not.toBeNull();
+
+    // 회전 콜백이 endStroke를 호출하는 것을 시뮬레이션
+    act(() => result.current.forIndex(0).endStroke());
+
+    expect(result.current.getStrokes(0)).toHaveLength(1);
+    expect(result.current.forIndex(0).liveStroke).toBeNull();
+  });
+
   it('resetAll은 모든 index의 stroke 초기화', () => {
     const { result } = renderHook(() => useDiagnosticScratchpadStore());
     act(() => {
