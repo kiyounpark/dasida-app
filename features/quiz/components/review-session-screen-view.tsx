@@ -73,9 +73,10 @@ export function ReviewSessionScreenView({
         useNativeDriver: true,
       }).start();
     } else {
+      inputFadeAnim.stopAnimation();
       inputFadeAnim.setValue(1);
     }
-  }, [aiResponseCount, inputFadeAnim]);
+  }, [aiResponseCount]);
 
   const appBar = (
     <SafeAreaView edges={['top']} style={styles.appBar}>
