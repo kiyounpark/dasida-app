@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,19 +19,26 @@ export function JourneyHubSplitLayout({
   const insets = useSafeAreaInsets();
   const [leftColumnWidth, setLeftColumnWidth] = useState(0);
 
+  const handleLeftColumnLayout = useCallback((e: LayoutChangeEvent) => {
+    const width = e.nativeEvent.layout.width;
+    if (width <= 0) return;
+    setLeftColumnWidth((prev) => (prev === width ? prev : width));
+  }, []);
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 14, paddingBottom: insets.bottom + 12 }]}>
       <View style={styles.row}>
         <View
           style={styles.leftColumn}
-          onLayout={(e: LayoutChangeEvent) => {
-            const width = e.nativeEvent.layout.width;
-            if (width > 0 && width !== leftColumnWidth) {
-              setLeftColumnWidth(width);
-            }
-          }}>
+          onLayout={handleLeftColumnLayout}
+          testID="journey-split-left-column"
+        >
           <View style={styles.posterWrap}>{posterBanner}</View>
-          {authNotice ? <View style={styles.authNoticeWrap}>{authNotice}</View> : null}
+          {authNotice ? (
+            <View style={styles.authNoticeWrap} testID="journey-split-auth-notice">
+              {authNotice}
+            </View>
+          ) : null}
           <View style={styles.boardWrap}>
             {leftColumnWidth > 0 ? leftBoard(leftColumnWidth) : null}
           </View>
