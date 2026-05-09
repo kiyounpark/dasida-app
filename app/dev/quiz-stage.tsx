@@ -39,9 +39,6 @@ export default function DevQuizStageScreen() {
       quizStage={quizStage}
       scratchpad={STUB_INDEXED_SCRATCHPAD_API}
       isTablet={false}
-      isPortrait={true}
-      showLandscapeHint={false}
-      onDismissLandscapeHint={() => {}}
     />
   );
 }

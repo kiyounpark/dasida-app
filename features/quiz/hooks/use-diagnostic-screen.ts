@@ -5,14 +5,9 @@ import { useWindowDimensions } from 'react-native';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import {
-  hasSeenLandscapeHint,
-  markLandscapeHintSeen,
-} from '@/features/quiz/exam/storage/landscape-hint-store';
-import {
   useDiagnosticScratchpadStore,
   type DiagnosticScratchpadStore,
 } from './use-diagnostic-scratchpad-store';
-import { useDiagnosticScreenOrientation } from './use-diagnostic-screen-orientation';
 
 import type { SolveMethodId } from '@/data/diagnosisTree';
 import type { Problem } from '@/data/problemData';
@@ -102,12 +97,9 @@ export type UseDiagnosticScreenResult = {
   onScrollToDiagnosisPage: (pageIndex: number) => void;
   onScrollToIndexFailed: (index: number) => void;
   onStartSession: () => void;
-  // 스크래치패드 (태블릿 + 가로일 때만 활성. 분석 단계에서는 read-only로 사용)
+  // 스크래치패드 (태블릿일 때만 활성. 분석 단계에서는 read-only로 사용)
   scratchpadStore: DiagnosticScratchpadStore;
   isTablet: boolean;
-  isPortrait: boolean;
-  showLandscapeHint: boolean;
-  onDismissLandscapeHint: () => void;
 };
 
 export function useDiagnosticScreen({
@@ -127,45 +119,11 @@ export function useDiagnosticScreen({
     resumeDiagnosis,
   } = useQuizSession();
   const { profile, summary, markPendingDiagnosticStarted, clearPendingDiagnostic, setPendingDiagnosisResume, clearPendingDiagnosisResume } = useCurrentLearner();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const diagnosisPageWidth = Math.max(width, 1);
   const isTablet = useIsTablet();
-  const isPortrait = height >= width;
 
   const scratchpadStore = useDiagnosticScratchpadStore();
-
-  // 회전 도중 휘발 stroke을 끊는다 — 활성 question의 endStroke를 호출.
-  // (eslint react-hooks/exhaustive-deps는 store/state 의존을 정확히 추적하지 못하므로 의도적으로 비움)
-  const handleOrientationChange = useCallback(() => {
-    const idx = state.currentQuestionIndex;
-    scratchpadStore.forIndex(idx).endStroke();
-  }, [scratchpadStore, state.currentQuestionIndex]);
-
-  useDiagnosticScreenOrientation({
-    isTablet,
-    onOrientationChange: handleOrientationChange,
-  });
-
-  // 가로 회전 안내 배너: tablet이고 portrait이고, 풀이 단계(quizStage 활성)일 때만 한 번 노출.
-  const [showLandscapeHint, setShowLandscapeHint] = useState(false);
-  useEffect(() => {
-    if (!isTablet || !isPortrait) {
-      setShowLandscapeHint(false);
-      return;
-    }
-    let cancelled = false;
-    void hasSeenLandscapeHint().then((seen) => {
-      if (!cancelled && !seen) setShowLandscapeHint(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isTablet, isPortrait]);
-
-  const handleDismissLandscapeHint = useCallback(() => {
-    setShowLandscapeHint(false);
-    void markLandscapeHintSeen();
-  }, []);
 
   const isMountedRef = useRef(true);
   const hasRequestedResetRef = useRef(false);
@@ -778,8 +736,5 @@ export function useDiagnosticScreen({
     onStartSession: startSession,
     scratchpadStore,
     isTablet,
-    isPortrait,
-    showLandscapeHint,
-    onDismissLandscapeHint: handleDismissLandscapeHint,
   };
 }

@@ -6,7 +6,6 @@ import { DiagnosticSolveBottomPanel } from '@/features/quiz/components/diagnosti
 import { QuizSolveExitConfirmModal } from '@/features/quiz/components/quiz-solve-exit-confirm-modal';
 import { QuizSolveHeader } from '@/features/quiz/components/quiz-solve-header';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
-import { LandscapeHintBanner } from '@/features/quiz/exam/components/landscape-hint-banner';
 import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
@@ -16,22 +15,15 @@ type DiagnosticQuizStageProps = {
   quizStage: DiagnosticQuizStageModel;
   scratchpad: IndexedScratchpadApi;
   isTablet: boolean;
-  isPortrait: boolean;
-  showLandscapeHint: boolean;
-  onDismissLandscapeHint: () => void;
 };
 
 export function DiagnosticQuizStage({
   quizStage,
   scratchpad,
   isTablet,
-  isPortrait,
-  showLandscapeHint,
-  onDismissLandscapeHint,
 }: DiagnosticQuizStageProps) {
   const { width, height } = useWindowDimensions();
   const isCompactLayout = width < 390 || height < 780;
-  const useTabletLayout = isTablet && !isPortrait;
 
   const header = (
     <QuizSolveHeader
@@ -67,7 +59,7 @@ export function DiagnosticQuizStage({
 
   return (
     <View style={styles.screen}>
-      {useTabletLayout ? (
+      {isTablet ? (
         <DiagnosticSolveTabletLayout
           header={header}
           scratchpad={scratchpad}
@@ -90,10 +82,6 @@ export function DiagnosticQuizStage({
           screenBackgroundColor={BrandColors.background}
         />
       )}
-
-      {isTablet && isPortrait && showLandscapeHint ? (
-        <LandscapeHintBanner onDismiss={onDismissLandscapeHint} />
-      ) : null}
 
       <QuizSolveExitConfirmModal
         body="지금까지 푼 답안은 저장되지 않아요. 나가면 처음부터 다시 시작해야 해요."
