@@ -146,11 +146,14 @@ function calcSvgFontSize(targetPx: number, boardWidth: number): number {
 
 export function JourneyBoard({
   availableHeight,
+  containerWidth,
   isCompactLayout,
   onPressCurrentStep,
   state,
 }: {
   availableHeight: number;
+  /** 태블릿 split layout에서 보드가 차지할 컨테이너 폭. 미지정 시 screenWidth 사용. */
+  containerWidth?: number;
   isCompactLayout: boolean;
   onPressCurrentStep: () => void;
   state: HomeJourneyState;
@@ -162,6 +165,7 @@ export function JourneyBoard({
     availableHeight,
     isTablet,
     isCompactLayout,
+    containerWidth,
   });
   const stepTitleFontSize = calcSvgFontSize(TARGET_STEP_TITLE_PX, boardWidth);
   const statusFontSize = calcSvgFontSize(TARGET_STATUS_PX, boardWidth);
