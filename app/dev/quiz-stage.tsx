@@ -3,28 +3,8 @@ import { router } from 'expo-router';
 
 import { problemData } from '@/data/problemData';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
-import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
+import { STUB_INDEXED_SCRATCHPAD_API } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
-
-const stubScratchpad: IndexedScratchpadApi = {
-  loaded: true,
-  strokes: [],
-  liveStroke: null,
-  tool: 'pen',
-  color: '#1A1916',
-  size: 2,
-  setTool: () => {},
-  setColor: () => {},
-  setSize: () => {},
-  beginStroke: () => {},
-  appendPoint: () => {},
-  endStroke: () => {},
-  undo: () => {},
-  redo: () => {},
-  clear: () => {},
-  canUndo: false,
-  canRedo: false,
-};
 
 const problems = problemData.filter((p) => p.grade === 'g1').slice(0, 10);
 const TOTAL = problems.length;
@@ -57,7 +37,7 @@ export default function DevQuizStageScreen() {
   return (
     <DiagnosticQuizStage
       quizStage={quizStage}
-      scratchpad={stubScratchpad}
+      scratchpad={STUB_INDEXED_SCRATCHPAD_API}
       isTablet={false}
       isPortrait={true}
       showLandscapeHint={false}

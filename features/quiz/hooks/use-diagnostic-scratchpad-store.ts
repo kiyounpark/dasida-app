@@ -178,6 +178,29 @@ export type IndexedScratchpadApi = {
   canRedo: boolean;
 };
 
+// Type-driven stub for dev/storybook screens that mount components needing an
+// IndexedScratchpadApi without backing state. Adding fields to IndexedScratchpadApi
+// will surface here as a type error so dev usage stays in sync.
+export const STUB_INDEXED_SCRATCHPAD_API: IndexedScratchpadApi = {
+  loaded: true,
+  strokes: [],
+  liveStroke: null,
+  tool: 'pen',
+  color: '#1A1916',
+  size: 2,
+  setTool: () => {},
+  setColor: () => {},
+  setSize: () => {},
+  beginStroke: () => {},
+  appendPoint: () => {},
+  endStroke: () => {},
+  undo: () => {},
+  redo: () => {},
+  clear: () => {},
+  canUndo: false,
+  canRedo: false,
+};
+
 export type DiagnosticScratchpadStore = {
   forIndex(answerIndex: number): IndexedScratchpadApi;
   getStrokes(answerIndex: number): Stroke[];
@@ -275,12 +298,34 @@ export function useDiagnosticScratchpadStore(): DiagnosticScratchpadStore {
     return entry;
   }, []);
 
+  // forIndex 결과 캐시: (idx, indexState 참조, tool, color, size)가 모두 동일하면
+  // 같은 wrapper 객체를 재사용해 ScratchpadCanvas/Toolbar의 React.memo가 의미 있게 동작.
+  const apiCacheRef = useRef<
+    Map<
+      number,
+      {
+        deps: [IndexState, ActiveTool, string, number];
+        api: IndexedScratchpadApi;
+      }
+    >
+  >(new Map());
+
   return useMemo<DiagnosticScratchpadStore>(
     () => ({
       forIndex(idx) {
         const cur = state.byIndex.get(idx) ?? EMPTY_INDEX_STATE;
         const cbs = ensureCallbacks(idx);
-        return {
+        const cached = apiCacheRef.current.get(idx);
+        if (
+          cached &&
+          cached.deps[0] === cur &&
+          cached.deps[1] === state.tool &&
+          cached.deps[2] === state.color &&
+          cached.deps[3] === state.size
+        ) {
+          return cached.api;
+        }
+        const api: IndexedScratchpadApi = {
           loaded: true,
           strokes: cur.strokes,
           liveStroke: cur.liveStroke,
@@ -299,6 +344,11 @@ export function useDiagnosticScratchpadStore(): DiagnosticScratchpadStore {
           canUndo: cur.undoStack.length > 0,
           canRedo: cur.redoStack.length > 0,
         };
+        apiCacheRef.current.set(idx, {
+          deps: [cur, state.tool, state.color, state.size],
+          api,
+        });
+        return api;
       },
       getStrokes(idx) {
         return (state.byIndex.get(idx) ?? EMPTY_INDEX_STATE).strokes;
