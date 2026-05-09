@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -145,23 +145,9 @@ export function DiagnosisConversationPage({
   onRestoreHandled,
 }: DiagnosisConversationPageProps) {
   const scrollRef = useRef<ScrollView | null>(null);
-
-  const anchorEntryId = useMemo(() => {
-    for (let i = chatEntries.length - 1; i >= 0; i -= 1) {
-      const entry = chatEntries[i];
-      if (entry.kind === 'bubble' && entry.role === 'user') {
-        return entry.id;
-      }
-    }
-    return null;
-  }, [chatEntries]);
-
-  const anchorYRef = useRef<number | null>(null);
-  const pendingScrollRef = useRef(false);
-
-  useEffect(() => {
-    anchorYRef.current = null;
-  }, [anchorEntryId]);
+  // 렌더 중에 ref 동기화 → onContentSizeChange가 항상 최신 값을 본다
+  const autoScrollFlagRef = useRef(false);
+  autoScrollFlagRef.current = shouldAutoScrollToEnd && isActive;
 
   useEffect(() => {
     if (!isActive || !shouldRestoreScroll) {
@@ -176,28 +162,6 @@ export function DiagnosisConversationPage({
       onRestoreHandled(answerIndex);
     });
   }, [answerIndex, isActive, onRestoreHandled, restoreOffset, shouldRestoreScroll]);
-
-  useEffect(() => {
-    if (!isActive || !shouldAutoScrollToEnd) {
-      return;
-    }
-
-    const targetY = anchorYRef.current;
-    if (targetY != null) {
-      // 폴백 경로(onLayout/onContentSizeChange)는 콜백 시점에 측정값이 이미 fresh이므로
-      // rAF 없이 동기 호출. 해피 패스만 새 entry paint를 한 프레임 기다린다.
-      requestAnimationFrame(() => {
-        scrollRef.current?.scrollTo({
-          y: Math.max(targetY - 16, 0),
-          animated: true,
-        });
-        onAutoScrollHandled(answerIndex);
-      });
-      return;
-    }
-
-    pendingScrollRef.current = true;
-  }, [answerIndex, isActive, onAutoScrollHandled, shouldAutoScrollToEnd]);
 
   return (
     <View style={[styles.page, { width }]}>
@@ -218,18 +182,12 @@ export function DiagnosisConversationPage({
             onScrollOffsetChange(answerIndex, event.nativeEvent.contentOffset.y);
           }}
           onContentSizeChange={() => {
-            if (!pendingScrollRef.current || !isActive) {
+            if (!autoScrollFlagRef.current) {
               return;
             }
-            const targetY = anchorYRef.current;
-            if (targetY == null) {
-              return;
-            }
-            pendingScrollRef.current = false;
-            scrollRef.current?.scrollTo({
-              y: Math.max(targetY - 16, 0),
-              animated: true,
-            });
+            // 새 콘텐츠가 실제로 레이아웃된 시점에 스크롤 → 항상 정확한 끝으로 이동
+            autoScrollFlagRef.current = false;
+            scrollRef.current?.scrollToEnd({ animated: true });
             onAutoScrollHandled(answerIndex);
           }}>
           {chatEntries.map((entry, entryIndex) => {
@@ -251,26 +209,10 @@ export function DiagnosisConversationPage({
             }
 
             if (entry.kind === 'bubble') {
-              const isAnchor = entry.id === anchorEntryId;
               return (
                 <Animated.View
                   key={entry.id}
                   entering={getEntryAnimation(entry)}
-                  onLayout={
-                    isAnchor
-                      ? (event) => {
-                          anchorYRef.current = event.nativeEvent.layout.y;
-                          if (pendingScrollRef.current && isActive) {
-                            pendingScrollRef.current = false;
-                            scrollRef.current?.scrollTo({
-                              y: Math.max(event.nativeEvent.layout.y - 16, 0),
-                              animated: true,
-                            });
-                            onAutoScrollHandled(answerIndex);
-                          }
-                        }
-                      : undefined
-                  }
                   style={isAfterProblemPrompt ? styles.promptEntry : null}>
                   <DiagnosisChatBubble
                     role={entry.role}
