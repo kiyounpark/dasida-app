@@ -5,7 +5,7 @@ module.exports = {
     name: IS_DEV ? '다시다 Dev' : '다시다',
     slug: 'dasida-app',
     version: '1.0.3',
-    orientation: 'portrait',
+    orientation: 'default',
     icon: './assets/images/icon.png',
     scheme: IS_DEV ? 'dasidaapp-dev' : 'dasidaapp',
     userInterfaceStyle: 'automatic',
@@ -22,8 +22,6 @@ module.exports = {
       buildNumber: '1',
       usesAppleSignIn: true,
       supportsTablet: true,
-      // requireFullScreen disables iPad multitasking (Split View/Slide Over).
-      // iPad는 4방향 허용 → 기본 lockToPortrait + exam-solve-screen에서만 unlock
       requireFullScreen: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -31,8 +29,6 @@ module.exports = {
           'UIInterfaceOrientationPortrait',
         ],
         'UISupportedInterfaceOrientations~ipad': [
-          'UIInterfaceOrientationPortrait',
-          'UIInterfaceOrientationPortraitUpsideDown',
           'UIInterfaceOrientationLandscapeLeft',
           'UIInterfaceOrientationLandscapeRight',
         ],
@@ -40,6 +36,7 @@ module.exports = {
     },
     android: {
       versionCode: 1,
+      orientation: 'default',
       adaptiveIcon: {
         backgroundColor: '#ffffff',
         foregroundImage: './assets/images/android-icon-foreground.png',
