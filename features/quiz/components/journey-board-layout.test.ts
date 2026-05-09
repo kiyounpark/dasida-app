@@ -55,8 +55,8 @@ describe('calcJourneyBoardWidth', () => {
         isTablet: true,
         isCompactLayout: false,
       });
-      // widthBasedMax = min(1024 * 0.7, 640) = 640
-      expect(result).toBe(Math.min(1024 - 28, 640)); // 640
+      // widthBasedMax = min(1024 * 0.7, 680) = 680
+      expect(result).toBe(Math.min(1024 - 28, 680)); // 680
     });
 
     it('availableHeight가 작으면 height 기반 상한으로 줄어든다 (iPad mini 6 portrait)', () => {
@@ -70,7 +70,7 @@ describe('calcJourneyBoardWidth', () => {
       });
       const heightBasedMax =
         (availableHeight - BOARD_MARGIN_TOP - BUBBLE_OVERFLOW_RESERVE) * VIEWBOX_RATIO;
-      const widthBasedMax = Math.min(screenWidth * 0.7, 640);
+      const widthBasedMax = Math.min(screenWidth * 0.7, 680);
       const expected = Math.min(screenWidth - 28, widthBasedMax, heightBasedMax);
       expect(result).toBeCloseTo(expected, 4);
     });
@@ -83,7 +83,7 @@ describe('calcJourneyBoardWidth', () => {
         isTablet: true,
         isCompactLayout: false,
       });
-      const widthBasedMax = Math.min(screenWidth * 0.7, 640);
+      const widthBasedMax = Math.min(screenWidth * 0.7, 680);
       expect(result).toBe(Math.min(screenWidth - 28, widthBasedMax));
     });
 
