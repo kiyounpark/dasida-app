@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Image } from 'expo-image';
 import {
   ActivityIndicator,
+  Animated,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -49,6 +50,7 @@ export function ReviewSessionScreenView({
   const isTablet = useIsTablet();
   const scrollRef = useRef<ScrollView>(null);
   const tabletInputScrollRef = useRef<ScrollView>(null);
+  const inputFadeAnim = useRef(new Animated.Value(1)).current;
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -62,6 +64,18 @@ export function ReviewSessionScreenView({
       scrollToBottom();
     }
   }, [chatMessages.length]);
+
+  useEffect(() => {
+    if (aiResponseCount >= 2) {
+      Animated.timing(inputFadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      inputFadeAnim.setValue(1);
+    }
+  }, [aiResponseCount, inputFadeAnim]);
 
   const appBar = (
     <SafeAreaView edges={['top']} style={styles.appBar}>
@@ -245,30 +259,31 @@ export function ReviewSessionScreenView({
             </View>
           )}
         </View>
-        {aiResponseCount < 2 && (
-          <View style={styles.chatInputRow}>
-            <TextInput
-              style={styles.chatInput}
-              value={chatText}
-              onChangeText={onChangeChatText}
-              onFocus={scrollToBottom}
-              placeholder="계속 써보세요..."
-              placeholderTextColor={BrandColors.disabled}
-              editable={!isLoadingFeedback}
-              returnKeyType="send"
-              onSubmitEditing={onSendChatMessage}
-            />
-            <Pressable
-              style={[
-                styles.sendBtn,
-                (!chatText.trim() || isLoadingFeedback) && styles.sendBtnDisabled,
-              ]}
-              onPress={onSendChatMessage}
-              disabled={!chatText.trim() || isLoadingFeedback}>
-              <Text style={styles.sendBtnText}>↑</Text>
-            </Pressable>
-          </View>
-        )}
+        <Animated.View
+          style={[styles.chatInputRow, { opacity: inputFadeAnim }]}
+          pointerEvents={aiResponseCount >= 2 ? 'none' : 'auto'}>
+          <TextInput
+            style={styles.chatInput}
+            value={chatText}
+            onChangeText={onChangeChatText}
+            onFocus={scrollToBottom}
+            placeholder="계속 써보세요..."
+            placeholderTextColor={BrandColors.disabled}
+            editable={!isLoadingFeedback && aiResponseCount < 2}
+            returnKeyType="send"
+            onSubmitEditing={onSendChatMessage}
+          />
+          <Pressable
+            style={[
+              styles.sendBtn,
+              (!chatText.trim() || isLoadingFeedback || aiResponseCount >= 2) &&
+                styles.sendBtnDisabled,
+            ]}
+            onPress={onSendChatMessage}
+            disabled={!chatText.trim() || isLoadingFeedback || aiResponseCount >= 2}>
+            <Text style={styles.sendBtnText}>↑</Text>
+          </Pressable>
+        </Animated.View>
         <Pressable
           style={[styles.primaryBtn, isLoadingFeedback && styles.primaryBtnDisabled]}
           onPress={onPressContinue}
