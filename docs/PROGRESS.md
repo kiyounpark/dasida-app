@@ -908,6 +908,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.09 04:47
+- 해시: `00c397b` (`00c397b221887e0031928547a5e465a9f40fccf4`)
+- 브랜치: claude/ipad-landscape-journey-split-qv9bu
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:35079/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:35079/git/kiyounpark/dasida-app/commit/00c397b221887e0031928547a5e465a9f40fccf4
+- 작성자: Claude
+- 메시지: feat(quiz-hub): 태블릿 가로에서 좌우 분할 레이아웃 적용
+- 본문: https://claude.ai/code/session_01X4j9A8AYzKorbcMknuQzZt
+
 ### 커밋 2026.05.09 01:29
 - 해시: `98b17c7` (`98b17c75fe6243b5ab1b34741b5ac95fd427b939`)
 - 브랜치: claude/nervous-ptolemy-70bf11
