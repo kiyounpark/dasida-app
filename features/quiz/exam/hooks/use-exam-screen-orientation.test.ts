@@ -47,6 +47,10 @@ describe('useExamScreenOrientation', () => {
 
     // blur cleanup
     capturedCleanup?.();
+    // use-orientation-lock now serializes through a FIFO chain. Each link adds a
+    // microtask hop, so we flush a few cycles to drain it before asserting.
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     expect(mocked.lockAsync).toHaveBeenCalledWith(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,
@@ -63,6 +67,10 @@ describe('useExamScreenOrientation', () => {
     expect(mocked.unlockAsync).not.toHaveBeenCalled();
 
     capturedCleanup?.();
+    // use-orientation-lock now serializes through a FIFO chain. Each link adds a
+    // microtask hop, so we flush a few cycles to drain it before asserting.
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     expect(mocked.lockAsync).toHaveBeenCalledWith(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,

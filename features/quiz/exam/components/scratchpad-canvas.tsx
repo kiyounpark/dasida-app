@@ -9,7 +9,7 @@ import {
   vec,
   type SkPath,
 } from '@shopify/react-native-skia';
-import { useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
@@ -83,7 +83,7 @@ function strokeWidthFor(s: Stroke): number {
 
 type CachedPath = { path: SkPath; color: string; width: number; opacity: number };
 
-export function ScratchpadCanvas({
+function ScratchpadCanvasImpl({
   width,
   height,
   scratchpad,
@@ -244,6 +244,11 @@ export function ScratchpadCanvas({
     </View>
   );
 }
+
+// Shallow-compare memoization. With wrapper-object identity stabilized in
+// useScratchpad / useDiagnosticScratchpadStore.forIndex, this prevents the canvas
+// from re-rendering on every parent render — important for Pencil input latency.
+export const ScratchpadCanvas = memo(ScratchpadCanvasImpl);
 
 const styles = StyleSheet.create({
   wrap: {

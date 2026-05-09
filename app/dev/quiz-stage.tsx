@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 
 import { problemData } from '@/data/problemData';
 import { DiagnosticQuizStage } from '@/features/quiz/components/diagnostic-quiz-stage';
+import { STUB_INDEXED_SCRATCHPAD_API } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 import type { DiagnosticQuizStageModel } from '@/features/quiz/hooks/use-diagnostic-screen';
 
 const problems = problemData.filter((p) => p.grade === 'g1').slice(0, 10);
@@ -33,5 +34,14 @@ export default function DevQuizStageScreen() {
     onConfirmExit: () => { setExitModalVisible(false); router.back(); },
   };
 
-  return <DiagnosticQuizStage quizStage={quizStage} />;
+  return (
+    <DiagnosticQuizStage
+      quizStage={quizStage}
+      scratchpad={STUB_INDEXED_SCRATCHPAD_API}
+      isTablet={false}
+      isPortrait={true}
+      showLandscapeHint={false}
+      onDismissLandscapeHint={() => {}}
+    />
+  );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -15,19 +15,19 @@ import {
   SPLIT_LEFT_RATIO_MAX as LEFT_RATIO_MAX,
   SPLIT_LEFT_RATIO_MIN as LEFT_RATIO_MIN,
 } from '@/features/quiz/exam/components/tablet-layout-constants';
-import type { UseScratchpadResult } from '@/features/quiz/exam/hooks/use-scratchpad';
 import {
   loadSplitRatio,
   saveSplitRatio,
 } from '@/features/quiz/exam/storage/scratchpad-split-ratio-store';
+import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 
 type Props = {
   header: ReactNode;
   problemPanel: ReactNode;
-  scratchpad: UseScratchpadResult;
+  scratchpad: IndexedScratchpadApi;
 };
 
-export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Props) {
+export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }: Props) {
   const { width, height } = useWindowDimensions();
   const { profile } = useCurrentLearner();
   const accountKey = profile?.accountKey ?? null;
@@ -61,7 +61,6 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
   const handleDragStart = () => {
     dragOriginRef.current = ratio;
   };
-
   const handleDrag = (deltaX: number) => {
     const nextLeft = Math.max(
       leftMin,
@@ -69,11 +68,29 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
     );
     setRatio(nextLeft / totalForSplit);
   };
-
   const handleDragEnd = () => {
     if (!accountKey) return;
     void saveSplitRatio(accountKey, ratio);
   };
+
+  // Stable wrapper passed to memo'd ScratchpadCanvas. Without this, every
+  // parent re-render creates a new object literal and defeats React.memo.
+  const canvasScratchpad = useMemo(
+    () => ({
+      strokes: scratchpad.strokes,
+      liveStroke: scratchpad.liveStroke,
+      beginStroke: scratchpad.beginStroke,
+      appendPoint: scratchpad.appendPoint,
+      endStroke: scratchpad.endStroke,
+    }),
+    [
+      scratchpad.strokes,
+      scratchpad.liveStroke,
+      scratchpad.beginStroke,
+      scratchpad.appendPoint,
+      scratchpad.endStroke,
+    ],
+  );
 
   const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
 
@@ -115,7 +132,7 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
           <ScratchpadCanvas
             width={canvasWidth}
             height={bodyHeight}
-            scratchpad={scratchpad}
+            scratchpad={canvasScratchpad}
             pencilOnly={pencilOnly}
           />
         </View>
