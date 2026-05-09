@@ -21,6 +21,32 @@
 
 ## 로그
 
+### 2026.05.09
+
+**iPad/Android tablet landscape-only 구현 완료**
+
+- 정책: iPad + Android tablet은 landscape 고정. iPhone + Android phone은 portrait 유지.
+- iOS는 `app.config.js`의 `infoPlist`에 `UISupportedInterfaceOrientations~ipad`를 landscape Left/Right만으로 선언 (정적 lock, portrait flash 없음).
+- Android는 `app/_layout.tsx`에서 `Dimensions.get('screen')` 짧은 변 ≥ 600 기준으로 런타임 lock.
+- 회전 관련 훅·배너·스토어 일괄 제거:
+  - `use-exam-screen-orientation` (훅 + 테스트)
+  - `landscape-hint-banner` (컴포넌트 + 테스트)
+  - `landscape-hint-store` (스토어 + 테스트)
+  - `StorageKeys.landscapeHintSeen`
+  - `unlockAllOrientations`
+- `useTabletLayout`이 `isTablet`과 동치가 되어 호출처에서 직접 사용.
+- Spec: `docs/superpowers/specs/2026-05-09-ipad-landscape-only-design.md`
+- Plan: `docs/superpowers/plans/2026-05-09-ipad-landscape-only.md`
+- Commits: `89477df` → `1cc8fe0`
+
+### 후속 작업 필요 (반드시 다시 알릴 것)
+
+1. **허브 홈 / 여정보드 가로 기준 재설계 spec 작성**
+2. **포스터 배너 / CTA 위치 디테일 재튜닝 spec 작성**
+3. **히스토리 / 프로필 가로 전용 레이아웃 spec 작성**
+
+---
+
 ### 2026.05.06
 
 **iPad 세로 고정 + 학습 여정 사이즈 튜닝 구현 완료**

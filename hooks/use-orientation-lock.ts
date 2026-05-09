@@ -1,10 +1,9 @@
 import * as ScreenOrientation from 'expo-screen-orientation';
 
-// Serialize all orientation mutations through a single FIFO chain. Without this,
-// rapid focus/blur sequences (cleanup's lockToPortrait + next focus's
-// unlockAllOrientations) could resolve out of order and leave the device in the
-// wrong lock state — e.g. portrait-locked when a tablet screen wanted unlocked.
-// FIFO ordering guarantees the *most recently invoked* intent is the final state.
+// Serialize all orientation mutations through a single FIFO chain so multiple
+// invocations resolve in invocation order. Although tablets/phones now lock
+// once at app start, the chain is kept as a defensive utility — its overhead
+// is negligible and it preserves correctness if call sites multiply later.
 let inFlight: Promise<void> = Promise.resolve();
 
 function enqueue(work: () => Promise<void>): Promise<void> {
@@ -24,12 +23,12 @@ export function lockToPortrait(): Promise<void> {
   });
 }
 
-export function unlockAllOrientations(): Promise<void> {
+export function lockToLandscape(): Promise<void> {
   return enqueue(async () => {
     try {
-      await ScreenOrientation.unlockAsync();
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     } catch (error) {
-      console.warn('[orientation-lock] unlockAllOrientations failed', error);
+      console.warn('[orientation-lock] lockToLandscape failed', error);
     }
   });
 }
