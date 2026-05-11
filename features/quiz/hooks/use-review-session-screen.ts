@@ -70,14 +70,19 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const firstAttemptCorrectRef = useRef<(boolean | null)[]>([]);
   const firstAttemptChoiceIndexRef = useRef<(number | null)[]>([]);
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
-  const wrongAttemptsPerStepRef = useRef<number[]>([]);
 
   const reviewEntries = useReviewEntries(currentStepIndex);
+  const { resetForStep: resetEntriesForStep } = reviewEntries;
+  const prevStepIndexRef = useRef(currentStepIndex);
 
+  // 다음 step으로 넘어갈 때 entries를 새 step의 seed로 리셋한다.
+  // 초기 mount(prev === current)에서는 useReviewEntries가 이미 시드한 상태이므로 건너뛴다.
   useEffect(() => {
-    reviewEntries.resetForStep(currentStepIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepIndex]);
+    if (prevStepIndexRef.current !== currentStepIndex) {
+      resetEntriesForStep(currentStepIndex);
+      prevStepIndexRef.current = currentStepIndex;
+    }
+  }, [currentStepIndex, resetEntriesForStep]);
 
   // task 로드
   useEffect(() => {
@@ -104,7 +109,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptCorrectRef.current = new Array(mockStepCount).fill(null);
       firstAttemptChoiceIndexRef.current = new Array(mockStepCount).fill(null);
       aiHelpUsedPerStepRef.current = new Array(mockStepCount).fill(false);
-      wrongAttemptsPerStepRef.current = new Array(mockStepCount).fill(0);
       sessionStartedAtRef.current = new Date().toISOString();
       return;
     }
@@ -120,7 +124,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         firstAttemptCorrectRef.current = new Array(foundStepCount).fill(null);
         firstAttemptChoiceIndexRef.current = new Array(foundStepCount).fill(null);
         aiHelpUsedPerStepRef.current = new Array(foundStepCount).fill(false);
-        wrongAttemptsPerStepRef.current = new Array(foundStepCount).fill(0);
         sessionStartedAtRef.current = new Date().toISOString();
       }
     });
@@ -201,6 +204,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       createAiTypingEntry(),
     ]);
 
+    // 새 대화 시작: 자유 입력 1턴은 항상 새 history로 시작한다.
+    // (실패 후 재시도 시에도 이 함수가 다시 호출되므로 이전 메시지를 덮어쓰는 것이 의도된 동작.)
     chatHistoryRef.current = [{ role: 'user', content: text }];
 
     try {
@@ -213,9 +218,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       setFallbackTurnsUsed(1);
+      aiHelpUsedPerStepRef.current[currentStepIndex] = true;
       reviewEntries.appendEntries([createFallbackInputEntry(2)]);
     } catch {
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 잠시 후 다시 시도해주세요.');
+      // 실패 시 사용자가 재시도할 수 있도록 입력 복구 + input-area 다시 활성화.
+      setFreeText(text);
+      reviewEntries.unlockLatestInput();
     }
   };
 
@@ -244,12 +253,19 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       setFallbackTurnsUsed(2);
+      aiHelpUsedPerStepRef.current[currentStepIndex] = true;
       const isLast = currentStepIndex === steps.length - 1;
       reviewEntries.appendEntries([
         createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
       ]);
     } catch {
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 다시 시도해 주세요.');
+      // 실패 시 사용자가 재시도할 수 있도록 fallback-input 다시 활성화.
+      // (chatHistoryRef는 이미 user 메시지를 push했으므로, 다음 호출 시 같은 메시지가
+      // 두 번 들어가지 않도록 마지막 user 항목을 제거한다.)
+      chatHistoryRef.current.pop();
+      setFallbackText(text);
+      reviewEntries.unlockLatestInput();
     }
   };
 
@@ -282,6 +298,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     reviewEntries.lockRemedialNodes();
     reviewEntries.appendEntries([createFallbackInputEntry(1)]);
     setFallbackTurnsUsed(0);
+    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
   };
 
   const onRemedialCheckOption = (nodeId: string, optionId: string) => {
@@ -301,6 +318,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     reviewEntries.lockRemedialNodes();
     reviewEntries.appendEntries([createFallbackInputEntry(1)]);
     setFallbackTurnsUsed(0);
+    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
   };
 
   const onPressRemember = async () => {

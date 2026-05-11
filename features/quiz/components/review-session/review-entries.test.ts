@@ -2,14 +2,9 @@ import {
   createStepCardEntry,
   createInputAreaEntry,
   createChoiceBubbleEntry,
-  createFeedbackBannerEntry,
-  createUserBubbleEntry,
-  createAiBubbleEntry,
   createAiTypingEntry,
   createFallbackInputEntry,
   createRemedialNodeEntry,
-  createDoneCtaEntry,
-  lockAllEntries,
 } from './review-entries';
 import type { ExplainNode } from '@/data/review-remedial-flows';
 
@@ -65,15 +60,4 @@ describe('review-entries factories', () => {
     });
   });
 
-  it('lockAllEntries sets interactive=false on every entry that supports it', () => {
-    const input = [
-      createInputAreaEntry(0),
-      createAiBubbleEntry('hi'),
-      createFallbackInputEntry(1),
-    ];
-    const out = lockAllEntries(input);
-    expect(out[0]).toMatchObject({ interactive: false });
-    expect(out[1]).toEqual({ kind: 'ai-bubble', text: 'hi' });
-    expect(out[2]).toMatchObject({ interactive: false });
-  });
 });

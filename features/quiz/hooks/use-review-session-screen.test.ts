@@ -167,4 +167,74 @@ describe('entries-based flow', () => {
 
     spy.mockRestore();
   });
+
+  it('onPressContinue 후 다음 step의 entries로 리셋된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const correctIdx = result.current.steps[0].choices.findIndex((c) => c.correct);
+
+    await act(async () => { result.current.onSelectChoice(correctIdx); });
+    await act(async () => { result.current.onPressContinue(); });
+
+    expect(result.current.currentStepIndex).toBe(1);
+    expect(result.current.entries).toHaveLength(2);
+    expect(result.current.entries[0]).toMatchObject({ kind: 'step-card', stepIndex: 1 });
+    expect(result.current.entries[1]).toMatchObject({ kind: 'input-area', stepIndex: 1, interactive: true });
+  });
+
+  it('마지막 step 정답 시 done-cta 라벨이 "이해했어요, 완료"', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    // 마지막 step까지 정답으로 진행
+    for (let i = 0; i < totalSteps - 1; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex((c) => c.correct);
+      await act(async () => { result.current.onSelectChoice(correctIdx); });
+      await act(async () => { result.current.onPressContinue(); });
+    }
+
+    const lastCorrectIdx = result.current.steps[totalSteps - 1].choices.findIndex((c) => c.correct);
+    await act(async () => { result.current.onSelectChoice(lastCorrectIdx); });
+
+    const doneCta = result.current.entries.find((e) => e.kind === 'done-cta');
+    expect(doneCta).toMatchObject({ label: '이해했어요, 완료' });
+  });
+
+  it('onRemedialExplainSecondary("모르겠어요") → fallback-input(turn=1) + 이전 remedial-node 잠금', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    const fb = result.current.entries.find((e) => e.kind === 'fallback-input');
+    expect(fb).toMatchObject({ turn: 1, interactive: true });
+    const remedialNodes = result.current.entries.filter((e) => e.kind === 'remedial-node');
+    expect(remedialNodes.every((n: any) => n.interactive === false)).toBe(true);
+  });
+
+  it('자유 입력 호출 실패 시 input-area 복구 + freeText 복원', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockRejectedValue(new Error('network'));
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('재시도용 입력'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+
+    expect(result.current.freeText).toBe('재시도용 입력');
+    const inputArea = result.current.entries.find((e) => e.kind === 'input-area');
+    expect(inputArea).toMatchObject({ interactive: true });
+
+    spy.mockRestore();
+  });
 });

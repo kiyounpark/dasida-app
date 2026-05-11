@@ -59,13 +59,3 @@ export function createDoneCtaEntry(label: string): Extract<ReviewEntry, { kind: 
   return { kind: 'done-cta', label };
 }
 
-type Lockable = Extract<ReviewEntry, { interactive: boolean }>;
-
-export function lockAllEntries(entries: readonly ReviewEntry[]): ReviewEntry[] {
-  return entries.map((e) => {
-    if ('interactive' in e) {
-      return { ...e, interactive: false } as Lockable;
-    }
-    return e;
-  });
-}

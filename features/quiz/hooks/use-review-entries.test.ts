@@ -52,4 +52,25 @@ describe('useReviewEntries', () => {
     const last = result.current.entries[result.current.entries.length - 1];
     expect(last).toEqual({ kind: 'ai-bubble', text: '응답' });
   });
+
+  it('unlockLatestInput — 가장 최근 input-area를 interactive=true로 복원', () => {
+    const { result } = renderHook(() => useReviewEntries(0));
+    act(() => result.current.lockInputArea());
+    act(() => result.current.unlockLatestInput());
+    const inputArea = result.current.entries.find((e) => e.kind === 'input-area');
+    expect(inputArea).toMatchObject({ interactive: true });
+  });
+
+  it('unlockLatestInput — fallback-input이 있으면 그것을 우선 복원', () => {
+    const { result } = renderHook(() => useReviewEntries(0));
+    act(() => result.current.appendEntries([
+      { kind: 'fallback-input', turn: 2, interactive: true },
+    ]));
+    act(() => result.current.lockInputArea());
+    act(() => result.current.unlockLatestInput());
+    const inputArea = result.current.entries.find((e) => e.kind === 'input-area');
+    const fb = result.current.entries.find((e) => e.kind === 'fallback-input');
+    expect(inputArea).toMatchObject({ interactive: false });
+    expect(fb).toMatchObject({ interactive: true });
+  });
 });
