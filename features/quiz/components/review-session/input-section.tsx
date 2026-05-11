@@ -17,7 +17,6 @@ interface InputSectionProps {
   continueLabel: string;
   onSelectChoice: (index: number) => void;
   onPressNext: () => void;
-  onPressContinue: () => void;
 }
 
 export function InputSection({
@@ -30,7 +29,6 @@ export function InputSection({
   continueLabel,
   onSelectChoice,
   onPressNext,
-  onPressContinue,
 }: InputSectionProps) {
   const renderChoices = () => (
     <View>
@@ -127,7 +125,7 @@ export function InputSection({
           styles.primaryBtn,
           (!hasInput || isLoadingFeedback) && styles.primaryBtnDisabled,
         ]}
-        onPress={hasFeedback ? onPressContinue : onPressNext}
+        onPress={onPressNext}
         disabled={!hasInput || isLoadingFeedback}
         accessibilityRole="button"
         accessibilityLabel={continueLabel}
