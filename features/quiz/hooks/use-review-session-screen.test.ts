@@ -131,3 +131,43 @@ describe('useReviewSessionScreen — 보완 흐름 핵심 invariant', () => {
     expect(result.current.remedialFlowState?.currentNodeId).toBe('fu_step1_A_easy');
   });
 });
+
+describe('entries-based flow', () => {
+  it('초기 entries에 step-card와 input-area가 있다', () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    expect(result.current.entries[0]).toMatchObject({ kind: 'step-card' });
+    expect(result.current.entries[1]).toMatchObject({ kind: 'input-area', interactive: true });
+  });
+
+  it('정답 선택 시 choice-bubble + feedback-banner + done-cta 추가', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const correctIdx = result.current.steps[0].choices.findIndex((c) => c.correct);
+
+    await act(async () => {
+      result.current.onSelectChoice(correctIdx);
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('choice-bubble');
+    expect(kinds).toContain('feedback-banner');
+    expect(kinds).toContain('done-cta');
+    const inputArea = result.current.entries.find((e) => e.kind === 'input-area');
+    expect(inputArea).toMatchObject({ interactive: false });
+  });
+
+  it('오답 선택 시 choice-bubble + feedback-banner + 첫 remedial-node 추가', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+
+    await act(async () => {
+      result.current.onSelectChoice(wrongIdx);
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('choice-bubble');
+    expect(kinds).toContain('feedback-banner');
+    expect(kinds).toContain('remedial-node');
+  });
+});

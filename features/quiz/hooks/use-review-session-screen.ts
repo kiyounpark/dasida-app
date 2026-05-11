@@ -14,6 +14,14 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   getRemedialNode,
 } from '@/data/review-remedial-flows';
+import { useReviewEntries } from './use-review-entries';
+import {
+  createChoiceBubbleEntry,
+  createFeedbackBannerEntry,
+  createDoneCtaEntry,
+  createRemedialNodeEntry,
+  type ReviewEntry,
+} from '@/features/quiz/components/review-session/review-entries';
 
 // ExitNode 도달 후 다음 ThinkingStep으로 자동 전환하기까지 짧게 보여주는 전환 카드의 지속 시간(ms).
 // spec §13 (미해결 항목) — UX 시연 후 확정 예정.
@@ -73,6 +81,7 @@ export type UseReviewSessionScreenResult = {
   onChangeRemedialAiHelpInput: (text: string) => void;
   onSendRemedialAiHelp: () => void;
   onPressRemedialAiHelpAction: (action: 'continue' | 'fallback') => void;
+  entries: ReviewEntry[];
 };
 
 const store = new LocalReviewTaskStore();
@@ -110,6 +119,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
   const wrongAttemptsPerStepRef = useRef<number[]>([]);
   const remedialTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const reviewEntries = useReviewEntries(currentStepIndex);
+
+  useEffect(() => {
+    reviewEntries.resetForStep(currentStepIndex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex]);
 
   useEffect(() => {
     return () => {
@@ -190,6 +206,29 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       const isCorrect = choice?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
       firstAttemptChoiceIndexRef.current[currentStepIndex] = index;
+    }
+
+    // entries-based flow (new)
+    if (!choice || !task) return;
+    reviewEntries.lockInputArea();
+    reviewEntries.appendEntries([
+      createChoiceBubbleEntry(index, choice.text, choice.correct),
+      createFeedbackBannerEntry(choice.correct, choice.feedback ?? ''),
+    ]);
+
+    if (choice.correct) {
+      const isLast = currentStepIndex === steps.length - 1;
+      reviewEntries.appendEntries([
+        createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+      ]);
+    } else {
+      const startNodeId = choice.remedialFlowStartNodeId;
+      if (startNodeId) {
+        const firstNode = getRemedialNode(task.weaknessId, startNodeId);
+        if (firstNode && firstNode.kind !== 'exit') {
+          reviewEntries.appendEntries([createRemedialNodeEntry(firstNode)]);
+        }
+      }
     }
   };
 
@@ -571,5 +610,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onChangeRemedialAiHelpInput,
     onSendRemedialAiHelp,
     onPressRemedialAiHelpAction,
+    entries: reviewEntries.entries,
   };
 }
