@@ -36,7 +36,11 @@ export type RemedialFlow = {
   nodes: Record<string, RemedialNode>;
 };
 
-export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {};
+import { formula_understanding_flow } from './remedial-flows/formula_understanding';
+
+export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
+  formula_understanding: formula_understanding_flow,
+};
 
 export function getRemedialNode(
   weaknessId: WeaknessId,
