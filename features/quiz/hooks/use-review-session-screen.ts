@@ -14,6 +14,10 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   getRemedialNode,
 } from '@/data/review-remedial-flows';
+
+// ExitNode 도달 후 다음 ThinkingStep으로 자동 전환하기까지 짧게 보여주는 전환 카드의 지속 시간(ms).
+// spec §13 (미해결 항목) — UX 시연 후 확정 예정.
+const REMEDIAL_TRANSITION_DELAY_MS = 600;
 import {
   createAiBubbleEntry,
   createAiHelpActionsEntry,
@@ -105,6 +109,16 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const firstAttemptChoiceIndexRef = useRef<(number | null)[]>([]);
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
   const wrongAttemptsPerStepRef = useRef<number[]>([]);
+  const remedialTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (remedialTransitionTimeoutRef.current) {
+        clearTimeout(remedialTransitionTimeoutRef.current);
+        remedialTransitionTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // task 로드
   useEffect(() => {
@@ -170,6 +184,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     setSelectedChoiceIndex(index);
     const choice = steps[currentStepIndex]?.choices[index];
     setSelectedChoiceFeedback(choice?.feedback ?? null);
+    // 첫 시도 결과는 'input' phase에서만 기록한다. 보완 흐름 진행은 이 값에 영향을 주지 않는다.
+    // 두 ref는 동시에 채워야 통계 매핑(`onPressRemember`의 questions)이 정합성을 유지한다.
     if (stepPhase === 'input' && firstAttemptCorrectRef.current[currentStepIndex] === null) {
       const isCorrect = choice?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
@@ -189,13 +205,20 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task || steps.length === 0) {
       return;
     }
+    // ExitNode 전환 setTimeout이 진행 중이면 중복 진행을 막기 위해 cancel.
+    if (remedialTransitionTimeoutRef.current) {
+      clearTimeout(remedialTransitionTimeoutRef.current);
+      remedialTransitionTimeoutRef.current = null;
+    }
     const nextIndex = currentStepIndex + 1;
+    // spec invariant: ExitNode 도달 또는 다음 ThinkingStep 이동 시 보완 상태 전체 리셋.
+    // 마지막 step 완료(세션 종료) 시점에도 동일하게 리셋한다.
+    setRemedialFlowState(null);
     if (nextIndex >= steps.length) {
       setSessionComplete(true);
     } else {
       setCurrentStepIndex(nextIndex);
       resetStepState();
-      setRemedialFlowState(null);
     }
   };
 
@@ -219,7 +242,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       return;
     }
 
-    const startNode = getRemedialNode(task.weaknessId as WeaknessId, choice.remedialFlowStartNodeId);
+    const startNode = getRemedialNode(task.weaknessId, choice.remedialFlowStartNodeId);
     if (!startNode) {
       console.warn(`Remedial node not found: ${choice.remedialFlowStartNodeId}`);
       onPressContinue();
@@ -228,9 +251,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     setStepPhase('remedial');
     setRemedialFlowState({
-      weaknessId: task.weaknessId as WeaknessId,
+      weaknessId: task.weaknessId,
       currentNodeId: startNode.id,
-      entries: [createNodeEntry(startNode.kind, startNode)],
+      entries: [createNodeEntry(startNode)],
       aiHelpUsed: false,
       aiHelpState: null,
     });
@@ -292,7 +315,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const advanceToRemedialNode = (nodeId: string) => {
     if (!task) return;
-    const node = getRemedialNode(task.weaknessId as WeaknessId, nodeId);
+    const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node) {
       console.warn(`Remedial node not found: ${nodeId}`);
       onPressContinue();
@@ -300,29 +323,32 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
     if (node.kind === 'exit') {
       appendRemedialEntries(createTransitionEntry('이해 잘 되셨네요. 다음으로 가요.'));
-      setTimeout(() => onPressContinue(), 600);
+      if (remedialTransitionTimeoutRef.current) {
+        clearTimeout(remedialTransitionTimeoutRef.current);
+      }
+      remedialTransitionTimeoutRef.current = setTimeout(() => {
+        remedialTransitionTimeoutRef.current = null;
+        onPressContinue();
+      }, REMEDIAL_TRANSITION_DELAY_MS);
       return;
     }
-    appendRemedialEntries(createNodeEntry(node.kind, node));
+    appendRemedialEntries(createNodeEntry(node));
     setRemedialFlowState((prev) => (prev ? { ...prev, currentNodeId: node.id } : prev));
   };
 
   const onPressRemedialPrimary = (nodeId: string) => {
     if (!task) return;
-    const node = getRemedialNode(task.weaknessId as WeaknessId, nodeId);
+    const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
     advanceToRemedialNode(node.primaryNextNodeId);
   };
 
   const onPressRemedialSecondary = (nodeId: string) => {
     if (!task || !remedialFlowState) return;
-    const node = getRemedialNode(task.weaknessId as WeaknessId, nodeId);
-    if (!node) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind === 'exit') return;
 
-    const fallbackId = node.kind === 'explain' ? node.secondaryNextNodeId
-                      : node.kind === 'check' ? node.dontKnowNextNodeId
-                      : null;
-    if (!fallbackId) return;
+    const fallbackId = node.kind === 'explain' ? node.secondaryNextNodeId : node.dontKnowNextNodeId;
 
     if (remedialFlowState.aiHelpUsed) {
       appendRemedialEntries(createUserBubbleEntry('모르겠어요'));
@@ -330,21 +356,21 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       return;
     }
 
+    // aiHelpUsed=true는 AI 응답이 실제로 성공한 시점에 set (`onSendRemedialAiHelp` try 블록).
+    // spec §6.3 "실패 시 aiHelpUsed=false 유지 → 학습자가 재시도 가능".
     appendRemedialEntries(
       createUserBubbleEntry('모르겠어요'),
-      createAiHelpInputEntry(node.id, node.kind === 'explain' ? 'explain' : 'check'),
+      createAiHelpInputEntry(node.id, node.kind),
     );
     setRemedialFlowState((prev) => prev ? {
       ...prev,
-      aiHelpUsed: true,
       aiHelpState: { nodeId: node.id, input: '', isLoading: false, error: '' },
     } : prev);
-    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
   };
 
   const onPressRemedialChoice = (nodeId: string, optionId: string) => {
     if (!task) return;
-    const node = getRemedialNode(task.weaknessId as WeaknessId, nodeId);
+    const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
     const option = node.options.find((o) => o.id === optionId);
     if (!option) return;
@@ -400,9 +426,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       appendRemedialEntries(
         createUserBubbleEntry(input),
         createAiBubbleEntry(result.replyText),
-        createAiHelpActionsEntry(node.kind === 'explain' ? 'explain' : 'check'),
+        createAiHelpActionsEntry(node.kind),
       );
-      setRemedialFlowState((prev) => prev ? { ...prev, aiHelpState: null } : prev);
+      // AI 응답이 실제로 성공한 시점에 aiHelpUsed 가드와 분석 ref를 동시에 마킹.
+      setRemedialFlowState((prev) => prev ? { ...prev, aiHelpUsed: true, aiHelpState: null } : prev);
+      aiHelpUsedPerStepRef.current[currentStepIndex] = true;
     } catch {
       setRemedialFlowState((prev) => prev && prev.aiHelpState ? {
         ...prev,
@@ -417,20 +445,21 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onPressRemedialAiHelpAction = (action: 'continue' | 'fallback') => {
     if (!task || !remedialFlowState) return;
-    const node = getRemedialNode(task.weaknessId as WeaknessId, remedialFlowState.currentNodeId);
+    const node = getRemedialNode(task.weaknessId, remedialFlowState.currentNodeId);
     if (!node) return;
+
+    if (node.kind === 'exit') return;
 
     if (action === 'continue') {
       if (node.kind === 'explain') {
         advanceToRemedialNode(node.primaryNextNodeId);
-      } else if (node.kind === 'check') {
-        appendRemedialEntries(createNodeEntry('check', node));
+      } else {
+        // CheckNode 재활성화 — 같은 노드를 다시 entry로 추가
+        appendRemedialEntries(createNodeEntry(node));
       }
-    } else if (action === 'fallback') {
-      const fallbackId = node.kind === 'explain' ? node.secondaryNextNodeId
-                        : node.kind === 'check' ? node.dontKnowNextNodeId
-                        : null;
-      if (fallbackId) advanceToRemedialNode(fallbackId);
+    } else {
+      const fallbackId = node.kind === 'explain' ? node.secondaryNextNodeId : node.dontKnowNextNodeId;
+      advanceToRemedialNode(fallbackId);
     }
   };
 

@@ -10,13 +10,13 @@ import {
 
 describe('remedial-entries 헬퍼', () => {
   it('createNodeEntry는 interactive=true로 시작한다', () => {
-    const e = createNodeEntry('explain', { id: 'a', kind: 'explain' } as any);
+    const e = createNodeEntry({ id: 'a', kind: 'explain' } as any);
     expect(e.kind).toBe('node');
     expect(e.interactive).toBe(true);
   });
 
   it('lockAllEntries는 모든 entry의 interactive를 false로 만든다', () => {
-    const entries = [createNodeEntry('explain', { id: 'a' } as any)];
+    const entries = [createNodeEntry({ id: 'a' } as any)];
     const locked = lockAllEntries(entries);
     expect(locked[0].interactive).toBe(false);
   });

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { Paper } from './paper-tokens';
 import { RemedialExplainCard } from './remedial-explain-card';
 import { RemedialCheckCard } from './remedial-check-card';
@@ -22,6 +22,8 @@ type Props = {
   onPressAiHelpAction: (action: 'continue' | 'fallback') => void;
 };
 
+// 부모 ScrollView 안에 렌더되므로 본 컴포넌트는 ScrollView를 가지지 않는다.
+// 자동 스크롤은 부모의 onContentSizeChange + autoScrollFlagRef에 위임.
 export function RemedialFlow(props: Props) {
   const {
     entries,
@@ -37,19 +39,8 @@ export function RemedialFlow(props: Props) {
     onPressAiHelpAction,
   } = props;
 
-  const scrollRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60);
-    return () => clearTimeout(t);
-  }, [entries.length]);
-
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled">
+    <View style={styles.container}>
       {entries.map((entry, index) => {
         switch (entry.kind) {
           case 'node':
@@ -115,13 +106,12 @@ export function RemedialFlow(props: Props) {
             return null;
         }
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Paper.paper },
-  content: { padding: 16, paddingBottom: 32 },
+  container: { gap: 0 },
   bubble: { maxWidth: '85%', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, marginVertical: 4 },
   userBubble: { alignSelf: 'flex-end', backgroundColor: Paper.rustSoft, borderTopRightRadius: 4 },
   userBubbleText: { fontSize: 13, color: Paper.rustDeep, lineHeight: 19 },

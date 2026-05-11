@@ -203,6 +203,7 @@ export function ReviewSessionScreenView({
         onPressAiHelpAction={onPressRemedialAiHelpAction}
       />
     ) : (
+      // @deprecated 보완 흐름 도입 후 도달 불가 경로. cleanup PR에서 제거 예정.
       <ChatSection
         chatMessages={chatMessages}
         chatText={chatText}

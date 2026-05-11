@@ -8,10 +8,7 @@ export type RemedialEntry =
   | { kind: 'ai-help-actions'; interactive: boolean; sourceNodeKind: 'explain' | 'check'; actions: ['continue', 'fallback'] }
   | { kind: 'transition'; interactive: false; text: string };
 
-export function createNodeEntry(
-  _nodeKind: RemedialNode['kind'],
-  payload: RemedialNode,
-): Extract<RemedialEntry, { kind: 'node' }> {
+export function createNodeEntry(payload: RemedialNode): Extract<RemedialEntry, { kind: 'node' }> {
   return { kind: 'node', interactive: true, payload };
 }
 

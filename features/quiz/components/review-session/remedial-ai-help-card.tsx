@@ -31,8 +31,6 @@ export function RemedialAiHelpCard({
         placeholder="궁금한 점을 짧게 적어주세요"
         placeholderTextColor={Paper.inkFaint}
         multiline
-        returnKeyType="send"
-        onSubmitEditing={onSubmit}
       />
       {error.length > 0 ? <Text style={styles.error}>{error}</Text> : null}
       <Pressable
