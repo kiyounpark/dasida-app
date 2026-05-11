@@ -212,4 +212,44 @@ describe('entries-based flow', () => {
 
     spy.mockRestore();
   });
+
+  it('1턴 응답 후 fallback-input(turn=2) 자동 추가', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: '1차 응답' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('첫 입력'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+
+    const fb = result.current.entries.find((e) => e.kind === 'fallback-input');
+    expect(fb).toMatchObject({ turn: 2, interactive: true });
+
+    spy.mockRestore();
+  });
+
+  it('2턴 응답 후 done-cta 추가, fallback-input 잠금', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValueOnce({ replyText: '1차' })
+      .mockResolvedValueOnce({ replyText: '2차 마무리' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('첫 입력'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+
+    act(() => result.current.onChangeFallbackText('두 번째 입력'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+
+    const fb = result.current.entries.find((e) => e.kind === 'fallback-input');
+    expect(fb).toMatchObject({ interactive: false });
+    const lastEntry = result.current.entries[result.current.entries.length - 1];
+    expect(lastEntry.kind).toBe('done-cta');
+
+    spy.mockRestore();
+  });
 });

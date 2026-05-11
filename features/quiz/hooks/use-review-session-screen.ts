@@ -89,6 +89,8 @@ export type UseReviewSessionScreenResult = {
   fallbackText: string;
   onChangeFreeText: (text: string) => void;
   onSubmitFreeText: () => Promise<void>;
+  onChangeFallbackText: (text: string) => void;
+  onSubmitFallback: () => Promise<void>;
 };
 
 const store = new LocalReviewTaskStore();
@@ -379,9 +381,43 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       setFallbackTurnsUsed(1);
-      // 2턴째 fallback-input 추가는 Task 8에서
+      reviewEntries.appendEntries([createFallbackInputEntry(2)]);
     } catch {
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const onChangeFallbackText = (text: string) => setFallbackText(text);
+
+  const onSubmitFallback = async () => {
+    const text = fallbackText.trim();
+    if (!text || !task) return;
+
+    setFallbackText('');
+    reviewEntries.lockInputArea();
+    reviewEntries.appendEntries([
+      createReviewUserBubbleEntry(text),
+      createAiTypingEntry(),
+    ]);
+
+    chatHistoryRef.current.push({ role: 'user', content: text });
+
+    try {
+      const result = await requestReviewFeedback({
+        weaknessId: task.weaknessId,
+        stepTitle: steps[currentStepIndex].title,
+        stepBody: steps[currentStepIndex].body,
+        messages: chatHistoryRef.current,
+      });
+      chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
+      reviewEntries.replaceTypingWithBubble(result.replyText);
+      setFallbackTurnsUsed(2);
+      const isLast = currentStepIndex === steps.length - 1;
+      reviewEntries.appendEntries([
+        createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+      ]);
+    } catch {
+      reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 다시 시도해 주세요.');
     }
   };
 
@@ -658,5 +694,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     fallbackText,
     onChangeFreeText,
     onSubmitFreeText,
+    onChangeFallbackText,
+    onSubmitFallback,
   };
 }
