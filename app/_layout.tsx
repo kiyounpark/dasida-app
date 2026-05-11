@@ -16,6 +16,8 @@ import { Dimensions, Platform } from 'react-native';
 import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { logEvent } from '@/features/analytics/log-event';
+import type { NotificationType } from '@/features/analytics/event-types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -81,7 +83,16 @@ function SplashGate() {
   useEffect(() => {
     const lastResponse = Notifications.getLastNotificationResponse();
     if (lastResponse) {
-      const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
+      const data = lastResponse.notification.request.content.data ?? {};
+      const taskId = data.taskId as string | undefined;
+      const notificationType = (data.notificationType as NotificationType | undefined) ?? 'unknown';
+      const scheduledAt = data.scheduledAt as string | undefined;
+      logEvent('notification_opened', {
+        notification_type: notificationType,
+        task_id: taskId,
+        scheduled_at: scheduledAt,
+        opened_at: new Date().toISOString(),
+      });
       if (taskId) {
         pendingTaskIdRef.current = taskId;
       }
@@ -89,7 +100,16 @@ function SplashGate() {
 
     // 포그라운드/백그라운드 알림 탭
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const taskId = response.notification.request.content.data?.taskId as string | undefined;
+      const data = response.notification.request.content.data ?? {};
+      const taskId = data.taskId as string | undefined;
+      const notificationType = (data.notificationType as NotificationType | undefined) ?? 'unknown';
+      const scheduledAt = data.scheduledAt as string | undefined;
+      logEvent('notification_opened', {
+        notification_type: notificationType,
+        task_id: taskId,
+        scheduled_at: scheduledAt,
+        opened_at: new Date().toISOString(),
+      });
       if (taskId) {
         router.push({ pathname: '/quiz/review-session', params: { taskId } });
       }
