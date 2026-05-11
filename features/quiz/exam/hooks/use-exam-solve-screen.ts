@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, useWindowDimensions } from 'react-native';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
+import { logEvent } from '@/features/analytics/log-event';
+import type { ExamSource } from '@/features/analytics/event-types';
 
 import { getExamProblems } from '@/features/quiz/data/exam-problems';
 
@@ -34,12 +36,15 @@ export type UseExamSolveScreenResult = {
   onExit: () => void;
 };
 
-export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
+export function useExamSolveScreen(examId: string, source: ExamSource = 'other'): UseExamSolveScreenResult {
   const { state, initExam, setAnswer, goToNext, goToPrev, submitExam } = useExamSession();
   const { width, height } = useWindowDimensions();
   const isCompactLayout = width < 390 || height < 780;
   const isTablet = useIsTablet();
   const initialized = useRef(false);
+  const startedFiredRef = useRef(false);
+  const completedFiredRef = useRef(false);
+  const startTimeRef = useRef<number>(Date.now());
 
   // 단답형 입력 로컬 상태 (문자열)
   const [shortAnswerText, setShortAnswerText] = useState('');
@@ -53,7 +58,17 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     initExam(examId, problems);
     setBookmarkedIndices([]);
     initialized.current = true;
+    startedFiredRef.current = false;
+    completedFiredRef.current = false;
+    startTimeRef.current = Date.now();
   }, [examId, initExam, state.examId]);
+
+  // mock_exam_started: exam이 실제로 시작된 첫 시점에 1회 발화
+  useEffect(() => {
+    if (!state.hasStarted || !state.examId || startedFiredRef.current) return;
+    startedFiredRef.current = true;
+    logEvent('mock_exam_started', { exam_id: state.examId, source });
+  }, [state.hasStarted, state.examId, source]);
 
   // 문제가 바뀌면 단답형 텍스트 동기화
   useEffect(() => {
@@ -71,6 +86,16 @@ export function useExamSolveScreen(examId: string): UseExamSolveScreenResult {
     // ExamSessionProvider가 루트로 호이스트된 이후 hydrateResult()가 호출되면
     // isFinished=true, result={...}가 되지만 problems=[]이므로 이 effect가 발화하지 않는다.
     if (state.isFinished && state.result && state.problems.length > 0) {
+      if (!completedFiredRef.current) {
+        completedFiredRef.current = true;
+        const durationSec = Math.round((Date.now() - startTimeRef.current) / 1000);
+        logEvent('mock_exam_completed', {
+          exam_id: state.result.examId,
+          duration_sec: durationSec,
+          correct_count: state.result.correct,
+          total_count: state.result.total,
+        });
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.replace('/quiz/exam/result' as any);
     }
