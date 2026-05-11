@@ -13,6 +13,14 @@ export type ReviewFeedbackInput = {
   selectedChoiceText?: string;
   selectedChoiceCorrect?: boolean;
   messages: ChatMessage[];
+  remedialContext?: {
+    nodeId: string;
+    nodeKind: 'explain' | 'check';
+    nodeTitle: string;
+    nodeBody?: string;
+    nodePrompt?: string;
+    nodeOptions?: ReadonlyArray<string>;
+  };
 };
 
 export type ReviewFeedbackResult = {
