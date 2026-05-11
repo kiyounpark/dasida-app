@@ -4,6 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors } from '@/constants/brand';
 
+// poster-title-banner.tsx heroFrameWrapRaisedTablet translateY(-40) 보정
+const TABLET_BANNER_RAISE = 40;
+
 export function JourneyHubSplitLayout({
   authNotice,
   leftBoard,
@@ -67,6 +70,7 @@ const styles = StyleSheet.create({
   posterWrap: {
     width: '100%',
     alignItems: 'center',
+    marginTop: TABLET_BANNER_RAISE,
   },
   authNoticeWrap: {
     width: '100%',
