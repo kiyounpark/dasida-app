@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
     marginBottom: 8,
+    boxShadow: '0 2px 0 rgba(26,25,22,0.06)',
   },
   choiceBtnDim: { opacity: 0.5 },
   choiceBadge: {
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
     flex: 1, minHeight: 50, maxHeight: 120,
     borderWidth: 1.5, borderColor: Paper.ink, borderRadius: 14,
     backgroundColor: Paper.paper, paddingHorizontal: 14, paddingVertical: 10,
+    boxShadow: '0 2px 0 rgba(26,25,22,0.06)',
   },
   freeInputBoxDim: { opacity: 0.5 },
   freeInputText: {
