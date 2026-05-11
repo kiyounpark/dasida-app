@@ -78,20 +78,15 @@ export function ReviewSessionScreenView({
   const inputFadeAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  // 채팅/보완 entries 길이 증가를 렌더 중 감지 → onContentSizeChange가 새 콘텐츠 레이아웃 직후
-  // 정확한 끝으로 스크롤 (참고: commit f96f2df).
   const autoScrollFlagRef = useRef(false);
-  const prevChatLengthRef = useRef(0);
-  const prevRemedialEntriesLengthRef = useRef(0);
-  const remedialEntriesLength = remedialFlowState?.entries.length ?? 0;
-  if (chatMessages.length > prevChatLengthRef.current) {
-    autoScrollFlagRef.current = true;
-  }
-  if (remedialEntriesLength > prevRemedialEntriesLengthRef.current) {
-    autoScrollFlagRef.current = true;
-  }
-  prevChatLengthRef.current = chatMessages.length;
-  prevRemedialEntriesLengthRef.current = remedialEntriesLength;
+  const prevEntryCountRef = useRef(entries.length);
+
+  useEffect(() => {
+    if (entries.length > prevEntryCountRef.current) {
+      autoScrollFlagRef.current = true;
+    }
+    prevEntryCountRef.current = entries.length;
+  }, [entries.length]);
 
   const handleContentSizeChange = () => {
     if (!autoScrollFlagRef.current) return;
