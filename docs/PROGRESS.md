@@ -927,6 +927,16 @@
 - 작성자: 박기윤
 - 메시지: chore(review): mark main chat handlers/components as deprecated
 
+### 커밋 2026.05.11 21:19
+- 해시: `fbcf848` (`fbcf84828a4547961e3ad4388180ed4249f6b720`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/fbcf84828a4547961e3ad4388180ed4249f6b720
+- 작성자: 박기윤
+- 메시지: fix(modal): iPad에서 다이얼로그 모달이 너무 가로로 길지 않도록 maxWidth 제한
+- 본문: iPad 가로 화면에서 다이얼로그 모달이 화면 너비를 거의 다 차지해 / 가로로 너무 길어 보이는 문제 수정. maxWidth(420) + alignSelf(center)로 / 가운데 정렬된 적당한 너비로 표시. / 대상: / - diagnosis-exit-confirm-modal (약점 분석 뒤로가기 확인) / - quiz-solve-exit-confirm-modal (약점 연습 종료 확인) / - profile-screen-view modalCard, modalBox (학년 변경, 계정 삭제) / original-strokes-sheet(당시 풀이) bottom sheet는 구조가 달라 별도 작업. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.11 21:07
 - 해시: `3d94373` (`3d94373352717c26088081735aae4c4d574949d8`)
 - 브랜치: main
