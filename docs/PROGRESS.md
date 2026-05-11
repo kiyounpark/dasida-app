@@ -908,6 +908,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.11 23:38
+- 해시: `b28f8c7` (`b28f8c785b73033c34d24747816093a260c0f2a1`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b28f8c785b73033c34d24747816093a260c0f2a1
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/heuristic-herschel-4d5498': route wrong-answer into remedial flow
+
 ### 커밋 2026.05.11 22:19
 - 해시: `b2b2c92` (`b2b2c925d7d71d83d7fe033f978248e391937622`)
 - 브랜치: claude/fervent-wilbur-12d6ac
