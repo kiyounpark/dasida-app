@@ -44,6 +44,10 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+// Prevents cold-start notification handling from firing more than once per
+// native app launch (e.g. during Fast Refresh remounts in dev).
+let coldStartHandled = false;
+
 function SplashGate() {
   const { authGateState, isReady } = useCurrentLearner();
   const [splashHidden, setSplashHidden] = useState(false);
@@ -83,7 +87,8 @@ function SplashGate() {
   // 콜드스타트 알림 페이로드 캡처 (Stack 마운트 전에 ref에만 저장)
   useEffect(() => {
     const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse) {
+    if (lastResponse && !coldStartHandled) {
+      coldStartHandled = true;
       handledNotificationIdRef.current = lastResponse.notification.request.identifier;
       const data = lastResponse.notification.request.content.data ?? {};
       const taskId = typeof data.taskId === 'string' ? data.taskId : undefined;

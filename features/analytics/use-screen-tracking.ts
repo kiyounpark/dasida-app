@@ -4,7 +4,7 @@ import { useSegments } from 'expo-router';
 import { logScreenView } from './log-event';
 import type { ScreenName } from './event-types';
 
-function segmentsToScreenName(segments: string[]): ScreenName {
+function segmentsToScreenName(segments: readonly string[]): ScreenName {
   const key = segments.join('/');
   switch (key) {
     case '(tabs)/quiz':
@@ -34,14 +34,13 @@ function segmentsToScreenName(segments: string[]): ScreenName {
 
 export function useScreenTracking(): void {
   const segments = useSegments();
+  const key = segments.join('/');
   const lastKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const key = segments.join('/');
     if (key === lastKeyRef.current) return;
     lastKeyRef.current = key;
-
-    const screen = segmentsToScreenName(segments as unknown as string[]);
+    const screen = segmentsToScreenName(segments);
     logScreenView(screen);
-  }, [segments]);
+  }, [key]);
 }
