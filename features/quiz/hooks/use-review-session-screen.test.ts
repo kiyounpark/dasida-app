@@ -170,4 +170,46 @@ describe('entries-based flow', () => {
     expect(kinds).toContain('feedback-banner');
     expect(kinds).toContain('remedial-node');
   });
+
+  it('자유 입력 제출 시 user-bubble + ai-typing → ai-bubble로 교체', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: 'AI 응답 내용' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('이해한 내용 작성'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('user-bubble');
+    expect(kinds).toContain('ai-bubble');
+    expect(kinds).not.toContain('ai-typing'); // 응답 도착 후 사라짐
+
+    spy.mockRestore();
+  });
+
+  it('자유 입력 호출 실패 시 ai-typing 제거 + 에러 메시지 ai-bubble', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockRejectedValue(new Error('network'));
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('hello'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).not.toContain('ai-typing');
+    const lastAi = [...result.current.entries].reverse().find((e) => e.kind === 'ai-bubble');
+    expect(lastAi).toBeDefined();
+
+    spy.mockRestore();
+  });
 });

@@ -20,6 +20,9 @@ import {
   createFeedbackBannerEntry,
   createDoneCtaEntry,
   createRemedialNodeEntry,
+  createUserBubbleEntry as createReviewUserBubbleEntry,
+  createAiTypingEntry,
+  createFallbackInputEntry,
   type ReviewEntry,
 } from '@/features/quiz/components/review-session/review-entries';
 
@@ -82,6 +85,10 @@ export type UseReviewSessionScreenResult = {
   onSendRemedialAiHelp: () => void;
   onPressRemedialAiHelpAction: (action: 'continue' | 'fallback') => void;
   entries: ReviewEntry[];
+  freeText: string;
+  fallbackText: string;
+  onChangeFreeText: (text: string) => void;
+  onSubmitFreeText: () => Promise<void>;
 };
 
 const store = new LocalReviewTaskStore();
@@ -111,6 +118,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     aiHelpUsed: boolean;
     aiHelpState: { nodeId: string; input: string; isLoading: boolean; error: string } | null;
   } | null>(null);
+
+  const [freeText, setFreeText] = useState('');
+  const [fallbackText, setFallbackText] = useState('');
+  const [fallbackTurnsUsed, setFallbackTurnsUsed] = useState(0);
+  const chatHistoryRef = useRef<ChatMessage[]>([]);
 
   const isFetchingRef = useRef(false);
   const sessionStartedAtRef = useRef(new Date().toISOString());
@@ -339,6 +351,37 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     } finally {
       isFetchingRef.current = false;
       setIsLoadingFeedback(false);
+    }
+  };
+
+  const onChangeFreeText = (text: string) => setFreeText(text);
+
+  const onSubmitFreeText = async () => {
+    const text = freeText.trim();
+    if (!text || !task) return;
+
+    setFreeText('');
+    reviewEntries.lockInputArea();
+    reviewEntries.appendEntries([
+      createReviewUserBubbleEntry(text),
+      createAiTypingEntry(),
+    ]);
+
+    chatHistoryRef.current = [{ role: 'user', content: text }];
+
+    try {
+      const result = await requestReviewFeedback({
+        weaknessId: task.weaknessId,
+        stepTitle: steps[currentStepIndex].title,
+        stepBody: steps[currentStepIndex].body,
+        messages: chatHistoryRef.current,
+      });
+      chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
+      reviewEntries.replaceTypingWithBubble(result.replyText);
+      setFallbackTurnsUsed(1);
+      // 2턴째 fallback-input 추가는 Task 8에서
+    } catch {
+      reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 잠시 후 다시 시도해주세요.');
     }
   };
 
@@ -611,5 +654,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSendRemedialAiHelp,
     onPressRemedialAiHelpAction,
     entries: reviewEntries.entries,
+    freeText,
+    fallbackText,
+    onChangeFreeText,
+    onSubmitFreeText,
   };
 }
