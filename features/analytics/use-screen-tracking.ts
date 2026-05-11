@@ -40,7 +40,14 @@ export function useScreenTracking(): void {
   useEffect(() => {
     if (key === lastKeyRef.current) return;
     lastKeyRef.current = key;
+
     const screen = segmentsToScreenName(segments);
+    if (screen === 'unknown') {
+      if (__DEV__) {
+        console.warn(`[analytics] unmapped screen_view route: "${key}"`);
+      }
+      return;
+    }
     logScreenView(screen);
   }, [key]);
 }

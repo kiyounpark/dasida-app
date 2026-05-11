@@ -141,7 +141,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         createdAt: new Date().toISOString(),
       };
       setTask(mockTask);
-      logEvent('review_started', { task_id: mockTask.id });
+      if (__DEV__) {
+        logEvent('review_started', { task_id: mockTask.id });
+      }
       setSteps(getReviewThinkingSteps(mockTask.weaknessId));
       const mockStepCount = getReviewThinkingSteps(mockTask.weaknessId).length;
       firstAttemptCorrectRef.current = new Array(mockStepCount).fill(null);

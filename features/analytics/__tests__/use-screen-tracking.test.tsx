@@ -40,10 +40,13 @@ describe('useScreenTracking', () => {
     expect(logScreenView).toHaveBeenCalledWith('sign_in');
   });
 
-  it('logs unknown for unmapped route', () => {
+  it('does not fire screen_view for unmapped route, warns in dev', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockSegments.mockReturnValue(['totally-new-route']);
     renderHook(() => useScreenTracking());
-    expect(logScreenView).toHaveBeenCalledWith('unknown');
+    expect(logScreenView).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('totally-new-route'));
+    warnSpy.mockRestore();
   });
 
   it('does not re-fire when segments are unchanged', () => {

@@ -101,7 +101,7 @@ function SplashGate() {
         scheduled_at: scheduledAt,
         opened_at: new Date().toISOString(),
       });
-      if (taskId) {
+      if (notificationType === 'review_reminder' && taskId) {
         pendingTaskIdRef.current = taskId;
       }
     }
@@ -120,7 +120,7 @@ function SplashGate() {
         scheduled_at: scheduledAt,
         opened_at: new Date().toISOString(),
       });
-      if (taskId) {
+      if (notificationType === 'review_reminder' && taskId) {
         router.push({ pathname: '/quiz/review-session', params: { taskId } });
       }
     });
