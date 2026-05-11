@@ -1,8 +1,10 @@
+import { useCallback, useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { useIsTablet } from '@/hooks/use-is-tablet';
+import { logEvent } from '@/features/analytics/log-event';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 
 function getDaysUntil(scheduledFor: string): number {
@@ -23,6 +25,15 @@ export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
   const daysUntil = getDaysUntil(nextTask.scheduledFor);
   const pillText = `오늘은 복습 없는 날이에요 · 다음 복습 D-${daysUntil}`;
 
+  useEffect(() => {
+    logEvent('no_review_day_card_viewed', { days_until_next_review: daysUntil });
+  }, [daysUntil]);
+
+  const handlePressExam = useCallback(() => {
+    logEvent('no_review_day_card_cta_pressed', { days_until_next_review: daysUntil });
+    onPressExam();
+  }, [daysUntil, onPressExam]);
+
   return (
     <View style={[styles.wrap, isTablet && { maxWidth: undefined }]}>
       <View style={styles.pill}>
@@ -34,7 +45,7 @@ export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
         <Text style={styles.examBody}>
           복습 사이 여유 있을 때 풀어보면 성장 곡선이 보입니다.
         </Text>
-        <Pressable style={styles.examBtn} onPress={onPressExam} accessibilityLabel="모의고사 시작하기">
+        <Pressable style={styles.examBtn} onPress={handlePressExam} accessibilityLabel="모의고사 시작하기">
           <Text style={styles.examBtnText}>모의고사 시작하기</Text>
         </Pressable>
       </View>
