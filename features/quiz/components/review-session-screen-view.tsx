@@ -24,6 +24,7 @@ import { InputSection } from './review-session/input-section';
 import { LoadingView } from './review-session/loading-view';
 import { Paper } from './review-session/paper-tokens';
 import { ProgressDots } from './review-session/progress-dots';
+import { RemedialFlow } from './review-session/remedial-flow';
 import { StepCard } from './review-session/step-card';
 
 export function ReviewSessionScreenView({
@@ -50,6 +51,13 @@ export function ReviewSessionScreenView({
   onPressContinue,
   onPressRemember,
   onPressRetry,
+  remedialFlowState,
+  onPressRemedialPrimary,
+  onPressRemedialSecondary,
+  onPressRemedialChoice,
+  onChangeRemedialAiHelpInput,
+  onSendRemedialAiHelp,
+  onPressRemedialAiHelpAction,
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
@@ -171,18 +179,28 @@ export function ReviewSessionScreenView({
       <InputSection
         step={step}
         selectedChoiceIndex={selectedChoiceIndex}
-        userText={userText}
-        isTextMode={isTextMode}
         hasInput={hasInput}
         hasFeedback={hasFeedback}
         isLoadingFeedback={isLoadingFeedback}
         selectedChoiceFeedback={selectedChoiceFeedback}
         continueLabel={continueLabel}
         onSelectChoice={onSelectChoice}
-        onChangeText={onChangeText}
         onPressNext={onPressNext}
         onPressContinue={onPressContinue}
-        onInputFocus={handleInputFocus}
+      />
+    ) : stepPhase === 'remedial' && remedialFlowState ? (
+      <RemedialFlow
+        entries={remedialFlowState.entries}
+        aiHelpInput={remedialFlowState.aiHelpState?.input ?? ''}
+        aiHelpLoading={remedialFlowState.aiHelpState?.isLoading ?? false}
+        aiHelpError={remedialFlowState.aiHelpState?.error ?? ''}
+        onPressExplainPrimary={onPressRemedialPrimary}
+        onPressExplainSecondary={onPressRemedialSecondary}
+        onPressCheckOption={onPressRemedialChoice}
+        onPressCheckDontKnow={onPressRemedialSecondary}
+        onChangeAiHelpInput={onChangeRemedialAiHelpInput}
+        onSubmitAiHelp={onSendRemedialAiHelp}
+        onPressAiHelpAction={onPressRemedialAiHelpAction}
       />
     ) : (
       <ChatSection
