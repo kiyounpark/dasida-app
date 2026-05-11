@@ -236,6 +236,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     });
   };
 
+  // @deprecated 메인 챗 진입 경로가 제거됨. 보완 흐름(remedial-flow.tsx)으로 대체.
+  // 별도 cleanup PR에서 제거 예정.
   const onSendChatMessage = async () => {
     if (isFetchingRef.current || !chatText.trim() || !task) return;
     if (aiResponseCount >= 2) return;
