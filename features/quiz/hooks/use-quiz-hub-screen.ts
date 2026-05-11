@@ -284,6 +284,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   useEffect(() => {
     if (!isGraduated) return;
     if (graduationLoggedRef.current) return;
+    graduationLoggedRef.current = true;  // set synchronously to prevent race condition
     const accountKey = session?.accountKey ?? 'guest';
     const key = `analytics.graduation_logged.${accountKey}`;
     void (async () => {
@@ -291,7 +292,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       if (already) return;
       logEvent('graduation_reached', {});
       await AsyncStorage.setItem(key, new Date().toISOString());
-      graduationLoggedRef.current = true;
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGraduated, session?.accountKey]);

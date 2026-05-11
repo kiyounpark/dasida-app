@@ -48,6 +48,7 @@ function SplashGate() {
   const { authGateState, isReady } = useCurrentLearner();
   const [splashHidden, setSplashHidden] = useState(false);
   const pendingTaskIdRef = useRef<string | null>(null);
+  const handledNotificationIdRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     'SUIT-Regular': require('../assets/fonts/SUIT-Regular.ttf'),
@@ -83,10 +84,12 @@ function SplashGate() {
   useEffect(() => {
     const lastResponse = Notifications.getLastNotificationResponse();
     if (lastResponse) {
+      handledNotificationIdRef.current = lastResponse.notification.request.identifier;
       const data = lastResponse.notification.request.content.data ?? {};
-      const taskId = data.taskId as string | undefined;
-      const notificationType = (data.notificationType as NotificationType | undefined) ?? 'unknown';
-      const scheduledAt = data.scheduledAt as string | undefined;
+      const taskId = typeof data.taskId === 'string' ? data.taskId : undefined;
+      const notificationType: NotificationType =
+        data.notificationType === 'review_reminder' ? 'review_reminder' : 'unknown';
+      const scheduledAt = typeof data.scheduledAt === 'string' ? data.scheduledAt : undefined;
       logEvent('notification_opened', {
         notification_type: notificationType,
         task_id: taskId,
@@ -100,10 +103,12 @@ function SplashGate() {
 
     // 포그라운드/백그라운드 알림 탭
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      if (response.notification.request.identifier === handledNotificationIdRef.current) return;
       const data = response.notification.request.content.data ?? {};
-      const taskId = data.taskId as string | undefined;
-      const notificationType = (data.notificationType as NotificationType | undefined) ?? 'unknown';
-      const scheduledAt = data.scheduledAt as string | undefined;
+      const taskId = typeof data.taskId === 'string' ? data.taskId : undefined;
+      const notificationType: NotificationType =
+        data.notificationType === 'review_reminder' ? 'review_reminder' : 'unknown';
+      const scheduledAt = typeof data.scheduledAt === 'string' ? data.scheduledAt : undefined;
       logEvent('notification_opened', {
         notification_type: notificationType,
         task_id: taskId,
