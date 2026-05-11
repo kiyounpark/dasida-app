@@ -51,8 +51,8 @@ export function useExamSelectionScreen(): UseExamSelectionScreenResult {
   });
 
   const onSelectExam = (examId: string) => {
-     
-    router.push({ pathname: '/quiz/exam/solve' as any, params: { examId } });
+
+    router.push({ pathname: '/quiz/exam/solve' as any, params: { examId, source: 'exam_selection' } });
   };
 
   return {

@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import type { ExamSource } from '@/features/analytics/event-types';
 import { QuizSolveLayout } from '@/features/quiz/components/quiz-solve-layout';
 import examImages from '@/features/quiz/data/exam-images';
 
@@ -14,9 +15,10 @@ import { useExamSolveScreen } from '../hooks/use-exam-solve-screen';
 
 type ExamSolveScreenProps = {
   examId: string;
+  source?: ExamSource;
 };
 
-export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
+export function ExamSolveScreen({ examId, source }: ExamSolveScreenProps) {
   const {
     currentProblem,
     currentIndex,
@@ -39,7 +41,7 @@ export function ExamSolveScreen({ examId }: ExamSolveScreenProps) {
     onPrev,
     onNext,
     onExit,
-  } = useExamSolveScreen(examId);
+  } = useExamSolveScreen(examId, source);
 
   // 이미지 자연 비율을 동적으로 측정
   const [imageAspectRatio, setImageAspectRatio] = useState<number | undefined>(undefined);

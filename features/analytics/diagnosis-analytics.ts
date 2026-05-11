@@ -1,10 +1,9 @@
-import { getApp } from 'firebase/app';
-import { addDoc, collection, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { logEvent } from './log-event';
 
 export type DiagnosisCompletedSource = 'exam' | 'unit';
 
 export interface LogDiagnosisCompletedParams {
-  accountKey: string; // "user:{firebaseUid}" 형태
+  accountKey: string;
   source: DiagnosisCompletedSource;
   weaknessId: string;
   examId?: string;
@@ -12,21 +11,22 @@ export interface LogDiagnosisCompletedParams {
 }
 
 export function logDiagnosisCompleted(params: LogDiagnosisCompletedParams): void {
-  if (!params.accountKey.startsWith('user:')) {
-    return; // 익명/게스트 유저는 리텐션 추적 대상이 아님
-  }
-  const uid = params.accountKey.slice(5);
-
-  const db = getFirestore(getApp());
-
-  addDoc(collection(db, 'users', uid, 'events'), {
-    eventName: 'diagnosis_completed',
+  const eventParams: {
+    source: DiagnosisCompletedSource;
+    weakness_id: string;
+    exam_id?: string;
+    problem_number?: number;
+  } = {
     source: params.source,
-    weaknessId: params.weaknessId,
-    examId: params.examId ?? null,
-    problemNumber: params.problemNumber ?? null,
-    completedAt: serverTimestamp(),
-  }).catch(() => {
-    // 리텐션 로깅 실패는 UX에 영향 없이 무시
-  });
+    weakness_id: params.weaknessId,
+  };
+
+  if (params.examId !== undefined) {
+    eventParams.exam_id = params.examId;
+  }
+  if (params.problemNumber !== undefined) {
+    eventParams.problem_number = params.problemNumber;
+  }
+
+  logEvent('diagnosis_completed', eventParams);
 }

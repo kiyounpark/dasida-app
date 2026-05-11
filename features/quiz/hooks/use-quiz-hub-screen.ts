@@ -1,7 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
+import { logEvent } from '@/features/analytics/log-event';
+import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
@@ -277,6 +280,25 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const journey = homeState?.journey ?? null;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
+
+  const graduationLoggedRef = useRef(false);
+  useEffect(() => {
+    if (!isGraduated) return;
+    if (graduationLoggedRef.current) return;
+    graduationLoggedRef.current = true;  // set synchronously to prevent race condition
+    const accountKey = session?.accountKey ?? 'guest';
+    const key = `analytics.graduation_logged.${accountKey}`;
+    void (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      // setItem first to close the race window where two near-simultaneous
+      // IIFEs both see null from getItem. Note: AsyncStorage is local-only,
+      // so graduation_reached fires once per device (not once per account).
+      await AsyncStorage.setItem(key, new Date().toISOString());
+      logEvent('graduation_reached', {});
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGraduated, session?.accountKey]);
   const isAnalysisInProgress = analysisState.isInProgress;
 
   const showBrandHeader = isGraduated;
@@ -288,6 +310,22 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     !!homeState?.nextReviewTask &&
     homeState.todayReviewCount === 0 &&
     !isAnalysisInProgress;
+
+  const noReviewDaysUntil = (() => {
+    const scheduledFor = homeState?.nextReviewTask?.scheduledFor;
+    if (!scheduledFor) return 1;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const today = new Date(todayStr);
+    const target = new Date(scheduledFor.slice(0, 10));
+    const diffMs = target.getTime() - today.getTime();
+    return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  })();
+
+  const { handlePressExam: onPressExamWithAnalytics } = useNoReviewDayCardAnalytics({
+    visible: showNoReviewDayCard,
+    daysUntil: noReviewDaysUntil,
+    onPressExam,
+  });
   // 약점 섹션도 여정 완료 후에만 노출.
   const showWeaknessSection = isGraduated;
   // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
@@ -310,7 +348,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     },
     onOpenPractice,
     onOpenRecentResult,
-    onPressExam,
+    onPressExam: onPressExamWithAnalytics,
     onPressJourneyCta,
     onPressReviewCard,
     onRediagnose: onStartDiagnostic,

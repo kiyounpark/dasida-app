@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { challengeProblem } from '@/data/challengeProblem';
 import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
+import { logEvent } from '@/features/analytics/log-event';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
@@ -110,6 +111,7 @@ export function usePracticeScreen({
   const [isPersistingAttempt, setIsPersistingAttempt] = useState(false);
   const [persistErrorMessage, setPersistErrorMessage] = useState<string | null>(null);
   const [solvedCount, setSolvedCount] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
   const [isGraduating, setIsGraduating] = useState(false);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const reviewQueueInitialCountRef = useRef<number | null>(null);
@@ -187,6 +189,9 @@ export function usePracticeScreen({
     }
     if (!activeProblem) {
       return;
+    }
+    if (activeWeaknessId) {
+      logEvent('weakness_practice_started', { weakness_id: activeWeaknessId });
     }
     void markPendingPracticeStarted().catch((err: unknown) => {
       console.warn('[PracticeScreen] markPendingPracticeStarted failed', err);
@@ -288,6 +293,10 @@ export function usePracticeScreen({
     }
 
     setSolvedCount((c) => c + 1);
+    const isCorrectAnswer = feedback.kind === 'correct';
+    if (isCorrectAnswer) {
+      setCorrectCount((c) => c + 1);
+    }
 
     if (activeMode === 'challenge') {
       completeChallenge();
@@ -310,6 +319,14 @@ export function usePracticeScreen({
       advancePractice();
 
       if (isLast) {
+        if (activeWeaknessId) {
+          const finalCorrectCount = correctCount + (isCorrectAnswer ? 1 : 0);
+          logEvent('weakness_practice_completed', {
+            weakness_id: activeWeaknessId,
+            correct_count: finalCorrectCount,
+            total_count: state.practiceQueue.length,
+          });
+        }
         resetSession();
         void clearPendingPractice().catch((err: unknown) => {
           console.warn('[PracticeScreen] clearPendingPractice failed', err);

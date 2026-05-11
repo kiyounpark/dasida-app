@@ -104,7 +104,11 @@ export async function scheduleReviewNotifications(
         title: morningTitle,
         body: morningBody,
         sound: 'default',
-        data: { taskId: representativeTask.id },
+        data: {
+          taskId: representativeTask.id,
+          notificationType: 'review_reminder' as const,
+          scheduledAt: morningDate.toISOString(),
+        },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -121,7 +125,11 @@ export async function scheduleReviewNotifications(
         title: eveningTitle,
         body: eveningBody,
         sound: 'default',
-        data: { taskId: representativeTask.id },
+        data: {
+          taskId: representativeTask.id,
+          notificationType: 'review_reminder' as const,
+          scheduledAt: eveningDate.toISOString(),
+        },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

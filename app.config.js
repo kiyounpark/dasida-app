@@ -20,6 +20,7 @@ module.exports = {
     ios: {
       bundleIdentifier: IS_DEV ? 'com.dasida.app.dev' : 'com.dasida.app',
       buildNumber: '1',
+      googleServicesFile: './config/firebase/GoogleService-Info.plist',
       usesAppleSignIn: true,
       supportsTablet: true,
       requireFullScreen: true,
@@ -46,7 +47,7 @@ module.exports = {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: IS_DEV ? 'com.dasida.app.dev' : 'com.dasida.app',
-      googleServicesFile: './google-services.json',
+      googleServicesFile: './config/firebase/google-services.json',
     },
     web: {
       output: 'static',
@@ -75,6 +76,17 @@ module.exports = {
       ],
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
+      [
+        '@react-native-firebase/app',
+        {
+          ios: {
+            googleServicesFile: './config/firebase/GoogleService-Info.plist',
+          },
+          android: {
+            googleServicesFile: './config/firebase/google-services.json',
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

@@ -32,6 +32,7 @@ import { useDiagnosisPager } from '@/features/quiz/hooks/use-diagnosis-pager';
 import { useDiagnosisWorkspaces } from '@/features/quiz/hooks/use-diagnosis-workspaces';
 import { useQuizSession } from '@/features/quiz/session';
 import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
+import { logEvent } from '@/features/analytics/log-event';
 import { useCurrentLearner } from '@/features/learner/provider';
 
 type UseDiagnosticScreenParams = {
@@ -133,6 +134,10 @@ export function useDiagnosticScreen({
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
   const [isSolveExitModalVisible, setIsSolveExitModalVisible] = useState(false);
   const [isPreparingFreshSession, setIsPreparingFreshSession] = useState(shouldResetOnMount);
+
+  useEffect(() => {
+    logEvent('diagnosis_started', { source: 'unit' });
+  }, []);
 
   useEffect(() => {
     return () => {
