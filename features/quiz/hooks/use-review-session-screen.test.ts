@@ -230,6 +230,23 @@ describe('entries-based flow', () => {
     spy.mockRestore();
   });
 
+  it('remedial explain 카드의 primary → 다음 노드 entry 추가, 이전 노드 잠금', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    await act(async () => {
+      result.current.onRemedialExplainPrimary(firstNode.node.id);
+    });
+
+    const nodes = result.current.entries.filter((e) => e.kind === 'remedial-node');
+    expect(nodes.length).toBeGreaterThanOrEqual(2);
+    expect(nodes[0]).toMatchObject({ interactive: false });
+    expect(nodes[1]).toMatchObject({ interactive: true });
+  });
+
   it('2턴 응답 후 done-cta 추가, fallback-input 잠금', async () => {
     const spy = jest
       .spyOn(reviewFeedback, 'requestReviewFeedback')

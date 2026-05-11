@@ -84,6 +84,10 @@ export type UseReviewSessionScreenResult = {
   onChangeRemedialAiHelpInput: (text: string) => void;
   onSendRemedialAiHelp: () => void;
   onPressRemedialAiHelpAction: (action: 'continue' | 'fallback') => void;
+  onRemedialExplainPrimary: (nodeId: string) => void;
+  onRemedialExplainSecondary: (nodeId: string) => void;
+  onRemedialCheckOption: (nodeId: string, optionId: string) => void;
+  onRemedialCheckDontKnow: (nodeId: string) => void;
   entries: ReviewEntry[];
   freeText: string;
   fallbackText: string;
@@ -581,6 +585,56 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
   };
 
+  // 헬퍼: 다음 remedial 노드로 진행 (entries 기반)
+  const advanceRemedialToNode = (nextNodeId: string) => {
+    if (!task) return;
+    reviewEntries.lockRemedialNodes();
+    const next = getRemedialNode(task.weaknessId, nextNodeId);
+    if (!next || next.kind === 'exit') {
+      const isLast = currentStepIndex === steps.length - 1;
+      reviewEntries.appendEntries([
+        createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+      ]);
+      return;
+    }
+    reviewEntries.appendEntries([createRemedialNodeEntry(next)]);
+  };
+
+  const onRemedialExplainPrimary = (nodeId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'explain') return;
+    advanceRemedialToNode(node.primaryNextNodeId);
+  };
+
+  const onRemedialExplainSecondary = (nodeId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'explain') return;
+    reviewEntries.lockRemedialNodes();
+    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
+    setFallbackTurnsUsed(0);
+  };
+
+  const onRemedialCheckOption = (nodeId: string, optionId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'check') return;
+    const opt = node.options.find((o) => o.id === optionId);
+    if (!opt) return;
+    reviewEntries.appendEntries([createReviewUserBubbleEntry(opt.text)]);
+    advanceRemedialToNode(opt.nextNodeId);
+  };
+
+  const onRemedialCheckDontKnow = (nodeId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'check') return;
+    reviewEntries.lockRemedialNodes();
+    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
+    setFallbackTurnsUsed(0);
+  };
+
   const onPressRemember = async () => {
     if (!task || !profile) {
       return;
@@ -689,6 +743,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onChangeRemedialAiHelpInput,
     onSendRemedialAiHelp,
     onPressRemedialAiHelpAction,
+    onRemedialExplainPrimary,
+    onRemedialExplainSecondary,
+    onRemedialCheckOption,
+    onRemedialCheckDontKnow,
     entries: reviewEntries.entries,
     freeText,
     fallbackText,
