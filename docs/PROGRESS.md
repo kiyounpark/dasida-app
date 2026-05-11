@@ -908,6 +908,25 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.11 20:58
+- 해시: `49dad58` (`49dad5844427a17781594082483bddd6ca949408`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/49dad5844427a17781594082483bddd6ca949408
+- 작성자: 박기윤
+- 메시지: fix(journey-hub): 태블릿 분할 레이아웃 배너 위치 보정
+- 본문: posterWrap에 marginTop(40)을 추가해 PosterTitleBanner의 / translateY(-40) 보정값과 맞춤. 기존 paddingTop 변경 방식은 / 보드·우측 패널까지 영향을 줘 posterWrap 한정으로 수정. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.09 13:52
+- 해시: `296c86c` (`296c86c336bbd0a3b2a9264ac73df3926a3f2b65`)
+- 브랜치: claude/clever-hertz-f674b3
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/296c86c336bbd0a3b2a9264ac73df3926a3f2b65
+- 작성자: 박기윤
+- 메시지: feat(review-session): notebook tone reskin (11 states) + structural split
+
 ### 커밋 2026.05.09 06:27
 - 해시: `9e49e29` (`9e49e290187f9e8ae15afbd4229d53c733fe5aed`)
 - 브랜치: claude/ipad-landscape-journey-split-qv9bu
@@ -926,15 +945,6 @@
 - 작성자: Claude
 - 메시지: feat(quiz-hub): 태블릿 가로에서 좌우 분할 레이아웃 적용
 - 본문: https://claude.ai/code/session_01X4j9A8AYzKorbcMknuQzZt
-
-### 커밋 2026.05.09 13:52
-- 해시: `296c86c` (`296c86c336bbd0a3b2a9264ac73df3926a3f2b65`)
-- 브랜치: claude/clever-hertz-f674b3
-- 원격: origin
-- 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/296c86c336bbd0a3b2a9264ac73df3926a3f2b65
-- 작성자: 박기윤
-- 메시지: feat(review-session): notebook tone reskin (11 states) + structural split
 
 ### 커밋 2026.05.09 01:29
 - 해시: `98b17c7` (`98b17c75fe6243b5ab1b34741b5ac95fd427b939`)

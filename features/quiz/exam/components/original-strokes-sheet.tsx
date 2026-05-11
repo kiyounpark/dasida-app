@@ -52,6 +52,7 @@ export function OriginalStrokesSheet({ visible, strokes, loaded, onClose }: Prop
       visible={visible}
       transparent
       animationType="slide"
+      supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       onRequestClose={onClose}>
       <Pressable
         style={styles.backdrop}

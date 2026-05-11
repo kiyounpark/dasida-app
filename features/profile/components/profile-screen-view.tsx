@@ -56,6 +56,7 @@ function DeleteAccountConfirmModal({
       transparent
       animationType="fade"
       statusBarTranslucent
+      supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       onRequestClose={onCancel}>
       <View style={styles.modalBackdrop}>
         <View style={styles.modalCard}>
@@ -181,6 +182,7 @@ export function ProfileScreenView({
         transparent
         animationType="fade"
         statusBarTranslucent
+        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
         onRequestClose={() => {
           setGradeConfirmVisible(false);
           setGradeChangeRequest(null);

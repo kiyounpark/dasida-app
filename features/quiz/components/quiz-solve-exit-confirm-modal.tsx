@@ -27,6 +27,7 @@ export function QuizSolveExitConfirmModal({
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       transparent
       visible={visible}>
       <View style={styles.backdrop}>

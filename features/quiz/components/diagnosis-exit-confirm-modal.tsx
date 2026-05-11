@@ -27,6 +27,7 @@ export function DiagnosisExitConfirmModal({
       transparent
       animationType="fade"
       statusBarTranslucent
+      supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       onRequestClose={onContinue}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
