@@ -908,6 +908,25 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.11 22:19
+- 해시: `b2b2c92` (`b2b2c925d7d71d83d7fe033f978248e391937622`)
+- 브랜치: claude/fervent-wilbur-12d6ac
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b2b2c925d7d71d83d7fe033f978248e391937622
+- 작성자: 박기윤
+- 메시지: fix(review): address code review findings (C1-C3, I1-I5, M2-M5)
+- 본문: - C1: RemedialFlow의 ScrollView를 View로 교체. 부모 ScrollView 안 중첩 제거, / 자동 스크롤은 부모의 onContentSizeChange에 위임. / - C2: aiHelpUsed=true는 AI 응답이 실제로 성공한 시점에만 set. / spec §6.3 "실패 시 false 유지 → 재시도 가능" invariant 보존. / - C3: onPressContinue가 sessionComplete 분기에서도 remedialFlowState=null로 리셋. / 전환 setTimeout을 ref로 추적하고 unmount/onPressContinue 호출 시 cleanup. / - I1: firstAttemptChoiceIndexRef 가드 의도 주석 추가. / - I2: ExitNode early return으로 'explain'/'check' narrowing 단순화. / - I5: 불필요한 task.weaknessId as WeaknessId 캐스팅 7개 제거 (이미 WeaknessId 타입). / - M2: createNodeEntry의 미사용 _nodeKind 인자 제거. / - M3: 600ms 매직 넘버를 REMEDIAL_TRANSITION_DELAY_MS 상수로 추출. / - M4: review-session-screen-view의 dead ChatSection 분기에 @deprecated 주석. / - M5: AI 입력 카드 multiline+onSubmitEditing 조합 제거 (iOS 미작동, 전송 버튼만 사용). / - I4: 훅 핵심 invariant 테스트 4개 실 구현 (정답 → 즉시 진행 / 오답 → remedial 진입 / / aiHelpUsed 성공 후만 true / fallback 분기). / 전체 334 테스트 통과, typecheck 통과.
+
+### 커밋 2026.05.11 21:51
+- 해시: `f828623` (`f8286232f83ed7723a24f5ec0dba04530f796c95`)
+- 브랜치: claude/fervent-wilbur-12d6ac
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f8286232f83ed7723a24f5ec0dba04530f796c95
+- 작성자: 박기윤
+- 메시지: chore(review): mark main chat handlers/components as deprecated
+
 ### 커밋 2026.05.11 21:07
 - 해시: `3d94373` (`3d94373352717c26088081735aae4c4d574949d8`)
 - 브랜치: main
