@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
     marginTop: 12, paddingTop: 14, paddingRight: 14, paddingBottom: 12, paddingLeft: 38,
     borderWidth: 1.5, borderColor: Paper.ink, borderRadius: 12,
     backgroundColor: Paper.paper, position: 'relative',
+    boxShadow: '0 2px 0 rgba(26,25,22,0.08)',
   },
   marginLine: {
     position: 'absolute', top: 0, bottom: 0, left: 22, width: 1.5,
