@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
+import { logEvent } from '@/features/analytics/log-event';
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
@@ -277,6 +279,22 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const journey = homeState?.journey ?? null;
   const isGraduated = journey?.currentStateKey === 'journey_graduated';
   const isJourneyActive = !isGraduated;
+
+  const graduationLoggedRef = useRef(false);
+  useEffect(() => {
+    if (!isGraduated) return;
+    if (graduationLoggedRef.current) return;
+    const accountKey = session?.accountKey ?? 'guest';
+    const key = `analytics.graduation_logged.${accountKey}`;
+    void (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      logEvent('graduation_reached', {});
+      await AsyncStorage.setItem(key, new Date().toISOString());
+      graduationLoggedRef.current = true;
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGraduated, session?.accountKey]);
   const isAnalysisInProgress = analysisState.isInProgress;
 
   const showBrandHeader = isGraduated;
