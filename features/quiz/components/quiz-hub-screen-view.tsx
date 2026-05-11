@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +18,8 @@ import {
   ExamAnalysisResumeCarousel,
   type ExamAnalysisResumeCarouselItem,
 } from '@/features/quiz/exam/components/exam-analysis-resume-carousel';
+import { JourneyHubRightPanel } from '@/features/quiz/components/journey-hub-right-panel';
+import { JourneyHubSplitLayout } from '@/features/quiz/components/journey-hub-split-layout';
 
 function JourneyScreenHero({
   isCompactLayout,
@@ -152,6 +154,15 @@ export function QuizHubScreenView({
           screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
         );
 
+  const useTabletSplitLayout =
+    isTablet &&
+    isReady &&
+    !!profile &&
+    !!homeState &&
+    !!session &&
+    !!journey &&
+    showJourneyBoard;
+
   if (!isReady) {
     return (
       <View style={styles.screen}>
@@ -178,6 +189,63 @@ export function QuizHubScreenView({
             onPress={() => void onRefresh()}
           />
         </View>
+      </View>
+    );
+  }
+
+  const renderTabletSplitBoard = useCallback(
+    (containerWidth: number) =>
+      journey ? (
+        <JourneyBoard
+          availableHeight={0}
+          containerWidth={containerWidth}
+          isCompactLayout={isCompactLayout}
+          onPressCurrentStep={onPressJourneyCta}
+          state={journey}
+        />
+      ) : null,
+    [isCompactLayout, journey, onPressJourneyCta],
+  );
+
+  if (useTabletSplitLayout) {
+    const analysisResumeItems = analysisState.isInProgress
+      ? analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
+          attemptId: item.attemptId,
+          examTitle: getExamTitle(item.examId),
+          noteCount: item.noteCount,
+          totalNotes: item.totalNotes,
+        }))
+      : [];
+
+    return (
+      <View style={styles.screen}>
+        {showBrandHeader ? <BrandHeader compact /> : null}
+        <JourneyHubSplitLayout
+          posterBanner={
+            <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
+          }
+          authNotice={
+            authNoticeMessage ? (
+              <AuthNotice
+                isCompactLayout={isCompactLayout}
+                message={authNoticeMessage}
+                onDismiss={onDismissAuthNotice}
+              />
+            ) : null
+          }
+          leftBoard={renderTabletSplitBoard}
+          rightPanel={
+            <JourneyHubRightPanel
+              analysisResumeItems={analysisResumeItems}
+              ctaLabel={journey!.ctaLabel}
+              isCompactLayout={isCompactLayout}
+              onPressCta={onPressJourneyCta}
+              onResumeAnalysis={onResumeAnalysis}
+              showAnalysisResume={showAnalysisResumeCard}
+              stepKey={journey!.currentStepKey}
+            />
+          }
+        />
       </View>
     );
   }
