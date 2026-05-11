@@ -18,47 +18,24 @@ import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-rev
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
-import { ChatSection } from './review-session/chat-section';
 import { DoneView } from './review-session/done-view';
 import { EntryRenderer } from './review-session/entry-renderer';
-import { InputSection } from './review-session/input-section';
 import { LoadingView } from './review-session/loading-view';
 import { Paper } from './review-session/paper-tokens';
 import { ProgressDots } from './review-session/progress-dots';
-import { RemedialFlow } from './review-session/remedial-flow';
 import type { ReviewEntry } from './review-session/review-entries';
 
 export function ReviewSessionScreenView({
   task,
   steps,
   currentStepIndex,
-  stepPhase,
-  selectedChoiceIndex,
-  userText,
-  chatMessages,
-  chatText,
-  isLoadingFeedback,
   sessionComplete,
-  hasInput,
-  selectedChoiceFeedback,
-  aiResponseCount,
-  isTextMode,
   onBack,
   onSelectChoice,
-  onChangeText,
   onPressNext,
-  onChangeChatText,
-  onSendChatMessage,
   onPressContinue,
   onPressRemember,
   onPressRetry,
-  remedialFlowState,
-  onPressRemedialPrimary,
-  onPressRemedialSecondary,
-  onPressRemedialChoice,
-  onChangeRemedialAiHelpInput,
-  onSendRemedialAiHelp,
-  onPressRemedialAiHelpAction,
   entries,
   freeText,
   fallbackText,
@@ -75,7 +52,6 @@ export function ReviewSessionScreenView({
   const isTablet = useIsTablet();
   const scrollRef = useRef<ScrollView>(null);
   const tabletInputScrollRef = useRef<ScrollView>(null);
-  const inputFadeAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   const autoScrollFlagRef = useRef(false);
@@ -94,26 +70,6 @@ export function ReviewSessionScreenView({
     scrollRef.current?.scrollToEnd({ animated: true });
     tabletInputScrollRef.current?.scrollToEnd({ animated: true });
   };
-
-  const handleInputFocus = () => {
-    autoScrollFlagRef.current = true;
-  };
-
-  useEffect(() => {
-    if (aiResponseCount >= 2) {
-      Animated.timing(inputFadeAnim, {
-        toValue: 0.35,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      inputFadeAnim.stopAnimation();
-      inputFadeAnim.setValue(1);
-    }
-    return () => {
-      inputFadeAnim.stopAnimation();
-    };
-  }, [aiResponseCount]);
 
   useEffect(() => {
     if (!task) {
@@ -182,10 +138,6 @@ export function ReviewSessionScreenView({
       </View>
     );
   }
-
-  const isLastStep = currentStepIndex === steps.length - 1;
-  const continueLabel = isLastStep ? '이해했어요, 완료' : '이해했어요, 다음으로';
-  const hasFeedback = selectedChoiceFeedback !== null;
 
   const entryHandlers = {
     step,
@@ -309,11 +261,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     gap: 14,
-  },
-
-  inputCard: {
-    paddingTop: 4,
-    gap: 10,
   },
 
   // 태블릿
