@@ -908,6 +908,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.11 21:07
+- 해시: `3d94373` (`3d94373352717c26088081735aae4c4d574949d8`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3d94373352717c26088081735aae4c4d574949d8
+- 작성자: 박기윤
+- 메시지: fix(modal): iPad 가로 모드에서 팝업이 세로로 회전되지 않도록 supportedOrientations 명시
+- 본문: React Native Modal은 supportedOrientations prop을 지정하지 않으면 iOS에서 / 기본값 ['portrait']로 동작하여, Info.plist가 iPad를 landscape-only로 잠가도 / 모달이 열리는 순간 portrait로 회전됨. / 영향 받던 사용자 시나리오: / - 약점 분석 > "당시 풀이" 버튼 (original-strokes-sheet) / - 약점 분석 뒤로가기 확인창 (diagnosis-exit-confirm-modal) / - 약점 연습 종료 확인창 (quiz-solve-exit-confirm-modal) / - 프로필 화면 모달 2개 (학년 변경, 계정 삭제) / 모든 모달에 portrait + landscape 전부 허용하도록 명시. / iPhone은 Info.plist가 portrait-only라 영향 없음. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.11 20:58
 - 해시: `49dad58` (`49dad5844427a17781594082483bddd6ca949408`)
 - 브랜치: main

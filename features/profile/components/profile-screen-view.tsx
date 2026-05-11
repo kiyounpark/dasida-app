@@ -611,6 +611,9 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.lg,
     gap: BrandSpacing.md,
     boxShadow: '0 20px 42px rgba(24, 32, 25, 0.16)',
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   modalTopBand: {
     position: 'absolute',
@@ -677,5 +680,8 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.lg,
     gap: BrandSpacing.md,
     boxShadow: '0 20px 42px rgba(24, 32, 25, 0.16)',
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
 });

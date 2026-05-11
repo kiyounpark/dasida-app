@@ -76,6 +76,9 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 12,
     boxShadow: '0 24px 44px rgba(25, 36, 28, 0.18)',
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   title: {
     fontFamily: FontFamilies.extrabold,
