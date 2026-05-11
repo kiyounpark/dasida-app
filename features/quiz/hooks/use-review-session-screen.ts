@@ -11,6 +11,7 @@ import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
 import { requestReviewFeedback, type ChatMessage } from '@/features/quiz/review-feedback';
 import type { WeaknessId } from '@/data/diagnosisMap';
+import { logEvent } from '@/features/analytics/log-event';
 import {
   getRemedialNode,
 } from '@/data/review-remedial-flows';
@@ -140,6 +141,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         createdAt: new Date().toISOString(),
       };
       setTask(mockTask);
+      logEvent('review_started', { task_id: mockTask.id });
       setSteps(getReviewThinkingSteps(mockTask.weaknessId));
       const mockStepCount = getReviewThinkingSteps(mockTask.weaknessId).length;
       firstAttemptCorrectRef.current = new Array(mockStepCount).fill(null);
@@ -156,6 +158,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       const found = tasks.find((t) => t.id === taskId) ?? null;
       setTask(found);
       if (found) {
+        logEvent('review_started', { task_id: found.id });
         setSteps(getReviewThinkingSteps(found.weaknessId));
         const foundStepCount = getReviewThinkingSteps(found.weaknessId).length;
         firstAttemptCorrectRef.current = new Array(foundStepCount).fill(null);
@@ -474,6 +477,12 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     const correctCount = results.filter((r) => r === true).length;
     const accuracy =
       questionCount > 0 ? Math.round((correctCount / questionCount) * 100) : 100;
+
+    logEvent('review_completed', {
+      task_id: task.id,
+      correct_count: correctCount,
+      total_count: questionCount,
+    });
 
     try {
       await recordAttempt({
