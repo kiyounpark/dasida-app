@@ -192,7 +192,6 @@ export function ReviewSessionScreenView({
         continueLabel={continueLabel}
         onSelectChoice={onSelectChoice}
         onPressNext={onPressNext}
-        onPressContinue={onPressContinue}
       />
     ) : stepPhase === 'remedial' && remedialFlowState ? (
       <RemedialFlow
