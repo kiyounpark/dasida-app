@@ -15,6 +15,7 @@ import { Dimensions, Platform } from 'react-native';
 
 import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -166,6 +167,11 @@ function AuthGateRedirector() {
   return null;
 }
 
+function ScreenTracker() {
+  useScreenTracking();
+  return null;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -190,6 +196,7 @@ export default function RootLayout() {
           <ExamSessionProvider>
             <SplashGate />
             <AuthGateRedirector />
+            <ScreenTracker />
             <Stack>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="sign-in" options={{ headerShown: false }} />
