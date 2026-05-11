@@ -12,7 +12,9 @@ interface Props {
 
 export function FallbackInputCard({ text, turn, interactive, onChangeText, onSubmit }: Props) {
   const canSubmit = interactive && text.trim().length > 0;
-  const hint = turn === 1 ? '한 번 더 이야기해볼래요?' : '마지막으로 한 번만 더 물어볼게요';
+  // Spec §3 시나리오 B: 2번째 입력 재활성 라벨 = "한 번 더 이야기해볼래요?".
+  // 1턴(remedial "모르겠어요" 진입 직후)은 처음 묻는 상황이므로 다른 카피 사용.
+  const hint = turn === 1 ? '어떤 부분이 헷갈리는지 적어볼래요?' : '한 번 더 이야기해볼래요?';
   return (
     <View style={[styles.card, !interactive && styles.locked]}>
       <Text style={styles.hint}>{hint}</Text>

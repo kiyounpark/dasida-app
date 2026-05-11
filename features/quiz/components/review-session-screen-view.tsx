@@ -189,6 +189,7 @@ export function ReviewSessionScreenView({
               style={{ backgroundColor: Paper.cream }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
               keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="automatic"
               automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
               onContentSizeChange={handleContentSizeChange}>
               {rightEntries.map((entry: ReviewEntry, idx: number) => (
@@ -213,6 +214,7 @@ export function ReviewSessionScreenView({
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
           automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
           onContentSizeChange={handleContentSizeChange}>
           <ProgressDots totalSteps={totalSteps} currentStepIndex={currentStepIndex} />

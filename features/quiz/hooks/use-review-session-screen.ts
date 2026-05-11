@@ -242,6 +242,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     ]);
 
     chatHistoryRef.current.push({ role: 'user', content: text });
+    // 응답이 어느 턴의 마무리인지를 결정하기 위해 현재 턴 카운트를 잡아둔다.
+    // (Scenario B: free-text 1턴 후 setFallbackTurnsUsed(1) 상태에서 진입 → 이 호출이 2번째 턴.
+    //  Scenario E: remedial "모르겠어요" 후 setFallbackTurnsUsed(0) 상태에서 진입 → 이 호출이 1번째 턴,
+    //   응답 후 fallback-input(turn=2)를 추가해 2턴까지 진행한다.)
+    const turnBeforeResponse = fallbackTurnsUsed;
 
     try {
       const result = await requestReviewFeedback({
@@ -252,12 +257,20 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       });
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
-      setFallbackTurnsUsed(2);
       aiHelpUsedPerStepRef.current[currentStepIndex] = true;
-      const isLast = currentStepIndex === steps.length - 1;
-      reviewEntries.appendEntries([
-        createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
-      ]);
+
+      if (turnBeforeResponse === 0) {
+        // 1턴 완료 → 2턴 입력창 오픈 (close 모드 마무리는 다음 submit에서)
+        setFallbackTurnsUsed(1);
+        reviewEntries.appendEntries([createFallbackInputEntry(2)]);
+      } else {
+        // 2턴 마무리 → done-cta로 step 종료
+        setFallbackTurnsUsed(turnBeforeResponse + 1);
+        const isLast = currentStepIndex === steps.length - 1;
+        reviewEntries.appendEntries([
+          createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+        ]);
+      }
     } catch {
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 다시 시도해 주세요.');
       // 실패 시 사용자가 재시도할 수 있도록 fallback-input 다시 활성화.

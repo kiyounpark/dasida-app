@@ -237,4 +237,184 @@ describe('entries-based flow', () => {
 
     spy.mockRestore();
   });
+
+  it('Scenario E (remedial 모르겠어요 → 폴백 챗 2턴): 1턴 응답 후 fallback-input(turn=2) 자동 추가', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: '폴백 1차' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') {
+      spy.mockRestore();
+      return;
+    }
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    // remedial "모르겠어요" → fallback-input(turn=1)
+    const fb1 = result.current.entries.find((e) => e.kind === 'fallback-input') as any;
+    expect(fb1).toMatchObject({ turn: 1, interactive: true });
+
+    // 1턴 제출 → 응답 후 fallback-input(turn=2) 등장 (done-cta가 아니어야 함)
+    act(() => result.current.onChangeFallbackText('잘 모르겠어요'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+
+    const fallbackInputs = result.current.entries.filter((e) => e.kind === 'fallback-input');
+    expect(fallbackInputs).toHaveLength(2);
+    expect(fallbackInputs[1]).toMatchObject({ turn: 2, interactive: true });
+    const hasDoneCta = result.current.entries.some((e) => e.kind === 'done-cta');
+    expect(hasDoneCta).toBe(false);
+
+    spy.mockRestore();
+  });
+
+  it('Scenario E: 2턴 응답 후에야 done-cta 추가', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValueOnce({ replyText: '폴백 1차' })
+      .mockResolvedValueOnce({ replyText: '폴백 2차 마무리' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') {
+      spy.mockRestore();
+      return;
+    }
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    // 1턴
+    act(() => result.current.onChangeFallbackText('1차'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+    // 2턴
+    act(() => result.current.onChangeFallbackText('2차'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+
+    const lastEntry = result.current.entries[result.current.entries.length - 1];
+    expect(lastEntry.kind).toBe('done-cta');
+
+    spy.mockRestore();
+  });
+});
+
+describe('entries-based flow — kind sequence snapshots (spec §3 scenarios)', () => {
+  const kindsOf = (entries: ReadonlyArray<{ kind: string }>) => entries.map((e) => e.kind);
+
+  it('Scenario C (정답)', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const correctIdx = result.current.steps[0].choices.findIndex((c) => c.correct);
+    await act(async () => { result.current.onSelectChoice(correctIdx); });
+
+    expect(kindsOf(result.current.entries)).toMatchInlineSnapshot(`
+[
+  "step-card",
+  "input-area",
+  "choice-bubble",
+  "feedback-banner",
+  "done-cta",
+]
+`);
+  });
+
+  it('Scenario D (오답 → remedial 첫 노드)', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    expect(kindsOf(result.current.entries)).toMatchInlineSnapshot(`
+[
+  "step-card",
+  "input-area",
+  "choice-bubble",
+  "feedback-banner",
+  "remedial-node",
+]
+`);
+  });
+
+  it('Scenario B (자유입력 → 폴백 챗 2턴 → done)', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValueOnce({ replyText: '1차' })
+      .mockResolvedValueOnce({ replyText: '2차' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    act(() => result.current.onChangeFreeText('첫 입력'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+    act(() => result.current.onChangeFallbackText('두 번째 입력'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+
+    expect(kindsOf(result.current.entries)).toMatchInlineSnapshot(`
+[
+  "step-card",
+  "input-area",
+  "user-bubble",
+  "ai-bubble",
+  "fallback-input",
+  "user-bubble",
+  "ai-bubble",
+  "done-cta",
+]
+`);
+    spy.mockRestore();
+  });
+
+  it('Scenario E (오답 → remedial → 모르겠어요 → 폴백 챗 2턴 → done)', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValueOnce({ replyText: '폴백 1차' })
+      .mockResolvedValueOnce({ replyText: '폴백 2차' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') {
+      spy.mockRestore();
+      return;
+    }
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    act(() => result.current.onChangeFallbackText('잘 모르겠어요'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+    act(() => result.current.onChangeFallbackText('한 번 더'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+
+    expect(kindsOf(result.current.entries)).toMatchInlineSnapshot(`
+[
+  "step-card",
+  "input-area",
+  "choice-bubble",
+  "feedback-banner",
+  "remedial-node",
+  "fallback-input",
+  "user-bubble",
+  "ai-bubble",
+  "fallback-input",
+  "user-bubble",
+  "ai-bubble",
+  "done-cta",
+]
+`);
+    spy.mockRestore();
+  });
 });
