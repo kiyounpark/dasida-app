@@ -23,6 +23,7 @@ import {
 } from '@/features/quiz/diagnosis-router';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { logDiagnosisCompleted } from '@/features/analytics/diagnosis-analytics';
+import { logEvent } from '@/features/analytics/log-event';
 
 import { markProblemDiagnosed } from '../exam-diagnosis-progress';
 import { useExamSession } from '../exam-session';
@@ -134,6 +135,10 @@ export function useExamDiagnosis(params: {
   );
 
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    logEvent('diagnosis_started', { source: 'exam' });
+  }, []);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
