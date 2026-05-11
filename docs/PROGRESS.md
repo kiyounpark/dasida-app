@@ -927,6 +927,15 @@
 - 메시지: feat(quiz-hub): 태블릿 가로에서 좌우 분할 레이아웃 적용
 - 본문: https://claude.ai/code/session_01X4j9A8AYzKorbcMknuQzZt
 
+### 커밋 2026.05.09 13:52
+- 해시: `296c86c` (`296c86c336bbd0a3b2a9264ac73df3926a3f2b65`)
+- 브랜치: claude/clever-hertz-f674b3
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/296c86c336bbd0a3b2a9264ac73df3926a3f2b65
+- 작성자: 박기윤
+- 메시지: feat(review-session): notebook tone reskin (11 states) + structural split
+
 ### 커밋 2026.05.09 01:29
 - 해시: `98b17c7` (`98b17c75fe6243b5ab1b34741b5ac95fd427b939`)
 - 브랜치: claude/nervous-ptolemy-70bf11

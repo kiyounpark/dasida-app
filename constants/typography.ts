@@ -4,6 +4,8 @@ export const FontFamilies = {
   semibold: 'SUIT-SemiBold',
   bold: 'SUIT-Bold',
   extrabold: 'SUIT-ExtraBold',
+  serifRegular: 'GowunBatang-Regular',
+  serifBold: 'GowunBatang-Bold',
 } as const;
 
 export const BrandTypography = {
