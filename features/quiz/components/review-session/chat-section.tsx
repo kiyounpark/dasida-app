@@ -1,3 +1,9 @@
+/**
+ * @deprecated 본 컴포넌트는 2026-05-09-review-session-remedial-step-design에 따라
+ * 보완 흐름(remedial-flow.tsx)으로 대체되었습니다. 모든 약점의 보완 콘텐츠가
+ * 완성되면 별도 cleanup PR에서 제거 예정입니다.
+ */
+
 import {
   Animated,
   Pressable,

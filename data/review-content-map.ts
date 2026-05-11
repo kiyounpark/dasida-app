@@ -4,9 +4,13 @@ export type Choice = {
   text: string;
   correct: boolean;
   feedback: string;
+  /** 오답 선택 시 진입할 보완 노드 그래프의 시작 노드 id. 정답 Choice는 없어야 함. */
+  remedialFlowStartNodeId?: string;
 };
 
 export type ThinkingStep = {
+  /** 약점 prefix를 포함한 고유 키. 예: "formula_understanding.step1" */
+  id: string;
   title: string;
   body: string;
   example?: string;
@@ -23,6 +27,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '판별식은 b^2와 4ac를 따로 계산한 뒤 빼야 한다는 흐름이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'discriminant_calculation.step1',
         title: 'a, b, c 부호 확인',
         body: 'ax²+bx+c에서 각 계수를 부호 포함해서 먼저 읽는다.',
         example: '예) 2x²−3x+1 → a=2, b=−3, c=1',
@@ -45,6 +50,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'discriminant_calculation.step2',
         title: 'b² 먼저, 4ac 나중',
         body: 'b²를 먼저 계산하고, 그 다음 4×a×c를 따로 계산한다.',
         example: '예) b=−3 → b²=9 / 4×2×1=8',
@@ -67,6 +73,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'discriminant_calculation.step3',
         title: '빼고 나서 판단',
         body: 'b²−4ac의 결과가 양수/0/음수인지 보고 근의 개수를 결론짓는다.',
         example: '9−8=1 > 0 → 서로 다른 두 실근',
@@ -94,33 +101,36 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '완전제곱식으로 바꿀 때 왜 x 계수의 절반을 제곱해야 하는지 기억나나요?',
     thinkingSteps: [
       {
+        id: 'formula_understanding.step1',
         title: 'x 계수의 절반 추출',
         body: 'ax²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.',
         example: '예) x²+6x+5 → b=6, b/2=3',
         choices: [
-          { text: 'b를 그대로 쓰면 된다', correct: false, feedback: 'b를 그대로 쓰면 완전제곱 꼴이 만들어지지 않아요. (x+?)²을 만들려면 b/2가 필요하다는 점에 다시 주목해봐요.' },
+          { text: 'b를 그대로 쓰면 된다', correct: false, feedback: 'b를 그대로 쓰면 완전제곱 꼴이 만들어지지 않아요. (x+?)²을 만들려면 b/2가 필요하다는 점에 다시 주목해봐요.', remedialFlowStartNodeId: 'fu_step1_A_explain' },
           { text: 'b/2를 먼저 계산해야 한다', correct: true, feedback: '맞아요! (x+b/2)²을 만들려면 b/2가 출발점이에요.' },
-          { text: '계수는 신경 쓰지 않아도 된다', correct: false, feedback: 'x 계수가 (x+?)²의 ?를 결정하니까, 계수를 빼놓고는 완전제곱이 만들어지지 않아요.' },
+          { text: '계수는 신경 쓰지 않아도 된다', correct: false, feedback: 'x 계수가 (x+?)²의 ?를 결정하니까, 계수를 빼놓고는 완전제곱이 만들어지지 않아요.', remedialFlowStartNodeId: 'fu_step1_C_explain' },
         ],
       },
       {
+        id: 'formula_understanding.step2',
         title: '(x + b/2)² 완성',
         body: '(x + b/2)²을 전개하면 x²+bx+(b/2)²이므로 원식에서 (b/2)²을 더하고 뺀다.',
         example: '예) x²+6x → (x+3)²−9',
         choices: [
           { text: '(b/2)²을 더하고 뺀다', correct: true, feedback: '맞아요! 더한 만큼 다시 빼야 원래 식과 같은 값이 유지돼요.' },
-          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.' },
-          { text: '상수항은 변하지 않는다', correct: false, feedback: '더한 만큼을 보상하지 않으면 식의 값이 달라져요. (b/2)²을 빼주는 단계가 빠지면 안 돼요.' },
+          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.', remedialFlowStartNodeId: 'fu_step2_B_explain' },
+          { text: '상수항은 변하지 않는다', correct: false, feedback: '더한 만큼을 보상하지 않으면 식의 값이 달라져요. (b/2)²을 빼주는 단계가 빠지면 안 돼요.', remedialFlowStartNodeId: 'fu_step2_C_explain' },
         ],
       },
       {
+        id: 'formula_understanding.step3',
         title: '상수항 정리',
         body: '원래 상수항 c와 −(b/2)²을 합산하여 완전제곱식 꼴로 완성한다.',
         example: '예) (x+3)²−9+5 = (x+3)²−4',
         choices: [
-          { text: '상수를 무시하고 계수만 본다', correct: false, feedback: '원래 상수항 c가 빠지면 식 자체가 달라져요. c와 −(b/2)²을 같이 모아야 마무리돼요.' },
+          { text: '상수를 무시하고 계수만 본다', correct: false, feedback: '원래 상수항 c가 빠지면 식 자체가 달라져요. c와 −(b/2)²을 같이 모아야 마무리돼요.', remedialFlowStartNodeId: 'fu_step3_A_explain' },
           { text: 'c − (b/2)²을 최종 상수로 쓴다', correct: true, feedback: '맞아요! 더했다가 뺀 만큼을 c와 함께 정리해야 등가식이 유지돼요.' },
-          { text: '상수항은 항상 0이다', correct: false, feedback: '원래 식의 c가 살아 있어야 해요. 0으로 놓으면 다른 식이 돼버려요.' },
+          { text: '상수항은 항상 0이다', correct: false, feedback: '원래 식의 c가 살아 있어야 해요. 0으로 놓으면 다른 식이 돼버려요.', remedialFlowStartNodeId: 'fu_step3_C_explain' },
         ],
       },
     ],
@@ -129,6 +139,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '대입 계산에서 음수 구간을 따로 끊어 보는 순서, 아직 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'calc_repeated_error.step1',
         title: '대입할 값을 식에서 먼저 정리',
         body: '대입 전에 계산할 값 x=a를 식에서 읽고, 음수인지 확인한다.',
         example: '예) f(−2) 구하기 → x=−2 확인 후 대입',
@@ -139,6 +150,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'calc_repeated_error.step2',
         title: '음수 구간 괄호 처리',
         body: '음수를 대입할 때 반드시 괄호로 감싸서 부호 실수를 막는다.',
         example: '예) f(x)=x²+2x → f(−2)=(−2)²+2(−2)=4−4=0',
@@ -149,6 +161,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'calc_repeated_error.step3',
         title: '항별 계산 후 합산',
         body: '각 항을 따로 계산한 뒤 마지막에 합산한다.',
         example: '예) (−2)²=4, 2(−2)=−4 → 4+(−4)=0',
@@ -164,6 +177,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '(x-a)^2+b 꼴에서 최솟값과 그 값을 갖는 x를 어떻게 나눠서 읽었는지 기억나나요?',
     thinkingSteps: [
       {
+        id: 'min_value_read_confusion.step1',
         title: '완전제곱식 꼴 확인',
         body: '식을 (x−a)²+b 꼴로 변환하거나 이미 그 꼴인지 확인한다.',
         example: '예) (x−3)²+2 → a=3, b=2',
@@ -174,6 +188,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'min_value_read_confusion.step2',
         title: '최솟값은 상수항 b',
         body: '(x−a)²≥0이므로 최솟값은 제곱 항이 0일 때의 값 b이다.',
         example: '예) (x−3)²+2 → 최솟값 = 2',
@@ -184,6 +199,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'min_value_read_confusion.step3',
         title: '최솟값이 되는 x는 a',
         body: '제곱 항이 0이 되려면 x=a여야 하므로, 최솟값을 갖는 x는 a이다.',
         example: '예) (x−3)²+2 → x=3일 때 최솟값 2',
@@ -199,6 +215,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '꼭짓점 x좌표를 구할 때 -b를 먼저 읽고 2a로 나누는 순서가 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'vertex_formula_memorization.step1',
         title: 'a, b 부호 포함 읽기',
         body: 'ax²+bx+c에서 a와 b를 부호 포함해서 읽는다.',
         example: '예) 2x²−6x+1 → a=2, b=−6',
@@ -209,6 +226,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'vertex_formula_memorization.step2',
         title: '꼭짓점 x좌표 = −b / 2a',
         body: '꼭짓점 x좌표는 −b를 2a로 나눈 값이다.',
         example: '예) a=2, b=−6 → x = −(−6)/(2×2) = 6/4 = 3/2',
@@ -219,6 +237,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'vertex_formula_memorization.step3',
         title: 'y좌표는 원래 식에 x 대입',
         body: '꼭짓점 x좌표를 원래 식에 대입하여 y좌표(최솟값/최댓값)를 구한다.',
         example: '예) f(3/2) = 2(3/2)²−6(3/2)+1 계산',
@@ -234,6 +253,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: 'ax^2+bx+c로 다시 쓸 때 계수를 부호까지 포함해 읽는 기준이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'coefficient_sign_confusion.step1',
         title: '각 항의 계수와 부호 함께 읽기',
         body: '식에서 x², x, 상수항 앞에 붙은 부호(+/−)를 계수의 일부로 읽는다.',
         example: '예) 3x²−5x+2 → a=3, b=−5, c=2',
@@ -244,6 +264,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'coefficient_sign_confusion.step2',
         title: 'a, b, c를 명시적으로 기록',
         body: '풀기 전에 a=_, b=_, c=_ 를 여백에 써두고 시작한다.',
         example: '예) a=3, b=−5, c=2 → 공식에 대입 준비',
@@ -254,6 +275,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'coefficient_sign_confusion.step3',
         title: '공식에 부호 포함 대입',
         body: '공식에 a, b, c를 괄호로 감싸서 대입하면 부호 실수를 막는다.',
         example: '예) −b/(2a) = −(−5)/(2×3) = 5/6',
@@ -269,6 +291,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: 'x^n을 미분할 때 지수는 앞으로, 지수는 하나 감소한다는 규칙이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'derivative_calculation.step1',
         title: 'xⁿ의 미분 규칙 확인',
         body: 'xⁿ을 미분하면 n·xⁿ⁻¹이다. 지수를 계수 앞으로 내리고 지수를 1 줄인다.',
         example: '예) x³ → 3x²',
@@ -279,6 +302,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'derivative_calculation.step2',
         title: '각 항을 따로 미분',
         body: '다항식은 각 항을 독립적으로 미분한 뒤 합산한다.',
         example: "예) f(x)=3x³+2x → f'(x)=9x²+2",
@@ -289,6 +313,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'derivative_calculation.step3',
         title: '상수항 미분 결과는 0',
         body: '상수항(숫자만 있는 항)을 미분하면 0이 된다.',
         example: "예) f(x)=x²+3 → f'(x)=2x+0=2x",
@@ -304,6 +329,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: "f'(x)=0으로 x를 구한 뒤 원함수에 대입하는 순서, 다시 떠올릴 수 있나요?",
     thinkingSteps: [
       {
+        id: 'solving_order_confusion.step1',
         title: "f'(x) = 0 방정식 세우기",
         body: "극값을 구하려면 먼저 도함수 f'(x)를 구하고 f'(x)=0으로 놓는다.",
         example: "예) f(x)=x³−3x → f'(x)=3x²−3=0",
@@ -314,6 +340,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'solving_order_confusion.step2',
         title: 'x 값 구하기',
         body: "f'(x)=0을 풀어서 극값 후보 x를 구한다.",
         example: '예) 3x²−3=0 → x²=1 → x=±1',
@@ -324,6 +351,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'solving_order_confusion.step3',
         title: '원함수에 대입해 극값 계산',
         body: '구한 x를 원래 f(x)에 대입하여 극댓값/극솟값을 구한다.',
         example: '예) f(1)=1−3=−2, f(−1)=−1+3=2',
@@ -339,6 +367,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: 'a의 부호를 보고 최댓값인지 최솟값인지 먼저 판단하는 기준이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'max_min_judgement_confusion.step1',
         title: 'a의 부호 확인',
         body: 'ax²+bx+c에서 a의 부호를 먼저 읽는다.',
         example: '예) −2x²+4x+1 → a=−2 (음수)',
@@ -349,6 +378,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'max_min_judgement_confusion.step2',
         title: 'a>0이면 최솟값, a<0이면 최댓값',
         body: 'a>0이면 아래로 볼록 → 꼭짓점이 최솟값. a<0이면 위로 볼록 → 꼭짓점이 최댓값.',
         example: '예) a=−2 → 위로 볼록 → 꼭짓점이 최댓값',
@@ -359,6 +389,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'max_min_judgement_confusion.step3',
         title: '꼭짓점의 y좌표가 극값',
         body: '판단 후 꼭짓점 x좌표를 구해 원래 식에 대입하여 실제 극값을 계산한다.',
         example: '예) a=−2, b=4 → x=1 → f(1)=−2+4+1=3 (최댓값)',
@@ -374,6 +405,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '완전제곱식에서 값과 위치를 나눠 보는 기본 해석부터 다시 떠올려볼까요?',
     thinkingSteps: [
       {
+        id: 'basic_concept_needed.step1',
         title: '완전제곱식이란?',
         body: '(x−a)²+b 꼴로 표현된 식. 제곱 부분은 항상 0 이상이다.',
         example: '예) (x−2)²+3 → 최솟값 3, x=2일 때',
@@ -384,6 +416,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'basic_concept_needed.step2',
         title: '값(b)과 위치(a) 구분',
         body: '극값은 b(상수항), 그 위치는 x=a이다. 두 가지를 혼동하지 않는다.',
         example: '예) (x−2)²+3 → 극값=3, 위치=x=2',
@@ -394,6 +427,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'basic_concept_needed.step3',
         title: 'a의 부호로 최대/최소 구분',
         body: 'a>0이면 (x−a)² 부분이 최소 0이므로 전체 최솟값이 b. a<0이면 최댓값.',
         example: '예) a>0 → 최솟값=b, a<0 → 최댓값=b',
@@ -409,6 +443,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '곱과 합을 동시에 보며 인수분해 두 수를 찾는 기준이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'factoring_pattern_recall.step1',
         title: '상수항 c와 x계수 b 동시에 읽기',
         body: 'x²+bx+c에서 b(합)와 c(곱)를 동시에 파악한다.',
         example: '예) x²+5x+6 → 합=5, 곱=6',
@@ -419,6 +454,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'factoring_pattern_recall.step2',
         title: '곱이 c, 합이 b인 두 정수 찾기',
         body: 'c를 만드는 두 수의 조합 중 합이 b가 되는 쌍을 찾는다.',
         example: '예) 곱=6, 합=5 → 2와 3 (2×3=6, 2+3=5)',
@@ -429,6 +465,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'factoring_pattern_recall.step3',
         title: '(x+p)(x+q) 꼴로 작성',
         body: '찾은 두 수 p, q로 (x+p)(x+q)를 쓰고 전개해서 검산한다.',
         example: '예) (x+2)(x+3) = x²+5x+6 ✓',
@@ -444,6 +481,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '공통부분을 먼저 묶거나 치환해서 단순화하는 출발점이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'complex_factoring_difficulty.step1',
         title: '공통인수 또는 공통부분 찾기',
         body: '모든 항에 공통으로 들어 있는 인수나 식을 먼저 찾아 앞으로 빼낸다.',
         example: '예) 2x²+4x = 2x(x+2)',
@@ -454,6 +492,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'complex_factoring_difficulty.step2',
         title: '복잡한 식은 치환으로 단순화',
         body: '반복되는 식 묶음을 A 등으로 치환하면 기본 인수분해 패턴으로 바뀐다.',
         example: '예) (x+1)²+3(x+1)+2 → A²+3A+2 → (A+1)(A+2)',
@@ -464,6 +503,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'complex_factoring_difficulty.step3',
         title: '치환 후 인수분해, 역치환',
         body: '치환한 식을 인수분해한 뒤 원래 식으로 되돌려 최종 답을 완성한다.',
         example: '예) (A+1)(A+2) → (x+2)(x+3)',
@@ -479,6 +519,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '근의 공식을 쓰기 전에 a, b, c를 부호 포함으로 확인하는 순서가 기억나나요?',
     thinkingSteps: [
       {
+        id: 'quadratic_formula_memorization.step1',
         title: 'a, b, c 부호 포함 읽기',
         body: 'ax²+bx+c에서 a, b, c를 부호 포함해서 먼저 기록한다.',
         example: '예) 2x²−3x−2 → a=2, b=−3, c=−2',
@@ -489,6 +530,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'quadratic_formula_memorization.step2',
         title: '판별식 b²−4ac 먼저 계산',
         body: '근의 공식을 쓰기 전에 b²−4ac를 따로 계산해서 근의 종류를 파악한다.',
         example: '예) b=−3, a=2, c=−2 → (−3)²−4(2)(−2)=9+16=25',
@@ -499,6 +541,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'quadratic_formula_memorization.step3',
         title: '근의 공식에 대입',
         body: 'x = (−b ± √(b²−4ac)) / 2a에 a, b, 판별식 값을 대입한다.',
         example: '예) x = (3 ± √25) / 4 = (3 ± 5) / 4 → x=2 또는 x=−1/2',
@@ -514,6 +557,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '근호 안 수를 소인수분해하고 제곱 묶음을 밖으로 꺼내는 기준이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'radical_simplification_error.step1',
         title: '소인수분해로 내부 분석',
         body: '근호 안의 수를 소인수분해하여 제곱 묶음을 찾는다.',
         example: '예) √72 → √(4×18) → √(4×9×2)',
@@ -524,6 +568,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'radical_simplification_error.step2',
         title: '제곱 묶음을 근호 밖으로',
         body: '√(a²×b) = a√b 규칙으로 완전제곱인 부분을 근호 밖으로 꺼낸다.',
         example: '예) √(4×9×2) = 2×3×√2 = 6√2',
@@ -534,6 +579,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'radical_simplification_error.step3',
         title: '계수끼리 곱해서 정리',
         body: '근호 밖으로 나온 수들을 모두 곱하여 최종 계수를 구한다.',
         example: '예) 6√2 → 계수 6, 근호 안 2',
@@ -549,6 +595,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '분모 유리화에서 같은 근호를 분자와 분모에 함께 곱하는 이유가 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'rationalization_error.step1',
         title: '분모의 근호 확인',
         body: '분모에 √a가 있으면 유리화가 필요한지 확인한다.',
         example: '예) 3/√2 → 분모에 √2 존재',
@@ -559,6 +606,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'rationalization_error.step2',
         title: '분자, 분모에 √a를 곱하기',
         body: '값을 바꾸지 않으려면 분자와 분모에 같은 √a를 곱해야 한다(×1과 동일).',
         example: '예) 3/√2 × √2/√2 = 3√2/2',
@@ -569,6 +617,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'rationalization_error.step3',
         title: '√a × √a = a로 분모 정리',
         body: '√a × √a = a이므로 분모가 유리수(정수)가 된다.',
         example: '예) √2 × √2 = 2 → 분모 2',
@@ -584,6 +633,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '괄호 앞 음수는 첫 항이 아니라 괄호 전체에 분배된다는 기준이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'expansion_sign_error.step1',
         title: '괄호 앞 부호 확인',
         body: '전개 전에 괄호 앞에 있는 부호(+/−)를 먼저 확인한다.',
         example: '예) −(2x+3) → 앞에 −1이 곱해진 것',
@@ -594,6 +644,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'expansion_sign_error.step2',
         title: '부호를 괄호 안 모든 항에 분배',
         body: '−(a+b) = −a−b처럼 부호가 괄호 안 모든 항에 분배된다.',
         example: '예) −(2x+3) = −2x−3',
@@ -604,6 +655,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'expansion_sign_error.step3',
         title: '전개 결과 검산',
         body: '전개한 결과를 다시 괄호로 묶어 원래 식과 같은지 확인한다.',
         example: '예) −2x−3을 묶으면 −(2x+3) → 원식과 동일 ✓',
@@ -619,6 +671,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '전개 뒤에는 차수별로 묶어서 합산해야 한다는 순서가 아직 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'like_terms_error.step1',
         title: '전개 후 모든 항 나열',
         body: '괄호를 모두 전개한 뒤 모든 항을 나열한다.',
         example: '예) (x+2)(x+3) = x²+3x+2x+6',
@@ -629,6 +682,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'like_terms_error.step2',
         title: '차수별로 묶기',
         body: '동류항끼리(같은 차수끼리) 묶어서 정리한다.',
         example: '예) x², 3x+2x, 6 → x²+5x+6',
@@ -639,6 +693,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'like_terms_error.step3',
         title: '계수 합산으로 정리',
         body: '묶인 동류항의 계수를 합산하여 최종 식을 완성한다.',
         example: '예) 3x+2x = (3+2)x = 5x',
@@ -654,6 +709,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: 'i^2가 보이면 바로 -1로 바꿔 쓰는 습관, 다시 떠올릴 수 있나요?',
     thinkingSteps: [
       {
+        id: 'imaginary_unit_confusion.step1',
         title: 'i² = −1 기억',
         body: '허수 단위 i는 i²=−1로 정의된다. 이 규칙 하나로 모든 허수 계산이 시작된다.',
         example: '예) i²=−1, i³=−i, i⁴=1',
@@ -664,6 +720,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'imaginary_unit_confusion.step2',
         title: 'i² 발견 즉시 −1로 교체',
         body: '식에서 i²가 나오는 순간 −1로 바꿔 쓴다. 미루지 않는다.',
         example: '예) 3i²+2i = 3(−1)+2i = −3+2i',
@@ -674,6 +731,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'imaginary_unit_confusion.step3',
         title: '실수부와 허수부 분리 확인',
         body: '교체 후 실수부(i 없는 항)와 허수부(i 있는 항)가 올바르게 분리됐는지 확인한다.',
         example: '예) −3+2i → 실수부 −3, 허수부 2i',
@@ -689,6 +747,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '복소수 계산은 전개 뒤 실수부와 허수부를 따로 모아 정리하는 흐름이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'complex_calc_error.step1',
         title: '괄호 전개 후 i² 처리',
         body: '복소수 곱셈은 괄호를 전개한 뒤 나타나는 i²를 −1로 교체한다.',
         example: '예) (2+i)(1+3i) = 2+6i+i+3i² = 2+7i−3',
@@ -699,6 +758,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'complex_calc_error.step2',
         title: '실수부끼리 합산',
         body: 'i 없는 항(실수부)끼리 모아서 합산한다.',
         example: '예) 2+(−3) = −1',
@@ -709,6 +769,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'complex_calc_error.step3',
         title: '허수부끼리 합산 후 최종 정리',
         body: 'i가 붙은 항(허수부)끼리 모아서 합산하여 최종 복소수를 완성한다.',
         example: '예) 6i+i = 7i → 최종: −1+7i',
@@ -724,6 +785,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '나머지정리에서는 x-a=0에서 a를 먼저 구해 P(a)에 넣는다는 기준이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'remainder_substitution_error.step1',
         title: 'x−a=0에서 a 구하기',
         body: '제수(나누는 식)가 x−a이면 x−a=0에서 x=a를 구한다.',
         example: '예) x−2로 나눌 때 → x=2',
@@ -734,6 +796,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'remainder_substitution_error.step2',
         title: 'P(a)에 a 대입하여 계산',
         body: '나머지는 P(a)이므로 구한 x=a를 다항식 P(x)에 대입하여 계산한다.',
         example: '예) P(x)=x²+3, a=2 → P(2)=4+3=7 (나머지=7)',
@@ -744,6 +807,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'remainder_substitution_error.step3',
         title: '결과가 나머지임을 확인',
         body: 'P(a)의 계산 결과가 P(x)를 (x−a)로 나눈 나머지이다.',
         example: '예) P(2)=7 → 나머지 7',
@@ -759,6 +823,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '조건을 식 두 개로 먼저 정리하고 연립으로 푸는 시작점이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'simultaneous_equation_error.step1',
         title: '조건을 식 두 개로 변환',
         body: '문제에서 주어진 두 조건을 각각 x, y에 대한 방정식으로 옮겨 쓴다.',
         example: '예) 합=10, 차=4 → x+y=10, x−y=4',
@@ -769,6 +834,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'simultaneous_equation_error.step2',
         title: '한 변수 소거',
         body: '두 식을 더하거나 빼서 변수 하나를 없애 단일 방정식으로 만든다.',
         example: '예) (x+y=10)+(x−y=4) → 2x=14 → x=7',
@@ -779,6 +845,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'simultaneous_equation_error.step3',
         title: '구한 값을 대입해 나머지 변수 계산',
         body: '구한 x를 한 식에 대입하여 y를 구하고, 두 식 모두 성립하는지 검산한다.',
         example: '예) x=7을 x+y=10에 대입 → y=3',
@@ -794,6 +861,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '경우의 수는 먼저 순서가 중요한지부터 확인해야 한다는 기준이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'counting_method_confusion.step1',
         title: '순서 중요 여부 먼저 판단',
         body: 'AB와 BA가 다른 경우인지(순열) 같은 경우인지(조합) 먼저 판단한다.',
         example: '예) 줄 세우기 → 순서 중요 → 순열, 모둠 구성 → 순서 무관 → 조합',
@@ -804,6 +872,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'counting_method_confusion.step2',
         title: '순열: nPr = n!/(n−r)!',
         body: '순서가 중요하면 nPr 공식으로 경우의 수를 구한다.',
         example: '예) 5명 중 3명 줄 세우기 → 5P3 = 5×4×3 = 60',
@@ -814,6 +883,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'counting_method_confusion.step3',
         title: '조합: nCr = n!/(r!(n−r)!)',
         body: '순서가 무관하면 nCr 공식으로 경우의 수를 구한다.',
         example: '예) 5명 중 3명 모둠 구성 → 5C3 = 10',
@@ -829,6 +899,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '경우를 셀 때 중복을 막으려면 직접 나열하거나 표로 확인해야 한다는 흐름이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'counting_overcounting.step1',
         title: '모든 경우 나열 또는 표 작성',
         body: '경우의 수가 적으면 직접 나열하고, 많으면 표로 정리하여 시각적으로 파악한다.',
         example: '예) 동전 2개: HH, HT, TH, TT → 4가지',
@@ -839,6 +910,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'counting_overcounting.step2',
         title: '중복 패턴 찾기',
         body: '나열된 경우 중 동일한 경우를 찾아 표시한다.',
         example: '예) AB와 BA가 같은 경우면 → 중복 1쌍 발생',
@@ -849,6 +921,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'counting_overcounting.step3',
         title: '중복 제거 후 최종 집계',
         body: '중복으로 셀 위험이 있는 경우를 제거하거나, 조합 공식으로 나눠서 최종 답을 낸다.',
         example: '예) 3명 중 2명 선택: 나열 6가지 ÷ 2 = 3가지 (조합)',
@@ -865,6 +938,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '직각삼각형을 찾아서 피타고라스 정리나 삼각비를 적용하는 흐름이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g1_geometry.step1',
         title: '직각삼각형 찾기',
         body: '도형 문제에서 가장 먼저 직각삼각형을 찾거나 보조선을 그어 만든다. 직각이 있어야 피타고라스 정리와 삼각비를 쓸 수 있다.',
         example: '예) 삼각형의 꼭짓점에서 밑변에 수선을 내리면 두 직각삼각형이 생긴다',
@@ -875,6 +949,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g1_geometry.step2',
         title: '피타고라스 정리 적용',
         body: '직각삼각형에서 a²+b²=c² (c: 빗변). 두 변을 알면 나머지 한 변을 구할 수 있다.',
         example: '예) 두 변이 3, 4이면 빗변=√(9+16)=5',
@@ -885,6 +960,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g1_geometry.step3',
         title: '삼각비로 변의 길이·넓이 계산',
         body: 'sinθ=대변/빗변, cosθ=밑변/빗변, tanθ=대변/밑변. 각도와 한 변을 알면 나머지 변을 구하고, 넓이=(1/2)×밑변×높이로 계산한다.',
         example: '예) 빗변=10, θ=30° → 높이=10×sin30°=5, 넓이=(1/2)×밑변×5',
@@ -902,6 +978,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '합집합과 교집합 계산에서 원소를 세는 순서를 다시 떠올려볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_set_operation.step1',
         title: '두 집합 원소 나열',
         body: 'A와 B의 원소를 각각 적고, 공통 원소를 먼저 찾는다.',
         example: '예) A={1,2,3}, B={2,3,4} → 공통: {2,3}',
@@ -912,6 +989,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_operation.step2',
         title: '합집합 구성',
         body: 'A∪B는 A와 B의 모든 원소를 중복 없이 모은 집합이다.',
         example: '예) A∪B = {1,2,3,4}',
@@ -922,6 +1000,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_operation.step3',
         title: 'n(A∪B) 공식 적용',
         body: 'n(A∪B) = n(A) + n(B) - n(A∩B)로 원소 개수를 계산한다.',
         example: '예) n(A)=3, n(B)=3, n(A∩B)=2 → n(A∪B)=4',
@@ -937,6 +1016,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '여집합을 구할 때 전체집합 U를 기준으로 생각하는 흐름을 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_set_complement.step1',
         title: '전체집합 U 확인',
         body: '문제에서 전체집합 U가 무엇인지 먼저 명시적으로 적는다.',
         example: '예) U={1,2,3,4,5,6}',
@@ -947,6 +1027,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_complement.step2',
         title: 'A의 원소 제거',
         body: 'A^c = U에서 A의 원소를 모두 제거한 나머지 집합이다.',
         example: '예) A={2,4} → A^c = {1,3,5,6}',
@@ -957,6 +1038,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_complement.step3',
         title: '검증',
         body: 'A와 A^c를 합하면 반드시 U가 되어야 한다.',
         example: '예) A∪A^c = {1,2,3,4,5,6} = U 확인',
@@ -972,6 +1054,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '원소 개수 공식 n(A∪B) = n(A)+n(B)-n(A∩B)를 단계별로 적용해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_set_count.step1',
         title: 'n(A∩B) 먼저',
         body: '공식에서 빼야 하는 n(A∩B)를 먼저 구한다.',
         example: '예) A={1,2,3,4}, B={3,4,5} → n(A∩B)=2',
@@ -982,6 +1065,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_count.step2',
         title: '공식 대입',
         body: 'n(A∪B) = n(A)+n(B)-n(A∩B)에 각 값을 대입한다.',
         example: '예) 4+3-2 = 5',
@@ -992,6 +1076,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_set_count.step3',
         title: '검증',
         body: '결과가 max(n(A), n(B)) 이상이고 n(A)+n(B) 이하인지 확인한다.',
         example: '예) n(A∪B)=5: 4≤5≤7 ✓',
@@ -1007,6 +1092,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '역·이·대우 중 어느 것인지 헷갈릴 때는 표를 직접 채워보는 게 가장 빠릅니다.',
     thinkingSteps: [
       {
+        id: 'g2_prop_contrapositive.step1',
         title: 'p→q 원래 명제 확인',
         body: '주어진 명제에서 가설 p와 결론 q를 분리한다.',
         example: '예) "짝수이면 정수이다" → p:짝수, q:정수',
@@ -1017,6 +1103,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_contrapositive.step2',
         title: '역·이·대우 정의 적용',
         body: '역: q→p, 이: ~p→~q, 대우: ~q→~p',
         example: '역: "정수이면 짝수이다" / 대우: "정수가 아니면 짝수가 아니다"',
@@ -1027,6 +1114,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_contrapositive.step3',
         title: '참·거짓 관계',
         body: '원명제와 대우는 항상 참·거짓이 같다. 역과 이도 서로 참·거짓이 같다.',
         example: '원명제 참 → 대우 참 / 역은 별도 판단',
@@ -1042,6 +1130,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '필요조건·충분조건은 화살표 방향으로 정리하면 헷갈리지 않아요.',
     thinkingSteps: [
       {
+        id: 'g2_prop_necessary_sufficient.step1',
         title: 'p→q 화살표 방향 확인',
         body: 'p→q가 참이면 p는 q의 충분조건, q는 p의 필요조건이다.',
         example: '예) "정삼각형 → 이등변삼각형": 정삼각형은 이등변삼각형의 충분조건',
@@ -1052,6 +1141,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_necessary_sufficient.step2',
         title: '역방향 q→p 확인',
         body: 'q→p도 참이면 p와 q는 서로 필요충분조건(동치)이다.',
         example: '예) 이등변삼각형이 정삼각형은 아니므로 q→p는 거짓 → 충분조건만',
@@ -1062,6 +1152,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_necessary_sufficient.step3',
         title: '결론 도출',
         body: '화살표 방향을 정리하여 필요조건·충분조건·필요충분조건 중 하나를 선택한다.',
         example: 'p→q만 참: p는 충분조건, q는 필요조건',
@@ -1077,6 +1168,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '"모든"과 "어떤" 명제를 판별할 때는 반례 또는 예시 하나로 판단할 수 있어요.',
     thinkingSteps: [
       {
+        id: 'g2_prop_quantifier.step1',
         title: '명제 유형 파악',
         body: '"모든 x에 대해 P(x)"는 전칭 명제, "어떤 x에 대해 P(x)"는 존재 명제이다.',
         example: '"모든 실수 x에 대해 x²≥0" vs "어떤 실수 x에 대해 x²<0"',
@@ -1087,6 +1179,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_quantifier.step2',
         title: '거짓/참 판별 전략',
         body: '전칭 명제는 반례 하나로 거짓. 존재 명제는 예시 하나로 참.',
         example: '"모든 정수 n에서 n²은 짝수" → n=1: 1²=1(홀수) → 반례 → 거짓',
@@ -1097,6 +1190,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_prop_quantifier.step3',
         title: '부정 명제 확인',
         body: '"모든 x에 대해 P(x)"의 부정은 "어떤 x에 대해 ~P(x)"이다.',
         example: '"모든 x: x²≥0"의 부정 → "어떤 x: x²<0"',
@@ -1112,6 +1206,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '삼각함수 단위원에서 좌표를 읽는 방법을 다시 떠올려볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_trig_unit_circle.step1',
         title: '단위원의 기본',
         body: '각도 θ에서 단위원 위 점의 좌표는 (cosθ, sinθ)이다.',
         example: '예) θ=90° → (cos90°, sin90°) = (0, 1)',
@@ -1122,6 +1217,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_unit_circle.step2',
         title: '사분면 부호 판단',
         body: '각도가 속한 사분면에 따라 sin·cos·tan의 부호가 결정된다.',
         example: '2사분면: sinθ>0, cosθ<0, tanθ<0',
@@ -1132,6 +1228,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_unit_circle.step3',
         title: '특수각 값 적용',
         body: '30°·45°·60°의 sin·cos값을 기억에서 꺼내 대입한다.',
         example: 'sin30°=1/2, cos30°=√3/2, sin45°=√2/2',
@@ -1147,6 +1244,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '삼각방정식 풀이에서 범위 설정이 핵심입니다. 단위원에서 해를 모두 찾아볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_trig_equation_range.step1',
         title: '기본 해 구하기',
         body: '단위원에서 주어진 삼각함수 값을 만족하는 각도를 먼저 찾는다.',
         example: 'sinθ=1/2 → θ=30° (1사분면 기본각)',
@@ -1157,6 +1255,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_equation_range.step2',
         title: '대칭 해 추가',
         body: '단위원의 대칭성으로 같은 값을 갖는 각도를 추가로 찾는다.',
         example: 'sinθ=1/2 → 1사분면 30°, 2사분면 150° (두 해)',
@@ -1167,6 +1266,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_equation_range.step3',
         title: '주어진 범위로 필터링',
         body: '찾은 해 중 문제에서 주어진 θ의 범위에 해당하는 것만 최종 답으로 선택한다.',
         example: '0≤θ<2π → 30°(=π/6), 150°(=5π/6) 모두 포함',
@@ -1182,6 +1282,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '삼각함수 항등식을 적용하기 전에 sin·cos·tan의 관계를 먼저 적어볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_trig_identity.step1',
         title: '기본 항등식 확인',
         body: 'sin²θ+cos²θ=1, tanθ=sinθ/cosθ를 먼저 적는다.',
         example: 'sin²θ+cos²θ=1 → cos²θ=1-sin²θ로 변환 가능',
@@ -1192,6 +1293,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_identity.step2',
         title: '치환 방향 결정',
         body: '식에서 sin과 cos 중 하나로 통일할지, 아니면 tan으로 변환할지 결정한다.',
         example: '1-cos²θ → sin²θ로 치환하여 단순화',
@@ -1202,6 +1304,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_trig_identity.step3',
         title: '변환 후 계산',
         body: '치환 후 식을 정리하고 최종 값을 계산한다.',
         example: 'sin²θ+sinθ·cosθ = sinθ(sinθ+cosθ)로 인수분해',
@@ -1217,6 +1320,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '고차 다항식 인수분해에서는 인수정리를 활용해 근을 먼저 찾아볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_poly_factoring.step1',
         title: '상수항 약수 대입',
         body: '상수항의 약수를 x에 대입하여 f(x)=0이 되는 값을 찾는다.',
         example: 'f(x)=x³-6x²+11x-6에서 f(1)=0 → (x-1)이 인수',
@@ -1227,6 +1331,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_poly_factoring.step2',
         title: '조립제법으로 나누기',
         body: '찾은 근 a로 조립제법 또는 다항식 나눗셈을 수행한다.',
         example: 'f(x) ÷ (x-1) = x²-5x+6',
@@ -1237,6 +1342,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_poly_factoring.step3',
         title: '몫 추가 인수분해',
         body: '나눗셈의 몫을 다시 인수분해하여 완전히 분해한다.',
         example: 'x²-5x+6 = (x-2)(x-3) → f(x)=(x-1)(x-2)(x-3)',
@@ -1252,6 +1358,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '나머지정리: f(x)를 (x-a)로 나눈 나머지는 f(a)입니다. 이 흐름을 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_poly_remainder.step1',
         title: '나누는 식의 근 확인',
         body: '(x-a)로 나눌 때 나머지는 f(a). 근 a를 먼저 구한다.',
         example: '(x-2)로 나누면 근=2 → 나머지=f(2)',
@@ -1262,6 +1369,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_poly_remainder.step2',
         title: 'f(a) 계산',
         body: 'x=a를 f(x)에 대입하여 나머지 값을 계산한다.',
         example: 'f(x)=x³-2x+1에서 f(2)=8-4+1=5 → 나머지=5',
@@ -1272,6 +1380,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_poly_remainder.step3',
         title: '인수정리 활용',
         body: 'f(a)=0이면 (x-a)는 f(x)의 인수. 이를 활용해 인수분해와 연결한다.',
         example: 'f(2)=0 → (x-2)는 f(x)의 인수 → 조립제법으로 분해',
@@ -1287,6 +1396,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '방정식을 세우는 단계에서 조건을 하나씩 식으로 옮기는 연습을 해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_eq_setup.step1',
         title: '구하는 값 정의',
         body: '문제에서 구하는 것을 x(또는 다른 변수)로 놓고 명시적으로 적는다.',
         example: '"두 수의 합이 10" → 작은 수를 x, 큰 수를 10-x로 놓기',
@@ -1297,6 +1407,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_eq_setup.step2',
         title: '조건을 식으로 변환',
         body: '문제의 각 조건을 변수를 이용한 등식·부등식으로 변환한다.',
         example: '"두 수의 곱이 21" → x(10-x)=21',
@@ -1307,6 +1418,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_eq_setup.step3',
         title: '풀기 + 검증',
         body: '방정식을 풀어 x 값을 구하고, 원래 조건에 대입하여 검증한다.',
         example: 'x(10-x)=21 → x=3 또는 7. 조건 확인: 3×7=21 ✓',
@@ -1322,6 +1434,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '무리식 간소화는 소인수분해에서 시작합니다. 순서를 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_radical_simplify.step1',
         title: '근호 안 소인수분해',
         body: '근호 안의 수를 소인수분해하여 제곱수를 찾는다.',
         example: '√18 = √(2·3²) → 3²을 밖으로 꺼낼 수 있다',
@@ -1332,6 +1445,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_radical_simplify.step2',
         title: '제곱수 밖으로 꺼내기',
         body: '√(a²·b) = a√b 규칙으로 제곱수의 제곱근을 근호 밖으로 꺼낸다.',
         example: '√18 = √(9·2) = 3√2',
@@ -1342,6 +1456,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_radical_simplify.step3',
         title: '동류항 합산',
         body: '간소화 후 √a 형태가 같은 항끼리 계수를 더하거나 뺀다.',
         example: '3√2 - 2√2 + √2 = (3-2+1)√2 = 2√2',
@@ -1357,6 +1472,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '분모 유리화는 켤레식을 곱하는 것부터 시작합니다. 단계별로 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_radical_rationalize.step1',
         title: '분모 유형 확인',
         body: '분모가 √a이면 √a를, a+√b이면 켤레 a-√b를 곱한다.',
         example: '1/(2+√3) → 켤레: (2-√3)',
@@ -1367,6 +1483,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_radical_rationalize.step2',
         title: '분모 전개',
         body: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다.',
         example: '(2+√3)(2-√3) = 4-3 = 1',
@@ -1377,6 +1494,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_radical_rationalize.step3',
         title: '분자 전개 후 정리',
         body: '분자도 전개하고, 분모가 유리수가 된 분수를 최종 정리한다.',
         example: '1·(2-√3)/1 = 2-√3',
@@ -1392,6 +1510,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: "미분으로 최댓·최솟값을 찾으려면 f'(x)=0 → 증감표 → 극값 결정의 3단계가 핵심입니다.",
     thinkingSteps: [
       {
+        id: 'g2_diff_application.step1',
         title: "f'(x) 구하기",
         body: "f(x)를 미분하여 f'(x)를 구한다. 각 항을 항별로 미분한다.",
         example: "f(x)=x³-3x+2 → f'(x)=3x²-3",
@@ -1402,6 +1521,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_diff_application.step2',
         title: "f'(x)=0 풀기 + 증감표",
         body: "f'(x)=0이 되는 x를 구하고, 그 주위에서 f'(x)의 부호 변화로 증감표를 작성한다.",
         example: "3x²-3=0 → x=±1. x<-1: +, -1~1: -, x>1: + → 극대 x=-1, 극소 x=1",
@@ -1412,6 +1532,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_diff_application.step3',
         title: '극값 계산 + 최종 판단',
         body: '극대·극소에서 f(x)값을 계산하고, 주어진 범위가 있으면 끝점도 확인한다.',
         example: 'f(-1)=4(극대), f(1)=0(극소). 범위 [-2,2]이면 f(-2), f(2)도 확인',
@@ -1427,6 +1548,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '부정적분 ∫xⁿdx = xⁿ⁺¹/(n+1)에서 지수와 계수를 어떻게 처리하는지 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_integral_basic.step1',
         title: '부정적분 공식 적용',
         body: '∫xⁿdx = xⁿ⁺¹/(n+1)+C (n≠-1). 지수를 1 올리고, 올린 지수로 나눈다.',
         example: '∫(3x²-2x+1)dx = x³-x²+x+C',
@@ -1437,6 +1559,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_integral_basic.step2',
         title: '계수 처리 확인',
         body: '∫axⁿdx = a·xⁿ⁺¹/(n+1). 계수 a는 그대로 유지한 뒤 새 지수로 나눈다.',
         example: '∫6x²dx = 6·x³/3 = 2x³ (계수 6을 올린 지수 3으로 나눔)',
@@ -1447,6 +1570,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_integral_basic.step3',
         title: '미분으로 역검증',
         body: '구한 F(x)를 미분하면 원래 f(x)가 나와야 한다. 틀렸다면 적분 공식 적용에 실수가 있는 것이다.',
         example: '∫3x²dx = x³+C → (x³)′=3x² ✓',
@@ -1462,6 +1586,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '부정적분은 구했는데 끝값 대입에서 실수했나요? 아래 끝값이 0이 아닐 때를 집중적으로 확인해봅시다.',
     thinkingSteps: [
       {
+        id: 'g2_integral_definite.step1',
         title: '아래 끝값도 반드시 대입',
         body: '[F(x)]ₐᵇ = F(b)-F(a). 아래 끝값 a가 0이 아닌 경우에도 F(a)를 반드시 계산하여 뺀다.',
         example: '[x³]₁³ → F(3)=27, F(1)=1 → 27-1=26. (F(1)을 빼지 않으면 27로 오답)',
@@ -1472,6 +1597,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_integral_definite.step2',
         title: 'F(b), F(a) 각각 별도 계산',
         body: 'F(b)와 F(a)를 한꺼번에 계산하면 부호 실수가 생긴다. 두 값을 먼저 따로 구한 뒤 뺀다.',
         example: '[2x³]₁² → F(2)=16, F(1)=2 → 16-2=14. (한꺼번에 계산 시 부호 실수 위험)',
@@ -1482,6 +1608,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_integral_definite.step3',
         title: '빼기 부호 전파 확인',
         body: 'F(a)에 여러 항이 있을 때 빼기 부호가 모든 항에 적용되는지 확인한다.',
         example: '[x²+2x]₁³ = (9+6)-(1+2) = 15-3 = 12. F(1)=3을 빠뜨리면 15로 오답 ✓',
@@ -1497,6 +1624,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '경우의 수 방법 선택은 순서·중복·독립 여부로 결정합니다. 체크해볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_counting_method.step1',
         title: '순서 있음/없음 판단',
         body: '선택 순서가 중요하면 순열(P), 순서 무관하면 조합(C)을 쓴다.',
         example: '"회장·부회장 선출" → 순서 있음 → ₅P₂=20',
@@ -1507,6 +1635,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_counting_method.step2',
         title: '독립/배타 사건 판단',
         body: '두 사건이 동시에 일어나면 곱의 법칙, 어느 한 쪽만 일어나면 합의 법칙을 쓴다.',
         example: '"A 또는 B" → 합의 법칙 / "A 그리고 B" → 곱의 법칙',
@@ -1517,6 +1646,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_counting_method.step3',
         title: '공식 대입',
         body: '결정한 방법으로 ₙPr = n!/(n-r)! 또는 ₙCr = n!/(r!(n-r)!)를 계산한다.',
         example: '₅P₂ = 5×4 = 20 / ₅C₂ = 5×4/2 = 10',
@@ -1532,6 +1662,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '중복 계산 오류는 포함-배제 원리로 해결합니다. 겹치는 경우를 명시적으로 찾아볼게요.',
     thinkingSteps: [
       {
+        id: 'g2_counting_overcounting.step1',
         title: '각 경우의 수 계산',
         body: '조건 A, B 각각의 경우의 수를 따로 구한다.',
         example: '"3의 배수 또는 5의 배수": A=3의 배수 개수, B=5의 배수 개수',
@@ -1542,6 +1673,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_counting_overcounting.step2',
         title: '겹치는 경우 찾기',
         body: 'A와 B 조건을 동시에 만족하는 경우(A∩B)를 구한다.',
         example: '"3과 5의 공배수 = 15의 배수": n(A∩B) 계산',
@@ -1552,6 +1684,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_counting_overcounting.step3',
         title: '포함-배제 원리 적용',
         body: 'n(A∪B) = n(A)+n(B)-n(A∩B)로 중복을 제거한다.',
         example: 'n(A)=33, n(B)=20, n(A∩B)=6 → 33+20-6=47',
@@ -1567,6 +1700,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '이차부등식 풀이는 포물선 그래프 방향으로 해의 범위를 결정합니다.',
     thinkingSteps: [
       {
+        id: 'g2_inequality_range.step1',
         title: '이차방정식 풀어 근 구하기',
         body: '부등식을 =으로 바꿔 이차방정식의 두 근 α, β를 구한다 (α<β).',
         example: 'x²-3x-4=0 → (x-4)(x+1)=0 → x=-1, x=4',
@@ -1577,6 +1711,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_inequality_range.step2',
         title: '포물선 방향과 해 범위 결정',
         body: 'a>0일 때: >0이면 x<α 또는 x>β, <0이면 α<x<β',
         example: 'x²-3x-4<0, a=1>0 → -1<x<4 (근의 안쪽)',
@@ -1587,6 +1722,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_inequality_range.step3',
         title: '부등호 방향 최종 확인',
         body: '등호 포함(≤,≥) 여부에 따라 등호를 포함하거나 제외한다.',
         example: '<이면 등호 제외: -1<x<4 / ≤이면 등호 포함: -1≤x≤4',
@@ -1602,6 +1738,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '합성함수나 역함수의 정의역·치역은 단계별로 범위를 추적해야 합니다.',
     thinkingSteps: [
       {
+        id: 'g2_function_domain.step1',
         title: '내부 함수의 치역 확인',
         body: '합성함수 f∘g에서 g(x)의 치역이 f의 정의역 안에 있어야 한다.',
         example: 'g(x)=x² (치역: x≥0), f(x)=√x (정의역: x≥0) → 문제없음',
@@ -1612,6 +1749,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_function_domain.step2',
         title: '역함수의 정의역·치역 교환',
         body: '역함수 f⁻¹의 정의역 = f의 치역, f⁻¹의 치역 = f의 정의역이다.',
         example: 'f: [1,3]→[2,8] 이면 f⁻¹: [2,8]→[1,3]',
@@ -1622,6 +1760,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g2_function_domain.step3',
         title: '함수 성립 조건 확인',
         body: '하나의 x에 대해 f(x) 값이 오직 하나여야 함수이다.',
         example: 'f(x)=±√x는 x=4에서 f=2, -2 두 값 → 함수가 아님',
@@ -1637,6 +1776,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '각 항을 독립적으로 미분하는 순서가 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g3_diff.step1',
         title: '항별 미분 규칙',
         body: 'xⁿ을 미분하면 nxⁿ⁻¹이 된다. 각 항을 독립적으로 미분한 뒤 합산한다.',
         example: '예) f(x)=3x²+2x+1 → f\'(x)=6x+2',
@@ -1647,6 +1787,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_diff.step2',
         title: '합성함수 체인룰',
         body: 'f(g(x))를 미분할 때는 f\'(g(x))·g\'(x)로 바깥 함수를 먼저 미분하고 안쪽 함수의 미분을 곱한다.',
         example: '예) f(x)=(x²+1)³ → f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
@@ -1657,6 +1798,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_diff.step3',
         title: '곱의 미분',
         body: '(f·g)\'=f\'g+fg\'로, 첫 번째 함수를 미분한 뒤 두 번째 함수를 곱하고, 첫 번째 함수에 두 번째 함수의 미분을 곱해서 더한다.',
         example: '예) f(x)=x²·sinx → f\'(x)=2x·sinx+x²·cosx',
@@ -1672,6 +1814,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '∫xⁿdx 기본 공식부터 확인해볼게요.',
     thinkingSteps: [
       {
+        id: 'g3_integral.step1',
         title: '부정적분 기본 공식',
         body: '∫xⁿdx = xⁿ⁺¹/(n+1)+C (n≠-1). 지수에 1을 더하고 그 수로 나눈 뒤 적분상수 C를 붙인다.',
         example: '예) ∫x³dx = x⁴/4+C',
@@ -1682,6 +1825,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_integral.step2',
         title: '정적분 계산',
         body: '∫ₐᵇf(x)dx = [F(x)]ₐᵇ = F(b)-F(a). 부정적분 F(x)를 구한 뒤 위 끝 값을 대입해서 아래 끝 값을 뺀다.',
         example: '예) ∫₀²x²dx = [x³/3]₀² = 8/3-0 = 8/3',
@@ -1692,6 +1836,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_integral.step3',
         title: '넓이와 부호 처리',
         body: '곡선과 x축 사이의 넓이는 f(x)<0인 구간에서 절댓값을 취해야 한다. 구간을 나눠 계산하거나 |f(x)|를 적분한다.',
         example: '예) ∫₋₁¹(x²-1)dx=-4/3이지만 넓이=4/3',
@@ -1707,6 +1852,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '등차인지 등비인지 먼저 판단하는 흐름이 떠오르나요?',
     thinkingSteps: [
       {
+        id: 'g3_sequence.step1',
         title: '등차수열 일반항',
         body: '공차 d가 일정하면 등차수열이다. 일반항 aₙ=a₁+(n-1)d로 구한다.',
         example: '예) a₁=2, d=3 → a₅=2+4×3=14',
@@ -1717,6 +1863,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_sequence.step2',
         title: '등비수열 일반항',
         body: '공비 r이 일정하면 등비수열이다. 일반항 aₙ=a₁·rⁿ⁻¹로 구한다.',
         example: '예) a₁=3, r=2 → a₄=3·2³=24',
@@ -1727,6 +1874,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_sequence.step3',
         title: '합 공식 적용',
         body: '등차수열 합 Sₙ=n(a₁+aₙ)/2, 등비수열 합 Sₙ=a₁(rⁿ-1)/(r-1) (r≠1). r=1이면 Sₙ=na₁.',
         example: '예) 등차: 1+2+…+10=10×11/2=55',
@@ -1742,6 +1890,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '지수법칙과 로그 성질 중 어느 것을 먼저 확인하나요?',
     thinkingSteps: [
       {
+        id: 'g3_log_exp.step1',
         title: '지수법칙 정리',
         body: 'aˣ·aʸ=aˣ⁺ʸ, aˣ÷aʸ=aˣ⁻ʸ, (aˣ)ʸ=aˣʸ. 같은 밑끼리만 지수를 더하거나 뺄 수 있다.',
         example: '예) 2³×2⁴=2⁷=128',
@@ -1752,6 +1901,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_log_exp.step2',
         title: '로그 성질 — 곱과 나눗셈',
         body: 'logₐ(bc)=logₐb+logₐc, logₐ(b/c)=logₐb-logₐc. 곱은 로그의 합, 나눗셈은 로그의 차.',
         example: '예) log₂8+log₂4=log₂32=5',
@@ -1762,6 +1912,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_log_exp.step3',
         title: '밑 변환 공식',
         body: 'logₐb=logc(b)/logc(a). 계산기나 표가 없을 때 밑을 바꿔 계산할 수 있다.',
         example: '예) log₂8=log10(8)/log10(2)=3',
@@ -1777,6 +1928,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '단위원에서 sin·cos 값을 읽는 흐름을 다시 볼게요.',
     thinkingSteps: [
       {
+        id: 'g3_trig.step1',
         title: '대표각 sin·cos·tan 값',
         body: '단위원에서 x좌표=cosθ, y좌표=sinθ. 0°→(1,0), 30°→(√3/2,1/2), 45°→(√2/2,√2/2), 60°→(1/2,√3/2), 90°→(0,1).',
         example: '예) sin60°=√3/2, cos60°=1/2, tan60°=√3',
@@ -1787,6 +1939,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_trig.step2',
         title: '삼각함수 항등식',
         body: 'sin²θ+cos²θ=1, tanθ=sinθ/cosθ. 이 두 가지가 모든 변환의 기본이다.',
         example: '예) sinθ=3/5이면 cosθ=±4/5 (sin²+cos²=1 이용)',
@@ -1797,6 +1950,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_trig.step3',
         title: '각도 변환 공식',
         body: 'sin(90°-θ)=cosθ, cos(90°-θ)=sinθ, sin(180°-θ)=sinθ, cos(180°-θ)=-cosθ.',
         example: '예) sin120°=sin(180°-60°)=sin60°=√3/2',
@@ -1812,6 +1966,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '0/0 꼴을 만났을 때 첫 번째 할 일이 뭔지 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g3_limit.step1',
         title: '0/0 꼴 — 인수분해 후 약분',
         body: '분자·분모가 모두 0이 되면 공통인수가 있다는 뜻이다. 인수분해해서 약분한 뒤 x값을 대입한다.',
         example: '예) lim(x→2)(x²-4)/(x-2)=lim(x→2)(x+2)=4',
@@ -1822,6 +1977,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_limit.step2',
         title: '∞/∞ 꼴 — 최고차항으로 나누기',
         body: '분자·분모를 최고차항으로 나눠 극한을 구한다. 차수 비교: 분자>분모이면 ±∞, 같으면 계수비, 분자<분모이면 0.',
         example: '예) lim(x→∞)(2x²+1)/(x²-3)=2/1=2',
@@ -1832,6 +1988,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_limit.step3',
         title: '부정형 해소 후 대입',
         body: '0/0, ∞/∞ 꼴이 아니면 바로 x값을 대입한다. 해소 후에도 부정형이 남으면 유리화 또는 분모 통분을 시도한다.',
         example: '예) lim(x→1)(x+2)=3 (부정형 아님, 바로 대입)',
@@ -1847,6 +2004,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '포물선·타원·쌍곡선 표준형을 구분하는 기준을 확인할게요.',
     thinkingSteps: [
       {
+        id: 'g3_conic.step1',
         title: '이차곡선 표준형 구분',
         body: '포물선: y²=4px 또는 x²=4py. 타원: x²/a²+y²/b²=1 (a≠b). 쌍곡선: x²/a²-y²/b²=1. 부호 차이가 핵심.',
         example: '예) x²/9+y²/4=1 → 타원 (두 항 모두 덧셈)',
@@ -1857,6 +2015,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_conic.step2',
         title: '초점 좌표',
         body: '포물선 y²=4px: 초점(p,0). 타원 x²/a²+y²/b²=1(a>b): c²=a²-b²→초점(±c,0). 쌍곡선 x²/a²-y²/b²=1: c²=a²+b²→초점(±c,0).',
         example: '예) x²/25+y²/16=1 → c²=25-16=9 → c=3 → 초점(±3,0)',
@@ -1867,6 +2026,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_conic.step3',
         title: '쌍곡선 점근선',
         body: '쌍곡선 x²/a²-y²/b²=1의 점근선은 y=±(b/a)x. 쌍곡선은 이 두 직선에 한없이 가까워지지만 만나지는 않는다.',
         example: '예) x²/4-y²/9=1 → 점근선 y=±(3/2)x',
@@ -1882,6 +2042,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '순열과 조합 중 어느 것을 쓸지 먼저 판단하는 법을 볼게요.',
     thinkingSteps: [
       {
+        id: 'g3_counting.step1',
         title: '순서 유무 판단',
         body: '문제에서 순서·배열·줄 세우기가 나오면 순열(Permutation). 선택·뽑기·팀 구성이면 조합(Combination).',
         example: '예) 5명 중 회장·부회장 선출 → 순서 있음 → 순열',
@@ -1892,6 +2053,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_counting.step2',
         title: 'P(n,r)와 C(n,r) 계산',
         body: 'P(n,r)=n!/(n-r)!. C(n,r)=n!/r!(n-r)!=P(n,r)/r!. C(n,r)=C(n,n-r) 대칭성도 자주 활용한다.',
         example: '예) P(5,2)=5×4=20, C(5,2)=20/2=10',
@@ -1902,6 +2064,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_counting.step3',
         title: '중복이 있는 경우',
         body: '중복 허용 순열: nʳ. 중복 조합: H(n,r)=C(n+r-1,r). 중복이 포함되는지 문제에서 꼭 확인한다.',
         example: '예) 주사위 2번 → 순서 있고 중복 허용 → 6²=36',
@@ -1917,6 +2080,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '조건부확률 P(A|B)를 구하는 순서가 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g3_probability.step1',
         title: '여사건 활용',
         body: '"적어도 하나", "~이 아닌" 표현이 나오면 여사건을 먼저 생각한다. P(Aᶜ)=1-P(A).',
         example: '예) 동전 3번 중 앞면이 적어도 1번 → 1-P(모두 뒷면)=1-1/8=7/8',
@@ -1927,6 +2091,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_probability.step2',
         title: '조건부확률 공식',
         body: 'P(A|B)=P(A∩B)/P(B). "B가 일어났을 때 A의 확률"은 전체를 B로 좁히고 그 안에서 A∩B를 본다.',
         example: '예) P(A∩B)=0.3, P(B)=0.5 → P(A|B)=0.6',
@@ -1937,6 +2102,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_probability.step3',
         title: '독립 사건 판단',
         body: 'P(A∩B)=P(A)·P(B)이면 A와 B는 독립. 독립이면 P(A|B)=P(A)가 성립한다.',
         example: '예) P(A)=0.4, P(B)=0.3, P(A∩B)=0.12 → 0.4×0.3=0.12 → 독립',
@@ -1952,6 +2118,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '벡터의 내적과 크기 계산 순서가 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g3_vector.step1',
         title: '벡터 크기 계산',
         body: '벡터 a⃗=(a₁,a₂)의 크기는 |a⃗|=√(a₁²+a₂²). 각 성분을 제곱해서 더한 뒤 제곱근을 취한다.',
         example: '예) a⃗=(3,4) → |a⃗|=√(9+16)=√25=5',
@@ -1962,6 +2129,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_vector.step2',
         title: '벡터 내적 계산',
         body: 'a⃗·b⃗=a₁b₁+a₂b₂. 같은 위치의 성분끼리 곱한 뒤 더한다. 결과는 스칼라(수)이다.',
         example: '예) a⃗=(2,3), b⃗=(4,1) → a⃗·b⃗=2×4+3×1=8+3=11',
@@ -1972,6 +2140,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_vector.step3',
         title: '내적과 각도 관계',
         body: 'a⃗·b⃗=|a⃗||b⃗|cosθ. 내적이 0이면 두 벡터는 수직(θ=90°). 이 공식으로 두 벡터가 이루는 각을 구할 수 있다.',
         example: '예) a⃗·b⃗=0 → cosθ=0 → θ=90° → 수직',
@@ -1987,6 +2156,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '정사영 넓이를 구할 때 이면각을 먼저 찾는 흐름이 기억나나요?',
     thinkingSteps: [
       {
+        id: 'g3_space_geometry.step1',
         title: '공간에서 직선·평면 위치 관계',
         body: '공간에서 두 직선은 평행·교차·꼬임 중 하나다. 꼬인 위치는 같은 평면 위에 없고 만나지도 않는 경우이다.',
         example: '예) 직육면체에서 AB와 CD는 꼬인 위치일 수 있다',
@@ -1997,6 +2167,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_space_geometry.step2',
         title: '이면각 구하기',
         body: '두 평면이 이루는 각(이면각)은 교선에 수직인 두 반직선이 이루는 각이다. 보조선을 그어 직각삼각형을 만들어 구한다.',
         example: '예) 정사면체에서 한 면과 밑면이 이루는 각 → 교선에 수직인 선 작도 후 cosθ 계산',
@@ -2007,6 +2178,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_space_geometry.step3',
         title: '정사영 넓이 계산',
         body: '도형을 평면에 정사영하면 넓이 S\'=S·cosθ (θ: 두 평면이 이루는 각). 이면각θ를 먼저 구한 뒤 원래 넓이에 cosθ를 곱한다.',
         example: '예) 넓이 10인 도형, 이면각 60° → 정사영 넓이=10×cos60°=5',
@@ -2022,6 +2194,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     heroPrompt: '표준화 Z=(X-μ)/σ 공식을 적용하는 흐름을 볼게요.',
     thinkingSteps: [
       {
+        id: 'g3_statistics.step1',
         title: '이항분포 평균·분산',
         body: '이항분포 B(n,p)에서 평균 μ=np, 분산 σ²=npq (q=1-p). n이 크면 정규분포로 근사한다.',
         example: '예) B(100,0.4) → μ=40, σ²=24, σ=√24=2√6',
@@ -2032,6 +2205,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_statistics.step2',
         title: 'Z 표준화 계산',
         body: 'X~N(μ,σ²)이면 Z=(X-μ)/σ~N(0,1). X를 Z로 변환한 뒤 표준정규분포표를 읽는다.',
         example: '예) X~N(50,4²), P(X≥54)=P(Z≥(54-50)/4)=P(Z≥1)',
@@ -2042,6 +2216,7 @@ const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         ],
       },
       {
+        id: 'g3_statistics.step3',
         title: '정규분포표 읽기',
         body: '표는 P(0≤Z≤z) 값을 준다. P(Z≥z)=0.5-P(0≤Z≤z), P(Z≤z)=0.5+P(0≤Z≤z). 대칭성을 이용한다.',
         example: '예) P(0≤Z≤1.5)=0.4332이면 P(Z≥1.5)=0.5-0.4332=0.0668',

@@ -24,6 +24,7 @@ import { InputSection } from './review-session/input-section';
 import { LoadingView } from './review-session/loading-view';
 import { Paper } from './review-session/paper-tokens';
 import { ProgressDots } from './review-session/progress-dots';
+import { RemedialFlow } from './review-session/remedial-flow';
 import { StepCard } from './review-session/step-card';
 
 export function ReviewSessionScreenView({
@@ -50,6 +51,13 @@ export function ReviewSessionScreenView({
   onPressContinue,
   onPressRemember,
   onPressRetry,
+  remedialFlowState,
+  onPressRemedialPrimary,
+  onPressRemedialSecondary,
+  onPressRemedialChoice,
+  onChangeRemedialAiHelpInput,
+  onSendRemedialAiHelp,
+  onPressRemedialAiHelpAction,
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
@@ -58,14 +66,20 @@ export function ReviewSessionScreenView({
   const inputFadeAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  // 채팅 길이 증가를 렌더 중 감지 → onContentSizeChange가 새 콘텐츠 레이아웃 직후
+  // 채팅/보완 entries 길이 증가를 렌더 중 감지 → onContentSizeChange가 새 콘텐츠 레이아웃 직후
   // 정확한 끝으로 스크롤 (참고: commit f96f2df).
   const autoScrollFlagRef = useRef(false);
   const prevChatLengthRef = useRef(0);
+  const prevRemedialEntriesLengthRef = useRef(0);
+  const remedialEntriesLength = remedialFlowState?.entries.length ?? 0;
   if (chatMessages.length > prevChatLengthRef.current) {
     autoScrollFlagRef.current = true;
   }
+  if (remedialEntriesLength > prevRemedialEntriesLengthRef.current) {
+    autoScrollFlagRef.current = true;
+  }
   prevChatLengthRef.current = chatMessages.length;
+  prevRemedialEntriesLengthRef.current = remedialEntriesLength;
 
   const handleContentSizeChange = () => {
     if (!autoScrollFlagRef.current) return;
@@ -171,20 +185,31 @@ export function ReviewSessionScreenView({
       <InputSection
         step={step}
         selectedChoiceIndex={selectedChoiceIndex}
-        userText={userText}
-        isTextMode={isTextMode}
         hasInput={hasInput}
         hasFeedback={hasFeedback}
         isLoadingFeedback={isLoadingFeedback}
         selectedChoiceFeedback={selectedChoiceFeedback}
         continueLabel={continueLabel}
         onSelectChoice={onSelectChoice}
-        onChangeText={onChangeText}
         onPressNext={onPressNext}
         onPressContinue={onPressContinue}
-        onInputFocus={handleInputFocus}
+      />
+    ) : stepPhase === 'remedial' && remedialFlowState ? (
+      <RemedialFlow
+        entries={remedialFlowState.entries}
+        aiHelpInput={remedialFlowState.aiHelpState?.input ?? ''}
+        aiHelpLoading={remedialFlowState.aiHelpState?.isLoading ?? false}
+        aiHelpError={remedialFlowState.aiHelpState?.error ?? ''}
+        onPressExplainPrimary={onPressRemedialPrimary}
+        onPressExplainSecondary={onPressRemedialSecondary}
+        onPressCheckOption={onPressRemedialChoice}
+        onPressCheckDontKnow={onPressRemedialSecondary}
+        onChangeAiHelpInput={onChangeRemedialAiHelpInput}
+        onSubmitAiHelp={onSendRemedialAiHelp}
+        onPressAiHelpAction={onPressRemedialAiHelpAction}
       />
     ) : (
+      // @deprecated 보완 흐름 도입 후 도달 불가 경로. cleanup PR에서 제거 예정.
       <ChatSection
         chatMessages={chatMessages}
         chatText={chatText}
