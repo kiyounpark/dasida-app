@@ -16,6 +16,7 @@ import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-review-session-screen';
 import { useIsTablet } from '@/hooks/use-is-tablet';
+import { PageContainer } from '@/components/layout/page-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 import { DoneView } from './review-session/done-view';
@@ -167,6 +168,7 @@ export function ReviewSessionScreenView({
     const leftEntries = entries.filter((e: ReviewEntry) => e.kind === 'step-card');
     const rightEntries = entries.filter((e: ReviewEntry) => e.kind !== 'step-card');
     return (
+      <PageContainer variant="split" style={styles.screen}>
       <View style={styles.screen}>
         {appBar}
         <ProgressDots
@@ -201,6 +203,7 @@ export function ReviewSessionScreenView({
           </KeyboardAvoidingView>
         </View>
       </View>
+      </PageContainer>
     );
   }
 
