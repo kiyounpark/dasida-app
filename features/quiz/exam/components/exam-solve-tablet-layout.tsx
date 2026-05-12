@@ -15,6 +15,7 @@ import {
   SPLIT_LEFT_RATIO_MAX as LEFT_RATIO_MAX,
   SPLIT_LEFT_RATIO_MIN as LEFT_RATIO_MIN,
 } from '@/features/quiz/exam/components/tablet-layout-constants';
+import { PageContainer } from '@/components/layout/page-container';
 import type { UseScratchpadResult } from '@/features/quiz/exam/hooks/use-scratchpad';
 import {
   loadSplitRatio,
@@ -78,9 +79,10 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
   const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
 
   return (
-    <View style={styles.root}>
-      {header}
-      <View style={styles.split}>
+    <PageContainer variant="split" style={styles.root}>
+      <View style={styles.root}>
+        {header}
+        <View style={styles.split}>
         <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
 
         <View style={styles.dividerWrap}>
@@ -120,7 +122,8 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
           />
         </View>
       </View>
-    </View>
+      </View>
+    </PageContainer>
   );
 }
 
