@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
     paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
   },
   heroCard: {
     backgroundColor: '#293B27',

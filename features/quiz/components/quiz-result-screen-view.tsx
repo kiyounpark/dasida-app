@@ -232,7 +232,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: BrandSpacing.lg,
     paddingTop: BrandSpacing.md,
     paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
   },
   fallbackBody: {
     flex: 1,

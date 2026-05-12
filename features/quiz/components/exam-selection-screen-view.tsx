@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: BrandSpacing.lg,
     paddingTop: BrandSpacing.xs,
     paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
   },
   containerCompact: {
     paddingTop: 4,

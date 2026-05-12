@@ -6,14 +6,11 @@ export function resolvePageContainerStyle(
   isTablet: boolean,
 ): ViewStyle {
   if (!isTablet) return {};
-  if (variant === 'split') {
-    return { paddingHorizontal: BrandLayout.tablet.split.pagePaddingH };
-  }
+  if (variant === 'split') return {};
   const preset = BrandLayout.tablet[variant];
   return {
     width: '100%',
     maxWidth: preset.contentMaxWidth,
     alignSelf: 'center',
-    paddingHorizontal: preset.pagePaddingH,
   };
 }

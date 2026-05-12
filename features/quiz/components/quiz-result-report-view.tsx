@@ -182,11 +182,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 32,
-    gap: 14,
   },
   containerCompact: {
     paddingHorizontal: 14,
-    gap: 12,
   },
   statusCard: {
     borderWidth: 1,
