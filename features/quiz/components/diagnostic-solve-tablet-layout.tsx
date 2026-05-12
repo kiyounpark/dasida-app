@@ -19,6 +19,7 @@ import {
   loadSplitRatio,
   saveSplitRatio,
 } from '@/features/quiz/exam/storage/scratchpad-split-ratio-store';
+import { PageContainer } from '@/components/layout/page-container';
 import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 
 type Props = {
@@ -95,9 +96,10 @@ export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }
   const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
 
   return (
-    <View style={styles.root}>
-      {header}
-      <View style={styles.split}>
+    <PageContainer variant="split" style={styles.root}>
+      <View style={styles.root}>
+        {header}
+        <View style={styles.split}>
         <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
 
         <View style={styles.dividerWrap}>
@@ -137,7 +139,8 @@ export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }
           />
         </View>
       </View>
-    </View>
+      </View>
+    </PageContainer>
   );
 }
 
