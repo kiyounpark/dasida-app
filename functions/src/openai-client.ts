@@ -200,6 +200,129 @@ export async function requestDiagnosisExplanationFromOpenAI({
   };
 }
 
+const REVIEW_ROUTER_RESULT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    predictedNodeId: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 1 },
+    candidateNodeIds: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 6,
+      items: { type: 'string' },
+    },
+    reason: { type: 'string', minLength: 1, maxLength: 160 },
+  },
+  required: ['predictedNodeId', 'confidence', 'candidateNodeIds', 'reason'],
+} as const;
+
+const REVIEW_ROUTER_SYSTEM_PROMPT = [
+  '당신은 한국어 수학 복습 라우터입니다.',
+  '학생의 자유 입력을 읽고 학생이 어느 보충 학습 노드를 봐야 하는지 분류하세요.',
+  '복습 중인 약점과 현재 단계 맥락을 참고하여 학생이 어디서 막혔는지 판단하세요.',
+  '반드시 후보 노드 id 중 하나를 predictedNodeId로 반환하세요.',
+  '매칭이 명확하지 않으면 predictedNodeId 를 "fallback" 으로 반환하세요.',
+  'candidateNodeIds 는 가능성이 높은 순서대로 1~6개만 반환하세요. 후보 중 fallback 은 포함하지 마세요.',
+  '정답이나 풀이를 직접 알려주지 마세요. reason 은 내부 디버그용으로 짧고 건조하게 작성하세요.',
+].join('\n');
+
+function buildReviewRouterCandidateContext(
+  candidates: { id: string; summary: string; triggers: string[] }[],
+) {
+  return candidates
+    .map((node) => {
+      const exampleLines = node.triggers
+        .slice(0, 5)
+        .map((utterance) => `    · ${utterance}`)
+        .join('\n');
+
+      return [
+        `- id: ${node.id}`,
+        `  요지: ${node.summary}`,
+        '  유도 발화:',
+        exampleLines || '    · (없음)',
+      ].join('\n');
+    })
+    .join('\n');
+}
+
+function buildReviewRouterUserPrompt(body: {
+  weaknessId: string;
+  stepTitle: string;
+  stepBody: string;
+  selectedChoiceText?: string;
+  selectedChoiceCorrect?: boolean;
+  userText: string;
+  candidateNodes: { id: string; summary: string; triggers: string[] }[];
+}) {
+  const lines = [
+    `약점 id: ${body.weaknessId}`,
+    `현재 단계 제목: ${body.stepTitle}`,
+    `현재 단계 본문: ${body.stepBody}`,
+  ];
+
+  if (body.selectedChoiceText) {
+    lines.push(`학생이 고른 선택지: ${body.selectedChoiceText} (정답: ${body.selectedChoiceCorrect ? '예' : '아니오'})`);
+  } else {
+    lines.push('학생이 고른 선택지: (없음)');
+  }
+
+  lines.push(`학생 자유 입력: ${body.userText}`);
+  lines.push('');
+  lines.push('후보 노드 설명:');
+  lines.push(buildReviewRouterCandidateContext(body.candidateNodes));
+
+  return lines.join('\n');
+}
+
+export async function requestReviewRouterFromOpenAI({
+  apiKey,
+  model,
+  body,
+}: {
+  apiKey: string;
+  model: string;
+  body: {
+    weaknessId: string;
+    stepTitle: string;
+    stepBody: string;
+    selectedChoiceText?: string;
+    selectedChoiceCorrect?: boolean;
+    userText: string;
+    candidateNodes: { id: string; summary: string; triggers: string[] }[];
+  };
+}): Promise<{ result: unknown; model: string; responseId: string }> {
+  const client = new OpenAI({ apiKey });
+  const completion = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: REVIEW_ROUTER_SYSTEM_PROMPT },
+      { role: 'user', content: buildReviewRouterUserPrompt(body) },
+    ],
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'review_router_result',
+        schema: REVIEW_ROUTER_RESULT_SCHEMA,
+        strict: true,
+      },
+    },
+    temperature: 0,
+  });
+
+  const content = completion.choices[0]?.message?.content?.trim();
+  if (!content) {
+    throw new Error('OpenAI review-router response did not include content');
+  }
+
+  return {
+    result: JSON.parse(content),
+    model: completion.model,
+    responseId: completion.id,
+  };
+}
+
 export async function requestReviewFeedbackFromOpenAI({
   apiKey,
   model,
