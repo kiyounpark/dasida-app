@@ -18,66 +18,53 @@ import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-rev
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
-import { ChatSection } from './review-session/chat-section';
 import { DoneView } from './review-session/done-view';
-import { InputSection } from './review-session/input-section';
+import { EntryRenderer } from './review-session/entry-renderer';
 import { LoadingView } from './review-session/loading-view';
 import { Paper } from './review-session/paper-tokens';
 import { ProgressDots } from './review-session/progress-dots';
-import { RemedialFlow } from './review-session/remedial-flow';
-import { StepCard } from './review-session/step-card';
+import type { ReviewEntry } from './review-session/review-entries';
 
 export function ReviewSessionScreenView({
   task,
   steps,
   currentStepIndex,
-  stepPhase,
-  selectedChoiceIndex,
-  userText,
-  chatMessages,
-  chatText,
-  isLoadingFeedback,
   sessionComplete,
-  hasInput,
-  selectedChoiceFeedback,
-  aiResponseCount,
-  isTextMode,
   onBack,
   onSelectChoice,
-  onChangeText,
   onPressNext,
-  onChangeChatText,
-  onSendChatMessage,
   onPressContinue,
   onPressRemember,
   onPressRetry,
-  remedialFlowState,
-  onPressRemedialPrimary,
-  onPressRemedialSecondary,
-  onPressRemedialChoice,
-  onChangeRemedialAiHelpInput,
-  onSendRemedialAiHelp,
-  onPressRemedialAiHelpAction,
+  entries,
+  freeText,
+  fallbackText,
+  onChangeFreeText,
+  onSubmitFreeText,
+  onChangeFallbackText,
+  onSubmitFallback,
+  onRemedialExplainPrimary,
+  onRemedialExplainSecondary,
+  onRemedialCheckOption,
+  onRemedialCheckDontKnow,
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
   const scrollRef = useRef<ScrollView>(null);
   const tabletInputScrollRef = useRef<ScrollView>(null);
-  const inputFadeAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  // 보완 flow entries 추가 시 auto-scroll 트리거
-  // onContentSizeChange가 새 콘텐츠 레이아웃 직후 정확한 끝으로 스크롤
+  // 새 entry 추가 시 auto-scroll 트리거.
+  // entries 모델로 통합된 이후 remedialFlowState 가 사라졌으므로 전체 entries.length 를 추적한다.
   const autoScrollFlagRef = useRef(false);
-  const prevEntryCountRef = useRef(remedialFlowState?.entries.length ?? 0);
+  const prevEntryCountRef = useRef(entries.length);
 
   useEffect(() => {
-    const currentEntryCount = remedialFlowState?.entries.length ?? 0;
-    if (currentEntryCount > prevEntryCountRef.current) {
+    if (entries.length > prevEntryCountRef.current) {
       autoScrollFlagRef.current = true;
     }
-    prevEntryCountRef.current = currentEntryCount;
-  }, [remedialFlowState?.entries.length]);
+    prevEntryCountRef.current = entries.length;
+  }, [entries.length]);
 
   const handleContentSizeChange = () => {
     if (!autoScrollFlagRef.current) return;
@@ -85,26 +72,6 @@ export function ReviewSessionScreenView({
     scrollRef.current?.scrollToEnd({ animated: true });
     tabletInputScrollRef.current?.scrollToEnd({ animated: true });
   };
-
-  const handleInputFocus = () => {
-    autoScrollFlagRef.current = true;
-  };
-
-  useEffect(() => {
-    if (aiResponseCount >= 2) {
-      Animated.timing(inputFadeAnim, {
-        toValue: 0.35,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      inputFadeAnim.stopAnimation();
-      inputFadeAnim.setValue(1);
-    }
-    return () => {
-      inputFadeAnim.stopAnimation();
-    };
-  }, [aiResponseCount]);
 
   useEffect(() => {
     if (!task) {
@@ -174,54 +141,31 @@ export function ReviewSessionScreenView({
     );
   }
 
-  const isLastStep = currentStepIndex === steps.length - 1;
-  const continueLabel = isLastStep ? '이해했어요, 완료' : '이해했어요, 다음으로';
-  const hasFeedback = selectedChoiceFeedback !== null;
+  const entryHandlers = {
+    step,
+    currentStepIndex,
+    totalSteps,
+    freeText,
+    fallbackText,
+    onSelectChoice,
+    onChangeFreeText,
+    onSubmitFreeText,
+    onChangeFallbackText,
+    onSubmitFallback,
+    onPressDoneCta: onPressNext,
+    onRemedialExplainPrimary,
+    onRemedialExplainSecondary,
+    onRemedialCheckOption,
+    onRemedialCheckDontKnow,
+  };
 
-  const inputCardContent =
-    stepPhase === 'input' ? (
-      <InputSection
-        step={step}
-        selectedChoiceIndex={selectedChoiceIndex}
-        hasInput={hasInput}
-        hasFeedback={hasFeedback}
-        isLoadingFeedback={isLoadingFeedback}
-        selectedChoiceFeedback={selectedChoiceFeedback}
-        continueLabel={continueLabel}
-        onSelectChoice={onSelectChoice}
-        onPressNext={onPressNext}
-      />
-    ) : stepPhase === 'remedial' && remedialFlowState ? (
-      <RemedialFlow
-        entries={remedialFlowState.entries}
-        aiHelpInput={remedialFlowState.aiHelpState?.input ?? ''}
-        aiHelpLoading={remedialFlowState.aiHelpState?.isLoading ?? false}
-        aiHelpError={remedialFlowState.aiHelpState?.error ?? ''}
-        onPressExplainPrimary={onPressRemedialPrimary}
-        onPressExplainSecondary={onPressRemedialSecondary}
-        onPressCheckOption={onPressRemedialChoice}
-        onPressCheckDontKnow={onPressRemedialSecondary}
-        onChangeAiHelpInput={onChangeRemedialAiHelpInput}
-        onSubmitAiHelp={onSendRemedialAiHelp}
-        onPressAiHelpAction={onPressRemedialAiHelpAction}
-      />
-    ) : (
-      // @deprecated 보완 흐름 도입 후 도달 불가 경로. cleanup PR에서 제거 예정.
-      <ChatSection
-        chatMessages={chatMessages}
-        chatText={chatText}
-        isLoadingFeedback={isLoadingFeedback}
-        aiResponseCount={aiResponseCount}
-        continueLabel={continueLabel}
-        inputFadeAnim={inputFadeAnim}
-        onChangeChatText={onChangeChatText}
-        onSendChatMessage={onSendChatMessage}
-        onPressContinue={onPressContinue}
-        onInputFocus={handleInputFocus}
-      />
-    );
+  const renderedEntries = entries.map((entry: ReviewEntry, idx: number) => (
+    <EntryRenderer key={`${entry.kind}-${idx}`} entry={entry} {...entryHandlers} />
+  ));
 
   if (isTablet) {
+    const leftEntries = entries.filter((e: ReviewEntry) => e.kind === 'step-card');
+    const rightEntries = entries.filter((e: ReviewEntry) => e.kind !== 'step-card');
     return (
       <View style={styles.screen}>
         {appBar}
@@ -234,7 +178,9 @@ export function ReviewSessionScreenView({
           <ScrollView
             style={[styles.tabletLeft, styles.tabletDivider]}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}>
-            <StepCard step={step} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
+            {leftEntries.map((entry: ReviewEntry, idx: number) => (
+              <EntryRenderer key={`left-${idx}`} entry={entry} {...entryHandlers} />
+            ))}
           </ScrollView>
           <KeyboardAvoidingView
             style={styles.tabletRight}
@@ -245,9 +191,12 @@ export function ReviewSessionScreenView({
               style={{ backgroundColor: Paper.cream }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
               keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="automatic"
               automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
               onContentSizeChange={handleContentSizeChange}>
-              <View style={styles.inputCard}>{inputCardContent}</View>
+              {rightEntries.map((entry: ReviewEntry, idx: number) => (
+                <EntryRenderer key={`right-${idx}`} entry={entry} {...entryHandlers} />
+              ))}
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
@@ -267,11 +216,11 @@ export function ReviewSessionScreenView({
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
           automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
           onContentSizeChange={handleContentSizeChange}>
           <ProgressDots totalSteps={totalSteps} currentStepIndex={currentStepIndex} />
-          <StepCard step={step} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
-          <View style={styles.inputCard}>{inputCardContent}</View>
+          {renderedEntries}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -316,11 +265,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     gap: 14,
-  },
-
-  inputCard: {
-    paddingTop: 4,
-    gap: 10,
   },
 
   // 태블릿
