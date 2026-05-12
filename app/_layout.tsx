@@ -17,6 +17,7 @@ import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { logEvent } from '@/features/analytics/log-event';
+import { initAnalytics } from '@/features/analytics/session-lifecycle';
 import type { NotificationType } from '@/features/analytics/event-types';
 
 Notifications.setNotificationHandler({
@@ -199,6 +200,7 @@ function AuthGateRedirector() {
 
 function ScreenTracker() {
   useScreenTracking();
+  useEffect(() => initAnalytics(), []);
   return null;
 }
 

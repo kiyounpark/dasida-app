@@ -11,7 +11,7 @@
  * 필요 환경변수 (.env):
  *   - EXPO_PUBLIC_GA4_FIREBASE_APP_ID_IOS: 1:xxx:ios:xxx (iOS Firebase App ID)
  *   - EXPO_PUBLIC_GA4_FIREBASE_APP_ID_ANDROID: 1:xxx:android:xxx (Android Firebase App ID)
- *   - EXPO_PUBLIC_GA4_API_SECRET: GA4 Data Stream > Measurement Protocol API secrets
+ *   - EXPO_PUBLIC_GA4_API_SECRET_IOS / _ANDROID
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -32,6 +32,19 @@ const API_SECRET =
 
 let clientIdPromise: Promise<string> | null = null;
 let userIdMemo: string | null = null;
+
+// GA4 Realtime/세션 집계에는 session_id + engagement_time_msec가 필수.
+// 누락 시 이벤트가 활성 세션에 바인딩되지 않아 Realtime 보고서에 표시되지 않음.
+// session-lifecycle.ts가 백그라운드 30분 초과 시 새 ID로 갱신.
+let currentSessionId: string = String(Date.now());
+
+export function setCurrentSessionId(id: string): void {
+  currentSessionId = id;
+}
+
+export function getCurrentSessionId(): string {
+  return currentSessionId;
+}
 
 /**
  * 앱 스트림 `app_instance_id`는 32자리 hex 문자열이어야 함 (GA4 validation rule).
@@ -56,7 +69,6 @@ async function getClientId(): Promise<string> {
   clientIdPromise = (async () => {
     try {
       const stored = await AsyncStorage.getItem(CLIENT_ID_KEY);
-      // 32 hex 형식 검증: 구버전(dash 포함 UUID, 타임스탬프 fallback) 자동 재생성
       if (stored && CLIENT_ID_PATTERN.test(stored)) return stored;
     } catch {
       // AsyncStorage 실패 시 in-memory ID로 fallback
@@ -74,16 +86,22 @@ async function getClientId(): Promise<string> {
 
 async function send(name: string, params: Record<string, unknown>): Promise<void> {
   if (!FIREBASE_APP_ID || !API_SECRET) {
-    // 환경변수 미설정: silent no-op (analytics failure must not affect UX)
     return;
   }
   try {
     const clientId = await getClientId();
     const body = {
-      // 앱 스트림은 client_id 대신 app_instance_id 사용
       app_instance_id: clientId,
       ...(userIdMemo ? { user_id: userIdMemo } : {}),
-      events: [{ name, params }],
+      events: [{
+        name,
+        // 기본값 먼저, 호출자 params로 override 가능, session_id는 강제
+        params: {
+          engagement_time_msec: '100',
+          ...params,
+          session_id: currentSessionId,
+        },
+      }],
     };
     const url = `${GA4_ENDPOINT}?firebase_app_id=${encodeURIComponent(FIREBASE_APP_ID)}&api_secret=${encodeURIComponent(API_SECRET)}`;
     await fetch(url, {
@@ -103,12 +121,22 @@ export function logEvent<K extends EventName>(
   void send(name as string, (params ?? {}) as Record<string, unknown>);
 }
 
+/**
+ * GA4 예약 이벤트(first_open, session_start, user_engagement) 전용 채널.
+ * session-lifecycle.ts에서만 사용.
+ */
+export function logReservedEvent(
+  name: 'first_open' | 'session_start' | 'user_engagement',
+  params: Record<string, unknown> = {},
+): void {
+  void send(name, params);
+}
+
 export function setAnalyticsUserId(uid: string | null): void {
   userIdMemo = uid;
 }
 
 export function logScreenView(screen: ScreenName): void {
-  // GA4 reserved event name 'screen_view'에 매핑
   void send('screen_view', {
     screen_name: screen,
     screen_class: screen,
