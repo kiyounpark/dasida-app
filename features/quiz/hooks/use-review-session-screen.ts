@@ -53,6 +53,8 @@ export type UseReviewSessionScreenResult = {
   onSubmitFreeText: () => Promise<void>;
   onChangeFallbackText: (text: string) => void;
   onSubmitFallback: () => Promise<void>;
+  /** @internal - exported for unit tests */
+  __test_dontKnowCount?: (stepIndex: number) => number;
 };
 
 const store = new LocalReviewTaskStore();
@@ -78,6 +80,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const firstAttemptCorrectRef = useRef<(boolean | null)[]>([]);
   const firstAttemptChoiceIndexRef = useRef<(number | null)[]>([]);
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
+  const dontKnowCountPerStepRef = useRef<number[]>([]);
 
   const reviewEntries = useReviewEntries(currentStepIndex);
   const { resetForStep: resetEntriesForStep } = reviewEntries;
@@ -132,6 +135,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptCorrectRef.current = new Array(mockStepCount).fill(null);
       firstAttemptChoiceIndexRef.current = new Array(mockStepCount).fill(null);
       aiHelpUsedPerStepRef.current = new Array(mockStepCount).fill(false);
+      dontKnowCountPerStepRef.current = new Array(mockStepCount).fill(0);
       sessionStartedAtRef.current = new Date().toISOString();
       return;
     }
@@ -148,6 +152,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         firstAttemptCorrectRef.current = new Array(foundStepCount).fill(null);
         firstAttemptChoiceIndexRef.current = new Array(foundStepCount).fill(null);
         aiHelpUsedPerStepRef.current = new Array(foundStepCount).fill(false);
+        dontKnowCountPerStepRef.current = new Array(foundStepCount).fill(0);
         sessionStartedAtRef.current = new Date().toISOString();
       }
     });
@@ -417,6 +422,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
+    dontKnowCountPerStepRef.current[currentStepIndex] =
+      (dontKnowCountPerStepRef.current[currentStepIndex] ?? 0) + 1;
     advanceRemedialToNode(node.secondaryNextNodeId);
   };
 
@@ -434,6 +441,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
+    dontKnowCountPerStepRef.current[currentStepIndex] =
+      (dontKnowCountPerStepRef.current[currentStepIndex] ?? 0) + 1;
     advanceRemedialToNode(node.dontKnowNextNodeId);
   };
 
@@ -540,5 +549,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSubmitFreeText,
     onChangeFallbackText,
     onSubmitFallback,
+    __test_dontKnowCount: (stepIndex: number) =>
+      dontKnowCountPerStepRef.current[stepIndex] ?? 0,
   };
 }

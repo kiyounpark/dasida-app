@@ -282,6 +282,31 @@ describe('entries-based flow', () => {
     expect(result.current.entries.some((e: any) => e.kind === 'fallback-input')).toBe(false);
   });
 
+  it('스텝 내 dontKnow 누적 카운터가 새 step 시작 시 리셋된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 첫 스텝에서 모르겠어요 1회
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+    expect(result.current.__test_dontKnowCount?.(0)).toBe(1);
+
+    // 다음 step으로 진행
+    await act(async () => {
+      result.current.onPressContinue?.();
+    });
+    await waitFor(() => expect(result.current.currentStepIndex).toBe(1));
+
+    // 새 스텝 카운터는 0
+    expect(result.current.__test_dontKnowCount?.(1)).toBe(0);
+  });
+
   it('Scenario E (remedial 모르겠어요 정적 이동 후): remedial 흐름을 계속 진행하면 done-cta까지 도달', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
