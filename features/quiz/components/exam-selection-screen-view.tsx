@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { BrandTypography } from '@/constants/typography';
 import type { ExamCatalogItem, ExamSubject, ExamType } from '@/features/quiz/data/exam-catalog';
@@ -73,6 +74,7 @@ export function ExamSelectionScreenView({
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.container, isCompactLayout && styles.containerCompact]}>
+        <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
         {showTypeToggle ? (
           <>
             <View style={styles.chipWrap}>
@@ -123,6 +125,7 @@ export function ExamSelectionScreenView({
             />
           ))}
         </View>
+        </PageContainer>
       </ScrollView>
     </View>
   );
