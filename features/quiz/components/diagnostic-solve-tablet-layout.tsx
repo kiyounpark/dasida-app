@@ -19,7 +19,6 @@ import {
   loadSplitRatio,
   saveSplitRatio,
 } from '@/features/quiz/exam/storage/scratchpad-split-ratio-store';
-import { PageContainer } from '@/components/layout/page-container';
 import type { IndexedScratchpadApi } from '@/features/quiz/hooks/use-diagnostic-scratchpad-store';
 
 type Props = {
@@ -96,51 +95,49 @@ export function DiagnosticSolveTabletLayout({ header, problemPanel, scratchpad }
   const togglePencilOnly = useCallback(() => setPencilOnly((v) => !v), []);
 
   return (
-    <PageContainer variant="split" style={styles.root}>
-      <View style={styles.root}>
-        {header}
-        <View style={styles.split}>
-        <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
+    <View style={styles.root}>
+      {header}
+      <View style={styles.split}>
+      <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
 
-        <View style={styles.dividerWrap}>
-          <SplitDivider
-            onDragStart={handleDragStart}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-          />
-        </View>
+      <View style={styles.dividerWrap}>
+        <SplitDivider
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+        />
+      </View>
 
-        <View
-          style={[styles.rightPanel, { width: rightWidth }]}
-          onLayout={(e) => {
-            const next = e.nativeEvent.layout.height;
-            if (next !== bodyHeight) setBodyHeight(next);
-          }}>
-          <ScratchpadToolbar
-            tool={scratchpad.tool}
-            color={scratchpad.color}
-            size={scratchpad.size}
-            canUndo={scratchpad.canUndo}
-            canRedo={scratchpad.canRedo}
-            pencilOnly={pencilOnly}
-            onSetTool={scratchpad.setTool}
-            onSetColor={scratchpad.setColor}
-            onSetSize={scratchpad.setSize}
-            onUndo={scratchpad.undo}
-            onRedo={scratchpad.redo}
-            onClear={scratchpad.clear}
-            onTogglePencilOnly={togglePencilOnly}
-          />
-          <ScratchpadCanvas
-            width={canvasWidth}
-            height={bodyHeight}
-            scratchpad={canvasScratchpad}
-            pencilOnly={pencilOnly}
-          />
-        </View>
+      <View
+        style={[styles.rightPanel, { width: rightWidth }]}
+        onLayout={(e) => {
+          const next = e.nativeEvent.layout.height;
+          if (next !== bodyHeight) setBodyHeight(next);
+        }}>
+        <ScratchpadToolbar
+          tool={scratchpad.tool}
+          color={scratchpad.color}
+          size={scratchpad.size}
+          canUndo={scratchpad.canUndo}
+          canRedo={scratchpad.canRedo}
+          pencilOnly={pencilOnly}
+          onSetTool={scratchpad.setTool}
+          onSetColor={scratchpad.setColor}
+          onSetSize={scratchpad.setSize}
+          onUndo={scratchpad.undo}
+          onRedo={scratchpad.redo}
+          onClear={scratchpad.clear}
+          onTogglePencilOnly={togglePencilOnly}
+        />
+        <ScratchpadCanvas
+          width={canvasWidth}
+          height={bodyHeight}
+          scratchpad={canvasScratchpad}
+          pencilOnly={pencilOnly}
+        />
       </View>
-      </View>
-    </PageContainer>
+    </View>
+    </View>
   );
 }
 

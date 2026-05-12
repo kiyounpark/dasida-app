@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors } from '@/constants/brand';
-import { PageContainer } from '@/components/layout/page-container';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 
 export type QuizSolveLayoutProps = {
@@ -33,25 +32,23 @@ export function QuizSolveLayout({
 
   if (isTablet) {
     return (
-      <PageContainer variant="split" style={styles.screen}>
-        <View style={[styles.screen, { backgroundColor: screenBackgroundColor }]}>
-          {header}
-          <View style={styles.tabletRow}>
-            <ScrollView
-              style={styles.tabletLeft}
-              contentInsetAdjustmentBehavior="automatic"
-              contentContainerStyle={[styles.tabletLeftContent, bodyContentContainerStyle]}>
-              {body}
-            </ScrollView>
-            <ScrollView
-              style={styles.tabletRight}
-              contentInsetAdjustmentBehavior="automatic"
-              contentContainerStyle={styles.tabletRightContent}>
-              {footer}
-            </ScrollView>
-          </View>
+      <View style={[styles.screen, { backgroundColor: screenBackgroundColor }]}>
+        {header}
+        <View style={styles.tabletRow}>
+          <ScrollView
+            style={styles.tabletLeft}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={[styles.tabletLeftContent, bodyContentContainerStyle]}>
+            {body}
+          </ScrollView>
+          <ScrollView
+            style={styles.tabletRight}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={styles.tabletRightContent}>
+            {footer}
+          </ScrollView>
         </View>
-      </PageContainer>
+      </View>
     );
   }
 
