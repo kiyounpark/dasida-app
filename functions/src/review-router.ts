@@ -2,6 +2,7 @@ import * as logger from 'firebase-functions/logger';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { onRequest } from 'firebase-functions/v2/https';
 import { z } from 'zod';
+import { requestReviewRouterFromOpenAI } from './openai-client';
 
 const openAiApiKey = defineSecret('OPENAI_API_KEY');
 const openAiModel = defineString('OPENAI_MODEL', { default: 'gpt-4.1' });
@@ -56,11 +57,45 @@ export const reviewRouter = onRequest(
       return;
     }
 
-    // Task 4에서 OpenAI 호출 + sanitize 로직 채움.
-    logger.info('reviewRouter request received', {
-      weaknessId: parsed.data.weaknessId,
-      candidateCount: parsed.data.candidateNodes.length,
-    });
-    response.status(501).json({ error: 'Not implemented yet' });
+    try {
+      const model = openAiModel.value();
+      const openAiResponse = await requestReviewRouterFromOpenAI({
+        apiKey: openAiApiKey.value(),
+        model,
+        body: parsed.data,
+      });
+
+      const parsedResult = OpenAIReviewRouterResultSchema.parse(openAiResponse.result);
+      const allowedIds = parsed.data.candidateNodes.map((node) => node.id);
+
+      const predictedNodeId =
+        allowedIds.includes(parsedResult.predictedNodeId) ||
+        parsedResult.predictedNodeId === 'fallback'
+          ? parsedResult.predictedNodeId
+          : 'fallback';
+
+      const candidateNodeIds = Array.from(
+        new Set(
+          parsedResult.candidateNodeIds.filter((nodeId) => allowedIds.includes(nodeId)),
+        ),
+      );
+
+      logger.info('reviewRouter result', {
+        weaknessId: parsed.data.weaknessId,
+        predictedNodeId,
+        confidence: parsedResult.confidence,
+      });
+
+      response.status(200).json({
+        predictedNodeId,
+        confidence: parsedResult.confidence,
+        reason: parsedResult.reason,
+        candidateNodeIds,
+        source: 'openai-router',
+      });
+    } catch (error) {
+      logger.error('reviewRouter failed', error);
+      response.status(500).json({ error: 'Failed to route review request' });
+    }
   }
 );
