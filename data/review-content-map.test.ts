@@ -94,22 +94,34 @@ describe('weaknessId membership (spec §2.1)', () => {
 });
 
 describe('formula_understanding has weaknessId labels (spec §6, migration)', () => {
-  it('at least one wrong choice in step1 has weaknessId', () => {
-    const step1 = reviewContentMap.formula_understanding?.thinkingSteps[0];
-    expect(step1).toBeDefined();
-    if (!step1) return;
-    const wrongChoices = step1.choices.filter((c) => !c.correct);
-    const labeled = wrongChoices.filter((c) => c.weaknessId !== undefined);
-    expect(labeled.length).toBeGreaterThan(0);
+  it('every wrong choice in formula_understanding has weaknessId', () => {
+    const content = reviewContentMap.formula_understanding;
+    expect(content).toBeDefined();
+    if (!content) return;
+    const unlabeled: string[] = [];
+    content.thinkingSteps.forEach((step, sIdx) => {
+      step.choices.forEach((choice, cIdx) => {
+        if (!choice.correct && choice.weaknessId === undefined) {
+          unlabeled.push(`step${sIdx + 1}.choice${cIdx}="${choice.text}"`);
+        }
+      });
+    });
+    expect(unlabeled).toEqual([]);
   });
 
-  it('at least one check node option in fu_step1_A_check has weaknessId', () => {
+  it('every check node wrong option in formula_understanding flow has weaknessId', () => {
     const flow = remedialFlows.formula_understanding;
-    const node = flow?.nodes['fu_step1_A_check'];
-    expect(node?.kind).toBe('check');
-    if (node?.kind === 'check') {
-      const labeled = node.options.filter((o) => o.weaknessId !== undefined);
-      expect(labeled.length).toBeGreaterThan(0);
+    expect(flow).toBeDefined();
+    if (!flow) return;
+    const unlabeled: string[] = [];
+    for (const [nodeId, node] of Object.entries(flow.nodes)) {
+      if (node.kind !== 'check') continue;
+      node.options.forEach((opt, oIdx) => {
+        if (!opt.isCorrect && opt.weaknessId === undefined) {
+          unlabeled.push(`${nodeId}.opt${oIdx}="${opt.text}"`);
+        }
+      });
     }
+    expect(unlabeled).toEqual([]);
   });
 });

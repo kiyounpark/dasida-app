@@ -40,7 +40,7 @@ export const formula_understanding_flow: RemedialFlow = {
       options: [
         { id: 'correct', text: '4', isCorrect: true, nextNodeId: 'fu_step1_exit' },
         { id: 'wrong1',  text: '8', isCorrect: false, nextNodeId: 'fu_step1_A_remedy', weaknessId: 'basic_concept_needed' },
-        { id: 'wrong2',  text: '16', isCorrect: false, nextNodeId: 'fu_step1_A_remedy', weaknessId: 'expansion_sign_error' },
+        { id: 'wrong2',  text: '16', isCorrect: false, nextNodeId: 'fu_step1_A_remedy', weaknessId: 'basic_concept_needed' },
       ],
       dontKnowNextNodeId: 'fu_step1_A_easy',
     },
@@ -131,7 +131,7 @@ export const formula_understanding_flow: RemedialFlow = {
       prompt: 'x² + 4x 에서 완전제곱식을 만들 때 더해야 할 수는?',
       options: [
         { id: 'correct', text: '4', isCorrect: true, nextNodeId: 'fu_step2_exit' },
-        { id: 'wrong1',  text: '16', isCorrect: false, nextNodeId: 'fu_step2_B_remedy', weaknessId: 'expansion_sign_error' },
+        { id: 'wrong1',  text: '16', isCorrect: false, nextNodeId: 'fu_step2_B_remedy', weaknessId: 'basic_concept_needed' },
         { id: 'wrong2',  text: '2', isCorrect: false, nextNodeId: 'fu_step2_B_remedy', weaknessId: 'basic_concept_needed' },
       ],
       dontKnowNextNodeId: 'fu_step2_B_easy',

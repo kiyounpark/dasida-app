@@ -120,7 +120,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) x²+6x → (x+3)²−9',
         choices: [
           { text: '(b/2)²을 더하고 뺀다', correct: true, feedback: '맞아요! 더한 만큼 다시 빼야 원래 식과 같은 값이 유지돼요.' },
-          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.', remedialFlowStartNodeId: 'fu_step2_B_explain', weaknessId: 'expansion_sign_error' },
+          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.', remedialFlowStartNodeId: 'fu_step2_B_explain', weaknessId: 'basic_concept_needed' },
           { text: '상수항은 변하지 않는다', correct: false, feedback: '더한 만큼을 보상하지 않으면 식의 값이 달라져요. (b/2)²을 빼주는 단계가 빠지면 안 돼요.', remedialFlowStartNodeId: 'fu_step2_C_explain', weaknessId: 'basic_concept_needed' },
         ],
       },
