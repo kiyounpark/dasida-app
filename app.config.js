@@ -82,6 +82,7 @@ module.exports = {
       ],
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
+      './config/plugins/with-rnfb-static-frameworks',
       [
         '@react-native-firebase/app',
         {
