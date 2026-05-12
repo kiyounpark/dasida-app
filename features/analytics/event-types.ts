@@ -10,7 +10,11 @@ export type EventName =
   | 'weakness_practice_completed'
   | 'no_review_day_card_viewed'
   | 'no_review_day_card_cta_pressed'
-  | 'notification_opened';
+  | 'notification_opened'
+  | 'review_router_called'
+  | 'review_router_succeeded'
+  | 'review_router_fallback'
+  | 'review_fallback_chat_completed';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -57,6 +61,28 @@ export type EventParams = {
     task_id?: string;
     scheduled_at?: string;
     opened_at: string;
+  };
+  review_router_called: {
+    weakness_id: string;
+    step_index: number;
+    candidate_count: number;
+  };
+  review_router_succeeded: {
+    weakness_id: string;
+    step_index: number;
+    predicted_node_id: string;
+    confidence: number;
+    source: 'openai-router' | 'mock-router';
+  };
+  review_router_fallback: {
+    weakness_id: string;
+    step_index: number;
+    reason: 'low_confidence' | 'no_candidates' | 'empty_input' | 'network_error';
+  };
+  review_fallback_chat_completed: {
+    weakness_id: string;
+    step_index: number;
+    turn_count: 1 | 2;
   };
 };
 
