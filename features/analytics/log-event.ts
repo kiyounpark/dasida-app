@@ -33,20 +33,31 @@ const API_SECRET =
 let clientIdPromise: Promise<string> | null = null;
 let userIdMemo: string | null = null;
 
+/**
+ * 앱 스트림 `app_instance_id`는 32자리 hex 문자열이어야 함 (GA4 validation rule).
+ * crypto.randomUUID()는 dash 포함 36자라 dash 제거. fallback은 hex 32자 직접 생성.
+ */
 function generateClientId(): string {
   const cryptoLike = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (cryptoLike?.randomUUID) {
-    return cryptoLike.randomUUID();
+    return cryptoLike.randomUUID().replace(/-/g, '');
   }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  let hex = '';
+  while (hex.length < 32) {
+    hex += Math.random().toString(16).slice(2);
+  }
+  return hex.slice(0, 32);
 }
+
+const CLIENT_ID_PATTERN = /^[0-9a-f]{32}$/;
 
 async function getClientId(): Promise<string> {
   if (clientIdPromise) return clientIdPromise;
   clientIdPromise = (async () => {
     try {
       const stored = await AsyncStorage.getItem(CLIENT_ID_KEY);
-      if (stored) return stored;
+      // 32 hex 형식 검증: 구버전(dash 포함 UUID, 타임스탬프 fallback) 자동 재생성
+      if (stored && CLIENT_ID_PATTERN.test(stored)) return stored;
     } catch {
       // AsyncStorage 실패 시 in-memory ID로 fallback
     }

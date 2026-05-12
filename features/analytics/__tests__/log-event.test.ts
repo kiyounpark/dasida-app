@@ -35,7 +35,8 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
     mockGetItem.mockReset();
     mockSetItem.mockReset();
     mockFetch.mockReset();
-    mockGetItem.mockResolvedValue('cid-stored');
+    // 32 hex 형식 (GA4 앱 스트림 app_instance_id 요구사항)
+    mockGetItem.mockResolvedValue('aaaaaaaabbbbbbbbccccccccdddddddd');
     mockFetch.mockResolvedValue({ ok: true });
     process.env.EXPO_PUBLIC_GA4_FIREBASE_APP_ID_IOS = '1:test:ios:abc';
     process.env.EXPO_PUBLIC_GA4_FIREBASE_APP_ID_ANDROID = '1:test:android:def';
@@ -55,7 +56,7 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       expect(url).toContain('api_secret=secret-ios');
       expect(init.method).toBe('POST');
       const body = JSON.parse(init.body);
-      expect(body.app_instance_id).toBe('cid-stored');
+      expect(body.app_instance_id).toBe('aaaaaaaabbbbbbbbccccccccdddddddd');
       expect(body.events).toEqual([
         { name: 'review_started', params: { task_id: 'task-abc' } },
       ]);
@@ -88,8 +89,23 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       expect(mockSetItem).toHaveBeenCalledTimes(1);
       const [key, value] = mockSetItem.mock.calls[0];
       expect(key).toBe('ga4_client_id');
-      expect(typeof value).toBe('string');
-      expect((value as string).length).toBeGreaterThan(0);
+      // GA4 앱 스트림 요구사항: 32자리 hex
+      expect(value).toMatch(/^[0-9a-f]{32}$/);
+    });
+
+    it('저장된 값이 32-hex 형식이 아니면 재생성한다 (구버전 마이그레이션)', async () => {
+      // 구버전 UUID-with-dash 형식
+      mockGetItem.mockResolvedValueOnce('550e8400-e29b-41d4-a716-446655440000');
+      const { logEvent } = loadModule();
+      logEvent('graduation_reached', {});
+      await flush();
+
+      expect(mockSetItem).toHaveBeenCalledTimes(1);
+      const [, newValue] = mockSetItem.mock.calls[0];
+      expect(newValue).toMatch(/^[0-9a-f]{32}$/);
+      // body의 app_instance_id도 새 값이어야 함
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.app_instance_id).toMatch(/^[0-9a-f]{32}$/);
     });
   });
 
