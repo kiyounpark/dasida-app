@@ -39,6 +39,7 @@ export type LearningAttempt = {
   primaryWeaknessId: WeaknessId | null;
   topWeaknesses: WeaknessId[];
   reviewStage?: ReviewStage;
+  discoveredWeaknesses?: WeaknessId[];
   schemaVersion: 1;
   createdAt: string;
 };
@@ -65,6 +66,7 @@ export type LearningAttemptResult = {
   wrongAttempts?: number;
   usedCoaching?: boolean;
   resolvedBy?: 'solved' | 'answer_revealed' | null;
+  discoveredWeaknesses?: WeaknessId[];
   schemaVersion: 1;
   resolvedAt: string;
 };

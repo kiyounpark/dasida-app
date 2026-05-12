@@ -30,6 +30,8 @@ export type FinalizedAttemptQuestionInput = {
   wrongAttempts?: number;
   usedCoaching?: boolean;
   resolvedBy?: 'solved' | 'answer_revealed' | null;
+  /** 이 스텝에서 학생이 누른 선택지/노드 경로에서 발견된 약점 신호 (spec §4). */
+  discoveredWeaknesses?: WeaknessId[];
 };
 
 export type FinalizedAttemptInput = {
@@ -51,6 +53,8 @@ export type FinalizedAttemptInput = {
     reviewTaskId: string;
     reviewStage: ReviewStage;
   };
+  /** 스텝별 신호의 합집합 (중복 제거). 빠른 조회용. (spec §4) */
+  discoveredWeaknesses?: WeaknessId[];
   questions: FinalizedAttemptQuestionInput[];
 };
 

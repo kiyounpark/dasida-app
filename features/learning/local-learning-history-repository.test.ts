@@ -1,6 +1,14 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
-import type { FinalizedAttemptInput } from './history-repository';
-import { buildReviewTasks, buildSummary } from './local-learning-history-repository';
+import type {
+  FinalizedAttemptInput,
+  FinalizedAttemptQuestionInput,
+} from './history-repository';
+import {
+  buildAttempt,
+  buildAttemptResults,
+  buildReviewTasks,
+  buildSummary,
+} from './local-learning-history-repository';
 import type { ReviewTask } from './types';
 
 // ── 픽스처 헬퍼 ──────────────────────────────────────────────────
@@ -205,5 +213,57 @@ describe('buildSummary', () => {
     // totals should reflect featured exam
     expect(result.totals.featuredExamAttempts).toBe(1);
     expect(result.totals.diagnosticAttempts).toBe(0);
+  });
+});
+
+describe('discoveredWeaknesses persistence (spec §4)', () => {
+  function makeReviewQuestion(
+    overrides: Partial<FinalizedAttemptQuestionInput> = {},
+  ): FinalizedAttemptQuestionInput {
+    return {
+      questionId: 'q1',
+      questionNumber: 1,
+      topic: 'polynomial',
+      firstSelectedIndex: 0,
+      selectedIndex: 0,
+      isCorrect: false,
+      finalWeaknessId: 'formula_understanding',
+      methodId: null,
+      diagnosisSource: null,
+      finalMethodSource: null,
+      diagnosisCompleted: false,
+      usedDontKnow: false,
+      usedAiHelp: false,
+      ...overrides,
+    };
+  }
+
+  test('buildAttempt + buildAttemptResults round-trip discoveredWeaknesses', () => {
+    const input = makeExamInput({
+      questionCount: 2,
+      discoveredWeaknesses: ['basic_concept_needed', 'expansion_sign_error'] as WeaknessId[],
+      questions: [
+        makeReviewQuestion({
+          questionId: 'q1',
+          questionNumber: 1,
+          discoveredWeaknesses: ['basic_concept_needed'] as WeaknessId[],
+        }),
+        makeReviewQuestion({
+          questionId: 'q2',
+          questionNumber: 2,
+          discoveredWeaknesses: ['expansion_sign_error'] as WeaknessId[],
+        }),
+      ],
+    });
+
+    const attempt = buildAttempt(input, input.completedAt);
+    const results = buildAttemptResults(input);
+
+    expect(attempt.discoveredWeaknesses).toEqual([
+      'basic_concept_needed',
+      'expansion_sign_error',
+    ]);
+    expect(results[0].discoveredWeaknesses).toEqual(['basic_concept_needed']);
+    expect(results[1].discoveredWeaknesses).toEqual(['expansion_sign_error']);
   });
 });
