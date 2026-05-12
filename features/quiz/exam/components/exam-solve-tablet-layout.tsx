@@ -81,45 +81,45 @@ export function ExamSolveTabletLayout({ header, problemPanel, scratchpad }: Prop
     <View style={styles.root}>
       {header}
       <View style={styles.split}>
-        <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
+      <View style={[styles.leftPanel, { width: leftWidth }]}>{problemPanel}</View>
 
-        <View style={styles.dividerWrap}>
-          <SplitDivider
-            onDragStart={handleDragStart}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-          />
-        </View>
-
-        <View
-          style={[styles.rightPanel, { width: rightWidth }]}
-          onLayout={(e) => {
-            const next = e.nativeEvent.layout.height;
-            if (next !== bodyHeight) setBodyHeight(next);
-          }}>
-          <ScratchpadToolbar
-            tool={scratchpad.tool}
-            color={scratchpad.color}
-            size={scratchpad.size}
-            canUndo={scratchpad.canUndo}
-            canRedo={scratchpad.canRedo}
-            pencilOnly={pencilOnly}
-            onSetTool={scratchpad.setTool}
-            onSetColor={scratchpad.setColor}
-            onSetSize={scratchpad.setSize}
-            onUndo={scratchpad.undo}
-            onRedo={scratchpad.redo}
-            onClear={scratchpad.clear}
-            onTogglePencilOnly={togglePencilOnly}
-          />
-          <ScratchpadCanvas
-            width={canvasWidth}
-            height={bodyHeight}
-            scratchpad={scratchpad}
-            pencilOnly={pencilOnly}
-          />
-        </View>
+      <View style={styles.dividerWrap}>
+        <SplitDivider
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+        />
       </View>
+
+      <View
+        style={[styles.rightPanel, { width: rightWidth }]}
+        onLayout={(e) => {
+          const next = e.nativeEvent.layout.height;
+          if (next !== bodyHeight) setBodyHeight(next);
+        }}>
+        <ScratchpadToolbar
+          tool={scratchpad.tool}
+          color={scratchpad.color}
+          size={scratchpad.size}
+          canUndo={scratchpad.canUndo}
+          canRedo={scratchpad.canRedo}
+          pencilOnly={pencilOnly}
+          onSetTool={scratchpad.setTool}
+          onSetColor={scratchpad.setColor}
+          onSetSize={scratchpad.setSize}
+          onUndo={scratchpad.undo}
+          onRedo={scratchpad.redo}
+          onClear={scratchpad.clear}
+          onTogglePencilOnly={togglePencilOnly}
+        />
+        <ScratchpadCanvas
+          width={canvasWidth}
+          height={bodyHeight}
+          scratchpad={scratchpad}
+          pencilOnly={pencilOnly}
+        />
+      </View>
+    </View>
     </View>
   );
 }
