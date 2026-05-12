@@ -191,6 +191,39 @@ describe('entries-based flow', () => {
     spy.mockRestore();
   });
 
+  it('AI 챗 2턴 마무리 후 done-cta 라벨은 "다음으로" (이해했어요 강요 X) [spec §3.1]', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: 'AI wrap-up 응답' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // Drive to 2턴 close (1턴 free input → AI replies → 2턴 input → AI replies → done-cta)
+    act(() => result.current.onChangeFreeText('도와주세요'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+    await waitFor(() => {
+      const kinds = result.current.entries.map((e) => e.kind);
+      expect(kinds.filter((k) => k === 'fallback-input').length).toBe(1);
+    });
+
+    act(() => result.current.onChangeFallbackText('더 모르겠어요'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+    await waitFor(() => {
+      const kinds = result.current.entries.map((e) => e.kind);
+      expect(kinds).toContain('done-cta');
+    });
+
+    const doneCta = result.current.entries.find((e) => e.kind === 'done-cta') as {
+      label: string;
+    };
+    expect(doneCta.label).not.toContain('이해했어요');
+    // Adapt: non-last step → '다음으로', last step → '완료'
+    expect(['다음으로', '완료']).toContain(doneCta.label);
+
+    spy.mockRestore();
+  });
+
   it('onPressContinue 후 다음 step의 entries로 리셋된다', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));

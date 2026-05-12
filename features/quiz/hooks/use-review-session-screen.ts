@@ -377,7 +377,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         setFallbackTurnsUsed(1);
         reviewEntries.appendEntries([createFallbackInputEntry(2)]);
       } else {
-        // 2턴 마무리 → done-cta로 step 종료
+        // 2턴 마무리 → done-cta로 step 종료 (spec §3.1: AI 마무리 경로는 중립 문구)
         logEvent('review_fallback_chat_completed', {
           weakness_id: task.weaknessId,
           step_index: currentStepIndex,
@@ -386,7 +386,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         setFallbackTurnsUsed(turnBeforeResponse + 1);
         const isLast = currentStepIndex === steps.length - 1;
         reviewEntries.appendEntries([
-          createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+          createDoneCtaEntry(isLast ? '완료' : '다음으로'),
         ]);
       }
     } catch {
