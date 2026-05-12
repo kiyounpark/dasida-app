@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
 
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
@@ -114,7 +115,6 @@ export function QuizHubScreenView({
 }: UseQuizHubScreenResult) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isTablet = useIsTablet();
-  const tabletContainerMaxWidth = isTablet ? Math.min(screenWidth * 0.92, 1040) : undefined;
   const insets = useSafeAreaInsets();
   const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
@@ -132,11 +132,11 @@ export function QuizHubScreenView({
     ? 14
     : (isCompactLayout ? 14 : 24);
 
-  // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 480) 중 작은 값.
+  // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 600) 중 작은 값.
   // 보드의 가용 높이를 산출할 때 이 추정 높이만큼을 미리 빼둔다.
-  // 아래 maxWidth(340/480)는 styles.ctaFooterButton과 ctaFooter 인라인 maxWidth(480)에 맞춰져야 한다 — 한쪽만 바꾸면 STEP 4가 다시 잘릴 수 있음.
+  // 아래 maxWidth(340/600)는 styles.ctaFooterButton과 ctaFooter 인라인 maxWidth(600)에 맞춰져야 한다 — 한쪽만 바꾸면 STEP 4가 다시 잘릴 수 있음.
   const ctaButtonAspectRatio = 1497 / 373;
-  const ctaButtonMaxWidth = isTablet ? 480 : 340;
+  const ctaButtonMaxWidth = isTablet ? 600 : 340;
   const ctaButtonRenderedWidth = Math.min(screenWidth * 0.7, ctaButtonMaxWidth);
   const ctaButtonEstimatedHeight = ctaButtonRenderedWidth / ctaButtonAspectRatio;
   const ctaFooterHeight =
@@ -281,57 +281,61 @@ export function QuizHubScreenView({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
-          isTablet && styles.tabletPosterScreen,
-          isTablet && { maxWidth: tabletContainerMaxWidth },
-          isTablet && styles.posterScreenTabletSpacing,
           {
             paddingTop: scrollTopPadding,
             paddingBottom: bottomPadding,
           },
         ]}
         showsVerticalScrollIndicator={false}>
-        {!showAnalysisResumeCard ? (
-          <>
-            {showReviewHomeCard && homeState?.nextReviewTask ? (
-              <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
-            ) : null}
-            {showNoReviewDayCard ? (
-              <NoReviewDayCard nextTask={homeState.nextReviewTask!} onPressExam={onPressExam} />
-            ) : null}
-            {showJourneyBoard ? (
-              <JourneyBoard
-                availableHeight={boardAvailableHeight}
-                isCompactLayout={isCompactLayout}
-                onPressCurrentStep={onPressJourneyCta}
-                state={journey}
-              />
-            ) : null}
-            {showWeaknessSection && homeState ? (
-              <HomeWeaknessSection homeState={homeState} />
-            ) : null}
-          </>
-        ) : (
-          <>
-            {/* 분석 진행 중 모드: 복습이 있으면 최상단 */}
-            {showReviewHomeCard && homeState?.nextReviewTask ? (
-              <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
-            ) : null}
-            {showAnalysisResumeCard && analysisState.isInProgress ? (
-              <ExamAnalysisResumeCarousel
-                items={analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
-                  attemptId: item.attemptId,
-                  examTitle: getExamTitle(item.examId),
-                  noteCount: item.noteCount,
-                  totalNotes: item.totalNotes,
-                }))}
-                onPressItem={onResumeAnalysis}
-              />
-            ) : null}
-            {showWeaknessSection && homeState ? (
-              <HomeWeaknessSection homeState={homeState} />
-            ) : null}
-          </>
-        )}
+        <PageContainer
+          variant="hub"
+          style={[
+            styles.posterScreenInner,
+            isTablet && styles.posterScreenTabletSpacing,
+          ]}>
+          {!showAnalysisResumeCard ? (
+            <>
+              {showReviewHomeCard && homeState?.nextReviewTask ? (
+                <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
+              ) : null}
+              {showNoReviewDayCard ? (
+                <NoReviewDayCard nextTask={homeState.nextReviewTask!} onPressExam={onPressExam} />
+              ) : null}
+              {showJourneyBoard ? (
+                <JourneyBoard
+                  availableHeight={boardAvailableHeight}
+                  isCompactLayout={isCompactLayout}
+                  onPressCurrentStep={onPressJourneyCta}
+                  state={journey}
+                />
+              ) : null}
+              {showWeaknessSection && homeState ? (
+                <HomeWeaknessSection homeState={homeState} />
+              ) : null}
+            </>
+          ) : (
+            <>
+              {/* 분석 진행 중 모드: 복습이 있으면 최상단 */}
+              {showReviewHomeCard && homeState?.nextReviewTask ? (
+                <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
+              ) : null}
+              {showAnalysisResumeCard && analysisState.isInProgress ? (
+                <ExamAnalysisResumeCarousel
+                  items={analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
+                    attemptId: item.attemptId,
+                    examTitle: getExamTitle(item.examId),
+                    noteCount: item.noteCount,
+                    totalNotes: item.totalNotes,
+                  }))}
+                  onPressItem={onResumeAnalysis}
+                />
+              ) : null}
+              {showWeaknessSection && homeState ? (
+                <HomeWeaknessSection homeState={homeState} />
+              ) : null}
+            </>
+          )}
+        </PageContainer>
       </ScrollView>
       {showJourneyBoard ? (
         <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 24 : 28) }]}>
@@ -356,6 +360,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   posterScreen: {
+    flexGrow: 1,
+  },
+  posterScreenInner: {
     flexGrow: 1,
     alignItems: 'center',
     gap: 14,
@@ -444,10 +451,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     color: '#FFFFFF',
-  },
-  tabletPosterScreen: {
-    width: '100%',
-    alignSelf: 'center',
   },
   posterScreenTabletSpacing: {
     gap: 20,

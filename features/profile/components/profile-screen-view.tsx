@@ -13,8 +13,8 @@ import {
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
-import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandHeader } from '@/components/brand/BrandHeader';
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
@@ -159,7 +159,6 @@ export function ProfileScreenView({
   profile,
   session,
 }: UseProfileScreenResult) {
-  const isTablet = useIsTablet();
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [gradeChangeRequest, setGradeChangeRequest] = useState<{
     grade: 'g1' | 'g2' | 'g3';
@@ -222,7 +221,8 @@ export function ProfileScreenView({
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
+        contentContainerStyle={styles.container}>
+        <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
         <View style={styles.heroCard}>
           <Text selectable style={styles.title}>
             설정
@@ -414,6 +414,7 @@ export function ProfileScreenView({
           ) : null}
         </View>
 
+        </PageContainer>
       </ScrollView>
     </View>
   );
@@ -432,7 +433,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: BrandSpacing.lg,
     paddingTop: BrandSpacing.md,
     paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
   },
   heroCard: {
     borderWidth: 1,
@@ -658,11 +658,6 @@ const styles = StyleSheet.create({
   modalConfirmLabel: {
     ...BrandTypography.button,
     color: '#FFFFFF',
-  },
-  tabletContainer: {
-    maxWidth: 680,
-    width: '100%',
-    alignSelf: 'center',
   },
   modalOverlay: {
     flex: 1,

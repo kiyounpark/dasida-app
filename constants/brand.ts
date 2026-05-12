@@ -40,3 +40,13 @@ export const BrandSpacing = {
   xl: 24,
   xxl: 32,
 } as const;
+
+export const BrandLayout = {
+  tablet: {
+    reading: { contentMaxWidth: 720 },
+    hub: { contentMaxWidth: 1040 },
+    split: {},
+  },
+} as const;
+
+export type PageContainerVariant = keyof typeof BrandLayout.tablet;

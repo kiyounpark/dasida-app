@@ -2,9 +2,9 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand/BrandButton';
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { BrandTypography } from '@/constants/typography';
-import { useIsTablet } from '@/hooks/use-is-tablet';
 import type { UseHistoryScreenResult } from '@/features/history/hooks/use-history-screen';
 
 export function HistoryScreenView({
@@ -16,7 +16,6 @@ export function HistoryScreenView({
   onPressExamHistoryItem,
   onRefresh,
 }: UseHistoryScreenResult) {
-  const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
 
   if (!isReady) {
@@ -79,7 +78,6 @@ export function HistoryScreenView({
         contentContainerStyle={[
           styles.container,
           { paddingTop: insets.top + BrandSpacing.md },
-          isTablet && styles.tabletContainer,
         ]}
         scrollIndicatorInsets={{ top: insets.top }}
         refreshControl={
@@ -90,6 +88,7 @@ export function HistoryScreenView({
           />
         }
       >
+        <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
         {/* 히어로 카드 — 누적 성취 */}
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
@@ -218,6 +217,7 @@ export function HistoryScreenView({
           </View>
         ) : null}
 
+        </PageContainer>
       </ScrollView>
     </View>
   );
@@ -235,12 +235,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: BrandSpacing.lg,
     paddingBottom: BrandSpacing.xxl,
-    gap: BrandSpacing.md,
-  },
-  tabletContainer: {
-    maxWidth: 800,
-    width: '100%',
-    alignSelf: 'center',
   },
   heroCard: {
     backgroundColor: '#293B27',
