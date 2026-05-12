@@ -58,8 +58,8 @@ describe('weaknessId membership (spec §2.1)', () => {
       if (!content) continue;
       content.thinkingSteps.forEach((step, sIdx) => {
         step.choices.forEach((choice, cIdx) => {
-          const id = (choice as { weaknessId?: string }).weaknessId;
-          if (id !== undefined && !validIds.has(id as WeaknessId)) {
+          const id = choice.weaknessId;
+          if (id !== undefined && !validIds.has(id)) {
             offenders.push(`${weaknessKey}.step${sIdx + 1}.choice${cIdx}=${id}`);
           }
         });
@@ -74,15 +74,15 @@ describe('weaknessId membership (spec §2.1)', () => {
       if (!flow) continue;
       for (const [nodeId, node] of Object.entries(flow.nodes)) {
         if (node.kind === 'explain') {
-          const id = (node as { weaknessId?: string }).weaknessId;
-          if (id !== undefined && !validIds.has(id as WeaknessId)) {
+          const id = node.weaknessId;
+          if (id !== undefined && !validIds.has(id)) {
             offenders.push(`${weaknessKey}.${nodeId}=${id}`);
           }
         }
         if (node.kind === 'check') {
           node.options.forEach((opt, oIdx) => {
-            const id = (opt as { weaknessId?: string }).weaknessId;
-            if (id !== undefined && !validIds.has(id as WeaknessId)) {
+            const id = opt.weaknessId;
+            if (id !== undefined && !validIds.has(id)) {
               offenders.push(`${weaknessKey}.${nodeId}.opt${oIdx}=${id}`);
             }
           });
