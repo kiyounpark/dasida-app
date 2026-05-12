@@ -5,16 +5,14 @@ export function resolvePageContainerStyle(
   variant: PageContainerVariant,
   isTablet: boolean,
 ): ViewStyle {
-  if (!isTablet) {
-    return {};
+  if (!isTablet) return {};
+  if (variant === 'split') {
+    return { paddingHorizontal: BrandLayout.tablet.split.pagePaddingH };
   }
   const preset = BrandLayout.tablet[variant];
-  if (variant === 'split') {
-    return { paddingHorizontal: preset.pagePaddingH };
-  }
   return {
     width: '100%',
-    maxWidth: (preset as { contentMaxWidth: number }).contentMaxWidth,
+    maxWidth: preset.contentMaxWidth,
     alignSelf: 'center',
     paddingHorizontal: preset.pagePaddingH,
   };
