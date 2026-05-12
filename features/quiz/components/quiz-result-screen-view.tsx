@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useIsTablet } from '@/hooks/use-is-tablet';
 import { BrandButton } from '@/components/brand/BrandButton';
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { diagnosisMap } from '@/data/diagnosisMap';
@@ -25,8 +25,6 @@ export function QuizResultScreenView({
   snapshotSummary,
   snapshotSummaryTitle,
 }: UseResultScreenResult) {
-  const isTablet = useIsTablet();
-
   if (!liveSummary && !snapshotSummary) {
     return (
       <View style={styles.screen}>
@@ -67,7 +65,8 @@ export function QuizResultScreenView({
         <ScrollView
           style={styles.scroll}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
+          contentContainerStyle={styles.container}>
+          <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
           <View style={styles.summaryCard}>
             <Text style={styles.title}>최근 진단 결과</Text>
             <Text style={styles.summaryText}>정답률 {snapshotSummary.accuracy}%</Text>
@@ -110,6 +109,7 @@ export function QuizResultScreenView({
               </View>
             </View>
           )}
+          </PageContainer>
         </ScrollView>
       </View>
     );
@@ -136,7 +136,8 @@ export function QuizResultScreenView({
       <ScrollView
         style={styles.scroll}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={[styles.container, isTablet && styles.tabletContainer]}>
+        contentContainerStyle={styles.container}>
+        <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
         {saveState === 'saving' ? (
           <View style={styles.saveInfoCard}>
             <Text style={styles.saveInfoTitle}>학습 기록을 저장 중이에요</Text>
@@ -212,6 +213,7 @@ export function QuizResultScreenView({
             </View>
           </View>
         )}
+        </PageContainer>
       </ScrollView>
     </View>
   );
@@ -349,10 +351,5 @@ const styles = StyleSheet.create({
   legacyText: {
     fontSize: 15,
     color: '#444',
-  },
-  tabletContainer: {
-    maxWidth: 720,
-    width: '100%',
-    alignSelf: 'center',
   },
 });
