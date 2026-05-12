@@ -43,9 +43,9 @@ export const BrandSpacing = {
 
 export const BrandLayout = {
   tablet: {
-    reading: { contentMaxWidth: 720, pagePaddingH: 24 },
-    hub: { contentMaxWidth: 1040, pagePaddingH: 24 },
-    split: { pagePaddingH: 20 },
+    reading: { contentMaxWidth: 720 },
+    hub: { contentMaxWidth: 1040 },
+    split: {},
   },
 } as const;
 
