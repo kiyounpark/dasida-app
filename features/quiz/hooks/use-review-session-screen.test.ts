@@ -2,6 +2,8 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { useReviewSessionScreen } from './use-review-session-screen';
 import * as reviewFeedback from '@/features/quiz/review-feedback';
+import * as reviewRouterModule from '@/features/quiz/review-router';
+import * as buildCandidatesModule from '@/features/quiz/components/review-session/build-review-router-candidates';
 
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
@@ -32,6 +34,23 @@ jest.mock('@/features/quiz/notifications/review-notification-scheduler', () => (
 
 jest.mock('@/features/quiz/review-feedback', () => ({
   requestReviewFeedback: jest.fn(),
+}));
+
+jest.mock('@/features/quiz/review-router', () => ({
+  analyzeReviewMethod: jest.fn().mockResolvedValue({
+    predictedNodeId: 'fallback',
+    confidence: 0,
+    reason: 'default',
+    candidateNodeIds: [],
+    source: 'mock-router',
+  }),
+}));
+
+jest.mock('@/features/quiz/components/review-session/build-review-router-candidates', () => ({
+  buildReviewRouterCandidates: jest.fn(
+    jest.requireActual('@/features/quiz/components/review-session/build-review-router-candidates')
+      .buildReviewRouterCandidates,
+  ),
 }));
 
 describe('entries-based flow', () => {
@@ -420,5 +439,74 @@ describe('entries-based flow — kind sequence snapshots (spec §3 scenarios)', 
 ]
 `);
     spy.mockRestore();
+  });
+});
+
+describe('자유 입력 → 라우터 분기 (Phase 2)', () => {
+  it('라우터 성공 시 remedial 노드 entries로 진입', async () => {
+    jest.spyOn(reviewRouterModule, 'analyzeReviewMethod').mockResolvedValue({
+      predictedNodeId: 'fu_step1_A_explain',
+      confidence: 0.82,
+      reason: 'matched',
+      candidateNodeIds: ['fu_step1_A_explain'],
+      source: 'openai-router',
+    });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    act(() => result.current.onChangeFreeText('왜 절반인지'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('user-bubble');
+    expect(kinds).toContain('remedial-node');
+    expect(kinds).not.toContain('ai-typing'); // 폴백 챗 typing은 없음
+  });
+
+  it('라우터 fallback 시 기존 폴백 챗 경로 사용', async () => {
+    jest.spyOn(reviewRouterModule, 'analyzeReviewMethod').mockResolvedValue({
+      predictedNodeId: 'fallback',
+      confidence: 0.2,
+      reason: 'no match',
+      candidateNodeIds: [],
+      source: 'mock-router',
+    });
+    jest.spyOn(reviewFeedback, 'requestReviewFeedback').mockResolvedValue({
+      replyText: '예시 풀이…',
+    });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    act(() => result.current.onChangeFreeText('아무거나'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('user-bubble');
+    expect(kinds).toContain('ai-bubble'); // 폴백 챗 응답
+    expect(kinds).toContain('fallback-input'); // 2턴 입력창
+  });
+
+  it('후보 노드가 0개면 라우터 호출 스킵하고 곧장 폴백 챗', async () => {
+    // Reset call count before this test's assertion window
+    (reviewRouterModule.analyzeReviewMethod as jest.Mock).mockClear();
+    jest
+      .spyOn(buildCandidatesModule, 'buildReviewRouterCandidates')
+      .mockReturnValue([]);
+    jest.spyOn(reviewFeedback, 'requestReviewFeedback').mockResolvedValue({
+      replyText: '예시…',
+    });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    act(() => result.current.onChangeFreeText('아무거나'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    expect(reviewRouterModule.analyzeReviewMethod).not.toHaveBeenCalled();
   });
 });

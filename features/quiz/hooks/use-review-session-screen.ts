@@ -10,7 +10,9 @@ import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
 import { requestReviewFeedback, type ChatMessage } from '@/features/quiz/review-feedback';
-import { getRemedialNode } from '@/data/review-remedial-flows';
+import { getRemedialNode, remedialFlows } from '@/data/review-remedial-flows';
+import { analyzeReviewMethod } from '@/features/quiz/review-router';
+import { buildReviewRouterCandidates } from '@/features/quiz/components/review-session/build-review-router-candidates';
 import { logEvent } from '@/features/analytics/log-event';
 import { useReviewEntries } from './use-review-entries';
 import {
@@ -198,16 +200,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onChangeFreeText = (text: string) => setFreeText(text);
 
-  const onSubmitFreeText = async () => {
-    const text = freeText.trim();
-    if (!text || !task) return;
-
-    setFreeText('');
-    reviewEntries.lockInputArea();
-    reviewEntries.appendEntries([
-      createReviewUserBubbleEntry(text),
-      createAiTypingEntry(),
-    ]);
+  const runFallbackChat = async (
+    text: string,
+    options: { typingAlreadyAppended?: boolean } = {},
+  ) => {
+    if (!options.typingAlreadyAppended) {
+      reviewEntries.appendEntries([createAiTypingEntry()]);
+    }
 
     // 새 대화 시작: 자유 입력 1턴은 항상 새 history로 시작한다.
     // (실패 후 재시도 시에도 이 함수가 다시 호출되므로 이전 메시지를 덮어쓰는 것이 의도된 동작.)
@@ -215,7 +214,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     try {
       const result = await requestReviewFeedback({
-        weaknessId: task.weaknessId,
+        weaknessId: task!.weaknessId,
         stepTitle: steps[currentStepIndex].title,
         stepBody: steps[currentStepIndex].body,
         messages: chatHistoryRef.current,
@@ -231,6 +230,76 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       setFreeText(text);
       reviewEntries.unlockLatestInput();
     }
+  };
+
+  const onSubmitFreeText = async () => {
+    const text = freeText.trim();
+    if (!text || !task) return;
+
+    setFreeText('');
+    reviewEntries.lockInputArea();
+    reviewEntries.appendEntries([createReviewUserBubbleEntry(text)]);
+
+    const flow = remedialFlows[task.weaknessId];
+    const candidates = buildReviewRouterCandidates(flow);
+
+    if (candidates.length === 0) {
+      logEvent('review_router_fallback', {
+        weakness_id: task.weaknessId,
+        step_index: currentStepIndex,
+        reason: 'no_candidates',
+      });
+      await runFallbackChat(text);
+      return;
+    }
+
+    logEvent('review_router_called', {
+      weakness_id: task.weaknessId,
+      step_index: currentStepIndex,
+      candidate_count: candidates.length,
+    });
+
+    reviewEntries.appendEntries([createAiTypingEntry()]);
+
+    const selectedChoice =
+      selectedChoiceIndex !== null
+        ? steps[currentStepIndex]?.choices[selectedChoiceIndex]
+        : undefined;
+
+    const result = await analyzeReviewMethod({
+      weaknessId: task.weaknessId,
+      stepTitle: steps[currentStepIndex].title,
+      stepBody: steps[currentStepIndex].body,
+      selectedChoiceText: selectedChoice?.text,
+      selectedChoiceCorrect: selectedChoice?.correct,
+      userText: text,
+      candidateNodes: candidates,
+    });
+
+    if (result.predictedNodeId !== 'fallback') {
+      const node = getRemedialNode(task.weaknessId, result.predictedNodeId);
+      if (node && node.kind !== 'exit') {
+        reviewEntries.removeLastTyping();
+        reviewEntries.appendEntries([createRemedialNodeEntry(node)]);
+        aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+        logEvent('review_router_succeeded', {
+          weakness_id: task.weaknessId,
+          step_index: currentStepIndex,
+          predicted_node_id: result.predictedNodeId,
+          confidence: result.confidence,
+          source: result.source === 'mock-router' ? 'mock-router' : 'openai-router',
+        });
+        return;
+      }
+    }
+
+    // 폴백 챗 진입 — typing entry는 챗 응답 도착 시 replaceTypingWithBubble로 교체된다.
+    logEvent('review_router_fallback', {
+      weakness_id: task.weaknessId,
+      step_index: currentStepIndex,
+      reason: result.confidence === 0 ? 'network_error' : 'low_confidence',
+    });
+    await runFallbackChat(text, { typingAlreadyAppended: true });
   };
 
   const onChangeFallbackText = (text: string) => setFallbackText(text);

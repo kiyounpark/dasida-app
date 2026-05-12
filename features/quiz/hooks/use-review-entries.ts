@@ -49,6 +49,16 @@ export function useReviewEntries(initialStepIndex: number) {
     });
   }, []);
 
+  const removeLastTyping = useCallback(() => {
+    setEntries((prev) => {
+      const lastIdx = prev.length - 1;
+      if (lastIdx >= 0 && prev[lastIdx].kind === 'ai-typing') {
+        return prev.slice(0, lastIdx);
+      }
+      return prev;
+    });
+  }, []);
+
   // 가장 최근(=마지막) input-area 또는 fallback-input 한 개를 다시 활성화한다.
   // 네트워크 실패 후 재시도 경로를 열어주기 위한 헬퍼.
   const unlockLatestInput = useCallback(() => {
@@ -72,6 +82,7 @@ export function useReviewEntries(initialStepIndex: number) {
     lockInputArea,
     lockRemedialNodes,
     replaceTypingWithBubble,
+    removeLastTyping,
     unlockLatestInput,
   };
 }
