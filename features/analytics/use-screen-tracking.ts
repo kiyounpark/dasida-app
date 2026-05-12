@@ -41,6 +41,9 @@ export function useScreenTracking(): void {
     if (key === lastKeyRef.current) return;
     lastKeyRef.current = key;
 
+    // expo-router 초기 마운트 시 segments가 비어있음 → 실제 라우트 아님
+    if (key === '') return;
+
     const screen = segmentsToScreenName(segments);
     if (screen === 'unknown') {
       if (__DEV__) {

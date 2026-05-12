@@ -49,6 +49,15 @@ describe('useScreenTracking', () => {
     warnSpy.mockRestore();
   });
 
+  it('does not fire or warn for empty segments (router init)', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockSegments.mockReturnValue([]);
+    renderHook(() => useScreenTracking());
+    expect(logScreenView).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
   it('does not re-fire when segments are unchanged', () => {
     mockSegments.mockReturnValue(['(tabs)', 'quiz']);
     const { rerender } = renderHook(() => useScreenTracking());

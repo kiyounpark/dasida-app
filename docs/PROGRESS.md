@@ -908,6 +908,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.12 19:16
+- 해시: `6a26787` (`6a26787f0543f0b91759576a4e25694457349457`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6a26787f0543f0b91759576a4e25694457349457
+- 작성자: 박기윤
+- 메시지: refactor(plugin): RNFirebase plugin 견고성 개선
+- 본문: 코드 리뷰 반영: / - 정규식 매치 실패 시 throw로 fail-loud 처리 (사일런트 실패 방지) / - 들여쓰기를 캡쳐 그룹으로 재사용해 하드코딩 제거 / - plugin.name 명시로 Expo 로그 식별성 향상 / - module.exports 패턴 정리 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### 커밋 2026.05.12 19:10
+- 해시: `96ab420` (`96ab420b7f859d8282f6aeb4027a623a71d2cce2`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/96ab420b7f859d8282f6aeb4027a623a71d2cce2
+- 작성자: 박기윤
+- 메시지: build(ios): RNFirebase static frameworks 호환 Config Plugin 추가
+- 본문: expo prebuild --clean 후에도 Podfile에 자동으로 적용: / - use_modular_headers!: React-Core 헤더를 modular로 빌드 / - $RNFirebaseAsStaticFramework = true: RNFB를 static으로 빌드 / 이전에는 prebuild 후 Podfile을 수동으로 수정해야 했음. / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.05.11 23:58
 - 해시: `c2ed80c` (`c2ed80c5f5d7c76cc3176e3f6cd79bd540f8b322`)
 - 브랜치: claude/romantic-rosalind-0fb2a2

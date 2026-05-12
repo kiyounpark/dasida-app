@@ -57,12 +57,6 @@ module.exports = {
       'expo-router',
       'expo-apple-authentication',
       [
-        'expo-build-properties',
-        {
-          ios: { useFrameworks: 'static' },
-        },
-      ],
-      [
         'expo-notifications',
         {
           androidMode: 'default',
@@ -82,18 +76,6 @@ module.exports = {
       ],
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
-      './config/plugins/with-rnfb-static-frameworks',
-      [
-        '@react-native-firebase/app',
-        {
-          ios: {
-            googleServicesFile: './config/firebase/GoogleService-Info.plist',
-          },
-          android: {
-            googleServicesFile: './config/firebase/google-services.json',
-          },
-        },
-      ],
     ],
     experiments: {
       typedRoutes: true,
