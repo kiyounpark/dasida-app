@@ -108,9 +108,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'ax²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.',
         example: '예) x²+6x+5 → b=6, b/2=3',
         choices: [
-          { text: 'b를 그대로 쓰면 된다', correct: false, feedback: 'b를 그대로 쓰면 완전제곱 꼴이 만들어지지 않아요. (x+?)²을 만들려면 b/2가 필요하다는 점에 다시 주목해봐요.', remedialFlowStartNodeId: 'fu_step1_A_explain' },
+          { text: 'b를 그대로 쓰면 된다', correct: false, feedback: 'b를 그대로 쓰면 완전제곱 꼴이 만들어지지 않아요. (x+?)²을 만들려면 b/2가 필요하다는 점에 다시 주목해봐요.', remedialFlowStartNodeId: 'fu_step1_A_explain', weaknessId: 'basic_concept_needed' },
           { text: 'b/2를 먼저 계산해야 한다', correct: true, feedback: '맞아요! (x+b/2)²을 만들려면 b/2가 출발점이에요.' },
-          { text: '계수는 신경 쓰지 않아도 된다', correct: false, feedback: 'x 계수가 (x+?)²의 ?를 결정하니까, 계수를 빼놓고는 완전제곱이 만들어지지 않아요.', remedialFlowStartNodeId: 'fu_step1_C_explain' },
+          { text: '계수는 신경 쓰지 않아도 된다', correct: false, feedback: 'x 계수가 (x+?)²의 ?를 결정하니까, 계수를 빼놓고는 완전제곱이 만들어지지 않아요.', remedialFlowStartNodeId: 'fu_step1_C_explain', weaknessId: 'basic_concept_needed' },
         ],
       },
       {
@@ -120,8 +120,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) x²+6x → (x+3)²−9',
         choices: [
           { text: '(b/2)²을 더하고 뺀다', correct: true, feedback: '맞아요! 더한 만큼 다시 빼야 원래 식과 같은 값이 유지돼요.' },
-          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.', remedialFlowStartNodeId: 'fu_step2_B_explain' },
-          { text: '상수항은 변하지 않는다', correct: false, feedback: '더한 만큼을 보상하지 않으면 식의 값이 달라져요. (b/2)²을 빼주는 단계가 빠지면 안 돼요.', remedialFlowStartNodeId: 'fu_step2_C_explain' },
+          { text: 'b를 그대로 제곱한다', correct: false, feedback: 'b를 그대로 제곱하면 (x+b)²이 되어 x 계수가 2b로 어긋나요. 절반인 b/2를 제곱해야 맞아요.', remedialFlowStartNodeId: 'fu_step2_B_explain', weaknessId: 'expansion_sign_error' },
+          { text: '상수항은 변하지 않는다', correct: false, feedback: '더한 만큼을 보상하지 않으면 식의 값이 달라져요. (b/2)²을 빼주는 단계가 빠지면 안 돼요.', remedialFlowStartNodeId: 'fu_step2_C_explain', weaknessId: 'basic_concept_needed' },
         ],
       },
       {
@@ -130,9 +130,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '원래 상수항 c와 −(b/2)²을 합산하여 완전제곱식 꼴로 완성한다.',
         example: '예) (x+3)²−9+5 = (x+3)²−4',
         choices: [
-          { text: '상수를 무시하고 계수만 본다', correct: false, feedback: '원래 상수항 c가 빠지면 식 자체가 달라져요. c와 −(b/2)²을 같이 모아야 마무리돼요.', remedialFlowStartNodeId: 'fu_step3_A_explain' },
+          { text: '상수를 무시하고 계수만 본다', correct: false, feedback: '원래 상수항 c가 빠지면 식 자체가 달라져요. c와 −(b/2)²을 같이 모아야 마무리돼요.', remedialFlowStartNodeId: 'fu_step3_A_explain', weaknessId: 'basic_concept_needed' },
           { text: 'c − (b/2)²을 최종 상수로 쓴다', correct: true, feedback: '맞아요! 더했다가 뺀 만큼을 c와 함께 정리해야 등가식이 유지돼요.' },
-          { text: '상수항은 항상 0이다', correct: false, feedback: '원래 식의 c가 살아 있어야 해요. 0으로 놓으면 다른 식이 돼버려요.', remedialFlowStartNodeId: 'fu_step3_C_explain' },
+          { text: '상수항은 항상 0이다', correct: false, feedback: '원래 식의 c가 살아 있어야 해요. 0으로 놓으면 다른 식이 돼버려요.', remedialFlowStartNodeId: 'fu_step3_C_explain', weaknessId: 'basic_concept_needed' },
         ],
       },
     ],

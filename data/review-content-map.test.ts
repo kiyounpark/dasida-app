@@ -92,3 +92,24 @@ describe('weaknessId membership (spec §2.1)', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('formula_understanding has weaknessId labels (spec §6, migration)', () => {
+  it('at least one wrong choice in step1 has weaknessId', () => {
+    const step1 = reviewContentMap.formula_understanding?.thinkingSteps[0];
+    expect(step1).toBeDefined();
+    if (!step1) return;
+    const wrongChoices = step1.choices.filter((c) => !c.correct);
+    const labeled = wrongChoices.filter((c) => c.weaknessId !== undefined);
+    expect(labeled.length).toBeGreaterThan(0);
+  });
+
+  it('at least one check node option in fu_step1_A_check has weaknessId', () => {
+    const flow = remedialFlows.formula_understanding;
+    const node = flow?.nodes['fu_step1_A_check'];
+    expect(node?.kind).toBe('check');
+    if (node?.kind === 'check') {
+      const labeled = node.options.filter((o) => o.weaknessId !== undefined);
+      expect(labeled.length).toBeGreaterThan(0);
+    }
+  });
+});
