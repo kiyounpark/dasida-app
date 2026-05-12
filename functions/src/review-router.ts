@@ -68,11 +68,14 @@ export const reviewRouter = onRequest(
       const parsedResult = OpenAIReviewRouterResultSchema.parse(openAiResponse.result);
       const allowedIds = parsed.data.candidateNodes.map((node) => node.id);
 
-      const predictedNodeId =
+      const isAllowedId =
         allowedIds.includes(parsedResult.predictedNodeId) ||
-        parsedResult.predictedNodeId === 'fallback'
-          ? parsedResult.predictedNodeId
-          : 'fallback';
+        parsedResult.predictedNodeId === 'fallback';
+      const predictedNodeId = isAllowedId ? parsedResult.predictedNodeId : 'fallback';
+      // id가 sanitize되어 fallback이 됐으면 confidence를 0으로 떨어뜨려
+      // 잘못된 high-confidence 시그널이 analytics로 새지 않게 한다.
+      const idWasSanitized = !isAllowedId;
+      const confidence = idWasSanitized ? 0 : parsedResult.confidence;
 
       const candidateNodeIds = Array.from(
         new Set(
@@ -83,12 +86,13 @@ export const reviewRouter = onRequest(
       logger.info('reviewRouter result', {
         weaknessId: parsed.data.weaknessId,
         predictedNodeId,
-        confidence: parsedResult.confidence,
+        confidence,
+        idWasSanitized,
       });
 
       response.status(200).json({
         predictedNodeId,
-        confidence: parsedResult.confidence,
+        confidence,
         reason: parsedResult.reason,
         candidateNodeIds,
         source: 'openai-router',

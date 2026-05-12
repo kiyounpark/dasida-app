@@ -82,4 +82,70 @@ describe('analyzeReviewMethod', () => {
     });
     expect(result.predictedNodeId).toBe('fallback');
   });
+
+  it('네트워크 실패 + mock 매칭 실패 시 fallbackReason=network_error', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('network'));
+    const result = await analyzeReviewMethod({
+      ...baseInput,
+      userText: '오늘 점심 뭐 먹지',
+    });
+    expect(result.source).toBe('fallback');
+    expect(result.fallbackReason).toBe('network_error');
+  });
+
+  it('원격 응답은 받았지만 mock도 못 잡으면 fallbackReason=low_confidence', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        predictedNodeId: 'fu_step2_A_explain',
+        confidence: 0.3,
+        reason: 'low',
+        candidateNodeIds: [],
+        source: 'openai-router',
+      }),
+    });
+    const result = await analyzeReviewMethod({
+      ...baseInput,
+      userText: '오늘 점심 뭐 먹지',
+    });
+    expect(result.source).toBe('fallback');
+    expect(result.fallbackReason).toBe('low_confidence');
+  });
+
+  it('원격이 bogus id를 high-confidence로 보내면 sanitize되어 confidence=0', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        predictedNodeId: 'bogus_node_id',
+        confidence: 0.95,
+        reason: 'malformed',
+        candidateNodeIds: [],
+        source: 'openai-router',
+      }),
+    });
+    // userText가 mock 트리거에 매칭되지 않도록 무관한 입력 사용
+    const result = await analyzeReviewMethod({
+      ...baseInput,
+      userText: '오늘 점심 뭐 먹지',
+    });
+    // sanitize되어 fallback으로 떨어지면서 confidence가 0으로 떨어져야 함 (analytics 오염 방지)
+    expect(result.predictedNodeId).toBe('fallback');
+    expect(result.confidence).toBe(0);
+  });
+
+  it('AbortSignal 로 외부 취소 가능', async () => {
+    const controller = new AbortController();
+    global.fetch = jest.fn(
+      (_url: any, init: any) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    ) as any;
+
+    const promise = analyzeReviewMethod(baseInput, { signal: controller.signal });
+    controller.abort();
+    const result = await promise;
+    // remote는 취소되어 null → mock으로 폴백. userText가 '왜 절반인지'라 mock이 매칭함.
+    expect(result.source).toBe('mock-router');
+  });
 });

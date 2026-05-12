@@ -483,6 +483,59 @@ describe('자유 입력 → 라우터 분기 (Phase 2)', () => {
     expect(kinds).toContain('fallback-input'); // 2턴 입력창
   });
 
+  it('라우터 hit 시 requestReviewFeedback(폴백 챗)이 호출되지 않는다', async () => {
+    jest.spyOn(reviewRouterModule, 'analyzeReviewMethod').mockResolvedValue({
+      predictedNodeId: 'fu_step1_A_explain',
+      confidence: 0.85,
+      reason: 'matched',
+      candidateNodeIds: ['fu_step1_A_explain'],
+      source: 'openai-router',
+    });
+    // 이전 테스트들에서 누적된 호출 카운트 초기화 (module-level mock이라 spyOn으론 안 리셋됨)
+    (reviewFeedback.requestReviewFeedback as jest.Mock).mockClear();
+    const chatSpy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: '이건 절대 호출되면 안 됨' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    act(() => result.current.onChangeFreeText('왜 절반인지'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    expect(chatSpy).not.toHaveBeenCalled();
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('remedial-node');
+    expect(kinds).not.toContain('ai-bubble');
+    expect(kinds).not.toContain('fallback-input');
+  });
+
+  it('라우터가 source=fallback을 반환하면 remedial이 아니라 폴백 챗으로 분기', async () => {
+    jest.spyOn(reviewRouterModule, 'analyzeReviewMethod').mockResolvedValue({
+      predictedNodeId: 'fallback',
+      confidence: 0,
+      reason: 'all low',
+      candidateNodeIds: [],
+      source: 'fallback',
+      fallbackReason: 'low_confidence',
+    });
+    jest.spyOn(reviewFeedback, 'requestReviewFeedback').mockResolvedValue({
+      replyText: '예시 풀이…',
+    });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    act(() => result.current.onChangeFreeText('아무거나'));
+    await act(async () => {
+      await result.current.onSubmitFreeText();
+    });
+
+    const kinds = result.current.entries.map((e) => e.kind);
+    expect(kinds).toContain('ai-bubble');
+    expect(kinds).not.toContain('remedial-node');
+  });
+
   it('후보 노드가 0개면 라우터 호출 스킵하고 곧장 폴백 챗', async () => {
     // Reset call count before this test's assertion window
     (reviewRouterModule.analyzeReviewMethod as jest.Mock).mockClear();

@@ -78,6 +78,18 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const { resetForStep: resetEntriesForStep } = reviewEntries;
   const prevStepIndexRef = useRef(currentStepIndex);
 
+  // unmount 시 진행 중인 async 작업(라우터/챗)을 취소하고 그 이후의 setState/logEvent를 막는다.
+  const unmountAbortRef = useRef<AbortController | null>(null);
+  if (unmountAbortRef.current === null) {
+    unmountAbortRef.current = new AbortController();
+  }
+  useEffect(() => {
+    return () => {
+      unmountAbortRef.current?.abort();
+    };
+  }, []);
+  const isCancelled = () => unmountAbortRef.current?.signal.aborted === true;
+
   // 다음 step으로 넘어갈 때 entries를 새 step의 seed로 리셋한다.
   // 초기 mount(prev === current)에서는 useReviewEntries가 이미 시드한 상태이므로 건너뛴다.
   useEffect(() => {
@@ -219,12 +231,14 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         stepBody: steps[currentStepIndex].body,
         messages: chatHistoryRef.current,
       });
+      if (isCancelled()) return;
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       setFallbackTurnsUsed(1);
       aiHelpUsedPerStepRef.current[currentStepIndex] = true;
       reviewEntries.appendEntries([createFallbackInputEntry(2)]);
     } catch {
+      if (isCancelled()) return;
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 잠시 후 다시 시도해주세요.');
       // 실패 시 사용자가 재시도할 수 있도록 입력 복구 + input-area 다시 활성화.
       setFreeText(text);
@@ -266,17 +280,22 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         ? steps[currentStepIndex]?.choices[selectedChoiceIndex]
         : undefined;
 
-    const result = await analyzeReviewMethod({
-      weaknessId: task.weaknessId,
-      stepTitle: steps[currentStepIndex].title,
-      stepBody: steps[currentStepIndex].body,
-      selectedChoiceText: selectedChoice?.text,
-      selectedChoiceCorrect: selectedChoice?.correct,
-      userText: text,
-      candidateNodes: candidates,
-    });
+    const result = await analyzeReviewMethod(
+      {
+        weaknessId: task.weaknessId,
+        stepTitle: steps[currentStepIndex].title,
+        stepBody: steps[currentStepIndex].body,
+        selectedChoiceText: selectedChoice?.text,
+        selectedChoiceCorrect: selectedChoice?.correct,
+        userText: text,
+        candidateNodes: candidates,
+      },
+      { signal: unmountAbortRef.current?.signal },
+    );
 
-    if (result.predictedNodeId !== 'fallback') {
+    if (isCancelled()) return;
+
+    if (result.predictedNodeId !== 'fallback' && result.source !== 'fallback') {
       const node = getRemedialNode(task.weaknessId, result.predictedNodeId);
       if (node && node.kind !== 'exit') {
         reviewEntries.removeLastTyping();
@@ -294,10 +313,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
 
     // 폴백 챗 진입 — typing entry는 챗 응답 도착 시 replaceTypingWithBubble로 교체된다.
+    // fallbackReason은 analyzeReviewMethod가 결정한 것을 그대로 사용한다 (호출자 추론 금지).
     logEvent('review_router_fallback', {
       weakness_id: task.weaknessId,
       step_index: currentStepIndex,
-      reason: result.confidence === 0 ? 'network_error' : 'low_confidence',
+      reason: result.fallbackReason ?? 'low_confidence',
     });
     await runFallbackChat(text, { typingAlreadyAppended: true });
   };
@@ -329,6 +349,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         stepBody: steps[currentStepIndex].body,
         messages: chatHistoryRef.current,
       });
+      if (isCancelled()) return;
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       aiHelpUsedPerStepRef.current[currentStepIndex] = true;
@@ -351,6 +372,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         ]);
       }
     } catch {
+      if (isCancelled()) return;
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 다시 시도해 주세요.');
       // 실패 시 사용자가 재시도할 수 있도록 fallback-input 다시 활성화.
       // (chatHistoryRef는 이미 user 메시지를 push했으므로, 다음 호출 시 같은 메시지가
