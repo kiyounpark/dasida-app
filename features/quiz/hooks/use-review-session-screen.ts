@@ -31,6 +31,11 @@ import {
 // 노드별 맞춤 멘트는 §10.1(콘텐츠 작성) 범위라 Phase 2에선 generic 한 문장으로 통일한다.
 const ROUTING_BUBBLE_TEXT = '이 부분 같이 살펴볼게요.';
 
+// 스펙 §3.2 — 스텝 내 "모르겠어요" 누적 카운터가 임계값에 도달하면 정적 경로를 끊고
+// 자유 입력 기반 AI 챗으로 진입한다.
+const COACH_PROMPT_FOR_DETAIL = '어떤 부분이 헷갈리는지 자세히 말해줄래요?';
+const DONT_KNOW_AI_CHAT_THRESHOLD = 2;
+
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
   steps: readonly ThinkingStep[];
@@ -418,13 +423,31 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     advanceRemedialToNode(node.primaryNextNodeId);
   };
 
+  // 스펙 §3.2 — "모르겠어요" 누적 카운터를 증가시키고, 임계값 도달 시 AI 챗 진입,
+  // 그렇지 않으면 정적 경로(staticNextNodeId)로 진행.
+  const handleDontKnowPress = (staticNextNodeId: string) => {
+    const idx = currentStepIndex;
+    const prev = dontKnowCountPerStepRef.current[idx] ?? 0;
+    const next = prev + 1;
+    dontKnowCountPerStepRef.current[idx] = next;
+
+    if (next >= DONT_KNOW_AI_CHAT_THRESHOLD) {
+      // AI 챗 진입 — 정적 경로 무시 (spec §3.2)
+      reviewEntries.lockRemedialNodes();
+      reviewEntries.appendEntries([
+        createAiBubbleEntry(COACH_PROMPT_FOR_DETAIL),
+        createFallbackInputEntry(1),
+      ]);
+      return;
+    }
+    advanceRemedialToNode(staticNextNodeId);
+  };
+
   const onRemedialExplainSecondary = (nodeId: string) => {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
-    dontKnowCountPerStepRef.current[currentStepIndex] =
-      (dontKnowCountPerStepRef.current[currentStepIndex] ?? 0) + 1;
-    advanceRemedialToNode(node.secondaryNextNodeId);
+    handleDontKnowPress(node.secondaryNextNodeId);
   };
 
   const onRemedialCheckOption = (nodeId: string, optionId: string) => {
@@ -441,9 +464,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
-    dontKnowCountPerStepRef.current[currentStepIndex] =
-      (dontKnowCountPerStepRef.current[currentStepIndex] ?? 0) + 1;
-    advanceRemedialToNode(node.dontKnowNextNodeId);
+    handleDontKnowPress(node.dontKnowNextNodeId);
   };
 
   const onPressRemember = async () => {

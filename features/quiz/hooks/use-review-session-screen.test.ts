@@ -307,6 +307,39 @@ describe('entries-based flow', () => {
     expect(result.current.__test_dontKnowCount?.(1)).toBe(0);
   });
 
+  it('스텝 내 모르겠어요 누적 2회 → AI 챗 진입 (코치 안내 + 자유 입력창)', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 오답 클릭 → remedial flow 진입
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => {
+      result.current.onSelectChoice(wrongIdx);
+    });
+
+    // 첫 번째 모르겠어요 — 정적 경로(easy explain 등)로 이동
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_explain');
+    });
+    const kindsAfterFirst = result.current.entries.map((e) => e.kind);
+    expect(kindsAfterFirst).not.toContain('fallback-input');
+
+    // 두 번째 모르겠어요 — AI 챗 진입
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_easy');
+    });
+    const kindsAfterSecond = result.current.entries.map((e) => e.kind);
+    // ai-bubble (코치 안내) + fallback-input (자유 입력창)이 차례로 추가됨
+    const aiBubbleIdx = kindsAfterSecond.findIndex(
+      (k, i) => k === 'ai-bubble' && i > kindsAfterFirst.length - 1,
+    );
+    expect(aiBubbleIdx).toBeGreaterThanOrEqual(0);
+    expect(kindsAfterSecond[aiBubbleIdx + 1]).toBe('fallback-input');
+
+    const coachBubble = result.current.entries[aiBubbleIdx] as { text: string };
+    expect(coachBubble.text).toContain('어떤 부분이 헷갈리는지');
+  });
+
   it('Scenario E (remedial 모르겠어요 정적 이동 후): remedial 흐름을 계속 진행하면 done-cta까지 도달', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
