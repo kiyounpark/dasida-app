@@ -57,6 +57,12 @@ module.exports = {
       'expo-router',
       'expo-apple-authentication',
       [
+        'expo-build-properties',
+        {
+          ios: { useFrameworks: 'static' },
+        },
+      ],
+      [
         'expo-notifications',
         {
           androidMode: 'default',
