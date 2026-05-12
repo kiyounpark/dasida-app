@@ -54,6 +54,8 @@ export function ReviewSessionScreenView({
   const tabletInputScrollRef = useRef<ScrollView>(null);
   const spinAnim = useRef(new Animated.Value(0)).current;
 
+  // 새 entry 추가 시 auto-scroll 트리거.
+  // entries 모델로 통합된 이후 remedialFlowState 가 사라졌으므로 전체 entries.length 를 추적한다.
   const autoScrollFlagRef = useRef(false);
   const prevEntryCountRef = useRef(entries.length);
 

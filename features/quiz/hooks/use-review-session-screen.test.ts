@@ -3,6 +3,10 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useReviewSessionScreen } from './use-review-session-screen';
 import * as reviewFeedback from '@/features/quiz/review-feedback';
 
+jest.mock('@/features/analytics/log-event', () => ({
+  logEvent: jest.fn(),
+}));
+
 jest.mock('expo-router', () => ({
   router: { back: jest.fn() },
   useLocalSearchParams: () => ({ taskId: '__mock__' }),

@@ -44,6 +44,7 @@ import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store
 import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
 import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
 import { deleteAccountUrl } from '@/constants/env';
+import { setAnalyticsUserId } from '@/features/analytics/log-event';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
@@ -226,6 +227,14 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId);
     };
   }, []);
+
+  useEffect(() => {
+    if (state.authGateState === 'authenticated' && state.session?.status === 'authenticated') {
+      setAnalyticsUserId(state.session.firebaseUid);
+    } else if (state.authGateState === 'required') {
+      setAnalyticsUserId(null);
+    }
+  }, [state.authGateState, state.session]);
 
   const loadRecentAttempts = useCallback(
     (options?: { source?: LearningSource; limit?: number }) => {

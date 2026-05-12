@@ -15,6 +15,9 @@ import { Dimensions, Platform } from 'react-native';
 
 import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
+import { logEvent } from '@/features/analytics/log-event';
+import type { NotificationType } from '@/features/analytics/event-types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -41,10 +44,15 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+// Prevents cold-start notification handling from firing more than once per
+// native app launch (e.g. during Fast Refresh remounts in dev).
+let coldStartHandled = false;
+
 function SplashGate() {
   const { authGateState, isReady } = useCurrentLearner();
   const [splashHidden, setSplashHidden] = useState(false);
   const pendingTaskIdRef = useRef<string | null>(null);
+  const handledNotificationIdRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     'SUIT-Regular': require('../assets/fonts/SUIT-Regular.ttf'),
@@ -79,17 +87,40 @@ function SplashGate() {
   // 콜드스타트 알림 페이로드 캡처 (Stack 마운트 전에 ref에만 저장)
   useEffect(() => {
     const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse) {
-      const taskId = lastResponse.notification.request.content.data?.taskId as string | undefined;
-      if (taskId) {
+    if (lastResponse && !coldStartHandled) {
+      coldStartHandled = true;
+      handledNotificationIdRef.current = lastResponse.notification.request.identifier;
+      const data = lastResponse.notification.request.content.data ?? {};
+      const taskId = typeof data.taskId === 'string' ? data.taskId : undefined;
+      const notificationType: NotificationType =
+        data.notificationType === 'review_reminder' ? 'review_reminder' : 'unknown';
+      const scheduledAt = typeof data.scheduledAt === 'string' ? data.scheduledAt : undefined;
+      logEvent('notification_opened', {
+        notification_type: notificationType,
+        task_id: taskId,
+        scheduled_at: scheduledAt,
+        opened_at: new Date().toISOString(),
+      });
+      if (notificationType === 'review_reminder' && taskId) {
         pendingTaskIdRef.current = taskId;
       }
     }
 
     // 포그라운드/백그라운드 알림 탭
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const taskId = response.notification.request.content.data?.taskId as string | undefined;
-      if (taskId) {
+      if (response.notification.request.identifier === handledNotificationIdRef.current) return;
+      const data = response.notification.request.content.data ?? {};
+      const taskId = typeof data.taskId === 'string' ? data.taskId : undefined;
+      const notificationType: NotificationType =
+        data.notificationType === 'review_reminder' ? 'review_reminder' : 'unknown';
+      const scheduledAt = typeof data.scheduledAt === 'string' ? data.scheduledAt : undefined;
+      logEvent('notification_opened', {
+        notification_type: notificationType,
+        task_id: taskId,
+        scheduled_at: scheduledAt,
+        opened_at: new Date().toISOString(),
+      });
+      if (notificationType === 'review_reminder' && taskId) {
         router.push({ pathname: '/quiz/review-session', params: { taskId } });
       }
     });
@@ -166,6 +197,11 @@ function AuthGateRedirector() {
   return null;
 }
 
+function ScreenTracker() {
+  useScreenTracking();
+  return null;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -190,6 +226,7 @@ export default function RootLayout() {
           <ExamSessionProvider>
             <SplashGate />
             <AuthGateRedirector />
+            <ScreenTracker />
             <Stack>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="sign-in" options={{ headerShown: false }} />
