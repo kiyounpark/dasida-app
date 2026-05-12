@@ -454,8 +454,12 @@ describe('자유 입력 → 라우터 분기 (Phase 2)', () => {
 
     const kinds = result.current.entries.map((e) => e.kind);
     expect(kinds).toContain('user-bubble');
+    expect(kinds).toContain('ai-bubble'); // routing-bubble (spec §3 시나리오 A)
     expect(kinds).toContain('remedial-node');
-    expect(kinds).not.toContain('ai-typing'); // 폴백 챗 typing은 없음
+    expect(kinds).not.toContain('ai-typing'); // typing은 routing-bubble로 교체됐어야 함
+    // routing-bubble은 remedial-node 직전에 와야 한다.
+    const remedialIdx = kinds.indexOf('remedial-node');
+    expect(kinds[remedialIdx - 1]).toBe('ai-bubble');
   });
 
   it('라우터 fallback 시 기존 폴백 챗 경로 사용', async () => {
@@ -507,7 +511,8 @@ describe('자유 입력 → 라우터 분기 (Phase 2)', () => {
     expect(chatSpy).not.toHaveBeenCalled();
     const kinds = result.current.entries.map((e) => e.kind);
     expect(kinds).toContain('remedial-node');
-    expect(kinds).not.toContain('ai-bubble');
+    // ai-bubble은 routing-bubble로 1개 있어야 한다 (폴백 챗 ai-bubble은 chatSpy로 차단됨)
+    expect(kinds.filter((k) => k === 'ai-bubble')).toHaveLength(1);
     expect(kinds).not.toContain('fallback-input');
   });
 

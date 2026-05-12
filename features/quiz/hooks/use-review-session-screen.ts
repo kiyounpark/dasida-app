@@ -21,10 +21,15 @@ import {
   createDoneCtaEntry,
   createRemedialNodeEntry,
   createUserBubbleEntry as createReviewUserBubbleEntry,
+  createAiBubbleEntry,
   createAiTypingEntry,
   createFallbackInputEntry,
   type ReviewEntry,
 } from '@/features/quiz/components/review-session/review-entries';
+
+// 스펙 §3 시나리오 A의 routing-bubble — 라우터 매칭 노드로 점프하기 전에 띄우는 짧은 안내.
+// 노드별 맞춤 멘트는 §10.1(콘텐츠 작성) 범위라 Phase 2에선 generic 한 문장으로 통일한다.
+const ROUTING_BUBBLE_TEXT = '이 부분 같이 살펴볼게요.';
 
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
@@ -299,7 +304,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       const node = getRemedialNode(task.weaknessId, result.predictedNodeId);
       if (node && node.kind !== 'exit') {
         reviewEntries.removeLastTyping();
-        reviewEntries.appendEntries([createRemedialNodeEntry(node)]);
+        reviewEntries.appendEntries([
+          createAiBubbleEntry(ROUTING_BUBBLE_TEXT),
+          createRemedialNodeEntry(node),
+        ]);
         aiHelpUsedPerStepRef.current[currentStepIndex] = true;
         logEvent('review_router_succeeded', {
           weakness_id: task.weaknessId,
