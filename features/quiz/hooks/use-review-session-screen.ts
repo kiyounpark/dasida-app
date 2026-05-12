@@ -10,7 +10,9 @@ import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
 import { requestReviewFeedback, type ChatMessage } from '@/features/quiz/review-feedback';
-import { getRemedialNode } from '@/data/review-remedial-flows';
+import { getRemedialNode, remedialFlows } from '@/data/review-remedial-flows';
+import { analyzeReviewMethod } from '@/features/quiz/review-router';
+import { buildReviewRouterCandidates } from '@/features/quiz/components/review-session/build-review-router-candidates';
 import { logEvent } from '@/features/analytics/log-event';
 import { useReviewEntries } from './use-review-entries';
 import {
@@ -19,10 +21,15 @@ import {
   createDoneCtaEntry,
   createRemedialNodeEntry,
   createUserBubbleEntry as createReviewUserBubbleEntry,
+  createAiBubbleEntry,
   createAiTypingEntry,
   createFallbackInputEntry,
   type ReviewEntry,
 } from '@/features/quiz/components/review-session/review-entries';
+
+// 스펙 §3 시나리오 A의 routing-bubble — 라우터 매칭 노드로 점프하기 전에 띄우는 짧은 안내.
+// 노드별 맞춤 멘트는 §10.1(콘텐츠 작성) 범위라 Phase 2에선 generic 한 문장으로 통일한다.
+const ROUTING_BUBBLE_TEXT = '이 부분 같이 살펴볼게요.';
 
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
@@ -75,6 +82,18 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const reviewEntries = useReviewEntries(currentStepIndex);
   const { resetForStep: resetEntriesForStep } = reviewEntries;
   const prevStepIndexRef = useRef(currentStepIndex);
+
+  // unmount 시 진행 중인 async 작업(라우터/챗)을 취소하고 그 이후의 setState/logEvent를 막는다.
+  const unmountAbortRef = useRef<AbortController | null>(null);
+  if (unmountAbortRef.current === null) {
+    unmountAbortRef.current = new AbortController();
+  }
+  useEffect(() => {
+    return () => {
+      unmountAbortRef.current?.abort();
+    };
+  }, []);
+  const isCancelled = () => unmountAbortRef.current?.signal.aborted === true;
 
   // 다음 step으로 넘어갈 때 entries를 새 step의 seed로 리셋한다.
   // 초기 mount(prev === current)에서는 useReviewEntries가 이미 시드한 상태이므로 건너뛴다.
@@ -198,16 +217,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
   const onChangeFreeText = (text: string) => setFreeText(text);
 
-  const onSubmitFreeText = async () => {
-    const text = freeText.trim();
-    if (!text || !task) return;
-
-    setFreeText('');
-    reviewEntries.lockInputArea();
-    reviewEntries.appendEntries([
-      createReviewUserBubbleEntry(text),
-      createAiTypingEntry(),
-    ]);
+  const runFallbackChat = async (
+    text: string,
+    options: { typingAlreadyAppended?: boolean } = {},
+  ) => {
+    if (!options.typingAlreadyAppended) {
+      reviewEntries.appendEntries([createAiTypingEntry()]);
+    }
 
     // 새 대화 시작: 자유 입력 1턴은 항상 새 history로 시작한다.
     // (실패 후 재시도 시에도 이 함수가 다시 호출되므로 이전 메시지를 덮어쓰는 것이 의도된 동작.)
@@ -215,22 +231,103 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     try {
       const result = await requestReviewFeedback({
-        weaknessId: task.weaknessId,
+        weaknessId: task!.weaknessId,
         stepTitle: steps[currentStepIndex].title,
         stepBody: steps[currentStepIndex].body,
         messages: chatHistoryRef.current,
       });
+      if (isCancelled()) return;
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       setFallbackTurnsUsed(1);
       aiHelpUsedPerStepRef.current[currentStepIndex] = true;
       reviewEntries.appendEntries([createFallbackInputEntry(2)]);
     } catch {
+      if (isCancelled()) return;
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 잠시 후 다시 시도해주세요.');
       // 실패 시 사용자가 재시도할 수 있도록 입력 복구 + input-area 다시 활성화.
       setFreeText(text);
       reviewEntries.unlockLatestInput();
     }
+  };
+
+  const onSubmitFreeText = async () => {
+    const text = freeText.trim();
+    if (!text || !task) return;
+
+    setFreeText('');
+    reviewEntries.lockInputArea();
+    reviewEntries.appendEntries([createReviewUserBubbleEntry(text)]);
+
+    const flow = remedialFlows[task.weaknessId];
+    const candidates = buildReviewRouterCandidates(flow);
+
+    if (candidates.length === 0) {
+      logEvent('review_router_fallback', {
+        weakness_id: task.weaknessId,
+        step_index: currentStepIndex,
+        reason: 'no_candidates',
+      });
+      await runFallbackChat(text);
+      return;
+    }
+
+    logEvent('review_router_called', {
+      weakness_id: task.weaknessId,
+      step_index: currentStepIndex,
+      candidate_count: candidates.length,
+    });
+
+    reviewEntries.appendEntries([createAiTypingEntry()]);
+
+    const selectedChoice =
+      selectedChoiceIndex !== null
+        ? steps[currentStepIndex]?.choices[selectedChoiceIndex]
+        : undefined;
+
+    const result = await analyzeReviewMethod(
+      {
+        weaknessId: task.weaknessId,
+        stepTitle: steps[currentStepIndex].title,
+        stepBody: steps[currentStepIndex].body,
+        selectedChoiceText: selectedChoice?.text,
+        selectedChoiceCorrect: selectedChoice?.correct,
+        userText: text,
+        candidateNodes: candidates,
+      },
+      { signal: unmountAbortRef.current?.signal },
+    );
+
+    if (isCancelled()) return;
+
+    if (result.predictedNodeId !== 'fallback' && result.source !== 'fallback') {
+      const node = getRemedialNode(task.weaknessId, result.predictedNodeId);
+      if (node && node.kind !== 'exit') {
+        reviewEntries.removeLastTyping();
+        reviewEntries.appendEntries([
+          createAiBubbleEntry(ROUTING_BUBBLE_TEXT),
+          createRemedialNodeEntry(node),
+        ]);
+        aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+        logEvent('review_router_succeeded', {
+          weakness_id: task.weaknessId,
+          step_index: currentStepIndex,
+          predicted_node_id: result.predictedNodeId,
+          confidence: result.confidence,
+          source: result.source === 'mock-router' ? 'mock-router' : 'openai-router',
+        });
+        return;
+      }
+    }
+
+    // 폴백 챗 진입 — typing entry는 챗 응답 도착 시 replaceTypingWithBubble로 교체된다.
+    // fallbackReason은 analyzeReviewMethod가 결정한 것을 그대로 사용한다 (호출자 추론 금지).
+    logEvent('review_router_fallback', {
+      weakness_id: task.weaknessId,
+      step_index: currentStepIndex,
+      reason: result.fallbackReason ?? 'low_confidence',
+    });
+    await runFallbackChat(text, { typingAlreadyAppended: true });
   };
 
   const onChangeFallbackText = (text: string) => setFallbackText(text);
@@ -260,6 +357,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         stepBody: steps[currentStepIndex].body,
         messages: chatHistoryRef.current,
       });
+      if (isCancelled()) return;
       chatHistoryRef.current.push({ role: 'assistant', content: result.replyText });
       reviewEntries.replaceTypingWithBubble(result.replyText);
       aiHelpUsedPerStepRef.current[currentStepIndex] = true;
@@ -270,6 +368,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         reviewEntries.appendEntries([createFallbackInputEntry(2)]);
       } else {
         // 2턴 마무리 → done-cta로 step 종료
+        logEvent('review_fallback_chat_completed', {
+          weakness_id: task.weaknessId,
+          step_index: currentStepIndex,
+          turn_count: 2,
+        });
         setFallbackTurnsUsed(turnBeforeResponse + 1);
         const isLast = currentStepIndex === steps.length - 1;
         reviewEntries.appendEntries([
@@ -277,6 +380,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         ]);
       }
     } catch {
+      if (isCancelled()) return;
       reviewEntries.replaceTypingWithBubble('응답이 늦고 있어요. 다시 시도해 주세요.');
       // 실패 시 사용자가 재시도할 수 있도록 fallback-input 다시 활성화.
       // (chatHistoryRef는 이미 user 메시지를 push했으므로, 다음 호출 시 같은 메시지가
@@ -313,10 +417,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
-    reviewEntries.lockRemedialNodes();
-    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
-    setFallbackTurnsUsed(0);
-    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+    advanceRemedialToNode(node.secondaryNextNodeId);
   };
 
   const onRemedialCheckOption = (nodeId: string, optionId: string) => {
@@ -333,10 +434,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
-    reviewEntries.lockRemedialNodes();
-    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
-    setFallbackTurnsUsed(0);
-    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+    advanceRemedialToNode(node.dontKnowNextNodeId);
   };
 
   const onPressRemember = async () => {

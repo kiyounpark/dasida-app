@@ -44,3 +44,6 @@ export const reviewFeedbackUrl = (process.env.EXPO_PUBLIC_REVIEW_FEEDBACK_URL ??
 export const reviewFeedbackTimeoutMs = 10000;
 
 export const deleteAccountUrl = (process.env.EXPO_PUBLIC_DELETE_ACCOUNT_URL ?? '').trim();
+
+export const reviewRouterUrl = (process.env.EXPO_PUBLIC_REVIEW_ROUTER_URL ?? '').trim();
+export const reviewRouterTimeoutMs = 8000;
