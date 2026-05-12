@@ -339,6 +339,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         reviewEntries.appendEntries([createFallbackInputEntry(2)]);
       } else {
         // 2턴 마무리 → done-cta로 step 종료
+        logEvent('review_fallback_chat_completed', {
+          weakness_id: task.weaknessId,
+          step_index: currentStepIndex,
+          turn_count: 2,
+        });
         setFallbackTurnsUsed(turnBeforeResponse + 1);
         const isLast = currentStepIndex === steps.length - 1;
         reviewEntries.appendEntries([
