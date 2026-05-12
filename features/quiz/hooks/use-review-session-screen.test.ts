@@ -224,7 +224,7 @@ describe('entries-based flow', () => {
     expect(doneCta).toMatchObject({ label: '이해했어요, 완료' });
   });
 
-  it('onRemedialExplainSecondary("모르겠어요") → fallback-input(turn=1) + 이전 remedial-node 잠금', async () => {
+  it('onRemedialExplainSecondary("모르겠어요") → secondaryNextNodeId 노드 append + 이전 remedial-node 잠금 (Phase 2 정적 이동)', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
     const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
@@ -237,10 +237,12 @@ describe('entries-based flow', () => {
       result.current.onRemedialExplainSecondary(firstNode.node.id);
     });
 
-    const fb = result.current.entries.find((e) => e.kind === 'fallback-input');
-    expect(fb).toMatchObject({ turn: 1, interactive: true });
+    const lastEntry = result.current.entries[result.current.entries.length - 1] as any;
+    expect(lastEntry.kind).toBe('remedial-node');
+    expect(lastEntry.node.id).toBe(firstNode.node.secondaryNextNodeId);
     const remedialNodes = result.current.entries.filter((e) => e.kind === 'remedial-node');
-    expect(remedialNodes.every((n: any) => n.interactive === false)).toBe(true);
+    // 이전 노드들은 잠겨야 한다; 마지막(새로 추가된) 노드만 interactive
+    expect(remedialNodes[0]).toMatchObject({ interactive: false });
   });
 
   it('자유 입력 호출 실패 시 input-area 복구 + freeText 복원', async () => {
@@ -261,73 +263,63 @@ describe('entries-based flow', () => {
     spy.mockRestore();
   });
 
-  it('Scenario E (remedial 모르겠어요 → 폴백 챗 2턴): 1턴 응답 후 fallback-input(turn=2) 자동 추가', async () => {
-    const spy = jest
-      .spyOn(reviewFeedback, 'requestReviewFeedback')
-      .mockResolvedValue({ replyText: '폴백 1차' });
-
+  it('Scenario E (remedial 모르겠어요 → 정적 이동 Phase 2): 새 remedial-node가 append되고 폴백 챗 없음', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
     const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
     await act(async () => { result.current.onSelectChoice(wrongIdx); });
 
     const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
-    if (!firstNode || firstNode.node.kind !== 'explain') {
-      spy.mockRestore();
-      return;
-    }
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
     await act(async () => {
       result.current.onRemedialExplainSecondary(firstNode.node.id);
     });
 
-    // remedial "모르겠어요" → fallback-input(turn=1)
-    const fb1 = result.current.entries.find((e) => e.kind === 'fallback-input') as any;
-    expect(fb1).toMatchObject({ turn: 1, interactive: true });
-
-    // 1턴 제출 → 응답 후 fallback-input(turn=2) 등장 (done-cta가 아니어야 함)
-    act(() => result.current.onChangeFallbackText('잘 모르겠어요'));
-    await act(async () => { await result.current.onSubmitFallback(); });
-
-    const fallbackInputs = result.current.entries.filter((e) => e.kind === 'fallback-input');
-    expect(fallbackInputs).toHaveLength(2);
-    expect(fallbackInputs[1]).toMatchObject({ turn: 2, interactive: true });
-    const hasDoneCta = result.current.entries.some((e) => e.kind === 'done-cta');
-    expect(hasDoneCta).toBe(false);
-
-    spy.mockRestore();
+    const lastEntry = result.current.entries[result.current.entries.length - 1] as any;
+    expect(lastEntry.kind).toBe('remedial-node');
+    expect(lastEntry.node.id).toBe(firstNode.node.secondaryNextNodeId);
+    expect(result.current.entries.some((e: any) => e.kind === 'fallback-input')).toBe(false);
   });
 
-  it('Scenario E: 2턴 응답 후에야 done-cta 추가', async () => {
-    const spy = jest
-      .spyOn(reviewFeedback, 'requestReviewFeedback')
-      .mockResolvedValueOnce({ replyText: '폴백 1차' })
-      .mockResolvedValueOnce({ replyText: '폴백 2차 마무리' });
-
+  it('Scenario E (remedial 모르겠어요 정적 이동 후): remedial 흐름을 계속 진행하면 done-cta까지 도달', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
     const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
     await act(async () => { result.current.onSelectChoice(wrongIdx); });
 
     const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
-    if (!firstNode || firstNode.node.kind !== 'explain') {
-      spy.mockRestore();
-      return;
-    }
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    // 모르겠어요 → secondaryNextNode (fu_step1_A_easy)
     await act(async () => {
       result.current.onRemedialExplainSecondary(firstNode.node.id);
     });
 
-    // 1턴
-    act(() => result.current.onChangeFallbackText('1차'));
-    await act(async () => { await result.current.onSubmitFallback(); });
-    // 2턴
-    act(() => result.current.onChangeFallbackText('2차'));
-    await act(async () => { await result.current.onSubmitFallback(); });
+    const secondNode = result.current.entries.find(
+      (e: any) => e.kind === 'remedial-node' && e.node.id === firstNode.node.secondaryNextNodeId,
+    ) as any;
+    if (!secondNode) return;
+
+    // primary → fu_step1_A_check (check 노드)
+    await act(async () => {
+      result.current.onRemedialExplainPrimary(secondNode.node.id);
+    });
+
+    const checkNode = result.current.entries.find(
+      (e: any) => e.kind === 'remedial-node' && e.node.kind === 'check',
+    ) as any;
+    if (!checkNode) return;
+
+    // 정답 선택 → exit → done-cta
+    const correctOpt = checkNode.node.options.find((o: any) => o.isCorrect);
+    if (!correctOpt) return;
+    await act(async () => {
+      result.current.onRemedialCheckOption(checkNode.node.id, correctOpt.id);
+    });
 
     const lastEntry = result.current.entries[result.current.entries.length - 1];
     expect(lastEntry.kind).toBe('done-cta');
-
-    spy.mockRestore();
   });
 });
 
@@ -397,30 +389,35 @@ describe('entries-based flow — kind sequence snapshots (spec §3 scenarios)', 
     spy.mockRestore();
   });
 
-  it('Scenario E (오답 → remedial → 모르겠어요 → 폴백 챗 2턴 → done)', async () => {
-    const spy = jest
-      .spyOn(reviewFeedback, 'requestReviewFeedback')
-      .mockResolvedValueOnce({ replyText: '폴백 1차' })
-      .mockResolvedValueOnce({ replyText: '폴백 2차' });
-
+  it('Scenario E (오답 → remedial → 모르겠어요 정적이동 → 쉬운설명 → check → 정답 → done)', async () => {
+    // Phase 2: 모르겠어요는 정적으로 다음 노드(easy)로 이동, 폴백 챗 없음
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
     const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
     await act(async () => { result.current.onSelectChoice(wrongIdx); });
 
+    // fu_step1_A_explain 노드
     const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
-    if (!firstNode || firstNode.node.kind !== 'explain') {
-      spy.mockRestore();
-      return;
-    }
-    await act(async () => {
-      result.current.onRemedialExplainSecondary(firstNode.node.id);
-    });
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
 
-    act(() => result.current.onChangeFallbackText('잘 모르겠어요'));
-    await act(async () => { await result.current.onSubmitFallback(); });
-    act(() => result.current.onChangeFallbackText('한 번 더'));
-    await act(async () => { await result.current.onSubmitFallback(); });
+    // 모르겠어요 → fu_step1_A_easy
+    await act(async () => { result.current.onRemedialExplainSecondary(firstNode.node.id); });
+
+    // fu_step1_A_easy의 primary → fu_step1_A_check
+    const easyNode = result.current.entries.find(
+      (e: any) => e.kind === 'remedial-node' && e.node.id === firstNode.node.secondaryNextNodeId,
+    ) as any;
+    if (!easyNode || easyNode.node.kind !== 'explain') return;
+    await act(async () => { result.current.onRemedialExplainPrimary(easyNode.node.id); });
+
+    // check 노드에서 정답 선택
+    const checkNode = result.current.entries.find(
+      (e: any) => e.kind === 'remedial-node' && e.node.kind === 'check',
+    ) as any;
+    if (!checkNode) return;
+    const correctOpt = checkNode.node.options.find((o: any) => o.isCorrect);
+    if (!correctOpt) return;
+    await act(async () => { result.current.onRemedialCheckOption(checkNode.node.id, correctOpt.id); });
 
     expect(kindsOf(result.current.entries)).toMatchInlineSnapshot(`
 [
@@ -429,16 +426,12 @@ describe('entries-based flow — kind sequence snapshots (spec §3 scenarios)', 
   "choice-bubble",
   "feedback-banner",
   "remedial-node",
-  "fallback-input",
+  "remedial-node",
+  "remedial-node",
   "user-bubble",
-  "ai-bubble",
-  "fallback-input",
-  "user-bubble",
-  "ai-bubble",
   "done-cta",
 ]
 `);
-    spy.mockRestore();
   });
 });
 
@@ -508,5 +501,79 @@ describe('자유 입력 → 라우터 분기 (Phase 2)', () => {
     });
 
     expect(reviewRouterModule.analyzeReviewMethod).not.toHaveBeenCalled();
+  });
+});
+
+describe('Remedial 도중 "모르겠어요" 정적 이동 (Phase 2)', () => {
+  // 공통 헬퍼: 오답 선택 후 첫 번째 remedial-node(explain kind)를 찾는다
+  async function setupRemedialExplainNode(result: any) {
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c: any) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+    const firstNode = result.current.entries.find((e: any) => e.kind === 'remedial-node') as any;
+    return firstNode;
+  }
+
+  it('explain "모르겠어요" 시 secondaryNextNodeId 노드가 entries에 append', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    const firstNode = await setupRemedialExplainNode(result);
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    // fu_step1_A_explain 의 secondaryNextNodeId = 'fu_step1_A_easy'
+    const secondaryId = firstNode.node.secondaryNextNodeId;
+
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    const lastEntry = result.current.entries[result.current.entries.length - 1] as any;
+    expect(lastEntry.kind).toBe('remedial-node');
+    expect(lastEntry.node.id).toBe(secondaryId);
+
+    // fallback-input(turn=1) 가 없어야 함
+    const hasFallbackInput = result.current.entries.some(
+      (e: any) => e.kind === 'fallback-input' && e.turn === 1,
+    );
+    expect(hasFallbackInput).toBe(false);
+  });
+
+  it('check "모르겠어요" 시 dontKnowNextNodeId 노드가 entries에 append', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const wrongIdx = result.current.steps[0].choices.findIndex((c: any) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+
+    // explain primary → check 노드로 이동
+    const explainNode = result.current.entries.find((e: any) => e.kind === 'remedial-node') as any;
+    if (!explainNode || explainNode.node.kind !== 'explain') return;
+    await act(async () => { result.current.onRemedialExplainPrimary(explainNode.node.id); });
+
+    const checkNode = result.current.entries.find(
+      (e: any) => e.kind === 'remedial-node' && e.node.kind === 'check',
+    ) as any;
+    if (!checkNode) return;
+
+    const dontKnowId = checkNode.node.dontKnowNextNodeId;
+    await act(async () => {
+      result.current.onRemedialCheckDontKnow(checkNode.node.id);
+    });
+
+    const lastEntry = result.current.entries[result.current.entries.length - 1] as any;
+    expect(lastEntry.kind).toBe('remedial-node');
+    expect(lastEntry.node.id).toBe(dontKnowId);
+  });
+
+  it('정적 이동 시 aiHelpUsedPerStepRef 는 변경되지 않는다 (AI 호출 없음)', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    const firstNode = await setupRemedialExplainNode(result);
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    // aiHelpUsed 는 exposed 안 되므로 fallback-input 부재 + ai-typing 부재로 간접 검증
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+
+    expect(result.current.entries.some((e: any) => e.kind === 'ai-typing')).toBe(false);
+    expect(result.current.entries.some((e: any) => e.kind === 'fallback-input')).toBe(false);
   });
 });

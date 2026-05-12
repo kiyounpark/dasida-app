@@ -382,10 +382,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
-    reviewEntries.lockRemedialNodes();
-    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
-    setFallbackTurnsUsed(0);
-    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+    advanceRemedialToNode(node.secondaryNextNodeId);
   };
 
   const onRemedialCheckOption = (nodeId: string, optionId: string) => {
@@ -402,10 +399,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
-    reviewEntries.lockRemedialNodes();
-    reviewEntries.appendEntries([createFallbackInputEntry(1)]);
-    setFallbackTurnsUsed(0);
-    aiHelpUsedPerStepRef.current[currentStepIndex] = true;
+    advanceRemedialToNode(node.dontKnowNextNodeId);
   };
 
   const onPressRemember = async () => {
