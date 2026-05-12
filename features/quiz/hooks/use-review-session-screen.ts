@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
+import type { WeaknessId } from '@/data/diagnosisMap';
 import { completeReviewTask, rescheduleReviewTask } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
@@ -60,6 +61,8 @@ export type UseReviewSessionScreenResult = {
   onSubmitFallback: () => Promise<void>;
   /** @internal - exported for unit tests */
   __test_dontKnowCount?: (stepIndex: number) => number;
+  /** @internal - exported for unit tests */
+  __test_discoveredForStep?: (stepIndex: number) => WeaknessId[];
 };
 
 const store = new LocalReviewTaskStore();
@@ -86,6 +89,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const firstAttemptChoiceIndexRef = useRef<(number | null)[]>([]);
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
   const dontKnowCountPerStepRef = useRef<number[]>([]);
+  const discoveredPerStepRef = useRef<WeaknessId[][]>([]);
 
   const reviewEntries = useReviewEntries(currentStepIndex);
   const { resetForStep: resetEntriesForStep } = reviewEntries;
@@ -141,6 +145,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptChoiceIndexRef.current = new Array(mockStepCount).fill(null);
       aiHelpUsedPerStepRef.current = new Array(mockStepCount).fill(false);
       dontKnowCountPerStepRef.current = new Array(mockStepCount).fill(0);
+      discoveredPerStepRef.current = Array.from({ length: mockStepCount }, () => []);
       sessionStartedAtRef.current = new Date().toISOString();
       return;
     }
@@ -158,6 +163,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         firstAttemptChoiceIndexRef.current = new Array(foundStepCount).fill(null);
         aiHelpUsedPerStepRef.current = new Array(foundStepCount).fill(false);
         dontKnowCountPerStepRef.current = new Array(foundStepCount).fill(0);
+        discoveredPerStepRef.current = Array.from({ length: foundStepCount }, () => []);
         sessionStartedAtRef.current = new Date().toISOString();
       }
     });
@@ -165,6 +171,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       cancelled = true;
     };
   }, [accountKey, taskId]);
+
+  const pushDiscoveredWeakness = (stepIndex: number, id: WeaknessId | undefined) => {
+    if (!id) return;
+    const arr = discoveredPerStepRef.current[stepIndex];
+    if (!arr) return;
+    if (!arr.includes(id)) arr.push(id);
+  };
 
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
@@ -183,6 +196,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
       firstAttemptChoiceIndexRef.current[currentStepIndex] = index;
     }
+    pushDiscoveredWeakness(currentStepIndex, choice?.weaknessId);
 
     // entries-based flow (new)
     if (!choice || !task) return;
@@ -456,6 +470,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!node || node.kind !== 'check') return;
     const opt = node.options.find((o) => o.id === optionId);
     if (!opt) return;
+    pushDiscoveredWeakness(currentStepIndex, opt.weaknessId);
     reviewEntries.appendEntries([createReviewUserBubbleEntry(opt.text)]);
     advanceRemedialToNode(opt.nextNodeId);
   };
@@ -572,5 +587,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSubmitFallback,
     __test_dontKnowCount: (stepIndex: number) =>
       dontKnowCountPerStepRef.current[stepIndex] ?? 0,
+    __test_discoveredForStep: (stepIndex: number) =>
+      [...(discoveredPerStepRef.current[stepIndex] ?? [])],
   };
 }

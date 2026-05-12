@@ -4,6 +4,8 @@ import { useReviewSessionScreen } from './use-review-session-screen';
 import * as reviewFeedback from '@/features/quiz/review-feedback';
 import * as reviewRouterModule from '@/features/quiz/review-router';
 import * as buildCandidatesModule from '@/features/quiz/components/review-session/build-review-router-candidates';
+import { reviewContentMap } from '@/data/review-content-map';
+import { remedialFlows } from '@/data/review-remedial-flows';
 
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
@@ -54,6 +56,89 @@ jest.mock('@/features/quiz/components/review-session/build-review-router-candida
 }));
 
 describe('entries-based flow', () => {
+  // Task 6 fixture: inject weaknessId labels into formula_understanding data so that
+  // the collection code path can be exercised. Restored after this describe runs.
+  // Production data files (Task 8 territory) are NOT modified.
+  const originalStep1Wrong0WeaknessId = (() => {
+    const c = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    return c.weaknessId;
+  })();
+  const originalCheckWrong1WeaknessId = (() => {
+    const node = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const opt = node.options.find((o) => o.id === 'wrong1');
+    return opt?.weaknessId;
+  })();
+
+  beforeAll(() => {
+    const step1Wrong0 = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    step1Wrong0.weaknessId = 'basic_concept_needed';
+
+    const checkNode = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const wrong1 = checkNode.options.find((o) => o.id === 'wrong1') as {
+      id: string;
+      weaknessId?: string;
+    };
+    wrong1.weaknessId = 'expansion_sign_error';
+  });
+
+  afterAll(() => {
+    const step1Wrong0 = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    if (originalStep1Wrong0WeaknessId === undefined) delete step1Wrong0.weaknessId;
+    else step1Wrong0.weaknessId = originalStep1Wrong0WeaknessId;
+
+    const checkNode = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const wrong1 = checkNode.options.find((o) => o.id === 'wrong1') as {
+      id: string;
+      weaknessId?: string;
+    };
+    if (originalCheckWrong1WeaknessId === undefined) delete wrong1.weaknessId;
+    else wrong1.weaknessId = originalCheckWrong1WeaknessId;
+  });
+
+  it('1차 선택지에 weaknessId가 있으면 discoveredWeaknesses에 누적된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    await act(async () => {
+      result.current.onSelectChoice(0); // wrong choice with weaknessId
+    });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'basic_concept_needed',
+    );
+  });
+
+  it('check 노드의 오답 옵션 선택 시 weaknessId 누적', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // wrong choice → remedial flow → explain primary → check 노드 도달
+    await act(async () => { result.current.onSelectChoice(0); });
+    act(() => { result.current.onRemedialExplainPrimary('fu_step1_A_explain'); });
+
+    // check 오답 옵션 클릭 (wrong1 = '8')
+    act(() => { result.current.onRemedialCheckOption('fu_step1_A_check', 'wrong1'); });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'expansion_sign_error',
+    );
+  });
+
   it('초기 entries에 step-card와 input-area가 있다', () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     expect(result.current.entries[0]).toMatchObject({ kind: 'step-card' });
