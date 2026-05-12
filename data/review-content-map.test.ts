@@ -1,5 +1,6 @@
-import { weaknessOrder } from './diagnosisMap';
-import { getReviewThinkingSteps } from './review-content-map';
+import { weaknessOrder, type WeaknessId } from './diagnosisMap';
+import { getReviewThinkingSteps, reviewContentMap } from './review-content-map';
+import { remedialFlows } from './review-remedial-flows';
 
 describe('review-content-map 콘텐츠 무결성', () => {
   it('콘텐츠가 있는 모든 약점의 선택지 feedback이 비어있지 않다', () => {
@@ -45,5 +46,49 @@ describe('review-content-map 신규 필드', () => {
         }
       }
     }
+  });
+});
+
+describe('weaknessId membership (spec §2.1)', () => {
+  const validIds = new Set<WeaknessId>(weaknessOrder);
+
+  it('every weaknessId in review-content-map choices is in weaknessOrder', () => {
+    const offenders: string[] = [];
+    for (const [weaknessKey, content] of Object.entries(reviewContentMap)) {
+      if (!content) continue;
+      content.thinkingSteps.forEach((step, sIdx) => {
+        step.choices.forEach((choice, cIdx) => {
+          const id = (choice as { weaknessId?: string }).weaknessId;
+          if (id !== undefined && !validIds.has(id as WeaknessId)) {
+            offenders.push(`${weaknessKey}.step${sIdx + 1}.choice${cIdx}=${id}`);
+          }
+        });
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('every weaknessId in remedial-flows nodes is in weaknessOrder', () => {
+    const offenders: string[] = [];
+    for (const [weaknessKey, flow] of Object.entries(remedialFlows)) {
+      if (!flow) continue;
+      for (const [nodeId, node] of Object.entries(flow.nodes)) {
+        if (node.kind === 'explain') {
+          const id = (node as { weaknessId?: string }).weaknessId;
+          if (id !== undefined && !validIds.has(id as WeaknessId)) {
+            offenders.push(`${weaknessKey}.${nodeId}=${id}`);
+          }
+        }
+        if (node.kind === 'check') {
+          node.options.forEach((opt, oIdx) => {
+            const id = (opt as { weaknessId?: string }).weaknessId;
+            if (id !== undefined && !validIds.has(id as WeaknessId)) {
+              offenders.push(`${weaknessKey}.${nodeId}.opt${oIdx}=${id}`);
+            }
+          });
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });

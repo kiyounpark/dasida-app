@@ -6,6 +6,8 @@ export type Choice = {
   feedback: string;
   /** 오답 선택 시 진입할 보완 노드 그래프의 시작 노드 id. 정답 Choice는 없어야 함. */
   remedialFlowStartNodeId?: string;
+  /** 학생이 이 오답을 누르면 발견되는 약점 신호 (spec §2.1). */
+  weaknessId?: WeaknessId;
 };
 
 export type ThinkingStep = {
@@ -22,7 +24,7 @@ type ReviewContent = {
   thinkingSteps: ThinkingStep[];
 };
 
-const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
+export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
   discriminant_calculation: {
     heroPrompt: '판별식은 b^2와 4ac를 따로 계산한 뒤 빼야 한다는 흐름이 떠오르나요?',
     thinkingSteps: [
