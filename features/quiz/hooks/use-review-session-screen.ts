@@ -427,6 +427,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       ]);
       return;
     }
+    if (next.kind === 'explain') {
+      pushDiscoveredWeakness(currentStepIndex, next.weaknessId);
+    }
     reviewEntries.appendEntries([createRemedialNodeEntry(next)]);
   };
 
@@ -500,6 +503,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       total_count: questionCount,
     });
 
+    const allDiscovered = Array.from(
+      new Set(discoveredPerStepRef.current.flat()),
+    );
+
     try {
       await recordAttempt({
         attemptId: `review-${task.id}-${Date.now().toString(36)}`,
@@ -516,6 +523,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         accuracy,
         primaryWeaknessId: task.weaknessId,
         topWeaknesses: [task.weaknessId],
+        discoveredWeaknesses: allDiscovered.length > 0 ? allDiscovered : undefined,
         reviewContext: {
           reviewTaskId: task.id,
           reviewStage: task.stage,
@@ -533,6 +541,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
           diagnosisCompleted: true,
           usedDontKnow: false,
           usedAiHelp: aiHelpUsedPerStepRef.current[i] ?? false,
+          discoveredWeaknesses:
+            (discoveredPerStepRef.current[i]?.length ?? 0) > 0
+              ? [...(discoveredPerStepRef.current[i] ?? [])]
+              : undefined,
         })),
       });
     } catch (error) {

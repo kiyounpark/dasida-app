@@ -16,12 +16,13 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ taskId: '__mock__' }),
 }));
 
+const mockRecordAttempt = jest.fn().mockResolvedValue(undefined);
 jest.mock('@/features/learner/provider', () => ({
   useCurrentLearner: () => ({
     session: { accountKey: 'acc-1' },
     refresh: jest.fn(),
     profile: { learnerId: 'l-1', grade: 'middle1' },
-    recordAttempt: jest.fn().mockResolvedValue(undefined),
+    recordAttempt: mockRecordAttempt,
   }),
 }));
 
@@ -73,6 +74,13 @@ describe('entries-based flow', () => {
     const opt = node.options.find((o) => o.id === 'wrong1');
     return opt?.weaknessId;
   })();
+  const originalEasyExplainWeaknessId = (() => {
+    const n = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    return n.weaknessId;
+  })();
 
   beforeAll(() => {
     const step1Wrong0 = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
@@ -89,6 +97,12 @@ describe('entries-based flow', () => {
       weaknessId?: string;
     };
     wrong1.weaknessId = 'expansion_sign_error';
+
+    const easyExplain = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    easyExplain.weaknessId = 'factoring_pattern_recall';
   });
 
   afterAll(() => {
@@ -108,6 +122,13 @@ describe('entries-based flow', () => {
     };
     if (originalCheckWrong1WeaknessId === undefined) delete wrong1.weaknessId;
     else wrong1.weaknessId = originalCheckWrong1WeaknessId;
+
+    const easyExplain = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    if (originalEasyExplainWeaknessId === undefined) delete easyExplain.weaknessId;
+    else easyExplain.weaknessId = originalEasyExplainWeaknessId;
   });
 
   it('1차 선택지에 weaknessId가 있으면 discoveredWeaknesses에 누적된다', async () => {
@@ -137,6 +158,56 @@ describe('entries-based flow', () => {
     expect(result.current.__test_discoveredForStep?.(0)).toContain(
       'expansion_sign_error',
     );
+  });
+
+  it('Explain 노드 도달 시 노드의 weaknessId가 있으면 누적된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 오답 → remedial 진입 → "모르겠어요" → fu_step1_A_easy 도달 (weaknessId 라벨된 노드)
+    await act(async () => { result.current.onSelectChoice(0); });
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_explain');
+    });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'factoring_pattern_recall',
+    );
+  });
+
+  it('recordAttempt 호출 시 discoveredWeaknesses가 attempt 입력에 포함된다', async () => {
+    mockRecordAttempt.mockClear();
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    // Step 1: wrong choice (weaknessId 라벨됨) → discovered['basic_concept_needed']
+    await act(async () => { result.current.onSelectChoice(0); });
+    await act(async () => { result.current.onPressContinue(); });
+
+    // 나머지 step은 정답으로 통과
+    for (let i = 1; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex((c) => c.correct);
+      await act(async () => { result.current.onSelectChoice(correctIdx); });
+      if (i < totalSteps - 1) {
+        await act(async () => { result.current.onPressContinue(); });
+      }
+    }
+
+    await act(async () => { await result.current.onPressRemember(); });
+
+    expect(mockRecordAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discoveredWeaknesses: expect.arrayContaining(['basic_concept_needed']),
+      }),
+    );
+    const callArg = mockRecordAttempt.mock.calls[0][0] as {
+      questions: Array<{ discoveredWeaknesses?: readonly string[] }>;
+    };
+    expect(callArg.questions[0].discoveredWeaknesses).toEqual(
+      expect.arrayContaining(['basic_concept_needed']),
+    );
+    expect(callArg.questions[1].discoveredWeaknesses).toBeUndefined();
   });
 
   it('초기 entries에 step-card와 input-area가 있다', () => {
