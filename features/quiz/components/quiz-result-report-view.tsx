@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { BrandButton } from '@/components/brand/BrandButton';
+import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
@@ -55,6 +56,7 @@ export function QuizResultReportView({
           styles.container,
           isCompactLayout && styles.containerCompact,
         ]}>
+        <PageContainer variant="reading" style={{ gap: isCompactLayout ? 12 : 14 }}>
         {saveState === 'saving' ? (
           <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
@@ -161,6 +163,7 @@ export function QuizResultReportView({
             <Text style={styles.ghostBtnText}>나중에 풀게요</Text>
           </TouchableOpacity>
         </View>
+        </PageContainer>
       </ScrollView>
     </View>
   );
