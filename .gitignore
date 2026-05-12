@@ -64,3 +64,7 @@ app-example
 playwright-report/
 test-results/
 coverage/
+
+# Local env
+.env
+.env.local
