@@ -338,6 +338,13 @@ describe('entries-based flow', () => {
 
     const coachBubble = result.current.entries[aiBubbleIdx] as { text: string };
     expect(coachBubble.text).toContain('어떤 부분이 헷갈리는지');
+
+    // 정적 경로 차단(interception) 검증: 2번째 모르겠어요 이후 done-cta가 추가되지 않아야 함
+    // (fu_step1_A_easy.secondaryNextNodeId = fu_step1_exit → 정적 advance 시 done-cta 생성됨)
+    const newEntriesAfterSecond = kindsAfterSecond.slice(kindsAfterFirst.length);
+    expect(newEntriesAfterSecond).not.toContain('done-cta');
+    // 마지막으로 추가된 엔트리가 fallback-input이어야 함 (정적 advance로 인한 후속 추가 없음)
+    expect(kindsAfterSecond[kindsAfterSecond.length - 1]).toBe('fallback-input');
   });
 
   it('Scenario E (remedial 모르겠어요 정적 이동 후): remedial 흐름을 계속 진행하면 done-cta까지 도달', async () => {
