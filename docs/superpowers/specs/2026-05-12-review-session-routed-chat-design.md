@@ -98,19 +98,27 @@ AI 호출 없음.
 
 오답 선택지 → 노드 매핑은 기존처럼 `selectedChoiceFeedback` 로직과 약점별 진입 노드 ID로 결정.
 
-### 시나리오 E — Remedial 도중 자유 입력
+### 시나리오 E — Remedial 도중 "모르겠어요"
 
 Remedial-flow 진행 중 `explain` 노드의 "모르겠어요" 또는 `check` 노드의 "모르겠어요" 누름 시:
 
 ```
-[입력 영역 활성화 (entry로 inline 등장)]
-[👤 user-bubble]
-[다시 라우터 호출 — 같은 약점의 노드 중 매칭 시도]
-  ├─ 성공 → 다른 remedial 노드로 점프
-  └─ 실패 → 폴백 챗 2턴
+[학생 "모르겠어요" 클릭]
+  ↓ (즉시, AI 호출 없음)
+[다음 노드로 정적 이동]
+  - explain → node.secondaryNextNodeId
+  - check   → node.dontKnowNextNodeId
 ```
 
-기존의 `RemedialAiHelpCard` / `RemedialAiHelpActions` 한 쌍을 자유 입력 + 라우터로 대체한다.
+진단(diagnosis-flow-engine)과 동일한 정적 그래프 방식. 라우터를 거치지 않는다.
+
+**근거** (2026-05-12 결정):
+- "모르겠어요"는 클릭 1번의 단순 액션 — AI 호출(1초+α) 끼우면 반응성 저하.
+- 진단의 "모르겠어요"가 정적인데 복습만 AI 쓰면 UX 일관성 ↓.
+- 데이터 모델에 이미 `secondaryNextNodeId` / `dontKnowNextNodeId`가 있어 추가 인프라 불필요.
+- 학생 사용 로그에서 "정적 경로가 부족하다"는 신호가 누적되면 향후 라우터로 업그레이드 가능 — 반대 방향(라우터 → 정적)은 UX 후퇴라 어려움.
+
+Phase 1까지 Remedial 도중 "모르겠어요"가 `fallback-input` 으로 떨어지던 동작은 Phase 2에서 정적 이동으로 교체한다. 기존의 `RemedialAiHelpCard` / `RemedialAiHelpActions`는 그대로 제거 대상.
 
 ## 4. 아키텍처
 
@@ -228,12 +236,12 @@ const HIGH_CONFIDENCE_THRESHOLD = 0.65;
 
 평균 한 스텝당 AI 호출 횟수:
 - 정답 선택 → 0회
-- 오답 선택 → 0회 (라우터 안 탐, remedial-flow 직접 진입). 단, remedial 도중 "모르겠어요"를 누르면 라우터 1회 추가.
-- 자유 입력 (라우팅 성공) → 1회
-- 자유 입력 (라우팅 실패) → 1 + 1 + 1 = 3회 (라우터 + 챗 2턴)
-- Remedial 도중 "모르겠어요" → +1 (라우터). 라우터 실패 시 추가로 폴백 챗 2턴 가능 (+2).
+- 오답 선택 → 0회 (remedial-flow 직접 진입)
+- 자유 입력 (라우팅 성공) → 1회 (라우터)
+- 자유 입력 (라우팅 실패) → 1 + 2 = 3회 (라우터 + 폴백 챗 explore/close)
+- Remedial 도중 "모르겠어요" → 0회 (정적 이동, AI 호출 없음. 시나리오 E 참조)
 
-현재 설계(스텝당 최대 1회) 대비 최악의 경우(라우터 실패) 3배지만, 라우터 성공률을 75% 이상 노리면 평균 1.2회 수준.
+자유 입력 라우팅 성공률을 75% 이상으로 운영하면 자유 입력 한 건당 평균 1.5회 수준.
 
 ## 6. 데이터 & 훅 변경
 
@@ -265,12 +273,10 @@ const HIGH_CONFIDENCE_THRESHOLD = 0.65;
 
 본 PR은 한 번에 다 바꾸지 않는다. 단계별:
 
-1. **Phase 1**: `entries` 모델 도입 + 진단 스타일 ScrollView로 화면 재구성. AI 라우터는 아직 없음. 자유 입력은 기존 `review-feedback` 만 호출 (`explore`/`close` 2턴) → 사실상 옛 chat-section 부활.
-2. **Phase 2**: `review-router` 백엔드와 클라이언트 추가. 라우터 성공 시 remedial-flow 노드로 점프하는 분기 추가.
-3. **Phase 3**: Remedial 도중 "모르겠어요" → 라우터로 다시 통과시키는 D-3 동작 적용.
-4. **Phase 4**: 기존 `chat-section.tsx` 및 `RemedialAiHelpCard` / `RemedialAiHelpActions` 제거.
+1. **Phase 1** (머지 완료, PR #19): `entries` 모델 도입 + 진단 스타일 ScrollView로 화면 재구성. AI 라우터는 아직 없음. 자유 입력은 기존 `review-feedback` 만 호출 (`explore`/`close` 2턴) → 사실상 옛 chat-section 부활. Remedial 도중 "모르겠어요"는 `fallback-input` 으로 임시 라우팅.
+2. **Phase 2** (본 plan 범위): `review-router` 백엔드와 클라이언트 추가. **자유 입력 → 라우터 분기만** 적용. Remedial 도중 "모르겠어요"는 정적 이동(`secondaryNextNodeId` / `dontKnowNextNodeId`)으로 교체 (시나리오 E 참조). 본 phase 종료 시점에 옛 `fallback-input` 카드와 잔여 `RemedialAiHelp*` 컴포넌트는 제거 가능.
 
-각 phase는 독립 PR로 분리해 회귀 위험을 좁힌다. 본 spec은 Phase 1–2 까지를 다룬다. Phase 3–4는 별도 spec/plan.
+본 spec은 Phase 1–2까지의 범위를 정의한다. 다음 phase 후보는 §11 Future work 참조.
 
 ## 8. 테스트
 
@@ -299,7 +305,26 @@ const HIGH_CONFIDENCE_THRESHOLD = 0.65;
 - Q2. Remedial-flow 진행 도중 사용자가 위로 스크롤해 초반 입력 영역으로 돌아가 다시 자유 입력을 보낼 수 있어야 하나? → 작성자 의견: 첫 입력 후 `input-area`의 `interactive`를 false로 잠그고, "다시 묻고 싶으면" 어딘가에 새 `fallback-input`을 띄우는 식.
 - Q3. 라우터 호출 중 사용자가 추가 입력을 시도하면? → 작성자 의견: `isRouting === true` 동안 입력 잠금 + typing-dots 표시.
 
-## 10. 참고 자료
+## 10. Future work (별도 phase 필요)
+
+본 spec은 라우터 인프라까지를 다룬다. 라우터의 실효를 키우는 다음 작업들은 **별도 spec/plan**으로 분리한다.
+
+### 10.1 다른 약점의 remedial flow 콘텐츠 작성
+- 현재 `remedialFlows`에는 `formula_understanding` 한 약점만 정의됨. 다른 약점에서는 자유 입력이 라우터 단계 전에 폴백 챗으로 떨어진다.
+- 우선순위 약점(`weaknessOrder` 상위 + 학생 사용 로그 기반)부터 flow 신설.
+- 작업 단위: 약점 1개당 (a) explain/check 노드 그래프 설계, (b) 본문 작성, (c) `summary` / `triggers` 메타데이터, (d) 검증.
+- 이 작업은 엔지니어링이 아닌 **교육 콘텐츠 작성** 성격이므로 본 spec(라우터 인프라)과 분리해 다룬다.
+
+### 10.2 라우터 정확도 튜닝 (출시 후)
+- Phase 2 출시 후 실제 자유 입력 로그를 수집 → 폴백 비율 / confidence 분포 분석.
+- 자주 적히는데 매칭 안 되는 발화 패턴은 기존 노드의 `triggers`에 추가하거나 새 노드 신설.
+- `HIGH_CONFIDENCE_THRESHOLD` (현 0.65) 조정.
+
+### 10.3 Remedial 도중 "모르겠어요" 라우터 업그레이드 (조건부)
+- 현 Phase 2 디자인은 정적 이동(시나리오 E 참조). 향후 학생 로그에서 정적 경로의 한계가 드러나면 라우터 호출로 업그레이드.
+- 트리거 신호 예시: 같은 노드의 "모르겠어요"가 반복적으로 동일 경로로 가서 학습 효과가 낮음, 또는 정적 경로에서 학생이 자주 이탈.
+
+## 11. 참고 자료
 
 - 진단 라우터 구현: [features/quiz/diagnosis-router.ts](../../features/quiz/diagnosis-router.ts)
 - 진단 채팅 페이지: [features/quiz/components/diagnosis-conversation-page.tsx](../../features/quiz/components/diagnosis-conversation-page.tsx)

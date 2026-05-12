@@ -15,6 +15,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step1_A_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step1_A_easy',
+      summary: '완전제곱식에서 (x+a)² 의 a 는 x 계수의 절반이라는 사실 — 거꾸로 변환 시 b/2 가 핵심',
+      triggers: [
+        'b를 그대로 쓰면 되는 거 아닌가요',
+        '왜 절반인지 모르겠어요',
+        'x 계수를 그냥 a 자리에 넣었어요',
+      ],
     },
     'fu_step1_A_easy': {
       id: 'fu_step1_A_easy',
@@ -59,6 +65,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step1_C_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step1_A_easy',
+      summary: 'x 계수 자체가 a 를 결정한다는 사실 — 계수를 무시하면 (x+?)² 의 ? 를 구할 수 없음',
+      triggers: [
+        '계수는 신경 안 써도 되지 않나요',
+        'x² 만 보면 되는 줄 알았어요',
+        '계수랑 a 가 무슨 관계인지 모르겠어요',
+      ],
     },
     'fu_step1_C_check': {
       id: 'fu_step1_C_check',
@@ -95,6 +107,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step2_B_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step2_B_easy',
+      summary: '더할 상수는 (b/2)² — x 계수의 절반을 한 번 더 제곱해야 a² 가 나옴',
+      triggers: [
+        'b를 그냥 제곱하면 되는 거 아닌가요',
+        '왜 한 번 더 나누고 제곱하는지',
+        '더하는 수가 어떻게 정해지는지 모르겠어요',
+      ],
     },
     'fu_step2_B_easy': {
       id: 'fu_step2_B_easy',
@@ -139,6 +157,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step2_C_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step2_B_easy',
+      summary: '더한 (b/2)² 만큼 다시 빼야 원래 식과 같아짐 — 보상의 원리',
+      triggers: [
+        '상수가 왜 바뀌는지 모르겠어요',
+        '그냥 더하기만 하면 안 되나요',
+        '뺀다는 게 어디서 나왔는지',
+      ],
     },
     'fu_step2_C_check': {
       id: 'fu_step2_C_check',
@@ -175,6 +199,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step3_A_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step3_A_easy',
+      summary: '최종 상수항 = c − (b/2)² — 원래 식의 상수 c 를 무시하면 안 됨',
+      triggers: [
+        '뒤에 붙은 숫자는 어떻게 되나요',
+        '원래 상수항은 안 쓰는 거 아닌가요',
+        '계수만 보면 되는 줄 알았어요',
+      ],
     },
     'fu_step3_A_easy': {
       id: 'fu_step3_A_easy',
@@ -219,6 +249,12 @@ export const formula_understanding_flow: RemedialFlow = {
       primaryNextNodeId: 'fu_step3_C_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'fu_step3_A_easy',
+      summary: '변환 후 상수항은 일반적으로 0 이 아님 — c 와 (b/2)² 가 일치할 때만 우연히 0',
+      triggers: [
+        '결국 상수는 사라지는 거 아닌가요',
+        '맨 끝 숫자는 항상 0인 줄 알았어요',
+        '왜 0 이 안 나오는지',
+      ],
     },
     'fu_step3_C_check': {
       id: 'fu_step3_C_check',
