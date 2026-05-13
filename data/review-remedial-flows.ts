@@ -47,9 +47,11 @@ export type RemedialFlow = {
 };
 
 import { formula_understanding_flow } from './remedial-flows/formula_understanding';
+import { discriminant_calculation_flow } from './remedial-flows/discriminant_calculation';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
+  discriminant_calculation: discriminant_calculation_flow,
 };
 
 export function getRemedialNode(
