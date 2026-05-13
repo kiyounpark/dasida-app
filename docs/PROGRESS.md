@@ -908,6 +908,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.13 19:28
+- 해시: `67bdb8f` (`67bdb8f07b13787b5b269523d96f68dd5c4b5564`)
+- 브랜치: claude/silly-robinson-baed45
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/67bdb8f07b13787b5b269523d96f68dd5c4b5564
+- 작성자: 박기윤
+- 메시지: docs(plans): RNFB Old Arch 전환 시도 계획 + 실패 교훈 보존
+- 본문: 2026-05-13 시도: Reanimated 4 → 3 다운그레이드 + newArchEnabled false로 / @react-native-firebase/analytics 재도입 시도. Step 8 (iOS 빌드)에서 / fmt 11.x + Apple Clang consteval 컴파일 에러로 실패. 롤백 완료. / 핵심 발견: / - Expo SDK 54 Podfile은 newArchEnabled=true일 때만 prebuilt RN core 사용. / Old Arch면 RN 코어를 소스 컴파일 → fmt 11이 Apple Clang에서 안 풀림. / - 즉 RN 0.81+ 환경에선 "Reanimated 다운그레이드만으로 Old Arch 진입" 불가능. / - react-native-worklets 별도 패키지 + v4 전용 API 사용처 등 계획에 없던 / 변경도 다수 필요했음 (문서 내 "시도 결과 및 교훈" 참조). / 추후 RNFB v25 (New Arch + use_frameworks 호환 패치) 출시 시 재시도용 참고 / 문서로 보존. 그때는 New Arch 유지한 채 단순 RNFB 추가만으로 가능 예정. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.13 00:57
+- 해시: `9ef24c6` (`9ef24c67eb64985fcbc12d489f762ca0e4c97840`)
+- 브랜치: claude/silly-robinson-baed45
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9ef24c67eb64985fcbc12d489f762ca0e4c97840
+- 작성자: 박기윤
+- 메시지: feat(analytics): GA4 세션 라이프사이클 + session_id 페이로드 추가
+- 본문: GA4 Measurement Protocol 환경에서 Realtime/세션 집계가 동작하지 않던 문제 해결. / 모든 이벤트에 session_id + engagement_time_msec를 부착하고, AppState 기반으로 / first_open/session_start/user_engagement를 자동 발사하는 라이프사이클을 추가. / - log-event.ts: 모든 이벤트 페이로드에 session_id + engagement_time_msec(기본 100ms) 부착. / 호출자 params로 engagement_time_msec override 가능 (user_engagement 등). / reserved 이벤트 전용 채널(logReservedEvent) 추가. / - session-lifecycle.ts (신규): AppState 구독으로 30분 백그라운드 타임아웃 기반 세션 정의. / 첫 실행 시 first_open, 신규 세션마다 session_start, 백그라운드 진입 시 / user_engagement(누적 포그라운드 시간, 60s 클램프) 발사. / - _layout.tsx: ScreenTracker에서 initAnalytics() 마운트. / - expo-build-properties: 사용처 없어 제거 (마이그레이션 잔존물). / 활성 사용자 메트릭은 RNFB SDK 부재로 임의 app_instance_id가 진짜 Firebase / Installation ID로 인식되지 않아 제한적. RNFB가 New Arch + use_frameworks와 / 호환되는 시점에 SDK 자동화로 교체 예정. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.12 19:16
 - 해시: `6a26787` (`6a26787f0543f0b91759576a4e25694457349457`)
 - 브랜치: main
