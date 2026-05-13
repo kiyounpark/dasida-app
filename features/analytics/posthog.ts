@@ -34,17 +34,24 @@ export function getPostHog(): Promise<PostHog> | null {
     return posthogPromise;
   }
   posthogPromise = (async () => {
-    const client = new PostHog(API_KEY, {
-      host: HOST,
-      // GA4와 같은 의미: 세션 시간 30분
-      sessionExpirationTimeSeconds: 30 * 60,
-      // 캡쳐 자동 전송 주기 (ms): 5초마다 배치 flush
-      flushInterval: 5000,
-      // 배치 크기: 20개 모이면 즉시 flush
-      flushAt: 20,
-    });
-    posthogClient = client;
-    return client;
+    try {
+      const client = new PostHog(API_KEY, {
+        host: HOST,
+        // GA4와 같은 의미: 세션 시간 30분
+        sessionExpirationTimeSeconds: 30 * 60,
+        // 캡쳐 자동 전송 주기 (ms): 5초마다 배치 flush
+        flushInterval: 5000,
+        // 배치 크기: 20개 모이면 즉시 flush
+        flushAt: 20,
+      });
+      posthogClient = client;
+      return client;
+    } catch (e) {
+      // init 실패 시 promise 메모이즈를 해제해서 다음 호출에서 재시도 가능하게.
+      // 그대로 두면 rejected promise가 영구 캐시되어 매 capture 호출이 unhandled rejection.
+      posthogPromise = null;
+      throw e;
+    }
   })();
   return posthogPromise;
 }
@@ -55,13 +62,17 @@ export function getPostHog(): Promise<PostHog> | null {
 export function capture(eventName: string, properties: Record<string, unknown> = {}): void {
   const p = getPostHog();
   if (!p) return;
-  void p.then((client) => {
-    try {
-      client.capture(eventName, properties as Record<string, never>);
-    } catch {
-      // PostHog 내부 에러는 무시
-    }
-  });
+  void p
+    .then((client) => {
+      try {
+        client.capture(eventName, properties as Record<string, never>);
+      } catch {
+        // PostHog 내부 에러는 무시
+      }
+    })
+    .catch(() => {
+      // init 실패 등 promise rejection은 조용히 무시
+    });
 }
 
 /**
@@ -70,13 +81,17 @@ export function capture(eventName: string, properties: Record<string, unknown> =
 export function captureScreen(screenName: string, properties: Record<string, unknown> = {}): void {
   const p = getPostHog();
   if (!p) return;
-  void p.then((client) => {
-    try {
-      client.screen(screenName, properties as Record<string, never>);
-    } catch {
-      // ignore
-    }
-  });
+  void p
+    .then((client) => {
+      try {
+        client.screen(screenName, properties as Record<string, never>);
+      } catch {
+        // ignore
+      }
+    })
+    .catch(() => {
+      // init rejection 무시
+    });
 }
 
 /**
@@ -85,13 +100,17 @@ export function captureScreen(screenName: string, properties: Record<string, unk
 export function identify(distinctId: string, properties: Record<string, unknown> = {}): void {
   const p = getPostHog();
   if (!p) return;
-  void p.then((client) => {
-    try {
-      client.identify(distinctId, properties as Record<string, never>);
-    } catch {
-      // ignore
-    }
-  });
+  void p
+    .then((client) => {
+      try {
+        client.identify(distinctId, properties as Record<string, never>);
+      } catch {
+        // ignore
+      }
+    })
+    .catch(() => {
+      // init rejection 무시
+    });
 }
 
 /**
@@ -100,11 +119,15 @@ export function identify(distinctId: string, properties: Record<string, unknown>
 export function reset(): void {
   const p = getPostHog();
   if (!p) return;
-  void p.then((client) => {
-    try {
-      client.reset();
-    } catch {
-      // ignore
-    }
-  });
+  void p
+    .then((client) => {
+      try {
+        client.reset();
+      } catch {
+        // ignore
+      }
+    })
+    .catch(() => {
+      // init rejection 무시
+    });
 }
