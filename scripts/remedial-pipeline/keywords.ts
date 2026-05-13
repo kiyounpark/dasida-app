@@ -16,4 +16,14 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     'b^2-4ac',
     '이차방정식의 근',
   ],
+  calc_repeated_error: [
+    '대입',
+    '음수 대입',
+    '괄호',
+    '부호 실수',
+    '계산 실수',
+    '항별 계산',
+    '음수 제곱',
+    '재계산',
+  ],
 };
