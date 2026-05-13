@@ -235,55 +235,72 @@
 - **합격 시:** 조용히 다음 batch 진행
 - **드리프트 감지 시:** §9.7 Type 2 alert 트리거
 
-### 9.7 사용자 alert 양식 (3종)
+### 9.7 사용자 알림 양식 (정보성, 응답 불필요)
 
-본인 손이 들어가는 유일한 시점. 자동 파이프라인이 알아서 못 결정하는 경우만 alert.
+자동화 수준 3 채택. **본인 응답 필요 없음**. 모든 운영 결정은 Claude(오케스트레이터)가 자동 처리하고, 본인은 슬랙으로 정보만 받음.
 
-#### Type 1 — 검토큐 추가 (정보 알림, 결정 X)
+응답 필요 명령은 2개뿐:
+- 처음 시작 시: `"remedial batch 시작"` (1회)
+- Claude Code 한도 도달 후 재개 시: `"remedial batch 재개"` (필요한 만큼, 본인 페이스로)
+
+#### 알림 1 — 검토큐 추가 (자동 조치 알림)
 
 ```
 🟡 검토큐 추가: <weaknessId>
 사유: <게이트명> 3회 연속 거절 — <대표 거절 사유 1줄>
-다음 약점으로 계속 진행 중 (멈춤 X).
-사후 처리: batch 끝나면 일괄 정리.
+조치: 사후 처리 큐로 이동, batch 계속 진행.
 ```
 
-본인은 보고만. 응답 불필요.
-
-#### Type 2 — 드리프트 감지 (결정 필요)
+#### 알림 2 — 드리프트 자동 조치
 
 ```
-⚠️ 드리프트 감지 (<N>번째 약점 시점)
+🔧 드리프트 감지 + 자동 조치 (<N>번째 약점 시점)
 패턴: <kind>: baseline <X> → 최근 <Y>
-원인 추정: <한 줄>
-권장 액션:
-  A. 계속 진행 (이미 통과한 콘텐츠 유지)
-  B. 멈춤 + 작성자 프롬프트 강화 후 재개
-  C. 멈춤 + 최근 N개 재생성
-
-본인 선택? (A/B/C)
+조치: 작성자 프롬프트 자동 강화 후 재개.
+이미 통과한 콘텐츠는 유지 (재생성 비용 회피).
 ```
 
-본인 응답: A/B/C 중 하나.
-
-#### Type 3 — 조기 정지 게이트 발동 (즉시 멈춤)
-
-§9.2의 3개 멈춤 조건 중 하나 충족 시.
+#### 알림 3 — Claude Code 한도 도달 (자연 정지)
 
 ```
-🚨 STOP — 조기 정지 발동
-사유: <조건 인용>
-패턴 분석: <게이트별 거절 분포 + 약점 카테고리별 분포>
-원인 추정: <한 줄>
-권장 액션:
-  A. <원인 직접 수정 — 예: sympy 스크립트에 ∫ 파싱 추가 (10분)>
-  B. <부분 수정 — 예: 특정 카테고리만 우회>
-  C. 검토큐로 두고 재개 (사후 처리)
-
-본인 선택? (A/B/C)
+⏸️ Claude Code 한도 도달
+시점: <N>/56 약점 진행 중
+완료: 통과 X / 검토큐 Y / 실패 Z
+state.json 보존됨.
+한도 리셋 후 본인 페이스로 "remedial batch 재개" 명령 주세요.
 ```
 
-본인 응답: A/B/C 중 하나 + 후속 작업.
+#### 알림 4 — 매 5개 진행률 (정보)
+
+```
+📊 진행률 (<N>/56, <%>)
+✅ 통과: <X> 🟡 검토큐: <Y> 🔴 실패: <Z>
+⏱️ 누적 토큰: <T>M
+🔁 평균 재시도: <R>회
+```
+
+#### 알림 5 — 매 10개 드리프트 검수 결과
+
+```
+📐 드리프트 검수 (<N>/56)
+✅ 정상  또는  🔧 감지 + 자동 조치
+- 톤: <baseline 일치 / 드리프트 감지>
+- 분량: 평균 <X>문장 (baseline <Y>)
+- 구조: <모두 패턴 따름 / 일탈 N건>
+```
+
+#### 알림 6 — 56개 완료 최종 보고
+
+```
+🎉 56개 batch 완료
+━━━━━━━━━━━━━━━━━━━━
+✅ 통과: <X>개 (등록 완료)
+🟡 검토큐: <Y>개 (사후 처리 대상 — 목록 첨부)
+🔴 실패: <Z>개 (매핑 0건 등)
+⏱️ 총 토큰: <T>M
+🕐 총 소요: <D> (Claude Code 세션 N번)
+🔁 평균 재시도: <R>회
+```
 
 ### 9.8 시뮬레이터 QA (batch 끝에서 1회)
 
@@ -303,9 +320,85 @@
 
 ---
 
-## 10. 참고 자료
+## 10. 오케스트레이션 방식 (구현 가이드)
+
+### 10.1 자동화 수준: Level 3 (완전 자동)
+
+- 본인은 시작/재개 명령 2회만, 그 외 응답 X
+- Claude Code 세션이 직접 56개 루프 진행 (별도 API 키 불필요)
+- Claude Code 구독 한도가 자연스러운 토큰 예산 역할 (한도 도달 시 자동 정지 → 본인 페이스로 재개)
+- 모든 운영 결정(드리프트 처리, 검토큐 이관, 프롬프트 강화)은 Claude가 자동 판단
+
+### 10.2 자동 처리 매트릭스
+
+| 상황 | 자동 처리 |
+|---|---|
+| 약점 1개 3회 재시도 후 실패 | 검토큐로 이동, 다음 약점 진행 (알림 1) |
+| 분량 드리프트 감지 | `content-author.md`에 "분량 3문장 이내 엄격 준수" 자동 강화 후 재개 (알림 2) |
+| 톤 드리프트 감지 | `content-author.md`에 톤 가이드 자동 강화 후 재개 (알림 2) |
+| sympy 사각지대 (특정 기호 파싱 실패) | 해당 약점 검토큐로, 사후 sympy 스크립트 수정 (알림 1) |
+| 매핑 0건 약점 | "failed" 카테고리로, 다음 약점 진행 (알림 1) |
+| 게이트가 같은 사유로 10회 연속 거절 | 페르소나 프롬프트에 거절 사유 인용해 자동 강화 |
+| Claude Code 한도 도달 | state.json 보존 + 알림 3 + 자연 정지 |
+
+### 10.3 보조 스크립트 (TypeScript / Bash)
+
+| 파일 | 역할 |
+|---|---|
+| `scripts/remedial-pipeline/state.json` | 진행 상태 영속화 (count, completed[], queue[], manualReview[], totalTokens, lastProgressReportAt, lastDriftCheckAt) |
+| `scripts/remedial-pipeline/init-state.ts` | state.json 초기화 (56 약점 큐 생성, basic_concept_needed 제외) |
+| `scripts/remedial-pipeline/check-triggers.ts` | state.json 읽어 트리거 필요 여부 판정 (progress_report / drift_check / stop_*) |
+| `scripts/remedial-pipeline/record-complete.ts` | 약점 1개 완료 기록 (state.json 업데이트) |
+| `scripts/remedial-pipeline/progress-report.ts` | 진행률 알림 슬랙 전송 (알림 4) |
+| `scripts/remedial-pipeline/drift-check.ts` | 드리프트 검수 Opus 호출 + 결과 슬랙 전송 (알림 5). 드리프트 감지 시 작성자 프롬프트 자동 강화 |
+| `scripts/slack-notify.js` | 슬랙 발송 (기존 재사용) |
+
+### 10.4 절차서 (Claude가 매 약점마다 따라가는 단계)
+
+```
+1. tsx scripts/remedial-pipeline/check-triggers.ts
+   → 출력: { nextWeaknessId, triggers: [...] }
+   - nextWeaknessId가 null이면 batch 완료 → 알림 6 발송 → 종료
+2. 매핑 데이터 로드 (intent-weakness-map.json[nextWeaknessId])
+3. 콘텐츠 작성자 (Opus) 호출 → data/remedial-flows/<id>.ts 생성
+4. 4 게이트 차례 호출 (수학교사 → 학생 → sympy → 외형)
+5. 실패 시 재시도 (3회 상한). 각 재시도는 거절 사유 포함 재생성.
+6. 통과 → review-remedial-flows.ts + review-content-map.ts 등록
+   3회 실패 → 검토큐 이관 (알림 1)
+7. tsx scripts/remedial-pipeline/record-complete.ts <id> <result>
+   → state.json 업데이트
+8. triggers 처리:
+   - "progress_report" → tsx scripts/.../progress-report.ts (알림 4)
+   - "drift_check" → tsx scripts/.../drift-check.ts (알림 5, 감지 시 알림 2 + 자동 조치)
+9. 다음 약점으로 (1번부터 반복)
+```
+
+### 10.5 시작·재개
+
+**처음 시작:**
+1. 본인이 Claude Code 세션에 `"remedial batch 시작"` 입력
+2. Claude가 `tsx scripts/remedial-pipeline/init-state.ts` 실행 (state.json 생성)
+3. 절차서 1번부터 시작
+
+**한도 도달 후 재개:**
+1. 알림 3 슬랙 수신 (자동)
+2. 한도 리셋 후 본인이 새 Claude Code 세션에 `"remedial batch 재개"` 입력
+3. Claude가 state.json 읽어 마지막 처리 약점 다음부터 절차서 1번 진행
+
+### 10.6 셀프 테스트 (구현 직후)
+
+본격 56개 실행 전 5개 약점 dry run:
+- 5개 처리 → 알림 4 발송 확인
+- 한 약점 강제 실패 시뮬레이션 → 알림 1 (검토큐 이관) 발송 확인
+- state.json 일관성 확인 (`jq` 으로 직접 검증)
+- 슬랙 메시지 양식 점검
+
+---
+
+## 11. 참고 자료
 
 - 시범 plan: [`docs/superpowers/plans/2026-05-13-remedial-content-pipeline-pilot.md`](../plans/2026-05-13-remedial-content-pipeline-pilot.md)
 - 참조 패턴: [`data/remedial-flows/formula_understanding.ts`](../../data/remedial-flows/formula_understanding.ts)
 - 시범 산출물: [`data/remedial-flows/discriminant_calculation.ts`](../../data/remedial-flows/discriminant_calculation.ts)
+- 외형 검수 페르소나: [`scripts/remedial-pipeline/prompts/appearance-reviewer.md`](../../scripts/remedial-pipeline/prompts/appearance-reviewer.md)
 - 상위 spec: [2026-05-12 routed-chat design §10.1](2026-05-12-review-session-routed-chat-design.md)
