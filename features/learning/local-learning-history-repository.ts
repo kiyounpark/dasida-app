@@ -327,7 +327,7 @@ export function buildSummary(
   };
 }
 
-function buildAttempt(input: FinalizedAttemptInput, createdAt: string): LearningAttempt {
+export function buildAttempt(input: FinalizedAttemptInput, createdAt: string): LearningAttempt {
   return {
     id: input.attemptId,
     accountKey: input.accountKey,
@@ -344,12 +344,13 @@ function buildAttempt(input: FinalizedAttemptInput, createdAt: string): Learning
     primaryWeaknessId: input.primaryWeaknessId,
     topWeaknesses: input.topWeaknesses,
     reviewStage: input.reviewContext?.reviewStage,
+    discoveredWeaknesses: input.discoveredWeaknesses,
     schemaVersion: 1,
     createdAt,
   };
 }
 
-function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResult[] {
+export function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResult[] {
   return input.questions.map((question) => ({
     id: `${input.attemptId}__${question.questionId}`,
     attemptId: input.attemptId,
@@ -372,6 +373,7 @@ function buildAttemptResults(input: FinalizedAttemptInput): LearningAttemptResul
     wrongAttempts: question.wrongAttempts,
     usedCoaching: question.usedCoaching,
     resolvedBy: question.resolvedBy,
+    discoveredWeaknesses: question.discoveredWeaknesses,
     schemaVersion: 1,
     resolvedAt: input.completedAt,
   }));

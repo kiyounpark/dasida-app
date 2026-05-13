@@ -15,6 +15,8 @@ export type ExplainNode = {
   // 모두 optional 이며, 채워진 explain 노드만 라우팅 후보로 사용된다.
   summary?: string;
   triggers?: readonly string[];
+  /** 이 노드에 도달한 학생에게 매핑되는 약점 신호 (spec §2.1). 진단의 동일 필드와 모양 일치. */
+  weaknessId?: WeaknessId;
 };
 
 export type CheckNode = {
@@ -27,6 +29,8 @@ export type CheckNode = {
     text: string;
     isCorrect: boolean;
     nextNodeId: string;
+    /** 이 옵션을 누른 학생에게 매핑되는 약점 신호 (spec §2.1). */
+    weaknessId?: WeaknessId;
   }>;
   dontKnowNextNodeId: string;
 };

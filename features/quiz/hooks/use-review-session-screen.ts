@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
+import type { WeaknessId } from '@/data/diagnosisMap';
 import { completeReviewTask, rescheduleReviewTask } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
@@ -31,6 +32,11 @@ import {
 // 노드별 맞춤 멘트는 §10.1(콘텐츠 작성) 범위라 Phase 2에선 generic 한 문장으로 통일한다.
 const ROUTING_BUBBLE_TEXT = '이 부분 같이 살펴볼게요.';
 
+// 스펙 §3.2 — 스텝 내 "모르겠어요" 누적 카운터가 임계값에 도달하면 정적 경로를 끊고
+// 자유 입력 기반 AI 챗으로 진입한다.
+const COACH_PROMPT_FOR_DETAIL = '어떤 부분이 헷갈리는지 자세히 말해줄래요?';
+const DONT_KNOW_AI_CHAT_THRESHOLD = 2;
+
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
   steps: readonly ThinkingStep[];
@@ -53,6 +59,10 @@ export type UseReviewSessionScreenResult = {
   onSubmitFreeText: () => Promise<void>;
   onChangeFallbackText: (text: string) => void;
   onSubmitFallback: () => Promise<void>;
+  /** @internal - exported for unit tests */
+  __test_dontKnowCount?: (stepIndex: number) => number;
+  /** @internal - exported for unit tests */
+  __test_discoveredForStep?: (stepIndex: number) => WeaknessId[];
 };
 
 const store = new LocalReviewTaskStore();
@@ -78,6 +88,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const firstAttemptCorrectRef = useRef<(boolean | null)[]>([]);
   const firstAttemptChoiceIndexRef = useRef<(number | null)[]>([]);
   const aiHelpUsedPerStepRef = useRef<boolean[]>([]);
+  const dontKnowCountPerStepRef = useRef<number[]>([]);
+  const discoveredPerStepRef = useRef<WeaknessId[][]>([]);
 
   const reviewEntries = useReviewEntries(currentStepIndex);
   const { resetForStep: resetEntriesForStep } = reviewEntries;
@@ -132,6 +144,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptCorrectRef.current = new Array(mockStepCount).fill(null);
       firstAttemptChoiceIndexRef.current = new Array(mockStepCount).fill(null);
       aiHelpUsedPerStepRef.current = new Array(mockStepCount).fill(false);
+      dontKnowCountPerStepRef.current = new Array(mockStepCount).fill(0);
+      discoveredPerStepRef.current = Array.from({ length: mockStepCount }, () => []);
       sessionStartedAtRef.current = new Date().toISOString();
       return;
     }
@@ -148,6 +162,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         firstAttemptCorrectRef.current = new Array(foundStepCount).fill(null);
         firstAttemptChoiceIndexRef.current = new Array(foundStepCount).fill(null);
         aiHelpUsedPerStepRef.current = new Array(foundStepCount).fill(false);
+        dontKnowCountPerStepRef.current = new Array(foundStepCount).fill(0);
+        discoveredPerStepRef.current = Array.from({ length: foundStepCount }, () => []);
         sessionStartedAtRef.current = new Date().toISOString();
       }
     });
@@ -155,6 +171,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       cancelled = true;
     };
   }, [accountKey, taskId]);
+
+  const pushDiscoveredWeakness = (stepIndex: number, id: WeaknessId | undefined) => {
+    if (!id) return;
+    const arr = discoveredPerStepRef.current[stepIndex];
+    if (!arr) return;
+    if (!arr.includes(id)) arr.push(id);
+  };
 
   const resetStepState = () => {
     setSelectedChoiceIndex(null);
@@ -173,6 +196,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
       firstAttemptChoiceIndexRef.current[currentStepIndex] = index;
     }
+    pushDiscoveredWeakness(currentStepIndex, choice?.weaknessId);
 
     // entries-based flow (new)
     if (!choice || !task) return;
@@ -367,7 +391,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         setFallbackTurnsUsed(1);
         reviewEntries.appendEntries([createFallbackInputEntry(2)]);
       } else {
-        // 2턴 마무리 → done-cta로 step 종료
+        // 2턴 마무리 → done-cta로 step 종료 (spec §3.1: AI 마무리 경로는 중립 문구)
         logEvent('review_fallback_chat_completed', {
           weakness_id: task.weaknessId,
           step_index: currentStepIndex,
@@ -376,7 +400,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         setFallbackTurnsUsed(turnBeforeResponse + 1);
         const isLast = currentStepIndex === steps.length - 1;
         reviewEntries.appendEntries([
-          createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
+          createDoneCtaEntry(isLast ? '완료' : '다음으로'),
         ]);
       }
     } catch {
@@ -403,6 +427,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       ]);
       return;
     }
+    if (next.kind === 'explain') {
+      pushDiscoveredWeakness(currentStepIndex, next.weaknessId);
+    }
     reviewEntries.appendEntries([createRemedialNodeEntry(next)]);
   };
 
@@ -413,11 +440,31 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     advanceRemedialToNode(node.primaryNextNodeId);
   };
 
+  // 스펙 §3.2 — "모르겠어요" 누적 카운터를 증가시키고, 임계값 도달 시 AI 챗 진입,
+  // 그렇지 않으면 정적 경로(staticNextNodeId)로 진행.
+  const handleDontKnowPress = (staticNextNodeId: string) => {
+    const idx = currentStepIndex;
+    const prev = dontKnowCountPerStepRef.current[idx] ?? 0;
+    const next = prev + 1;
+    dontKnowCountPerStepRef.current[idx] = next;
+
+    if (next >= DONT_KNOW_AI_CHAT_THRESHOLD) {
+      // AI 챗 진입 — 정적 경로 무시 (spec §3.2)
+      reviewEntries.lockRemedialNodes();
+      reviewEntries.appendEntries([
+        createAiBubbleEntry(COACH_PROMPT_FOR_DETAIL),
+        createFallbackInputEntry(1),
+      ]);
+      return;
+    }
+    advanceRemedialToNode(staticNextNodeId);
+  };
+
   const onRemedialExplainSecondary = (nodeId: string) => {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'explain') return;
-    advanceRemedialToNode(node.secondaryNextNodeId);
+    handleDontKnowPress(node.secondaryNextNodeId);
   };
 
   const onRemedialCheckOption = (nodeId: string, optionId: string) => {
@@ -426,6 +473,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!node || node.kind !== 'check') return;
     const opt = node.options.find((o) => o.id === optionId);
     if (!opt) return;
+    pushDiscoveredWeakness(currentStepIndex, opt.weaknessId);
     reviewEntries.appendEntries([createReviewUserBubbleEntry(opt.text)]);
     advanceRemedialToNode(opt.nextNodeId);
   };
@@ -434,7 +482,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task) return;
     const node = getRemedialNode(task.weaknessId, nodeId);
     if (!node || node.kind !== 'check') return;
-    advanceRemedialToNode(node.dontKnowNextNodeId);
+    handleDontKnowPress(node.dontKnowNextNodeId);
   };
 
   const onPressRemember = async () => {
@@ -455,6 +503,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       total_count: questionCount,
     });
 
+    const allDiscovered = Array.from(
+      new Set(discoveredPerStepRef.current.flat()),
+    );
+
     try {
       await recordAttempt({
         attemptId: `review-${task.id}-${Date.now().toString(36)}`,
@@ -471,6 +523,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         accuracy,
         primaryWeaknessId: task.weaknessId,
         topWeaknesses: [task.weaknessId],
+        discoveredWeaknesses: allDiscovered.length > 0 ? allDiscovered : undefined,
         reviewContext: {
           reviewTaskId: task.id,
           reviewStage: task.stage,
@@ -488,6 +541,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
           diagnosisCompleted: true,
           usedDontKnow: false,
           usedAiHelp: aiHelpUsedPerStepRef.current[i] ?? false,
+          discoveredWeaknesses:
+            (discoveredPerStepRef.current[i]?.length ?? 0) > 0
+              ? [...(discoveredPerStepRef.current[i] ?? [])]
+              : undefined,
         })),
       });
     } catch (error) {
@@ -540,5 +597,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSubmitFreeText,
     onChangeFallbackText,
     onSubmitFallback,
+    __test_dontKnowCount: (stepIndex: number) =>
+      dontKnowCountPerStepRef.current[stepIndex] ?? 0,
+    __test_discoveredForStep: (stepIndex: number) =>
+      [...(discoveredPerStepRef.current[stepIndex] ?? [])],
   };
 }

@@ -75,12 +75,18 @@ export function decideMode(messages: { role: 'user' | 'assistant' }[]): Mode {
   return assistantCount === 0 ? 'explore' : 'close';
 }
 
-export function buildSystemPrompt(mode: Mode, selectedChoice?: { text: string; correct: boolean }): string {
+export function buildSystemPrompt(
+  mode: Mode,
+  stepContext: { title: string; body: string },
+  selectedChoice?: { text: string; correct: boolean },
+): string {
   const modeSuffix = mode === 'explore' ? EXPLORE_MODE_SUFFIX : CLOSE_MODE_SUFFIX;
+  const stepSection = `\n\n──────────────────────────────\n**현재 단계 정보 (배경 — 학생이 직접 쓴 글이 아님):**\n- 단계 제목: ${stepContext.title}\n- 정답 절차: ${stepContext.body}\n\n⚠️ 이 정답 절차는 학생이 화면에서 보고 있지만, 학생이 자기 말로 설명했는지 평가해야 할 대상입니다. 학생이 이 절차를 한 말처럼 그대로 따라 쓰거나 칭찬하지 마세요.`;
   const choiceContext = selectedChoice
     ? `\n\n**선택지 컨텍스트:**\n학생은 먼저 다음 선택지를 골랐습니다: "${selectedChoice.text}" (정답 여부: ${selectedChoice.correct ? '정답' : '오답'}). 이 맥락을 고려해 응답하세요.`
     : '';
-  return SYSTEM_PROMPT_BASE + modeSuffix + choiceContext;
+  const inputRule = `\n\n──────────────────────────────\n**학생이 쓴 글 다루기 (중요):**\n사용자가 보낸 메시지의 내용만 학생이 실제로 쓴 글입니다. 시스템 프롬프트의 "정답 절차"를 학생이 쓴 글처럼 다루지 마세요. 학생이 쓴 글에 수학 개념 설명이 없으면, 그 글을 짧게 짚고 다시 설명해보도록 유도하세요.`;
+  return SYSTEM_PROMPT_BASE + modeSuffix + stepSection + choiceContext + inputRule;
 }
 
 export const reviewFeedback = onRequest(
@@ -108,16 +114,15 @@ export const reviewFeedback = onRequest(
     const mode = decideMode(messages);
     const systemPrompt = buildSystemPrompt(
       mode,
+      { title: stepTitle, body: stepBody },
       selectedChoiceText !== undefined && selectedChoiceCorrect !== undefined
         ? { text: selectedChoiceText, correct: selectedChoiceCorrect }
         : undefined,
     );
 
-    // 첫 번째 user 메시지에 단계 컨텍스트를 prepend
-    const stepContext = `단계: ${stepTitle}\n설명: ${stepBody}\n\n`;
-    const enrichedMessages = messages.map((m, i) =>
-      i === 0 && m.role === 'user' ? { ...m, content: `${stepContext}${m.content}` } : m,
-    );
+    // 단계 정보는 시스템 프롬프트로 이동했으므로 user 메시지는 그대로 전달.
+    // (학생 발화와 단계 정보를 섞지 않아 AI가 환각하는 것을 방지)
+    const enrichedMessages = messages;
 
     try {
       const { replyText } = await requestReviewFeedbackFromOpenAI({

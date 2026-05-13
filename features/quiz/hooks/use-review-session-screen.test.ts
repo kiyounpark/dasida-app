@@ -4,6 +4,8 @@ import { useReviewSessionScreen } from './use-review-session-screen';
 import * as reviewFeedback from '@/features/quiz/review-feedback';
 import * as reviewRouterModule from '@/features/quiz/review-router';
 import * as buildCandidatesModule from '@/features/quiz/components/review-session/build-review-router-candidates';
+import { reviewContentMap } from '@/data/review-content-map';
+import { remedialFlows } from '@/data/review-remedial-flows';
 
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
@@ -14,12 +16,13 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ taskId: '__mock__' }),
 }));
 
+const mockRecordAttempt = jest.fn().mockResolvedValue(undefined);
 jest.mock('@/features/learner/provider', () => ({
   useCurrentLearner: () => ({
     session: { accountKey: 'acc-1' },
     refresh: jest.fn(),
     profile: { learnerId: 'l-1', grade: 'middle1' },
-    recordAttempt: jest.fn().mockResolvedValue(undefined),
+    recordAttempt: mockRecordAttempt,
   }),
 }));
 
@@ -54,6 +57,159 @@ jest.mock('@/features/quiz/components/review-session/build-review-router-candida
 }));
 
 describe('entries-based flow', () => {
+  // Task 6 fixture: inject weaknessId labels into formula_understanding data so that
+  // the collection code path can be exercised. Restored after this describe runs.
+  // Production data files (Task 8 territory) are NOT modified.
+  const originalStep1Wrong0WeaknessId = (() => {
+    const c = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    return c.weaknessId;
+  })();
+  const originalCheckWrong1WeaknessId = (() => {
+    const node = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const opt = node.options.find((o) => o.id === 'wrong1');
+    return opt?.weaknessId;
+  })();
+  const originalEasyExplainWeaknessId = (() => {
+    const n = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    return n.weaknessId;
+  })();
+
+  beforeAll(() => {
+    const step1Wrong0 = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    step1Wrong0.weaknessId = 'basic_concept_needed';
+
+    const checkNode = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const wrong1 = checkNode.options.find((o) => o.id === 'wrong1') as {
+      id: string;
+      weaknessId?: string;
+    };
+    wrong1.weaknessId = 'expansion_sign_error';
+
+    const easyExplain = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    easyExplain.weaknessId = 'factoring_pattern_recall';
+  });
+
+  afterAll(() => {
+    const step1Wrong0 = reviewContentMap.formula_understanding!.thinkingSteps[0].choices[0] as {
+      weaknessId?: string;
+    };
+    if (originalStep1Wrong0WeaknessId === undefined) delete step1Wrong0.weaknessId;
+    else step1Wrong0.weaknessId = originalStep1Wrong0WeaknessId;
+
+    const checkNode = remedialFlows.formula_understanding!.nodes['fu_step1_A_check'] as {
+      kind: string;
+      options: ReadonlyArray<{ id: string; weaknessId?: string }>;
+    };
+    const wrong1 = checkNode.options.find((o) => o.id === 'wrong1') as {
+      id: string;
+      weaknessId?: string;
+    };
+    if (originalCheckWrong1WeaknessId === undefined) delete wrong1.weaknessId;
+    else wrong1.weaknessId = originalCheckWrong1WeaknessId;
+
+    const easyExplain = remedialFlows.formula_understanding!.nodes['fu_step1_A_easy'] as {
+      kind: string;
+      weaknessId?: string;
+    };
+    if (originalEasyExplainWeaknessId === undefined) delete easyExplain.weaknessId;
+    else easyExplain.weaknessId = originalEasyExplainWeaknessId;
+  });
+
+  it('1차 선택지에 weaknessId가 있으면 discoveredWeaknesses에 누적된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    await act(async () => {
+      result.current.onSelectChoice(0); // wrong choice with weaknessId
+    });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'basic_concept_needed',
+    );
+  });
+
+  it('check 노드의 오답 옵션 선택 시 weaknessId 누적', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // wrong choice → remedial flow → explain primary → check 노드 도달
+    await act(async () => { result.current.onSelectChoice(0); });
+    act(() => { result.current.onRemedialExplainPrimary('fu_step1_A_explain'); });
+
+    // check 오답 옵션 클릭 (wrong1 = '8')
+    act(() => { result.current.onRemedialCheckOption('fu_step1_A_check', 'wrong1'); });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'expansion_sign_error',
+    );
+  });
+
+  it('Explain 노드 도달 시 노드의 weaknessId가 있으면 누적된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 오답 → remedial 진입 → "모르겠어요" → fu_step1_A_easy 도달 (weaknessId 라벨된 노드)
+    await act(async () => { result.current.onSelectChoice(0); });
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_explain');
+    });
+
+    expect(result.current.__test_discoveredForStep?.(0)).toContain(
+      'factoring_pattern_recall',
+    );
+  });
+
+  it('recordAttempt 호출 시 discoveredWeaknesses가 attempt 입력에 포함된다', async () => {
+    mockRecordAttempt.mockClear();
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    // Step 1: wrong choice (weaknessId 라벨됨) → discovered['basic_concept_needed']
+    await act(async () => { result.current.onSelectChoice(0); });
+    await act(async () => { result.current.onPressContinue(); });
+
+    // 나머지 step은 정답으로 통과
+    for (let i = 1; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex((c) => c.correct);
+      await act(async () => { result.current.onSelectChoice(correctIdx); });
+      if (i < totalSteps - 1) {
+        await act(async () => { result.current.onPressContinue(); });
+      }
+    }
+
+    await act(async () => { await result.current.onPressRemember(); });
+
+    expect(mockRecordAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discoveredWeaknesses: expect.arrayContaining(['basic_concept_needed']),
+      }),
+    );
+    const callArg = mockRecordAttempt.mock.calls[0][0] as {
+      questions: Array<{ discoveredWeaknesses?: readonly string[] }>;
+    };
+    expect(callArg.questions[0].discoveredWeaknesses).toEqual(
+      expect.arrayContaining(['basic_concept_needed']),
+    );
+    expect(callArg.questions[1].discoveredWeaknesses).toBeUndefined();
+  });
+
   it('초기 entries에 step-card와 input-area가 있다', () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     expect(result.current.entries[0]).toMatchObject({ kind: 'step-card' });
@@ -191,6 +347,39 @@ describe('entries-based flow', () => {
     spy.mockRestore();
   });
 
+  it('AI 챗 2턴 마무리 후 done-cta 라벨은 "다음으로" (이해했어요 강요 X) [spec §3.1]', async () => {
+    const spy = jest
+      .spyOn(reviewFeedback, 'requestReviewFeedback')
+      .mockResolvedValue({ replyText: 'AI wrap-up 응답' });
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // Drive to 2턴 close (1턴 free input → AI replies → 2턴 input → AI replies → done-cta)
+    act(() => result.current.onChangeFreeText('도와주세요'));
+    await act(async () => { await result.current.onSubmitFreeText(); });
+    await waitFor(() => {
+      const kinds = result.current.entries.map((e) => e.kind);
+      expect(kinds.filter((k) => k === 'fallback-input').length).toBe(1);
+    });
+
+    act(() => result.current.onChangeFallbackText('더 모르겠어요'));
+    await act(async () => { await result.current.onSubmitFallback(); });
+    await waitFor(() => {
+      const kinds = result.current.entries.map((e) => e.kind);
+      expect(kinds).toContain('done-cta');
+    });
+
+    const doneCta = result.current.entries.find((e) => e.kind === 'done-cta') as {
+      label: string;
+    };
+    expect(doneCta.label).not.toContain('이해했어요');
+    // Adapt: non-last step → '다음으로', last step → '완료'
+    expect(['다음으로', '완료']).toContain(doneCta.label);
+
+    spy.mockRestore();
+  });
+
   it('onPressContinue 후 다음 step의 entries로 리셋된다', async () => {
     const { result } = renderHook(() => useReviewSessionScreen());
     await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
@@ -280,6 +469,71 @@ describe('entries-based flow', () => {
     expect(lastEntry.kind).toBe('remedial-node');
     expect(lastEntry.node.id).toBe(firstNode.node.secondaryNextNodeId);
     expect(result.current.entries.some((e: any) => e.kind === 'fallback-input')).toBe(false);
+  });
+
+  it('스텝 내 dontKnow 누적 카운터가 새 step 시작 시 리셋된다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 첫 스텝에서 모르겠어요 1회
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => { result.current.onSelectChoice(wrongIdx); });
+    const firstNode = result.current.entries.find((e) => e.kind === 'remedial-node') as any;
+    if (!firstNode || firstNode.node.kind !== 'explain') return;
+
+    await act(async () => {
+      result.current.onRemedialExplainSecondary(firstNode.node.id);
+    });
+    expect(result.current.__test_dontKnowCount?.(0)).toBe(1);
+
+    // 다음 step으로 진행
+    await act(async () => {
+      result.current.onPressContinue?.();
+    });
+    await waitFor(() => expect(result.current.currentStepIndex).toBe(1));
+
+    // 새 스텝 카운터는 0
+    expect(result.current.__test_dontKnowCount?.(1)).toBe(0);
+  });
+
+  it('스텝 내 모르겠어요 누적 2회 → AI 챗 진입 (코치 안내 + 자유 입력창)', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 오답 클릭 → remedial flow 진입
+    const wrongIdx = result.current.steps[0].choices.findIndex((c) => !c.correct);
+    await act(async () => {
+      result.current.onSelectChoice(wrongIdx);
+    });
+
+    // 첫 번째 모르겠어요 — 정적 경로(easy explain 등)로 이동
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_explain');
+    });
+    const kindsAfterFirst = result.current.entries.map((e) => e.kind);
+    expect(kindsAfterFirst).not.toContain('fallback-input');
+
+    // 두 번째 모르겠어요 — AI 챗 진입
+    act(() => {
+      result.current.onRemedialExplainSecondary('fu_step1_A_easy');
+    });
+    const kindsAfterSecond = result.current.entries.map((e) => e.kind);
+    // ai-bubble (코치 안내) + fallback-input (자유 입력창)이 차례로 추가됨
+    const aiBubbleIdx = kindsAfterSecond.findIndex(
+      (k, i) => k === 'ai-bubble' && i > kindsAfterFirst.length - 1,
+    );
+    expect(aiBubbleIdx).toBeGreaterThanOrEqual(0);
+    expect(kindsAfterSecond[aiBubbleIdx + 1]).toBe('fallback-input');
+
+    const coachBubble = result.current.entries[aiBubbleIdx] as { text: string };
+    expect(coachBubble.text).toContain('어떤 부분이 헷갈리는지');
+
+    // 정적 경로 차단(interception) 검증: 2번째 모르겠어요 이후 done-cta가 추가되지 않아야 함
+    // (fu_step1_A_easy.secondaryNextNodeId = fu_step1_exit → 정적 advance 시 done-cta 생성됨)
+    const newEntriesAfterSecond = kindsAfterSecond.slice(kindsAfterFirst.length);
+    expect(newEntriesAfterSecond).not.toContain('done-cta');
+    // 마지막으로 추가된 엔트리가 fallback-input이어야 함 (정적 advance로 인한 후속 추가 없음)
+    expect(kindsAfterSecond[kindsAfterSecond.length - 1]).toBe('fallback-input');
   });
 
   it('Scenario E (remedial 모르겠어요 정적 이동 후): remedial 흐름을 계속 진행하면 done-cta까지 도달', async () => {
