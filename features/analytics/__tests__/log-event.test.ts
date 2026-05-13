@@ -57,8 +57,16 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       expect(init.method).toBe('POST');
       const body = JSON.parse(init.body);
       expect(body.app_instance_id).toBe('aaaaaaaabbbbbbbbccccccccdddddddd');
+      // 9ef24c6 이후 GA4 페이로드에 engagement_time_msec(고정) + session_id(런타임 생성) 포함
       expect(body.events).toEqual([
-        { name: 'review_started', params: { task_id: 'task-abc' } },
+        {
+          name: 'review_started',
+          params: {
+            engagement_time_msec: '100',
+            task_id: 'task-abc',
+            session_id: expect.any(String),
+          },
+        },
       ]);
     });
 
@@ -68,7 +76,13 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       await flush();
 
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.events[0]).toEqual({ name: 'graduation_reached', params: {} });
+      expect(body.events[0]).toEqual({
+        name: 'graduation_reached',
+        params: {
+          engagement_time_msec: '100',
+          session_id: expect.any(String),
+        },
+      });
     });
 
     it('fetch 실패해도 throw하지 않는다', async () => {
@@ -141,7 +155,12 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(body.events[0]).toEqual({
         name: 'screen_view',
-        params: { screen_name: 'mock_exam_intro', screen_class: 'mock_exam_intro' },
+        params: {
+          engagement_time_msec: '100',
+          screen_name: 'mock_exam_intro',
+          screen_class: 'mock_exam_intro',
+          session_id: expect.any(String),
+        },
       });
     });
   });
