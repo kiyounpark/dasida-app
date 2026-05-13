@@ -29,11 +29,20 @@ const SCREENS = [
   },
   {
     title: '복습 세션',
-    desc: '목업 태스크 · 복습 스텝 · 완료 플로우',
+    desc: '목업 태스크 · 복습 스텝 · 완료 플로우 (formula_understanding)',
     onPress: () =>
       router.push({
         pathname: '/quiz/review-session',
         params: { taskId: '__mock__' },
+      }),
+  },
+  {
+    title: '복습 세션 (판별식)',
+    desc: 'discriminant_calculation 시범 약점 QA용',
+    onPress: () =>
+      router.push({
+        pathname: '/quiz/review-session',
+        params: { taskId: '__mock_disc__' },
       }),
   },
 ] as const;

@@ -122,14 +122,14 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       return;
     }
 
-    // DEV: 스크린샷용 목업 태스크 (taskId='__mock__'일 때만 활성화)
-    if (taskId === '__mock__') {
+    // DEV: 스크린샷용 목업 태스크 (taskId='__mock__' 또는 '__mock_disc__'일 때만 활성화)
+    if (taskId === '__mock__' || taskId === '__mock_disc__') {
       const mockTask: ReviewTask = {
-        id: '__mock__',
+        id: taskId,
         accountKey,
-        weaknessId: 'formula_understanding',
+        weaknessId: taskId === '__mock_disc__' ? 'discriminant_calculation' : 'formula_understanding',
         source: 'diagnostic',
-        sourceId: '__mock__',
+        sourceId: taskId,
         scheduledFor: new Date().toISOString(),
         stage: 'day1',
         completed: false,

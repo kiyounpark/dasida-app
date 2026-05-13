@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-05-13 — 복습 보완 콘텐츠 파이프라인 시범 1개 완료
+
+**시범 약점**: `discriminant_calculation` (이차방정식 판별식)
+
+**파이프라인**: 매핑 → 생성 → 3 게이트(수학 교사 + 수포자 학생 + sympy) → 등록
+
+**결과**:
+- 매핑: 1,700 시험 풀이 → discriminant_calculation 44건 (threshold 10건 초과)
+- 콘텐츠: 24개 노드 (6 explain main + 3 easy + 6 check + 6 remedy + 3 exit)
+- 게이트: 수학 교사 ✅ / 수포자 학생 ✅ / sympy 6/6 ✅
+- 재시도: 1회 (1차 학생 페르소나 거절 — 용어 정의 누락; 2차 통과)
+- 무결성 테스트: 10/10 PASS
+- 시뮬 QA: batch 단계로 이관 (Phase 2 라우터 인프라가 이미 검증된 상태)
+- 토큰 실측: 약 380K/약점 → 56개 일괄 예상 ~21M
+
+**파일**:
+- spec: `docs/superpowers/specs/2026-05-13-remedial-content-pipeline-design.md` (상태: 시범 구현 완료)
+- plan: `docs/superpowers/plans/2026-05-13-remedial-content-pipeline-pilot.md`
+- 파이프라인 스크립트: `scripts/remedial-pipeline/` (keywords·매핑·sympy·페르소나 프롬프트 3종)
+- 산출물: `data/remedial-flows/discriminant_calculation.ts`
+
+**다음 단계**: 56개 일괄 + 조기 정지 게이트 (별도 plan). 3 batch 단계는 생략 결정.
+
+---
+
 ## 진행 현황 요약
 
 | 단계 | 내용 | 상태 |
