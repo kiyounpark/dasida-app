@@ -40,7 +40,35 @@ export type ExitNode = {
   kind: 'exit';
 };
 
-export type RemedialNode = ExplainNode | CheckNode | ExitNode;
+/**
+ * 학생 사유 진단 카드 (deep 보완 흐름 전용, 본 스펙 §0).
+ * 정답·오답 개념 없음 — 모든 옵션이 동등하게 다음 노드로 분기.
+ */
+export type DiagnoseNode = {
+  id: string;
+  kind: 'diagnose';
+  title: string;
+  body: string;
+  options: ReadonlyArray<{
+    id: string;
+    text: string;
+    nextNodeId: string;
+  }>;
+};
+
+/**
+ * 보완 흐름 정리 카드 (deep 보완 흐름 전용, 본 스펙 §0).
+ * "여기까지 왔다"는 성취 신호. nextNodeId 는 보통 exit 노드.
+ */
+export type SummaryNode = {
+  id: string;
+  kind: 'summary';
+  title: string;
+  body: string;
+  nextNodeId: string;
+};
+
+export type RemedialNode = ExplainNode | CheckNode | ExitNode | DiagnoseNode | SummaryNode;
 
 export type RemedialFlow = {
   nodes: Record<string, RemedialNode>;
