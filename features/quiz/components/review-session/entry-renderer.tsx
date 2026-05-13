@@ -75,6 +75,10 @@ export function EntryRenderer(props: Props) {
       return <AiTypingBubble />;
 
     case 'fallback-input':
+      // 잠긴(이미 제출된) fallback-input은 렌더하지 않는다.
+      // 학생 발화는 동시에 append되는 user-bubble이 보여주므로 중복이고,
+      // fallbackText state가 모든 인스턴스에 공유되어 2턴 입력이 1턴에도 뜨는 버그 회피.
+      if (!entry.interactive) return null;
       return (
         <FallbackInputCard
           text={props.fallbackText}
