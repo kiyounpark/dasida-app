@@ -52,6 +52,8 @@ export type UseReviewSessionScreenResult = {
   onRemedialExplainSecondary: (nodeId: string) => void;
   onRemedialCheckOption: (nodeId: string, optionId: string) => void;
   onRemedialCheckDontKnow: (nodeId: string) => void;
+  onRemedialDiagnoseOption: (nodeId: string, optionId: string) => void;
+  onRemedialSummaryContinue: (nodeId: string) => void;
   entries: ReviewEntry[];
   freeText: string;
   fallbackText: string;
@@ -485,6 +487,23 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     handleDontKnowPress(node.dontKnowNextNodeId);
   };
 
+  const onRemedialDiagnoseOption = (nodeId: string, optionId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'diagnose') return;
+    const opt = node.options.find((o) => o.id === optionId);
+    if (!opt) return;
+    reviewEntries.appendEntries([createReviewUserBubbleEntry(opt.text)]);
+    advanceRemedialToNode(opt.nextNodeId);
+  };
+
+  const onRemedialSummaryContinue = (nodeId: string) => {
+    if (!task) return;
+    const node = getRemedialNode(task.weaknessId, nodeId);
+    if (!node || node.kind !== 'summary') return;
+    advanceRemedialToNode(node.nextNodeId);
+  };
+
   const onPressRemember = async () => {
     if (!task || !profile) {
       return;
@@ -590,6 +609,8 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onRemedialExplainSecondary,
     onRemedialCheckOption,
     onRemedialCheckDontKnow,
+    onRemedialDiagnoseOption,
+    onRemedialSummaryContinue,
     entries: reviewEntries.entries,
     freeText,
     fallbackText,
