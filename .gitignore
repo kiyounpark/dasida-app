@@ -70,3 +70,4 @@ coverage/
 .env.local
 
 scripts/remedial-pipeline/intent-weakness-map.json
+scripts/remedial-pipeline/state.json
