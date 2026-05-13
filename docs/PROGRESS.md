@@ -908,6 +908,36 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.13 21:51
+- 해시: `0094170` (`009417053641dac05e0e3fd43c5a2686388df2ea`)
+- 브랜치: claude/silly-robinson-baed45
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/009417053641dac05e0e3fd43c5a2686388df2ea
+- 작성자: 박기윤
+- 메시지: test(analytics): GA4 session_id/engagement_time_msec 추가에 따른 expectation 업데이트
+- 본문: 9ef24c6에서 GA4 페이로드에 engagement_time_msec와 session_id가 추가됐는데 / log-event.test.ts의 toEqual expectation이 업데이트되지 않아 3건 실패하던 것을 수정. / session_id는 Date.now() 런타임 생성이라 expect.any(String)로 매칭. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.13 21:47
+- 해시: `ef3e234` (`ef3e2340c3e7e2fdc27d6674e1bc9ddf2d2b418e`)
+- 브랜치: claude/silly-robinson-baed45
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ef3e2340c3e7e2fdc27d6674e1bc9ddf2d2b418e
+- 작성자: 박기윤
+- 메시지: refactor(analytics): PostHog 타입 정확화 + 자동 lifecycle 이벤트 끔
+- 본문: 코드리뷰 P2 후속: / - properties 캐스팅을 Record<string, never>(거짓말 타입) -> PostHogEventProperties(@posthog/core)로 교체 / - captureAppLifecycleEvents: false 명시: GA4의 first_open/session_start와 중복 방지 / - enableSessionReplay: false 명시: 대시보드 OFF에 더해 클라이언트에서도 명시 / - 세션 시간 주석 보강: session-lifecycle.ts와 동일한 30분임을 명시 / expo-localization plugin은 옵션 없이 등록 시 no-op (Info.plist 변경 없음) / 확인 완료 -> 코드 변경 불필요. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.13 21:42
+- 해시: `7f5d786` (`7f5d786bd4cf8a5cf1770da8e33bc609cc80c475`)
+- 브랜치: claude/silly-robinson-baed45
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7f5d786bd4cf8a5cf1770da8e33bc609cc80c475
+- 작성자: 박기윤
+- 메시지: fix(analytics): PostHog init 실패 시 무한 rejection 방지
+- 본문: new PostHog() 실패 시 posthogPromise가 rejected 상태로 영구 메모이즈되어 / 이후 모든 capture 호출이 같은 rejection을 재사용하던 문제 수정. / init 실패 시 posthogPromise를 null로 초기화해 다음 호출에서 재시도 가능하게 / 하고, 4곳의 호출 지점에 .catch()를 추가해 unhandled rejection을 차단. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.13 19:28
 - 해시: `67bdb8f` (`67bdb8f07b13787b5b269523d96f68dd5c4b5564`)
 - 브랜치: claude/silly-robinson-baed45
@@ -917,6 +947,16 @@
 - 작성자: 박기윤
 - 메시지: docs(plans): RNFB Old Arch 전환 시도 계획 + 실패 교훈 보존
 - 본문: 2026-05-13 시도: Reanimated 4 → 3 다운그레이드 + newArchEnabled false로 / @react-native-firebase/analytics 재도입 시도. Step 8 (iOS 빌드)에서 / fmt 11.x + Apple Clang consteval 컴파일 에러로 실패. 롤백 완료. / 핵심 발견: / - Expo SDK 54 Podfile은 newArchEnabled=true일 때만 prebuilt RN core 사용. / Old Arch면 RN 코어를 소스 컴파일 → fmt 11이 Apple Clang에서 안 풀림. / - 즉 RN 0.81+ 환경에선 "Reanimated 다운그레이드만으로 Old Arch 진입" 불가능. / - react-native-worklets 별도 패키지 + v4 전용 API 사용처 등 계획에 없던 / 변경도 다수 필요했음 (문서 내 "시도 결과 및 교훈" 참조). / 추후 RNFB v25 (New Arch + use_frameworks 호환 패치) 출시 시 재시도용 참고 / 문서로 보존. 그때는 New Arch 유지한 채 단순 RNFB 추가만으로 가능 예정. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.13 19:06
+- 해시: `25e009b` (`25e009b09e509b816b7fb194c7b684c15b42b368`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/25e009b09e509b816b7fb194c7b684c15b42b368
+- 작성자: 박기윤
+- 메시지: Merge pull request #22 from kiyounpark/claude/sweet-lalande-9ddef0
+- 본문: feat(review): remedial pattern infra + weaknessId signals + AI hallucination fix
 
 ### 커밋 2026.05.13 00:57
 - 해시: `9ef24c6` (`9ef24c67eb64985fcbc12d489f762ca0e4c97840`)
