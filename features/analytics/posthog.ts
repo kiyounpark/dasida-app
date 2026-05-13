@@ -11,6 +11,7 @@
  * 사용 패턴: PostHogProvider 없이 직접 client 호출.
  * GA4 send() 옆에서 posthog.capture()를 호출하는 parallel tracking 구조.
  */
+import type { PostHogEventProperties } from '@posthog/core';
 import PostHog from 'posthog-react-native';
 
 const API_KEY = process.env.EXPO_PUBLIC_POSTHOG_API_KEY;
@@ -37,12 +38,17 @@ export function getPostHog(): Promise<PostHog> | null {
     try {
       const client = new PostHog(API_KEY, {
         host: HOST,
-        // GA4와 같은 의미: 세션 시간 30분
+        // GA4와 같은 의미: 세션 시간 30분 (session-lifecycle.ts의 30분과 동일)
         sessionExpirationTimeSeconds: 30 * 60,
         // 캡쳐 자동 전송 주기 (ms): 5초마다 배치 flush
         flushInterval: 5000,
         // 배치 크기: 20개 모이면 즉시 flush
         flushAt: 20,
+        // GA4가 first_open/session_start를 보내므로 PostHog 자동 lifecycle 이벤트는 끔.
+        // 켜두면 'Application Opened/Backgrounded'와 GA4 이벤트가 의미상 중복.
+        captureAppLifecycleEvents: false,
+        // Session Replay 대시보드에서 OFF지만, 클라이언트에서도 명시.
+        enableSessionReplay: false,
       });
       posthogClient = client;
       return client;
@@ -65,7 +71,7 @@ export function capture(eventName: string, properties: Record<string, unknown> =
   void p
     .then((client) => {
       try {
-        client.capture(eventName, properties as Record<string, never>);
+        client.capture(eventName, properties as PostHogEventProperties);
       } catch {
         // PostHog 내부 에러는 무시
       }
@@ -84,7 +90,7 @@ export function captureScreen(screenName: string, properties: Record<string, unk
   void p
     .then((client) => {
       try {
-        client.screen(screenName, properties as Record<string, never>);
+        client.screen(screenName, properties as PostHogEventProperties);
       } catch {
         // ignore
       }
@@ -103,7 +109,7 @@ export function identify(distinctId: string, properties: Record<string, unknown>
   void p
     .then((client) => {
       try {
-        client.identify(distinctId, properties as Record<string, never>);
+        client.identify(distinctId, properties as PostHogEventProperties);
       } catch {
         // ignore
       }
