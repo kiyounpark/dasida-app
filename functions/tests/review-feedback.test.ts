@@ -42,14 +42,16 @@ test('decideMode: assistant 응답 1개면 close', () => {
   assert.equal(result, 'close');
 });
 
+const sampleStep = { title: 'a, b, c 부호 확인', body: '계수를 부호 포함해서 읽는다.' };
+
 test('buildSystemPrompt(explore)에는 탐색 모드 안내가 포함된다', () => {
-  const prompt = buildSystemPrompt('explore');
+  const prompt = buildSystemPrompt('explore', sampleStep);
   assert.ok(prompt.includes('탐색 모드'));
   assert.ok(prompt.includes('힌트'));
 });
 
 test('buildSystemPrompt(close)에는 마무리 모드 안내가 포함된다', () => {
-  const prompt = buildSystemPrompt('close');
+  const prompt = buildSystemPrompt('close', sampleStep);
   assert.ok(prompt.includes('마무리 모드'));
   assert.ok(prompt.includes('인정'), 'close 모드는 학생 인정 비트를 강제해야 한다');
   assert.ok(prompt.includes('클로징'), 'close 모드는 따뜻한 클로징을 강제해야 한다');
@@ -60,15 +62,37 @@ test('buildSystemPrompt(close)에는 마무리 모드 안내가 포함된다', (
 });
 
 test('buildSystemPrompt에 selectedChoice가 있으면 컨텍스트가 주입된다', () => {
-  const prompt = buildSystemPrompt('explore', { text: '음수 부호', correct: false });
+  const prompt = buildSystemPrompt('explore', sampleStep, { text: '음수 부호', correct: false });
   assert.ok(prompt.includes('선택지 컨텍스트'));
   assert.ok(prompt.includes('음수 부호'));
   assert.ok(prompt.includes('오답'));
 });
 
 test('buildSystemPrompt에 selectedChoice가 없으면 컨텍스트가 없다', () => {
-  const prompt = buildSystemPrompt('explore');
+  const prompt = buildSystemPrompt('explore', sampleStep);
   assert.ok(!prompt.includes('선택지 컨텍스트'));
+});
+
+test('buildSystemPrompt에 step context가 포함된다 (학생 발화 아님 라벨)', () => {
+  const prompt = buildSystemPrompt(
+    'explore',
+    { title: 'x 계수의 절반 추출', body: 'ax²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.' },
+  );
+  assert.ok(prompt.includes('현재 단계 정보'));
+  assert.ok(prompt.includes('학생이 직접 쓴 글이 아님'));
+  assert.ok(prompt.includes('x 계수의 절반 추출'));
+  assert.ok(prompt.includes('ax²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.'));
+  assert.ok(prompt.includes('학생이 이 절차를 한 말처럼 그대로 따라 쓰거나 칭찬하지 마세요'));
+});
+
+test('buildSystemPrompt에 학생이 쓴 글 다루기 룰이 포함된다', () => {
+  const prompt = buildSystemPrompt(
+    'explore',
+    { title: '아무 단계', body: '아무 설명' },
+  );
+  assert.ok(prompt.includes('학생이 쓴 글 다루기'));
+  assert.ok(prompt.includes('사용자가 보낸 메시지의 내용만 학생이 실제로 쓴 글입니다'));
+  assert.ok(prompt.includes('"정답 절차"를 학생이 쓴 글처럼 다루지 마세요'));
 });
 
 test('zod 스키마는 selectedChoiceText/selectedChoiceCorrect를 옵셔널로 받는다', () => {
