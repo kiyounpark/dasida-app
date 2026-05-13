@@ -17,6 +17,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 import type { EventName, EventParams, ScreenName } from './event-types';
+import {
+  capture as posthogCapture,
+  captureScreen as posthogCaptureScreen,
+  identify as posthogIdentify,
+  reset as posthogReset,
+} from './posthog';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 const CLIENT_ID_KEY = 'ga4_client_id';
@@ -118,22 +124,36 @@ export function logEvent<K extends EventName>(
   name: K,
   params: EventParams[K],
 ): void {
-  void send(name as string, (params ?? {}) as Record<string, unknown>);
+  const safeParams = (params ?? {}) as Record<string, unknown>;
+  void send(name as string, safeParams);
+  // PostHog 병렬: GA4와 같은 이벤트 이름/페이로드를 그대로 전송
+  posthogCapture(name as string, safeParams);
 }
 
 /**
  * GA4 예약 이벤트(first_open, session_start, user_engagement) 전용 채널.
  * session-lifecycle.ts에서만 사용.
+ *
+ * PostHog는 자체 session/$pageview 처리하므로 first_open/session_start는
+ * 보내지 않고 GA4에만 전송. user_engagement만 PostHog로도 보냄 (디버깅 용도).
  */
 export function logReservedEvent(
   name: 'first_open' | 'session_start' | 'user_engagement',
   params: Record<string, unknown> = {},
 ): void {
   void send(name, params);
+  if (name === 'user_engagement') {
+    posthogCapture(name, params);
+  }
 }
 
 export function setAnalyticsUserId(uid: string | null): void {
   userIdMemo = uid;
+  if (uid) {
+    posthogIdentify(uid);
+  } else {
+    posthogReset();
+  }
 }
 
 export function logScreenView(screen: ScreenName): void {
@@ -141,4 +161,6 @@ export function logScreenView(screen: ScreenName): void {
     screen_name: screen,
     screen_class: screen,
   });
+  // PostHog는 $screen이벤트로 별도 트래킹 (Web Analytics 대시보드용)
+  posthogCaptureScreen(screen);
 }
