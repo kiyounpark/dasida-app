@@ -1,0 +1,65 @@
+{
+  "verdict": "reject",
+  "weaknessId": "calc_repeated_error",
+  "depth": "deep",
+  "nodesVisited": 48,
+  "studentJourney": "학생은 오답 클릭 후 자신의 오개념 이유를 고르는 diagnose 노드로 진입한다. 이유에 맞는 explain 카드를 보고 check(확인 문제)를 푼다. 틀리면 diagnose2 → pinpoint(심화 설명) 경로를 타고, 맞으면 summary → exit으로 마무리된다. 전반적 흐름은 명확하고 톤도 일관되지만, pinpoint 노드에서 '모르겠어요'를 누르면 재시도 check 없이 summary로 직행하는 경로가 6개 스텝 모두에 존재한다. 또한 step3.C diagnose 노드 본문이 분기 선택 전에 결론을 먼저 제시해 진단의 의미를 약화시킨다.",
+  "issues": [
+    {
+      "path": "calc_step1_A_diagnose2 → calc_step1_A_pinpoint1 → calc_step1_summary",
+      "criterion": "막다른 길",
+      "issue": "pinpoint1의 secondaryNextNodeId가 calc_step1_A_check가 아닌 calc_step1_summary로 연결돼, '모르겠어요'를 누른 학생이 재확인 문제 없이 summary로 빠져나간다.",
+      "evidence": "가장 이해가 안 되는 학생(두 번 틀리고 pinpoint까지 온 학생)이 check 재시도를 건너뛰고 정리 화면으로 직행하므로, 약점이 해소됐는지 검증이 전혀 없다.",
+      "suggestion": "pinpoint 노드의 secondaryNextNodeId를 직전 check 노드(calc_step1_A_check)로 변경하고, summary는 check 정답 경로로만 도달하도록 한다."
+    },
+    {
+      "path": "calc_step1_A_diagnose2 → calc_step1_A_pinpoint2 → calc_step1_summary",
+      "criterion": "막다른 길",
+      "issue": "pinpoint2의 secondaryNextNodeId도 calc_step1_summary로 연결돼 동일한 검증 누락이 발생한다.",
+      "evidence": "pinpoint1과 동일한 경로 문제 — 두 번 틀린 학생이 다시 check를 보지 않고 summary에 도달한다.",
+      "suggestion": "secondaryNextNodeId를 calc_step1_A_check로 교체한다."
+    },
+    {
+      "path": "calc_step1_C_diagnose2 → calc_step1_C_pinpoint1 → calc_step1_summary",
+      "criterion": "막다른 길",
+      "issue": "step1.C의 pinpoint1도 secondaryNextNodeId가 summary로 설정돼, '모르겠어요' 선택 시 check 없이 종료된다.",
+      "evidence": "step1.A와 동일 패턴이 step1.C에도 반복된다.",
+      "suggestion": "secondaryNextNodeId를 calc_step1_C_check로 변경한다."
+    },
+    {
+      "path": "calc_step2_A_diagnose2 → calc_step2_A_pinpoint1 → calc_step2_summary",
+      "criterion": "막다른 길",
+      "issue": "step2.A pinpoint1의 secondaryNextNodeId = calc_step2_summary — check 재시도 없이 summary 직행.",
+      "evidence": "괄호 이해가 가장 부족한 학생이 확인 문제 없이 summary로 빠져나간다.",
+      "suggestion": "secondaryNextNodeId를 calc_step2_A_check로 교체한다."
+    },
+    {
+      "path": "calc_step2_C_diagnose2 → calc_step2_C_pinpoint1 → calc_step2_summary",
+      "criterion": "막다른 길",
+      "issue": "step2.C pinpoint1의 secondaryNextNodeId = calc_step2_summary — 동일 패턴.",
+      "evidence": "−4² 을 (−4)² 로 잘못 읽은 학생이 심화 설명 후 모르겠어도 검증 없이 종료된다.",
+      "suggestion": "secondaryNextNodeId를 calc_step2_C_check로 교체한다."
+    },
+    {
+      "path": "calc_step3_A_diagnose2 → calc_step3_A_pinpoint1 → calc_step3_summary",
+      "criterion": "막다른 길",
+      "issue": "step3.A pinpoint1의 secondaryNextNodeId = calc_step3_summary — 동일 패턴.",
+      "evidence": "항별 계산을 이해 못 한 학생이 check 재시도 없이 마무리된다.",
+      "suggestion": "secondaryNextNodeId를 calc_step3_A_check로 교체한다."
+    },
+    {
+      "path": "calc_step3_C_diagnose2 → calc_step3_C_pinpoint1 → calc_step3_summary",
+      "criterion": "막다른 길",
+      "issue": "step3.C pinpoint1의 secondaryNextNodeId = calc_step3_summary — 동일 패턴.",
+      "evidence": "항별 값을 잘못 더한 학생이 심화 설명 후 '모르겠어요'를 눌러도 재시도 없이 summary로 이동한다.",
+      "suggestion": "secondaryNextNodeId를 calc_step3_C_check로 교체한다."
+    },
+    {
+      "path": "calc_step3_C_diagnose → (options 선택 전)",
+      "criterion": "분기 의미 부재",
+      "issue": "diagnose body = '교환·결합 법칙을 떠올렸을 수 있어요. 그래도 부호 처리에선 순서가 검산에 영향을 줘요.' — 분기 선택 전에 이미 교정 결론을 제시한다.",
+      "evidence": "학생이 이유를 선택하기도 전에 '순서가 검산에 영향을 줘요'라는 결론을 읽으면, 이후 explain 노드가 같은 말을 반복하는 것처럼 느껴진다. 진단 노드의 역할(왜 그랬는지 파악)이 약해진다.",
+      "suggestion": "body를 '순서를 무시했을 때 어떤 마음이었는지 알려줘요.' 수준의 중립적 질문으로 교체하고, 결론은 r1/r2 explain 노드에서만 다룬다."
+    }
+  ]
+}
