@@ -1,0 +1,37 @@
+{
+  "verdict": "approve",
+  "issues": [
+    {
+      "nodeId": "rad_step1_A_explain",
+      "severity": "minor",
+      "issue": "본문에서 72 = 2² × 3² × 2 로 표기했으나, 소인수분해의 표준 표기는 2³ × 3² 이다. 2² × 3² × 2 는 수식으로는 옳지만 소인수분해 결과를 '지수를 모아 쓰는' 관례와 어긋나 학생 혼란을 유발할 수 있다.",
+      "suggestion": "72 = 2³ × 3² 로 1차 표기하고, 괄호 안에 '= 2² × 2 × 3²' 를 병기해 제곱 묶음이 보이는 과정을 설명하라."
+    }
+  ],
+  "equationsToVerify": [
+    { "id": "rad_step1_A_explain.eq1", "lhs": "2**2 * 3**2 * 2", "rhs": "72" },
+    { "id": "rad_step1_A_easy.eq1", "lhs": "2 * 5**2", "rhs": "50" },
+    { "id": "rad_step1_A_remedy.eq1", "lhs": "8 * 9", "rhs": "72" },
+    { "id": "rad_step1_A_remedy.eq2", "lhs": "2**3 * 3**2", "rhs": "72" },
+    { "id": "rad_step1_A_remedy.eq3", "lhs": "2**2 * 2 * 3**2", "rhs": "72" },
+    { "id": "rad_step1_C_remedy.eq1", "lhs": "2 * 5**2", "rhs": "50" },
+    { "id": "rad_step1_C_remedy.eq2", "lhs": "sqrt(5**2 * 2)", "rhs": "5*sqrt(2)" },
+    { "id": "rad_step2_A_explain.eq1", "lhs": "sqrt(Symbol('a')**2 * Symbol('b'))", "rhs": "Symbol('a')*sqrt(Symbol('b'))" },
+    { "id": "rad_step2_A_easy.eq1", "lhs": "sqrt(4)", "rhs": "2" },
+    { "id": "rad_step2_A_easy.eq2", "lhs": "sqrt(2**2)", "rhs": "2" },
+    { "id": "rad_step2_A_remedy.eq1", "lhs": "sqrt(9 * 5)", "rhs": "3*sqrt(5)" },
+    { "id": "rad_step2_A_remedy.eq2", "lhs": "sqrt(3**2 * 5)", "rhs": "3*sqrt(5)" },
+    { "id": "rad_step2_C_explain.eq1", "lhs": "sqrt(4 * 9 * 2)", "rhs": "6*sqrt(2)" },
+    { "id": "rad_step2_C_explain.eq2", "lhs": "2 * 3", "rhs": "6" },
+    { "id": "rad_step2_C_remedy.eq1", "lhs": "sqrt(4)", "rhs": "2" },
+    { "id": "rad_step2_C_remedy.eq2", "lhs": "sqrt(9)", "rhs": "3" },
+    { "id": "rad_step2_C_remedy.eq3", "lhs": "2 * 3 * sqrt(2)", "rhs": "6*sqrt(2)" },
+    { "id": "rad_step3_A_easy.eq1", "lhs": "sqrt(4 * 25 * 3)", "rhs": "10*sqrt(3)" },
+    { "id": "rad_step3_A_easy.eq2", "lhs": "2 * 5", "rhs": "10" },
+    { "id": "rad_step3_A_remedy.eq1", "lhs": "sqrt(4 * 9 * 3)", "rhs": "6*sqrt(3)" },
+    { "id": "rad_step3_A_remedy.eq2", "lhs": "2 * 3 * sqrt(3)", "rhs": "6*sqrt(3)" },
+    { "id": "rad_step3_C_remedy.eq1", "lhs": "sqrt(72)", "rhs": "6*sqrt(2)" },
+    { "id": "rad_step3_C_remedy.eq2", "lhs": "sqrt(4 * 9 * 2)", "rhs": "6*sqrt(2)" },
+    { "id": "rad_step3_C_remedy.eq3", "lhs": "2 * 3 * sqrt(2)", "rhs": "6*sqrt(2)" }
+  ]
+}
