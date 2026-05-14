@@ -234,20 +234,20 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'ax²+bx+c에서 a, b 앞의 +/− 도 같이 묶어 읽어요. 다음 단계에서 −b/(2a) 에 그대로 넣을 거라 부호를 미리 챙겨두는 게 안전해요.',
         example: '예) 2x²−6x+1 → a=2, b=−6',
         choices: [
-          { text: '계수만 읽고 부호는 나중에 본다', correct: false, feedback: '부호를 미루면 −b/(2a)에 대입할 때 마이너스를 한 번 더 뒤집어야 해서 실수가 생겨요. 처음부터 묶어 읽는 게 안전해요.' },
+          { text: '계수만 읽고 부호는 나중에 본다', correct: false, feedback: '부호를 미루면 −b/(2a)에 대입할 때 마이너스를 한 번 더 뒤집어야 해서 실수가 생겨요. 처음부터 묶어 읽는 게 안전해요.', remedialFlowStartNodeId: 'vfm_step1_A_explain', weaknessId: 'vertex_formula_memorization' },
           { text: 'a와 b를 부호 포함해서 먼저 읽는다', correct: true, feedback: '맞아요! 부호까지 묶어서 읽으면 공식 대입이 한결 깔끔해져요.' },
-          { text: 'b 는 부호 빼고 절댓값만 읽는다', correct: false, feedback: '절댓값만 읽으면 −b 자리에 +값이 들어가 답이 부호 반대로 나와요. b 는 마이너스도 같이 묶어 b = −6 으로 적어둬요.' },
+          { text: 'b 는 부호 빼고 절댓값만 읽는다', correct: false, feedback: '절댓값만 읽으면 −b 자리에 +값이 들어가 답이 부호 반대로 나와요. b 는 마이너스도 같이 묶어 b = −6 으로 적어둬요.', remedialFlowStartNodeId: 'vfm_step1_C_explain', weaknessId: 'vertex_formula_memorization' },
         ],
       },
       {
         id: 'vertex_formula_memorization.step2',
         title: '꼭짓점 x좌표 = −b / 2a',
-        body: '꼭짓점 x좌표는 −b를 2a로 나눈 값이다.',
+        body: '꼭짓점 x좌표는 −b 를 2a 로 나눈 값이에요.',
         example: '예) a=2, b=−6 → x = −(−6)/(2×2) = 6/4 = 3/2',
         choices: [
-          { text: '꼭짓점 x좌표 = b/a이다', correct: false, feedback: '공식의 모양이 살짝 달라요. 부호와 분모의 2를 다시 확인해봐요.' },
+          { text: '꼭짓점 x좌표 = b/a이다', correct: false, feedback: '공식의 모양이 살짝 달라요. 부호와 분모의 2를 다시 확인해봐요.', remedialFlowStartNodeId: 'vfm_step2_A_explain', weaknessId: 'vertex_formula_memorization' },
           { text: '꼭짓점 x좌표 = −b/(2a)이다', correct: true, feedback: '맞아요! −b를 2a로 나눈 값이 꼭짓점의 x좌표예요.' },
-          { text: '꼭짓점 x좌표 = 2b/a이다', correct: false, feedback: '분자와 분모가 뒤바뀌고 부호도 빠졌어요. −b/(2a)로 다시 정리해봐요.' },
+          { text: '꼭짓점 x좌표 = 2b/a이다', correct: false, feedback: '분자와 분모가 뒤바뀌고 부호도 빠졌어요. −b/(2a)로 다시 정리해봐요.', remedialFlowStartNodeId: 'vfm_step2_C_explain', weaknessId: 'vertex_formula_memorization' },
         ],
       },
       {
@@ -256,9 +256,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'a 가 음수거나 b 가 양수여도 같은 공식 −b/(2a) 를 그대로 써요. 부호만 꼼꼼히 챙기면 어떤 식이든 같은 한 줄로 끝나요.',
         example: '예) −x²+4x+1 → a=−1, b=4 → −4/(2·(−1)) = −4/(−2) = 2',
         choices: [
-          { text: 'a 가 음수면 공식을 뒤집어 쓴다', correct: false, feedback: '공식은 그대로예요. 음수 a 를 그냥 분모 2a 자리에 넣으면 분모도 음수가 돼 자동으로 부호가 정리돼요.' },
+          { text: 'a 가 음수면 공식을 뒤집어 쓴다', correct: false, feedback: '공식은 그대로예요. 음수 a 를 그냥 분모 2a 자리에 넣으면 분모도 음수가 돼 자동으로 부호가 정리돼요.', remedialFlowStartNodeId: 'vfm_step3_A_explain', weaknessId: 'vertex_formula_memorization' },
           { text: '부호 그대로 −b/(2a)에 대입한다', correct: true, feedback: '맞아요! 공식을 바꿀 필요 없이 부호만 살려 그대로 넣으면 정답이 나와요.' },
-          { text: 'b 가 양수면 −b 자리에 +b 를 넣는다', correct: false, feedback: '−b 자리에는 마이너스를 반드시 한 번 붙여야 해요. b 가 양수면 −b 는 음수가 돼요.' },
+          { text: 'b 가 양수면 −b 자리에 +b 를 넣는다', correct: false, feedback: '−b 자리에는 마이너스를 반드시 한 번 붙여야 해요. b 가 양수면 −b 는 음수가 돼요.', remedialFlowStartNodeId: 'vfm_step3_C_explain', weaknessId: 'vertex_formula_memorization' },
         ],
       },
     ],
