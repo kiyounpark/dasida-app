@@ -88,6 +88,8 @@ import { solving_order_confusion_flow } from './remedial-flows/solving_order_con
 import { complex_factoring_difficulty_flow } from './remedial-flows/complex_factoring_difficulty';
 import { quadratic_formula_memorization_flow } from './remedial-flows/quadratic_formula_memorization';
 import { rationalization_error_flow } from './remedial-flows/rationalization_error';
+import { expansion_sign_error_flow } from './remedial-flows/expansion_sign_error';
+import { like_terms_error_flow } from './remedial-flows/like_terms_error';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -104,6 +106,8 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   complex_factoring_difficulty: complex_factoring_difficulty_flow,
   quadratic_formula_memorization: quadratic_formula_memorization_flow,
   rationalization_error: rationalization_error_flow,
+  expansion_sign_error: expansion_sign_error_flow,
+  like_terms_error: like_terms_error_flow,
 };
 
 export function getRemedialNode(

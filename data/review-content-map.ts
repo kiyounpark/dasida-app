@@ -652,9 +652,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '전개 전에 괄호 앞에 있는 부호(+/−)를 먼저 확인한다.',
         example: '예) −(2x+3) → 앞에 −1이 곱해진 것',
         choices: [
-          { text: '괄호 앞 부호는 첫 항에만 적용된다', correct: false, feedback: '분배는 모든 항에 적용돼요. 첫 항에만 적용하면 뒤 항의 부호가 통째로 어긋나요.' },
+          { text: '괄호 앞 부호는 첫 항에만 적용된다', correct: false, feedback: '분배는 모든 항에 적용돼요. 첫 항에만 적용하면 뒤 항의 부호가 통째로 어긋나요.', remedialFlowStartNodeId: 'exp_step1_A_explain', weaknessId: 'expansion_sign_error' },
           { text: '괄호 앞 부호를 먼저 확인한다', correct: true, feedback: '맞아요! 분배 시작 전 부호를 의식하는 한 박자가 결과를 살려요.' },
-          { text: '부호는 전개 후에 붙인다', correct: false, feedback: '전개 중에 부호가 사라지면 다시 살리기 어려워요. 처음부터 함께 분배해야 해요.' },
+          { text: '부호는 전개 후에 붙인다', correct: false, feedback: '전개 중에 부호가 사라지면 다시 살리기 어려워요. 처음부터 함께 분배해야 해요.', remedialFlowStartNodeId: 'exp_step1_C_explain', weaknessId: 'expansion_sign_error' },
         ],
       },
       {
@@ -663,9 +663,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '−(a+b) = −a−b처럼 부호가 괄호 안 모든 항에 분배된다.',
         example: '예) −(2x+3) = −2x−3',
         choices: [
-          { text: '−(a+b) = −a+b이다', correct: false, feedback: '분배는 두 항 모두에 적용돼요. b 앞 부호도 −가 분배되어 −b가 돼야 해요.' },
+          { text: '−(a+b) = −a+b이다', correct: false, feedback: '분배는 두 항 모두에 적용돼요. b 앞 부호도 −가 분배되어 −b가 돼야 해요.', remedialFlowStartNodeId: 'exp_step2_A_explain', weaknessId: 'expansion_sign_error' },
           { text: '−(a+b) = −a−b이다', correct: true, feedback: '맞아요! 부호가 모든 항에 들어간다는 분배의 본질이 잘 드러나요.' },
-          { text: '부호는 첫 항에만 붙는다', correct: false, feedback: '괄호 앞 부호는 모든 항에 분배돼요. 첫 항만 바꾸면 뒤 항이 잘못 남아요.' },
+          { text: '부호는 첫 항에만 붙는다', correct: false, feedback: '괄호 앞 부호는 모든 항에 분배돼요. 첫 항만 바꾸면 뒤 항이 잘못 남아요.', remedialFlowStartNodeId: 'exp_step2_C_explain', weaknessId: 'expansion_sign_error' },
         ],
       },
       {
@@ -674,9 +674,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '전개한 결과를 다시 괄호로 묶어 원래 식과 같은지 확인한다.',
         example: '예) −2x−3을 묶으면 −(2x+3) → 원식과 동일 ✓',
         choices: [
-          { text: '검산은 시간이 오래 걸려 생략한다', correct: false, feedback: '역으로 묶어보는 검산은 짧아요. 그 한 줄이 부호 실수를 거의 다 잡아줘요.' },
+          { text: '검산은 시간이 오래 걸려 생략한다', correct: false, feedback: '역으로 묶어보는 검산은 짧아요. 그 한 줄이 부호 실수를 거의 다 잡아줘요.', remedialFlowStartNodeId: 'exp_step3_A_explain', weaknessId: 'expansion_sign_error' },
           { text: '전개 후 역으로 묶어서 검산한다', correct: true, feedback: '맞아요! 묶어서 원식과 같은지 확인하는 습관이 큰 힘이 돼요.' },
-          { text: '전개만 맞으면 검산은 불필요하다', correct: false, feedback: '맞다고 느낀 전개에 부호 실수가 숨어 있을 때가 많아요. 검산이 그 안전망이 돼요.' },
+          { text: '전개만 맞으면 검산은 불필요하다', correct: false, feedback: '맞다고 느낀 전개에 부호 실수가 숨어 있을 때가 많아요. 검산이 그 안전망이 돼요.', remedialFlowStartNodeId: 'exp_step3_C_explain', weaknessId: 'expansion_sign_error' },
         ],
       },
     ],
@@ -690,9 +690,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '괄호를 모두 전개한 뒤 모든 항을 나열한다.',
         example: '예) (x+2)(x+3) = x²+3x+2x+6',
         choices: [
-          { text: '전개와 동시에 합친다', correct: false, feedback: '전개 중에 합치면 어떤 항이 같은 차수인지 시야에서 사라지기 쉬워요. 우선 전부 펼쳐놓는 게 안전해요.' },
+          { text: '전개와 동시에 합친다', correct: false, feedback: '전개 중에 합치면 어떤 항이 같은 차수인지 시야에서 사라지기 쉬워요. 우선 전부 펼쳐놓는 게 안전해요.', remedialFlowStartNodeId: 'lte_step1_A_explain', weaknessId: 'like_terms_error' },
           { text: '전개 후 항을 먼저 나열한다', correct: true, feedback: '맞아요! 전부 늘어놓아야 동류항이 한눈에 보여요.' },
-          { text: '괄호 안 항만 합산한다', correct: false, feedback: '괄호 밖에도 같은 차수의 항이 있을 수 있어요. 전체 항을 함께 봐야 해요.' },
+          { text: '괄호 안 항만 합산한다', correct: false, feedback: '괄호 밖에도 같은 차수의 항이 있을 수 있어요. 전체 항을 함께 봐야 해요.', remedialFlowStartNodeId: 'lte_step1_C_explain', weaknessId: 'like_terms_error' },
         ],
       },
       {
@@ -701,9 +701,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '동류항끼리(같은 차수끼리) 묶어서 정리한다.',
         example: '예) x², 3x+2x, 6 → x²+5x+6',
         choices: [
-          { text: '모든 항을 순서대로 더한다', correct: false, feedback: '차수가 다른 항을 합치면 식이 어긋나요. 같은 차수끼리 묶는 단계가 필요해요.' },
+          { text: '모든 항을 순서대로 더한다', correct: false, feedback: '차수가 다른 항을 합치면 식이 어긋나요. 같은 차수끼리 묶는 단계가 필요해요.', remedialFlowStartNodeId: 'lte_step2_A_explain', weaknessId: 'like_terms_error' },
           { text: '같은 차수의 항끼리 묶는다', correct: true, feedback: '맞아요! 차수가 묶음의 기준이 돼야 동류항이 정확히 모여요.' },
-          { text: '계수가 같은 항끼리 묶는다', correct: false, feedback: '동류항의 기준은 차수예요. 계수가 같아도 차수가 다르면 합칠 수 없어요.' },
+          { text: '계수가 같은 항끼리 묶는다', correct: false, feedback: '동류항의 기준은 차수예요. 계수가 같아도 차수가 다르면 합칠 수 없어요.', remedialFlowStartNodeId: 'lte_step2_C_explain', weaknessId: 'like_terms_error' },
         ],
       },
       {
@@ -712,9 +712,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '묶인 동류항의 계수를 합산하여 최종 식을 완성한다.',
         example: '예) 3x+2x = (3+2)x = 5x',
         choices: [
-          { text: '계수를 곱해서 합친다', correct: false, feedback: '동류항은 계수의 합으로 정리돼요. 곱하면 다른 항이 만들어져요.' },
+          { text: '계수를 곱해서 합친다', correct: false, feedback: '동류항은 계수의 합으로 정리돼요. 곱하면 다른 항이 만들어져요.', remedialFlowStartNodeId: 'lte_step3_A_explain', weaknessId: 'like_terms_error' },
           { text: '계수를 더해서 동류항을 합친다', correct: true, feedback: '맞아요! 차수는 그대로, 계수만 더해서 정리하는 흐름이에요.' },
-          { text: '계수는 그대로 나열한다', correct: false, feedback: '정리 단계에서 계수를 더하지 않으면 식이 길게 남아요. 동류항을 한 항으로 합쳐야 깔끔해져요.' },
+          { text: '계수는 그대로 나열한다', correct: false, feedback: '정리 단계에서 계수를 더하지 않으면 식이 길게 남아요. 동류항을 한 항으로 합쳐야 깔끔해져요.', remedialFlowStartNodeId: 'lte_step3_C_explain', weaknessId: 'like_terms_error' },
         ],
       },
     ],
