@@ -1,0 +1,245 @@
+{
+  "verdict": "reject",
+  "perNode": [
+    {
+      "nodeId": "minv_step1_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_pinpoint2",
+      "state": "confused",
+      "where": "만약 (x+2) 처럼 더하기라면 (x-(-2))로 볼 수 있어서 a=-2예요"
+    },
+    {
+      "nodeId": "minv_step1_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_r2_explain",
+      "state": "confused",
+      "where": "(x-a)² 부분은 항상 0 이상이에요"
+    },
+    {
+      "nodeId": "minv_step1_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_pinpoint1",
+      "state": "confused",
+      "where": "(x-a)²는 항상 0 이상이에요. x=a를 넣으면 (a-a)²=0이 돼요"
+    },
+    {
+      "nodeId": "minv_step1_C_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_summary",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_exit",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_pinpoint2",
+      "state": "confused",
+      "where": "(x-a)²은 항상 0 이상이에요. x=a를 넣으면 딱 0이 돼요"
+    },
+    {
+      "nodeId": "minv_step2_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_summary",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_exit",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_r2_explain",
+      "state": "confused",
+      "where": "(x-a)²이 0이 되려면 x=a여야 해요. x=a 외에 다른 어떤 x값도 (x-a)²을 0보다 크게 만들어요"
+    },
+    {
+      "nodeId": "minv_step3_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_pinpoint2",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_summary",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_exit",
+      "state": "understood",
+      "where": null
+    }
+  ]
+}
