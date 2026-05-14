@@ -59,4 +59,9 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '상수항',
     '최고차항의 계수',
   ],
+  derivative_calculation: [
+    '미분',
+    '도함수',
+    '미분계수',
+  ],
 };
