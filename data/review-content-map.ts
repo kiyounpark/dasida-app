@@ -728,9 +728,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '허수 단위 i는 i²=−1로 정의된다. 이 규칙 하나로 모든 허수 계산이 시작된다.',
         example: '예) i²=−1, i³=−i, i⁴=1',
         choices: [
-          { text: 'i²=1이다', correct: false, feedback: 'i는 √(−1)로 정의되니 제곱하면 −1이 돼요. 부호 하나로 결과가 완전히 달라져요.' },
+          { text: 'i²=1이다', correct: false, feedback: 'i는 √(−1)로 정의되니 제곱하면 −1이 돼요. 부호 하나로 결과가 완전히 달라져요.', remedialFlowStartNodeId: 'iuc_step1_A_explain', weaknessId: 'imaginary_unit_confusion' },
           { text: 'i²=−1이다', correct: true, feedback: '맞아요! 이 한 줄이 모든 복소수 계산의 출발점이에요.' },
-          { text: 'i²=i이다', correct: false, feedback: 'i²은 i를 두 번 곱한 거예요. 정의에 따라 −1이 나와야 해요.' },
+          { text: 'i²=i이다', correct: false, feedback: 'i²은 i를 두 번 곱한 거예요. 정의에 따라 −1이 나와야 해요.', remedialFlowStartNodeId: 'iuc_step1_C_explain', weaknessId: 'imaginary_unit_confusion' },
         ],
       },
       {
@@ -739,9 +739,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '식에서 i²가 나오는 순간 −1로 바꿔 쓴다. 미루지 않는다.',
         example: '예) 3i²+2i = 3(−1)+2i = −3+2i',
         choices: [
-          { text: 'i²를 마지막에 치환한다', correct: false, feedback: 'i²이 보이는 즉시 −1로 바꿔야 식이 단순해져요. 미루면 항이 늘어나기 쉬워요.' },
+          { text: 'i²를 마지막에 치환한다', correct: false, feedback: 'i²이 보이는 즉시 −1로 바꿔야 식이 단순해져요. 미루면 항이 늘어나기 쉬워요.', remedialFlowStartNodeId: 'iuc_step2_A_explain', weaknessId: 'imaginary_unit_confusion' },
           { text: 'i²가 보이면 바로 −1로 교체한다', correct: true, feedback: '맞아요! 발견 즉시 교체하는 습관이 식을 깔끔하게 유지해줘요.' },
-          { text: 'i²는 계산 마지막에 처리한다', correct: false, feedback: '마지막에 처리하면 중간 식이 길어져 실수가 늘어요. 보이는 순간 바꾸는 게 정석이에요.' },
+          { text: 'i²는 계산 마지막에 처리한다', correct: false, feedback: '마지막에 처리하면 중간 식이 길어져 실수가 늘어요. 보이는 순간 바꾸는 게 정석이에요.', remedialFlowStartNodeId: 'iuc_step2_C_explain', weaknessId: 'imaginary_unit_confusion' },
         ],
       },
       {
@@ -750,9 +750,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '교체 후 실수부(i 없는 항)와 허수부(i 있는 항)가 올바르게 분리됐는지 확인한다.',
         example: '예) −3+2i → 실수부 −3, 허수부 2i',
         choices: [
-          { text: '실수부와 허수부를 더한다', correct: false, feedback: '실수부와 허수부는 단위가 달라 그냥 더할 수 없어요. 분리해서 따로 정리해야 해요.' },
+          { text: '실수부와 허수부를 더한다', correct: false, feedback: '실수부와 허수부는 단위가 달라 그냥 더할 수 없어요. 분리해서 따로 정리해야 해요.', remedialFlowStartNodeId: 'iuc_step3_A_explain', weaknessId: 'imaginary_unit_confusion' },
           { text: '실수부와 허수부를 분리해서 확인한다', correct: true, feedback: '맞아요! 두 부분을 분리하면 결과 형태가 한눈에 보여요.' },
-          { text: '허수부는 무시하고 실수부만 쓴다', correct: false, feedback: '허수부도 답의 일부예요. 무시하면 복소수가 아닌 다른 답이 돼요.' },
+          { text: '허수부는 무시하고 실수부만 쓴다', correct: false, feedback: '허수부도 답의 일부예요. 무시하면 복소수가 아닌 다른 답이 돼요.', remedialFlowStartNodeId: 'iuc_step3_C_explain', weaknessId: 'imaginary_unit_confusion' },
         ],
       },
     ],

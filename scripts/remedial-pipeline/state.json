@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T16:30:19.270Z",
+  "lastUpdateAt": "2026-05-14T16:42:03.681Z",
   "queue": [
     "complex_calc_error",
     "remainder_substitution_error",
@@ -58,13 +58,12 @@
     "quadratic_formula_memorization",
     "rationalization_error",
     "expansion_sign_error",
-    "like_terms_error"
-  ],
-  "manualReview": [],
-  "failed": [
+    "like_terms_error",
     "imaginary_unit_confusion"
   ],
-  "totalTokens": 9195000,
+  "manualReview": [],
+  "failed": [],
+  "totalTokens": 9470000,
   "completedCount": 15,
   "lastProgressReportAt": 12,
   "lastDriftCheckAt": 0,
@@ -134,15 +133,15 @@
       "retries": 2
     },
     {
-      "weaknessId": "imaginary_unit_confusion",
-      "retries": 1
-    },
-    {
       "weaknessId": "expansion_sign_error",
       "retries": 2
     },
     {
       "weaknessId": "like_terms_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "imaginary_unit_confusion",
       "retries": 2
     }
   ],
@@ -168,14 +167,14 @@
       "reason": "data/exam intent 중 유리화/분모 무리수 관련 표현이 0건 — 매핑 ≥10건 미달 (이후 수동 경로로 통과)"
     },
     {
-      "weaknessId": "imaginary_unit_confusion",
-      "gate": "keyword-mapping",
-      "reason": "data/exam intent 중 복소수/허수/i² 관련 표현이 8건 — 매핑 ≥10건 미달"
-    },
-    {
       "weaknessId": "like_terms_error",
       "gate": "remedial-flow",
       "reason": "C분기 secondaryNextNodeId가 A_easy 로 점프 (분기 의미 부재) — 각 step C_easy 신설로 해결"
+    },
+    {
+      "weaknessId": "imaginary_unit_confusion",
+      "gate": "appearance-reviewer",
+      "reason": "iuc_step1_A_explain body 4문장 한도(3) 초과 + remedial-flow 동어반복 → 본문 차별화로 해결"
     }
   ],
   "passedGates": {
@@ -284,6 +283,14 @@
       "thinkingstep-flow": true
     },
     "like_terms_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "imaginary_unit_confusion": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
