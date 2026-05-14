@@ -462,9 +462,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'x²+bx+c에서 b(합)와 c(곱)를 동시에 파악한다.',
         example: '예) x²+5x+6 → 합=5, 곱=6',
         choices: [
-          { text: '계수 b만 보면 된다', correct: false, feedback: 'b만 보면 후보가 너무 많이 나와요. 곱인 c와 함께 봐야 두 수가 빠르게 좁혀져요.' },
+          { text: '계수 b만 보면 된다', correct: false, feedback: 'b만 보면 후보가 너무 많이 나와요. 곱인 c와 함께 봐야 두 수가 빠르게 좁혀져요.', remedialFlowStartNodeId: 'fpr_step1_A_explain', weaknessId: 'factoring_pattern_recall' },
           { text: '합 b와 곱 c를 동시에 파악한다', correct: true, feedback: '맞아요! 합과 곱을 짝지어 읽는 게 인수분해의 출발점이에요.' },
-          { text: 'c만 보면 인수를 알 수 있다', correct: false, feedback: 'c의 약수 후보 중 합이 b가 되는 쌍을 골라야 해요. b도 같이 봐야 해요.' },
+          { text: 'c만 보면 인수를 알 수 있다', correct: false, feedback: 'c의 약수 후보 중 합이 b가 되는 쌍을 골라야 해요. b도 같이 봐야 해요.', remedialFlowStartNodeId: 'fpr_step1_C_explain', weaknessId: 'factoring_pattern_recall' },
         ],
       },
       {
@@ -473,9 +473,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'c를 만드는 두 수의 조합 중 합이 b가 되는 쌍을 찾는다.',
         example: '예) 곱=6, 합=5 → 2와 3 (2×3=6, 2+3=5)',
         choices: [
-          { text: '두 수의 차가 b가 되어야 한다', correct: false, feedback: '차가 아니라 합이 b예요. 두 수 곱=c, 두 수 합=b로 다시 한 번 정리해봐요.' },
+          { text: '두 수의 차가 b가 되어야 한다', correct: false, feedback: '차가 아니라 합이 b예요. 두 수 곱=c, 두 수 합=b로 다시 한 번 정리해봐요.', remedialFlowStartNodeId: 'fpr_step2_A_explain', weaknessId: 'factoring_pattern_recall' },
           { text: '두 수의 곱=c, 합=b인 쌍을 찾는다', correct: true, feedback: '맞아요! 곱과 합 두 조건을 동시에 만족시키는 쌍이 정답이에요.' },
-          { text: '두 수는 항상 양수여야 한다', correct: false, feedback: 'c가 음수면 두 수 부호가 달라지고, b가 음수면 두 수가 모두 음수일 수도 있어요.' },
+          { text: '두 수는 항상 양수여야 한다', correct: false, feedback: 'c가 음수면 두 수 부호가 달라지고, b가 음수면 두 수가 모두 음수일 수도 있어요.', remedialFlowStartNodeId: 'fpr_step2_C_explain', weaknessId: 'factoring_pattern_recall' },
         ],
       },
       {
@@ -484,9 +484,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '찾은 두 수 p, q로 (x+p)(x+q)를 쓰고 전개해서 검산한다.',
         example: '예) (x+2)(x+3) = x²+5x+6 ✓',
         choices: [
-          { text: '(x−p)(x−q)로 쓴다', correct: false, feedback: '두 수가 양수인 경우엔 (x+p)(x+q)예요. 부호는 찾은 두 수에 맞춰 바뀌어요.' },
+          { text: '(x−p)(x−q)로 쓴다', correct: false, feedback: '두 수가 양수인 경우엔 (x+p)(x+q)예요. 부호는 찾은 두 수에 맞춰 바뀌어요.', remedialFlowStartNodeId: 'fpr_step3_A_explain', weaknessId: 'factoring_pattern_recall' },
           { text: '(x+p)(x+q)로 쓰고 전개 검산한다', correct: true, feedback: '맞아요! 전개 검산까지 해두면 부호 실수도 함께 잡혀요.' },
-          { text: '검산은 필요 없다', correct: false, feedback: '한 줄 전개로 부호 실수를 잡을 수 있어요. 짧은 검산이 큰 실수를 막아줘요.' },
+          { text: '검산은 필요 없다', correct: false, feedback: '한 줄 전개로 부호 실수를 잡을 수 있어요. 짧은 검산이 큰 실수를 막아줘요.', remedialFlowStartNodeId: 'fpr_step3_C_explain', weaknessId: 'factoring_pattern_recall' },
         ],
       },
     ],
