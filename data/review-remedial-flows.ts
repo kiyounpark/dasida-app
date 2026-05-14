@@ -85,6 +85,8 @@ import { derivative_calculation_flow } from './remedial-flows/derivative_calcula
 import { factoring_pattern_recall_flow } from './remedial-flows/factoring_pattern_recall';
 import { max_min_judgement_confusion_flow } from './remedial-flows/max_min_judgement_confusion';
 import { solving_order_confusion_flow } from './remedial-flows/solving_order_confusion';
+import { complex_factoring_difficulty_flow } from './remedial-flows/complex_factoring_difficulty';
+import { quadratic_formula_memorization_flow } from './remedial-flows/quadratic_formula_memorization';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -98,6 +100,8 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   factoring_pattern_recall: factoring_pattern_recall_flow,
   max_min_judgement_confusion: max_min_judgement_confusion_flow,
   solving_order_confusion: solving_order_confusion_flow,
+  complex_factoring_difficulty: complex_factoring_difficulty_flow,
+  quadratic_formula_memorization: quadratic_formula_memorization_flow,
 };
 
 export function getRemedialNode(

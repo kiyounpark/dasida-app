@@ -500,9 +500,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '모든 항에 공통으로 들어 있는 인수나 식을 먼저 찾아 앞으로 빼낸다.',
         example: '예) 2x²+4x = 2x(x+2)',
         choices: [
-          { text: '공통인수 없이 바로 전개한다', correct: false, feedback: '전개부터 들어가면 식이 길어져 실수가 늘어요. 공통인수를 먼저 빼면 모양이 단순해져요.' },
+          { text: '공통인수 없이 바로 전개한다', correct: false, feedback: '전개부터 들어가면 식이 길어져 실수가 늘어요. 공통인수를 먼저 빼면 모양이 단순해져요.', remedialFlowStartNodeId: 'cfd_step1_A_explain', weaknessId: 'complex_factoring_difficulty' },
           { text: '공통인수를 먼저 찾아 묶는다', correct: true, feedback: '맞아요! 모든 항을 가볍게 만들어두면 다음 단계가 한결 쉬워져요.' },
-          { text: '계수가 다르면 공통인수가 없다', correct: false, feedback: '계수가 달라도 공통 변수나 식이 묶일 수 있어요. 변수와 계수를 따로 살펴봐요.' },
+          { text: '계수가 다르면 공통인수가 없다', correct: false, feedback: '계수가 달라도 공통 변수나 식이 묶일 수 있어요. 변수와 계수를 따로 살펴봐요.', remedialFlowStartNodeId: 'cfd_step1_C_explain', weaknessId: 'complex_factoring_difficulty' },
         ],
       },
       {
@@ -511,9 +511,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '반복되는 식 묶음을 A 등으로 치환하면 기본 인수분해 패턴으로 바뀐다.',
         example: '예) (x+1)²+3(x+1)+2 → A²+3A+2 → (A+1)(A+2)',
         choices: [
-          { text: '치환하면 더 복잡해진다', correct: false, feedback: '반복되는 묶음이 있다면 치환이 오히려 식을 단순화해줘요. 같은 모양을 한 글자로 바꿔봐요.' },
+          { text: '치환하면 더 복잡해진다', correct: false, feedback: '반복되는 묶음이 있다면 치환이 오히려 식을 단순화해줘요. 같은 모양을 한 글자로 바꿔봐요.', remedialFlowStartNodeId: 'cfd_step2_A_explain', weaknessId: 'complex_factoring_difficulty' },
           { text: '반복 묶음을 치환해 단순화한다', correct: true, feedback: '맞아요! 반복 패턴을 한 글자로 바꾸면 익숙한 인수분해 형태로 보여요.' },
-          { text: '치환은 방정식에서만 쓴다', correct: false, feedback: '인수분해에서도 치환을 자주 써요. 보이는 패턴을 단순화하는 일반 도구라고 생각해도 돼요.' },
+          { text: '치환은 방정식에서만 쓴다', correct: false, feedback: '인수분해에서도 치환을 자주 써요. 보이는 패턴을 단순화하는 일반 도구라고 생각해도 돼요.', remedialFlowStartNodeId: 'cfd_step2_C_explain', weaknessId: 'complex_factoring_difficulty' },
         ],
       },
       {
@@ -522,9 +522,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '치환한 식을 인수분해한 뒤 원래 식으로 되돌려 최종 답을 완성한다.',
         example: '예) (A+1)(A+2) → (x+2)(x+3)',
         choices: [
-          { text: '치환 결과를 그대로 답으로 쓴다', correct: false, feedback: '치환은 중간 도구라 마지막엔 원래 식으로 돌려야 해요. 역치환이 빠지면 답이 아니에요.' },
+          { text: '치환 결과를 그대로 답으로 쓴다', correct: false, feedback: '치환은 중간 도구라 마지막엔 원래 식으로 돌려야 해요. 역치환이 빠지면 답이 아니에요.', remedialFlowStartNodeId: 'cfd_step3_A_explain', weaknessId: 'complex_factoring_difficulty' },
           { text: '인수분해 후 원래 식으로 역치환한다', correct: true, feedback: '맞아요! 치환·인수분해·역치환의 세 박자가 마무리예요.' },
-          { text: '역치환 없이 A로 남겨도 된다', correct: false, feedback: 'A는 임시 변수라 답에 남으면 안 돼요. 원래 식으로 되돌려야 의미가 살아나요.' },
+          { text: '역치환 없이 A로 남겨도 된다', correct: false, feedback: 'A는 임시 변수라 답에 남으면 안 돼요. 원래 식으로 되돌려야 의미가 살아나요.', remedialFlowStartNodeId: 'cfd_step3_C_explain', weaknessId: 'complex_factoring_difficulty' },
         ],
       },
     ],
@@ -538,9 +538,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'ax²+bx+c에서 a, b, c를 부호 포함해서 먼저 기록한다.',
         example: '예) 2x²−3x−2 → a=2, b=−3, c=−2',
         choices: [
-          { text: '부호 없이 숫자만 읽는다', correct: false, feedback: '근의 공식은 부호에 매우 민감해요. 숫자만 읽으면 거의 항상 한 곳에서 어긋나요.' },
+          { text: '부호 없이 숫자만 읽는다', correct: false, feedback: '근의 공식은 부호에 매우 민감해요. 숫자만 읽으면 거의 항상 한 곳에서 어긋나요.', remedialFlowStartNodeId: 'qfm_step1_A_explain', weaknessId: 'quadratic_formula_memorization' },
           { text: '부호를 포함해서 a, b, c를 기록한다', correct: true, feedback: '맞아요! 부호를 묶어 기록해두는 한 단계가 공식의 정확도를 좌우해요.' },
-          { text: 'a만 부호를 신경 쓴다', correct: false, feedback: 'b의 부호도 −b 자리에서 결정적인 영향을 줘요. 세 글자 모두 부호와 함께 챙겨야 해요.' },
+          { text: 'a만 부호를 신경 쓴다', correct: false, feedback: 'b의 부호도 −b 자리에서 결정적인 영향을 줘요. 세 글자 모두 부호와 함께 챙겨야 해요.', remedialFlowStartNodeId: 'qfm_step1_C_explain', weaknessId: 'quadratic_formula_memorization' },
         ],
       },
       {
@@ -549,9 +549,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '근의 공식을 쓰기 전에 b²−4ac를 따로 계산해서 근의 종류를 파악한다.',
         example: '예) b=−3, a=2, c=−2 → (−3)²−4(2)(−2)=9+16=25',
         choices: [
-          { text: '판별식 계산은 선택 사항이다', correct: false, feedback: '판별식이 곧 근의 종류를 알려줘서 풀이의 방향이 잡혀요. 빼놓을 단계가 아니에요.' },
+          { text: '판별식 계산은 선택 사항이다', correct: false, feedback: '판별식이 곧 근의 종류를 알려줘서 풀이의 방향이 잡혀요. 빼놓을 단계가 아니에요.', remedialFlowStartNodeId: 'qfm_step2_A_explain', weaknessId: 'quadratic_formula_memorization' },
           { text: '판별식을 먼저 계산하고 근의 종류를 파악한다', correct: true, feedback: '맞아요! 미리 종류를 알면 전체 계산 흐름이 안정돼요.' },
-          { text: 'b²만 계산하면 된다', correct: false, feedback: 'b²만 보면 4ac를 빠뜨려요. 두 값을 따로 구하고 빼는 단계가 필요해요.' },
+          { text: 'b²만 계산하면 된다', correct: false, feedback: 'b²만 보면 4ac를 빠뜨려요. 두 값을 따로 구하고 빼는 단계가 필요해요.', remedialFlowStartNodeId: 'qfm_step2_C_explain', weaknessId: 'quadratic_formula_memorization' },
         ],
       },
       {
@@ -560,9 +560,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'x = (−b ± √(b²−4ac)) / 2a에 a, b, 판별식 값을 대입한다.',
         example: '예) x = (3 ± √25) / 4 = (3 ± 5) / 4 → x=2 또는 x=−1/2',
         choices: [
-          { text: 'x = (b ± √(b²−4ac)) / 2a이다', correct: false, feedback: '분자의 부호가 −b여야 해요. b가 그대로면 결과의 부호가 통째로 어긋나요.' },
+          { text: 'x = (b ± √(b²−4ac)) / 2a이다', correct: false, feedback: '분자의 부호가 −b여야 해요. b가 그대로면 결과의 부호가 통째로 어긋나요.', remedialFlowStartNodeId: 'qfm_step3_A_explain', weaknessId: 'quadratic_formula_memorization' },
           { text: 'x = (−b ± √(b²−4ac)) / 2a이다', correct: true, feedback: '맞아요! 부호와 분모까지 정확히 들어맞은 공식이에요.' },
-          { text: 'x = (−b ± √(b²+4ac)) / 2a이다', correct: false, feedback: '판별식은 b²−4ac라 빼는 게 맞아요. 부호 하나 차이로 결과가 완전히 달라져요.' },
+          { text: 'x = (−b ± √(b²+4ac)) / 2a이다', correct: false, feedback: '판별식은 b²−4ac라 빼는 게 맞아요. 부호 하나 차이로 결과가 완전히 달라져요.', remedialFlowStartNodeId: 'qfm_step3_C_explain', weaknessId: 'quadratic_formula_memorization' },
         ],
       },
     ],
