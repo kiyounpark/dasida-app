@@ -83,6 +83,8 @@ import { vertex_formula_memorization_flow } from './remedial-flows/vertex_formul
 import { coefficient_sign_confusion_flow } from './remedial-flows/coefficient_sign_confusion';
 import { derivative_calculation_flow } from './remedial-flows/derivative_calculation';
 import { factoring_pattern_recall_flow } from './remedial-flows/factoring_pattern_recall';
+import { max_min_judgement_confusion_flow } from './remedial-flows/max_min_judgement_confusion';
+import { solving_order_confusion_flow } from './remedial-flows/solving_order_confusion';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -94,6 +96,8 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   coefficient_sign_confusion: coefficient_sign_confusion_flow,
   derivative_calculation: derivative_calculation_flow,
   factoring_pattern_recall: factoring_pattern_recall_flow,
+  max_min_judgement_confusion: max_min_judgement_confusion_flow,
+  solving_order_confusion: solving_order_confusion_flow,
 };
 
 export function getRemedialNode(

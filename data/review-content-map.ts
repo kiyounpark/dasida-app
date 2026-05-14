@@ -386,9 +386,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'ax²+bx+c에서 a의 부호를 먼저 읽는다.',
         example: '예) −2x²+4x+1 → a=−2 (음수)',
         choices: [
-          { text: 'c의 부호를 본다', correct: false, feedback: 'c는 y절편이라 극값 유형과는 직접 상관이 없어요. 볼록 방향을 결정하는 a를 먼저 보세요.' },
+          { text: 'c의 부호를 본다', correct: false, feedback: 'c는 y절편이라 극값 유형과는 직접 상관이 없어요. 볼록 방향을 결정하는 a를 먼저 보세요.', remedialFlowStartNodeId: 'mmj_step1_A_explain', weaknessId: 'max_min_judgement_confusion' },
           { text: 'a의 부호를 먼저 확인한다', correct: true, feedback: '맞아요! a 한 글자만 보면 위로 볼록인지 아래로 볼록인지 결정돼요.' },
-          { text: 'b의 부호를 본다', correct: false, feedback: 'b는 꼭짓점의 위치에 영향을 주지만, 최대·최소 유형 자체는 a가 결정해요.' },
+          { text: 'b의 부호를 본다', correct: false, feedback: 'b는 꼭짓점의 위치에 영향을 주지만, 최대·최소 유형 자체는 a가 결정해요.', remedialFlowStartNodeId: 'mmj_step1_B_explain', weaknessId: 'max_min_judgement_confusion' },
         ],
       },
       {
@@ -397,9 +397,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'a>0이면 아래로 볼록 → 꼭짓점이 최솟값. a<0이면 위로 볼록 → 꼭짓점이 최댓값.',
         example: '예) a=−2 → 위로 볼록 → 꼭짓점이 최댓값',
         choices: [
-          { text: 'a>0이면 최댓값이다', correct: false, feedback: 'a>0이면 아래로 볼록이라 꼭짓점이 가장 낮은 점, 즉 최솟값이에요.' },
+          { text: 'a>0이면 최댓값이다', correct: false, feedback: 'a>0이면 아래로 볼록이라 꼭짓점이 가장 낮은 점, 즉 최솟값이에요.', remedialFlowStartNodeId: 'mmj_step2_A_explain', weaknessId: 'max_min_judgement_confusion' },
           { text: 'a>0이면 최솟값, a<0이면 최댓값이다', correct: true, feedback: '맞아요! 볼록 방향이 그대로 극값 유형으로 이어져요.' },
-          { text: 'a의 부호와 극값 유형은 무관하다', correct: false, feedback: 'a의 부호가 그래프의 볼록 방향을 결정하니까 직접 영향을 줘요. 다시 a를 살펴봐요.' },
+          { text: 'a의 부호와 극값 유형은 무관하다', correct: false, feedback: 'a의 부호가 그래프의 볼록 방향을 결정하니까 직접 영향을 줘요. 다시 a를 살펴봐요.', remedialFlowStartNodeId: 'mmj_step2_B_explain', weaknessId: 'max_min_judgement_confusion' },
         ],
       },
       {
@@ -408,9 +408,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '판단 후 꼭짓점 x좌표를 구해 원래 식에 대입하여 실제 극값을 계산한다.',
         example: '예) a=−2, b=4 → x=1 → f(1)=−2+4+1=3 (최댓값)',
         choices: [
-          { text: '꼭짓점 x좌표가 극값이다', correct: false, feedback: 'x좌표는 위치예요. 실제 극값은 그 위치의 y값, 즉 함수값이에요.' },
+          { text: '꼭짓점 x좌표가 극값이다', correct: false, feedback: 'x좌표는 위치예요. 실제 극값은 그 위치의 y값, 즉 함수값이에요.', remedialFlowStartNodeId: 'mmj_step3_A_explain', weaknessId: 'max_min_judgement_confusion' },
           { text: '꼭짓점 y좌표(f(x))가 극값이다', correct: true, feedback: '맞아요! 위치는 x, 값은 y(=f(x))로 자리를 잘 나눴어요.' },
-          { text: '극값은 상수항 c이다', correct: false, feedback: 'c는 y절편이에요. 꼭짓점은 보통 c와 다른 값이라 따로 계산해야 해요.' },
+          { text: '극값은 상수항 c이다', correct: false, feedback: 'c는 y절편이에요. 꼭짓점은 보통 c와 다른 값이라 따로 계산해야 해요.', remedialFlowStartNodeId: 'mmj_step3_B_explain', weaknessId: 'max_min_judgement_confusion' },
         ],
       },
     ],
