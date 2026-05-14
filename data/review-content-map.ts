@@ -614,9 +614,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '분모에 √a가 있으면 유리화가 필요한지 확인한다.',
         example: '예) 3/√2 → 분모에 √2 존재',
         choices: [
-          { text: '분자에 근호가 있으면 유리화한다', correct: false, feedback: '유리화의 표적은 분모예요. 분자에 근호가 있어도 분모가 깔끔하면 유리화는 필요 없어요.' },
+          { text: '분자에 근호가 있으면 유리화한다', correct: false, feedback: '유리화의 표적은 분모예요. 분자에 근호가 있어도 분모가 깔끔하면 유리화는 필요 없어요.', remedialFlowStartNodeId: 're_step1_A_explain', weaknessId: 'rationalization_error' },
           { text: '분모에 근호가 있으면 유리화한다', correct: true, feedback: '맞아요! 분모를 유리수로 만드는 게 유리화의 목적이에요.' },
-          { text: '근호가 있으면 항상 유리화한다', correct: false, feedback: '분모가 깔끔하면 굳이 건드릴 필요는 없어요. 분모에 근호가 있을 때만 유리화해요.' },
+          { text: '근호가 있으면 항상 유리화한다', correct: false, feedback: '분모가 깔끔하면 굳이 건드릴 필요는 없어요. 분모에 근호가 있을 때만 유리화해요.', remedialFlowStartNodeId: 're_step1_C_explain', weaknessId: 'rationalization_error' },
         ],
       },
       {
@@ -625,9 +625,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '값을 바꾸지 않으려면 분자와 분모에 같은 √a를 곱해야 한다(×1과 동일).',
         example: '예) 3/√2 × √2/√2 = 3√2/2',
         choices: [
-          { text: '분모에만 √a를 곱한다', correct: false, feedback: '분모만 바꾸면 분수의 값이 달라져요. 분자와 분모에 같은 수를 곱해야 ×1과 같아요.' },
+          { text: '분모에만 √a를 곱한다', correct: false, feedback: '분모만 바꾸면 분수의 값이 달라져요. 분자와 분모에 같은 수를 곱해야 ×1과 같아요.', remedialFlowStartNodeId: 're_step2_A_explain', weaknessId: 'rationalization_error' },
           { text: '분자와 분모 모두에 √a를 곱한다', correct: true, feedback: '맞아요! 같은 수를 분자·분모에 곱하면 값은 그대로, 분모만 깔끔해져요.' },
-          { text: '분자에만 √a를 곱한다', correct: false, feedback: '분자만 곱하면 분수의 값 자체가 달라져요. 분모도 같이 곱해야 해요.' },
+          { text: '분자에만 √a를 곱한다', correct: false, feedback: '분자만 곱하면 분수의 값 자체가 달라져요. 분모도 같이 곱해야 해요.', remedialFlowStartNodeId: 're_step2_C_explain', weaknessId: 'rationalization_error' },
         ],
       },
       {
@@ -636,9 +636,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '√a × √a = a이므로 분모가 유리수(정수)가 된다.',
         example: '예) √2 × √2 = 2 → 분모 2',
         choices: [
-          { text: '√a × √a = 2a이다', correct: false, feedback: '두 √a를 곱하면 2a가 아니라 a가 돼요. 지수의 합이 1+1=2이니 a¹=a로 정리돼요.' },
+          { text: '√a × √a = 2a이다', correct: false, feedback: '두 √a를 곱하면 2a가 아니라 a가 돼요. 지수의 합이 1+1=2이니 a¹=a로 정리돼요.', remedialFlowStartNodeId: 're_step3_A_explain', weaknessId: 'rationalization_error' },
           { text: '√a × √a = a이다', correct: true, feedback: '맞아요! 이 한 줄이 분모를 유리수로 만들어주는 핵심이에요.' },
-          { text: '√a × √a = √(2a)이다', correct: false, feedback: '곱셈은 근호 안 수의 곱이라 √(a·a)=√a²=a로 정리돼요.' },
+          { text: '√a × √a = √(2a)이다', correct: false, feedback: '곱셈은 근호 안 수의 곱이라 √(a·a)=√a²=a로 정리돼요.', remedialFlowStartNodeId: 're_step3_C_explain', weaknessId: 'rationalization_error' },
         ],
       },
     ],
