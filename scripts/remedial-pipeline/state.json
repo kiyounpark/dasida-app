@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T16:06:23.127Z",
+  "lastUpdateAt": "2026-05-14T16:18:39.316Z",
   "queue": [
     "expansion_sign_error",
     "like_terms_error",
@@ -58,15 +58,14 @@
     "max_min_judgement_confusion",
     "solving_order_confusion",
     "complex_factoring_difficulty",
-    "quadratic_formula_memorization"
-  ],
-  "manualReview": [],
-  "failed": [
+    "quadratic_formula_memorization",
     "rationalization_error"
   ],
-  "totalTokens": 8270000,
+  "manualReview": [],
+  "failed": [],
+  "totalTokens": 8520000,
   "completedCount": 12,
-  "lastProgressReportAt": 12,
+  "lastProgressReportAt": 11,
   "lastDriftCheckAt": 0,
   "retryStats": [
     {
@@ -127,6 +126,10 @@
     },
     {
       "weaknessId": "quadratic_formula_memorization",
+      "retries": 2
+    },
+    {
+      "weaknessId": "rationalization_error",
       "retries": 2
     }
   ],
@@ -234,6 +237,14 @@
       "thinkingstep-flow": true
     },
     "quadratic_formula_memorization": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "rationalization_error": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
