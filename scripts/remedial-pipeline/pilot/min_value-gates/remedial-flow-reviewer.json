@@ -1,44 +1,16 @@
 {
-  "verdict": "reject",
+  "verdict": "approve",
   "weaknessId": "min_value_read_confusion",
   "depth": "deep",
-  "nodesVisited": 22,
-  "studentJourney": "학생이 오답을 선택하면 해당 step의 diagnose 노드에 진입해 오답 이유를 고른다. 선택한 사유에 따라 r1 또는 r2 explain 노드로 분기되어 1~2장의 설명 카드를 본 뒤 check 노드에서 확인 문제를 푼다. 정답이면 step 공통 summary → exit으로 마무리되고, 오답이면 diagnose2 → pinpoint1 → pinpoint2 → check(재시도) 경로를 밟는다. 재시도에서도 오답이면 diagnose2로 돌아가는 루프가 생기며, 모든 step이 이 구조를 공유한다.",
+  "nodesVisited": 26,
+  "studentJourney": "학생이 오답을 선택하면 해당 step의 diagnose 노드에 진입해 오답 사유를 고른다. 사유에 따라 다른 explain 경로(r1 또는 r2)로 분기되어 1~2장 설명을 본 뒤 check 노드에서 확인 문제를 푼다. 정답이면 step 공통 summary → exit으로 마무리된다. 오답이면 diagnose2 → 사유별 pinpoint → summary(또는 pinpoint2 → summary) 흐름으로 이어지며, 이전 리뷰에서 지적된 check 재진입 루프는 모두 제거되었다. pinpoint2 기종점이 summary로 고정되어 어느 경로든 summary 없이 exit하는 막다른 길이 사라졌고, step3A r2는 자리 규칙(pinpoint2) → 대입 확인(pinpoint1) 순서로 올바르게 재연결되었다.",
   "issues": [
     {
-      "path": "minv_step1_A_diagnose2 → minv_step1_A_pinpoint1 → minv_step1_A_pinpoint2 → minv_step1_A_check",
-      "criterion": "분기 의미 부재",
-      "issue": "diagnose2의 r1(\"a 자리와 b 자리가 어디인지 헷갈려요\")과 r2(\"(x-a) 안의 숫자가 a인지 -a인지 헷갈려요\")는 서로 다른 사유인데, r1 경로(pinpoint1)의 primary/secondary 모두 pinpoint2로 연결되어 결국 두 사유 모두 pinpoint1→pinpoint2→check 순서로 동일하게 진행된다.",
-      "evidence": "r1을 고른 학생도 r2를 고른 학생도 같은 두 장 카드를 순서대로 본다 — 사유를 물은 의미가 없다.",
-      "suggestion": "r2(부호 혼동) 사유 선택 시 pinpoint2 직행으로 단축하거나, pinpoint1의 secondaryNextNodeId를 r1 사유 전용 보충 노드로 교체한다."
-    },
-    {
-      "path": "minv_step1_C_pinpoint1 → minv_step1_C_pinpoint2 / minv_step2_A_pinpoint2",
-      "criterion": "동어반복",
-      "issue": "minv_step1_C_pinpoint1 body: \"x=a를 넣으면 (a-a)²=0이 돼요. 이때 전체 식은 0+b=b가 돼요.\" vs minv_step2_A_pinpoint2 body: \"x=a를 넣으면 딱 0이 돼요. 그때 전체 식 (x-a)²+b = 0+b = b예요.\" — 두 노드가 사실상 동일한 수식 전개를 반복한다.",
-      "evidence": "step1C 오답 후 step2A 오답까지 겪은 학생은 \"x=a 대입 → 0+b=b\" 설명을 두 번 보게 되어 '방금 본 거 또 봤다'는 느낌을 받는다.",
-      "suggestion": "step2A_pinpoint2에서는 대입 전개 대신 'b의 부호가 결정하는 최솟값의 부호' 측면을 강조해 step1C_pinpoint1과 차별화한다."
-    },
-    {
-      "path": "minv_step2_A_r1_explain → minv_step2_A_check / minv_step2_C_r1_explain → minv_step2_C_check",
+      "path": "minv_step2_A_r2_explain → minv_step2_A_check / minv_step2_C_r2_explain → minv_step2_C_check",
       "criterion": "끊김",
-      "issue": "minv_step2_A_r1_explain은 예시로 (x-3)²+2를 쓰지만, 바로 다음 minv_step2_A_check는 (x-5)²+1로 새 예시를 제시한다. minv_step2_C_r1_explain도 (x-3)²+2를 쓰지만 check는 (x-2)²-3으로 바뀐다.",
-      "evidence": "설명에서 친숙해진 예시가 확인 문제에서 바뀌면 학생은 '방금 배운 내용으로 풀 수 있는 건지' 잠깐 멈추게 된다.",
-      "suggestion": "explain 마지막 문장에 '이제 비슷한 다른 식으로 연습해봐요'와 같은 한 줄 전환 문구를 추가해 예시 전환을 예고한다."
-    },
-    {
-      "path": "minv_step3_A_diagnose2 → minv_step3_A_pinpoint1 → minv_step3_A_pinpoint2 → minv_step3_A_check",
-      "criterion": "분기 의미 부재",
-      "issue": "diagnose2의 r1(\"x 위치와 최솟값이 같은 숫자인 줄 알았어요\")과 r2(\"4와 7 중 어느 게 위치이고 어느 게 값인지 헷갈렸어요\")는 다른 혼동인데, pinpoint1의 secondary도 pinpoint2로 연결되어 두 사유 모두 pinpoint1→pinpoint2→check로 동일하게 진행된다.",
-      "evidence": "r2를 고른 학생(자리 구분 혼동)은 pinpoint1(대입 확인)부터 보게 되는데, 자리 규칙을 먼저 이해해야 대입이 납득된다 — 설명 순서가 혼동 사유와 역전된다.",
-      "suggestion": "r2 선택 시 pinpoint2(괄호 안/밖 자리 규칙) 먼저 → pinpoint1(대입 확인) 순서로 연결을 교체한다."
-    },
-    {
-      "path": "minv_step1_A_diagnose2 → minv_step1_A_pinpoint2 → minv_step1_A_check → (오답) → minv_step1_A_diagnose2",
-      "criterion": "막다른 길",
-      "issue": "pinpoint 사이클 후 재시도(check)에서 다시 오답이면 diagnose2로 되돌아가는 루프가 형성된다. 루프 탈출 조건이 없고 summary 없이 check를 반복하는 경로가 만들어진다.",
-      "evidence": "학생이 pinpoint 두 장을 모두 봤음에도 check를 다시 틀리면, 이미 본 diagnose2→pinpoint1→pinpoint2를 그대로 반복하게 되어 진전 없이 같은 카드만 순환한다.",
-      "suggestion": "두 번째 check 오답 시 별도 '마지막 정리' explain 노드나 summary로 강제 진행해 루프를 끊는다."
+      "issue": "step2A_r2_explain은 (x-3)²+2 예시로 설명하지만 check는 (x-5)²+1로 전환된다. step2C_r2_explain도 (x-3)²+2·(x-3)²-5를 쓰지만 check는 (x-2)²-3으로 바뀐다. r1_explain에는 전환 문구가 추가되었으나 r2_explain에는 누락되었다.",
+      "evidence": "r2 경로를 탄 학생은 예시 전환 예고 없이 새 식을 받아 '방금 본 식이랑 다른데 이걸로 푸는 건가?' 하는 순간적 단절을 겪는다.",
+      "suggestion": "minv_step2_A_r2_explain과 minv_step2_C_r2_explain body 끝에 '이제 비슷한 다른 식으로 연습해봐요'를 추가한다."
     }
   ]
 }
