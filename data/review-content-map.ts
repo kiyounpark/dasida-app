@@ -584,7 +584,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'radical_simplification_error.step2',
         title: '제곱 묶음을 근호 밖으로',
-        body: '√(a²×b) = a√b 규칙으로 완전제곱인 부분을 근호 밖으로 꺼내요. 왜 a²이 a로 나올까요? √(a²) 자체가 a 이기 때문이에요 (3을 제곱해 9, 9 의 √ 가 다시 3). 그래서 곱해진 a² 만 한 단계 풀려 a 가 돼요.',
+        body: '√(a²×b) = a√b 규칙으로 완전제곱인 부분을 근호 밖으로 꺼내요. 왜 a² 이 a 로 나올까요? √(a²) 자체가 a 이기 때문이에요 (예: √(3²) = 3). 그래서 곱해진 a² 만 한 단계 풀려 a 가 돼요.',
         example: '예) √(4×9×2) = √(2²×3²×2) = 2×3×√2 = 6√2',
         choices: [
           { text: '√(a²×b) = a²×√b이다', correct: false, feedback: '근호를 벗어나면 a² 이 아니라 a 로 나와요. √(a²) = a 이라서 한 단계 풀려요 (예: √(9) = 3).', remedialFlowStartNodeId: 'rad_step2_A_explain', weaknessId: 'radical_simplification_error' },
