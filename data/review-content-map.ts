@@ -158,9 +158,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '대입 전에 계산할 값 x=a를 식에서 읽고, 음수인지 확인한다.',
         example: '예) f(−2) 구하기 → x=−2 확인 후 대입',
         choices: [
-          { text: '값을 바로 대입하면 된다', correct: false, feedback: '급하게 대입하면 부호 실수가 잘 생겨요. 음수인지 먼저 확인하는 한 박자가 결과를 좌우해요.' },
+          { text: '값을 바로 대입하면 된다', correct: false, feedback: '급하게 대입하면 부호 실수가 잘 생겨요. 음수인지 먼저 확인하는 한 박자가 결과를 좌우해요.', remedialFlowStartNodeId: 'calc_step1_A_diagnose', weaknessId: 'calc_repeated_error' },
           { text: '대입 전 부호를 먼저 확인한다', correct: true, feedback: '맞아요! 부호를 먼저 인지해두면 괄호 처리도 자연스럽게 따라와요.' },
-          { text: '양수일 때만 조심하면 된다', correct: false, feedback: '오히려 음수일 때 부호 실수가 자주 일어나요. 음수 대입을 가장 조심해야 해요.' },
+          { text: '양수일 때만 조심하면 된다', correct: false, feedback: '오히려 음수일 때 부호 실수가 자주 일어나요. 음수 대입을 가장 조심해야 해요.', remedialFlowStartNodeId: 'calc_step1_C_diagnose', weaknessId: 'calc_repeated_error' },
         ],
       },
       {
@@ -169,9 +169,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '음수를 대입할 때 반드시 괄호로 감싸서 부호 실수를 막는다.',
         example: '예) f(x)=x²+2x → f(−2)=(−2)²+2(−2)=4−4=0',
         choices: [
-          { text: '음수는 괄호 없이 써도 된다', correct: false, feedback: '괄호 없이 쓰면 −2²처럼 부호가 어디까지 묶이는지 헷갈려요. 괄호로 감싸는 게 안전해요.' },
+          { text: '음수는 괄호 없이 써도 된다', correct: false, feedback: '괄호 없이 쓰면 −2²처럼 부호가 어디까지 묶이는지 헷갈려요. 괄호로 감싸는 게 안전해요.', remedialFlowStartNodeId: 'calc_step2_A_diagnose', weaknessId: 'calc_repeated_error' },
           { text: '음수 대입 시 괄호로 감싼다', correct: true, feedback: '맞아요! 괄호 하나로 부호 실수를 거의 다 막을 수 있어요.' },
-          { text: '제곱이면 부호가 사라진다', correct: false, feedback: '제곱하면 결과는 양수지만, 괄호 없이 쓰면 −2²와 (−2)²가 달라져요. 괄호로 묶어서 처리해야 해요.' },
+          { text: '제곱이면 부호가 사라진다', correct: false, feedback: '제곱하면 결과는 양수지만, 괄호 없이 쓰면 −2²와 (−2)²가 달라져요. 괄호로 묶어서 처리해야 해요.', remedialFlowStartNodeId: 'calc_step2_C_diagnose', weaknessId: 'calc_repeated_error' },
         ],
       },
       {
@@ -180,9 +180,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '각 항을 따로 계산한 뒤 마지막에 합산한다.',
         example: '예) (−2)²=4, 2(−2)=−4 → 4+(−4)=0',
         choices: [
-          { text: '전체를 한 번에 계산한다', correct: false, feedback: '한 번에 처리하면 어디서 부호가 꼬였는지 추적이 어려워요. 항별로 끊어 가는 게 실수를 줄여요.' },
+          { text: '전체를 한 번에 계산한다', correct: false, feedback: '한 번에 처리하면 어디서 부호가 꼬였는지 추적이 어려워요. 항별로 끊어 가는 게 실수를 줄여요.', remedialFlowStartNodeId: 'calc_step3_A_diagnose', weaknessId: 'calc_repeated_error' },
           { text: '항별로 나눠서 계산 후 합친다', correct: true, feedback: '맞아요! 항별로 끊어 계산하면 어느 한 항에서 실수가 나도 바로 보여요.' },
-          { text: '계산 순서는 중요하지 않다', correct: false, feedback: '결과는 같아도, 항별로 처리하는 순서가 부호 실수를 막아줘요.' },
+          { text: '계산 순서는 중요하지 않다', correct: false, feedback: '결과는 같아도, 항별로 처리하는 순서가 부호 실수를 막아줘요.', remedialFlowStartNodeId: 'calc_step3_C_diagnose', weaknessId: 'calc_repeated_error' },
         ],
       },
     ],
