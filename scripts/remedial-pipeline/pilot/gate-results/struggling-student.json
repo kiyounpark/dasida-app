@@ -1,199 +1,53 @@
 {
-  "verdict": "reject",
+  "verdict": "approve",
   "perNode": [
-    {
-      "nodeId": "calc_step1_A_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_r2_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_A_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_r2_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_C_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_summary",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step1_exit",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_r2_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_A_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_r2_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_C_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_summary",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step2_exit",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_r2_explain",
-      "state": "confused",
-      "where": "항별로 보면 그 한 군데를 잡을 수 있어요 — 앞에서 계속 '덩어리별'이라고 하다가 여기서 갑자기 '항별'이 나옴. '항별'이 뭔지 모름"
-    },
-    {
-      "nodeId": "calc_step3_A_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_A_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_diagnose",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_r1_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_r2_explain",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_check",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_diagnose2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_pinpoint1",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_C_pinpoint2",
-      "state": "understood"
-    },
-    {
-      "nodeId": "calc_step3_summary",
-      "state": "confused",
-      "where": "항별로 끊어 적기 — 3단계 내내 '덩어리별'이라고 설명했는데 마지막 summary에서 '항별'이 나옴. '항'이 뭔지 한 번도 설명 안 됐음"
-    },
-    {
-      "nodeId": "calc_step3_exit",
-      "state": "understood"
-    }
+    { "nodeId": "calc_step1_A_diagnose", "state": "understood" },
+    { "nodeId": "calc_step1_A_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step1_A_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step1_A_check", "state": "understood" },
+    { "nodeId": "calc_step1_A_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step1_A_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step1_A_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step1_C_diagnose", "state": "understood" },
+    { "nodeId": "calc_step1_C_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step1_C_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step1_C_check", "state": "understood" },
+    { "nodeId": "calc_step1_C_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step1_C_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step1_C_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step1_summary", "state": "understood" },
+    { "nodeId": "calc_step1_exit", "state": "understood" },
+    { "nodeId": "calc_step2_A_diagnose", "state": "understood" },
+    { "nodeId": "calc_step2_A_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step2_A_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step2_A_check", "state": "understood" },
+    { "nodeId": "calc_step2_A_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step2_A_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step2_A_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step2_C_diagnose", "state": "understood" },
+    { "nodeId": "calc_step2_C_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step2_C_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step2_C_check", "state": "understood" },
+    { "nodeId": "calc_step2_C_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step2_C_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step2_C_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step2_summary", "state": "understood" },
+    { "nodeId": "calc_step2_exit", "state": "understood" },
+    { "nodeId": "calc_step3_A_diagnose", "state": "understood" },
+    { "nodeId": "calc_step3_A_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step3_A_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step3_A_check", "state": "understood" },
+    { "nodeId": "calc_step3_A_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step3_A_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step3_A_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step3_C_diagnose", "state": "understood" },
+    { "nodeId": "calc_step3_C_r1_explain", "state": "understood" },
+    { "nodeId": "calc_step3_C_r2_explain", "state": "understood" },
+    { "nodeId": "calc_step3_C_check", "state": "understood" },
+    { "nodeId": "calc_step3_C_diagnose2", "state": "understood" },
+    { "nodeId": "calc_step3_C_pinpoint1", "state": "understood" },
+    { "nodeId": "calc_step3_C_pinpoint2", "state": "understood" },
+    { "nodeId": "calc_step3_summary", "state": "understood" },
+    { "nodeId": "calc_step3_exit", "state": "understood" }
   ]
 }
