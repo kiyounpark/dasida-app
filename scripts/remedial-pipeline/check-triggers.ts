@@ -24,11 +24,11 @@ const state = JSON.parse(readFileSync(STATE_PATH, 'utf8')) as {
 
 const passedGates = state.passedGates ?? {};
 
-// backfill 큐 자동 산출: completed 인데 누락 게이트 있는 약점
-const autoBackfill = state.completed.filter(
+// backfill 큐 자동 산출: completed 인데 누락 게이트 있는 약점.
+// 항상 자동 탐지를 신뢰 — backfillQueue 필드는 캐시일 뿐 누락 게이트가 진짜 출처.
+const backfillQueue = state.completed.filter(
   (id) => missingGates(passedGates[id]).length > 0,
 );
-const backfillQueue = state.backfillQueue ?? autoBackfill;
 
 const triggers: string[] = [];
 if (state.completedCount - state.lastProgressReportAt >= 5) {
