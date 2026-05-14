@@ -53,4 +53,10 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '그래프의 꼭짓점',
     '대칭축',
   ],
+  coefficient_sign_confusion: [
+    '이차항의 계수',
+    '일차항의 계수',
+    '상수항',
+    '최고차항의 계수',
+  ],
 };
