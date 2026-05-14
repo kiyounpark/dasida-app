@@ -1792,8 +1792,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step1',
         title: '항별 미분 규칙',
-        body: 'xⁿ을 미분하면 nxⁿ⁻¹이 돼요. 각 항을 독립적으로 미분한 뒤 합산해요.',
-        example: '예) f(x)=3x²+2x+1 → f\'(x)=6x+2',
+        body: '미분은 식의 변화율을 구하는 거예요. xⁿ은 미분하면 nxⁿ⁻¹로 줄어들고, 각 항은 독립적으로 미분한 뒤 더해요.',
+        example: '예) f(x)=3x²+2x+1 → 항별 미분: 3x²→6x, 2x→2, 1→0 → f\'(x)=6x+2',
         choices: [
           { text: '각 항의 지수를 앞으로 내리고 지수에서 1을 뺀다', correct: true, feedback: '맞아요! 미분 규칙이 항별로 그대로 적용돼요.' },
           { text: '지수를 그대로 두고 계수만 바꾼다', correct: false, feedback: '차수가 줄지 않으면 미분이 아니에요. 지수도 1 줄어야 해요.' },
@@ -1803,8 +1803,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step2',
         title: '합성함수 체인룰',
-        body: '(x²+1)³처럼 함수 안에 함수가 든 모양을 합성함수라 하고, 겉껍질이 바깥(³ 제곱), 속이 안쪽(x²+1)이에요. 체인룰은 바깥 함수를 먼저 미분하고 안쪽 함수의 미분을 곱하는 절차예요.',
-        example: '예) f(x)=(x²+1)³ → f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
+        body: '함수 안에 또 함수가 든 식을 합성함수라 해요(예: (x²+1)³). 바깥은 겉껍질(³ 제곱), 안쪽은 속(x²+1)이에요. 체인룰은 바깥을 먼저 미분한 뒤, 안쪽 함수의 미분을 곱하는 절차예요.',
+        example: '예) f(x)=(x²+1)³ → 바깥 미분: 3(x²+1)², 안쪽 (x²+1) 미분: 2x → f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
         choices: [
           { text: '바깥 함수를 먼저 미분하고, 안쪽 함수의 미분을 곱한다', correct: true, feedback: '맞아요! 체인룰의 표준 순서예요.' },
           { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 반대예요. 체인룰은 바깥부터 미분해서 안쪽을 그대로 둔 채 적고, 그 뒤에 안쪽 미분을 곱해야 결과가 맞아요.' },
@@ -1814,8 +1814,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step3',
         title: '곱의 미분',
-        body: '(f·g)\'=f\'g+fg\'예요. 앞 식을 미분해 뒤 식을 곱한 항과, 앞 식을 그대로 두고 뒤 식을 미분해 곱한 항을 더해요.',
-        example: '예) f(x)=x²·(x+1) → f\'(x)=2x·(x+1)+x²·1=3x²+2x',
+        body: '두 함수가 곱해진 식은 한쪽씩 번갈아 미분해서 더해요. 공식: (f·g)\'=f\'g+fg\' — 앞 미분·뒤 그대로 + 앞 그대로·뒤 미분.',
+        example: '예) f(x)=x²·(x+1) → 앞 미분 2x·(x+1) + 앞·뒤 미분 x²·1 = 2x²+2x+x² = 3x²+2x',
         choices: [
           { text: '앞 미분×뒤 + 앞×뒤 미분', correct: true, feedback: '맞아요! 곱의 미분 공식이 정확히 들어맞았어요.' },
           { text: '앞 미분×뒤 미분', correct: false, feedback: '두 미분만 곱하면 다른 양이 돼요. 두 항으로 나눠서 합쳐야 해요.' },
