@@ -1,0 +1,287 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: rad_step<N>_<choice>_<role>
+// 약점 prefix: rad
+// 용어 통일: "근호"(√ 기호를 뜻하는 이름), "소인수분해"(설명 시 '작은 소수의 곱으로 쪼개기'로 풀어씀), "계수"(설명 시 '앞에 곱해진 수'로 풀어씀)
+
+export const radical_simplification_error_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 A ("근호 안을 그대로 둔다") 분기 ───────────
+    'rad_step1_A_explain': {
+      id: 'rad_step1_A_explain',
+      kind: 'explain',
+      title: '소인수분해로 제곱 묶음 먼저 찾기',
+      body: '근호(√ 기호) 안을 그대로 두면 단순화가 진행되지 않아요. 먼저 안의 수를 작은 소수들의 곱으로 쪼개서(소인수분해해서) 어디에 제곱 묶음이 숨어 있는지 찾는 게 첫 단계예요. 예를 들어 √72라면 72 = 2² × 3² × 2처럼 분리해야 제곱으로 된 덩어리가 보여요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step1_A_easy',
+      summary: '근호 간소화의 첫 단계는 소인수분해로 제곱 묶음을 찾는 것 — 그대로 두면 진행 불가',
+      triggers: [
+        '근호 안을 왜 쪼개야 하나요',
+        '그냥 두면 안 되나요',
+        '소인수분해를 왜 하는지 모르겠어요',
+        '√72를 어떻게 단순화하는지',
+      ],
+    },
+    'rad_step1_A_easy': {
+      id: 'rad_step1_A_easy',
+      kind: 'explain',
+      title: '예시로 한 번 더',
+      body: '√50을 예로 들어요. 50 = 2 × 5² 이니까, 5²라는 제곱 묶음이 있어요. 이걸 발견해야 다음 단계로 갈 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step1_exit',
+    },
+    'rad_step1_A_check': {
+      id: 'rad_step1_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√72를 단순화하기 위해 72를 소인수분해하면? (제곱 묶음이 보이는 형태로)',
+      options: [
+        { id: 'correct', text: '2² × 3² × 2', isCorrect: true, nextNodeId: 'rad_step1_exit' },
+        { id: 'wrong1',  text: '8 × 9', isCorrect: false, nextNodeId: 'rad_step1_A_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '72 그대로', isCorrect: false, nextNodeId: 'rad_step1_A_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step1_A_easy',
+    },
+    'rad_step1_A_remedy': {
+      id: 'rad_step1_A_remedy',
+      kind: 'explain',
+      title: '소수의 곱으로 끝까지 쪼개기',
+      body: '72 = 8 × 9가 맞지만, 8 = 2³, 9 = 3² 이므로 72 = 2³ × 3² = 2² × 2 × 3². 이렇게 해야 2², 3²라는 제곱 묶음이 보여요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("약분만 하면 단순화된다") 분기 ───────────
+    'rad_step1_C_explain': {
+      id: 'rad_step1_C_explain',
+      kind: 'explain',
+      title: '약분만으로는 부족해요',
+      body: '약분은 분수에서 분자·분모를 같은 수로 나누는 방식인데, 근호 안의 수를 단순화할 때는 쓸 수 없어요. 필요한 건 "제곱 묶음을 찾아 근호 밖으로 꺼내는" 작업이에요. 예를 들어 √72는 약분이 아니라 2² × 3²를 분리해서 밖으로 보내야 해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step1_A_easy',
+      summary: '근호 간소화는 약분이 아니라 제곱 묶음을 찾아 밖으로 꺼내는 과정',
+      triggers: [
+        '약분하면 되는 거 아닌가요',
+        '왜 소인수분해를 따로 해야 하나요',
+        '√72를 그냥 약분해봤는데',
+      ],
+    },
+    'rad_step1_C_check': {
+      id: 'rad_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√50을 단순화하는 올바른 첫 단계는?',
+      options: [
+        { id: 'correct', text: '50을 소수의 곱으로 쪼개 제곱 묶음을 찾는다', isCorrect: true, nextNodeId: 'rad_step1_exit' },
+        { id: 'wrong1',  text: '50을 분자·분모 형태로 약분한다', isCorrect: false, nextNodeId: 'rad_step1_C_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '√50은 이미 간소화 불가다', isCorrect: false, nextNodeId: 'rad_step1_C_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step1_A_easy',
+    },
+    'rad_step1_C_remedy': {
+      id: 'rad_step1_C_remedy',
+      kind: 'explain',
+      title: '50 = 2 × 5²',
+      body: '50을 소수의 곱으로 쪼개면 2 × 5². 여기서 5²가 제곱 묶음이에요. 이걸 찾는 순간 √50 = √(5² × 2) = 5√2로 갈 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step1_exit',
+    },
+
+    'rad_step1_exit': { id: 'rad_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 A ("√(a²×b) = a²×√b이다") 분기 ───────────
+    'rad_step2_A_explain': {
+      id: 'rad_step2_A_explain',
+      kind: 'explain',
+      title: '근호를 벗으면 제곱이 풀려요',
+      body: '√(a² × b) = a√b예요. 근호(√) 안에서 a² 는 제곱이 붙은 채로 있었지만, 밖으로 나오는 순간 제곱이 풀려서 a 하나만 남아요. a²가 통째로 밖으로 나오는 게 아니에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step2_A_easy',
+      summary: '√(a²×b) = a√b — 근호 밖으로 나오면 a²가 아니라 a(제곱이 풀린 값)',
+      triggers: [
+        '왜 a²가 아니라 a가 나오나요',
+        '제곱이 왜 사라지나요',
+        '밖으로 나와도 a² 아닌가요',
+        '√(4×2)에서 4가 왜 2로 바뀌나요',
+      ],
+    },
+    'rad_step2_A_easy': {
+      id: 'rad_step2_A_easy',
+      kind: 'explain',
+      title: '구체적인 수로 확인',
+      body: '√4 = 2예요. 4 = 2² 인데 근호를 씌운 뒤 벗기면 2가 돼요. 즉 √(2²) = 2. 그래서 √(a²) = a예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step2_exit',
+    },
+    'rad_step2_A_check': {
+      id: 'rad_step2_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√(9 × 5)를 간소화하면? (근호 밖으로 나오는 수에 주목)',
+      options: [
+        { id: 'correct', text: '3√5', isCorrect: true, nextNodeId: 'rad_step2_exit' },
+        { id: 'wrong1',  text: '9√5', isCorrect: false, nextNodeId: 'rad_step2_A_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '√45', isCorrect: false, nextNodeId: 'rad_step2_A_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step2_A_easy',
+    },
+    'rad_step2_A_remedy': {
+      id: 'rad_step2_A_remedy',
+      kind: 'explain',
+      title: '9 = 3², 밖에 나오면 3',
+      body: '9 = 3² 이니까 √(9 × 5) = √(3² × 5) = 3√5. 앞에 곱해진 수(계수)가 3²가 아닌 3이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("제곱은 근호 안에 그대로 둔다") 분기 ───────────
+    'rad_step2_C_explain': {
+      id: 'rad_step2_C_explain',
+      kind: 'explain',
+      title: '제곱 묶음은 반드시 밖으로 꺼내야 해요',
+      body: '제곱 묶음을 근호 안에 그냥 두면 간소화가 된 게 아니에요. √(4 × 9 × 2)에서 4 = 2², 9 = 3² 이니까 이걸 밖으로 꺼내 2 × 3 × √2 = 6√2로 만들어야 해요. 안에 둔 채로 끝내면 여전히 복잡한 형태예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step2_A_easy',
+      summary: '제곱 묶음은 근호 안에 두지 않고 밖으로 꺼내야 비로소 간소화 완료',
+      triggers: [
+        '제곱을 그냥 두면 안 되나요',
+        '어차피 같은 값 아닌가요',
+        '밖으로 꺼내는 이유가 뭔가요',
+      ],
+    },
+    'rad_step2_C_check': {
+      id: 'rad_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√(4 × 9 × 2)를 간소화한 결과는?',
+      options: [
+        { id: 'correct', text: '6√2', isCorrect: true, nextNodeId: 'rad_step2_exit' },
+        { id: 'wrong1',  text: '√72', isCorrect: false, nextNodeId: 'rad_step2_C_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '36√2', isCorrect: false, nextNodeId: 'rad_step2_C_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step2_A_easy',
+    },
+    'rad_step2_C_remedy': {
+      id: 'rad_step2_C_remedy',
+      kind: 'explain',
+      title: '2 × 3 = 6을 앞으로',
+      body: '√4 = 2, √9 = 3. 두 수를 밖으로 꺼내면 앞에 곱해진 수(계수)는 2 × 3 = 6, 안에는 2만 남아요. 결과: 6√2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step2_exit',
+    },
+
+    'rad_step2_exit': { id: 'rad_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 A ("계수를 더해서 정리한다") 분기 ───────────
+    'rad_step3_A_explain': {
+      id: 'rad_step3_A_explain',
+      kind: 'explain',
+      title: '근호 밖 수는 곱해야 해요',
+      body: '제곱 묶음을 각각 꺼내면 앞에 곱해진 수(계수)가 여럿 생겨요. 이 수들은 곱해서 하나로 합쳐야 해요. 예를 들어 √(4 × 9 × 2)에서 밖으로 나온 2와 3은 더하는 게 아니라 곱해서 6이 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step3_A_easy',
+      summary: '근호 밖으로 나온 수들은 더하지 않고 곱해서 최종 앞에 곱해진 수(계수)를 구함',
+      triggers: [
+        '왜 곱하는 건가요 더하면 안 되나요',
+        '계수 2, 3을 더해서 5 아닌가요',
+        '밖에 나온 수들을 어떻게 합치나요',
+      ],
+    },
+    'rad_step3_A_easy': {
+      id: 'rad_step3_A_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: '√(4 × 25 × 3)에서 √4 = 2, √25 = 5. 밖에 나온 수는 2와 5예요. 2 + 5 = 7이 아니라 2 × 5 = 10이에요. 결과: 10√3.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step3_exit',
+    },
+    'rad_step3_A_check': {
+      id: 'rad_step3_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√(4 × 9 × 3)을 간소화할 때, 밖으로 나온 2와 3을 합치면?',
+      options: [
+        { id: 'correct', text: '2 × 3 = 6 → 6√3', isCorrect: true, nextNodeId: 'rad_step3_exit' },
+        { id: 'wrong1',  text: '2 + 3 = 5 → 5√3', isCorrect: false, nextNodeId: 'rad_step3_A_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '2² × 3² = 36 → 36√3', isCorrect: false, nextNodeId: 'rad_step3_A_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step3_A_easy',
+    },
+    'rad_step3_A_remedy': {
+      id: 'rad_step3_A_remedy',
+      kind: 'explain',
+      title: '밖에서 만난 수들은 곱셈으로',
+      body: '√(4 × 9 × 3) = √4 × √9 × √3 = 2 × 3 × √3 = 6√3. 근호를 벗어난 수들은 곱해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("계수는 마지막에 구한다") 분기 ───────────
+    'rad_step3_C_explain': {
+      id: 'rad_step3_C_explain',
+      kind: 'explain',
+      title: '계수는 꺼내는 그 자리에서 바로 정리해요',
+      body: '제곱 묶음을 근호 밖으로 꺼낼 때마다, 그 자리에서 앞에 곱해진 수(계수)를 바로 이어 곱하면 돼요. 단계를 미뤄서 나중에 따로 계산하면 오히려 빠뜨릴 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step3_A_easy',
+      summary: '앞에 곱해진 수(계수)는 제곱 묶음을 꺼내는 그 단계에서 바로 이어 정리하는 게 자연스러운 순서',
+      triggers: [
+        '계수는 나중에 정리하면 안 되나요',
+        '먼저 근호 안부터 다 정리한 다음에 계수를 구하면 어때요',
+        '마지막에 계수를 곱해도 되지 않나요',
+      ],
+    },
+    'rad_step3_C_check': {
+      id: 'rad_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√72 = √(4 × 9 × 2) 에서 4와 9를 동시에 꺼내면 앞에 곱해진 수(계수)는?',
+      options: [
+        { id: 'correct', text: '6 (= 2 × 3)', isCorrect: true, nextNodeId: 'rad_step3_exit' },
+        { id: 'wrong1',  text: '나중에 따로 계산', isCorrect: false, nextNodeId: 'rad_step3_C_remedy', weaknessId: 'radical_simplification_error' },
+        { id: 'wrong2',  text: '13 (= 4 + 9)', isCorrect: false, nextNodeId: 'rad_step3_C_remedy', weaknessId: 'radical_simplification_error' },
+      ],
+      dontKnowNextNodeId: 'rad_step3_A_easy',
+    },
+    'rad_step3_C_remedy': {
+      id: 'rad_step3_C_remedy',
+      kind: 'explain',
+      title: '√4 = 2, √9 = 3 → 2 × 3 = 6',
+      body: '√72 = √(4 × 9 × 2) = 2 × 3 × √2 = 6√2. 꺼내는 순서대로 바로 곱하면 계수 6이 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rad_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rad_step3_exit',
+    },
+
+    'rad_step3_exit': { id: 'rad_step3_exit', kind: 'exit' },
+  },
+};
