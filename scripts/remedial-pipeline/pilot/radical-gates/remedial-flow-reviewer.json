@@ -1,0 +1,37 @@
+{
+  "verdict": "reject",
+  "weaknessId": "radical_simplification_error",
+  "depth": "shallow",
+  "nodesVisited": 18,
+  "studentJourney": "학생이 오답을 선택해 보완 흐름에 진입한다. step1에서 소인수분해로 제곱 묶음을 찾는 법을 배우고, 확인 문제를 거쳐 exit한다. step2에서 √(a²×b) = a√b 규칙으로 제곱 묶음을 근호 밖으로 꺼내는 법을 익히고, step3에서 밖으로 나온 수들을 곱해 최종 계수를 구하는 흐름을 따라간다. 세 단계 각각의 A·C 분기는 오답 선택 이유에 맞게 다른 설명을 제공한다. 전체적으로 소인수분해→밖으로 꺼내기→계수 정리의 3단계 구조가 유지된다.",
+  "issues": [
+    {
+      "path": "rad_step1_C_explain → rad_step1_C_check → rad_step1_C_remedy → rad_step1_C_check",
+      "criterion": "끊김",
+      "issue": "rad_step1_C_remedy 의 body('50 = 2 × 5². 여기서 5²가 제곱 묶음이에요. 이걸 찾는 순간 √50 = √(5² × 2) = 5√2로 갈 수 있어요.')가 step1 범위인 '소인수분해로 제곱 묶음 찾기'를 넘어 '근호 밖으로 꺼내기(step2 내용)'까지 선취하고 있어, 이어지는 rad_step1_C_check(첫 단계 확인)로 돌아가는 흐름이 어색하다.",
+      "evidence": "학생은 remedy에서 '5√2까지 완성됐다'고 인식한 뒤, 다시 '√50 단순화의 올바른 첫 단계는?'이라는 step1 확인 문제를 받아 방금 본 것과 맞지 않는 범위 전환을 경험한다.",
+      "suggestion": "rad_step1_C_remedy body를 '50 = 2 × 5². 여기서 5²가 제곱 묶음이에요. 이 묶음을 찾는 게 단순화의 첫 단계예요.'로 잘라, 밖으로 꺼내는 과정(5√2)은 삭제한다."
+    },
+    {
+      "path": "rad_step1_C_explain → (secondaryNextNodeId) → rad_step1_A_easy → rad_step1_A_check",
+      "criterion": "분기 의미 부재",
+      "issue": "rad_step1_C_explain 의 secondaryNextNodeId가 rad_step1_A_easy(A 분기 보조 설명)를 공유한다. 'C 오답: 약분만 하면 된다'는 이유로 들어온 학생이 '√50 = 2 × 5²이니까 제곱 묶음이 있어요'(A 분기 맥락)를 받으면 '왜 갑자기 √50인가'라는 문맥 단절을 느낀다.",
+      "evidence": "C 분기의 핵심 오해('약분')는 rad_step1_A_easy에서 전혀 언급되지 않는다. 학생은 자신의 오해가 해소되는 것인지 아니면 다른 학생 얘기를 듣는 것인지 모호하게 느낀다.",
+      "suggestion": "rad_step1_C_explain 의 secondaryNextNodeId를 rad_step1_A_easy가 아닌 '약분과 소인수분해의 차이'를 짚어주는 C 전용 보조 설명 노드로 분리하거나, rad_step1_A_easy 본문에 약분 오해를 한 줄 언급한다."
+    },
+    {
+      "path": "rad_step2_C_explain → (secondaryNextNodeId) → rad_step2_A_easy → rad_step2_A_check",
+      "criterion": "분기 의미 부재",
+      "issue": "rad_step2_C_explain 의 secondaryNextNodeId도 A 분기 보조 설명(rad_step2_A_easy)를 공유한다. 'C 오답: 제곱을 근호 안에 그냥 둔다'는 오해를 가진 학생이 '√4 = 2이므로 √(2²) = 2'(A 분기 규칙 설명)를 받는다.",
+      "evidence": "C 오답의 핵심 오해('밖으로 꺼내지 않아도 된다')는 rad_step2_A_easy에서 직접 반박되지 않는다. 학생은 자신의 오해와 설명의 연결고리를 찾지 못한다.",
+      "suggestion": "rad_step2_C_explain 의 secondaryNextNodeId를 rad_step2_A_easy 대신 '근호 안에 두면 간소화가 완료되지 않는 이유'를 보여주는 예시 노드로 분리한다."
+    },
+    {
+      "path": "rad_step3_C_explain → (secondaryNextNodeId) → rad_step3_A_easy → rad_step3_A_check",
+      "criterion": "분기 의미 부재",
+      "issue": "rad_step3_C_explain 의 secondaryNextNodeId도 A 분기 보조 설명(rad_step3_A_easy)을 공유한다. 'C 오답: 계수는 마지막에 구한다'는 오해를 가진 학생에게 '2 + 5 = 7이 아니라 2 × 5 = 10'(계수 덧셈 vs 곱셈)을 받아, 학생의 오해(순서 문제)와 설명(덧셈 오류)이 다른 주제를 가리킨다.",
+      "evidence": "학생은 '계수를 마지막에 구해도 되는가'라는 물음을 가지고 secondaryNextNodeId를 눌렀는데, '왜 곱해야 하는가'라는 A 분기의 다른 오해를 설명하는 노드를 받는다.",
+      "suggestion": "rad_step3_C_explain 의 secondaryNextNodeId를 C 전용 보조 설명('꺼내는 그 자리에서 바로 곱하는 예시')으로 분리하거나, rad_step3_A_easy 본문에 순서 관련 설명을 추가한다."
+    }
+  ]
+}
