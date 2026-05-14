@@ -1803,8 +1803,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step2',
         title: '합성함수 체인룰',
-        body: '함수 안에 또 함수가 든 식을 합성함수라 해요(예: (x²+1)³). 바깥은 겉껍질 ³제곱, 안쪽은 속 x²+1 이에요. 미분 절차는 ① 바깥 미분(안쪽은 그대로 둔 채) ② 안쪽 함수의 미분을 곱하기 두 단계로 진행해요.',
-        example: '예) f(x)=(x²+1)³ → ① 바깥 미분: 3(x²+1)² ② 안쪽 미분: 2x → 곱하면 f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
+        body: '함수 안에 또 함수가 든 식을 합성함수라 해요(예: (x²+1)³). 안쪽 x²+1 을 한 덩어리 □ 로 보면 식은 □³ — step1 규칙으로 □³ 의 미분은 3□². 그 다음 □ 자리에 원래 안쪽을 되돌리고 안쪽 미분을 곱하면 끝이에요.',
+        example: '예) f(x)=(x²+1)³ → □=x²+1, □³ 미분 → 3□² = 3(x²+1)², 안쪽 미분 2x 곱하면 f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
         choices: [
           { text: '바깥 함수를 먼저 미분하고, 안쪽 함수의 미분을 곱한다', correct: true, feedback: '맞아요! 체인룰의 표준 순서예요.' },
           { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 반대예요. 체인룰은 바깥부터 미분해서 안쪽을 그대로 둔 채 적고, 그 뒤에 안쪽 미분을 곱해야 결과가 맞아요.' },
@@ -1819,7 +1819,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         choices: [
           { text: '앞 미분×뒤 + 앞×뒤 미분', correct: true, feedback: '맞아요! 곱의 미분 공식이 정확히 들어맞았어요.' },
           { text: '앞 미분×뒤 미분', correct: false, feedback: '두 미분만 곱하면 다른 양이 돼요. 두 항으로 나눠서 합쳐야 해요.' },
-          { text: '앞+뒤를 함께 미분한다', correct: false, feedback: '곱은 합처럼 처리할 수 없어요. 곱의 미분 공식이 따로 있어요.' },
+          { text: '앞 미분 + 뒤 미분으로 더하기로 처리', correct: false, feedback: '그건 합의 미분이에요. 곱은 두 항(앞 미분×뒤, 앞×뒤 미분)으로 나눠 더해야 해요.' },
         ],
       },
     ],
