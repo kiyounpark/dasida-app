@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T13:46:06.160Z",
+  "lastUpdateAt": "2026-05-14T16:06:23.127Z",
   "queue": [
-    "complex_factoring_difficulty",
-    "quadratic_formula_memorization",
-    "rationalization_error",
     "expansion_sign_error",
     "like_terms_error",
     "imaginary_unit_confusion",
@@ -59,13 +56,17 @@
     "derivative_calculation",
     "factoring_pattern_recall",
     "max_min_judgement_confusion",
-    "solving_order_confusion"
+    "solving_order_confusion",
+    "complex_factoring_difficulty",
+    "quadratic_formula_memorization"
   ],
   "manualReview": [],
-  "failed": [],
-  "totalTokens": 7520000,
-  "completedCount": 9,
-  "lastProgressReportAt": 5,
+  "failed": [
+    "rationalization_error"
+  ],
+  "totalTokens": 8270000,
+  "completedCount": 12,
+  "lastProgressReportAt": 12,
   "lastDriftCheckAt": 0,
   "retryStats": [
     {
@@ -115,6 +116,18 @@
     {
       "weaknessId": "solving_order_confusion",
       "retries": 4
+    },
+    {
+      "weaknessId": "rationalization_error",
+      "retries": 1
+    },
+    {
+      "weaknessId": "complex_factoring_difficulty",
+      "retries": 2
+    },
+    {
+      "weaknessId": "quadratic_formula_memorization",
+      "retries": 2
     }
   ],
   "rejectionHistory": [
@@ -132,6 +145,11 @@
       "weaknessId": "factoring_pattern_recall",
       "gate": "struggling-student",
       "reason": "병렬 subagent 자체평가 후 검증에서 학생 8 confused (x²/b/c/p/q 변수, 전개, 절댓값)"
+    },
+    {
+      "weaknessId": "rationalization_error",
+      "gate": "keyword-mapping",
+      "reason": "data/exam intent 중 유리화/분모 무리수 관련 표현이 0건 — 매핑 ≥10건 미달"
     }
   ],
   "passedGates": {
@@ -206,6 +224,22 @@
       "remedial-flow": true,
       "thinkingstep-flow": true,
       "struggling-student": true
+    },
+    "complex_factoring_difficulty": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "quadratic_formula_memorization": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
     }
   },
   "backfillQueue": []
