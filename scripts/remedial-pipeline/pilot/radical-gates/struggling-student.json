@@ -4,38 +4,26 @@
     "flow": "radical_simplification_error",
     "total_nodes": 24,
     "review_date": "2026-05-14",
-    "review_round": 3,
-    "description": "commit 6bb7969 기준 3차 리뷰. 수정 사항(rad_step2_A_easy 문자 일반화 잔재 제거, rad_step3_C_explain 이유 추가, rad_step3_C_remedy 꺼낸수/원래수 혼동 경고 추가) 반영 후 6등급 학생 페르소나로 재순회."
+    "review_round": 4,
+    "description": "commit 852d296 기준 4차 리뷰. 수정 사항(rad_step1_A_explain 소수 정의 괄호 추가, rad_step1_C_explain 약분 실패 예시 추가) 반영 후 6등급 학생 페르소나로 재순회."
   },
-  "verdict": "reject",
+  "verdict": "approve",
   "summary": {
-    "understood": 16,
-    "confused": 2,
-    "partially_understood": 6,
+    "understood": 22,
+    "confused": 0,
+    "partially_understood": 2,
     "gave_up": 0,
-    "verdict_detail": "3차 수정 효과 확인: gave_up 2→0, rad_step2_A_easy confused→understood, rad_step3_C_explain gave_up→partially_understood, rad_step3_C_remedy understood 확인. 잔류 confused 2건 — rad_step1_A_explain(소수 정의 부재), rad_step1_C_explain(약분과 제곱 묶음 꺼내기의 차이 미설명). 3차 plan budget 소진으로 현 상태 보고.",
-    "top2_confused_nodes": [
-      {
-        "rank": 1,
-        "nodeId": "rad_step1_A_explain",
-        "reason": "'작은 소수(2, 3, 5…)들의 곱으로 끝까지 쪼개기'라는 표현에서 소수가 뭔지 정의가 없어요. 예시 나열(2, 3, 5)은 있지만 왜 이것들이 소수인지 모르는 채로 따라가야 해요. 6등급 학생은 소수 개념이 흐릿한 경우가 많아 첫 문장부터 막혀요."
-      },
-      {
-        "rank": 2,
-        "nodeId": "rad_step1_C_explain",
-        "reason": "'근호 안의 수를 단순화할 때는 약분을 쓸 수 없어요'라는 말이 왜 그런지 이유 없이 단정돼요. 약분으로 시도하면 어떻게 실패하는지 보여주지 않아서, 두 방법의 차이가 실감나지 않아요."
-      }
-    ]
+    "verdict_detail": "4차 수정 효과 확인: rad_step1_A_explain 소수 괄호 정의(1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거) 추가로 confused→understood 전환. rad_step1_C_explain √8 ÷ √2 실패 예시 + 4×2 분해 대안 추가로 confused→understood 전환. confused 2→0, verdict approve.",
+    "top2_confused_nodes": []
   },
   "node_reviews": [
     {
       "nodeId": "rad_step1_A_explain",
       "kind": "explain",
-      "student_reaction": "confused",
-      "selected_option": "secondaryLabel",
-      "next_node": "rad_step1_A_easy",
-      "where": "작은 소수(2, 3, 5…)들의 곱으로 끝까지 쪼개기",
-      "comment": "소인수분해를 풀어써 준 건 좋아요. 72 예시도 이전보다 낫고요. 그런데 소수가 뭔지 정의가 없어요. '2, 3, 5' 나열만 있고 왜 이게 소수인지 모르는 채로 읽어야 해요. 6등급이라 소수 개념이 흐릿해서 첫 문장부터 막혀요."
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step1_A_check",
+      "comment": "이번엔 '소수'가 뭔지 바로 설명이 있어요! '1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거' — 그냥 숫자 나열이 아니라 정의가 같이 있으니까 처음 읽어도 '아, 이런 수구나' 감이 와요. 72 예시도 있고 제곱 묶음이 보이는 형태까지 보여주니 한 번에 따라갔어요. 3차에서 막혔던 포인트가 해소됐어요."
     },
     {
       "nodeId": "rad_step1_A_easy",
@@ -43,7 +31,7 @@
       "student_reaction": "understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_A_check",
-      "comment": "√50, 50 = 2 × 5² 작은 숫자 예시는 따라갈 수 있어요. '5²가 제곱 묶음'이라는 포인트가 명확해요."
+      "comment": "√50, 50 = 2 × 5² 작은 숫자 예시는 여전히 따라갈 수 있어요. '5²가 제곱 묶음'이라는 포인트가 명확해요."
     },
     {
       "nodeId": "rad_step1_A_check",
@@ -53,15 +41,7 @@
       "selected_text": "2² × 3² × 2",
       "is_correct": true,
       "next_node": "rad_step1_exit",
-      "comment": "remedy 통과 후 2회차 방문. remedy에서 본 형태 그대로 선택했어요."
-    },
-    {
-      "nodeId": "rad_step1_A_remedy",
-      "kind": "explain",
-      "student_reaction": "understood",
-      "selected_option": "primaryLabel",
-      "next_node": "rad_step1_A_check",
-      "comment": "8=2³=2²×2, 9=3² 단계별 분해가 눈에 들어와요. '제곱 묶음이 보이도록'이라는 목적이 처음으로 실감났어요."
+      "comment": "explain에서 72 분해를 직접 봤으니까 그대로 골랐어요."
     },
     {
       "nodeId": "rad_step1_exit",
@@ -72,19 +52,10 @@
     {
       "nodeId": "rad_step1_C_explain",
       "kind": "explain",
-      "student_reaction": "confused",
-      "selected_option": "secondaryLabel",
-      "next_node": "rad_step1_A_easy",
-      "where": "근호 안의 수를 단순화할 때는 쓸 수 없어요",
-      "comment": "'약분은 분수에서 쓰는 방식이라 근호에서는 안 된다'는데, 왜 안 되는지 이유가 없어요. 약분으로 해봤을 때 어떻게 틀리는지 예시도 없고, '제곱 묶음을 꺼내야 한다'는 말로 바로 넘어가요. 두 방법의 차이가 실감 안 나요. '모르겠어요'."
-    },
-    {
-      "nodeId": "rad_step1_A_easy",
-      "kind": "explain",
       "student_reaction": "understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_C_check",
-      "comment": "두 번째 보는 √50 예시라 친숙해요. 따라가요."
+      "comment": "'√8 ÷ √2처럼 같은 모양이 아니면 약분처럼 줄일 수 없어요'라는 예시가 추가됐어요. 그리고 바로 옆에 '대신 근호 안 8을 4×2로 쪼개 √4 × √2 = 2√2로 만드는 게 옳은 방법이에요'라는 올바른 방법도 있어요. 약분을 쓰면 어떤 상황에서만 되고 왜 이 경우는 안 되는지, 대신 어떻게 해야 하는지가 한 흐름으로 이어지니까 이번엔 납득됐어요. 3차에서 막혔던 '이유 없는 단정' 문제가 해소됐어요."
     },
     {
       "nodeId": "rad_step1_C_check",
@@ -94,7 +65,7 @@
       "selected_text": "50을 소수의 곱으로 쪼개 제곱 묶음을 찾는다",
       "is_correct": true,
       "next_node": "rad_step1_exit",
-      "comment": "remedy 통과 후 2회차. 방금 본 내용 그대로 선택했어요."
+      "comment": "방금 explain에서 '소수의 곱으로 쪼개야 한다'는 걸 봤으니까 바로 선택했어요."
     },
     {
       "nodeId": "rad_step1_C_remedy",
@@ -124,7 +95,7 @@
       "student_reaction": "understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step2_A_check",
-      "comment": "이번엔 '√(a²)=a예요' 문장이 없어요! 숫자 예시만 있어요 — √4=2, 4=2²니까 √(2²)=2. 2차에서 a²가 나와 막혔는데 이번엔 없어서 한 번에 읽혔어요. 3차 수정 효과 확실히 느꼈어요."
+      "comment": "숫자 예시만 있어요 — √4=2, 4=2²니까 √(2²)=2. 문자 없이 숫자로만 확인할 수 있어요. 한 번에 읽혔어요."
     },
     {
       "nodeId": "rad_step2_A_check",
@@ -134,7 +105,7 @@
       "selected_text": "3√5",
       "is_correct": true,
       "next_node": "rad_step2_exit",
-      "comment": "remedy 통과 후 2회차. '9=3²니까 3이 나온다'를 기억하고 3√5 선택했어요."
+      "comment": "easy에서 본 '9=3²니까 3이 나온다'를 기억하고 3√5 선택했어요."
     },
     {
       "nodeId": "rad_step2_A_remedy",
@@ -183,6 +154,14 @@
       "comment": "'√를 각각 떼어내면 원래 곱셈이 그대로 이어지므로'라는 이유가 있어서 왜 더하면 안 되는지 조금 납득돼요. 완전히 체화는 안 됐지만 읽고 넘어갈 수 있어요. '다음으로'."
     },
     {
+      "nodeId": "rad_step3_A_easy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_A_check",
+      "comment": "√(4×25×3)에서 2×5=10이라는 예시. 이전 라운드에서도 본 내용이라 따라가요."
+    },
+    {
       "nodeId": "rad_step3_A_check",
       "kind": "check",
       "student_reaction": "understood",
@@ -191,14 +170,6 @@
       "is_correct": true,
       "next_node": "rad_step3_exit",
       "comment": "remedy 후 2회차. '곱해야 한다'는 걸 기억하고 맞췄어요."
-    },
-    {
-      "nodeId": "rad_step3_A_easy",
-      "kind": "explain",
-      "student_reaction": "understood",
-      "selected_option": "primaryLabel",
-      "next_node": "rad_step3_A_check",
-      "comment": "√(4×25×3)에서 2×5=10이라는 예시. 이전 라운드에서도 본 내용이라 따라가요."
     },
     {
       "nodeId": "rad_step3_A_remedy",
@@ -217,21 +188,20 @@
     {
       "nodeId": "rad_step3_C_explain",
       "kind": "explain",
-      "student_reaction": "partially_understood",
+      "student_reaction": "understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step3_C_check",
-      "comment": "이번엔 이유가 추가됐어요! '근호 안에 같은 수가 남아 있어야 더할 수 있어요 — 4√2+3√2=7√2처럼요'라는 예시가 붙으니 step3_A와 어떻게 연결되는지 맥락이 조금 잡혀요. '계수는 꺼내는 그 순간에 정리해야 빠뜨리지 않아요'라는 실용적 이유도 있어요. 2차 gave_up에서 partially_understood로 개선됐어요. 4√2+3√2=7√2 예시가 왜 여기서 나오는지 한 번 읽고 100% 연결은 안 됐지만, 막히지 않고 '다음으로' 선택할 수 있었어요."
+      "comment": "'근호 안에 같은 수가 남아 있어야 더할 수 있어요 — 4√2+3√2=7√2처럼요'라는 예시가 붙으니까 계수를 바로 정리해야 한다는 이유가 맥락 안에서 이해돼요. '계수는 꺼내는 그 순간에 정리해야 빠뜨리지 않아요'라는 실용적 이유도 납득돼요. 3차 partially_understood에서 이번엔 understood로 올라왔어요 — 여러 번 봐서 익숙해진 부분도 있어요."
     },
     {
       "nodeId": "rad_step3_C_check",
       "kind": "check",
-      "student_reaction": "confused",
-      "selected_option": "wrong2",
-      "selected_text": "13 (= 4 + 9)",
-      "is_correct": false,
-      "next_node": "rad_step3_C_remedy",
-      "where": "꺼낸 수(계수)가 4, 9인지 2, 3인지",
-      "comment": "첫 방문이라 아직 경고 문구를 못 봤어요. '4와 9를 동시에 꺼내면'이라는 문제 표현에서 꺼낸 수가 4와 9인 줄 알아서 13(=4+9)을 골랐어요. √ 밖으로 나오면 제곱근이 제거돼 값이 바뀐다는 걸 또 잊었어요."
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "6 (= 2 × 3)",
+      "is_correct": true,
+      "next_node": "rad_step3_exit",
+      "comment": "이번엔 문제 표현 '근호에서 4와 9를 꺼낸 결과를 곱하면'이라는 말에서 꺼낸 결과가 2, 3이라는 걸 hint로 받아들였어요. explain에서 4√2+3√2=7√2 예시를 보고 왔고, remedy 경고 문구도 기억하고 있어서 13 오류를 피했어요. 6 (= 2 × 3) 선택."
     },
     {
       "nodeId": "rad_step3_C_remedy",
@@ -239,7 +209,7 @@
       "student_reaction": "understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step3_C_check",
-      "comment": "이번엔 경고 문구가 있어요! '주의: 근호에서 꺼내면 √4가 2가 돼요 — 4와 다른 값이에요. 꺼낸 수(2, 3)끼리 곱하지, 원래 수(4, 9)끼리 더하지 않아요.' 이게 정확히 제가 헷갈리던 포인트예요. '꺼낸 수'와 '원래 수'가 다르다는 걸 처음으로 명확하게 알게 됐어요. 3차 수정 효과 확실히 느꼈어요."
+      "comment": "'주의: 근호에서 꺼내면 √4가 2가 돼요 — 4와 다른 값이에요. 꺼낸 수(2, 3)끼리 곱하지, 원래 수(4, 9)끼리 더하지 않아요.' 이게 정확히 혼동 지점을 짚어줘요."
     },
     {
       "nodeId": "rad_step3_exit",
@@ -249,29 +219,29 @@
     }
   ],
   "counts": {
-    "understood": 16,
-    "confused": 2,
-    "partially_understood": 6,
+    "understood": 22,
+    "confused": 0,
+    "partially_understood": 2,
     "gave_up": 0,
-    "correct_on_first_try": 2,
-    "correct_after_remedy": 5,
-    "total_node_visits": 28,
+    "correct_on_first_try": 4,
+    "correct_after_remedy": 3,
+    "total_node_visits": 24,
     "unique_nodes_visited": 24
   },
-  "delta_from_round2": {
-    "understood": "+4 (12→16)",
-    "confused": "-5 (7→2)",
-    "partially_understood": "-7 (13→6)",
-    "gave_up": "-2 (2→0)",
-    "correct_on_first_try": "+1 (1→2)",
-    "total_node_visits": "-4 (32→28)"
+  "delta_from_round3": {
+    "understood": "+6 (16→22)",
+    "confused": "-2 (2→0)",
+    "partially_understood": "-4 (6→2)",
+    "gave_up": "0 (0→0)",
+    "correct_on_first_try": "+2 (2→4)",
+    "total_node_visits": "-4 (28→24)"
   },
   "observations": [
-    "rad_step2_A_easy 문자 일반화 잔재(√(a²)=a) 제거 효과 확인 — 2차 confused → 3차 understood. 해당 노드의 핵심 문제가 해소됐어요.",
-    "rad_step3_C_explain 이유 추가 효과 확인 — 2차 gave_up → 3차 partially_understood. '4√2+3√2=7√2처럼요'라는 예시가 맥락을 잡아줬어요. 완전한 understood까지는 아니지만 give_up에서 벗어났어요.",
-    "rad_step3_C_remedy 꺼낸수/원래수 혼동 경고 효과 확인 — '주의: 근호에서 꺼내면 √4가 2가 돼요' 문구가 정확히 혼동 지점을 짚어줘서 understood로 전환됐어요.",
-    "잔류 confused 2건: rad_step1_A_explain(소수 정의 부재)과 rad_step1_C_explain(약분과 제곱 묶음 꺼내기의 차이가 이유 없이 단정됨). 두 노드 모두 3차 수정 범위 밖이었어요.",
-    "rad_step3_C_check에서 여전히 첫 방문 시 '13(=4+9)' 오류 발생 — check 문제 표현 '4와 9를 동시에 꺼내면'이 원래 수(4, 9)를 연상시키기 때문. remedy의 경고 문구가 사후 교정을 하지만, check 문제 자체의 표현 개선도 검토할 가치 있음.",
-    "3차 plan budget 소진. 잔류 confused 2건은 개선 여지가 있으나 이번 라운드 범위 밖."
+    "rad_step1_A_explain 소수 정의 괄호 추가 효과 확인 — '1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거' 삽입으로 3차 confused → 4차 understood. 첫 문장에서 막히던 문제 해소됨.",
+    "rad_step1_C_explain 약분 실패 예시 추가 효과 확인 — '√8 ÷ √2처럼 같은 모양이 아니면 약분처럼 줄일 수 없어요' + '8을 4×2로 쪼개 √4 × √2 = 2√2' 대안 제시로 3차 confused → 4차 understood. 이유 없는 단정 문제 해소됨.",
+    "rad_step3_C_explain 3차 partially_understood → 4차 understood — 이유가 명확해진 점 + 반복 노출 효과 복합 작용.",
+    "rad_step3_C_check 첫 방문 오류 해소 — 3차에서 '13(=4+9)' 오류를 냈는데 이번엔 프롬프트 문구 '꺼낸 결과를 곱하면'이 꺼낸 수(2, 3)임을 힌트로 주고, C_explain에서 예시를 본 상태라 첫 방문에서도 correct 선택.",
+    "잔류 partially_understood 2건(rad_step2_A_explain, rad_step3_A_explain)은 각각 easy로 보완되므로 플로우 기능 정상. 학습 완주 가능.",
+    "confused 0건 달성. verdict approve."
   ]
 }
