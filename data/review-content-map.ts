@@ -323,7 +323,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         choices: [
           { text: '전체를 한 번에 미분한다', correct: false, feedback: '다항식은 항별로 따로 미분해도 결과가 같아요. 항별로 처리하는 게 실수를 줄여줘요.' },
           { text: '각 항을 따로 미분 후 합산한다', correct: true, feedback: '맞아요! 각 항을 독립적으로 처리한 뒤 합치는 흐름이 안전해요.' },
-          { text: '상수항도 미분하면 계수가 나온다', correct: false, feedback: '상수항은 미분하면 0이 돼요. 계수가 남는 건 변수가 있는 항이에요.' },
+          { text: 'ax^n 형태에서 계수 a 도 함께 미분된다', correct: false, feedback: '계수는 미분 대상이 아니에요. 지수만 변하고 계수는 그대로 곱해져요 (예: 3x² → 3·2·x¹ = 6x).' },
         ],
       },
       {
