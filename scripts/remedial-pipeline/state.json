@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T16:42:03.681Z",
+  "lastUpdateAt": "2026-05-14T17:06:47.597Z",
   "queue": [
-    "complex_calc_error",
-    "remainder_substitution_error",
-    "simultaneous_equation_error",
     "counting_method_confusion",
     "counting_overcounting",
     "g3_diff",
@@ -59,12 +56,16 @@
     "rationalization_error",
     "expansion_sign_error",
     "like_terms_error",
-    "imaginary_unit_confusion"
+    "imaginary_unit_confusion",
+    "simultaneous_equation_error",
+    "remainder_substitution_error"
   ],
-  "manualReview": [],
+  "manualReview": [
+    "complex_calc_error"
+  ],
   "failed": [],
-  "totalTokens": 9470000,
-  "completedCount": 15,
+  "totalTokens": 9980000,
+  "completedCount": 18,
   "lastProgressReportAt": 12,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -143,6 +144,18 @@
     {
       "weaknessId": "imaginary_unit_confusion",
       "retries": 2
+    },
+    {
+      "weaknessId": "simultaneous_equation_error",
+      "retries": 0
+    },
+    {
+      "weaknessId": "complex_calc_error",
+      "retries": 3
+    },
+    {
+      "weaknessId": "remainder_substitution_error",
+      "retries": 2
     }
   ],
   "rejectionHistory": [
@@ -175,6 +188,11 @@
       "weaknessId": "imaginary_unit_confusion",
       "gate": "appearance-reviewer",
       "reason": "iuc_step1_A_explain body 4문장 한도(3) 초과 + remedial-flow 동어반복 → 본문 차별화로 해결"
+    },
+    {
+      "weaknessId": "complex_calc_error",
+      "gate": "remedial-flow",
+      "reason": "C분기 easy 연결 끊김·shallow 흐름 요약 부재 — 3회 재시도 초과"
     }
   ],
   "passedGates": {
@@ -291,6 +309,29 @@
       "thinkingstep-flow": true
     },
     "imaginary_unit_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "simultaneous_equation_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "complex_calc_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "thinkingstep-flow": true
+    },
+    "remainder_substitution_error": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,

@@ -804,9 +804,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '제수(나누는 식)가 x−a이면 x−a=0에서 x=a를 구한다.',
         example: '예) x−2로 나눌 때 → x=2',
         choices: [
-          { text: 'x=−a를 구한다', correct: false, feedback: 'x−a=0에서 풀리는 값은 +a예요. 부호 방향을 한 번 더 살펴봐요.' },
-          { text: 'x−a=0에서 x=a를 구한다', correct: true, feedback: '맞아요! 제수의 영점 x=a가 곧 P에 넣을 값이에요.' },
-          { text: 'x=0을 대입한다', correct: false, feedback: 'x=0은 (x−a)와 무관한 값이에요. 제수가 0이 되는 x를 찾아야 해요.' },
+          { text: 'x=−a를 구한다', correct: false, feedback: 'x−a=0에서 풀리는 값은 +a예요. 부호 방향을 한 번 더 살펴봐요.', remedialFlowStartNodeId: 'rse_step1_A_explain', weaknessId: 'remainder_substitution_error' },
+          { text: 'x−a=0에서 x=a를 구한다', correct: true, feedback: '맞아요! 제수를 0으로 만드는 x=a가 곧 P에 넣을 값이에요.' },
+          { text: 'x=0을 대입한다', correct: false, feedback: 'x=0은 (x−a)와 무관한 값이에요. 제수가 0이 되는 x를 찾아야 해요.', remedialFlowStartNodeId: 'rse_step1_C_explain', weaknessId: 'remainder_substitution_error' },
         ],
       },
       {
@@ -815,9 +815,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '나머지는 P(a)이므로 구한 x=a를 다항식 P(x)에 대입하여 계산한다.',
         example: '예) P(x)=x²+3, a=2 → P(2)=4+3=7 (나머지=7)',
         choices: [
-          { text: 'P(0)을 계산한다', correct: false, feedback: 'P(0)은 x=0에서의 함수값이에요. 나머지정리는 x=a에서의 값을 봐야 해요.' },
+          { text: 'P(0)을 계산한다', correct: false, feedback: 'P(0)은 x=0에서의 함수값이에요. 나머지정리는 x=a에서의 값을 봐야 해요.', remedialFlowStartNodeId: 'rse_step2_A_explain', weaknessId: 'remainder_substitution_error' },
           { text: 'P(a)에 x=a를 대입한다', correct: true, feedback: '맞아요! 제수의 영점을 다항식에 넣으면 곧 나머지가 나와요.' },
-          { text: 'P(x)에 제수를 대입한다', correct: false, feedback: '제수 자체가 아니라, 제수가 0이 되는 x값을 대입해야 해요.' },
+          { text: 'P(x)에 제수를 대입한다', correct: false, feedback: '제수 자체가 아니라, 제수가 0이 되는 x값을 대입해야 해요.', remedialFlowStartNodeId: 'rse_step2_C_explain', weaknessId: 'remainder_substitution_error' },
         ],
       },
       {
@@ -826,9 +826,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'P(a)의 계산 결과가 P(x)를 (x−a)로 나눈 나머지이다.',
         example: '예) P(2)=7 → 나머지 7',
         choices: [
-          { text: 'P(a)는 몫이다', correct: false, feedback: 'P(a)는 (x−a)로 나눈 나머지예요. 몫은 다항식 나눗셈으로 따로 구해요.' },
+          { text: 'P(a)는 몫이다', correct: false, feedback: 'P(a)는 (x−a)로 나눈 나머지예요. 몫은 다항식 나눗셈으로 따로 구해요.', remedialFlowStartNodeId: 'rse_step3_A_explain', weaknessId: 'remainder_substitution_error' },
           { text: 'P(a)가 바로 나머지이다', correct: true, feedback: '맞아요! 나머지정리의 핵심 결과예요.' },
-          { text: 'P(a)에서 1을 빼면 나머지이다', correct: false, feedback: '보정 없이 P(a) 그 값이 곧 나머지예요. 따로 빼지 않아도 돼요.' },
+          { text: 'P(a)에서 1을 빼면 나머지이다', correct: false, feedback: '보정 없이 P(a) 그 값이 곧 나머지예요. 따로 빼지 않아도 돼요.', remedialFlowStartNodeId: 'rse_step3_C_explain', weaknessId: 'remainder_substitution_error' },
         ],
       },
     ],
@@ -842,9 +842,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '문제에서 주어진 두 조건을 각각 x, y에 대한 방정식으로 옮겨 쓴다.',
         example: '예) 합=10, 차=4 → x+y=10, x−y=4',
         choices: [
-          { text: '조건 하나만 식으로 변환한다', correct: false, feedback: '변수가 두 개면 식도 두 개가 필요해요. 한쪽만 옮기면 풀 수 없어요.' },
+          { text: '조건 하나만 식으로 변환한다', correct: false, feedback: '변수가 두 개면 식도 두 개가 필요해요. 한쪽만 옮기면 풀 수 없어요.', remedialFlowStartNodeId: 'see_step1_A_diagnose', weaknessId: 'simultaneous_equation_error' },
           { text: '두 조건 모두 방정식으로 변환한다', correct: true, feedback: '맞아요! 변수 수만큼 식을 모아야 연립의 출발점이 만들어져요.' },
-          { text: '조건은 암산으로 처리한다', correct: false, feedback: '암산으로 풀면 어디서 어긋났는지 추적이 어려워요. 한 줄씩 적는 게 안전해요.' },
+          { text: '조건은 암산으로 처리한다', correct: false, feedback: '암산으로 풀면 어디서 어긋났는지 추적이 어려워요. 한 줄씩 적는 게 안전해요.', remedialFlowStartNodeId: 'see_step1_C_diagnose', weaknessId: 'simultaneous_equation_error' },
         ],
       },
       {
@@ -853,9 +853,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '두 식을 더하거나 빼서 변수 하나를 없애 단일 방정식으로 만든다.',
         example: '예) (x+y=10)+(x−y=4) → 2x=14 → x=7',
         choices: [
-          { text: '두 식을 곱해서 소거한다', correct: false, feedback: '곱하면 식이 더 복잡해져요. 한 변수를 없애려면 더하거나 빼는 게 자연스러워요.' },
+          { text: '두 식을 곱해서 소거한다', correct: false, feedback: '곱하면 식이 더 복잡해져요. 한 변수를 없애려면 더하거나 빼는 게 자연스러워요.', remedialFlowStartNodeId: 'see_step2_A_diagnose', weaknessId: 'simultaneous_equation_error' },
           { text: '두 식을 더하거나 빼서 변수를 소거한다', correct: true, feedback: '맞아요! 한 변수가 사라지면 익숙한 1변수 방정식이 돼요.' },
-          { text: '두 식 중 하나를 버린다', correct: false, feedback: '두 식이 서로의 정보를 줘서 같이 써야 해결돼요. 하나만 두면 답을 정할 수 없어요.' },
+          { text: '두 식 중 하나를 버린다', correct: false, feedback: '두 식이 서로의 정보를 줘서 같이 써야 해결돼요. 하나만 두면 답을 정할 수 없어요.', remedialFlowStartNodeId: 'see_step2_C_diagnose', weaknessId: 'simultaneous_equation_error' },
         ],
       },
       {
@@ -864,9 +864,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '구한 x를 한 식에 대입하여 y를 구하고, 두 식 모두 성립하는지 검산한다.',
         example: '예) x=7을 x+y=10에 대입 → y=3',
         choices: [
-          { text: '한 식에만 검산한다', correct: false, feedback: '다른 식도 만족하는지 확인해야 진짜 해예요. 두 식 모두 통과해야 안심할 수 있어요.' },
+          { text: '한 식에만 검산한다', correct: false, feedback: '다른 식도 만족하는지 확인해야 진짜 해예요. 두 식 모두 통과해야 안심할 수 있어요.', remedialFlowStartNodeId: 'see_step3_A_diagnose', weaknessId: 'simultaneous_equation_error' },
           { text: '두 식 모두 대입해 검산한다', correct: true, feedback: '맞아요! 두 식 모두 만족해야 연립 방정식의 해라고 할 수 있어요.' },
-          { text: '대입 없이 x만 답으로 쓴다', correct: false, feedback: 'y도 답의 일부예요. 한 변수만 적고 끝내면 문제의 답이 절반 남아요.' },
+          { text: '대입 없이 x만 답으로 쓴다', correct: false, feedback: 'y도 답의 일부예요. 한 변수만 적고 끝내면 문제의 답이 절반 남아요.', remedialFlowStartNodeId: 'see_step3_C_diagnose', weaknessId: 'simultaneous_equation_error' },
         ],
       },
     ],
