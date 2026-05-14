@@ -4,27 +4,30 @@
     "flow": "radical_simplification_error",
     "total_nodes": 24,
     "review_date": "2026-05-14",
-    "description": "6등급 수준의 학생 관점에서 각 노드를 순회하며 이해도, 혼란 지점, 선택 반응을 기록한 파일럿 리뷰"
+    "review_round": 2,
+    "description": "commit d64ea89 기준 재리뷰. 수정 사항(소인수분해 풀어쓰기, a²→a 추상화 제거, 계수 곱셈 이유 추가) 반영 후 6등급 학생 페르소나로 재순회."
   },
   "summary": {
-    "understood": 10,
-    "confused": 11,
-    "gave_up": 3,
+    "understood": 12,
+    "confused": 7,
+    "gave_up": 2,
+    "partially_understood": 13,
+    "verdict": "개선됨 — 수정 전 confused 11·gave_up 3 → confused 7·gave_up 2. step1·step2 수정 효과 확인. step3_C 분기와 rad_step2_A_easy 잔류 문제는 여전히 남음.",
     "top3_confused_nodes": [
       {
         "rank": 1,
-        "nodeId": "rad_step1_A_check",
-        "reason": "72를 소인수분해해서 제곱 묶음이 보이는 형태로 쓰라는 문제인데, '2² × 3² × 2'라는 표현 자체를 본 적이 없어요. 8 × 9라고 쓰는 게 더 익숙하고, 왜 거기서 한 번 더 쪼개야 하는지 이유를 모르겠어요. 소인수분해 개념 자체가 흐릿해서 선택지를 보고도 어떤 게 맞는지 감이 안 와요."
+        "nodeId": "rad_step2_A_easy",
+        "reason": "숫자 예시(√4=2, √9=3)는 이제 잘 따라갈 수 있어요. 그런데 맨 마지막 줄에 갑자기 '그래서 √(a²) = a예요'가 나와요. 앞에서 숫자로만 설명해 줬는데 갑자기 a²가 튀어나오니까 또 막혀요. 문자 일반화 문장이 한 줄이라도 남아 있으면 6등급 학생은 거기서 멈춰요."
       },
       {
         "rank": 2,
-        "nodeId": "rad_step2_A_explain",
-        "reason": "√(a² × b) = a√b라는 공식이 갑자기 나오는데, a²가 왜 a로 바뀌는지 머릿속에서 납득이 안 돼요. '제곱이 풀린다'는 말의 의미를 모르겠고, 근호를 씌웠다 벗겼다 하는 개념이 혼란스러워요. 숫자가 아니라 문자(a)로 설명하니까 더 막막해요."
+        "nodeId": "rad_step3_C_explain",
+        "reason": "'계수는 꺼내는 그 자리에서 바로 정리해요'는 왜 그렇게 해야 하는지 이유가 없어요. 나중에 따로 계산하면 왜 안 되는지 감이 안 오고, step3_A 분기를 이미 통과한 상태라 지쳐 있어서 설명이 새로운 내용처럼 안 느껴져요."
       },
       {
         "rank": 3,
-        "nodeId": "rad_step3_A_explain",
-        "reason": "제곱 묶음을 꺼냈을 때 앞에 곱해진 수들을 '더하지 않고 곱한다'는 규칙이 왜 그런지 이해가 안 돼요. 근호 밖으로 나온 2와 3은 어차피 더해도 될 것 같고, 곱해야 하는 이유가 설명에서 명확하게 와 닿지 않아요."
+        "nodeId": "rad_step1_A_explain",
+        "reason": "소인수분해를 '작은 소수(2, 3, 5…)들의 곱으로 끝까지 쪼개기'로 풀어써 줘서 이전보다 낫긴 해요. 그런데 '소수가 뭔지'는 여전히 설명이 없어서, 소수 개념이 흐릿한 학생은 첫 문장부터 막혀요. 진입 전에 소수를 한 줄이라도 정의해 주면 좋겠어요."
       }
     ]
   },
@@ -35,15 +38,15 @@
       "student_reaction": "confused",
       "selected_option": "secondaryLabel",
       "next_node": "rad_step1_A_easy",
-      "comment": "소인수분해라는 단어가 나오자마자 막혀요. '작은 소수들의 곱으로 쪼개기'라는 풀이말도 소수가 뭔지 잘 생각 안 나서 이해가 어려워요. 72를 2² × 3² × 2처럼 쓰는 게 익숙하지 않아요. '모르겠어요' 선택."
+      "comment": "'작은 소수(2, 3, 5…)들의 곱으로 끝까지 쪼개기'라는 풀어쓰기가 생겨서 이전보다 조금 나아졌어요. 72 = 2² × 2 × 3² 예시도 전보다 납득이 가요. 그래도 소수가 정확히 뭔지 모르는 상태라 '소수로 쪼갠다'는 말이 실감나게 와 닿지 않아요. '모르겠어요' 선택."
     },
     {
       "nodeId": "rad_step1_A_easy",
       "kind": "explain",
-      "student_reaction": "confused",
+      "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_A_check",
-      "comment": "50 = 2 × 5²라는 예시는 그나마 작은 숫자라 조금 따라갈 수 있었어요. 근데 왜 5²라는 제곱 묶음을 '찾아야' 하는지의 목적이 아직도 흐릿해요. 일단 '다음으로' 눌러봐요."
+      "comment": "50 = 2 × 5²이라는 작은 숫자 예시는 따라갈 수 있어요. '5²라는 제곱 묶음을 찾아야 한다'는 목적이 아직 흐릿하지만, 이전보다는 조금 더 납득되는 느낌이에요. 일단 '다음으로'."
     },
     {
       "nodeId": "rad_step1_A_check",
@@ -53,7 +56,7 @@
       "selected_text": "8 × 9",
       "is_correct": false,
       "next_node": "rad_step1_A_remedy",
-      "comment": "72 = 8 × 9는 학교에서 배운 기억이 있어서 그냥 눌렀어요. '제곱 묶음이 보이는 형태'라는 말이 무슨 의미인지 몰라서 나머지 선택지는 고려 못 했어요. 틀렸네요..."
+      "comment": "여전히 72 = 8 × 9가 먼저 떠올라요. '제곱 묶음이 보이는 형태'라는 말이 무엇을 뜻하는지 선택지를 보기 전까지 몰라요."
     },
     {
       "nodeId": "rad_step1_A_remedy",
@@ -61,7 +64,7 @@
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_A_check",
-      "comment": "8 = 2³, 9 = 3²라는 부분은 외워서 알아요. 그런데 2³를 다시 2² × 2로 쪼개는 과정이 왜 필요한지 느낌이 안 와요. 그냥 '이렇게 하는 거구나' 하고 외우는 느낌이에요."
+      "comment": "8 = 2³ = 2² × 2로 쪼개는 단계가 이제 눈에 더 잘 들어와요. '2²라는 제곱 묶음이 보이도록' 이라는 목적이 remedy에서 처음 실감 나요."
     },
     {
       "nodeId": "rad_step1_A_check",
@@ -71,13 +74,13 @@
       "selected_text": "2² × 3² × 2",
       "is_correct": true,
       "next_node": "rad_step1_exit",
-      "comment": "두 번째 도전. 방금 remedy에서 본 답이랑 같아서 고름. 사실 원리보다 그냥 기억에서 꺼낸 거예요. (2회차 visit)"
+      "comment": "remedy에서 본 형태 그대로 골랐어요. (2회차 visit)"
     },
     {
       "nodeId": "rad_step1_exit",
       "kind": "exit",
       "student_reaction": "neutral",
-      "comment": "step1 A 분기 종료. 겨우 통과했지만 소인수분해의 '왜'는 아직 모르겠어요."
+      "comment": "step1 A 분기 종료. 소인수분해 '왜'는 아직 외우기 수준이지만, 이전보다 덜 막혔어요."
     },
     {
       "nodeId": "rad_step1_C_explain",
@@ -85,7 +88,7 @@
       "student_reaction": "confused",
       "selected_option": "secondaryLabel",
       "next_node": "rad_step1_A_easy",
-      "comment": "'약분은 분수에서 쓰는 거고, 여기서는 제곱 묶음을 꺼내야 한다'는 구분이 아직 헷갈려요. 두 방법이 뭐가 다른지 실감이 안 나요. '모르겠어요' 선택."
+      "comment": "'약분은 분수, 여기서는 제곱 묶음을 꺼내는 것'이라는 구분이 아직 실감 안 나요. 두 방법이 뭐가 구체적으로 다른지 예시가 나란히 보이면 좋겠어요. '모르겠어요'."
     },
     {
       "nodeId": "rad_step1_A_easy",
@@ -93,7 +96,7 @@
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_C_check",
-      "comment": "다시 √50 예시가 나왔어요. 아까 봤던 내용이라 조금 친숙해요. 그래도 '제곱 묶음'이라는 말이 아직 어색해요."
+      "comment": "두 번째로 보는 √50 예시라 조금 친숙해요. 이전 round와 비슷한 수준."
     },
     {
       "nodeId": "rad_step1_C_check",
@@ -103,7 +106,7 @@
       "selected_text": "√50은 이미 간소화 불가다",
       "is_correct": false,
       "next_node": "rad_step1_C_remedy",
-      "comment": "√50이 간소화 가능한지 잘 모르겠어서 그냥 '불가'라고 찍었어요. 어떤 수가 더 간소화될 수 있는지 판별하는 법을 모르겠어요."
+      "comment": "50이 간소화 가능한지 판별하는 법을 아직 몰라요. '불가'라고 찍었어요."
     },
     {
       "nodeId": "rad_step1_C_remedy",
@@ -111,7 +114,7 @@
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step1_C_check",
-      "comment": "50 = 2 × 5²이고 5²가 제곱 묶음이라는 건 외웠어요. 그래서 √50 = 5√2가 된다는 결과는 납득이 돼요. 그런데 '어떻게 5²를 찾느냐'는 스스로는 못 할 것 같아요."
+      "comment": "50 = 2 × 5²이고 5²가 제곱 묶음이라는 건 외웠어요. 자력으로 쪼개는 자신은 아직 없어요."
     },
     {
       "nodeId": "rad_step1_C_check",
@@ -121,7 +124,7 @@
       "selected_text": "50을 소수의 곱으로 쪼개 제곱 묶음을 찾는다",
       "is_correct": true,
       "next_node": "rad_step1_exit",
-      "comment": "이번엔 맞췄어요. 방금 remedy에서 읽은 내용이라 기억으로 골랐어요. (2회차 visit)"
+      "comment": "remedy 직후라 기억으로 골랐어요. (2회차 visit)"
     },
     {
       "nodeId": "rad_step1_exit",
@@ -132,18 +135,18 @@
     {
       "nodeId": "rad_step2_A_explain",
       "kind": "explain",
-      "student_reaction": "confused",
+      "student_reaction": "partially_understood",
       "selected_option": "secondaryLabel",
       "next_node": "rad_step2_A_easy",
-      "comment": "√(a² × b) = a√b에서 a²가 왜 갑자기 a가 되는지 모르겠어요. '제곱이 풀린다'는 말이 의미하는 게 뭔지 이미지가 안 그려져요. 문자로 설명하니까 더 어렵게 느껴져요. '모르겠어요' 선택."
+      "comment": "이번엔 숫자 예시(√4=2, √9=3, √25=5)가 먼저 나와서 이전보다 훨씬 낫네요. '9 = 3²니까 3이 밖으로 나온다'는 흐름이 숫자로 보이니까요. 그래도 완전히 납득하기 전에 '모르겠어요'로 더 확인하고 싶어요."
     },
     {
       "nodeId": "rad_step2_A_easy",
       "kind": "explain",
-      "student_reaction": "partially_understood",
+      "student_reaction": "confused",
       "selected_option": "primaryLabel",
       "next_node": "rad_step2_A_check",
-      "comment": "√4 = 2, 4 = 2²니까 √(2²) = 2라는 예시는 이해돼요. 숫자로 보니까 훨씬 쉬워요. 그런데 이게 왜 문자 a로 일반화되는지는 여전히 불안해요."
+      "comment": "√4=2, 4=2²니까 √(2²)=2 예시가 명확해요. 그런데 맨 마지막에 '그래서 √(a²)=a예요'가 붙어 있어요. 지금까지 숫자만 보다가 갑자기 a²가 나오니까 다시 막혀요. 이 문장이 없으면 훨씬 깔끔할 것 같아요."
     },
     {
       "nodeId": "rad_step2_A_check",
@@ -153,7 +156,7 @@
       "selected_text": "9√5",
       "is_correct": false,
       "next_node": "rad_step2_A_remedy",
-      "comment": "√(9 × 5)에서 9가 그대로 밖으로 나오는 줄 알았어요. 9 = 3²라서 3이 나와야 한다는 걸 깜빡했어요. 직관적으로 9가 먼저 눈에 들어왔어요."
+      "comment": "직관적으로 9가 그대로 나오는 줄 알았어요. 9=3²라서 3이 나온다는 걸 check 문제 풀 때 또 잊었어요."
     },
     {
       "nodeId": "rad_step2_A_remedy",
@@ -161,7 +164,7 @@
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step2_A_check",
-      "comment": "'9 = 3²니까 밖에 나오면 3'이라는 단계가 이제 좀 보여요. 그래도 처음에 왜 틀렸는지 정확히 모르겠고, 다음에 비슷한 문제 나오면 또 헷갈릴 것 같아요."
+      "comment": "'9=3²니까 밖에 나오면 3'이라는 단계가 보여요. 이제 조금 납득돼요."
     },
     {
       "nodeId": "rad_step2_A_check",
@@ -171,7 +174,7 @@
       "selected_text": "3√5",
       "is_correct": true,
       "next_node": "rad_step2_exit",
-      "comment": "9 = 3²라는 걸 방금 봤으니까 이번엔 3√5 선택. (2회차 visit)"
+      "comment": "remedy 보고 이번엔 3√5. (2회차 visit)"
     },
     {
       "nodeId": "rad_step2_exit",
@@ -182,46 +185,20 @@
     {
       "nodeId": "rad_step2_C_explain",
       "kind": "explain",
-      "student_reaction": "confused",
-      "selected_option": "secondaryLabel",
-      "next_node": "rad_step2_A_easy",
-      "comment": "√(4 × 9 × 2)에서 4와 9를 동시에 꺼낸다는 게 머릿속에서 한 번에 안 그려져요. 하나씩 꺼내야 하는 건지 동시에 꺼낼 수 있는 건지도 몰랐어요. '모르겠어요' 선택."
-    },
-    {
-      "nodeId": "rad_step2_A_easy",
-      "kind": "explain",
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step2_C_check",
-      "comment": "√4 = 2, √9 = 3이라는 사실은 알아요. 여기서 2 × 3 = 6이 되는 흐름은 따라갈 수 있어요."
+      "comment": "√(4×9×2)에서 4=2², 9=3²를 꺼내면 2×3×√2=6√2라는 흐름이 이번엔 한 번 읽고도 어느 정도 따라갈 수 있어요. '동시에 꺼낼 수 있다'는 감각이 조금 잡혔어요. 일단 '다음으로'."
     },
     {
       "nodeId": "rad_step2_C_check",
       "kind": "check",
-      "student_reaction": "confused",
-      "selected_option": "wrong1",
-      "selected_text": "√72",
-      "is_correct": false,
-      "next_node": "rad_step2_C_remedy",
-      "comment": "4 × 9 × 2 = 72이니까 √72라고 그냥 합쳤어요. 간소화를 해야 한다는 건 알겠는데, 어떻게 해야 하는지 단계가 떠오르지 않아서 그냥 숫자를 곱해버렸어요."
-    },
-    {
-      "nodeId": "rad_step2_C_remedy",
-      "kind": "explain",
       "student_reaction": "partially_understood",
-      "selected_option": "primaryLabel",
-      "next_node": "rad_step2_C_check",
-      "comment": "√4 = 2, √9 = 3, 그래서 계수가 2 × 3 = 6이고 안에 2가 남는다. 이 흐름은 외울 수 있어요. 그래도 왜 계수들을 곱하는지 감보다 암기로 이해하는 것 같아요."
-    },
-    {
-      "nodeId": "rad_step2_C_check",
-      "kind": "check",
-      "student_reaction": "understood",
       "selected_option": "correct",
       "selected_text": "6√2",
       "is_correct": true,
       "next_node": "rad_step2_exit",
-      "comment": "방금 remedy 보고 바로 6√2 선택. (2회차 visit)"
+      "comment": "이번엔 첫 시도에 6√2를 골랐어요. explain에서 똑같은 예시를 방금 봤기 때문이에요. 진짜 이해인지 암기인지는 여전히 불분명해요."
     },
     {
       "nodeId": "rad_step2_exit",
@@ -232,18 +209,10 @@
     {
       "nodeId": "rad_step3_A_explain",
       "kind": "explain",
-      "student_reaction": "confused",
-      "selected_option": "secondaryLabel",
-      "next_node": "rad_step3_A_easy",
-      "comment": "'더하는 게 아니라 곱해야 한다'는 규칙이 왜 그런지 설명이 부족한 느낌이에요. 밖으로 나온 2와 3을 곱한다는 게 왜 맞는지 이유를 모르겠어요. '모르겠어요' 선택."
-    },
-    {
-      "nodeId": "rad_step3_A_easy",
-      "kind": "explain",
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step3_A_check",
-      "comment": "√(4 × 25 × 3)에서 2 + 5 = 7이 아니라 2 × 5 = 10이라는 예시가 나왔어요. 결과는 외울 수 있는데 왜 곱해야 하는지는 여전히 모르겠어요. 일단 '다음으로'."
+      "comment": "'√를 각각 떼어내면 원래 곱셈이 그대로 이어지므로 밖으로 나온 2와 3도 곱해서 6이 된다'는 이유가 생겨서 이전보다 훨씬 납득이 돼요. 더하면 안 되는 이유가 처음으로 감각에 잡혔어요. '다음으로'."
     },
     {
       "nodeId": "rad_step3_A_check",
@@ -253,7 +222,7 @@
       "selected_text": "2 + 3 = 5 → 5√3",
       "is_correct": false,
       "next_node": "rad_step3_A_remedy",
-      "comment": "2와 3을 더해서 5라고 했어요. 곱해야 한다는 건 방금 봤는데, 막상 문제에서 더하는 게 더 자연스럽게 느껴졌어요. '왜 곱하는지' 이유가 체화가 안 됐어요."
+      "comment": "설명에서 '곱한다'고 봤는데 막상 선택지 앞에서 더하는 게 또 자연스럽게 느껴졌어요. 규칙은 알겠는데 체화가 안 됐어요."
     },
     {
       "nodeId": "rad_step3_A_remedy",
@@ -261,7 +230,7 @@
       "student_reaction": "partially_understood",
       "selected_option": "primaryLabel",
       "next_node": "rad_step3_A_check",
-      "comment": "√(4 × 9 × 3) = √4 × √9 × √3 = 2 × 3 × √3 = 6√3 이라는 전개가 보여요. √를 분리해서 각각 계산한다는 게 이제 조금 납득돼요."
+      "comment": "√(4×9×3)=√4×√9×√3=2×3×√3=6√3 전개가 명확해요. 이번엔 납득되는 느낌이에요."
     },
     {
       "nodeId": "rad_step3_A_check",
@@ -271,7 +240,7 @@
       "selected_text": "2 × 3 = 6 → 6√3",
       "is_correct": true,
       "next_node": "rad_step3_exit",
-      "comment": "remedy 보고 이번엔 맞췄어요. (2회차 visit)"
+      "comment": "remedy 바로 뒤라 맞췄어요. (2회차 visit)"
     },
     {
       "nodeId": "rad_step3_exit",
@@ -285,7 +254,7 @@
       "student_reaction": "gave_up",
       "selected_option": "secondaryLabel",
       "next_node": "rad_step3_A_easy",
-      "comment": "'계수는 꺼내는 그 자리에서 바로 정리해요'라는 말이 어떤 의미인지 실감이 안 나요. 나중에 따로 계산하면 왜 안 되는지 이유를 모르겠어요. 피곤해서 그냥 '모르겠어요'."
+      "comment": "'계수는 꺼내는 그 자리에서 바로 정리해요'라는 말이 이번에도 왜 그래야 하는지 이유가 빠진 느낌이에요. step3_A에서 이미 비슷한 내용을 봤는데 또 같은 설명이 나오니 지루하고, 지쳐서 '모르겠어요'."
     },
     {
       "nodeId": "rad_step3_A_easy",
@@ -293,7 +262,7 @@
       "student_reaction": "gave_up",
       "selected_option": "primaryLabel",
       "next_node": "rad_step3_C_check",
-      "comment": "또 나오는 √(4 × 25 × 3) 예시. 같은 예시가 반복되니 조금 지루해요. 이해보다 패턴 암기 상태."
+      "comment": "√(4×25×3) 예시가 또 나왔어요. 이번 세션에서 세 번째 보는 예시예요. 패턴은 외웠지만 이해했다는 자신은 없어요."
     },
     {
       "nodeId": "rad_step3_C_check",
@@ -303,15 +272,15 @@
       "selected_text": "13 (= 4 + 9)",
       "is_correct": false,
       "next_node": "rad_step3_C_remedy",
-      "comment": "4와 9를 꺼낸다고 했는데 꺼낸 수가 4, 9인지 2, 3인지 다시 헷갈렸어요. 4 + 9 = 13이라고 했어요. √ 안에서 꺼내면 값이 변한다는 걸 또 잊었어요."
+      "comment": "꺼낸 수가 4, 9인지 2, 3인지 헷갈려서 또 4+9=13이라고 했어요. √ 밖으로 나오면 값이 바뀐다는 걸 계속 잊어요."
     },
     {
       "nodeId": "rad_step3_C_remedy",
       "kind": "explain",
-      "student_reaction": "gave_up",
+      "student_reaction": "partially_understood",
       "selected_option": "secondaryLabel",
       "next_node": "rad_step3_exit",
-      "comment": "√4 = 2, √9 = 3 → 2 × 3 = 6이라는 설명. 이해는 해요. 그런데 이걸 시험에서 스스로 할 수 있을지 자신 없어요. 너무 피곤해서 '모르겠어요' 누르고 종료."
+      "comment": "√4=2, √9=3 → 2×3=6이라는 흐름은 이해해요. 그래도 시험에서 스스로 할 자신이 없고, 피곤해서 '모르겠어요'."
     },
     {
       "nodeId": "rad_step3_exit",
@@ -321,20 +290,28 @@
     }
   ],
   "counts": {
-    "understood": 10,
-    "confused": 11,
-    "partially_understood": 10,
-    "gave_up": 3,
-    "correct_on_first_try": 0,
+    "understood": 12,
+    "confused": 7,
+    "partially_understood": 13,
+    "gave_up": 2,
+    "correct_on_first_try": 1,
     "correct_after_remedy": 6,
-    "total_node_visits": 34,
+    "total_node_visits": 32,
     "unique_nodes_visited": 24
   },
+  "delta_from_round1": {
+    "understood": "+2 (10→12)",
+    "confused": "-4 (11→7)",
+    "gave_up": "-1 (3→2)",
+    "correct_on_first_try": "+1 (0→1)",
+    "total_node_visits": "-2 (34→32, step2_C 경로 단축)"
+  },
   "observations": [
-    "소인수분해 선행지식이 흔들리면 step1 전체가 막히는 구조. '소수'의 정의를 먼저 확인하는 진입 노드가 있으면 좋을 것 같아요.",
-    "문자(a, b) 일반화 설명은 6등급 학생에게 너무 이른 단계. 숫자 예시를 먼저 충분히 반복한 뒤 문자로 연결하는 노드가 필요해요.",
-    "remedy → check 재방문 구조에서 학생이 암기로 통과하는 패턴이 반복돼요. '직접 쓰기' 또는 '빈칸 채우기' 형태의 오픈엔드 확인이 있으면 실질 이해를 체크할 수 있을 것 같아요.",
-    "계수를 '더하는' 실수(step3_A, step3_C)는 두 분기에서 모두 나왔어요. 이 오개념은 별도의 강화 노드가 있어야 할 것 같아요.",
-    "같은 예시(√(4 × 25 × 3), √72)가 여러 노드에서 반복되는 건 도움이 될 수도 있지만, 지루함·패턴 암기 위험도 있어요."
+    "소인수분해를 '작은 소수의 곱으로 끝까지 쪼개기'로 풀어쓴 효과 확인 — step1_A_explain에서 혼란이 줄었지만 '소수가 뭔지' 정의가 없으면 여전히 막힘.",
+    "rad_step2_A_explain 숫자 예시 우선 배치 효과 확인 — step2_A_explain 반응이 confused→partially_understood로 개선. 단, rad_step2_A_easy 마지막 줄 '√(a²)=a예요' 잔류로 해당 노드에서 다시 confused.",
+    "계수 곱셈 이유('원래 곱셈이 그대로 이어지므로') 추가 효과 확인 — step3_A_explain에서 처음으로 '다음으로'를 선택하는 변화. 그러나 check에서 여전히 더하는 선택 오류 발생.",
+    "step3_C 분기는 이번 수정에 포함되지 않아 gave_up 2건이 그대로 남음. '왜 그 자리에서 바로 정리해야 하는가'에 대한 이유 추가 필요.",
+    "remedy→check 암기 통과 패턴 지속 — correct_on_first_try는 1개뿐. 오픈엔드 확인 또는 문제 변형 없이는 실질 이해 검증 어려움.",
+    "step3에서 √ 밖으로 나오면 제곱근이 제거돼 값이 바뀐다는 사실을 반복 망각 — '꺼낸 수'와 '원래 수'를 구분하는 별도 강화 노드 또는 경고 문구 필요."
   ]
 }
