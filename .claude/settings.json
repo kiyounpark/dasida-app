@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "mcp__claude_ai_Notion__notion-create-pages",
       "mcp__claude_ai_Notion__notion-update-page",
@@ -15,7 +16,8 @@
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
-      "Bash"
+      "Bash",
+      "Bash(*)"
     ]
   },
   "hooks": {
