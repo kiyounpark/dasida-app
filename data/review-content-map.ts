@@ -196,9 +196,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '식을 (x−a)²+b 꼴로 바꾸거나 이미 그 꼴인지 확인해요.',
         example: '예) (x−3)²+2 → a=3, b=2',
         choices: [
-          { text: '표준형으로 바꿀 필요 없다', correct: false, feedback: '이미 표준형처럼 보여도 꼴을 먼저 확인해야 a와 b가 헷갈리지 않아요. (x−a)²+b 꼴이어야 a와 b가 한눈에 보여요.' },
+          { text: '표준형으로 바꿀 필요 없다', correct: false, feedback: '이미 표준형처럼 보여도 꼴을 먼저 확인해야 a와 b가 헷갈리지 않아요. (x−a)²+b 꼴이어야 a와 b가 한눈에 보여요.', remedialFlowStartNodeId: 'minv_step1_A_diagnose', weaknessId: 'min_value_read_confusion' },
           { text: '(x−a)²+b 꼴로 먼저 파악한다', correct: true, feedback: '맞아요! 이 꼴이 보이면 최솟값과 그 위치를 그대로 읽을 수 있어요.' },
-          { text: 'a가 최솟값이고 b는 그 위치이다', correct: false, feedback: 'a와 b의 역할이 반대예요. a는 최솟값이 되는 x의 위치, b는 최솟값(값 자체)이에요.' },
+          { text: 'a가 최솟값이고 b는 그 위치이다', correct: false, feedback: 'a와 b의 역할이 반대예요. a는 최솟값이 되는 x의 위치, b는 최솟값(값 자체)이에요.', remedialFlowStartNodeId: 'minv_step1_C_diagnose', weaknessId: 'min_value_read_confusion' },
         ],
       },
       {
@@ -207,9 +207,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '(x−a)²는 항상 0 이상이에요. 가장 작을 때는 0이고, 그러면 식에서 남는 건 b뿐이에요. 그래서 최솟값은 b예요.',
         example: '예) (x−3)²+2 → 최솟값 = 2',
         choices: [
-          { text: '최솟값은 a이다', correct: false, feedback: 'a는 최솟값을 갖는 x의 위치예요. 값과 위치를 헷갈리기 쉬워서 한 번 더 짚어봐요.' },
+          { text: '최솟값은 a이다', correct: false, feedback: 'a는 최솟값을 갖는 x의 위치예요. 값과 위치를 헷갈리기 쉬워서 한 번 더 짚어봐요.', remedialFlowStartNodeId: 'minv_step2_A_diagnose', weaknessId: 'min_value_read_confusion' },
           { text: '최솟값은 상수항 b이다', correct: true, feedback: '맞아요! 제곱 항이 0일 때 남는 b가 곧 최솟값이에요.' },
-          { text: '최솟값은 -b이다', correct: false, feedback: '부호를 바꿀 필요는 없어요. 제곱 항이 0이 될 때 식에 그대로 남아 있는 b가 최솟값이에요.' },
+          { text: '최솟값은 -b이다', correct: false, feedback: '부호를 바꿀 필요는 없어요. 제곱 항이 0이 될 때 식에 그대로 남아 있는 b가 최솟값이에요.', remedialFlowStartNodeId: 'minv_step2_C_diagnose', weaknessId: 'min_value_read_confusion' },
         ],
       },
       {
@@ -218,9 +218,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '제곱 항이 0이 되려면 x=a여야 해요. 그래서 최솟값을 갖는 x의 위치는 a예요.',
         example: '예) (x−3)²+2 → x=3일 때 최솟값 2',
         choices: [
-          { text: 'x=b일 때 최솟값이 된다', correct: false, feedback: 'b는 값이지 위치가 아니에요. 제곱 항이 0이 되는 x를 다시 찾아봐요.' },
+          { text: 'x=b일 때 최솟값이 된다', correct: false, feedback: 'b는 값이지 위치가 아니에요. 제곱 항이 0이 되는 x를 다시 찾아봐요.', remedialFlowStartNodeId: 'minv_step3_A_diagnose', weaknessId: 'min_value_read_confusion' },
           { text: 'x=a일 때 최솟값 b를 갖는다', correct: true, feedback: '맞아요! 위치는 a, 값은 b — 둘을 깔끔하게 분리해서 읽었어요.' },
-          { text: 'x=a일 때 최솟값도 a이다', correct: false, feedback: 'x=a일 때가 최솟값을 갖는 위치는 맞아요. 하지만 그때의 값은 a가 아니라 b예요. 위치와 값을 구분해봐요.' },
+          { text: 'x=a일 때 최솟값도 a이다', correct: false, feedback: 'x=a일 때가 최솟값을 갖는 위치는 맞아요. 하지만 그때의 값은 a가 아니라 b예요. 위치와 값을 구분해봐요.', remedialFlowStartNodeId: 'minv_step3_C_diagnose', weaknessId: 'min_value_read_confusion' },
         ],
       },
     ],
@@ -576,9 +576,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '근호 안의 수를 소인수분해하여 제곱 묶음을 찾는다.',
         example: '예) 72 = 2³×3² = (2²)×(3²)×2 → 제곱 묶음: 2², 3² → √72 = √(4×9×2)',
         choices: [
-          { text: '근호 안을 그대로 둔다', correct: false, feedback: '그대로 두면 단순화가 안 돼요. 소인수분해로 제곱 묶음을 찾는 게 첫 단추예요.' },
+          { text: '근호 안을 그대로 둔다', correct: false, feedback: '그대로 두면 단순화가 안 돼요. 소인수분해로 제곱 묶음을 찾는 게 첫 단추예요.', remedialFlowStartNodeId: 'rad_step1_A_explain', weaknessId: 'radical_simplification_error' },
           { text: '소인수분해로 제곱 묶음을 찾는다', correct: true, feedback: '맞아요! 제곱 묶음을 찾는 순간 근호 밖으로 꺼낼 거리가 보여요.' },
-          { text: '약분만 하면 단순화된다', correct: false, feedback: '약분으로 줄지 않는 경우도 많아요. 핵심은 제곱 묶음을 분리하는 거예요.' },
+          { text: '약분만 하면 단순화된다', correct: false, feedback: '약분으로 줄지 않는 경우도 많아요. 핵심은 제곱 묶음을 분리하는 거예요.', remedialFlowStartNodeId: 'rad_step1_C_explain', weaknessId: 'radical_simplification_error' },
         ],
       },
       {
@@ -587,9 +587,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '√(a²×b) = a√b 규칙으로 완전제곱인 부분을 근호 밖으로 꺼낸다.',
         example: '예) √(4×9×2) = 2×3×√2 = 6√2',
         choices: [
-          { text: '√(a²×b) = a²×√b이다', correct: false, feedback: '근호를 벗어나면 a²이 아니라 a로 나와요. 제곱이 한 단계 풀려서 나온다고 생각해봐요.' },
+          { text: '√(a²×b) = a²×√b이다', correct: false, feedback: '근호를 벗어나면 a²이 아니라 a로 나와요. 제곱이 한 단계 풀려서 나온다고 생각해봐요.', remedialFlowStartNodeId: 'rad_step2_A_explain', weaknessId: 'radical_simplification_error' },
           { text: '√(a²×b) = a√b이다', correct: true, feedback: '맞아요! 제곱 부분만 한 단계 풀어 밖으로 보내는 규칙이에요.' },
-          { text: '제곱은 근호 안에 그대로 둔다', correct: false, feedback: '제곱이 안에 그대로 있으면 단순화가 안 돼요. 밖으로 꺼낼 수 있는 부분은 보내야 해요.' },
+          { text: '제곱은 근호 안에 그대로 둔다', correct: false, feedback: '제곱이 안에 그대로 있으면 단순화가 안 돼요. 밖으로 꺼낼 수 있는 부분은 보내야 해요.', remedialFlowStartNodeId: 'rad_step2_C_explain', weaknessId: 'radical_simplification_error' },
         ],
       },
       {
@@ -598,9 +598,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '근호 밖으로 나온 수들을 모두 곱하여 최종 계수를 구한다.',
         example: '예) √(4×9×2) → 밖으로 나온 수: 2, 3 → 계수 = 2×3 = 6 → 6√2',
         choices: [
-          { text: '계수를 더해서 정리한다', correct: false, feedback: '근호 밖으로 나온 수들은 곱해서 모아야 해요. 더하면 단위가 어긋나요.' },
+          { text: '계수를 더해서 정리한다', correct: false, feedback: '근호 밖으로 나온 수들은 곱해서 모아야 해요. 더하면 단위가 어긋나요.', remedialFlowStartNodeId: 'rad_step3_A_explain', weaknessId: 'radical_simplification_error' },
           { text: '근호 밖 수를 모두 곱한다', correct: true, feedback: '맞아요! 밖으로 나온 수는 모두 곱해 한 계수로 합쳐요.' },
-          { text: '계수는 마지막에 구한다', correct: false, feedback: '계수는 제곱 묶음을 꺼내는 그 단계에서 함께 정리되는 게 자연스러워요.' },
+          { text: '계수는 마지막에 구한다', correct: false, feedback: '계수는 제곱 묶음을 꺼내는 그 단계에서 함께 정리되는 게 자연스러워요.', remedialFlowStartNodeId: 'rad_step3_C_explain', weaknessId: 'radical_simplification_error' },
         ],
       },
     ],
