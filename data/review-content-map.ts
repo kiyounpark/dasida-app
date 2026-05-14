@@ -1787,12 +1787,12 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
   g3_diff: {
-    heroPrompt: '각 항을 독립적으로 미분하는 순서가 기억나나요?',
+    heroPrompt: '항별 미분 → 합성함수 → 곱의 미분, 세 가지 미분 패턴을 차례로 점검해볼게요.',
     thinkingSteps: [
       {
         id: 'g3_diff.step1',
         title: '항별 미분 규칙',
-        body: 'xⁿ을 미분하면 nxⁿ⁻¹이 된다. 각 항을 독립적으로 미분한 뒤 합산한다.',
+        body: 'xⁿ을 미분하면 nxⁿ⁻¹이 돼요. 각 항을 독립적으로 미분한 뒤 합산해요.',
         example: '예) f(x)=3x²+2x+1 → f\'(x)=6x+2',
         choices: [
           { text: '각 항의 지수를 앞으로 내리고 지수에서 1을 뺀다', correct: true, feedback: '맞아요! 미분 규칙이 항별로 그대로 적용돼요.' },
@@ -1803,7 +1803,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step2',
         title: '합성함수 체인룰',
-        body: 'f(g(x))를 미분할 때는 f\'(g(x))·g\'(x)로 바깥 함수를 먼저 미분하고 안쪽 함수의 미분을 곱한다.',
+        body: '(x²+1)³처럼 함수 안에 함수가 든 모양을 합성함수라 하고, 겉껍질이 바깥(³ 제곱), 속이 안쪽(x²+1)이에요. 체인룰은 바깥 함수를 먼저 미분하고 안쪽 함수의 미분을 곱하는 절차예요.',
         example: '예) f(x)=(x²+1)³ → f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
         choices: [
           { text: '바깥 함수를 먼저 미분하고, 안쪽 함수의 미분을 곱한다', correct: true, feedback: '맞아요! 체인룰의 표준 순서예요.' },
@@ -1814,7 +1814,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'g3_diff.step3',
         title: '곱의 미분',
-        body: '(f·g)\'=f\'g+fg\'로, 앞 식을 미분해 뒤 식을 곱한 항과, 앞 식을 그대로 두고 뒤 식을 미분해 곱한 항을 더한다.',
+        body: '(f·g)\'=f\'g+fg\'예요. 앞 식을 미분해 뒤 식을 곱한 항과, 앞 식을 그대로 두고 뒤 식을 미분해 곱한 항을 더해요.',
         example: '예) f(x)=x²·(x+1) → f\'(x)=2x·(x+1)+x²·1=3x²+2x',
         choices: [
           { text: '앞 미분×뒤 + 앞×뒤 미분', correct: true, feedback: '맞아요! 곱의 미분 공식이 정확히 들어맞았어요.' },
