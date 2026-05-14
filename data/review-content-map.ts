@@ -272,9 +272,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '식에서 x², x, 상수항 앞에 붙은 부호(+/−)를 계수의 일부로 읽는다.',
         example: '예) 3x²−5x+2 → a=3, b=−5, c=2',
         choices: [
-          { text: '부호는 공식 대입 시 붙인다', correct: false, feedback: '대입할 때 부호를 떠올리려 하면 한 박자 늦어요. 식을 읽는 순간부터 부호를 묶어두는 게 안전해요.' },
+          { text: '부호는 공식 대입 시 붙인다', correct: false, feedback: '대입할 때 부호를 떠올리려 하면 한 박자 늦어요. 식을 읽는 순간부터 부호를 묶어두는 게 안전해요.', remedialFlowStartNodeId: 'csc_step1_A_explain', weaknessId: 'coefficient_sign_confusion' },
           { text: '계수를 부호 포함해서 읽는다', correct: true, feedback: '맞아요! 부호를 계수의 일부로 보는 습관이 가장 큰 실수를 막아줘요.' },
-          { text: '부호는 따로 기억한다', correct: false, feedback: '기억에만 의존하면 대입 단계에서 잊기 쉬워요. 식 옆에 a=, b=, c= 로 적어두면 더 든든해요.' },
+          { text: '부호는 따로 기억한다', correct: false, feedback: '기억에만 의존하면 대입 단계에서 잊기 쉬워요. 식 옆에 a=, b=, c= 로 적어두면 더 든든해요.', remedialFlowStartNodeId: 'csc_step1_C_explain', weaknessId: 'coefficient_sign_confusion' },
         ],
       },
       {
@@ -283,9 +283,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '풀기 전에 a=_, b=_, c=_ 를 여백에 써두고 시작한다.',
         example: '예) a=3, b=−5, c=2 → 공식에 대입 준비',
         choices: [
-          { text: '암산으로 바로 대입한다', correct: false, feedback: '암산으로 진행하면 어느 단계에서 어긋났는지 보이지 않아요. 한 줄 적는 시간이 결과를 살려줘요.' },
+          { text: '암산으로 바로 대입한다', correct: false, feedback: '암산으로 진행하면 어느 단계에서 어긋났는지 보이지 않아요. 한 줄 적는 시간이 결과를 살려줘요.', remedialFlowStartNodeId: 'csc_step2_A_explain', weaknessId: 'coefficient_sign_confusion' },
           { text: '여백에 a, b, c를 먼저 쓴다', correct: true, feedback: '맞아요! 여백에 적어두면 공식 대입이 거의 자동으로 따라와요.' },
-          { text: '공식만 알면 쓸 필요 없다', correct: false, feedback: '공식은 알지만 부호를 빠뜨리면 답이 틀려요. a, b, c를 명시적으로 적어두는 게 안전망이 돼요.' },
+          { text: '공식만 알면 쓸 필요 없다', correct: false, feedback: '공식은 알지만 부호를 빠뜨리면 답이 틀려요. a, b, c를 명시적으로 적어두는 게 안전망이 돼요.', remedialFlowStartNodeId: 'csc_step2_C_explain', weaknessId: 'coefficient_sign_confusion' },
         ],
       },
       {
@@ -294,9 +294,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '공식에 a, b, c를 괄호로 감싸서 대입하면 부호 실수를 막는다.',
         example: '예) −b/(2a) = −(−5)/(2×3) = 5/6',
         choices: [
-          { text: '괄호 없이 숫자만 대입한다', correct: false, feedback: '괄호가 빠지면 −b 같은 자리에서 부호가 자주 사라져요. 괄호 하나로 실수를 막을 수 있어요.' },
+          { text: '괄호 없이 숫자만 대입한다', correct: false, feedback: '괄호가 빠지면 −b 같은 자리에서 부호가 자주 사라져요. 괄호 하나로 실수를 막을 수 있어요.', remedialFlowStartNodeId: 'csc_step3_A_explain', weaknessId: 'coefficient_sign_confusion' },
           { text: '괄호로 감싸서 부호 포함 대입한다', correct: true, feedback: '맞아요! 괄호로 묶어 대입하면 부호가 자연스럽게 살아남아요.' },
-          { text: '부호는 결과에서 조정한다', correct: false, feedback: '결과에서 맞춰 가는 건 어려워요. 처음부터 부호를 살려서 대입하는 게 정석이에요.' },
+          { text: '부호는 결과에서 조정한다', correct: false, feedback: '결과에서 맞춰 가는 건 어려워요. 처음부터 부호를 살려서 대입하는 게 정석이에요.', remedialFlowStartNodeId: 'csc_step3_C_explain', weaknessId: 'coefficient_sign_confusion' },
         ],
       },
     ],
