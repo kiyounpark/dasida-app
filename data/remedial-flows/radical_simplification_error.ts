@@ -10,8 +10,8 @@ export const radical_simplification_error_flow: RemedialFlow = {
     'rad_step1_A_explain': {
       id: 'rad_step1_A_explain',
       kind: 'explain',
-      title: '소인수분해로 제곱 묶음 먼저 찾기',
-      body: '근호(√ 기호) 안을 그대로 두면 단순화가 진행되지 않아요. 먼저 안의 수를 작은 소수(1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거)들의 곱으로 끝까지 쪼개야 해요. 예: 72 = 2³ × 3² = 2² × 2 × 3². 이렇게 해야 2², 3²라는 제곱 묶음이 보여요.',
+      title: '소수까지 끝까지 쪼개야 제곱이 보여요',
+      body: '8 × 9 까지만 쪼개고 멈추면 제곱 모양이 안 보여요. 안의 수를 작은 소수(1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거)들의 곱으로 끝까지 쪼개야 제곱 묶음이 드러나요. 예: 72 = 8 × 9 = 2³ × 3² = 2² × 2 × 3². 끝까지 쪼개야 2², 3² 묶음이 보여요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'rad_step1_A_check',
       secondaryLabel: '모르겠어요',
