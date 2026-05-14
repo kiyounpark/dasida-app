@@ -231,12 +231,12 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'vertex_formula_memorization.step1',
         title: 'a, b 부호 포함 읽기',
-        body: 'ax²+bx+c에서 a와 b를 부호 포함해서 읽는다.',
+        body: 'ax²+bx+c에서 a, b 앞의 +/− 도 같이 묶어 읽어요. 다음 단계에서 −b/(2a) 에 그대로 넣을 거라 부호를 미리 챙겨두는 게 안전해요.',
         example: '예) 2x²−6x+1 → a=2, b=−6',
         choices: [
-          { text: '계수만 읽고 부호는 나중에 본다', correct: false, feedback: '부호를 미루면 −b/(2a)에 대입할 때 실수가 생기기 쉬워요. 처음부터 부호를 묶어 읽는 게 안전해요.' },
+          { text: '계수만 읽고 부호는 나중에 본다', correct: false, feedback: '부호를 미루면 −b/(2a)에 대입할 때 마이너스를 한 번 더 뒤집어야 해서 실수가 생겨요. 처음부터 묶어 읽는 게 안전해요.' },
           { text: 'a와 b를 부호 포함해서 먼저 읽는다', correct: true, feedback: '맞아요! 부호까지 묶어서 읽으면 공식 대입이 한결 깔끔해져요.' },
-          { text: 'c는 꼭짓점에 영향을 준다', correct: false, feedback: '꼭짓점의 x좌표는 a와 b로만 결정돼요. c는 y좌표를 구할 때 다시 등장해요.' },
+          { text: 'b 는 부호 빼고 절댓값만 읽는다', correct: false, feedback: '절댓값만 읽으면 −b 자리에 +값이 들어가 답이 부호 반대로 나와요. b 는 마이너스도 같이 묶어 b = −6 으로 적어둬요.' },
         ],
       },
       {
@@ -252,13 +252,13 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       },
       {
         id: 'vertex_formula_memorization.step3',
-        title: 'y좌표는 원래 식에 x 대입',
-        body: '꼭짓점 x좌표를 원래 식에 대입하여 y좌표(최솟값/최댓값)를 구한다.',
-        example: '예) f(3/2) = 2(3/2)²−6(3/2)+1 계산',
+        title: '부호 헷갈리는 식에도 그대로 적용',
+        body: 'a 가 음수거나 b 가 양수여도 같은 공식 −b/(2a) 를 그대로 써요. 부호만 꼼꼼히 챙기면 어떤 식이든 같은 한 줄로 끝나요.',
+        example: '예) −x²+4x+1 → a=−1, b=4 → −4/(2·(−1)) = −4/(−2) = 2',
         choices: [
-          { text: 'y좌표는 c와 같다', correct: false, feedback: 'c는 x=0일 때의 함수값이에요. 꼭짓점 y좌표는 꼭짓점 x를 원식에 다시 넣어야 나와요.' },
-          { text: 'x좌표를 원래 식에 대입한다', correct: true, feedback: '맞아요! x좌표를 원식에 다시 넣어 y좌표를 구하는 게 표준 절차예요.' },
-          { text: 'y좌표는 따로 공식이 있다', correct: false, feedback: '−(b²−4ac)/(4a) 같은 공식도 있지만, 헷갈리면 x를 원식에 대입하는 게 가장 안전해요.' },
+          { text: 'a 가 음수면 공식을 뒤집어 쓴다', correct: false, feedback: '공식은 그대로예요. 음수 a 를 그냥 분모 2a 자리에 넣으면 분모도 음수가 돼 자동으로 부호가 정리돼요.' },
+          { text: '부호 그대로 −b/(2a)에 대입한다', correct: true, feedback: '맞아요! 공식을 바꿀 필요 없이 부호만 살려 그대로 넣으면 정답이 나와요.' },
+          { text: 'b 가 양수면 −b 자리에 +b 를 넣는다', correct: false, feedback: '−b 자리에는 마이너스를 반드시 한 번 붙여야 해요. b 가 양수면 −b 는 음수가 돼요.' },
         ],
       },
     ],
