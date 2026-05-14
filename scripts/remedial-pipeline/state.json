@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T17:06:47.597Z",
+  "lastUpdateAt": "2026-05-14T22:17:09.724Z",
   "queue": [
-    "counting_method_confusion",
-    "counting_overcounting",
-    "g3_diff",
     "g3_sequence",
     "g3_log_exp",
     "g3_integral",
@@ -61,11 +58,14 @@
     "remainder_substitution_error"
   ],
   "manualReview": [
-    "complex_calc_error"
+    "complex_calc_error",
+    "counting_overcounting",
+    "counting_method_confusion",
+    "g3_diff"
   ],
   "failed": [],
-  "totalTokens": 9980000,
-  "completedCount": 18,
+  "totalTokens": 12630000,
+  "completedCount": 21,
   "lastProgressReportAt": 12,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -156,6 +156,18 @@
     {
       "weaknessId": "remainder_substitution_error",
       "retries": 2
+    },
+    {
+      "weaknessId": "counting_overcounting",
+      "retries": 3
+    },
+    {
+      "weaknessId": "counting_method_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "g3_diff",
+      "retries": 3
     }
   ],
   "rejectionHistory": [
@@ -193,6 +205,21 @@
       "weaknessId": "complex_calc_error",
       "gate": "remedial-flow",
       "reason": "C분기 easy 연결 끊김·shallow 흐름 요약 부재 — 3회 재시도 초과"
+    },
+    {
+      "weaknessId": "counting_overcounting",
+      "gate": "remedial-flow",
+      "reason": "shallow 패턴 본질 한계 — 막다른 길/동어반복 fix 시 deep 구조 전환 필요"
+    },
+    {
+      "weaknessId": "counting_method_confusion",
+      "gate": "struggling-student",
+      "reason": "복합 기호(nPr/nCr/r!/(n-r)!) 풀어쓰기 한계 — 학생 게이트가 누적 정의 부담 지적"
+    },
+    {
+      "weaknessId": "g3_diff",
+      "gate": "struggling-student,thinkingstep-flow",
+      "reason": "체인룰/곱의 미분 기호식 압축이 6등급 기준 점프 — 그리고 thinkingstep 검수자가 예시 단계별 전개 요구"
     }
   ],
   "passedGates": {
@@ -338,6 +365,26 @@
       "appearance-reviewer": true,
       "remedial-flow": true,
       "thinkingstep-flow": true
+    },
+    "counting_overcounting": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "appearance-reviewer": true,
+      "thinkingstep-flow": true,
+      "sympy": true
+    },
+    "counting_method_confusion": {
+      "math-teacher": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "sympy": true
+    },
+    "g3_diff": {
+      "math-teacher": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "sympy": true
     }
   },
   "backfillQueue": []
