@@ -78,12 +78,14 @@ import { formula_understanding_flow } from './remedial-flows/formula_understandi
 import { discriminant_calculation_flow } from './remedial-flows/discriminant_calculation';
 import { calc_repeated_error_flow } from './remedial-flows/calc_repeated_error';
 import { radical_simplification_error_flow } from './remedial-flows/radical_simplification_error';
+import { min_value_read_confusion_flow } from './remedial-flows/min_value_read_confusion';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
   discriminant_calculation: discriminant_calculation_flow,
   calc_repeated_error: calc_repeated_error_flow,
   radical_simplification_error: radical_simplification_error_flow,
+  min_value_read_confusion: min_value_read_confusion_flow,
 };
 
 export function getRemedialNode(
