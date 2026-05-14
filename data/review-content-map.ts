@@ -310,9 +310,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'xⁿ을 미분하면 n·xⁿ⁻¹이다. 지수를 계수 앞으로 내리고 지수를 1 줄인다.',
         example: '예) x³ → 3x²',
         choices: [
-          { text: 'xⁿ → xⁿ⁺¹ / (n+1)', correct: false, feedback: '그건 적분 공식이에요. 미분은 지수가 1 줄어드는 방향이에요.' },
+          { text: 'xⁿ → xⁿ⁺¹ / (n+1)', correct: false, feedback: '그건 적분 공식이에요. 미분은 지수가 1 줄어드는 방향이에요.', remedialFlowStartNodeId: 'dvc_step1_A_explain', weaknessId: 'derivative_calculation' },
           { text: 'xⁿ → n·xⁿ⁻¹', correct: true, feedback: '맞아요! 지수를 앞으로 내리고, 지수에서 1을 뺀다 — 두 동작이 한 셋이에요.' },
-          { text: 'xⁿ → n·xⁿ', correct: false, feedback: '지수를 그대로 두면 차수가 줄지 않아요. 미분은 차수를 한 단계 낮춘다는 점이 핵심이에요.' },
+          { text: 'xⁿ → n·xⁿ', correct: false, feedback: '지수를 그대로 두면 차수가 줄지 않아요. 미분은 차수를 한 단계 낮춘다는 점이 핵심이에요.', remedialFlowStartNodeId: 'dvc_step1_C_explain', weaknessId: 'derivative_calculation' },
         ],
       },
       {
@@ -321,9 +321,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '다항식은 각 항을 독립적으로 미분한 뒤 합산한다.',
         example: "예) f(x)=3x³+2x → f'(x)=9x²+2",
         choices: [
-          { text: '전체를 한 번에 미분한다', correct: false, feedback: '다항식은 항별로 따로 미분해도 결과가 같아요. 항별로 처리하는 게 실수를 줄여줘요.' },
+          { text: '전체를 한 번에 미분한다', correct: false, feedback: '다항식은 항별로 따로 미분해도 결과가 같아요. 항별로 처리하는 게 실수를 줄여줘요.', remedialFlowStartNodeId: 'dvc_step2_A_explain', weaknessId: 'derivative_calculation' },
           { text: '각 항을 따로 미분 후 합산한다', correct: true, feedback: '맞아요! 각 항을 독립적으로 처리한 뒤 합치는 흐름이 안전해요.' },
-          { text: 'ax^n 형태에서 계수 a 도 함께 미분된다', correct: false, feedback: '계수는 미분 대상이 아니에요. 지수만 변하고 계수는 그대로 곱해져요 (예: 3x² → 3·2·x¹ = 6x).' },
+          { text: 'ax^n 형태에서 계수 a 도 함께 미분된다', correct: false, feedback: '계수는 미분 대상이 아니에요. 지수만 변하고 계수는 그대로 곱해져요 (예: 3x² → 3·2·x¹ = 6x).', remedialFlowStartNodeId: 'dvc_step2_C_explain', weaknessId: 'derivative_calculation' },
         ],
       },
       {
@@ -332,9 +332,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '상수항(숫자만 있는 항)을 미분하면 0이 된다.',
         example: "예) f(x)=x²+3 → f'(x)=2x+0=2x",
         choices: [
-          { text: '상수항은 미분하면 1이 된다', correct: false, feedback: '상수항은 변화율이 없어서 미분하면 0이에요. 1이 나오는 건 x¹의 미분이에요.' },
+          { text: '상수항은 미분하면 1이 된다', correct: false, feedback: '상수항은 변화율이 없어서 미분하면 0이에요. 1이 나오는 건 x¹의 미분이에요.', remedialFlowStartNodeId: 'dvc_step3_A_explain', weaknessId: 'derivative_calculation' },
           { text: '상수항을 미분하면 0이 된다', correct: true, feedback: '맞아요! 상수는 변하지 않으니 미분 결과가 0이에요.' },
-          { text: '상수항은 미분하지 않는다', correct: false, feedback: '미분은 하지만 결과가 0이에요. 빼놓는 게 아니라 0이 더해진다고 생각하면 돼요.' },
+          { text: '상수항은 미분하지 않는다', correct: false, feedback: '미분은 하지만 결과가 0이에요. 빼놓는 게 아니라 0이 더해진다고 생각하면 돼요.', remedialFlowStartNodeId: 'dvc_step3_C_explain', weaknessId: 'derivative_calculation' },
         ],
       },
     ],
