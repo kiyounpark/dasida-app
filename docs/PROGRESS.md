@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.14 20:31
+- 해시: `14d49c0` (`14d49c08bbb98969d96822adb3f6a6f1038b8481`)
+- 브랜치: claude/agitated-jackson-08304c
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/14d49c08bbb98969d96822adb3f6a6f1038b8481
+- 작성자: 박기윤
+- 메시지: docs(remedial): wrap up multi-pilot session
+- 본문: - 본/부모 스펙 갱신 (§0 분류 정책, 결정 변경) / - 시범 plan 추가 / - 신규 페르소나 2개 (thinkingstep-flow-reviewer, remedial-flow-reviewer) / - 외형 검수자 갱신 (depth-aware rules) / - state.json: 3 시범 약점 completed 기록 (큐 52 남음) / 다음 세션에서 'remedial batch 재개'로 본 배치 진입 가능.
+
 ### 커밋 2026.05.13 21:51
 - 해시: `0094170` (`009417053641dac05e0e3fd43c5a2686388df2ea`)
 - 브랜치: claude/silly-robinson-baed45
