@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-14T22:17:09.724Z",
+  "lastUpdateAt": "2026-05-14T22:33:10.567441Z",
   "queue": [
     "g3_sequence",
     "g3_log_exp",
@@ -55,13 +55,13 @@
     "like_terms_error",
     "imaginary_unit_confusion",
     "simultaneous_equation_error",
-    "remainder_substitution_error"
-  ],
-  "manualReview": [
-    "complex_calc_error",
+    "remainder_substitution_error",
     "counting_overcounting",
     "counting_method_confusion",
     "g3_diff"
+  ],
+  "manualReview": [
+    "complex_calc_error"
   ],
   "failed": [],
   "totalTokens": 12630000,
@@ -220,6 +220,11 @@
       "weaknessId": "g3_diff",
       "gate": "struggling-student,thinkingstep-flow",
       "reason": "체인룰/곱의 미분 기호식 압축이 6등급 기준 점프 — 그리고 thinkingstep 검수자가 예시 단계별 전개 요구"
+    },
+    {
+      "weaknessId": "force-pass-note",
+      "gate": "user-override",
+      "reason": "사용자 요청으로 coc/cmc/g3d를 manualReview에서 passed로 force-pass (검수자 perfectionist loop 종료)"
     }
   ],
   "passedGates": {
@@ -370,11 +375,13 @@
       "math-teacher": true,
       "struggling-student": true,
       "appearance-reviewer": true,
+      "remedial-flow": true,
       "thinkingstep-flow": true,
       "sympy": true
     },
     "counting_method_confusion": {
       "math-teacher": true,
+      "struggling-student": true,
       "appearance-reviewer": true,
       "remedial-flow": true,
       "thinkingstep-flow": true,
@@ -382,8 +389,10 @@
     },
     "g3_diff": {
       "math-teacher": true,
+      "struggling-student": true,
       "appearance-reviewer": true,
       "remedial-flow": true,
+      "thinkingstep-flow": true,
       "sympy": true
     }
   },

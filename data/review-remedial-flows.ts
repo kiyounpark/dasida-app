@@ -93,6 +93,9 @@ import { like_terms_error_flow } from './remedial-flows/like_terms_error';
 import { imaginary_unit_confusion_flow } from './remedial-flows/imaginary_unit_confusion';
 import { remainder_substitution_error_flow } from './remedial-flows/remainder_substitution_error';
 import { simultaneous_equation_error_flow } from './remedial-flows/simultaneous_equation_error';
+import { counting_overcounting_flow } from './remedial-flows/counting_overcounting';
+import { counting_method_confusion_flow } from './remedial-flows/counting_method_confusion';
+import { g3_diff_flow } from './remedial-flows/g3_diff';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -114,6 +117,9 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   imaginary_unit_confusion: imaginary_unit_confusion_flow,
   remainder_substitution_error: remainder_substitution_error_flow,
   simultaneous_equation_error: simultaneous_equation_error_flow,
+  counting_overcounting: counting_overcounting_flow,
+  counting_method_confusion: counting_method_confusion_flow,
+  g3_diff: g3_diff_flow,
 };
 
 export function getRemedialNode(

@@ -880,9 +880,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'AB와 BA가 다른 경우인지(순열) 같은 경우인지(조합) 먼저 판단한다.',
         example: '예) 줄 세우기 → 순서 중요 → 순열, 모둠 구성 → 순서 무관 → 조합',
         choices: [
-          { text: '항상 순열을 쓴다', correct: false, feedback: '순서가 무관한 문제도 많아요. 그럴 때 순열을 쓰면 같은 경우를 여러 번 세게 돼요.' },
+          { text: '항상 순열을 쓴다', correct: false, feedback: '순서가 무관한 문제도 많아요. 그럴 때 순열을 쓰면 같은 경우를 여러 번 세게 돼요.', remedialFlowStartNodeId: 'cmc_step1_A_diagnose', weaknessId: 'counting_method_confusion' },
           { text: '순서 중요 여부를 먼저 판단한다', correct: true, feedback: '맞아요! 이 한 가지 판단이 공식 선택을 결정해요.' },
-          { text: '항상 조합을 쓴다', correct: false, feedback: '줄 세우기처럼 순서가 중요한 문제는 조합으로 세면 부족하게 잡혀요.' },
+          { text: '항상 조합을 쓴다', correct: false, feedback: '줄 세우기처럼 순서가 중요한 문제는 조합으로 세면 부족하게 잡혀요.', remedialFlowStartNodeId: 'cmc_step1_C_diagnose', weaknessId: 'counting_method_confusion' },
         ],
       },
       {
@@ -891,9 +891,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '순서가 중요하면 nPr 공식으로 경우의 수를 구한다.',
         example: '예) 5명 중 3명 줄 세우기 → 5P3 = 5×4×3 = 60',
         choices: [
-          { text: '순열 = nCr이다', correct: false, feedback: 'nCr은 조합의 기호예요. 순열은 nPr이고 r!만큼 더 큰 값이에요.' },
+          { text: '순열 = nCr이다', correct: false, feedback: 'nCr은 조합의 기호예요. 순열은 nPr이고 r!만큼 더 큰 값이에요.', remedialFlowStartNodeId: 'cmc_step2_A_diagnose', weaknessId: 'counting_method_confusion' },
           { text: '순열 = nPr = n!/(n−r)!이다', correct: true, feedback: '맞아요! 순서가 있는 선택의 표준 공식이에요.' },
-          { text: '순열 = n!이다', correct: false, feedback: 'n!은 모든 자리를 모두 줄 세울 때예요. r명만 뽑아 줄 세우면 nPr이 맞아요.' },
+          { text: '순열 = n!이다', correct: false, feedback: 'n!은 모든 자리를 모두 줄 세울 때예요. r명만 뽑아 줄 세우면 nPr이 맞아요.', remedialFlowStartNodeId: 'cmc_step2_C_diagnose', weaknessId: 'counting_method_confusion' },
         ],
       },
       {
@@ -902,9 +902,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '순서가 무관하면 nCr 공식으로 경우의 수를 구한다.',
         example: '예) 5명 중 3명 모둠 구성 → 5C3 = 10',
         choices: [
-          { text: '조합 = nPr이다', correct: false, feedback: '그건 순열의 기호예요. 조합은 r!로 나눠서 순서를 지운 값이에요.' },
+          { text: '조합 = nPr이다', correct: false, feedback: '그건 순열의 기호예요. 조합은 r!로 나눠서 순서를 지운 값이에요.', remedialFlowStartNodeId: 'cmc_step3_A_diagnose', weaknessId: 'counting_method_confusion' },
           { text: '조합 = nCr = n!/(r!(n−r)!)이다', correct: true, feedback: '맞아요! 순서를 지우기 위해 r!로 나누는 형태가 핵심이에요.' },
-          { text: '조합 = n×r이다', correct: false, feedback: '그건 단순 곱이에요. 조합은 nPr을 r!로 나눠서 구해요.' },
+          { text: '조합 = n×r이다', correct: false, feedback: '그건 단순 곱이에요. 조합은 nPr을 r!로 나눠서 구해요.', remedialFlowStartNodeId: 'cmc_step3_C_diagnose', weaknessId: 'counting_method_confusion' },
         ],
       },
     ],
@@ -918,9 +918,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '경우의 수가 적으면 직접 나열하고, 많으면 표로 정리하여 시각적으로 파악한다.',
         example: '예) 동전 2개: HH, HT, TH, TT → 4가지',
         choices: [
-          { text: '항상 공식으로만 계산한다', correct: false, feedback: '공식만 믿으면 중복이 숨었을 때 잡기 어려워요. 작은 경우는 직접 나열하는 게 안전해요.' },
+          { text: '항상 공식으로만 계산한다', correct: false, feedback: '공식만 믿으면 중복이 숨었을 때 잡기 어려워요. 작은 경우는 직접 나열하는 게 안전해요.', remedialFlowStartNodeId: 'coc_step1_A_explain', weaknessId: 'counting_overcounting' },
           { text: '나열 또는 표로 경우를 파악한다', correct: true, feedback: '맞아요! 시각적으로 확인하는 한 박자가 중복을 막아줘요.' },
-          { text: '나열은 시간 낭비다', correct: false, feedback: '초반에 한 번 나열해두면 패턴이 보이고 공식 선택이 쉬워져요. 절대 낭비가 아니에요.' },
+          { text: '나열은 시간 낭비다', correct: false, feedback: '초반에 한 번 나열해두면 패턴이 보이고 공식 선택이 쉬워져요. 절대 낭비가 아니에요.', remedialFlowStartNodeId: 'coc_step1_C_explain', weaknessId: 'counting_overcounting' },
         ],
       },
       {
@@ -929,9 +929,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '나열된 경우 중 동일한 경우를 찾아 표시한다.',
         example: '예) AB와 BA가 같은 경우면 → 중복 1쌍 발생',
         choices: [
-          { text: '중복은 항상 없다', correct: false, feedback: 'AB와 BA를 같은 경우로 봐야 할 때가 많아요. 문제의 의미를 먼저 살펴야 해요.' },
+          { text: '중복은 항상 없다', correct: false, feedback: 'AB와 BA를 같은 경우로 봐야 할 때가 많아요. 문제의 의미를 먼저 살펴야 해요.', remedialFlowStartNodeId: 'coc_step2_A_explain', weaknessId: 'counting_overcounting' },
           { text: '나열 후 동일 경우를 직접 찾는다', correct: true, feedback: '맞아요! 직접 찾아본 중복이 가장 정확해요.' },
-          { text: '중복은 공식으로만 처리한다', correct: false, feedback: '공식만으로 처리하다가 빠뜨리는 중복이 많아요. 한 번은 눈으로 확인하는 게 든든해요.' },
+          { text: '중복은 공식으로만 처리한다', correct: false, feedback: '공식만으로 처리하다가 빠뜨리는 중복이 많아요. 한 번은 눈으로 확인하는 게 든든해요.', remedialFlowStartNodeId: 'coc_step2_C_explain', weaknessId: 'counting_overcounting' },
         ],
       },
       {
@@ -940,9 +940,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '중복으로 셀 위험이 있는 경우를 제거하거나, 조합 공식으로 나눠서 최종 답을 낸다.',
         example: '예) 3명 중 2명 선택: 나열 6가지 ÷ 2 = 3가지 (조합)',
         choices: [
-          { text: '중복을 포함해서 답으로 쓴다', correct: false, feedback: '중복이 그대로 들어가면 답이 부풀려져요. 마지막에 한 번 정리해야 정확해져요.' },
+          { text: '중복을 포함해서 답으로 쓴다', correct: false, feedback: '중복이 그대로 들어가면 답이 부풀려져요. 마지막에 한 번 정리해야 정확해져요.', remedialFlowStartNodeId: 'coc_step3_A_explain', weaknessId: 'counting_overcounting' },
           { text: '중복을 제거하거나 나눠서 최종 답을 낸다', correct: true, feedback: '맞아요! 마지막 정리 한 단계가 답을 깔끔하게 만들어요.' },
-          { text: '중복은 더하면 된다', correct: false, feedback: '더하면 부풀려져요. 중복은 빼거나 r!로 나눠 정리해야 정확한 값이 돼요.' },
+          { text: '중복은 더하면 된다', correct: false, feedback: '더하면 부풀려져요. 중복은 빼거나 r!로 나눠 정리해야 정확한 값이 돼요.', remedialFlowStartNodeId: 'coc_step3_C_explain', weaknessId: 'counting_overcounting' },
         ],
       },
     ],
@@ -1796,8 +1796,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) f(x)=3x²+2x+1 → 항별 미분: 3x²→6x, 2x→2, 1→0 → f\'(x)=6x+2',
         choices: [
           { text: '각 항의 지수를 앞으로 내리고 지수에서 1을 뺀다', correct: true, feedback: '맞아요! 미분 규칙이 항별로 그대로 적용돼요.' },
-          { text: '지수를 그대로 두고 계수만 바꾼다', correct: false, feedback: '차수가 줄지 않으면 미분이 아니에요. 지수도 1 줄어야 해요.' },
-          { text: '상수항도 그대로 내려온다', correct: false, feedback: '상수항은 미분하면 0이에요. 변하지 않는 양은 변화율이 없어요.' },
+          { text: '지수를 그대로 두고 계수만 바꾼다', correct: false, feedback: '차수가 줄지 않으면 미분이 아니에요. 지수도 1 줄어야 해요.', remedialFlowStartNodeId: 'g3d_step1_A_diagnose', weaknessId: 'g3_diff' },
+          { text: '상수항도 그대로 내려온다', correct: false, feedback: '상수항은 미분하면 0이에요. 변하지 않는 양은 변화율이 없어요.', remedialFlowStartNodeId: 'g3d_step1_C_diagnose', weaknessId: 'g3_diff' },
         ],
       },
       {
@@ -1807,8 +1807,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) f(x)=(x²+1)³ → □=x²+1, □³ 미분 → 3□² = 3(x²+1)², 안쪽 미분 2x 곱하면 f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
         choices: [
           { text: '바깥 함수를 먼저 미분하고, 안쪽 함수의 미분을 곱한다', correct: true, feedback: '맞아요! 체인룰의 표준 순서예요.' },
-          { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 반대예요. 체인룰은 바깥부터 미분해서 안쪽을 그대로 둔 채 적고, 그 뒤에 안쪽 미분을 곱해야 결과가 맞아요.' },
-          { text: '두 함수를 각각 미분한 뒤 더한다', correct: false, feedback: '더하기는 합의 미분 규칙이에요. 합성함수에서는 곱하기로 묶여야 해요.' },
+          { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 반대예요. 체인룰은 바깥부터 미분해서 안쪽을 그대로 둔 채 적고, 그 뒤에 안쪽 미분을 곱해야 결과가 맞아요.', remedialFlowStartNodeId: 'g3d_step2_A_diagnose', weaknessId: 'g3_diff' },
+          { text: '두 함수를 각각 미분한 뒤 더한다', correct: false, feedback: '더하기는 합의 미분 규칙이에요. 합성함수에서는 곱하기로 묶여야 해요.', remedialFlowStartNodeId: 'g3d_step2_C_diagnose', weaknessId: 'g3_diff' },
         ],
       },
       {
@@ -1818,8 +1818,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) f(x)=x²·(x+1) → ① 앞 미분 × 뒤: 2x·(x+1) = 2x²+2x ② 앞 × 뒤 미분: x²·1 = x² → 두 항을 더하면 (2x²+2x) + x² = 3x²+2x',
         choices: [
           { text: '앞 미분×뒤 + 앞×뒤 미분', correct: true, feedback: '맞아요! 곱의 미분 공식이 정확히 들어맞았어요.' },
-          { text: '앞 미분×뒤 미분', correct: false, feedback: '두 미분만 곱하면 다른 양이 돼요. 두 항으로 나눠서 합쳐야 해요.' },
-          { text: '앞 미분 + 뒤 미분으로 더하기로 처리', correct: false, feedback: '그건 합의 미분이에요. 곱은 두 항(앞 미분×뒤, 앞×뒤 미분)으로 나눠 더해야 해요.' },
+          { text: '앞 미분×뒤 미분', correct: false, feedback: '두 미분만 곱하면 다른 양이 돼요. 두 항으로 나눠서 합쳐야 해요.', remedialFlowStartNodeId: 'g3d_step3_A_diagnose', weaknessId: 'g3_diff' },
+          { text: '앞 미분 + 뒤 미분으로 더하기로 처리', correct: false, feedback: '그건 합의 미분이에요. 곱은 두 항(앞 미분×뒤, 앞×뒤 미분)으로 나눠 더해야 해요.', remedialFlowStartNodeId: 'g3d_step3_C_diagnose', weaknessId: 'g3_diff' },
         ],
       },
     ],
