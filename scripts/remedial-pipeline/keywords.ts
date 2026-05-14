@@ -48,4 +48,9 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '간소화',
     '무리수',
   ],
+  vertex_formula_memorization: [
+    '꼭짓점의 좌표',
+    '그래프의 꼭짓점',
+    '대칭축',
+  ],
 };
