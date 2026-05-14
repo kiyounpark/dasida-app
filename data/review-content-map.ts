@@ -1834,8 +1834,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) ∫x³dx = x⁴/4+C',
         choices: [
           { text: '지수에 1을 더하고 그 수로 나눈다', correct: true, feedback: '맞아요! 미분의 역방향 그 자체예요.' },
-          { text: '지수에서 1을 빼고 지수를 곱한다', correct: false, feedback: '그건 미분이에요. 적분은 반대 방향으로 움직여요.' },
-          { text: '지수를 그대로 두고 계수만 1 올린다', correct: false, feedback: '지수가 변하지 않으면 적분이 작동하지 않아요. 지수가 1 늘어야 해요.' },
+          { text: '지수에서 1을 빼고 지수를 곱한다', correct: false, feedback: '그건 미분이에요. 적분은 반대 방향으로 움직여요.', remedialFlowStartNodeId: 'g3i_step1_A_explain', weaknessId: 'g3_integral' },
+          { text: '지수를 그대로 두고 계수만 1 올린다', correct: false, feedback: '지수가 변하지 않으면 적분이 작동하지 않아요. 지수가 1 늘어야 해요.', remedialFlowStartNodeId: 'g3i_step1_C_explain', weaknessId: 'g3_integral' },
         ],
       },
       {
@@ -1845,8 +1845,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) ∫₀²x²dx = [x³/3]₀² = 8/3-0 = 8/3',
         choices: [
           { text: 'F(b)-F(a) 순서로 계산한다', correct: true, feedback: '맞아요! 위 끝에서 아래 끝을 빼는 흐름이에요.' },
-          { text: 'F(a)-F(b) 순서로 계산한다', correct: false, feedback: '순서가 반대라 부호가 통째로 뒤집혀요. 위에서 아래를 빼는 방향이 맞아요.' },
-          { text: 'F(a)+F(b)를 계산한다', correct: false, feedback: '정적분은 차이로 정의돼요. 더하면 다른 양이 만들어져요.' },
+          { text: 'F(a)-F(b) 순서로 계산한다', correct: false, feedback: '순서가 반대라 부호가 통째로 뒤집혀요. 위에서 아래를 빼는 방향이 맞아요.', remedialFlowStartNodeId: 'g3i_step2_A_explain', weaknessId: 'g3_integral' },
+          { text: 'F(a)+F(b)를 계산한다', correct: false, feedback: '정적분은 차이로 정의돼요. 더하면 다른 양이 만들어져요.', remedialFlowStartNodeId: 'g3i_step2_C_explain', weaknessId: 'g3_integral' },
         ],
       },
       {
@@ -1856,8 +1856,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) ∫₋₁¹(x²-1)dx=-4/3이지만 넓이=4/3',
         choices: [
           { text: 'x축 아래 구간은 적분 결과에 절댓값을 취한다', correct: true, feedback: '맞아요! 부호를 보정해야 진짜 넓이가 나와요.' },
-          { text: '부호에 상관없이 적분 결과를 그대로 쓴다', correct: false, feedback: 'x축 아래에서는 적분 결과가 음수가 돼요. 넓이로 보려면 절댓값이 필요해요.' },
-          { text: '넓이는 항상 정적분과 같다', correct: false, feedback: 'f(x)<0인 구간이 섞이면 정적분이 음수일 수 있어요. 넓이는 절댓값을 취해야 해요.' },
+          { text: '부호에 상관없이 적분 결과를 그대로 쓴다', correct: false, feedback: 'x축 아래에서는 적분 결과가 음수가 돼요. 넓이로 보려면 절댓값이 필요해요.', remedialFlowStartNodeId: 'g3i_step3_A_explain', weaknessId: 'g3_integral' },
+          { text: '넓이는 항상 정적분과 같다', correct: false, feedback: 'f(x)<0인 구간이 섞이면 정적분이 음수일 수 있어요. 넓이는 절댓값을 취해야 해요.', remedialFlowStartNodeId: 'g3i_step3_C_explain', weaknessId: 'g3_integral' },
         ],
       },
     ],
@@ -1872,8 +1872,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) a₁=2, d=3 → a₅=2+4×3=14',
         choices: [
           { text: 'aₙ=a₁+(n-1)d', correct: true, feedback: '맞아요! 등차수열의 일반항 공식이에요.' },
-          { text: 'aₙ=a₁·dⁿ⁻¹', correct: false, feedback: '그건 등비수열의 형태예요. 등차는 곱이 아니라 더하기로 진행해요.' },
-          { text: 'aₙ=a₁+(n+1)d', correct: false, feedback: '지수 부분이 살짝 어긋났어요. (n−1)이 맞아요.' },
+          { text: 'aₙ=a₁·dⁿ⁻¹', correct: false, feedback: '그건 등비수열의 형태예요. 등차는 곱이 아니라 더하기로 진행해요.', remedialFlowStartNodeId: 'g3s_step1_A_explain', weaknessId: 'g3_sequence' },
+          { text: 'aₙ=a₁+(n+1)d', correct: false, feedback: '(n−1) 자리가 한 칸 어긋났어요. (n+1)이 아니라 (n−1)이 맞아요.', remedialFlowStartNodeId: 'g3s_step1_C_explain', weaknessId: 'g3_sequence' },
         ],
       },
       {
@@ -1883,8 +1883,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) a₁=3, r=2 → a₄=3·2³=24',
         choices: [
           { text: 'aₙ=a₁·rⁿ⁻¹', correct: true, feedback: '맞아요! 등비수열의 일반항이에요.' },
-          { text: 'aₙ=a₁·rⁿ', correct: false, feedback: '지수가 한 칸 어긋났어요. n−1이 맞아요.' },
-          { text: 'aₙ=a₁+(n-1)r', correct: false, feedback: '그건 등차의 형태예요. 등비는 곱으로 진행해요.' },
+          { text: 'aₙ=a₁·rⁿ', correct: false, feedback: '지수가 한 칸 어긋났어요. n−1이 맞아요.', remedialFlowStartNodeId: 'g3s_step2_A_explain', weaknessId: 'g3_sequence' },
+          { text: 'aₙ=a₁+(n-1)r', correct: false, feedback: '그건 등차의 형태예요. 등비는 곱으로 진행해요.', remedialFlowStartNodeId: 'g3s_step2_C_explain', weaknessId: 'g3_sequence' },
         ],
       },
       {
@@ -1893,47 +1893,47 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '등차수열 합 Sₙ=n(a₁+aₙ)/2, 등비수열 합 Sₙ=a₁(rⁿ-1)/(r-1) (r≠1). r=1이면 Sₙ=na₁.',
         example: '예) 등차: 1+2+…+10=10×11/2=55',
         choices: [
-          { text: '등차는 n(a₁+aₙ)/2, 등비는 a₁(rⁿ-1)/(r-1)', correct: true, feedback: '맞아요! 두 합 공식의 짝이 정확해요.' },
-          { text: '등차는 a₁·rⁿ, 등비는 n(a₁+aₙ)/2', correct: false, feedback: '공식이 서로 바뀌었어요. 등차는 합 공식, 등비는 비례 공식이 맞아요.' },
-          { text: '두 수열 모두 n×aₙ/2로 계산한다', correct: false, feedback: '그건 등차에만 해당해요. 등비는 다른 형태로 합이 나와요.' },
+          { text: '등차는 n(a₁+aₙ)/2, 등비는 a₁(rⁿ-1)/(r-1)', correct: true, feedback: '맞아요! 등차는 (첫항+끝항)의 평균을 n번, 등비는 비례식에서 유도된 형태예요.' },
+          { text: '등차는 a₁·rⁿ, 등비는 n(a₁+aₙ)/2', correct: false, feedback: '공식이 서로 바뀌었어요. 등차는 합 공식, 등비는 비례 공식이 맞아요.', remedialFlowStartNodeId: 'g3s_step3_A_explain', weaknessId: 'g3_sequence' },
+          { text: '두 수열 모두 n×aₙ/2로 계산한다', correct: false, feedback: '그건 등차에만 해당해요. 등비는 다른 형태로 합이 나와요.', remedialFlowStartNodeId: 'g3s_step3_C_explain', weaknessId: 'g3_sequence' },
         ],
       },
     ],
   },
   g3_log_exp: {
-    heroPrompt: '지수법칙과 로그 성질 중 어느 것을 먼저 확인하나요?',
+    heroPrompt: '지수법칙부터 로그 성질, 밑 변환까지 차례로 정리해볼까요?',
     thinkingSteps: [
       {
         id: 'g3_log_exp.step1',
         title: '지수법칙 정리',
-        body: 'aˣ·aʸ=aˣ⁺ʸ, aˣ÷aʸ=aˣ⁻ʸ, (aˣ)ʸ=aˣʸ. 같은 밑끼리만 지수를 더하거나 뺄 수 있다.',
-        example: '예) 2³×2⁴=2⁷=128',
+        body: 'aˣ·aʸ=aˣ⁺ʸ, aˣ÷aʸ=aˣ⁻ʸ, (aˣ)ʸ=aˣʸ. 같은 밑끼리 곱하면 지수를 더하고, 거듭제곱의 거듭제곱은 지수를 곱한다.',
+        example: '예) 2³×2⁴=2⁷=128, (2³)²=2⁶=64',
         choices: [
           { text: '같은 밑의 곱은 지수를 더한다', correct: true, feedback: '맞아요! 같은 밑 곱셈은 지수의 합으로 정리돼요.' },
-          { text: '같은 밑의 곱은 지수를 곱한다', correct: false, feedback: '곱하면 거듭제곱의 거듭제곱이 돼요. 곱셈은 지수의 합이에요.' },
-          { text: '밑이 달라도 지수를 더할 수 있다', correct: false, feedback: '지수를 더하려면 밑이 같아야 해요. 밑이 다르면 지수 법칙이 바로 적용되지 않아요.' },
+          { text: '같은 밑의 곱은 지수를 곱한다', correct: false, feedback: '곱셈은 지수의 합이에요. 지수를 곱하는 건 (aˣ)ʸ 거듭제곱의 거듭제곱 쪽이에요.', remedialFlowStartNodeId: 'g3l_step1_A_explain', weaknessId: 'g3_log_exp' },
+          { text: '거듭제곱의 거듭제곱 (aˣ)ʸ 도 지수를 더한다', correct: false, feedback: '(aˣ)ʸ 는 지수를 곱해 aˣʸ 가 돼요. 곱셈은 합, 거듭제곱의 거듭제곱은 곱이에요.', remedialFlowStartNodeId: 'g3l_step1_C_explain', weaknessId: 'g3_log_exp' },
         ],
       },
       {
         id: 'g3_log_exp.step2',
         title: '로그 성질 — 곱과 나눗셈',
         body: 'logₐ(bc)=logₐb+logₐc, logₐ(b/c)=logₐb-logₐc. 곱은 로그의 합, 나눗셈은 로그의 차.',
-        example: '예) log₂8+log₂4=log₂32=5',
+        example: '예) 합: log₂8+log₂4=log₂32=5 / 차: log₂8-log₂4=log₂2=1',
         choices: [
           { text: '곱의 로그는 각 로그의 합이다', correct: true, feedback: '맞아요! 로그가 곱셈을 덧셈으로 풀어주는 성질이에요.' },
-          { text: '곱의 로그는 각 로그의 곱이다', correct: false, feedback: '로그는 곱셈을 합으로 바꿔줘요. 두 로그의 곱은 다른 양이에요.' },
-          { text: '로그 안의 수를 나누면 지수를 나눈다', correct: false, feedback: '나눗셈은 로그의 차로 풀려요. 지수의 나눗셈이 아니에요.' },
+          { text: '곱의 로그는 각 로그의 곱이다', correct: false, feedback: '로그는 곱셈을 합으로 바꿔줘요. 두 로그의 곱은 다른 양이에요.', remedialFlowStartNodeId: 'g3l_step2_A_explain', weaknessId: 'g3_log_exp' },
+          { text: '로그 안의 수를 나누면 지수를 나눈다', correct: false, feedback: '나눗셈은 로그의 차로 풀려요. 지수의 나눗셈이 아니에요.', remedialFlowStartNodeId: 'g3l_step2_C_explain', weaknessId: 'g3_log_exp' },
         ],
       },
       {
         id: 'g3_log_exp.step3',
         title: '밑 변환 공식',
-        body: 'logₐb=logc(b)/logc(a). 계산기나 표가 없을 때 밑을 바꿔 계산할 수 있다.',
-        example: '예) log₂8=log10(8)/log10(2)=3',
+        body: 'log₂7처럼 바로 안 떨어지는 값을 다룰 때 익숙한 밑(예: 10이나 e)으로 옮겨 계산하면 편하다. 밑 변환 공식 logₐb = log_c(b)/log_c(a) 로 풀어 쓴다.',
+        example: '예) log₂8 = log₁₀8 / log₁₀2 = 3',
         choices: [
-          { text: 'logₐb=log b / log a (밑이 같은 로그의 비)', correct: true, feedback: '맞아요! 같은 밑의 두 로그를 비로 묶는 형태예요.' },
-          { text: 'logₐb=log a / log b', correct: false, feedback: '분자와 분모가 뒤바뀌었어요. 결과 로그의 진수가 분자에 오는 게 맞아요.' },
-          { text: 'logₐb=log(a-b)', correct: false, feedback: '차의 로그라는 성질은 없어요. 밑 변환은 비의 형태로 정리돼요.' },
+          { text: 'logₐb = log_c(b) / log_c(a) (같은 밑 c 로 묶은 비)', correct: true, feedback: '맞아요! 같은 밑 c 의 두 로그를 비로 묶는 형태예요.' },
+          { text: 'logₐb = log_c(a) / log_c(b)', correct: false, feedback: '분자와 분모가 뒤바뀌었어요. 진수 b 가 분자, 원래 밑 a 가 분모로 가는 게 맞아요.', remedialFlowStartNodeId: 'g3l_step3_A_explain', weaknessId: 'g3_log_exp' },
+          { text: 'logₐb = log_c(b) · log_c(a)', correct: false, feedback: '두 로그를 곱하면 다른 양이 만들어져요. 밑 변환은 비(나눗셈) 형태예요.', remedialFlowStartNodeId: 'g3l_step3_C_explain', weaknessId: 'g3_log_exp' },
         ],
       },
     ],
