@@ -64,4 +64,23 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '도함수',
     '미분계수',
   ],
+  solving_order_confusion: [
+    '극값',
+    '극댓값',
+    '극솟값',
+    '극대',
+    '극소',
+  ],
+  max_min_judgement_confusion: [
+    '최댓값',
+    '최솟값',
+    '위로 볼록',
+    '아래로 볼록',
+  ],
+  factoring_pattern_recall: [
+    '인수분해',
+    '공통인수',
+    '인수분해하',
+    '치환',
+  ],
 };
