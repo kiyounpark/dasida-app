@@ -44,7 +44,7 @@ if (existsSync(STATE_PATH)) {
 
 const now = new Date().toISOString();
 const state = {
-  version: 1,
+  version: 2,
   createdAt: now,
   lastUpdateAt: now,
   queue,
@@ -57,6 +57,8 @@ const state = {
   lastDriftCheckAt: 0,
   retryStats: [],
   rejectionHistory: [],
+  passedGates: {},
+  backfillQueue: [],
 };
 
 writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), 'utf8');
