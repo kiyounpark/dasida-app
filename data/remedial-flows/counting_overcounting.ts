@@ -55,7 +55,7 @@ export const counting_overcounting_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step1_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'coc_step1_A_easy',
+      secondaryNextNodeId: 'coc_step1_C_easy',
       summary: '나열은 패턴을 보여주는 첫 단계 — 공식 선택의 근거가 됨',
       triggers: [
         '나열은 시간 낭비 같아요',
@@ -76,6 +76,16 @@ export const counting_overcounting_flow: RemedialFlow = {
       dontKnowNextNodeId: 'coc_step1_A_easy',
     },
 
+    'coc_step1_C_easy': {
+      id: 'coc_step1_C_easy',
+      kind: 'explain',
+      title: '나열 한 번이 공식 선택을 돕는다',
+      body: '예) 동전 1개 던지기: 앞, 뒤 — 2가지. 딱 적어본 순간 "아, 2가지구나"가 잡혀요. 나열이 공식 선택의 근거가 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'coc_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'coc_step1_exit',
+    },
     'coc_step1_exit': { id: 'coc_step1_exit', kind: 'exit' },
 
     // ─────────── step2: 오답 A ("중복은 항상 없다") 분기 ───────────
@@ -127,7 +137,7 @@ export const counting_overcounting_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step2_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'coc_step2_A_easy',
+      secondaryNextNodeId: 'coc_step2_C_easy',
       summary: '같은 경우 묶기는 눈으로 확인하는 단계 — 공식의 정답을 검증함',
       triggers: [
         '공식만 쓰면 안 되나요',
@@ -148,19 +158,29 @@ export const counting_overcounting_flow: RemedialFlow = {
       dontKnowNextNodeId: 'coc_step2_A_easy',
     },
 
+    'coc_step2_C_easy': {
+      id: 'coc_step2_C_easy',
+      kind: 'explain',
+      title: '나열로 공식 결과 확인하기',
+      body: '예) 가·나·다 중 2명: 직접 적으면 가나, 가다, 나가, 나다, 다가, 다나 = 6가지. 조합 공식 3C2 = 3이 맞는지 "6 ÷ 2 = 3"으로 확인할 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'coc_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'coc_step2_exit',
+    },
     'coc_step2_exit': { id: 'coc_step2_exit', kind: 'exit' },
 
     // ─────────── step3: 오답 A ("중복을 포함해서 답으로 쓴다") 분기 ───────────
     'coc_step3_A_explain': {
       id: 'coc_step3_A_explain',
       kind: 'explain',
-      title: '중복을 빼야 답이 맞아요',
-      body: '같은 경우를 두 번 세면 답이 실제보다 부풀려져요. 조합이란 순서를 따지지 않고 뽑는 가짓수를 말해요. 마지막에 같은 경우 수만큼 나눠 정리해야 정확한 값이 나와요.',
+      title: '중복을 나눠야 답이 맞아요',
+      body: '같은 경우를 두 번 세면 답이 실제보다 부풀려져요. 조합(순서를 따지지 않고 뽑는 가짓수)에서는 2명씩 뽑을 때 가나와 나가가 같아서 2번씩 세어져요. 그래서 총 가짓수를 2로 나눠야 정확한 답이 나와요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step3_A_check',
       secondaryLabel: '모르겠어요',
       secondaryNextNodeId: 'coc_step3_A_easy',
-      summary: '중복을 포함하면 답이 부풀려짐 — 마지막에 같은 경우 수로 나눠야 정답',
+      summary: '중복을 포함하면 답이 부풀려짐 — 뽑는 수만큼의 중복으로 나눠야 정답',
       triggers: [
         '왜 답이 너무 커지나요',
         '중복을 그대로 쓰면 안 되나요',
@@ -170,8 +190,8 @@ export const counting_overcounting_flow: RemedialFlow = {
     'coc_step3_A_easy': {
       id: 'coc_step3_A_easy',
       kind: 'explain',
-      title: '예시로 짚어요',
-      body: '3명 중 2명을 순서 따져 뽑으면 6가지지만, 가나와 나가가 같으니 2로 나눠 3가지가 진짜 답이에요. 같은 경우 수가 2면 2로 나누는 거예요.',
+      title: '나열로 확인해봐요',
+      body: '가·나·다 3명 중 2명을 순서 따져 뽑으면: 가나·가다·나가·나다·다가·다나 = 6가지. 가나와 나가는 같은 두 명이라 2번씩 겹쳐요. 그래서 6 ÷ 2 = 3가지가 진짜 답이에요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step3_A_check',
       secondaryLabel: '모르겠어요',
@@ -181,7 +201,7 @@ export const counting_overcounting_flow: RemedialFlow = {
       id: 'coc_step3_A_check',
       kind: 'check',
       title: '확인 문제',
-      prompt: '4명 중 2명을 순서 따져 뽑으면 12가지예요. 순서를 따지지 않으면 답은?',
+      prompt: '가·나·다·라 4명 중 2명을 순서 따져 뽑으면 4×3=12가지예요. 2명씩 가나=나가처럼 2번씩 겹치므로, 순서를 따지지 않은 답은?',
       options: [
         { id: 'correct', text: '6가지 (12 ÷ 2)', isCorrect: true, nextNodeId: 'coc_step3_exit' },
         { id: 'wrong1',  text: '12가지 그대로', isCorrect: false, nextNodeId: 'coc_step3_A_easy', weaknessId: 'counting_overcounting' },
@@ -194,24 +214,34 @@ export const counting_overcounting_flow: RemedialFlow = {
     'coc_step3_C_explain': {
       id: 'coc_step3_C_explain',
       kind: 'explain',
-      title: '더하는 게 아니라 빼거나 나눠요',
-      body: '중복은 이미 두 번 세어진 거라서 더하면 더 부풀려져요. 같은 경우 수만큼 빼거나, 그 수로 나눠 정리해야 해요. 방향이 반대예요.',
+      title: '더하는 게 아니라 나눠야 해요',
+      body: '중복은 이미 두 번 세어진 거라서 더하면 더 부풀려져요. 같은 경우가 2번씩 나오면 전체를 2로 나눠 정리해야 해요. 더하기는 반대 방향이에요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step3_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'coc_step3_A_easy',
-      summary: '중복은 이미 두 번 세어진 양 — 더하면 안 되고 빼거나 나눠야 함',
+      secondaryNextNodeId: 'coc_step3_C_easy',
+      summary: '중복은 이미 두 번 세어진 양 — 더하면 안 되고 같은 배수로 나눠야 함',
       triggers: [
         '중복은 더하는 게 아닌가요',
         '왜 빼야 하는지 모르겠어요',
         '나눈다는 게 무슨 뜻인지',
       ],
     },
+    'coc_step3_C_easy': {
+      id: 'coc_step3_C_easy',
+      kind: 'explain',
+      title: '더하면 더 커져요',
+      body: '예) 순서 따져 6가지인데 각 경우가 2번씩 겹쳐요. 6+2=8이 아니라 6÷2=3이에요. 겹친 만큼 나눠야 부풀림이 사라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'coc_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'coc_step3_exit',
+    },
     'coc_step3_C_check': {
       id: 'coc_step3_C_check',
       kind: 'check',
       title: '확인 문제',
-      prompt: '순서 따져 뽑은 6가지 중 같은 경우끼리 묶이는 쌍이 3쌍 있을 때, 최종 답은?',
+      prompt: '순서 따져 뽑은 6가지에서 각 경우가 2번씩 겹쳐요 (가나=나가, 가다=다가, 나다=다나). 중복을 제거하면 최종 답은?',
       options: [
         { id: 'correct', text: '3가지 (6 ÷ 2)', isCorrect: true, nextNodeId: 'coc_step3_exit' },
         { id: 'wrong1',  text: '9가지 (6 + 3)', isCorrect: false, nextNodeId: 'coc_step3_A_easy', weaknessId: 'counting_overcounting' },
