@@ -1807,15 +1807,15 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) f(x)=(x²+1)³ → f\'(x)=3(x²+1)²·2x=6x(x²+1)²',
         choices: [
           { text: '바깥 함수를 먼저 미분하고, 안쪽 함수의 미분을 곱한다', correct: true, feedback: '맞아요! 체인룰의 표준 순서예요.' },
-          { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 살짝 다르긴 한데, 정의대로는 바깥을 먼저 미분한 뒤 안쪽 미분을 곱해요.' },
+          { text: '안쪽 함수를 먼저 미분하고, 바깥 함수의 미분을 곱한다', correct: false, feedback: '순서가 반대예요. 체인룰은 바깥부터 미분해서 안쪽을 그대로 둔 채 적고, 그 뒤에 안쪽 미분을 곱해야 결과가 맞아요.' },
           { text: '두 함수를 각각 미분한 뒤 더한다', correct: false, feedback: '더하기는 합의 미분 규칙이에요. 합성함수에서는 곱하기로 묶여야 해요.' },
         ],
       },
       {
         id: 'g3_diff.step3',
         title: '곱의 미분',
-        body: '(f·g)\'=f\'g+fg\'로, 첫 번째 함수를 미분한 뒤 두 번째 함수를 곱하고, 첫 번째 함수에 두 번째 함수의 미분을 곱해서 더한다.',
-        example: '예) f(x)=x²·sinx → f\'(x)=2x·sinx+x²·cosx',
+        body: '(f·g)\'=f\'g+fg\'로, 앞 식을 미분해 뒤 식을 곱한 항과, 앞 식을 그대로 두고 뒤 식을 미분해 곱한 항을 더한다.',
+        example: '예) f(x)=x²·(x+1) → f\'(x)=2x·(x+1)+x²·1=3x²+2x',
         choices: [
           { text: '앞 미분×뒤 + 앞×뒤 미분', correct: true, feedback: '맞아요! 곱의 미분 공식이 정확히 들어맞았어요.' },
           { text: '앞 미분×뒤 미분', correct: false, feedback: '두 미분만 곱하면 다른 양이 돼요. 두 항으로 나눠서 합쳐야 해요.' },

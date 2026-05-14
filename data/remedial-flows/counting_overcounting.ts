@@ -70,10 +70,10 @@ export const counting_overcounting_flow: RemedialFlow = {
       prompt: '동전 1개와 주사위 1개를 동시에 던질 때 전체 경우의 수를 나열로 구하면?',
       options: [
         { id: 'correct', text: '12가지 (앞1~앞6, 뒤1~뒤6)', isCorrect: true, nextNodeId: 'coc_step1_exit' },
-        { id: 'wrong1',  text: '8가지', isCorrect: false, nextNodeId: 'coc_step1_A_easy', weaknessId: 'counting_overcounting' },
-        { id: 'wrong2',  text: '나열로는 알 수 없다', isCorrect: false, nextNodeId: 'coc_step1_A_easy', weaknessId: 'counting_overcounting' },
+        { id: 'wrong1',  text: '8가지', isCorrect: false, nextNodeId: 'coc_step1_C_easy', weaknessId: 'counting_overcounting' },
+        { id: 'wrong2',  text: '나열로는 알 수 없다', isCorrect: false, nextNodeId: 'coc_step1_C_easy', weaknessId: 'counting_overcounting' },
       ],
-      dontKnowNextNodeId: 'coc_step1_A_easy',
+      dontKnowNextNodeId: 'coc_step1_C_easy',
     },
 
     'coc_step1_C_easy': {
@@ -152,10 +152,10 @@ export const counting_overcounting_flow: RemedialFlow = {
       prompt: '학생 4명 가, 나, 다, 라 중 2명을 뽑을 때, 가나와 같은 경우로 묶이는 건?',
       options: [
         { id: 'correct', text: '나가', isCorrect: true, nextNodeId: 'coc_step2_exit' },
-        { id: 'wrong1',  text: '다라', isCorrect: false, nextNodeId: 'coc_step2_A_easy', weaknessId: 'counting_overcounting' },
-        { id: 'wrong2',  text: '같은 경우는 없다', isCorrect: false, nextNodeId: 'coc_step2_A_easy', weaknessId: 'counting_overcounting' },
+        { id: 'wrong1',  text: '다라', isCorrect: false, nextNodeId: 'coc_step2_C_easy', weaknessId: 'counting_overcounting' },
+        { id: 'wrong2',  text: '같은 경우는 없다', isCorrect: false, nextNodeId: 'coc_step2_C_easy', weaknessId: 'counting_overcounting' },
       ],
-      dontKnowNextNodeId: 'coc_step2_A_easy',
+      dontKnowNextNodeId: 'coc_step2_C_easy',
     },
 
     'coc_step2_C_easy': {
@@ -231,7 +231,7 @@ export const counting_overcounting_flow: RemedialFlow = {
       id: 'coc_step3_C_easy',
       kind: 'explain',
       title: '더하면 더 커져요',
-      body: '예) 순서 따져 6가지인데 각 경우가 2번씩 겹쳐요. 6+2=8이 아니라 6÷2=3이에요. 겹친 만큼 나눠야 부풀림이 사라져요.',
+      body: '예) 4명 중 2명 순서 따져 뽑으면 4×3=12가지. 2번씩 겹치면 12+2=14가 아니라 12÷2=6이에요. 겹친 만큼 나눠야 부풀림이 사라져요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'coc_step3_C_check',
       secondaryLabel: '모르겠어요',
@@ -241,13 +241,13 @@ export const counting_overcounting_flow: RemedialFlow = {
       id: 'coc_step3_C_check',
       kind: 'check',
       title: '확인 문제',
-      prompt: '순서 따져 뽑은 6가지에서 각 경우가 2번씩 겹쳐요 (가나=나가, 가다=다가, 나다=다나). 중복을 제거하면 최종 답은?',
+      prompt: '4명 중 2명을 순서 따져 뽑으면 12가지. 각 경우가 2번씩 겹친다면, 중복을 더해서 정답을 구할 수 있을까요?',
       options: [
-        { id: 'correct', text: '3가지 (6 ÷ 2)', isCorrect: true, nextNodeId: 'coc_step3_exit' },
-        { id: 'wrong1',  text: '9가지 (6 + 3)', isCorrect: false, nextNodeId: 'coc_step3_A_easy', weaknessId: 'counting_overcounting' },
-        { id: 'wrong2',  text: '12가지', isCorrect: false, nextNodeId: 'coc_step3_A_easy', weaknessId: 'counting_overcounting' },
+        { id: 'correct', text: '아니요. 12 ÷ 2 = 6가지로 나눠야 해요', isCorrect: true, nextNodeId: 'coc_step3_exit' },
+        { id: 'wrong1',  text: '예. 12 + 2 = 14가지로 더해요', isCorrect: false, nextNodeId: 'coc_step3_C_easy', weaknessId: 'counting_overcounting' },
+        { id: 'wrong2',  text: '예. 중복을 더해 24가지', isCorrect: false, nextNodeId: 'coc_step3_C_easy', weaknessId: 'counting_overcounting' },
       ],
-      dontKnowNextNodeId: 'coc_step3_A_easy',
+      dontKnowNextNodeId: 'coc_step3_C_easy',
     },
 
     'coc_step3_exit': { id: 'coc_step3_exit', kind: 'exit' },
