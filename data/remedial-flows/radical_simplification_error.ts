@@ -84,7 +84,7 @@ export const radical_simplification_error_flow: RemedialFlow = {
         { id: 'wrong1',  text: '50을 분자·분모 형태로 약분한다', isCorrect: false, nextNodeId: 'rad_step1_C_remedy', weaknessId: 'radical_simplification_error' },
         { id: 'wrong2',  text: '√50은 이미 간소화 불가다', isCorrect: false, nextNodeId: 'rad_step1_C_remedy', weaknessId: 'radical_simplification_error' },
       ],
-      dontKnowNextNodeId: 'rad_step1_A_easy',
+      dontKnowNextNodeId: 'rad_step1_C_remedy',
     },
     'rad_step1_C_remedy': {
       id: 'rad_step1_C_remedy',
@@ -177,7 +177,7 @@ export const radical_simplification_error_flow: RemedialFlow = {
         { id: 'wrong1',  text: '√72', isCorrect: false, nextNodeId: 'rad_step2_C_remedy', weaknessId: 'radical_simplification_error' },
         { id: 'wrong2',  text: '36√2', isCorrect: false, nextNodeId: 'rad_step2_C_remedy', weaknessId: 'radical_simplification_error' },
       ],
-      dontKnowNextNodeId: 'rad_step2_A_easy',
+      dontKnowNextNodeId: 'rad_step2_C_remedy',
     },
     'rad_step2_C_remedy': {
       id: 'rad_step2_C_remedy',
@@ -269,7 +269,7 @@ export const radical_simplification_error_flow: RemedialFlow = {
         { id: 'wrong1',  text: '나중에 따로 계산', isCorrect: false, nextNodeId: 'rad_step3_C_remedy', weaknessId: 'radical_simplification_error' },
         { id: 'wrong2',  text: '13 (= 4 + 9)', isCorrect: false, nextNodeId: 'rad_step3_C_remedy', weaknessId: 'radical_simplification_error' },
       ],
-      dontKnowNextNodeId: 'rad_step3_A_easy',
+      dontKnowNextNodeId: 'rad_step3_C_remedy',
     },
     'rad_step3_C_remedy': {
       id: 'rad_step3_C_remedy',
