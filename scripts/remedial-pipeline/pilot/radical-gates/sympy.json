@@ -1,0 +1,122 @@
+[
+  {
+    "id": "rad_step1_A_explain.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_A_easy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_A_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_A_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_A_remedy.eq3",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_C_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step1_C_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_A_explain.eq1",
+    "ok": false,
+    "reason": "lhs - rhs = -a*sqrt(b) + sqrt(a**2*b)"
+  },
+  {
+    "id": "rad_step2_A_easy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_A_easy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_A_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_A_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_C_explain.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_C_explain.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_C_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_C_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step2_C_remedy.eq3",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_A_easy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_A_easy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_A_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_A_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_C_remedy.eq1",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_C_remedy.eq2",
+    "ok": true,
+    "reason": null
+  },
+  {
+    "id": "rad_step3_C_remedy.eq3",
+    "ok": true,
+    "reason": null
+  }
+]
