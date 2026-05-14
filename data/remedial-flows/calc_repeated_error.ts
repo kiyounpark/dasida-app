@@ -244,6 +244,7 @@ export const calc_repeated_error_flow: RemedialFlow = {
       options: [
         { id: 'r1', text: '−3 을 그대로 제곱했어요', nextNodeId: 'calc_step2_A_pinpoint1' },
         { id: 'r2', text: '식이 어떻게 펼쳐지는지 모르겠어요', nextNodeId: 'calc_step2_A_pinpoint2' },
+        { id: 'r3', text: '제곱 대신 ×2 로 계산했어요', nextNodeId: 'calc_step2_A_pinpoint2' },
       ],
     },
     'calc_step2_A_pinpoint1': {
@@ -262,7 +263,7 @@ export const calc_repeated_error_flow: RemedialFlow = {
       id: 'calc_step2_A_pinpoint2',
       kind: 'explain',
       title: '하나씩 펼쳐 봐요',
-      body: 'x² 의 x 자리에 −3을 넣을 땐 괄호를 같이 가져가요. (−3)² = (−3) × (−3) = 9. 음수 × 음수 = 양수, 이 규칙이 괄호 안에서 작동해요.',
+      body: 'x² 의 x 자리에 −3을 넣을 땐 괄호를 같이 가져가요. (−3)² = (−3) × (−3) = 9. 제곱은 같은 수를 두 번 곱하는 거예요. −3 × 2 = −6 같은 ×2 계산이랑 달라요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'calc_step2_A_check',
       secondaryLabel: '모르겠어요',
@@ -326,6 +327,7 @@ export const calc_repeated_error_flow: RemedialFlow = {
       options: [
         { id: 'r1', text: '−4² 을 (−4)² 로 읽었어요', nextNodeId: 'calc_step2_C_pinpoint1' },
         { id: 'r2', text: '제곱 우선순위를 못 봤어요', nextNodeId: 'calc_step2_C_pinpoint2' },
+        { id: 'r3', text: '제곱을 ×2 로 착각했어요', nextNodeId: 'calc_step2_C_pinpoint2' },
       ],
     },
     'calc_step2_C_pinpoint1': {
@@ -344,7 +346,7 @@ export const calc_repeated_error_flow: RemedialFlow = {
       id: 'calc_step2_C_pinpoint2',
       kind: 'explain',
       title: '제곱이 먼저예요',
-      body: '어느 계산을 먼저 하느냐 순서에서, 제곱이 마이너스보다 먼저예요. −4² 은 4를 먼저 제곱해 16, 그 다음 마이너스를 붙여 −16. 괄호가 없으니까 마이너스는 제곱 결과에 나중에 붙어요.',
+      body: '어느 계산을 먼저 하느냐 순서에서, 제곱이 마이너스보다 먼저예요. −4² 은 4를 먼저 제곱해 16, 그 다음 마이너스를 붙여 −16. 제곱은 4 × 4 = 16 이고 4 × 2 = 8 같은 ×2 계산이 아니에요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'calc_step2_C_check',
       secondaryLabel: '모르겠어요',
@@ -422,6 +424,7 @@ export const calc_repeated_error_flow: RemedialFlow = {
       options: [
         { id: 'r1', text: '한 줄로 적어도 같아 보였어요', nextNodeId: 'calc_step3_A_pinpoint1' },
         { id: 'r2', text: '검산이라는 게 뭔지 와닿지 않아요', nextNodeId: 'calc_step3_A_pinpoint2' },
+        { id: 'r3', text: '결과만 같으면 된다고 봤어요', nextNodeId: 'calc_step3_A_pinpoint1' },
       ],
     },
     'calc_step3_A_pinpoint1': {
