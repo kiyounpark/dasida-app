@@ -54,12 +54,16 @@ nextAction 처리:
 3개 약점에 대해 각각:
 - scripts/remedial-pipeline/keywords.ts 에 키워드 5-10개 추가
   (실제 시험 데이터 grep 으로 확인: grep -rh --include='explanations.json' -o '"intent":[[:space:]]*"[^"]*"' data/exam/ | grep -F "<키워드>" | wc -l)
-- 매핑 ≥10건 목표. 미달이면 키워드 확장.
+- 매핑 ≥10건이면 이상적. 미달이면 키워드 확장 1회 시도.
 
 3개 키워드 다 추가 후:
 tsx scripts/remedial-pipeline/map-intent-to-weakness.ts
 
-각 약점 매핑 ≥10건 확인. 미달 약점은 record-complete 로 failed 처리.
+**매핑 부족해도 자동 진행** (spec content-author.md §"매핑된 사례 활용" — "사례 0건이어도 진행 가능. ... feedback 문장과 약점 정의만으로 작성"):
+- 매핑 사례 수 무관하게 콘텐츠 작성 진행
+- 매핑 0건/소량인 경우 → 작성자(도우미) 는 review-content-map.ts 의 해당 엔트리 (heroPrompt + thinkingSteps + feedback 문장) + diagnosisMap.ts 의 desc/tip 만으로 작성
+- 실패 처리 X (이전 rationalization_error 처럼 수동 경로로 진행)
+- 매핑 부족은 작성 난이도 ↑ 일 뿐, 차단 사유 아님
 
 ### 2b. 도우미 3명 병렬 dispatch (Agent 도구)
 
