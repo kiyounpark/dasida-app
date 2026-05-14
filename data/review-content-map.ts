@@ -574,7 +574,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         id: 'radical_simplification_error.step1',
         title: '소인수분해로 내부 분석',
         body: '근호 안의 수를 소인수분해하여 제곱 묶음을 찾는다.',
-        example: '예) √72 → √(4×18) → √(4×9×2)',
+        example: '예) 72 = 2³×3² = (2²)×(3²)×2 → 제곱 묶음: 2², 3² → √72 = √(4×9×2)',
         choices: [
           { text: '근호 안을 그대로 둔다', correct: false, feedback: '그대로 두면 단순화가 안 돼요. 소인수분해로 제곱 묶음을 찾는 게 첫 단추예요.' },
           { text: '소인수분해로 제곱 묶음을 찾는다', correct: true, feedback: '맞아요! 제곱 묶음을 찾는 순간 근호 밖으로 꺼낼 거리가 보여요.' },
@@ -596,7 +596,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         id: 'radical_simplification_error.step3',
         title: '계수끼리 곱해서 정리',
         body: '근호 밖으로 나온 수들을 모두 곱하여 최종 계수를 구한다.',
-        example: '예) 6√2 → 계수 6, 근호 안 2',
+        example: '예) √(4×9×2) → 밖으로 나온 수: 2, 3 → 계수 = 2×3 = 6 → 6√2',
         choices: [
           { text: '계수를 더해서 정리한다', correct: false, feedback: '근호 밖으로 나온 수들은 곱해서 모아야 해요. 더하면 단위가 어긋나요.' },
           { text: '근호 밖 수를 모두 곱한다', correct: true, feedback: '맞아요! 밖으로 나온 수는 모두 곱해 한 계수로 합쳐요.' },
