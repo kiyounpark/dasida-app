@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-13T14:07:47.453Z",
+  "lastUpdateAt": "2026-05-14T13:46:06.160Z",
+  "queue": [
+    "complex_factoring_difficulty",
+    "quadratic_formula_memorization",
+    "rationalization_error",
+    "expansion_sign_error",
+    "like_terms_error",
+    "imaginary_unit_confusion",
+    "complex_calc_error",
+    "remainder_substitution_error",
+    "simultaneous_equation_error",
+    "counting_method_confusion",
+    "counting_overcounting",
+    "g3_diff",
+    "g3_sequence",
+    "g3_log_exp",
+    "g3_integral",
+    "g3_trig",
+    "g3_limit",
+    "g3_conic",
+    "g3_counting",
+    "g3_probability",
+    "g3_statistics",
+    "g2_set_operation",
+    "g2_set_complement",
+    "g2_set_count",
+    "g2_prop_contrapositive",
+    "g2_prop_necessary_sufficient",
+    "g2_prop_quantifier",
+    "g2_trig_unit_circle",
+    "g2_trig_equation_range",
+    "g2_trig_identity",
+    "g2_poly_factoring",
+    "g2_poly_remainder",
+    "g2_eq_setup",
+    "g2_radical_simplify",
+    "g2_radical_rationalize",
+    "g2_diff_application",
+    "g2_integral_basic",
+    "g2_integral_definite",
+    "g2_counting_method",
+    "g2_counting_overcounting",
+    "g2_inequality_range",
+    "g2_function_domain",
+    "g3_vector",
+    "g3_space_geometry",
+    "g1_geometry",
+    "g3_function"
+  ],
+  "completed": [
+    "calc_repeated_error",
+    "min_value_read_confusion",
+    "radical_simplification_error",
+    "vertex_formula_memorization",
+    "coefficient_sign_confusion",
+    "derivative_calculation",
+    "factoring_pattern_recall",
+    "max_min_judgement_confusion",
+    "solving_order_confusion"
+  ],
+  "manualReview": [],
+  "failed": [],
+  "totalTokens": 7520000,
+  "completedCount": 9,
+  "lastProgressReportAt": 5,
+  "lastDriftCheckAt": 0,
+  "retryStats": [
+    {
+      "weaknessId": "calc_repeated_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "min_value_read_confusion",
+      "retries": 1
+    },
+    {
+      "weaknessId": "radical_simplification_error",
+      "retries": 3
+    },
+    {
+      "weaknessId": "vertex_formula_memorization",
+      "retries": 2
+    },
+    {
+      "weaknessId": "coefficient_sign_confusion",
+      "retries": 2
+    },
+    {
+      "weaknessId": "derivative_calculation",
+      "retries": 2
+    },
+    {
+      "weaknessId": "solving_order_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "retries": 1
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "retries": 1
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "retries": 2
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "solving_order_confusion",
+      "retries": 4
+    }
+  ],
+  "rejectionHistory": [
+    {
+      "weaknessId": "solving_order_confusion",
+      "gate": "struggling-student",
+      "reason": "미분 prerequisite 의존 — 3회 retry 후에도 학생 페르소나가 도함수/극대극소/방정식 용어에서 confused"
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "gate": "struggling-student",
+      "reason": "병렬 subagent 자체평가 후 검증에서 학생 7 confused (볼록 방향 정의, f(x) 표기, 꼭짓점)"
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "gate": "struggling-student",
+      "reason": "병렬 subagent 자체평가 후 검증에서 학생 8 confused (x²/b/c/p/q 변수, 전개, 절댓값)"
+    }
+  ],
+  "passedGates": {
+    "calc_repeated_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "min_value_read_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "radical_simplification_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "vertex_formula_memorization": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "coefficient_sign_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "derivative_calculation": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "solving_order_confusion": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    },
+    "max_min_judgement_confusion": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    },
+    "factoring_pattern_recall": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    }
+  },
+  "backfillQueue": []
+}
