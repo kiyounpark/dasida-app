@@ -120,6 +120,8 @@ import { g2_trig_identity_flow } from './remedial-flows/g2_trig_identity';
 import { g2_radical_simplify_flow } from './remedial-flows/g2_radical_simplify';
 import { g2_radical_rationalize_flow } from './remedial-flows/g2_radical_rationalize';
 import { g2_diff_application_flow } from './remedial-flows/g2_diff_application';
+import { g2_integral_basic_flow } from './remedial-flows/g2_integral_basic';
+import { g2_integral_definite_flow } from './remedial-flows/g2_integral_definite';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -168,6 +170,8 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_radical_simplify: g2_radical_simplify_flow,
   g2_radical_rationalize: g2_radical_rationalize_flow,
   g2_diff_application: g2_diff_application_flow,
+  g2_integral_basic: g2_integral_basic_flow,
+  g2_integral_definite: g2_integral_definite_flow,
 };
 
 export function getRemedialNode(

@@ -1568,8 +1568,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '∫(3x²-2x+1)dx = x³-x²+x+C',
         choices: [
           { text: '지수를 1 증가시키고 증가된 지수로 나눈다', correct: true, feedback: '맞아요! 미분의 정확한 역방향이라 외워두면 든든해요.' },
-          { text: '지수를 앞으로 내리고 1을 뺀다 (미분 공식)', correct: false, feedback: '그건 미분 공식이에요. 적분은 반대 방향, 즉 지수를 1 더하고 그 수로 나눠요.' },
-          { text: '상수항은 적분해도 사라진다', correct: false, feedback: '상수항을 적분하면 일차 항이 생겨요. 사라지지는 않아요.' },
+          { text: '지수를 앞으로 내리고 1을 뺀다 (미분 공식)', correct: false, feedback: '그건 미분 공식이에요. 적분은 반대 방향, 즉 지수를 1 더하고 그 수로 나눠요.', remedialFlowStartNodeId: 'ibs_step1_B_explain', weaknessId: 'g2_integral_basic' },
+          { text: '상수항은 적분해도 사라진다', correct: false, feedback: '상수항을 적분하면 일차 항이 생겨요. 사라지지는 않아요.', remedialFlowStartNodeId: 'ibs_step1_C_explain', weaknessId: 'g2_integral_basic' },
         ],
       },
       {
@@ -1579,8 +1579,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '∫6x²dx = 6·x³/3 = 2x³ (계수 6을 올린 지수 3으로 나눔)',
         choices: [
           { text: '계수는 그대로 두고 새 지수로 나눈다', correct: true, feedback: '맞아요! 계수는 유지, 분모는 새 지수로 정리되는 흐름이에요.' },
-          { text: '계수는 지수처럼 앞으로 내린다', correct: false, feedback: '그건 미분 사고예요. 적분에서 계수는 그대로 두고 새 지수로 나누면 돼요.' },
-          { text: '계수는 지수를 올리기 전 값으로 나눈다', correct: false, feedback: '올린 지수, 즉 n+1로 나눠야 해요. 원래 지수로 나누면 결과가 어긋나요.' },
+          { text: '계수는 지수처럼 앞으로 내린다', correct: false, feedback: '그건 미분 사고예요. 적분에서 계수는 그대로 두고 새 지수로 나누면 돼요.', remedialFlowStartNodeId: 'ibs_step2_B_explain', weaknessId: 'g2_integral_basic' },
+          { text: '계수는 지수를 올리기 전 값으로 나눈다', correct: false, feedback: '올린 지수, 즉 n+1로 나눠야 해요. 원래 지수로 나누면 결과가 어긋나요.', remedialFlowStartNodeId: 'ibs_step2_C_explain', weaknessId: 'g2_integral_basic' },
         ],
       },
       {
@@ -1590,8 +1590,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '∫3x²dx = x³+C → (x³)′=3x² ✓',
         choices: [
           { text: 'F(x)를 미분해서 f(x)가 나오면 정확하다', correct: true, feedback: '맞아요! 미분과 적분의 역관계가 검산의 핵심이에요.' },
-          { text: '미분과 적분은 역관계가 아니다', correct: false, feedback: '두 연산은 서로의 역이라 적분 후 미분하면 원함수로 돌아가요.' },
-          { text: '상수 C는 미분하면 1이 된다', correct: false, feedback: '상수의 미분은 0이에요. 그래서 적분에 +C가 붙어도 미분으로 사라져요.' },
+          { text: '미분과 적분은 역관계가 아니다', correct: false, feedback: '두 연산은 서로의 역이라 적분 후 미분하면 원함수로 돌아가요.', remedialFlowStartNodeId: 'ibs_step3_B_explain', weaknessId: 'g2_integral_basic' },
+          { text: '상수 C는 미분하면 1이 된다', correct: false, feedback: '상수의 미분은 0이에요. 그래서 적분에 +C가 붙어도 미분으로 사라져요.', remedialFlowStartNodeId: 'ibs_step3_C_explain', weaknessId: 'g2_integral_basic' },
         ],
       },
     ],
@@ -1606,8 +1606,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '[x³]₁³ → F(3)=27, F(1)=1 → 27-1=26. (F(1)을 빼지 않으면 27로 오답)',
         choices: [
           { text: '아래 끝값이 0이 아닌 경우에도 F(a)를 뺀다', correct: true, feedback: '맞아요! 0이 아닌 경우에도 빼는 단계는 빠뜨릴 수 없어요.' },
-          { text: '아래 끝값이 0이 아닌 경우 F(a)를 빼지 않아도 된다', correct: false, feedback: 'F(a)≠0이면 빼지 않을 수 없어요. 정의에 따라 항상 F(b)−F(a)예요.' },
-          { text: 'F(아래끝)-F(위끝) 순서이다', correct: false, feedback: '순서가 반대예요. 위 끝에서 아래 끝을 빼는 방향이 맞아요.' },
+          { text: '아래 끝값이 0이 아닌 경우 F(a)를 빼지 않아도 된다', correct: false, feedback: 'F(a)≠0이면 빼지 않을 수 없어요. 정의에 따라 항상 F(b)−F(a)예요.', remedialFlowStartNodeId: 'idf_step1_B_explain', weaknessId: 'g2_integral_definite' },
+          { text: 'F(아래끝)-F(위끝) 순서이다', correct: false, feedback: '순서가 반대예요. 위 끝에서 아래 끝을 빼는 방향이 맞아요.', remedialFlowStartNodeId: 'idf_step1_C_explain', weaknessId: 'g2_integral_definite' },
         ],
       },
       {
@@ -1617,8 +1617,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '[2x³]₁² → F(2)=16, F(1)=2 → 16-2=14. (한꺼번에 계산 시 부호 실수 위험)',
         choices: [
           { text: 'F(b)와 F(a)를 따로 계산한 뒤 뺀다', correct: true, feedback: '맞아요! 따로 정리한 뒤 빼는 게 부호 실수를 줄여요.' },
-          { text: '한 번에 전개해도 실수가 없다', correct: false, feedback: '한 번에 처리하면 부호가 어디서 어긋났는지 추적이 어려워요. 끊어 가는 게 안전해요.' },
-          { text: 'F(0)=0이므로 아래끝이 0이면 생략해도 된다', correct: false, feedback: '그 경우엔 결과가 같아 보일 수 있지만, 일반적으로는 항상 F(a)를 빼는 단계가 정의예요.' },
+          { text: '한 번에 전개해도 실수가 없다', correct: false, feedback: '한 번에 처리하면 부호가 어디서 어긋났는지 추적이 어려워요. 끊어 가는 게 안전해요.', remedialFlowStartNodeId: 'idf_step2_B_explain', weaknessId: 'g2_integral_definite' },
+          { text: 'F(0)=0이므로 아래끝이 0이면 생략해도 된다', correct: false, feedback: '그 경우엔 결과가 같아 보일 수 있지만, 일반적으로는 항상 F(a)를 빼는 단계가 정의예요.', remedialFlowStartNodeId: 'idf_step2_C_explain', weaknessId: 'g2_integral_definite' },
         ],
       },
       {
@@ -1628,8 +1628,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '[x²+2x]₁³ = (9+6)-(1+2) = 15-3 = 12. F(1)=3을 빠뜨리면 15로 오답 ✓',
         choices: [
           { text: '빼기 부호가 F(a)의 모든 항에 적용된다', correct: true, feedback: '맞아요! 분배되는 마이너스를 모든 항에 살려야 답이 정확해져요.' },
-          { text: '빼기 부호는 F(a)의 첫 항에만 적용된다', correct: false, feedback: '괄호로 묶인 F(a) 전체에 마이너스가 분배돼요. 첫 항만 적용하면 부호가 어긋나요.' },
-          { text: 'F(a)가 양수이면 빼지 않아도 된다', correct: false, feedback: '양수든 음수든 항상 빼야 해요. 부호와 상관없이 정의에 따른 절차예요.' },
+          { text: '빼기 부호는 F(a)의 첫 항에만 적용된다', correct: false, feedback: '괄호로 묶인 F(a) 전체에 마이너스가 분배돼요. 첫 항만 적용하면 부호가 어긋나요.', remedialFlowStartNodeId: 'idf_step3_B_explain', weaknessId: 'g2_integral_definite' },
+          { text: 'F(a)가 양수이면 빼지 않아도 된다', correct: false, feedback: '양수든 음수든 항상 빼야 해요. 부호와 상관없이 정의에 따른 절차예요.', remedialFlowStartNodeId: 'idf_step3_C_explain', weaknessId: 'g2_integral_definite' },
         ],
       },
     ],
