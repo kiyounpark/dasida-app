@@ -1416,8 +1416,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"두 수의 합이 10" → 작은 수를 x, 큰 수를 10-x로 놓기',
         choices: [
           { text: '구하는 값을 변수로 먼저 정의한다', correct: true, feedback: '맞아요! 변수에 이름을 주는 순간부터 식이 만들어지기 시작해요.' },
-          { text: '바로 방정식을 세운다', correct: false, feedback: '변수가 정의되지 않으면 식의 의미가 흔들려요. 한 줄 정의가 시작점이에요.' },
-          { text: '변수 없이 풀 수 있다', correct: false, feedback: '조건이 두 개 이상이면 변수가 필요해요. 풀이가 모호해지지 않게 정의가 우선이에요.' },
+          { text: '바로 방정식을 세운다', correct: false, feedback: '변수가 정의되지 않으면 식의 의미가 흔들려요. 한 줄 정의가 시작점이에요.', remedialFlowStartNodeId: 'eqst_step1_B_diagnose', weaknessId: 'g2_eq_setup' },
+          { text: '변수 없이 풀 수 있다', correct: false, feedback: '조건이 두 개 이상이면 변수가 필요해요. 풀이가 모호해지지 않게 정의가 우선이에요.', remedialFlowStartNodeId: 'eqst_step1_C_diagnose', weaknessId: 'g2_eq_setup' },
         ],
       },
       {
@@ -1427,8 +1427,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"두 수의 곱이 21" → x(10-x)=21',
         choices: [
           { text: '조건 하나씩 식으로 적는다', correct: true, feedback: '맞아요! 한 줄씩 옮겨두면 어떤 조건을 빠뜨렸는지도 한눈에 보여요.' },
-          { text: '모든 조건을 한 번에 식으로 쓴다', correct: false, feedback: '한 번에 옮기다 보면 빠뜨리는 조건이 생겨요. 하나씩 분리해서 적는 게 안전해요.' },
-          { text: '조건은 무시하고 풀이 공식을 쓴다', correct: false, feedback: '조건 없이는 무엇을 푸는지 정해지지 않아요. 식 세우기가 풀이의 일부예요.' },
+          { text: '모든 조건을 한 번에 식으로 쓴다', correct: false, feedback: '한 번에 옮기다 보면 빠뜨리는 조건이 생겨요. 하나씩 분리해서 적는 게 안전해요.', remedialFlowStartNodeId: 'eqst_step2_B_diagnose', weaknessId: 'g2_eq_setup' },
+          { text: '조건은 무시하고 풀이 공식을 쓴다', correct: false, feedback: '조건 없이는 무엇을 푸는지 정해지지 않아요. 식 세우기가 풀이의 일부예요.', remedialFlowStartNodeId: 'eqst_step2_C_diagnose', weaknessId: 'g2_eq_setup' },
         ],
       },
       {
@@ -1438,8 +1438,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'x(10-x)=21 → x=3 또는 7. 조건 확인: 3×7=21 ✓',
         choices: [
           { text: '답을 원래 조건에 대입해 검증한다', correct: true, feedback: '맞아요! 검산이 들어가면 잘못된 해를 안전하게 걸러낼 수 있어요.' },
-          { text: '방정식의 해가 바로 최종 답이다', correct: false, feedback: '방정식의 해가 문제 조건과 어긋날 때도 있어요. 한 번 대입해 확인하는 게 든든해요.' },
-          { text: '검증은 필요하지 않다', correct: false, feedback: '검증을 빼면 조건 위반 해가 살아남기 쉬워요. 마지막 한 단계가 정확도를 지켜요.' },
+          { text: '방정식의 해가 바로 최종 답이다', correct: false, feedback: '방정식의 해가 문제 조건과 어긋날 때도 있어요. 한 번 대입해 확인하는 게 든든해요.', remedialFlowStartNodeId: 'eqst_step3_B_diagnose', weaknessId: 'g2_eq_setup' },
+          { text: '검증은 필요하지 않다', correct: false, feedback: '검증을 빼면 조건 위반 해가 살아남기 쉬워요. 마지막 한 단계가 정확도를 지켜요.', remedialFlowStartNodeId: 'eqst_step3_C_diagnose', weaknessId: 'g2_eq_setup' },
         ],
       },
     ],
