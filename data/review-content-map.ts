@@ -1711,7 +1711,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
   g2_inequality_range: {
-    heroPrompt: '이차부등식 풀이는 포물선 그래프 방향으로 해의 범위를 결정합니다.',
+    heroPrompt: '먼저 근을 구하고, 그다음 포물선 방향으로 해 범위를 정하는 순서로 풀어볼게요.',
     thinkingSteps: [
       {
         id: 'g2_inequality_range.step1',
@@ -1720,19 +1720,19 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'x²-3x-4=0 → (x-4)(x+1)=0 → x=-1, x=4',
         choices: [
           { text: '먼저 =으로 바꿔 근을 구한다', correct: true, feedback: '맞아요! 두 근이 보이면 부등식의 해 범위가 자연스럽게 그려져요.' },
-          { text: '부등식을 직접 풀 수 있다', correct: false, feedback: '직접 풀이도 가능하지만, 근을 먼저 잡으면 그래프 위에서 해석하기 쉬워요.' },
-          { text: '근을 구하지 않아도 범위를 쓸 수 있다', correct: false, feedback: '두 근이 해 범위의 경계예요. 근 없이는 범위가 정해지지 않아요.' },
+          { text: '부등식을 직접 풀 수 있다', correct: false, feedback: '직접 풀이도 가능하지만, 근을 먼저 잡으면 그래프 위에서 해석하기 쉬워요.', remedialFlowStartNodeId: 'iqr_step1_A_diagnose', weaknessId: 'g2_inequality_range' },
+          { text: '근을 구하지 않아도 범위를 쓸 수 있다', correct: false, feedback: '두 근이 해 범위의 경계예요. 근 없이는 범위가 정해지지 않아요.', remedialFlowStartNodeId: 'iqr_step1_C_diagnose', weaknessId: 'g2_inequality_range' },
         ],
       },
       {
         id: 'g2_inequality_range.step2',
         title: '포물선 방향과 해 범위 결정',
-        body: 'a>0일 때: >0이면 x<α 또는 x>β, <0이면 α<x<β',
+        body: 'a>0(아래로 볼록)일 때: 이차식 값이 0보다 클 때(>0)는 x<α 또는 x>β, 0보다 작을 때(<0)는 α<x<β',
         example: 'x²-3x-4<0, a=1>0 → -1<x<4 (근의 안쪽)',
         choices: [
-          { text: 'a>0이고 <0이면 두 근 사이가 해이다', correct: true, feedback: '맞아요! 아래로 볼록 그래프가 0보다 작아지는 구간은 두 근 사이예요.' },
-          { text: 'a>0이고 <0이면 두 근 바깥이 해이다', correct: false, feedback: '방향이 반대예요. a>0이고 <0이면 두 근 사이가 음수 구간이에요.' },
-          { text: 'a의 부호는 해 범위에 영향을 주지 않는다', correct: false, feedback: 'a 부호가 그래프의 볼록 방향을 정하니 범위에 직접 영향을 줘요.' },
+          { text: 'a>0이고 이차식이 0보다 작으면 두 근 사이가 해이다', correct: true, feedback: '맞아요! 아래로 볼록 그래프가 0보다 작아지는 구간은 두 근 사이예요.' },
+          { text: 'a>0이고 이차식이 0보다 작으면 두 근 바깥이 해이다', correct: false, feedback: '방향이 반대예요. a>0이고 이차식이 0보다 작으면 두 근 사이가 음수 구간이에요.', remedialFlowStartNodeId: 'iqr_step2_A_diagnose', weaknessId: 'g2_inequality_range' },
+          { text: 'a의 부호는 해 범위에 영향을 주지 않는다', correct: false, feedback: 'a 부호가 그래프의 볼록 방향을 정하니 범위에 직접 영향을 줘요.', remedialFlowStartNodeId: 'iqr_step2_C_diagnose', weaknessId: 'g2_inequality_range' },
         ],
       },
       {
@@ -1742,8 +1742,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '<이면 등호 제외: -1<x<4 / ≤이면 등호 포함: -1≤x≤4',
         choices: [
           { text: '<이면 등호를 제외한다', correct: true, feedback: '맞아요! 부등호의 등호 포함 여부가 그대로 답에 반영돼요.' },
-          { text: '<이면 등호를 포함한다', correct: false, feedback: '엄격 부등호는 등호를 제외해요. 등호 포함은 ≤·≥일 때예요.' },
-          { text: '등호 포함 여부는 중요하지 않다', correct: false, feedback: '등호 하나로 답에 점이 포함되는지가 달라져요. 작지만 중요한 차이예요.' },
+          { text: '<이면 등호를 포함한다', correct: false, feedback: '엄격 부등호는 등호를 제외해요. 등호 포함은 ≤·≥일 때예요.', remedialFlowStartNodeId: 'iqr_step3_A_diagnose', weaknessId: 'g2_inequality_range' },
+          { text: '<든 ≤든 답의 범위는 똑같다', correct: false, feedback: '끝점이 들어가고 빠지는 차이가 있어요. <든 ≤든 같다고 보면 끝점에서 답이 어긋나요.', remedialFlowStartNodeId: 'iqr_step3_C_diagnose', weaknessId: 'g2_inequality_range' },
         ],
       },
     ],
