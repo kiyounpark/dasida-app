@@ -1451,39 +1451,39 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         id: 'g2_radical_simplify.step1',
         title: '근호 안 소인수분해',
         body: '근호 안의 수를 소인수분해하여 제곱수를 찾는다.',
-        example: '√18 = √(2·3²) → 3²을 밖으로 꺼낼 수 있다',
+        example: '√18 = √(2×9) = √(2·3²) → 3²을 밖으로 꺼낼 수 있다',
         choices: [
           { text: '소인수분해로 제곱수를 찾는다', correct: true, feedback: '맞아요! 제곱수를 발견하는 순간 단순화의 길이 열려요.' },
-          { text: '근호 안 수를 반으로 나눈다', correct: false, feedback: '단순히 나눈다고 단순화되지 않아요. 제곱 묶음을 분리하는 게 핵심이에요.' },
-          { text: '소인수분해 없이 간소화할 수 있다', correct: false, feedback: '큰 수에서는 소인수분해가 가장 안전한 길이에요. 빠뜨리면 단순화 기회를 놓쳐요.' },
+          { text: '근호 안 수를 반으로 나눈다', correct: false, feedback: '단순히 나눈다고 단순화되지 않아요. 제곱 묶음을 분리하는 게 핵심이에요.', remedialFlowStartNodeId: 'rsm_step1_B_explain', weaknessId: 'g2_radical_simplify' },
+          { text: '소인수분해 없이 간소화할 수 있다', correct: false, feedback: '큰 수에서는 소인수분해가 가장 안전한 길이에요. 빠뜨리면 단순화 기회를 놓쳐요.', remedialFlowStartNodeId: 'rsm_step1_C_explain', weaknessId: 'g2_radical_simplify' },
         ],
       },
       {
         id: 'g2_radical_simplify.step2',
         title: '제곱수 밖으로 꺼내기',
         body: '√(a²·b) = a√b 규칙으로 제곱수의 제곱근을 근호 밖으로 꺼낸다.',
-        example: '√18 = √(9·2) = 3√2',
+        example: '√18 = √(2·3²) = √(3²·2) = 3√2',
         choices: [
           { text: '제곱수의 양의 제곱근을 밖으로 꺼낸다', correct: true, feedback: '맞아요! 제곱이 한 단계 풀려서 밖으로 나오는 흐름이에요.' },
-          { text: '제곱수를 그대로 근호 안에 둔다', correct: false, feedback: '그대로 두면 단순화가 안 돼요. 제곱은 근호 밖으로 보낼 수 있는 부분이에요.' },
-          { text: '제곱수를 나누기로 처리한다', correct: false, feedback: '나누는 게 아니라 √(a²×b)=a√b처럼 빼내는 거예요. 곱셈 구조 안에서 다뤄야 해요.' },
+          { text: '제곱수를 그대로 근호 안에 둔다', correct: false, feedback: '그대로 두면 단순화가 안 돼요. 제곱은 근호 밖으로 보낼 수 있는 부분이에요.', remedialFlowStartNodeId: 'rsm_step2_B_explain', weaknessId: 'g2_radical_simplify' },
+          { text: '제곱수를 나누기로 처리한다', correct: false, feedback: '나누는 게 아니라 √(a²×b)=a√b처럼 빼내는 거예요. 곱셈 구조 안에서 다뤄야 해요.', remedialFlowStartNodeId: 'rsm_step2_C_explain', weaknessId: 'g2_radical_simplify' },
         ],
       },
       {
         id: 'g2_radical_simplify.step3',
         title: '동류항 합산',
         body: '간소화 후 √a 형태가 같은 항끼리 계수를 더하거나 뺀다.',
-        example: '3√2 - 2√2 + √2 = (3-2+1)√2 = 2√2',
+        example: '3√2 + √8 = 3√2 + 2√2 = (3+2)√2 = 5√2',
         choices: [
           { text: '√a 앞 계수끼리만 더하거나 뺀다', correct: true, feedback: '맞아요! 근호 안이 같을 때만 계수가 합쳐져요.' },
-          { text: '근호 안 수도 함께 더한다', correct: false, feedback: '근호 안의 수는 그대로 두고 계수만 합쳐요. 더하면 다른 값이 만들어져요.' },
-          { text: '√a가 같아도 합산할 수 없다', correct: false, feedback: '근호 안이 같으면 동류항처럼 합산할 수 있어요. 가능한 정리 단계예요.' },
+          { text: '근호 안 수도 함께 더한다', correct: false, feedback: '근호 안의 수는 그대로 두고 계수만 합쳐요. 더하면 다른 값이 만들어져요.', remedialFlowStartNodeId: 'rsm_step3_B_explain', weaknessId: 'g2_radical_simplify' },
+          { text: '√a가 같아도 합산할 수 없다', correct: false, feedback: '근호 안이 같으면 동류항처럼 합산할 수 있어요. 가능한 정리 단계예요.', remedialFlowStartNodeId: 'rsm_step3_C_explain', weaknessId: 'g2_radical_simplify' },
         ],
       },
     ],
   },
   g2_radical_rationalize: {
-    heroPrompt: '분모 유리화는 켤레식을 곱하는 것부터 시작합니다. 단계별로 확인해볼게요.',
+    heroPrompt: '분모 유리화는 켤레식(분모의 부호만 바꾼 식)을 곱하는 것부터 시작합니다. 단계별로 확인해볼게요.',
     thinkingSteps: [
       {
         id: 'g2_radical_rationalize.step1',
@@ -1492,19 +1492,19 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '1/(2+√3) → 켤레: (2-√3)',
         choices: [
           { text: '분모의 켤레를 분자·분모 모두 곱한다', correct: true, feedback: '맞아요! 같은 수를 분자와 분모에 곱해야 값이 변하지 않아요.' },
-          { text: '분자에만 켤레를 곱한다', correct: false, feedback: '분자만 곱하면 분수의 값 자체가 달라져요. 분모도 같이 곱해야 해요.' },
-          { text: '분모에만 켤레를 곱한다', correct: false, feedback: '분모만 곱해도 값이 달라져요. ×1이 되도록 분자에도 같이 곱해야 해요.' },
+          { text: '분자에만 켤레를 곱한다', correct: false, feedback: '분자만 곱하면 분수의 값 자체가 달라져요. 분모도 같이 곱해야 해요.', remedialFlowStartNodeId: 'rra_step1_B_explain', weaknessId: 'g2_radical_rationalize' },
+          { text: '분모에만 켤레를 곱한다', correct: false, feedback: '분모만 곱해도 값이 달라져요. ×1이 되도록 분자에도 같이 곱해야 해요.', remedialFlowStartNodeId: 'rra_step1_C_explain', weaknessId: 'g2_radical_rationalize' },
         ],
       },
       {
         id: 'g2_radical_rationalize.step2',
         title: '분모 전개',
-        body: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다.',
+        body: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다. 이 합·차 곱 공식으로 √b가 사라져 분모가 유리수가 된다.',
         example: '(2+√3)(2-√3) = 4-3 = 1',
         choices: [
           { text: '(a+√b)(a-√b) = a²-b 공식으로 분모를 계산한다', correct: true, feedback: '맞아요! 합·차 곱 공식 덕분에 근호가 분모에서 사라져요.' },
-          { text: '분모를 (a+√b)²으로 전개한다', correct: false, feedback: '그건 켤레가 아니에요. 켤레는 부호만 바꾼 식이라 (a+√b)(a−√b) 형태가 돼요.' },
-          { text: '분모 전개 결과는 항상 1이다', correct: false, feedback: '분모는 a²−b로 정해지는데, 그 값이 1일 때만 그렇게 보여요.' },
+          { text: '분모를 (a+√b)²으로 전개한다', correct: false, feedback: '그건 켤레가 아니에요. 켤레는 부호만 바꾼 식이라 (a+√b)(a−√b) 형태가 돼요.', remedialFlowStartNodeId: 'rra_step2_B_explain', weaknessId: 'g2_radical_rationalize' },
+          { text: '분모 전개 결과는 항상 1이다', correct: false, feedback: '분모는 a²−b로 정해지는데, 그 값이 1일 때만 그렇게 보여요.', remedialFlowStartNodeId: 'rra_step2_C_explain', weaknessId: 'g2_radical_rationalize' },
         ],
       },
       {
@@ -1514,8 +1514,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '1·(2-√3)/1 = 2-√3',
         choices: [
           { text: '분자를 전개하고 분모로 나눈다', correct: true, feedback: '맞아요! 분자 정리도 함께 마쳐야 답이 깔끔해져요.' },
-          { text: '분자는 그대로 두고 분모만 정리한다', correct: false, feedback: '분자에도 같은 수를 곱했으니 함께 정리해야 해요. 한쪽만 두면 식이 어색해져요.' },
-          { text: '유리화 후 분자에도 근호가 남아야 한다', correct: false, feedback: '분자에 근호가 남아도 괜찮아요. 단, \'있어야 한다\'는 조건은 아니에요.' },
+          { text: '분자는 그대로 두고 분모만 정리한다', correct: false, feedback: '분자에도 같은 수를 곱했으니 함께 정리해야 해요. 한쪽만 두면 식이 어색해져요.', remedialFlowStartNodeId: 'rra_step3_B_explain', weaknessId: 'g2_radical_rationalize' },
+          { text: '유리화 후 분자에도 근호가 남아야 한다', correct: false, feedback: '유리화는 분모의 근호만 없애는 것이라, 분자에 근호가 남고 안 남고는 상관없어요.', remedialFlowStartNodeId: 'rra_step3_C_explain', weaknessId: 'g2_radical_rationalize' },
         ],
       },
     ],
@@ -1530,8 +1530,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: "f(x)=x³-3x+2 → f'(x)=3x²-3",
         choices: [
           { text: '각 항의 지수를 앞으로 내리고 지수를 1 감소시킨다', correct: true, feedback: '맞아요! 미분의 표준 규칙이 항별로 그대로 적용돼요.' },
-          { text: 'f(x) 전체에 지수를 곱한다', correct: false, feedback: '각 항을 따로 미분해야 해요. 전체에 한 번 곱하는 방식이 아니에요.' },
-          { text: '상수항도 미분하면 값이 남는다', correct: false, feedback: '상수항은 변화율이 없어 미분하면 0이 돼요. 값이 남지는 않아요.' },
+          { text: 'f(x) 전체에 지수를 곱한다', correct: false, feedback: '각 항을 따로 미분해야 해요. 전체에 한 번 곱하는 방식이 아니에요.', remedialFlowStartNodeId: 'dap_step1_B_explain', weaknessId: 'g2_diff_application' },
+          { text: '상수항도 미분하면 값이 남는다', correct: false, feedback: '상수항은 변화율이 없어 미분하면 0이 돼요. 값이 남지는 않아요.', remedialFlowStartNodeId: 'dap_step1_C_explain', weaknessId: 'g2_diff_application' },
         ],
       },
       {
@@ -1541,8 +1541,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: "3x²-3=0 → x=±1. x<-1: +, -1~1: -, x>1: + → 극대 x=-1, 극소 x=1",
         choices: [
           { text: "f'(x) 부호 변화로 극대·극소를 결정한다", correct: true, feedback: '맞아요! 부호 변화의 방향이 곧 극대·극소를 정해요.' },
-          { text: "f'(x)=0인 점이 반드시 극값이다", correct: false, feedback: 'f\'=0이어도 극값이 아닌 변곡점일 수 있어요. 부호 변화를 함께 봐야 해요.' },
-          { text: '증감표 없이 극값을 바로 판단할 수 있다', correct: false, feedback: '증감표가 없으면 극대인지 극소인지 헷갈리기 쉬워요. 한 번 그려두는 게 안전해요.' },
+          { text: "f'(x)=0인 점이 반드시 극값이다", correct: false, feedback: 'f\'=0이어도 극값이 아닌 변곡점일 수 있어요. 부호 변화를 함께 봐야 해요.', remedialFlowStartNodeId: 'dap_step2_B_explain', weaknessId: 'g2_diff_application' },
+          { text: '증감표 없이 극값을 바로 판단할 수 있다', correct: false, feedback: '증감표가 없으면 극대인지 극소인지 헷갈리기 쉬워요. 한 번 그려두는 게 안전해요.', remedialFlowStartNodeId: 'dap_step2_C_explain', weaknessId: 'g2_diff_application' },
         ],
       },
       {
@@ -1552,8 +1552,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'f(-1)=4(극대), f(1)=0(극소). 범위 [-2,2]이면 f(-2), f(2)도 확인',
         choices: [
           { text: '닫힌 구간이면 끝점도 반드시 확인한다', correct: true, feedback: '맞아요! 끝점이 최댓값·최솟값이 될 수 있어 함께 봐야 해요.' },
-          { text: '극값만 확인하면 충분하다', correct: false, feedback: '닫힌 구간에서는 극값과 끝점 중 어느 쪽이 더 큰·작은 값인지 모르기 때문에 끝점도 확인해야 해요.' },
-          { text: '끝점은 항상 극값보다 작다', correct: false, feedback: '끝점이 극값보다 클 수도 있어요. 두 후보를 모두 비교해야 정확해요.' },
+          { text: '극값만 확인하면 충분하다', correct: false, feedback: '닫힌 구간에서는 극값과 끝점 중 어느 쪽이 더 큰·작은 값인지 모르기 때문에 끝점도 확인해야 해요.', remedialFlowStartNodeId: 'dap_step3_B_explain', weaknessId: 'g2_diff_application' },
+          { text: '끝점은 항상 극값보다 작다', correct: false, feedback: '끝점이 극값보다 클 수도 있어요. 두 후보를 모두 비교해야 정확해요.', remedialFlowStartNodeId: 'dap_step3_C_explain', weaknessId: 'g2_diff_application' },
         ],
       },
     ],

@@ -117,6 +117,9 @@ import { g2_set_count_flow } from './remedial-flows/g2_set_count';
 import { g2_trig_unit_circle_flow } from './remedial-flows/g2_trig_unit_circle';
 import { g2_trig_equation_range_flow } from './remedial-flows/g2_trig_equation_range';
 import { g2_trig_identity_flow } from './remedial-flows/g2_trig_identity';
+import { g2_radical_simplify_flow } from './remedial-flows/g2_radical_simplify';
+import { g2_radical_rationalize_flow } from './remedial-flows/g2_radical_rationalize';
+import { g2_diff_application_flow } from './remedial-flows/g2_diff_application';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -162,6 +165,9 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_poly_factoring: g2_poly_factoring_flow,
   g2_eq_setup: g2_eq_setup_flow,
   g2_poly_remainder: g2_poly_remainder_flow,
+  g2_radical_simplify: g2_radical_simplify_flow,
+  g2_radical_rationalize: g2_radical_rationalize_flow,
+  g2_diff_application: g2_diff_application_flow,
 };
 
 export function getRemedialNode(

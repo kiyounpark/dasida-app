@@ -1,0 +1,287 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: rra_step<N>_<choice>_<role>
+// 약점 prefix: rra
+// 용어 통일: '분모'(분수 아래 수), '분자'(분수 위 수), '켤레'(부호만 바꾼 식),
+//            '유리수'(근호 √ 가 없는 보통 수), '무리수'(√ 가 들어간 수),
+//            '합·차 곱 공식'((a+b)(a-b) = a²-b² 처럼 더한 식과 뺀 식을 곱하는 규칙)
+
+export const g2_radical_rationalize_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("분자에만 켤레를 곱한다") 분기 ───────────
+    'rra_step1_B_explain': {
+      id: 'rra_step1_B_explain',
+      kind: 'explain',
+      title: '분자만 곱하면 값이 변해요',
+      body: '켤레란 분모의 부호만 바꾼 식이에요 (2+√3 의 켤레는 2-√3). 분자에만 켤레를 곱하면 분수의 크기 자체가 달라져요. 분자와 분모에 같은 수를 곱해야 ×1 이 되어 값이 그대로예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step1_B_easy',
+      summary: '분자에만 켤레를 곱하면 분수 값이 변함 — 분자·분모 모두에 같은 켤레를 곱해야 ×1 유지',
+      triggers: [
+        '분자에만 곱하면 되는 거 아닌가요',
+        '왜 분모에도 곱해야 하나요',
+        '한쪽만 곱했어요',
+      ],
+    },
+    'rra_step1_B_easy': {
+      id: 'rra_step1_B_easy',
+      kind: 'explain',
+      title: '같은 수로 나눠도 값은 그대로',
+      body: '3/3 = 1 처럼, 위와 아래에 같은 수를 곱한 분수는 원래와 똑같아요. 그래서 켤레도 분자·분모 둘 다에 곱해야 해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step1_exit',
+    },
+    'rra_step1_B_check': {
+      id: 'rra_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '1/(2+√3) 을 유리화할 때, 켤레 (2-√3) 을 곱해야 하는 곳은?',
+      options: [
+        { id: 'correct', text: '분자와 분모 둘 다', isCorrect: true, nextNodeId: 'rra_step1_exit' },
+        { id: 'wrong1', text: '분자에만', isCorrect: false, nextNodeId: 'rra_step1_B_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '분모에만', isCorrect: false, nextNodeId: 'rra_step1_B_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step1_B_easy',
+    },
+    'rra_step1_B_remedy': {
+      id: 'rra_step1_B_remedy',
+      kind: 'explain',
+      title: '둘 다 곱해야 ×1 이에요',
+      body: '(2-√3)/(2-√3) 은 1 이에요. 이 1 을 곱하는 셈이라 값이 안 변해요. 한쪽에만 곱하면 1 이 아니라 값이 틀려져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("분모에만 켤레를 곱한다") 분기 ───────────
+    'rra_step1_C_explain': {
+      id: 'rra_step1_C_explain',
+      kind: 'explain',
+      title: '분모에만 곱해도 값이 달라져요',
+      body: '분모에만 켤레를 곱하면 분모는 깔끔해지지만 분수의 값이 바뀌어요. 분자에도 같은 켤레를 곱해야 ×1 이 되어 원래 값을 지킬 수 있어요. (켤레: 분모의 부호만 바꾼 식)',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step1_C_remedy',
+      summary: '분모에만 켤레를 곱하면 값이 달라짐 — 분자에도 같이 곱해야 ×1 이 되어 값 유지',
+      triggers: [
+        '분모만 깔끔하게 만들면 되는 거 아닌가요',
+        '분자는 안 건드려도 되지 않나요',
+        '왜 분자에도 곱하나요',
+      ],
+    },
+    'rra_step1_C_check': {
+      id: 'rra_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '2/(1+√2) 를 유리화하려고 켤레 (1-√2) 를 곱할 때 맞는 방법은?',
+      options: [
+        { id: 'correct', text: '분자·분모 모두에 (1-√2) 를 곱한다', isCorrect: true, nextNodeId: 'rra_step1_exit' },
+        { id: 'wrong1', text: '분모에만 (1-√2) 를 곱한다', isCorrect: false, nextNodeId: 'rra_step1_C_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '분자에만 (1-√2) 를 곱한다', isCorrect: false, nextNodeId: 'rra_step1_C_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step1_C_remedy',
+    },
+    'rra_step1_C_remedy': {
+      id: 'rra_step1_C_remedy',
+      kind: 'explain',
+      title: '같은 수를 위아래에',
+      body: '(1-√2)/(1-√2) = 1 이라 곱해도 값이 안 변해요. 분모에만 곱하면 이 1 이 깨져서 답이 틀려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step1_exit',
+    },
+
+    'rra_step1_exit': { id: 'rra_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("분모를 (a+√b)²으로 전개한다") 분기 ───────────
+    'rra_step2_B_explain': {
+      id: 'rra_step2_B_explain',
+      kind: 'explain',
+      title: '켤레는 제곱이 아니에요',
+      body: '켤레는 부호만 바꾼 식이라 (a+√b) 의 켤레는 (a-√b) 예요. 그래서 분모는 (a+√b)(a-√b) 가 되고, 합·차 곱 공식 (더한 식과 뺀 식을 곱하면 a²-b 가 되는 규칙) 으로 √ 가 사라져요. (a+√b)² 은 같은 식을 두 번 곱한 거라 √ 가 그대로 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step2_B_easy',
+      summary: '분모는 (a+√b)(a-√b) 로 전개해야 √ 가 사라짐 — (a+√b)² 으로 보면 √ 가 남음',
+      triggers: [
+        '분모를 제곱하면 되는 거 아닌가요',
+        '(a+√b)² 으로 전개했어요',
+        '켤레가 제곱이랑 뭐가 다른가요',
+      ],
+    },
+    'rra_step2_B_easy': {
+      id: 'rra_step2_B_easy',
+      kind: 'explain',
+      title: '부호만 바꾼 짝이에요',
+      body: '(2+√3) 의 켤레는 (2-√3) 예요. 곱하면 (2+√3)(2-√3) = 4-3 = 1. 제곱 (2+√3)² 은 7+4√3 이라 √ 가 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step2_exit',
+    },
+    'rra_step2_B_check': {
+      id: 'rra_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '분모 (3+√5) 를 유리화할 때 곱해야 할 켤레는?',
+      options: [
+        { id: 'correct', text: '(3-√5)', isCorrect: true, nextNodeId: 'rra_step2_exit' },
+        { id: 'wrong1', text: '(3+√5) 한 번 더', isCorrect: false, nextNodeId: 'rra_step2_B_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '(3+√5)²', isCorrect: false, nextNodeId: 'rra_step2_B_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step2_B_easy',
+    },
+    'rra_step2_B_remedy': {
+      id: 'rra_step2_B_remedy',
+      kind: 'explain',
+      title: '부호만 바꾸면 끝',
+      body: '(3+√5) 의 켤레는 부호만 바꾼 (3-√5) 예요. (3+√5)(3-√5) = 9-5 = 4 처럼 √ 가 사라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("분모 전개 결과는 항상 1이다") 분기 ───────────
+    'rra_step2_C_explain': {
+      id: 'rra_step2_C_explain',
+      kind: 'explain',
+      title: '결과가 항상 1 인 건 아니에요',
+      body: '합·차 곱 공식으로 분모는 (a+√b)(a-√b) = a²-b 가 돼요 (더한 식과 뺀 식을 곱하면 a²-b 가 되는 규칙). 이 a²-b 값이 1 일 때만 1 로 보이는 거예요. 보통은 1 이 아닌 다른 유리수 (√ 가 없는 보통 수) 가 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step2_C_remedy',
+      summary: '분모 전개 결과는 a²-b — 항상 1 이 아니라 값에 따라 달라짐',
+      triggers: [
+        '분모는 항상 1 이 되는 거 아닌가요',
+        '왜 1 이 아닌가요',
+        '결과가 1 인 줄 알았어요',
+      ],
+    },
+    'rra_step2_C_check': {
+      id: 'rra_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '(3+√5)(3-√5) 를 합·차 곱 공식으로 계산하면?',
+      options: [
+        { id: 'correct', text: '4', isCorrect: true, nextNodeId: 'rra_step2_exit' },
+        { id: 'wrong1', text: '1 (항상 1)', isCorrect: false, nextNodeId: 'rra_step2_C_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '9+5 = 14', isCorrect: false, nextNodeId: 'rra_step2_C_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step2_C_remedy',
+    },
+    'rra_step2_C_remedy': {
+      id: 'rra_step2_C_remedy',
+      kind: 'explain',
+      title: 'a²-b 를 그대로 계산',
+      body: '(3+√5)(3-√5) = 3²-5 = 9-5 = 4 예요. (2+√3)(2-√3) = 4-3 = 1 처럼 1 이 나오는 건 특별한 경우예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step2_exit',
+    },
+
+    'rra_step2_exit': { id: 'rra_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("분자는 그대로 두고 분모만 정리한다") 분기 ───────────
+    'rra_step3_B_explain': {
+      id: 'rra_step3_B_explain',
+      kind: 'explain',
+      title: '분자도 같이 곱했으니 정리해요',
+      body: '유리화할 때 분자에도 같은 켤레를 곱했어요. 그래서 분자도 전개해서 정리해야 답이 깔끔해져요. 분자를 그대로 두면 식이 어색하게 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step3_B_easy',
+      summary: '분자에도 켤레를 곱했으므로 분자도 전개·정리해야 함 — 분모만 정리하면 미완성',
+      triggers: [
+        '분모만 정리하면 끝 아닌가요',
+        '분자는 안 건드려도 되나요',
+        '분자를 그대로 뒀어요',
+      ],
+    },
+    'rra_step3_B_easy': {
+      id: 'rra_step3_B_easy',
+      kind: 'explain',
+      title: '분자도 끝까지',
+      body: '1/(2+√3) 에 (2-√3) 을 곱하면 분자는 1·(2-√3) = 2-√3, 분모는 1. 그래서 답은 2-√3 이에요. 분자 정리까지 해야 끝나요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step3_exit',
+    },
+    'rra_step3_B_check': {
+      id: 'rra_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '1/(2+√3) 을 유리화한 최종 답은? (분모 (2+√3)(2-√3) = 1)',
+      options: [
+        { id: 'correct', text: '2-√3', isCorrect: true, nextNodeId: 'rra_step3_exit' },
+        { id: 'wrong1', text: '1/(2-√3) (분자 그대로)', isCorrect: false, nextNodeId: 'rra_step3_B_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '1 (분자 미정리)', isCorrect: false, nextNodeId: 'rra_step3_B_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step3_B_easy',
+    },
+    'rra_step3_B_remedy': {
+      id: 'rra_step3_B_remedy',
+      kind: 'explain',
+      title: '분자 = 1·(2-√3)',
+      body: '분자도 (2-√3) 을 곱했으니 1·(2-√3) = 2-√3 이에요. 분모는 1 이므로 답은 2-√3. 분자 정리를 빠뜨리면 안 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("유리화 후 분자에도 근호가 남아야 한다") 분기 ───────────
+    'rra_step3_C_explain': {
+      id: 'rra_step3_C_explain',
+      kind: 'explain',
+      title: '분자의 근호는 남아도 돼요',
+      body: '유리화의 목표는 분모에서 근호 √ 를 없애는 거예요. 분자에는 √ 가 남아도 괜찮아요. "분자에도 √ 가 꼭 남아야 한다"는 규칙은 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step3_C_remedy',
+      summary: '유리화는 분모의 √ 제거가 목적 — 분자의 √ 는 남든 안 남든 상관없음',
+      triggers: [
+        '분자에도 근호가 남아야 하는 거 아닌가요',
+        '분자에 √ 가 없으면 틀린 건가요',
+        '유리화가 분자 기준인 줄 알았어요',
+      ],
+    },
+    'rra_step3_C_check': {
+      id: 'rra_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '유리화에서 반드시 근호 √ 가 사라져야 하는 곳은?',
+      options: [
+        { id: 'correct', text: '분모', isCorrect: true, nextNodeId: 'rra_step3_exit' },
+        { id: 'wrong1', text: '분자', isCorrect: false, nextNodeId: 'rra_step3_C_remedy', weaknessId: 'g2_radical_rationalize' },
+        { id: 'wrong2', text: '분자와 분모 둘 다', isCorrect: false, nextNodeId: 'rra_step3_C_remedy', weaknessId: 'g2_radical_rationalize' },
+      ],
+      dontKnowNextNodeId: 'rra_step3_C_remedy',
+    },
+    'rra_step3_C_remedy': {
+      id: 'rra_step3_C_remedy',
+      kind: 'explain',
+      title: '분모만 깔끔하면 돼요',
+      body: '√2/2 처럼 분자에 √ 가 남아도 유리화는 끝난 거예요. 분모 (아래 수) 에 √ 가 없으면 완성이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rra_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rra_step3_exit',
+    },
+
+    'rra_step3_exit': { id: 'rra_step3_exit', kind: 'exit' },
+  },
+};

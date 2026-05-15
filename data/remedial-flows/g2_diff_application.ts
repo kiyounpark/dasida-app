@@ -1,0 +1,288 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: dap_step<N>_<choice>_<role>
+// 약점 prefix: dap
+// 용어 통일: "미분한 식" (f'(x) 표기 풀어쓰기), "기울기를 알려주는 식",
+//            "0이 되는 x" , "증감표(올라가는지 내려가는지 정리한 표)",
+//            "극대(잠깐 가장 높은 곳)", "극소(잠깐 가장 낮은 곳)",
+//            "닫힌 구간(양 끝까지 포함하는 범위)", "끝점(범위의 양 끝 x값)"
+
+export const g2_diff_application_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("f(x) 전체에 지수를 곱한다") 분기 ───────────
+    'dap_step1_B_explain': {
+      id: 'dap_step1_B_explain',
+      kind: 'explain',
+      title: '미분은 덩어리마다 따로 해요',
+      body: '미분은 식이 얼마나 빠르게 변하는지 알려주는 식(f(x)를 미분한 식)을 만드는 거예요. 더하거나 빼는 덩어리(항)는 하나씩 따로 미분해요. 식 전체에 한 번 곱하는 게 아니라, 덩어리마다 지수를 앞으로 내리고 지수를 1 줄여요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step1_B_easy',
+      summary: '미분은 항(덩어리)별로 따로 처리 — 식 전체에 지수를 한 번 곱하는 방식이 아님',
+      triggers: [
+        '식 전체에 지수를 곱하면 되는 거 아닌가요',
+        '한 번에 미분하면 안 되나요',
+        '항마다 따로 한다는 게 무슨 뜻인지 모르겠어요',
+      ],
+    },
+    'dap_step1_B_easy': {
+      id: 'dap_step1_B_easy',
+      kind: 'explain',
+      title: '예시로 한 번 더',
+      body: 'f(x)=x³-3x+2 라면 덩어리가 셋이에요: x³, -3x, +2. 각각 따로 미분하면 3x², -3, 0. 그래서 미분한 식은 3x²-3 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step1_exit',
+    },
+    'dap_step1_B_check': {
+      id: 'dap_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'f(x)=x²+5x 를 미분한 식은? (덩어리마다 따로 미분해 보세요.)',
+      options: [
+        { id: 'correct', text: '2x+5', isCorrect: true, nextNodeId: 'dap_step1_exit' },
+        { id: 'wrong1', text: '2(x²+5x)', isCorrect: false, nextNodeId: 'dap_step1_B_remedy' },
+        { id: 'wrong2', text: 'x²+5', isCorrect: false, nextNodeId: 'dap_step1_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step1_B_easy',
+    },
+    'dap_step1_B_remedy': {
+      id: 'dap_step1_B_remedy',
+      kind: 'explain',
+      title: '덩어리별로 다시 짚어요',
+      body: 'x² 는 지수 2를 앞으로 내리고 지수를 1 줄여 2x. 5x 는 5가 그대로 남아 5. 둘을 더하면 2x+5 예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("상수항도 미분하면 값이 남는다") 분기 ───────────
+    'dap_step1_C_explain': {
+      id: 'dap_step1_C_explain',
+      kind: 'explain',
+      title: '숫자만 있는 덩어리는 0이 돼요',
+      body: '상수항이란 x 없이 숫자 하나만 있는 덩어리예요 (예: 식 끝의 +2). 이런 부분은 x가 바뀌어도 값이 전혀 변하지 않아요. 미분은 변화의 빠르기를 보는 거라서, 변하지 않는 숫자는 미분하면 0이 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step1_C_remedy',
+      summary: '상수항(숫자만 있는 덩어리)은 변화가 없어 미분하면 0 — 값이 그대로 남지 않음',
+      triggers: [
+        '상수항도 미분하면 남는 거 아닌가요',
+        '끝의 숫자는 왜 사라지나요',
+        '+2 같은 건 미분하면 어떻게 되는지 모르겠어요',
+      ],
+    },
+    'dap_step1_C_check': {
+      id: 'dap_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'f(x)=x³+7 을 미분한 식은? (숫자만 있는 +7 에 주의하세요.)',
+      options: [
+        { id: 'correct', text: '3x²', isCorrect: true, nextNodeId: 'dap_step1_exit' },
+        { id: 'wrong1', text: '3x²+7', isCorrect: false, nextNodeId: 'dap_step1_C_remedy' },
+        { id: 'wrong2', text: '3x²+1', isCorrect: false, nextNodeId: 'dap_step1_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step1_C_remedy',
+    },
+    'dap_step1_C_remedy': {
+      id: 'dap_step1_C_remedy',
+      kind: 'explain',
+      title: '+7 은 0으로 사라져요',
+      body: 'x³ 는 지수 3을 내리고 지수를 1 줄여 3x². +7 은 변하지 않는 숫자라 미분하면 0이에요. 그래서 미분한 식은 3x² 만 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step1_exit',
+    },
+
+    'dap_step1_exit': { id: 'dap_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("f'(x)=0인 점이 반드시 극값이다") 분기 ───────────
+    'dap_step2_B_explain': {
+      id: 'dap_step2_B_explain',
+      kind: 'explain',
+      title: '0이 된다고 꼭 극값은 아니에요',
+      body: '미분한 식(기울기를 알려주는 식)이 0이 되는 x는 잠깐 가장 높거나 낮은 곳일 "후보"일 뿐이에요. 극대(잠깐 가장 높은 곳)나 극소(잠깐 가장 낮은 곳)인지 정하려면, 그 x를 기준으로 미분한 식의 부호(+인지 -인지)가 실제로 바뀌는지 봐야 해요. 부호가 바뀌지 않으면 극값이 아니에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step2_B_easy',
+      summary: '미분한 식이 0이어도 부호가 안 바뀌면 극값 아님 — 부호 변화를 함께 확인',
+      triggers: [
+        '0이 되면 무조건 극값 아닌가요',
+        '왜 0인데 극값이 아닌지 모르겠어요',
+        '부호 변화를 왜 따로 봐야 하나요',
+      ],
+    },
+    'dap_step2_B_easy': {
+      id: 'dap_step2_B_easy',
+      kind: 'explain',
+      title: '쉽게 그림으로 생각해요',
+      body: '미분한 식이 0이어도, 그 앞뒤 부호가 - 에서 + 로 바뀌면 잠깐 가장 낮은 곳(극소), + 에서 - 로 바뀌면 잠깐 가장 높은 곳(극대)이에요. 부호가 그대로면 그냥 잠깐 멈췄다 가는 점이라 극값이 아니에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step2_exit',
+    },
+    'dap_step2_B_check': {
+      id: 'dap_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '미분한 식이 어떤 x에서 0이 됐을 때, 그 점이 극값인지 정하려면 무엇을 확인해야 하나요?',
+      options: [
+        { id: 'correct', text: '그 x 앞뒤로 미분한 식의 부호가 바뀌는지 확인한다', isCorrect: true, nextNodeId: 'dap_step2_exit' },
+        { id: 'wrong1', text: '0이 됐으니 무조건 극값으로 본다', isCorrect: false, nextNodeId: 'dap_step2_B_remedy' },
+        { id: 'wrong2', text: '0이 되는 x의 개수만 센다', isCorrect: false, nextNodeId: 'dap_step2_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step2_B_easy',
+    },
+    'dap_step2_B_remedy': {
+      id: 'dap_step2_B_remedy',
+      kind: 'explain',
+      title: '부호 변화가 판정 기준이에요',
+      body: '0이 되는 건 후보일 뿐이고, 그 x 앞뒤에서 미분한 식의 부호가 실제로 바뀌어야 극값이에요. 부호가 안 바뀌면 극값이 아니라는 게 핵심이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("증감표 없이 극값을 바로 판단할 수 있다") 분기 ───────────
+    'dap_step2_C_explain': {
+      id: 'dap_step2_C_explain',
+      kind: 'explain',
+      title: '증감표를 그리면 안 헷갈려요',
+      body: '증감표란 x가 커질 때 함수값이 올라가는지 내려가는지 구간별로 정리한 표예요. 이 표가 없으면 같은 후보 점이 극대(잠깐 가장 높은 곳)인지 극소(잠깐 가장 낮은 곳)인지 헷갈리기 쉬워요. 미분한 식의 부호를 구간마다 +, - 로 적어두면 한눈에 정해져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step2_C_remedy',
+      summary: '증감표(올라가는지 내려가는지 정리한 표) 없이 극대·극소 판단하면 헷갈리기 쉬움',
+      triggers: [
+        '증감표 없이 바로 알 수 있지 않나요',
+        '표를 꼭 그려야 하나요',
+        '극대인지 극소인지 어떻게 정하는지 모르겠어요',
+      ],
+    },
+    'dap_step2_C_check': {
+      id: 'dap_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '미분한 식이 3x²-3 일 때, x=-1 과 x=1 의 극대·극소를 정하는 가장 안전한 방법은?',
+      options: [
+        { id: 'correct', text: '구간별 부호를 증감표로 정리해 올라가는지 내려가는지 본다', isCorrect: true, nextNodeId: 'dap_step2_exit' },
+        { id: 'wrong1', text: '표 없이 x값만 보고 바로 정한다', isCorrect: false, nextNodeId: 'dap_step2_C_remedy' },
+        { id: 'wrong2', text: '두 점 모두 극대로 본다', isCorrect: false, nextNodeId: 'dap_step2_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step2_C_remedy',
+    },
+    'dap_step2_C_remedy': {
+      id: 'dap_step2_C_remedy',
+      kind: 'explain',
+      title: '표로 부호 흐름을 적어요',
+      body: '3x²-3 은 x<-1 에서 +, -1과 1 사이에서 -, x>1 에서 + 예요. + 에서 - 로 바뀌는 x=-1 이 극대, - 에서 + 로 바뀌는 x=1 이 극소예요. 표로 적으면 안 헷갈려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step2_exit',
+    },
+
+    'dap_step2_exit': { id: 'dap_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("극값만 확인하면 충분하다") 분기 ───────────
+    'dap_step3_B_explain': {
+      id: 'dap_step3_B_explain',
+      kind: 'explain',
+      title: '범위가 정해지면 끝점도 봐야 해요',
+      body: '닫힌 구간이란 [-2, 2] 처럼 양 끝까지 포함하는 범위를 말해요. 이런 범위에서는 극대·극소(잠깐 높거나 낮은 곳)만 보면 부족해요. 범위의 양 끝 x값(끝점)에서 함수값이 더 크거나 더 작을 수 있어서, 끝점도 함께 계산해 비교해야 진짜 최댓값·최솟값을 찾을 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step3_B_easy',
+      summary: '닫힌 구간(양 끝까지 포함하는 범위)에서는 극값만으로 부족 — 끝점도 비교',
+      triggers: [
+        '극값만 보면 되는 거 아닌가요',
+        '끝점은 왜 확인해야 하나요',
+        '범위가 있을 때 뭘 더 봐야 하는지 모르겠어요',
+      ],
+    },
+    'dap_step3_B_easy': {
+      id: 'dap_step3_B_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: 'f(x)=x³-3x+2 의 극값은 f(-1)=4, f(1)=0 이에요. 범위가 [-2, 2] 라면 끝점인 f(-2)=0, f(2)=4 도 구해야 해요. 후보가 4개라 가장 큰 값과 가장 작은 값을 골라야 정확해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step3_exit',
+    },
+    'dap_step3_B_check': {
+      id: 'dap_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '범위가 [-2, 2] 처럼 양 끝까지 정해졌을 때, 최댓값·최솟값을 구하려면 무엇을 확인해야 하나요?',
+      options: [
+        { id: 'correct', text: '극값과 끝점에서의 함수값을 모두 구해 비교한다', isCorrect: true, nextNodeId: 'dap_step3_exit' },
+        { id: 'wrong1', text: '극값만 구하면 충분하다', isCorrect: false, nextNodeId: 'dap_step3_B_remedy' },
+        { id: 'wrong2', text: '끝점만 구하면 충분하다', isCorrect: false, nextNodeId: 'dap_step3_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step3_B_easy',
+    },
+    'dap_step3_B_remedy': {
+      id: 'dap_step3_B_remedy',
+      kind: 'explain',
+      title: '후보를 모두 모아 비교해요',
+      body: '극값과 끝점을 모두 후보로 모아야 해요. 그중 가장 큰 값이 최댓값, 가장 작은 값이 최솟값이에요. 하나라도 빠뜨리면 답이 어긋나요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("끝점은 항상 극값보다 작다") 분기 ───────────
+    'dap_step3_C_explain': {
+      id: 'dap_step3_C_explain',
+      kind: 'explain',
+      title: '끝점이 더 클 수도 있어요',
+      body: '끝점이란 범위의 양 끝 x값을 말해요 (예: 범위 [-2, 2] 의 -2 와 2). 끝점에서의 함수값이 극대(잠깐 가장 높은 곳)보다 더 클 수도 있고, 극소(잠깐 가장 낮은 곳)보다 더 작을 수도 있어요. "끝점은 항상 작다"라고 정해두면 틀리니 항상 직접 계산해서 비교해야 해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step3_C_remedy',
+      summary: '끝점 값이 극값보다 클 수도 있음 — "항상 작다"는 잘못, 직접 계산해 비교',
+      triggers: [
+        '끝점은 항상 작은 거 아닌가요',
+        '끝점이 극값보다 클 수 있나요',
+        '끝점과 극값 중 뭐가 큰지 어떻게 아나요',
+      ],
+    },
+    'dap_step3_C_check': {
+      id: 'dap_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '닫힌 구간에서 끝점에서의 함수값과 극값의 크기 관계는?',
+      options: [
+        { id: 'correct', text: '경우에 따라 다르므로 직접 계산해 비교해야 한다', isCorrect: true, nextNodeId: 'dap_step3_exit' },
+        { id: 'wrong1', text: '끝점이 항상 극값보다 작다', isCorrect: false, nextNodeId: 'dap_step3_C_remedy' },
+        { id: 'wrong2', text: '끝점이 항상 극값보다 크다', isCorrect: false, nextNodeId: 'dap_step3_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'dap_step3_C_remedy',
+    },
+    'dap_step3_C_remedy': {
+      id: 'dap_step3_C_remedy',
+      kind: 'explain',
+      title: '직접 계산이 유일한 방법이에요',
+      body: 'f(x)=x³-3x+2, 범위 [-2, 2] 에서 극대는 f(-1)=4 인데 끝점 f(2)=4 로 같고, 끝점 f(-2)=0 은 극소 f(1)=0 과 같아요. 이렇게 끝점이 더 클 때도 있으니 항상 직접 계산해 비교해야 해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'dap_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'dap_step3_exit',
+    },
+
+    'dap_step3_exit': { id: 'dap_step3_exit', kind: 'exit' },
+  },
+};
