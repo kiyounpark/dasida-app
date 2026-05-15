@@ -1749,7 +1749,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
   g2_function_domain: {
-    heroPrompt: '합성함수나 역함수의 정의역·치역은 단계별로 범위를 추적해야 합니다.',
+    heroPrompt: '정의역·치역, 단계별로 범위를 같이 따라가 볼까요? 합성함수에서 역함수까지 한 흐름으로 이어가요.',
     thinkingSteps: [
       {
         id: 'g2_function_domain.step1',
@@ -1758,30 +1758,30 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'g(x)=x² (치역: x≥0), f(x)=√x (정의역: x≥0) → 문제없음',
         choices: [
           { text: 'g의 치역이 f의 정의역 안에 있어야 한다', correct: true, feedback: '맞아요! g의 출력이 f의 입력 자격을 만족해야 합성이 가능해요.' },
-          { text: 'f의 치역이 g의 정의역 안에 있어야 한다', correct: false, feedback: '방향이 반대예요. 합성 f∘g에서는 g가 먼저 작동해서 g의 치역이 f의 정의역에 들어가야 해요.' },
-          { text: '정의역 확인 없이 합성할 수 있다', correct: false, feedback: '정의역이 어긋나면 함수가 정의되지 않아요. 합성 조건 확인이 필수예요.' },
+          { text: 'f의 치역이 g의 정의역 안에 있어야 한다', correct: false, feedback: '방향이 반대예요. 합성 f∘g에서는 g가 먼저 작동해서 g의 치역이 f의 정의역에 들어가야 해요.', remedialFlowStartNodeId: 'fdm_step1_A_diagnose', weaknessId: 'g2_function_domain' },
+          { text: '정의역 확인 없이 합성할 수 있다', correct: false, feedback: '정의역이 어긋나면 함수가 정의되지 않아요. 합성 조건 확인이 필수예요.', remedialFlowStartNodeId: 'fdm_step1_C_diagnose', weaknessId: 'g2_function_domain' },
         ],
       },
       {
         id: 'g2_function_domain.step2',
         title: '역함수의 정의역·치역 교환',
-        body: '역함수 f⁻¹의 정의역 = f의 치역, f⁻¹의 치역 = f의 정의역이다.',
+        body: '치역·정의역을 추적하는 건 역함수에서도 똑같아요. 이번엔 자리가 바뀝니다: 역함수 f⁻¹의 정의역 = f의 치역, f⁻¹의 치역 = f의 정의역이다.',
         example: 'f: [1,3]→[2,8] 이면 f⁻¹: [2,8]→[1,3]',
         choices: [
           { text: '역함수에서 정의역과 치역이 서로 바뀐다', correct: true, feedback: '맞아요! 역함수의 정의에서 입력과 출력이 자리를 바꿔요.' },
-          { text: '역함수에서 정의역과 치역이 같다', correct: false, feedback: '두 집합이 자리를 바꿔서 보통 다르게 정해져요. 같은 경우는 특별한 함수에서만 나와요.' },
-          { text: '역함수는 항상 모든 실수가 정의역이다', correct: false, feedback: '원함수의 치역만큼이 역함수의 정의역이 돼요. 원함수에 따라 좁아질 수 있어요.' },
+          { text: '역함수에서 정의역과 치역이 같다', correct: false, feedback: '두 집합이 자리를 바꿔서 보통 다르게 정해져요. 같은 경우는 특별한 함수에서만 나와요.', remedialFlowStartNodeId: 'fdm_step2_A_diagnose', weaknessId: 'g2_function_domain' },
+          { text: '역함수는 항상 모든 실수가 정의역이다', correct: false, feedback: '원함수의 치역만큼이 역함수의 정의역이 돼요. 원함수에 따라 좁아질 수 있어요.', remedialFlowStartNodeId: 'fdm_step2_C_diagnose', weaknessId: 'g2_function_domain' },
         ],
       },
       {
         id: 'g2_function_domain.step3',
         title: '함수 성립 조건 확인',
-        body: '하나의 x에 대해 f(x) 값이 오직 하나여야 함수이다.',
+        body: '역함수도 결국 함수예요. 함수가 되려면 하나의 x에 대해 f(x) 값이 오직 하나여야 한다(원함수가 일대일이면 역함수도 함수).',
         example: 'f(x)=±√x는 x=4에서 f=2, -2 두 값 → 함수가 아님',
         choices: [
           { text: '한 x에 하나의 y값이 대응되어야 한다', correct: true, feedback: '맞아요! 함수의 정의 그 자체예요.' },
-          { text: '한 y에 여러 x가 대응될 수 없다', correct: false, feedback: '여러 x가 같은 y에 대응되는 함수도 많아요(예: x²). 그건 함수 정의에 걸리지 않아요.' },
-          { text: '모든 식은 함수이다', correct: false, feedback: '한 x에 두 값이 나오는 식은 함수가 아니에요. 정의를 기준으로 가려야 해요.' },
+          { text: '한 y에 여러 x가 대응될 수 없다', correct: false, feedback: '여러 x가 같은 y에 대응되는 함수도 많아요(예: x²). 그건 함수 정의에 걸리지 않아요.', remedialFlowStartNodeId: 'fdm_step3_A_diagnose', weaknessId: 'g2_function_domain' },
+          { text: '모든 식은 함수이다', correct: false, feedback: '한 x에 두 값이 나오는 식은 함수가 아니에요. 정의를 기준으로 가려야 해요.', remedialFlowStartNodeId: 'fdm_step3_C_diagnose', weaknessId: 'g2_function_domain' },
         ],
       },
     ],
