@@ -1,9 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T05:08:04.690Z",
+  "lastUpdateAt": "2026-05-15T07:08:19.590Z",
   "queue": [
-    "g2_poly_factoring",
     "g2_poly_remainder",
     "g2_eq_setup",
     "g2_radical_simplify",
@@ -58,14 +57,15 @@
     "g2_prop_quantifier",
     "g2_trig_unit_circle",
     "g2_trig_equation_range",
-    "g2_trig_identity"
+    "g2_trig_identity",
+    "g2_poly_factoring"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 20940000,
-  "completedCount": 39,
+  "totalTokens": 21260000,
+  "completedCount": 40,
   "lastProgressReportAt": 39,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -240,6 +240,10 @@
     {
       "weaknessId": "g2_trig_identity",
       "retries": 0
+    },
+    {
+      "weaknessId": "g2_poly_factoring",
+      "retries": 2
     }
   ],
   "rejectionHistory": [
@@ -604,6 +608,14 @@
       "thinkingstep-flow": true
     },
     "g2_trig_identity": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_poly_factoring": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
