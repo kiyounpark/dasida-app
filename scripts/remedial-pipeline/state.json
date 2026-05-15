@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T10:43:06.034Z",
+  "lastUpdateAt": "2026-05-15T10:44:40.804Z",
   "queue": [
     "g2_counting_overcounting",
     "g2_inequality_range",
@@ -67,7 +67,7 @@
   "totalTokens": 25220000,
   "completedCount": 48,
   "lastProgressReportAt": 45,
-  "lastDriftCheckAt": 0,
+  "lastDriftCheckAt": 48,
   "retryStats": [
     {
       "weaknessId": "calc_repeated_error",
