@@ -1948,8 +1948,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) sin60°=√3/2, cos60°=1/2, tan60°=√3',
         choices: [
           { text: '단위원에서 x좌표=cos, y좌표=sin으로 읽는다', correct: true, feedback: '맞아요! 단위원 위의 점이 곧 (cos, sin) 좌표예요.' },
-          { text: '단위원에서 x좌표=sin, y좌표=cos으로 읽는다', correct: false, feedback: '두 좌표의 역할이 뒤바뀌었어요. x가 cos, y가 sin이에요.' },
-          { text: '반지름이 1이 아닌 원에서 읽어야 한다', correct: false, feedback: '정의는 반지름 1인 단위원에서 이뤄져요. 반지름이 다르면 비례 보정이 필요해요.' },
+          { text: '단위원에서 x좌표=sin, y좌표=cos으로 읽는다', correct: false, feedback: '두 좌표의 역할이 뒤바뀌었어요. x가 cos, y가 sin이에요.', remedialFlowStartNodeId: 'g3t_step1_B_explain', weaknessId: 'g3_trig' },
+          { text: '반지름이 1이 아닌 원에서 읽어야 한다', correct: false, feedback: '정의는 반지름 1인 단위원에서 이뤄져요. 반지름이 다르면 비례 보정이 필요해요.', remedialFlowStartNodeId: 'g3t_step1_C_explain', weaknessId: 'g3_trig' },
         ],
       },
       {
@@ -1959,8 +1959,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) sinθ=3/5이면 cosθ=±4/5 (sin²+cos²=1 이용)',
         choices: [
           { text: 'sin²θ+cos²θ=1이 기본 항등식이다', correct: true, feedback: '맞아요! 단위원에서 x²+y²=1이 그대로 옮겨진 식이에요.' },
-          { text: 'sin²θ-cos²θ=1이 기본 항등식이다', correct: false, feedback: '기본은 합이에요. 차의 형태는 다른 항등식의 변형에서 나와요.' },
-          { text: 'sinθ×cosθ=1이 항등식이다', correct: false, feedback: '그 식은 일반적으로 성립하지 않아요. 기본 항등식은 제곱의 합이에요.' },
+          { text: 'sin²θ-cos²θ=1이 기본 항등식이다', correct: false, feedback: '기본은 합이에요. 차의 형태는 다른 항등식의 변형에서 나와요.', remedialFlowStartNodeId: 'g3t_step2_B_explain', weaknessId: 'g3_trig' },
+          { text: 'sinθ×cosθ=1이 항등식이다', correct: false, feedback: '그 식은 일반적으로 성립하지 않아요. 기본 항등식은 제곱의 합이에요.', remedialFlowStartNodeId: 'g3t_step2_C_explain', weaknessId: 'g3_trig' },
         ],
       },
       {
@@ -1970,8 +1970,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) sin120°=sin(180°-60°)=sin60°=√3/2',
         choices: [
           { text: 'sin(180°-θ)=sinθ', correct: true, feedback: '맞아요! 사분면을 따라 sin이 부호를 유지하는 변환이에요.' },
-          { text: 'sin(180°-θ)=-sinθ', correct: false, feedback: '180°−θ는 2사분면이라 sin은 부호가 그대로예요. 부호가 뒤집히는 건 cos이에요.' },
-          { text: 'sin(90°-θ)=sinθ', correct: false, feedback: '그 변환은 cos이 돼요. sin과 cos가 자리를 바꾸는 관계예요.' },
+          { text: 'sin(180°-θ)=-sinθ', correct: false, feedback: '180°−θ는 2사분면이라 sin은 부호가 그대로예요. 부호가 뒤집히는 건 cos이에요.', remedialFlowStartNodeId: 'g3t_step3_B_explain', weaknessId: 'g3_trig' },
+          { text: 'sin(90°-θ)=sinθ', correct: false, feedback: '그 변환은 cos이 돼요. sin과 cos가 자리를 바꾸는 관계예요.', remedialFlowStartNodeId: 'g3t_step3_C_explain', weaknessId: 'g3_trig' },
         ],
       },
     ],
@@ -1983,33 +1983,33 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         id: 'g3_limit.step1',
         title: '0/0 꼴 — 인수분해 후 약분',
         body: '분자·분모가 모두 0이 되면 공통인수가 있다는 뜻이다. 인수분해해서 약분한 뒤 x값을 대입한다.',
-        example: '예) lim(x→2)(x²-4)/(x-2)=lim(x→2)(x+2)=4',
+        example: '예) lim(x→2)(x²-4)/(x-2)=lim(x→2)(x-2)(x+2)/(x-2)=lim(x→2)(x+2)=4',
         choices: [
           { text: '인수분해해 공통인수를 약분한 뒤 대입한다', correct: true, feedback: '맞아요! 0/0이 보이면 인수분해가 첫 번째 도구예요.' },
-          { text: '그냥 0/0=1로 처리한다', correct: false, feedback: '0/0은 부정형이라 값이 정해져 있지 않아요. 식 변형이 필요해요.' },
-          { text: '극한이 존재하지 않는다고 결론 짓는다', correct: false, feedback: '0/0은 변형해서 풀어야 비로소 답이 나와요. 바로 단정할 수는 없어요.' },
+          { text: '그냥 0/0=1로 처리한다', correct: false, feedback: '0/0은 부정형이라 값이 정해져 있지 않아요. 식 변형이 필요해요.', remedialFlowStartNodeId: 'g3m_step1_B_explain', weaknessId: 'g3_limit' },
+          { text: '극한이 존재하지 않는다고 결론 짓는다', correct: false, feedback: '0/0은 변형해서 풀어야 비로소 답이 나와요. 바로 단정할 수는 없어요.', remedialFlowStartNodeId: 'g3m_step1_C_explain', weaknessId: 'g3_limit' },
         ],
       },
       {
         id: 'g3_limit.step2',
         title: '∞/∞ 꼴 — 최고차항으로 나누기',
-        body: '분자·분모를 최고차항으로 나눠 극한을 구한다. 차수 비교: 분자>분모이면 ±∞, 같으면 계수비, 분자<분모이면 0.',
+        body: '0/0 외에 ∞/∞도 부정형이다. 분자·분모를 최고차항으로 나누면 작은 항은 0으로 줄어 결과가 보인다. 차수 비교: 분자>분모이면 ±∞, 같으면 계수비, 분자<분모이면 0.',
         example: '예) lim(x→∞)(2x²+1)/(x²-3)=2/1=2',
         choices: [
           { text: '최고차항의 계수비가 극한값이다', correct: true, feedback: '맞아요! 차수가 같을 때는 계수의 비가 답이에요.' },
-          { text: '상수항끼리의 비가 극한값이다', correct: false, feedback: 'x→∞일 때 결정적인 건 최고차항이에요. 상수항은 큰 영향을 주지 않아요.' },
-          { text: '분자 차수가 크면 극한은 0이다', correct: false, feedback: '분자 차수가 크면 극한은 ±∞로 발산해요. 0이 되는 건 분자 차수가 더 작을 때예요.' },
+          { text: '상수항끼리의 비가 극한값이다', correct: false, feedback: 'x→∞일 때 결정적인 건 최고차항이에요. 상수항은 큰 영향을 주지 않아요.', remedialFlowStartNodeId: 'g3m_step2_B_explain', weaknessId: 'g3_limit' },
+          { text: '분자 차수가 크면 극한은 0이다', correct: false, feedback: '분자 차수가 크면 극한은 ±∞로 발산해요. 0이 되는 건 분자 차수가 더 작을 때예요.', remedialFlowStartNodeId: 'g3m_step2_C_explain', weaknessId: 'g3_limit' },
         ],
       },
       {
         id: 'g3_limit.step3',
         title: '부정형 해소 후 대입',
-        body: '0/0, ∞/∞ 꼴이 아니면 바로 x값을 대입한다. 해소 후에도 부정형이 남으면 유리화 또는 분모 통분을 시도한다.',
+        body: 'step1·2 같은 부정형이 아닐 때는 바로 x값을 대입한다. 해소 후에도 부정형이 남으면 유리화 또는 분모 통분을 시도한다.',
         example: '예) lim(x→1)(x+2)=3 (부정형 아님, 바로 대입)',
         choices: [
           { text: '부정형이 아니면 바로 값을 대입한다', correct: true, feedback: '맞아요! 부정형이 아닐 때는 직접 대입이 정답이에요.' },
-          { text: '항상 인수분해를 시도한 뒤 대입한다', correct: false, feedback: '부정형이 아니라면 인수분해 없이도 바로 대입할 수 있어요.' },
-          { text: '극한은 절대 직접 대입할 수 없다', correct: false, feedback: '연속함수처럼 부정형이 아닌 경우엔 바로 대입이 정답이에요.' },
+          { text: '항상 인수분해를 시도한 뒤 대입한다', correct: false, feedback: '부정형이 아니라면 인수분해 없이도 바로 대입할 수 있어요.', remedialFlowStartNodeId: 'g3m_step3_B_explain', weaknessId: 'g3_limit' },
+          { text: '대입은 부정형일 때만 쓸 수 있다', correct: false, feedback: '오히려 반대예요. 부정형이 아닐 때 바로 대입할 수 있고, 부정형은 변형해서 풀어야 해요.', remedialFlowStartNodeId: 'g3m_step3_C_explain', weaknessId: 'g3_limit' },
         ],
       },
     ],
@@ -2024,8 +2024,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) x²/9+y²/4=1 → 타원 (두 항 모두 덧셈)',
         choices: [
           { text: '타원은 두 분수의 합, 쌍곡선은 두 분수의 차', correct: true, feedback: '맞아요! 부호 하나로 두 곡선이 갈려요.' },
-          { text: '타원과 쌍곡선 모두 두 분수의 합', correct: false, feedback: '쌍곡선은 차의 형태예요. 합으로만 보면 타원으로 잘못 읽혀요.' },
-          { text: '부호와 관계없이 계수 크기로 구분한다', correct: false, feedback: '구분의 핵심은 부호예요. 같은 부호인지 다른 부호인지가 결정해요.' },
+          { text: '타원과 쌍곡선 모두 두 분수의 합', correct: false, feedback: '쌍곡선은 차의 형태예요. 합으로만 보면 타원으로 잘못 읽혀요.', remedialFlowStartNodeId: 'g3c_step1_B_explain', weaknessId: 'g3_conic' },
+          { text: '부호와 관계없이 계수 크기로 구분한다', correct: false, feedback: '구분의 핵심은 부호예요. 같은 부호인지 다른 부호인지가 결정해요.', remedialFlowStartNodeId: 'g3c_step1_C_explain', weaknessId: 'g3_conic' },
         ],
       },
       {
@@ -2035,8 +2035,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) x²/25+y²/16=1 → c²=25-16=9 → c=3 → 초점(±3,0)',
         choices: [
           { text: '타원: c²=a²-b², 쌍곡선: c²=a²+b²', correct: true, feedback: '맞아요! 두 곡선의 초점 공식이 정확히 들어맞았어요.' },
-          { text: '타원: c²=a²+b², 쌍곡선: c²=a²-b²', correct: false, feedback: '두 공식이 서로 바뀌었어요. 타원은 −b², 쌍곡선은 +b²예요.' },
-          { text: '두 곡선 모두 c²=a²+b²', correct: false, feedback: '타원은 −b², 쌍곡선은 +b²로 부호가 달라요.' },
+          { text: '타원: c²=a²+b², 쌍곡선: c²=a²-b²', correct: false, feedback: '두 공식이 서로 바뀌었어요. 타원은 −b², 쌍곡선은 +b²예요.', remedialFlowStartNodeId: 'g3c_step2_B_explain', weaknessId: 'g3_conic' },
+          { text: '두 곡선 모두 c²=a²+b²', correct: false, feedback: '타원은 −b², 쌍곡선은 +b²로 부호가 달라요.', remedialFlowStartNodeId: 'g3c_step2_C_explain', weaknessId: 'g3_conic' },
         ],
       },
       {
@@ -2046,8 +2046,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) x²/4-y²/9=1 → 점근선 y=±(3/2)x',
         choices: [
           { text: 'y=±(b/a)x', correct: true, feedback: '맞아요! 쌍곡선 점근선의 표준 형태예요.' },
-          { text: 'y=±(a/b)x', correct: false, feedback: '분자와 분모가 뒤바뀌었어요. b/a가 맞아요.' },
-          { text: 'y=±(a+b)x', correct: false, feedback: '점근선 기울기는 비의 형태예요. 합이 아니라 b/a로 정해져요.' },
+          { text: 'y=±(a/b)x', correct: false, feedback: '분자와 분모가 뒤바뀌었어요. b/a가 맞아요.', remedialFlowStartNodeId: 'g3c_step3_B_explain', weaknessId: 'g3_conic' },
+          { text: 'y=±(a+b)x', correct: false, feedback: '점근선 기울기는 비의 형태예요. 합이 아니라 b/a로 정해져요.', remedialFlowStartNodeId: 'g3c_step3_C_explain', weaknessId: 'g3_conic' },
         ],
       },
     ],
