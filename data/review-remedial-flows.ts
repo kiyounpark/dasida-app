@@ -111,6 +111,9 @@ import { g3_statistics_flow } from './remedial-flows/g3_statistics';
 import { g2_set_operation_flow } from './remedial-flows/g2_set_operation';
 import { g2_set_complement_flow } from './remedial-flows/g2_set_complement';
 import { g2_set_count_flow } from './remedial-flows/g2_set_count';
+import { g2_trig_unit_circle_flow } from './remedial-flows/g2_trig_unit_circle';
+import { g2_trig_equation_range_flow } from './remedial-flows/g2_trig_equation_range';
+import { g2_trig_identity_flow } from './remedial-flows/g2_trig_identity';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -147,6 +150,9 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_set_operation: g2_set_operation_flow,
   g2_set_complement: g2_set_complement_flow,
   g2_set_count: g2_set_count_flow,
+  g2_trig_unit_circle: g2_trig_unit_circle_flow,
+  g2_trig_equation_range: g2_trig_equation_range_flow,
+  g2_trig_identity: g2_trig_identity_flow,
   g2_prop_contrapositive: g2_prop_contrapositive_flow,
   g2_prop_necessary_sufficient: g2_prop_necessary_sufficient_flow,
   g2_prop_quantifier: g2_prop_quantifier_flow,

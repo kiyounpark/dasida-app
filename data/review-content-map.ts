@@ -1226,8 +1226,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) θ=90° → (cos90°, sin90°) = (0, 1)',
         choices: [
           { text: 'x좌표=cosθ, y좌표=sinθ이다', correct: true, feedback: '맞아요! 단위원 위 점의 좌표가 곧 cos·sin값이에요.' },
-          { text: 'x좌표=sinθ, y좌표=cosθ이다', correct: false, feedback: '두 좌표의 역할이 뒤바뀌었어요. x가 cos, y가 sin이에요.' },
-          { text: '좌표는 각도와 무관하다', correct: false, feedback: '각도가 변하면 좌표도 함께 변해요. 단위원에서 각도가 바로 좌표를 정해요.' },
+          { text: 'x좌표=sinθ, y좌표=cosθ이다', correct: false, feedback: '두 좌표의 역할이 뒤바뀌었어요. x가 cos, y가 sin이에요.', remedialFlowStartNodeId: 'gtu_step1_B_explain', weaknessId: 'g2_trig_unit_circle' },
+          { text: '좌표는 각도와 무관하다', correct: false, feedback: '각도가 변하면 좌표도 함께 변해요. 단위원에서 각도가 바로 좌표를 정해요.', remedialFlowStartNodeId: 'gtu_step1_C_explain', weaknessId: 'g2_trig_unit_circle' },
         ],
       },
       {
@@ -1237,8 +1237,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '2사분면: sinθ>0, cosθ<0, tanθ<0',
         choices: [
           { text: '사분면을 먼저 확인하고 부호를 결정한다', correct: true, feedback: '맞아요! 사분면을 알면 부호가 자동으로 결정돼요.' },
-          { text: '부호는 항상 양수이다', correct: false, feedback: '사분면에 따라 음수가 될 수도 있어요. 위치에 따라 부호가 달라져요.' },
-          { text: '사분면은 값에 영향을 주지 않는다', correct: false, feedback: '사분면이 부호를 결정해서 값에 직접 영향을 줘요. 위치 확인이 필요해요.' },
+          { text: '부호는 항상 양수이다', correct: false, feedback: '사분면에 따라 음수가 될 수도 있어요. 위치에 따라 부호가 달라져요.', remedialFlowStartNodeId: 'gtu_step2_B_explain', weaknessId: 'g2_trig_unit_circle' },
+          { text: '사분면은 값에 영향을 주지 않는다', correct: false, feedback: '사분면이 부호를 결정해서 값에 직접 영향을 줘요. 위치 확인이 필요해요.', remedialFlowStartNodeId: 'gtu_step2_C_explain', weaknessId: 'g2_trig_unit_circle' },
         ],
       },
       {
@@ -1248,8 +1248,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'sin30°=1/2, cos30°=√3/2, sin45°=√2/2',
         choices: [
           { text: '특수각 값을 외워두어야 한다', correct: true, feedback: '맞아요! 30·45·60도의 값은 자주 쓰니 외워두면 풀이가 빨라져요.' },
-          { text: '특수각 값은 매번 계산한다', correct: false, feedback: '매번 계산하면 시간이 부족해져요. 표준 값은 외워두는 게 효율적이에요.' },
-          { text: '특수각 외 각도는 같은 값을 쓴다', correct: false, feedback: '각도마다 값이 달라요. 일반 각도는 변환이나 계산기가 필요해요.' },
+          { text: '특수각 값은 매번 계산한다', correct: false, feedback: '매번 계산하면 시간이 부족해져요. 표준 값은 외워두는 게 효율적이에요.', remedialFlowStartNodeId: 'gtu_step3_B_explain', weaknessId: 'g2_trig_unit_circle' },
+          { text: '특수각 외 각도는 같은 값을 쓴다', correct: false, feedback: '각도마다 값이 달라요. 일반 각도는 변환이나 계산기가 필요해요.', remedialFlowStartNodeId: 'gtu_step3_C_explain', weaknessId: 'g2_trig_unit_circle' },
         ],
       },
     ],
@@ -1264,8 +1264,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'sinθ=1/2 → θ=30° (1사분면 기본각)',
         choices: [
           { text: '기본각을 먼저 구한다', correct: true, feedback: '맞아요! 1사분면 기준의 기본각을 잡아두면 대칭으로 다른 해를 찾기 쉬워요.' },
-          { text: '범위부터 먼저 확인한다', correct: false, feedback: '범위는 마지막에 필터로 써요. 우선 모든 해 후보를 만들어야 해요.' },
-          { text: '해는 항상 하나이다', correct: false, feedback: '단위원 대칭성 때문에 여러 해가 동시에 존재할 때가 많아요.' },
+          { text: '범위부터 먼저 확인한다', correct: false, feedback: '범위는 마지막에 필터로 써요. 우선 모든 해 후보를 만들어야 해요.', remedialFlowStartNodeId: 'gte_step1_B_explain', weaknessId: 'g2_trig_equation_range' },
+          { text: '해는 항상 하나이다', correct: false, feedback: '단위원 대칭성 때문에 여러 해가 동시에 존재할 때가 많아요.', remedialFlowStartNodeId: 'gte_step1_C_explain', weaknessId: 'g2_trig_equation_range' },
         ],
       },
       {
@@ -1275,8 +1275,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'sinθ=1/2 → 1사분면 30°, 2사분면 150° (두 해)',
         choices: [
           { text: '대칭 각도를 추가로 찾아야 한다', correct: true, feedback: '맞아요! 같은 sin·cos 값을 갖는 다른 사분면의 각도까지 챙겨야 빠짐없어요.' },
-          { text: '기본각 하나만으로 충분하다', correct: false, feedback: '단위원에는 같은 값을 갖는 각이 또 있어요. 기본각만 보면 해가 빠져요.' },
-          { text: '대칭 해는 항상 존재하지 않는다', correct: false, feedback: '대부분의 경우 대칭 해가 존재해요. 빠뜨리지 않으려면 두 번 확인해야 해요.' },
+          { text: '기본각 하나만으로 충분하다', correct: false, feedback: '단위원에는 같은 값을 갖는 각이 또 있어요. 기본각만 보면 해가 빠져요.', remedialFlowStartNodeId: 'gte_step2_B_explain', weaknessId: 'g2_trig_equation_range' },
+          { text: '대칭 해는 항상 존재하지 않는다', correct: false, feedback: '대부분의 경우 대칭 해가 존재해요. 빠뜨리지 않으려면 두 번 확인해야 해요.', remedialFlowStartNodeId: 'gte_step2_C_explain', weaknessId: 'g2_trig_equation_range' },
         ],
       },
       {
@@ -1286,8 +1286,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '0≤θ<2π → 30°(=π/6), 150°(=5π/6) 모두 포함',
         choices: [
           { text: '범위를 벗어난 해는 제외한다', correct: true, feedback: '맞아요! 마지막에 범위로 거르면 답이 깔끔하게 정리돼요.' },
-          { text: '모든 해를 답으로 쓴다', correct: false, feedback: '주어진 범위 안에 있는 해만 답이에요. 범위 바깥은 정리해서 빼야 해요.' },
-          { text: '범위는 확인하지 않아도 된다', correct: false, feedback: '범위가 답을 좁혀줘요. 확인하지 않으면 불필요한 해가 답에 섞여요.' },
+          { text: '모든 해를 답으로 쓴다', correct: false, feedback: '주어진 범위 안에 있는 해만 답이에요. 범위 바깥은 정리해서 빼야 해요.', remedialFlowStartNodeId: 'gte_step3_B_explain', weaknessId: 'g2_trig_equation_range' },
+          { text: '범위는 확인하지 않아도 된다', correct: false, feedback: '범위가 답을 좁혀줘요. 확인하지 않으면 불필요한 해가 답에 섞여요.', remedialFlowStartNodeId: 'gte_step3_C_explain', weaknessId: 'g2_trig_equation_range' },
         ],
       },
     ],
@@ -1302,8 +1302,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'sin²θ+cos²θ=1 → cos²θ=1-sin²θ로 변환 가능',
         choices: [
           { text: '기본 항등식을 먼저 적어야 한다', correct: true, feedback: '맞아요! 항등식을 적어두면 어떤 변환이 가능한지 한눈에 보여요.' },
-          { text: '항등식 없이 바로 계산한다', correct: false, feedback: '삼각함수 식은 항등식으로 변환해야 풀리는 경우가 많아요. 출발점이 빠진 셈이에요.' },
-          { text: '항등식은 특정 각도에서만 성립한다', correct: false, feedback: '기본 항등식은 모든 각도에서 성립해요. 그래서 보편적으로 쓸 수 있어요.' },
+          { text: '항등식 없이 바로 계산한다', correct: false, feedback: '삼각함수 식은 항등식으로 변환해야 풀리는 경우가 많아요. 출발점이 빠진 셈이에요.', remedialFlowStartNodeId: 'gti_step1_B_explain', weaknessId: 'g2_trig_identity' },
+          { text: '항등식은 특정 각도에서만 성립한다', correct: false, feedback: '기본 항등식은 모든 각도에서 성립해요. 그래서 보편적으로 쓸 수 있어요.', remedialFlowStartNodeId: 'gti_step1_C_explain', weaknessId: 'g2_trig_identity' },
         ],
       },
       {
@@ -1313,8 +1313,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '1-cos²θ → sin²θ로 치환하여 단순화',
         choices: [
           { text: '하나의 함수로 통일하면 계산이 쉬워진다', correct: true, feedback: '맞아요! sin이나 cos 하나로 통일하면 처리가 단순해져요.' },
-          { text: '항상 tanθ로 변환해야 한다', correct: false, feedback: 'tan으로의 변환이 늘 유리하지는 않아요. 식의 모양에 맞춰 골라야 해요.' },
-          { text: '치환 없이 원형을 유지해야 한다', correct: false, feedback: '그대로 두면 더 풀기 어려워져요. 항등식을 활용해 단순화하는 게 자연스러워요.' },
+          { text: '항상 tanθ로 변환해야 한다', correct: false, feedback: 'tan으로의 변환이 늘 유리하지는 않아요. 식의 모양에 맞춰 골라야 해요.', remedialFlowStartNodeId: 'gti_step2_B_explain', weaknessId: 'g2_trig_identity' },
+          { text: '치환 없이 원형을 유지해야 한다', correct: false, feedback: '그대로 두면 더 풀기 어려워져요. 항등식을 활용해 단순화하는 게 자연스러워요.', remedialFlowStartNodeId: 'gti_step2_C_explain', weaknessId: 'g2_trig_identity' },
         ],
       },
       {
@@ -1324,8 +1324,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'sin²θ+sinθ·cosθ = sinθ(sinθ+cosθ)로 인수분해',
         choices: [
           { text: '치환 후 인수분해나 간소화를 시도한다', correct: true, feedback: '맞아요! 치환 뒤 인수분해 같은 익숙한 처리가 이어지면 답이 보여요.' },
-          { text: '치환 후 바로 답이 나온다', correct: false, feedback: '치환 뒤에도 정리 단계가 필요해요. 마지막 계산을 마무리해야 해요.' },
-          { text: '변환 후에도 항등식을 다시 쓴다', correct: false, feedback: '보통은 한 번 변환하면 충분해요. 다시 항등식을 쓰는 건 식이 더 복잡해질 때예요.' },
+          { text: '치환 후 바로 답이 나온다', correct: false, feedback: '치환 뒤에도 정리 단계가 필요해요. 마지막 계산을 마무리해야 해요.', remedialFlowStartNodeId: 'gti_step3_B_explain', weaknessId: 'g2_trig_identity' },
+          { text: '변환 후에도 항등식을 다시 쓴다', correct: false, feedback: '보통은 한 번 변환하면 충분해요. 다시 항등식을 쓰는 건 식이 더 복잡해질 때예요.', remedialFlowStartNodeId: 'gti_step3_C_explain', weaknessId: 'g2_trig_identity' },
         ],
       },
     ],
