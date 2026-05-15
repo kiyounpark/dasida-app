@@ -1,0 +1,286 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: gpq_step<N>_<choice>_<role>
+// 약점 prefix: gpq
+// 약점: 전칭·존재 명제 혼동 (전칭 명제 = 모든 x에 대해 성립한다고 주장하는 명제,
+//       존재 명제 = 어떤 x 하나에 대해서만 성립한다고 주장하는 명제)
+
+export const g2_prop_quantifier_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("어떤은 전칭, 모든은 존재") 분기 ───────────
+    'gpq_step1_B_explain': {
+      id: 'gpq_step1_B_explain',
+      kind: 'explain',
+      title: '"모든"과 "어떤"부터 다시 봐요',
+      body: '양화사 (명제 앞에 붙어 범위를 정하는 말, "모든"이나 "어떤")가 무엇이냐로 명제 유형이 갈려요. "모든 x에 대해"는 전칭 명제 (모든 x에 대해 성립한다고 주장하는 명제), "어떤 x에 대해"는 존재 명제 (어떤 x 하나에 대해서만 성립한다고 주장하는 명제)예요. 두 말을 바꿔 읽으면 유형이 거꾸로 잡혀요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step1_B_easy',
+      summary: '"모든"=전칭, "어떤"=존재 — 양화사 단어가 유형을 결정한다',
+      triggers: [
+        '어떤이 전칭 아닌가요',
+        '모든이랑 어떤이 헷갈려요',
+        '어느 게 전칭이고 어느 게 존재인지 모르겠어요',
+      ],
+    },
+    'gpq_step1_B_easy': {
+      id: 'gpq_step1_B_easy',
+      kind: 'explain',
+      title: '단어 그대로 기억해요',
+      body: '"모든"은 빠짐없이 전부라는 뜻이라 전칭이에요. "어떤"은 하나만 있어도 된다는 뜻이라 존재예요. 단어 뜻 그대로예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step1_B_check',
+    },
+    'gpq_step1_B_check': {
+      id: 'gpq_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '"어떤 실수 x에 대해 x가 3보다 크다"는 어떤 명제예요?',
+      options: [
+        { id: 'correct', text: '존재 명제', isCorrect: true, nextNodeId: 'gpq_step1_exit' },
+        { id: 'wrong1', text: '전칭 명제', isCorrect: false, nextNodeId: 'gpq_step1_B_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '둘 다 아니다', isCorrect: false, nextNodeId: 'gpq_step1_B_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step1_B_easy',
+    },
+    'gpq_step1_B_remedy': {
+      id: 'gpq_step1_B_remedy',
+      kind: 'explain',
+      title: '"어떤"이 보이면 존재예요',
+      body: '문장 앞에 "어떤"이 붙으면 무조건 존재 명제예요. "모든"이 붙으면 전칭 명제고요. 앞 단어만 보면 바로 알 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step1_B_check',
+    },
+
+    // ─────────── step1: 오답 C ("두 유형은 판별 방법이 같다") 분기 ───────────
+    'gpq_step1_C_explain': {
+      id: 'gpq_step1_C_explain',
+      kind: 'explain',
+      title: '판별 방법이 서로 달라요',
+      body: '전칭 명제 (모든 x에 대해 성립한다고 주장하는 명제)는 안 맞는 경우 하나, 즉 반례 (주장을 깨뜨리는 예 하나)만 찾으면 거짓이에요. 존재 명제 (어떤 x 하나에 대해서만 성립한다고 주장하는 명제)는 맞는 예시 하나만 찾으면 참이에요. 그래서 두 유형은 확인하는 방법이 정반대예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step1_C_remedy',
+      summary: '전칭은 반례로 거짓, 존재는 예시로 참 — 판별 방법이 정반대',
+      triggers: [
+        '둘 다 같은 방법으로 푸는 거 아닌가요',
+        '판별하는 방법이 왜 다른지 모르겠어요',
+        '반례랑 예시 차이를 모르겠어요',
+      ],
+    },
+    'gpq_step1_C_check': {
+      id: 'gpq_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '전칭 명제가 거짓임을 보이려면 무엇을 하나 찾으면 돼요?',
+      options: [
+        { id: 'correct', text: '안 맞는 경우 하나 (반례)', isCorrect: true, nextNodeId: 'gpq_step1_exit' },
+        { id: 'wrong1', text: '맞는 예시 하나', isCorrect: false, nextNodeId: 'gpq_step1_C_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '모든 경우를 다 확인', isCorrect: false, nextNodeId: 'gpq_step1_C_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step1_C_remedy',
+    },
+    'gpq_step1_C_remedy': {
+      id: 'gpq_step1_C_remedy',
+      kind: 'explain',
+      title: '반례 하나면 충분해요',
+      body: '"모든"이라고 주장하니까, 안 맞는 경우 단 하나만 보여도 그 주장은 깨져요. 그게 반례 (주장을 깨뜨리는 예 하나)예요. 맞는 예시는 전칭을 참으로 못 만들어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step1_C_check',
+    },
+
+    'gpq_step1_exit': { id: 'gpq_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("전칭 명제는 예시 하나로 참") 분기 ───────────
+    'gpq_step2_B_explain': {
+      id: 'gpq_step2_B_explain',
+      kind: 'explain',
+      title: '예시 하나로는 전칭이 참이 안 돼요',
+      body: '전칭 명제 (모든 x에 대해 성립한다고 주장하는 명제)는 맞는 예시 하나로는 참이 되지 않아요. "모든"이니까 하나만 맞아도 나머지가 안 맞을 수 있거든요. 모든 경우를 보장하려면 일반 증명이 필요해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step2_B_easy',
+      summary: '전칭은 예시 하나로 참 못 됨 — 하나 맞아도 나머지가 깨질 수 있다',
+      triggers: [
+        '예시 하나 맞으면 참 아닌가요',
+        '하나만 맞으면 모두 맞는 거 아닌가요',
+        '왜 예시로 참이 안 되는지 모르겠어요',
+      ],
+    },
+    'gpq_step2_B_easy': {
+      id: 'gpq_step2_B_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: '"모든 정수 n에서 n은 짝수"는 n=2면 맞지만 n=3이면 틀려요. 예시 하나(2)가 맞아도 전칭은 거짓이에요. 그래서 예시 하나로는 참을 못 정해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step2_B_check',
+    },
+    'gpq_step2_B_check': {
+      id: 'gpq_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '"모든 정수 n에서 n²은 짝수"는 n=2일 때 맞아요. 이 명제는 참일까요?',
+      options: [
+        { id: 'correct', text: '거짓 (n=1이면 1로 홀수라 반례)', isCorrect: true, nextNodeId: 'gpq_step2_exit' },
+        { id: 'wrong1', text: '참 (n=2에서 맞으니까)', isCorrect: false, nextNodeId: 'gpq_step2_B_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '알 수 없다', isCorrect: false, nextNodeId: 'gpq_step2_B_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step2_B_easy',
+    },
+    'gpq_step2_B_remedy': {
+      id: 'gpq_step2_B_remedy',
+      kind: 'explain',
+      title: '반례 하나면 거짓이에요',
+      body: 'n=2는 맞지만 n=1을 넣으면 1로 홀수라 안 맞아요. 이 안 맞는 경우 하나, 즉 반례 (주장을 깨뜨리는 예 하나)가 있으니 명제는 거짓이에요. 예시 하나가 맞은 건 의미가 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step2_B_check',
+    },
+
+    // ─────────── step2: 오답 C ("존재 명제는 반례로 참 판별") 분기 ───────────
+    'gpq_step2_C_explain': {
+      id: 'gpq_step2_C_explain',
+      kind: 'explain',
+      title: '존재 명제는 예시로 판별해요',
+      body: '존재 명제 (어떤 x 하나에 대해서만 성립한다고 주장하는 명제)는 맞는 예시 하나만 찾으면 참이에요. 반례 (주장을 깨뜨리는 예 하나)는 전칭 명제를 거짓으로 만들 때 쓰는 도구예요. 존재 명제에 반례를 쓰면 방법을 잘못 고른 거예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step2_C_remedy',
+      summary: '존재 명제는 예시 하나로 참 — 반례는 전칭 전용 도구',
+      triggers: [
+        '존재 명제도 반례로 보는 거 아닌가요',
+        '반례를 언제 쓰는지 모르겠어요',
+        '존재 명제는 어떻게 참인지 확인해요',
+      ],
+    },
+    'gpq_step2_C_check': {
+      id: 'gpq_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '"어떤 실수 x에 대해 x²=4"가 참임을 보이려면 무엇을 하나 찾으면 돼요?',
+      options: [
+        { id: 'correct', text: '맞는 예시 하나 (x=2)', isCorrect: true, nextNodeId: 'gpq_step2_exit' },
+        { id: 'wrong1', text: '안 맞는 경우 하나 (반례)', isCorrect: false, nextNodeId: 'gpq_step2_C_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '모든 x를 다 확인', isCorrect: false, nextNodeId: 'gpq_step2_C_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step2_C_remedy',
+    },
+    'gpq_step2_C_remedy': {
+      id: 'gpq_step2_C_remedy',
+      kind: 'explain',
+      title: '예시 하나면 참이에요',
+      body: '"어떤"은 하나만 있으면 된다는 뜻이라, x=2를 넣으면 x²=4가 맞으니 바로 참이에요. 반례 (주장을 깨뜨리는 예 하나)는 "모든"을 깰 때만 쓰는 도구예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step2_C_check',
+    },
+
+    'gpq_step2_exit': { id: 'gpq_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("모든의 부정은 모든 ~") 분기 ───────────
+    'gpq_step3_B_explain': {
+      id: 'gpq_step3_B_explain',
+      kind: 'explain',
+      title: '부정하면 양화사가 뒤집혀요',
+      body: '"모든 x에 대해 P(x)"를 부정 (반대로 뒤집어 주장하는 것)하면 "어떤 x에 대해 P(x)가 아니다"가 돼요. 양화사가 "모든"에서 "어떤"으로 바뀌고, 술어도 부정돼요. "모든"이 그대로 남으면 안 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step3_B_easy',
+      summary: '"모든"의 부정은 "어떤 ~" — 양화사가 뒤집히고 술어도 부정',
+      triggers: [
+        '모든의 부정도 모든 아닌가요',
+        '부정하면 모든이 그대로 남는 거 아닌가요',
+        '부정할 때 모든은 어떻게 바뀌는지 모르겠어요',
+      ],
+    },
+    'gpq_step3_B_easy': {
+      id: 'gpq_step3_B_easy',
+      kind: 'explain',
+      title: '뜻으로 생각해요',
+      body: '"모두 키가 크다"의 반대는 "모두 키가 안 크다"가 아니라 "키 안 큰 사람이 한 명이라도 있다"예요. 그래서 "모든"의 부정은 "어떤 ~"이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step3_B_check',
+    },
+    'gpq_step3_B_check': {
+      id: 'gpq_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '"모든 x에 대해 x>0"의 부정은 무엇이에요?',
+      options: [
+        { id: 'correct', text: '어떤 x에 대해 x≤0', isCorrect: true, nextNodeId: 'gpq_step3_exit' },
+        { id: 'wrong1', text: '모든 x에 대해 x≤0', isCorrect: false, nextNodeId: 'gpq_step3_B_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '모든 x에 대해 x>0', isCorrect: false, nextNodeId: 'gpq_step3_B_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step3_B_easy',
+    },
+    'gpq_step3_B_remedy': {
+      id: 'gpq_step3_B_remedy',
+      kind: 'explain',
+      title: '"어떤"으로 바뀌어요',
+      body: '"모든"을 부정하면 "어떤"이 되고, 그 뒤 조건도 반대로 뒤집혀요. 그래서 "모든 x에 대해 x>0"의 부정은 "어떤 x에 대해 x≤0"이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step3_B_check',
+    },
+
+    // ─────────── step3: 오답 C ("전칭의 부정은 전칭") 분기 ───────────
+    'gpq_step3_C_explain': {
+      id: 'gpq_step3_C_explain',
+      kind: 'explain',
+      title: '전칭의 부정은 존재가 돼요',
+      body: '전칭 명제 (모든 x에 대해 성립한다고 주장하는 명제)를 부정 (반대로 뒤집어 주장하는 것)하면 존재 명제 (어떤 x 하나에 대해서만 성립한다고 주장하는 명제)가 돼요. "모두 그렇다"의 반대는 "안 그런 게 하나 있다"이기 때문이에요. 부정 후에도 전칭이 그대로 남는 일은 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step3_C_remedy',
+      summary: '전칭의 부정은 존재 — "모두 그렇다"의 반대는 "안 그런 게 하나 있다"',
+      triggers: [
+        '전칭을 부정해도 전칭 아닌가요',
+        '부정해도 유형이 그대로인 거 아닌가요',
+        '부정하면 전칭이 뭐가 되는지 모르겠어요',
+      ],
+    },
+    'gpq_step3_C_check': {
+      id: 'gpq_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '전칭 명제를 부정하면 어떤 유형의 명제가 돼요?',
+      options: [
+        { id: 'correct', text: '존재 명제', isCorrect: true, nextNodeId: 'gpq_step3_exit' },
+        { id: 'wrong1', text: '전칭 명제 그대로', isCorrect: false, nextNodeId: 'gpq_step3_C_remedy', weaknessId: 'g2_prop_quantifier' },
+        { id: 'wrong2', text: '유형이 사라진다', isCorrect: false, nextNodeId: 'gpq_step3_C_remedy', weaknessId: 'g2_prop_quantifier' },
+      ],
+      dontKnowNextNodeId: 'gpq_step3_C_remedy',
+    },
+    'gpq_step3_C_remedy': {
+      id: 'gpq_step3_C_remedy',
+      kind: 'explain',
+      title: '전칭 → 존재로 바뀌어요',
+      body: '"모든 x에 대해 P(x)"의 부정은 "어떤 x에 대해 P(x)가 아니다"예요. 양화사가 "모든"에서 "어떤"으로 바뀌니까 전칭 명제가 존재 명제가 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'gpq_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'gpq_step3_C_check',
+    },
+
+    'gpq_step3_exit': { id: 'gpq_step3_exit', kind: 'exit' },
+  },
+};

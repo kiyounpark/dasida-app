@@ -1112,8 +1112,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) "짝수이면 정수이다" → p:짝수, q:정수',
         choices: [
           { text: '가설과 결론을 먼저 분리한다', correct: true, feedback: '맞아요! p와 q를 분리해야 역·이·대우를 정확히 만들 수 있어요.' },
-          { text: '명제 전체를 통째로 뒤집는다', correct: false, feedback: '통째로 뒤집으면 어떤 변형인지 구분이 안 돼요. p와 q를 분리하는 단계가 필요해요.' },
-          { text: 'p와 q의 구분은 중요하지 않다', correct: false, feedback: '역·이·대우 정의가 모두 p, q를 어떻게 다루는지에 달려 있어요. 분리가 출발점이에요.' },
+          { text: '명제 전체를 통째로 뒤집는다', correct: false, feedback: '통째로 뒤집으면 어떤 변형인지 구분이 안 돼요. p와 q를 분리하는 단계가 필요해요.', remedialFlowStartNodeId: 'gpc_step1_B_explain', weaknessId: 'g2_prop_contrapositive' },
+          { text: 'p와 q의 구분은 중요하지 않다', correct: false, feedback: '역·이·대우 정의가 모두 p, q를 어떻게 다루는지에 달려 있어요. 분리가 출발점이에요.', remedialFlowStartNodeId: 'gpc_step1_C_explain', weaknessId: 'g2_prop_contrapositive' },
         ],
       },
       {
@@ -1123,8 +1123,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '역: "정수이면 짝수이다" / 대우: "정수가 아니면 짝수가 아니다"',
         choices: [
           { text: '대우는 p와 q를 모두 부정하고 순서를 바꾼다', correct: true, feedback: '맞아요! 부정과 순서 바꿈을 동시에 하는 게 대우의 정의예요.' },
-          { text: '역은 p와 q를 모두 부정한다', correct: false, feedback: '부정은 이의 정의예요. 역은 순서만 바꾸는 변형이에요.' },
-          { text: '이는 p와 q의 순서만 바꾼다', correct: false, feedback: '순서 바꿈은 역이에요. 이는 부정만 적용하는 변형이에요.' },
+          { text: '역은 p와 q를 모두 부정한다', correct: false, feedback: '부정은 이의 정의예요. 역은 순서만 바꾸는 변형이에요.', remedialFlowStartNodeId: 'gpc_step2_B_explain', weaknessId: 'g2_prop_contrapositive' },
+          { text: '이는 p와 q의 순서만 바꾼다', correct: false, feedback: '순서 바꿈은 역이에요. 이는 부정만 적용하는 변형이에요.', remedialFlowStartNodeId: 'gpc_step2_C_explain', weaknessId: 'g2_prop_contrapositive' },
         ],
       },
       {
@@ -1134,8 +1134,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '원명제 참 → 대우 참 / 역은 별도 판단',
         choices: [
           { text: '원명제가 참이면 대우도 참이다', correct: true, feedback: '맞아요! 동치 관계가 있어서 함께 참·거짓이 결정돼요.' },
-          { text: '원명제가 참이면 역도 반드시 참이다', correct: false, feedback: '역은 따로 판단해야 해요. 원명제가 참이어도 역이 거짓일 수 있어요.' },
-          { text: '원명제와 이는 항상 참·거짓이 같다', correct: false, feedback: '이는 역과 동치예요. 원명제와 항상 일치하지는 않아요.' },
+          { text: '원명제가 참이면 역도 반드시 참이다', correct: false, feedback: '역은 따로 판단해야 해요. 원명제가 참이어도 역이 거짓일 수 있어요.', remedialFlowStartNodeId: 'gpc_step3_B_explain', weaknessId: 'g2_prop_contrapositive' },
+          { text: '원명제와 이는 항상 참·거짓이 같다', correct: false, feedback: '이는 역과 동치예요. 원명제와 항상 일치하지는 않아요.', remedialFlowStartNodeId: 'gpc_step3_C_explain', weaknessId: 'g2_prop_contrapositive' },
         ],
       },
     ],
@@ -1150,8 +1150,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) "정삼각형 → 이등변삼각형": 정삼각형은 이등변삼각형의 충분조건',
         choices: [
           { text: 'p→q이면 p가 충분조건이다', correct: true, feedback: '맞아요! 화살표가 시작되는 쪽이 충분조건이에요.' },
-          { text: 'p→q이면 p가 필요조건이다', correct: false, feedback: '방향이 반대예요. 화살표가 도달하는 q가 필요조건이고, 출발하는 p가 충분조건이에요.' },
-          { text: '화살표 방향은 조건 판단과 무관하다', correct: false, feedback: '방향이 곧 충분·필요를 결정해요. 어느 쪽에서 시작하는지가 핵심이에요.' },
+          { text: 'p→q이면 p가 필요조건이다', correct: false, feedback: '방향이 반대예요. 화살표가 도달하는 q가 필요조건이고, 출발하는 p가 충분조건이에요.', remedialFlowStartNodeId: 'gpn_step1_B_explain', weaknessId: 'g2_prop_necessary_sufficient' },
+          { text: '화살표 방향은 조건 판단과 무관하다', correct: false, feedback: '방향이 곧 충분·필요를 결정해요. 어느 쪽에서 시작하는지가 핵심이에요.', remedialFlowStartNodeId: 'gpn_step1_C_explain', weaknessId: 'g2_prop_necessary_sufficient' },
         ],
       },
       {
@@ -1161,8 +1161,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 이등변삼각형이 정삼각형은 아니므로 q→p는 거짓 → 충분조건만',
         choices: [
           { text: '두 방향 모두 참이어야 필요충분조건이다', correct: true, feedback: '맞아요! 양방향이 모두 성립해야 동치라고 부를 수 있어요.' },
-          { text: '한 방향만 참이어도 필요충분조건이다', correct: false, feedback: '한 방향만 성립하면 단순 충분 또는 필요예요. 양쪽이 모두 성립해야 필요충분이에요.' },
-          { text: '필요충분조건은 반례가 있어도 성립한다', correct: false, feedback: '반례가 있다는 건 한 방향이 성립하지 않는다는 뜻이라 필요충분이 깨져요.' },
+          { text: '한 방향만 참이어도 필요충분조건이다', correct: false, feedback: '한 방향만 성립하면 단순 충분 또는 필요예요. 양쪽이 모두 성립해야 필요충분이에요.', remedialFlowStartNodeId: 'gpn_step2_B_explain', weaknessId: 'g2_prop_necessary_sufficient' },
+          { text: '필요충분조건은 반례가 있어도 성립한다', correct: false, feedback: '반례가 있다는 건 한 방향이 성립하지 않는다는 뜻이라 필요충분이 깨져요.', remedialFlowStartNodeId: 'gpn_step2_C_explain', weaknessId: 'g2_prop_necessary_sufficient' },
         ],
       },
       {
@@ -1172,8 +1172,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'p→q만 참: p는 충분조건, q는 필요조건',
         choices: [
           { text: 'p→q만 참이면 p는 충분조건, q는 필요조건이다', correct: true, feedback: '맞아요! 화살표 방향대로 깔끔하게 분리됐어요.' },
-          { text: 'p→q만 참이면 p는 필요조건이다', correct: false, feedback: '방향이 뒤바뀌었어요. 출발이 충분, 도착이 필요예요.' },
-          { text: '두 방향 중 하나만 참이면 동치이다', correct: false, feedback: '동치는 양방향 모두 참이어야 해요. 한쪽만으로는 부족해요.' },
+          { text: 'p→q만 참이면 p는 필요조건이다', correct: false, feedback: '방향이 뒤바뀌었어요. 출발이 충분, 도착이 필요예요.', remedialFlowStartNodeId: 'gpn_step3_B_explain', weaknessId: 'g2_prop_necessary_sufficient' },
+          { text: '두 방향 중 하나만 참이면 동치이다', correct: false, feedback: '동치는 양방향 모두 참이어야 해요. 한쪽만으로는 부족해요.', remedialFlowStartNodeId: 'gpn_step3_C_explain', weaknessId: 'g2_prop_necessary_sufficient' },
         ],
       },
     ],
@@ -1188,8 +1188,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"모든 실수 x에 대해 x²≥0" vs "어떤 실수 x에 대해 x²<0"',
         choices: [
           { text: '"모든"은 전칭, "어떤"은 존재 명제이다', correct: true, feedback: '맞아요! 전칭과 존재의 차이를 양화사로 구분하는 게 시작이에요.' },
-          { text: '"어떤"은 전칭, "모든"은 존재 명제이다', correct: false, feedback: '양화사가 뒤바뀌었어요. 모든은 전칭, 어떤은 존재예요.' },
-          { text: '두 유형은 판별 방법이 같다', correct: false, feedback: '전칭은 반례 하나로 거짓, 존재는 예시 하나로 참이라 판별 방법이 달라요.' },
+          { text: '"어떤"은 전칭, "모든"은 존재 명제이다', correct: false, feedback: '양화사가 뒤바뀌었어요. 모든은 전칭, 어떤은 존재예요.', remedialFlowStartNodeId: 'gpq_step1_B_explain', weaknessId: 'g2_prop_quantifier' },
+          { text: '두 유형은 판별 방법이 같다', correct: false, feedback: '전칭은 반례 하나로 거짓, 존재는 예시 하나로 참이라 판별 방법이 달라요.', remedialFlowStartNodeId: 'gpq_step1_C_explain', weaknessId: 'g2_prop_quantifier' },
         ],
       },
       {
@@ -1199,8 +1199,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"모든 정수 n에서 n²은 짝수" → n=1: 1²=1(홀수) → 반례 → 거짓',
         choices: [
           { text: '전칭 명제는 반례 하나로 거짓이 된다', correct: true, feedback: '맞아요! 모든이 깨지려면 단 하나의 반례면 충분해요.' },
-          { text: '전칭 명제는 예시 하나로 참이 된다', correct: false, feedback: '예시 하나로는 모든 경우가 보장되지 않아요. 모든 x를 다 검증하거나 일반 증명이 필요해요.' },
-          { text: '존재 명제는 반례로 참을 판별한다', correct: false, feedback: '존재 명제는 예시 하나면 참이에요. 반례는 전칭의 도구예요.' },
+          { text: '전칭 명제는 예시 하나로 참이 된다', correct: false, feedback: '예시 하나로는 모든 경우가 보장되지 않아요. 모든 x를 다 검증하거나 일반 증명이 필요해요.', remedialFlowStartNodeId: 'gpq_step2_B_explain', weaknessId: 'g2_prop_quantifier' },
+          { text: '존재 명제는 반례로 참을 판별한다', correct: false, feedback: '존재 명제는 예시 하나면 참이에요. 반례는 전칭의 도구예요.', remedialFlowStartNodeId: 'gpq_step2_C_explain', weaknessId: 'g2_prop_quantifier' },
         ],
       },
       {
@@ -1210,8 +1210,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"모든 x: x²≥0"의 부정 → "어떤 x: x²<0"',
         choices: [
           { text: '"모든"의 부정은 "어떤 ~"이다', correct: true, feedback: '맞아요! 양화사가 뒤집히고 술어도 부정되는 규칙이에요.' },
-          { text: '"모든"의 부정은 "모든 ~"이다', correct: false, feedback: '양화사 자체가 바뀌어야 해요. 모든의 부정은 어떤이에요.' },
-          { text: '전칭 명제의 부정은 전칭 명제이다', correct: false, feedback: '부정하면 양화사가 뒤집혀 존재 명제가 돼요.' },
+          { text: '"모든"의 부정은 "모든 ~"이다', correct: false, feedback: '양화사 자체가 바뀌어야 해요. 모든의 부정은 어떤이에요.', remedialFlowStartNodeId: 'gpq_step3_B_explain', weaknessId: 'g2_prop_quantifier' },
+          { text: '전칭 명제의 부정은 전칭 명제이다', correct: false, feedback: '부정하면 양화사가 뒤집혀 존재 명제가 돼요.', remedialFlowStartNodeId: 'gpq_step3_C_explain', weaknessId: 'g2_prop_quantifier' },
         ],
       },
     ],
