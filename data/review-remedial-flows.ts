@@ -105,6 +105,9 @@ import { g3_limit_flow } from './remedial-flows/g3_limit';
 import { g3_counting_flow } from './remedial-flows/g3_counting';
 import { g3_probability_flow } from './remedial-flows/g3_probability';
 import { g3_statistics_flow } from './remedial-flows/g3_statistics';
+import { g2_set_operation_flow } from './remedial-flows/g2_set_operation';
+import { g2_set_complement_flow } from './remedial-flows/g2_set_complement';
+import { g2_set_count_flow } from './remedial-flows/g2_set_count';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -138,6 +141,9 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g3_counting: g3_counting_flow,
   g3_probability: g3_probability_flow,
   g3_statistics: g3_statistics_flow,
+  g2_set_operation: g2_set_operation_flow,
+  g2_set_complement: g2_set_complement_flow,
+  g2_set_count: g2_set_count_flow,
 };
 
 export function getRemedialNode(

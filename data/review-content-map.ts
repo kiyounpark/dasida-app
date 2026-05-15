@@ -998,8 +998,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) A={1,2,3}, B={2,3,4} → 공통: {2,3}',
         choices: [
           { text: '공통 원소를 먼저 찾아야 한다', correct: true, feedback: '맞아요! 공통 원소를 잡아두면 합집합·교집합이 모두 쉬워져요.' },
-          { text: '두 집합을 그냥 합쳐서 세면 된다', correct: false, feedback: '단순히 합치면 공통 원소를 두 번 세게 돼요. 공통 원소를 먼저 찾는 게 안전해요.' },
-          { text: '원소 개수만 더하면 된다', correct: false, feedback: '더하면 공통 원소가 두 번 세어져요. n(A∩B)를 한 번 빼는 단계가 필요해요.' },
+          { text: '두 집합을 그냥 합쳐서 세면 된다', correct: false, feedback: '단순히 합치면 공통 원소를 두 번 세게 돼요. 공통 원소를 먼저 찾는 게 안전해요.', remedialFlowStartNodeId: 'gso_step1_B_explain', weaknessId: 'g2_set_operation' },
+          { text: '원소 개수만 더하면 된다', correct: false, feedback: '더하면 공통 원소가 두 번 세어져요. n(A∩B)를 한 번 빼는 단계가 필요해요.', remedialFlowStartNodeId: 'gso_step1_C_explain', weaknessId: 'g2_set_operation' },
         ],
       },
       {
@@ -1009,8 +1009,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) A∪B = {1,2,3,4}',
         choices: [
           { text: '중복 원소는 한 번만 쓴다', correct: true, feedback: '맞아요! 집합은 중복을 허용하지 않는다는 정의가 그대로 적용돼요.' },
-          { text: '중복 원소는 두 번 써야 한다', correct: false, feedback: '집합 정의에 따라 같은 원소는 한 번만 등장해요. 두 번 쓰면 집합이 아니에요.' },
-          { text: '합집합은 더 큰 집합만 가리킨다', correct: false, feedback: '합집합은 두 집합의 모든 원소를 모은 새로운 집합이에요. 한쪽만 가리키지 않아요.' },
+          { text: '중복 원소는 두 번 써야 한다', correct: false, feedback: '집합 정의에 따라 같은 원소는 한 번만 등장해요. 두 번 쓰면 집합이 아니에요.', remedialFlowStartNodeId: 'gso_step2_B_explain', weaknessId: 'g2_set_operation' },
+          { text: '합집합은 더 큰 집합만 가리킨다', correct: false, feedback: '합집합은 두 집합의 모든 원소를 모은 새로운 집합이에요. 한쪽만 가리키지 않아요.', remedialFlowStartNodeId: 'gso_step2_C_explain', weaknessId: 'g2_set_operation' },
         ],
       },
       {
@@ -1020,8 +1020,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) n(A)=3, n(B)=3, n(A∩B)=2 → n(A∪B)=4',
         choices: [
           { text: '공통 원소 개수를 한 번 뺀다', correct: true, feedback: '맞아요! 두 번 세진 공통 원소를 한 번 보정해주는 게 공식의 핵심이에요.' },
-          { text: '공통 원소 개수를 더한다', correct: false, feedback: '더하면 공통 원소가 세 번 세어져요. 빼는 방향이 맞아요.' },
-          { text: '공통 원소가 없어도 빼야 한다', correct: false, feedback: '공통 원소가 없으면 n(A∩B)=0이라 빼는 효과가 사라져요. 공식은 같지만 결과는 단순한 합이에요.' },
+          { text: '공통 원소 개수를 더한다', correct: false, feedback: 'n(A)+n(B)에서 이미 두 번 세어진 공통 원소를 또 더하면 세 번이 돼요. 빼는 방향이 맞아요.', remedialFlowStartNodeId: 'gso_step3_B_explain', weaknessId: 'g2_set_operation' },
+          { text: '공통 원소가 없어도 빼야 한다', correct: false, feedback: '공통 원소가 없으면 n(A∩B)=0이라 빼는 효과가 사라져요. 공식은 같지만 결과는 단순한 합이에요.', remedialFlowStartNodeId: 'gso_step3_C_explain', weaknessId: 'g2_set_operation' },
         ],
       },
     ],
@@ -1036,8 +1036,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) U={1,2,3,4,5,6}',
         choices: [
           { text: 'U를 먼저 확인해야 한다', correct: true, feedback: '맞아요! 여집합은 U라는 기준이 있어야 정해져요.' },
-          { text: 'U 없이 여집합을 바로 구할 수 있다', correct: false, feedback: 'U가 무엇이냐에 따라 여집합이 달라져요. 기준이 없으면 정해지지 않아요.' },
-          { text: 'U는 항상 자연수 전체이다', correct: false, feedback: 'U는 문제마다 달라요. 명시적으로 주어진 U를 그대로 따라야 해요.' },
+          { text: 'U 없이 여집합을 바로 구할 수 있다', correct: false, feedback: 'U가 무엇이냐에 따라 여집합이 달라져요. 기준이 없으면 정해지지 않아요.', remedialFlowStartNodeId: 'gsc_step1_B_explain', weaknessId: 'g2_set_complement' },
+          { text: 'U는 항상 자연수 전체이다', correct: false, feedback: 'U는 문제마다 달라요. 명시적으로 주어진 U를 그대로 따라야 해요.', remedialFlowStartNodeId: 'gsc_step1_C_explain', weaknessId: 'g2_set_complement' },
         ],
       },
       {
@@ -1047,8 +1047,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) A={2,4} → A^c = {1,3,5,6}',
         choices: [
           { text: 'U에서 A를 빼면 A^c가 된다', correct: true, feedback: '맞아요! 전체에서 A에 속한 원소만 빼면 여집합이 만들어져요.' },
-          { text: 'A에서 U를 빼면 A^c가 된다', correct: false, feedback: '방향이 반대예요. 큰 집합 U에서 A의 원소를 빼는 게 맞아요.' },
-          { text: 'A^c는 A의 원소를 뒤집은 것이다', correct: false, feedback: 'A^c는 U에 속하면서 A에 속하지 않는 원소예요. 단순히 뒤집는 게 아니라 U라는 기준이 있어요.' },
+          { text: 'A에서 U를 빼면 A^c가 된다', correct: false, feedback: '방향이 반대예요. 큰 집합 U에서 A의 원소를 빼는 게 맞아요.', remedialFlowStartNodeId: 'gsc_step2_B_explain', weaknessId: 'g2_set_complement' },
+          { text: 'A^c는 A의 원소를 뒤집은 것이다', correct: false, feedback: 'A^c는 U에 속하면서 A에 속하지 않는 원소예요. 단순히 뒤집는 게 아니라 U라는 기준이 있어요.', remedialFlowStartNodeId: 'gsc_step2_C_explain', weaknessId: 'g2_set_complement' },
         ],
       },
       {
@@ -1058,8 +1058,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) A∪A^c = {1,2,3,4,5,6} = U 확인',
         choices: [
           { text: 'A와 A^c를 합치면 U가 된다', correct: true, feedback: '맞아요! 이 관계로 결과를 검증할 수 있어요.' },
-          { text: 'A와 A^c의 교집합이 U이다', correct: false, feedback: '둘은 서로 겹치지 않는 집합이라 교집합은 공집합이에요. 합집합이 U예요.' },
-          { text: 'A와 A^c의 원소 개수는 항상 같다', correct: false, feedback: '그건 우연일 때만 성립해요. 보통 |A|+|A^c|=|U|만 성립해요.' },
+          { text: 'A와 A^c의 교집합이 U이다', correct: false, feedback: '둘은 서로 겹치지 않는 집합이라 교집합은 공집합이에요. 합집합이 U예요.', remedialFlowStartNodeId: 'gsc_step3_B_explain', weaknessId: 'g2_set_complement' },
+          { text: 'A와 A^c의 원소 개수는 항상 같다', correct: false, feedback: '그건 우연일 때만 성립해요. A의 원소 수와 A^c의 원소 수를 더하면 U의 원소 수가 돼요.', remedialFlowStartNodeId: 'gsc_step3_C_explain', weaknessId: 'g2_set_complement' },
         ],
       },
     ],
@@ -1074,8 +1074,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) A={1,2,3,4}, B={3,4,5} → n(A∩B)=2',
         choices: [
           { text: 'n(A∩B)를 먼저 구해야 한다', correct: true, feedback: '맞아요! 빼야 하는 값을 미리 정해두면 공식 적용이 매끄러워요.' },
-          { text: 'n(A∪B)를 먼저 세면 된다', correct: false, feedback: 'n(A∪B)를 직접 세는 것도 방법이지만, 큰 문제에서는 공식이 빠르고 정확해요.' },
-          { text: 'n(A)와 n(B)만 알면 충분하다', correct: false, feedback: '공통 부분이 빠지면 두 번 세어진 원소를 보정할 수 없어요. n(A∩B)도 함께 필요해요.' },
+          { text: 'n(A∪B)를 먼저 세면 된다', correct: false, feedback: '이번 단계는 공식을 쓰는 흐름이라 먼저 n(A∩B)를 구하는 게 맞아요. 큰 문제에서는 공식이 빠르고 정확해요.', remedialFlowStartNodeId: 'gsn_step1_B_explain', weaknessId: 'g2_set_count' },
+          { text: 'n(A)와 n(B)만 알면 충분하다', correct: false, feedback: '공통 부분이 빠지면 두 번 세어진 원소를 보정할 수 없어요. n(A∩B)도 함께 필요해요.', remedialFlowStartNodeId: 'gsn_step1_C_explain', weaknessId: 'g2_set_count' },
         ],
       },
       {
@@ -1085,19 +1085,19 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 4+3-2 = 5',
         choices: [
           { text: 'n(A∩B)를 한 번만 뺀다', correct: true, feedback: '맞아요! 두 번 세진 만큼 정확히 한 번만 빼는 게 핵심이에요.' },
-          { text: 'n(A∩B)를 두 번 뺀다', correct: false, feedback: '두 번 빼면 공통 원소가 한 번도 세지지 않게 돼요. 한 번만 빼야 균형이 맞아요.' },
-          { text: 'n(A∩B)를 더한다', correct: false, feedback: '더하면 공통 원소가 세 번 세어져요. 빼는 방향이 맞아요.' },
+          { text: 'n(A∩B)를 두 번 뺀다', correct: false, feedback: '두 번 빼면 공통 원소가 한 번도 세지지 않게 돼요. 한 번만 빼야 균형이 맞아요.', remedialFlowStartNodeId: 'gsn_step2_B_explain', weaknessId: 'g2_set_count' },
+          { text: 'n(A∩B)를 더한다', correct: false, feedback: '더하면 공통 원소가 세 번 세어져요. 빼는 방향이 맞아요.', remedialFlowStartNodeId: 'gsn_step2_C_explain', weaknessId: 'g2_set_count' },
         ],
       },
       {
         id: 'g2_set_count.step3',
         title: '검증',
-        body: '결과가 max(n(A), n(B)) 이상이고 n(A)+n(B) 이하인지 확인한다.',
+        body: '결과가 두 집합 중 큰 쪽 개수 이상이고 n(A)+n(B) 이하인지 확인한다.',
         example: '예) n(A∪B)=5: 4≤5≤7 ✓',
         choices: [
           { text: 'n(A∪B) ≤ n(A)+n(B)이어야 한다', correct: true, feedback: '맞아요! 단순 합보다 작거나 같다는 부등식이 자동으로 성립해요.' },
-          { text: 'n(A∪B)는 항상 n(A)+n(B)와 같다', correct: false, feedback: '공통 원소가 있으면 합보다 작아져요. 두 값이 같은 건 공통 원소가 없을 때뿐이에요.' },
-          { text: 'n(A∪B)는 두 집합 중 작은 것보다 작을 수 있다', correct: false, feedback: '한쪽 집합 전체를 포함하니 둘 중 큰 쪽보다 작아질 수 없어요.' },
+          { text: 'n(A∪B)는 항상 n(A)+n(B)와 같다', correct: false, feedback: '공통 원소가 있으면 합보다 작아져요. 두 값이 같은 건 공통 원소가 없을 때뿐이에요.', remedialFlowStartNodeId: 'gsn_step3_B_explain', weaknessId: 'g2_set_count' },
+          { text: 'n(A∪B)는 두 집합 중 작은 것보다 작을 수 있다', correct: false, feedback: '한쪽 집합 전체를 포함하니 둘 중 큰 쪽보다 작아질 수 없어요.', remedialFlowStartNodeId: 'gsn_step3_C_explain', weaknessId: 'g2_set_count' },
         ],
       },
     ],
