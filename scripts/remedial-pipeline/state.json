@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T07:21:05.409Z",
+  "lastUpdateAt": "2026-05-15T08:35:25.385Z",
   "queue": [
-    "g2_radical_simplify",
-    "g2_radical_rationalize",
-    "g2_diff_application",
     "g2_integral_basic",
     "g2_integral_definite",
     "g2_counting_method",
@@ -58,14 +55,17 @@
     "g2_trig_identity",
     "g2_poly_factoring",
     "g2_eq_setup",
-    "g2_poly_remainder"
+    "g2_poly_remainder",
+    "g2_radical_simplify",
+    "g2_radical_rationalize",
+    "g2_diff_application"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 22240000,
-  "completedCount": 42,
+  "totalTokens": 23800000,
+  "completedCount": 45,
   "lastProgressReportAt": 39,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -251,6 +251,18 @@
     },
     {
       "weaknessId": "g2_poly_remainder",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_radical_simplify",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_radical_rationalize",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_diff_application",
       "retries": 1
     }
   ],
@@ -640,6 +652,30 @@
       "thinkingstep-flow": true
     },
     "g2_poly_remainder": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_radical_simplify": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_radical_rationalize": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_diff_application": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
