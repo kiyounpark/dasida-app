@@ -20,7 +20,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step1_A_diagnose',
       kind: 'diagnose',
       title: '잠깐, 왜 그렇게 골랐어요?',
-      body: '순서가 있을 때 조합을 떠올린 마음이 궁금해요. 어떤 생각이었는지 알려줘요.',
+      body: '순서가 있을 때 조합을 떠올린 마음이 궁금해요. 어떤 생각이었는지 알려주실래요?',
       options: [
         { id: 'r1', text: '순열·조합 기호 P 와 C 의 쓰임이 서로 바뀌어 외워졌어요', nextNodeId: 'cmt_step1_A_r1_explain' },
         { id: 'r2', text: '조합 식이 더 익숙해서 손이 먼저 갔어요', nextNodeId: 'cmt_step1_A_r2_explain' },
@@ -66,7 +66,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step1_A_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했는지 골라봐요.',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했는지 골라볼까요?',
       options: [
         { id: 'r1', text: '회장·부회장이 왜 순서 있는 건지 와닿지 않아요', nextNodeId: 'cmt_step1_A_pinpoint1' },
         { id: 'r2', text: '순열·조합 기호가 또 헷갈려요', nextNodeId: 'cmt_step1_A_pinpoint2' },
@@ -148,7 +148,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step1_C_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했어요?',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했어요?',
       options: [
         { id: 'r1', text: '1등·2등이 왜 순서 있는 건지 흐릿해요', nextNodeId: 'cmt_step1_C_pinpoint1' },
         { id: 'r2', text: '순서를 따지는 문제 신호를 못 알아봤어요', nextNodeId: 'cmt_step1_C_pinpoint2' },
@@ -244,7 +244,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step2_A_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했어요?',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했어요?',
       options: [
         { id: 'r1', text: '"또는"이 왜 더하기인지 와닿지 않아요', nextNodeId: 'cmt_step2_A_pinpoint1' },
         { id: 'r2', text: '"한쪽만"과 "함께"의 차이가 흐릿해요', nextNodeId: 'cmt_step2_A_pinpoint2' },
@@ -280,7 +280,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step2_C_diagnose',
       kind: 'diagnose',
       title: '항상 곱이라고 본 마음이 궁금해요',
-      body: '곱의 법칙이 더 자주 보여 기본값으로 쓴 걸 수도 있어요. 어떤 생각이었는지 알려줘요.',
+      body: '곱의 법칙이 더 자주 보여 기본값으로 쓴 걸 수도 있어요. 어떤 생각이었는지 알려주실래요?',
       options: [
         { id: 'r1', text: '경우의 수 문제는 거의 곱셈으로 풀려서요', nextNodeId: 'cmt_step2_C_r1_explain' },
         { id: 'r2', text: '"또는"과 "그리고"를 따로 안 봤어요', nextNodeId: 'cmt_step2_C_r2_explain' },
@@ -326,7 +326,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step2_C_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했어요?',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했어요?',
       options: [
         { id: 'r1', text: '"또는"인데 왜 곱이 아닌지 흐릿해요', nextNodeId: 'cmt_step2_C_pinpoint1' },
         { id: 'r2', text: '"동시에 안 일어난다"가 무슨 뜻인지 모르겠어요', nextNodeId: 'cmt_step2_C_pinpoint2' },
@@ -412,9 +412,9 @@ export const g2_counting_method_flow: RemedialFlow = {
       title: '확인 문제',
       prompt: '5명 중 2명을 뽑아요. 줄 세우는 경우(₅P₂)와 모둠 만드는 경우(₅C₂)의 값 관계로 맞는 것은?',
       options: [
-        { id: 'correct', text: '₅P₂ = 20, ₅C₂ = 20 ÷ 2! = 10 으로 서로 다르다', isCorrect: true, nextNodeId: 'cmt_step3_summary' },
-        { id: 'wrong1', text: '계산 방법이 같으니 ₅P₂ = ₅C₂ 이다', isCorrect: false, nextNodeId: 'cmt_step3_A_diagnose2', weaknessId: 'g2_counting_method' },
-        { id: 'wrong2', text: '₅C₂ = 5 + 2 = 7 이다', isCorrect: false, nextNodeId: 'cmt_step3_A_diagnose2', weaknessId: 'g2_counting_method' },
+        { id: 'correct', text: '₅P₂ = 20, ₅C₂ = 20 ÷ 2! = 10 으로 서로 달라요', isCorrect: true, nextNodeId: 'cmt_step3_summary' },
+        { id: 'wrong1', text: '계산 방법이 같으니 ₅P₂ = ₅C₂ 라고 생각해요', isCorrect: false, nextNodeId: 'cmt_step3_A_diagnose2', weaknessId: 'g2_counting_method' },
+        { id: 'wrong2', text: '₅C₂ = 5 + 2 = 7 이에요', isCorrect: false, nextNodeId: 'cmt_step3_A_diagnose2', weaknessId: 'g2_counting_method' },
       ],
       dontKnowNextNodeId: 'cmt_step3_A_r1_explain',
     },
@@ -422,7 +422,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step3_A_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했어요?',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했어요?',
       options: [
         { id: 'r1', text: 'r! 로 나누는 이유가 흐릿해요', nextNodeId: 'cmt_step3_A_pinpoint1' },
         { id: 'r2', text: '2! 이 2 가 되는 게 와닿지 않아요', nextNodeId: 'cmt_step3_A_pinpoint2' },
@@ -494,9 +494,9 @@ export const g2_counting_method_flow: RemedialFlow = {
       title: '확인 문제',
       prompt: '같은 5명 중 2명일 때 ₅P₂ = 20 이에요. ₅C₂ 와 ₅P₂ 의 크기 관계로 맞는 것은?',
       options: [
-        { id: 'correct', text: '₅C₂ = 20 ÷ 2! = 10 이라 P 보다 작다', isCorrect: true, nextNodeId: 'cmt_step3_summary' },
-        { id: 'wrong1', text: '₅C₂ 는 P 보다 항상 크다', isCorrect: false, nextNodeId: 'cmt_step3_C_diagnose2', weaknessId: 'g2_counting_method' },
-        { id: 'wrong2', text: '₅C₂ = 20 × 2! = 40 이다', isCorrect: false, nextNodeId: 'cmt_step3_C_diagnose2', weaknessId: 'g2_counting_method' },
+        { id: 'correct', text: '₅C₂ = 20 ÷ 2! = 10 이라 P 보다 작아요', isCorrect: true, nextNodeId: 'cmt_step3_summary' },
+        { id: 'wrong1', text: '₅C₂ 는 P 보다 항상 커요', isCorrect: false, nextNodeId: 'cmt_step3_C_diagnose2', weaknessId: 'g2_counting_method' },
+        { id: 'wrong2', text: '₅C₂ = 20 × 2! = 40 이에요', isCorrect: false, nextNodeId: 'cmt_step3_C_diagnose2', weaknessId: 'g2_counting_method' },
       ],
       dontKnowNextNodeId: 'cmt_step3_C_r1_explain',
     },
@@ -504,7 +504,7 @@ export const g2_counting_method_flow: RemedialFlow = {
       id: 'cmt_step3_C_diagnose2',
       kind: 'diagnose',
       title: '어디서 막혔어요?',
-      body: '한 번 더 짚어요. 어디가 흐릿했어요?',
+      body: '한 번 더 같이 짚어볼게요. 어디가 흐릿했어요?',
       options: [
         { id: 'r1', text: '나누면 왜 작아지는지 흐릿해요', nextNodeId: 'cmt_step3_C_pinpoint1' },
         { id: 'r2', text: '나누는 건지 곱하는 건지 헷갈려요', nextNodeId: 'cmt_step3_C_pinpoint2' },

@@ -1635,7 +1635,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
     ],
   },
   g2_counting_method: {
-    heroPrompt: '경우의 수 방법 선택은 순서·중복·독립 여부로 결정합니다. 체크해볼게요.',
+    heroPrompt: '경우의 수 문제는 ① 순서를 따지는지(순열·조합) → ② 여러 경우를 더할지 곱할지 → ③ 공식에 넣기, 이 순서로 풀어요. 한 단계씩 짚어볼게요.',
     thinkingSteps: [
       {
         id: 'g2_counting_method.step1',
@@ -1644,30 +1644,30 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"회장·부회장 선출" → 순서 있음 → ₅P₂=20',
         choices: [
           { text: '순서가 있으면 순열(P)을 쓴다', correct: true, feedback: '맞아요! 순서가 결정되는 순간 P가 자연스러운 선택이에요.' },
-          { text: '순서가 있으면 조합(C)을 쓴다', correct: false, feedback: '조합은 순서를 무시하는 도구예요. 순서가 있으면 P가 맞아요.' },
-          { text: '순서는 경우의 수와 무관하다', correct: false, feedback: '순서가 결과를 다르게 만들 수 있어요. 그래서 P와 C가 갈리는 거예요.' },
+          { text: '순서가 있으면 조합(C)을 쓴다', correct: false, feedback: '조합은 순서를 무시하는 도구예요. 순서가 있으면 P가 맞아요.', remedialFlowStartNodeId: 'cmt_step1_A_diagnose', weaknessId: 'g2_counting_method' },
+          { text: '순서는 경우의 수와 무관하다', correct: false, feedback: '순서가 결과를 다르게 만들 수 있어요. 그래서 P와 C가 갈리는 거예요.', remedialFlowStartNodeId: 'cmt_step1_C_diagnose', weaknessId: 'g2_counting_method' },
         ],
       },
       {
         id: 'g2_counting_method.step2',
-        title: '독립/배타 사건 판단',
-        body: '두 사건이 동시에 일어나면 곱의 법칙, 어느 한 쪽만 일어나면 합의 법칙을 쓴다.',
-        example: '"A 또는 B" → 합의 법칙 / "A 그리고 B" → 곱의 법칙',
+        title: '두 경우를 더할까 곱할까',
+        body: 'step1에서 순열·조합으로 셀 단위를 정한 뒤, 그 경우들을 어떻게 합칠지 정한다. "A 또는 B"(둘 중 한쪽만)는 더하고(합의 법칙), "A 그리고 B"(둘 다 함께)는 곱한다(곱의 법칙).',
+        example: '"A 또는 B"(한쪽만) → 합의 법칙 / "A 그리고 B"(동시에) → 곱의 법칙',
         choices: [
           { text: '"또는"이면 합, "그리고"이면 곱의 법칙이다', correct: true, feedback: '맞아요! 한국어 접속사에서 자연스럽게 법칙이 따라와요.' },
-          { text: '"또는"이면 곱, "그리고"이면 합의 법칙이다', correct: false, feedback: '법칙이 뒤바뀌었어요. 또는은 합, 그리고는 곱이에요.' },
-          { text: '항상 곱의 법칙을 쓴다', correct: false, feedback: '사건 관계에 따라 합·곱이 갈려요. 한쪽만 쓰면 어긋나는 경우가 많아요.' },
+          { text: '"또는"이면 곱, "그리고"이면 합의 법칙이다', correct: false, feedback: '법칙이 뒤바뀌었어요. 또는은 합, 그리고는 곱이에요.', remedialFlowStartNodeId: 'cmt_step2_A_diagnose', weaknessId: 'g2_counting_method' },
+          { text: '항상 곱의 법칙을 쓴다', correct: false, feedback: '사건 관계에 따라 합·곱이 갈려요. 한쪽만 쓰면 어긋나는 경우가 많아요.', remedialFlowStartNodeId: 'cmt_step2_C_diagnose', weaknessId: 'g2_counting_method' },
         ],
       },
       {
         id: 'g2_counting_method.step3',
         title: '공식 대입',
-        body: '결정한 방법으로 ₙPr = n!/(n-r)! 또는 ₙCr = n!/(r!(n-r)!)를 계산한다.',
+        body: 'step1에서 정한 순열·조합 방법으로 각 부분을 계산하고, 여러 경우면 step2의 합·곱으로 묶는다. ₙPr = n!/(n-r)!, ₙCr = n!/(r!(n-r)!)를 쓴다.',
         example: '₅P₂ = 5×4 = 20 / ₅C₂ = 5×4/2 = 10',
         choices: [
           { text: 'P는 나누지 않고, C는 r!로 나눈다', correct: true, feedback: '맞아요! 순서를 지우는 r! 한 번이 두 공식의 차이예요.' },
-          { text: 'P와 C의 계산 방법이 같다', correct: false, feedback: 'C는 P를 r!로 나눠 만든 값이에요. 두 공식의 결과는 달라요.' },
-          { text: 'C는 P보다 항상 크다', correct: false, feedback: '오히려 C는 P를 r!로 나눈 값이라 P보다 작거나 같아요.' },
+          { text: 'P와 C의 계산 방법이 같다', correct: false, feedback: 'C는 P를 r!로 나눠 만든 값이에요. 두 공식의 결과는 달라요.', remedialFlowStartNodeId: 'cmt_step3_A_diagnose', weaknessId: 'g2_counting_method' },
+          { text: 'C는 P보다 항상 크다', correct: false, feedback: '오히려 C는 P를 r!로 나눈 값이라 P보다 작거나 같아요.', remedialFlowStartNodeId: 'cmt_step3_C_diagnose', weaknessId: 'g2_counting_method' },
         ],
       },
     ],
