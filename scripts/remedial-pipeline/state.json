@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T01:11:06.794Z",
+  "lastUpdateAt": "2026-05-15T02:50:34.888Z",
   "queue": [
-    "g3_counting",
-    "g3_probability",
-    "g3_statistics",
     "g2_set_operation",
     "g2_set_complement",
     "g2_set_count",
@@ -58,14 +55,17 @@
     "g3_integral",
     "g3_trig",
     "g3_limit",
-    "g3_conic"
+    "g3_conic",
+    "g3_counting",
+    "g3_probability",
+    "g3_statistics"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 14710000,
-  "completedCount": 27,
+  "totalTokens": 17560000,
+  "completedCount": 30,
   "lastProgressReportAt": 24,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -192,6 +192,18 @@
     {
       "weaknessId": "g3_conic",
       "retries": 0
+    },
+    {
+      "weaknessId": "g3_counting",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_probability",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_statistics",
+      "retries": 1
     }
   ],
   "rejectionHistory": [
@@ -460,6 +472,30 @@
       "thinkingstep-flow": true
     },
     "g3_conic": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_counting": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_probability": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_statistics": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
