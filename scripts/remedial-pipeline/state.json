@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T03:37:54.780Z",
+  "lastUpdateAt": "2026-05-15T04:44:19.477Z",
   "queue": [
-    "g2_prop_contrapositive",
-    "g2_prop_necessary_sufficient",
-    "g2_prop_quantifier",
     "g2_trig_unit_circle",
     "g2_trig_equation_range",
     "g2_trig_identity",
@@ -58,14 +55,17 @@
     "g3_statistics",
     "g2_set_operation",
     "g2_set_complement",
-    "g2_set_count"
+    "g2_set_count",
+    "g2_prop_contrapositive",
+    "g2_prop_necessary_sufficient",
+    "g2_prop_quantifier"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 18940000,
-  "completedCount": 33,
+  "totalTokens": 19860000,
+  "completedCount": 36,
   "lastProgressReportAt": 30,
   "lastDriftCheckAt": 0,
   "retryStats": [
@@ -215,6 +215,18 @@
     },
     {
       "weaknessId": "g2_set_count",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_contrapositive",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_necessary_sufficient",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_quantifier",
       "retries": 1
     }
   ],
@@ -532,6 +544,30 @@
       "thinkingstep-flow": true
     },
     "g2_set_count": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_contrapositive": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_necessary_sufficient": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_quantifier": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
