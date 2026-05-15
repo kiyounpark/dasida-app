@@ -102,6 +102,9 @@ import { g3_integral_flow } from './remedial-flows/g3_integral';
 import { g3_trig_flow } from './remedial-flows/g3_trig';
 import { g3_conic_flow } from './remedial-flows/g3_conic';
 import { g3_limit_flow } from './remedial-flows/g3_limit';
+import { g3_counting_flow } from './remedial-flows/g3_counting';
+import { g3_probability_flow } from './remedial-flows/g3_probability';
+import { g3_statistics_flow } from './remedial-flows/g3_statistics';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -132,6 +135,9 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g3_trig: g3_trig_flow,
   g3_conic: g3_conic_flow,
   g3_limit: g3_limit_flow,
+  g3_counting: g3_counting_flow,
+  g3_probability: g3_probability_flow,
+  g3_statistics: g3_statistics_flow,
 };
 
 export function getRemedialNode(
