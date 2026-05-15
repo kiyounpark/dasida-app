@@ -1,11 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T04:44:19.477Z",
+  "lastUpdateAt": "2026-05-15T05:08:04.690Z",
   "queue": [
-    "g2_trig_unit_circle",
-    "g2_trig_equation_range",
-    "g2_trig_identity",
     "g2_poly_factoring",
     "g2_poly_remainder",
     "g2_eq_setup",
@@ -58,15 +55,18 @@
     "g2_set_count",
     "g2_prop_contrapositive",
     "g2_prop_necessary_sufficient",
-    "g2_prop_quantifier"
+    "g2_prop_quantifier",
+    "g2_trig_unit_circle",
+    "g2_trig_equation_range",
+    "g2_trig_identity"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 19860000,
-  "completedCount": 36,
-  "lastProgressReportAt": 30,
+  "totalTokens": 20940000,
+  "completedCount": 39,
+  "lastProgressReportAt": 39,
   "lastDriftCheckAt": 0,
   "retryStats": [
     {
@@ -228,6 +228,18 @@
     {
       "weaknessId": "g2_prop_quantifier",
       "retries": 1
+    },
+    {
+      "weaknessId": "g2_trig_unit_circle",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_trig_equation_range",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_trig_identity",
+      "retries": 0
     }
   ],
   "rejectionHistory": [
@@ -568,6 +580,30 @@
       "thinkingstep-flow": true
     },
     "g2_prop_quantifier": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_unit_circle": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_equation_range": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_identity": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,
