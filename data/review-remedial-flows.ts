@@ -77,6 +77,7 @@ export type RemedialFlow = {
 import { g2_prop_contrapositive_flow } from './remedial-flows/g2_prop_contrapositive';
 import { g2_prop_necessary_sufficient_flow } from './remedial-flows/g2_prop_necessary_sufficient';
 import { g2_prop_quantifier_flow } from './remedial-flows/g2_prop_quantifier';
+import { g2_poly_factoring_flow } from './remedial-flows/g2_poly_factoring';
 import { formula_understanding_flow } from './remedial-flows/formula_understanding';
 import { discriminant_calculation_flow } from './remedial-flows/discriminant_calculation';
 import { calc_repeated_error_flow } from './remedial-flows/calc_repeated_error';
@@ -156,6 +157,7 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_prop_contrapositive: g2_prop_contrapositive_flow,
   g2_prop_necessary_sufficient: g2_prop_necessary_sufficient_flow,
   g2_prop_quantifier: g2_prop_quantifier_flow,
+  g2_poly_factoring: g2_poly_factoring_flow,
 };
 
 export function getRemedialNode(

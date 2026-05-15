@@ -1340,8 +1340,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'f(x)=x³-6x²+11x-6에서 f(1)=0 → (x-1)이 인수',
         choices: [
           { text: '상수항 약수를 대입해 근을 찾는다', correct: true, feedback: '맞아요! 정수 근은 상수항의 약수에서 후보가 나와요.' },
-          { text: '최고차 계수 약수를 대입한다', correct: false, feedback: '유리수 근 후보를 만들 때 일부 역할을 하지만, 정수 근부터 찾을 때는 상수항 약수가 우선이에요.' },
-          { text: '대입 없이 인수를 바로 쓴다', correct: false, feedback: '근을 모르면 인수가 정해지지 않아요. 인수정리가 발판이 돼요.' },
+          { text: '최고차 계수 약수를 대입한다', correct: false, feedback: '분수 근까지 찾을 때 일부 역할을 하지만, 정수 근부터 찾을 때는 상수항 약수가 우선이에요.', remedialFlowStartNodeId: 'pfac_step1_B_explain', weaknessId: 'g2_poly_factoring' },
+          { text: '대입 없이 인수를 바로 쓴다', correct: false, feedback: '근을 모르면 인수가 정해지지 않아요. 인수정리가 발판이 돼요.', remedialFlowStartNodeId: 'pfac_step1_C_explain', weaknessId: 'g2_poly_factoring' },
         ],
       },
       {
@@ -1351,8 +1351,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'f(x) ÷ (x-1) = x²-5x+6',
         choices: [
           { text: '조립제법으로 나머지 없이 나누어진다', correct: true, feedback: '맞아요! f(a)=0이라 나머지가 0으로 떨어져요.' },
-          { text: '조립제법에서 나머지가 남아도 된다', correct: false, feedback: '근에 의한 나눗셈은 나머지가 0이어야 해요. 0이 아니면 그 값은 인수가 아니에요.' },
-          { text: '나눗셈 없이 인수를 바로 적는다', correct: false, feedback: '(x−a) 외의 인수는 몫에서 나와요. 나눗셈 단계를 생략하면 끝까지 분해되지 않아요.' },
+          { text: '조립제법에서 나머지가 남아도 된다', correct: false, feedback: '근에 의한 나눗셈은 나머지가 0이어야 해요. 0이 아니면 그 값은 인수가 아니에요.', remedialFlowStartNodeId: 'pfac_step2_B_explain', weaknessId: 'g2_poly_factoring' },
+          { text: '나눗셈 없이 인수를 바로 적는다', correct: false, feedback: '(x−a) 외의 인수는 몫에서 나와요. 나눗셈 단계를 생략하면 끝까지 분해되지 않아요.', remedialFlowStartNodeId: 'pfac_step2_C_explain', weaknessId: 'g2_poly_factoring' },
         ],
       },
       {
@@ -1362,8 +1362,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'x²-5x+6 = (x-2)(x-3) → f(x)=(x-1)(x-2)(x-3)',
         choices: [
           { text: '몫을 다시 인수분해해야 완성된다', correct: true, feedback: '맞아요! 몫이 더 분해될 수 있는지 한 번 더 보는 게 마무리예요.' },
-          { text: '첫 번째 인수 하나면 충분하다', correct: false, feedback: '고차식은 보통 인수가 더 있어요. 몫까지 분해해야 완전한 답이에요.' },
-          { text: '몫은 더 이상 인수분해할 수 없다', correct: false, feedback: '몫이 1차나 더 이상 분해 안 될 때까지 봐야 해요. 그렇지 않으면 분해가 덜 끝난 상태예요.' },
+          { text: '첫 번째 인수 하나면 충분하다', correct: false, feedback: '고차식은 보통 인수가 더 있어요. 몫까지 분해해야 완전한 답이에요.', remedialFlowStartNodeId: 'pfac_step3_B_explain', weaknessId: 'g2_poly_factoring' },
+          { text: '몫은 더 이상 인수분해할 수 없다', correct: false, feedback: '몫이 1차나 더 이상 분해 안 될 때까지 봐야 해요. 그렇지 않으면 분해가 덜 끝난 상태예요.', remedialFlowStartNodeId: 'pfac_step3_C_explain', weaknessId: 'g2_poly_factoring' },
         ],
       },
     ],
