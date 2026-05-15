@@ -1377,9 +1377,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '(x-a)로 나눌 때 나머지는 f(a). 근 a를 먼저 구한다.',
         example: '(x-2)로 나누면 근=2 → 나머지=f(2)',
         choices: [
-          { text: '나누는 식의 근을 먼저 구한다', correct: true, feedback: '맞아요! 제수의 영점을 잡으면 나머지정리가 바로 작동해요.' },
-          { text: '나누는 식의 계수를 대입한다', correct: false, feedback: '계수 자체가 아니라 제수가 0이 되는 x를 대입해야 해요.' },
-          { text: '나머지는 항상 0이다', correct: false, feedback: '나머지는 0일 수도, 다른 값일 수도 있어요. 정확히는 f(a)예요.' },
+          { text: '나누는 식의 근을 먼저 구한다', correct: true, feedback: '맞아요! 나누는 식의 근을 잡으면 나머지정리가 바로 작동해요.' },
+          { text: '나누는 식의 계수를 대입한다', correct: false, feedback: '계수 자체가 아니라 나누는 식이 0이 되는 x를 대입해야 해요.', remedialFlowStartNodeId: 'prem_step1_B_diagnose', weaknessId: 'g2_poly_remainder' },
+          { text: '나머지는 항상 0이다', correct: false, feedback: '나머지는 0일 수도, 다른 값일 수도 있어요. 정확히는 f(a)예요.', remedialFlowStartNodeId: 'prem_step1_C_diagnose', weaknessId: 'g2_poly_remainder' },
         ],
       },
       {
@@ -1389,8 +1389,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'f(x)=x³-2x+1에서 f(2)=8-4+1=5 → 나머지=5',
         choices: [
           { text: 'x=a를 f(x)에 대입한다', correct: true, feedback: '맞아요! 이 한 번의 대입으로 나머지가 결정돼요.' },
-          { text: 'x=0을 대입한다', correct: false, feedback: 'x=0은 (x−a)와 무관한 값이에요. 영점인 x=a가 들어가야 해요.' },
-          { text: 'f(x)를 직접 나눈 값을 구한다', correct: false, feedback: '직접 나눠도 되지만, 나머지정리를 쓰면 한 번의 대입으로 끝나요.' },
+          { text: 'x=0을 대입한다', correct: false, feedback: 'x=0은 (x−a)와 무관한 값이에요. 나누는 식의 근인 x=a가 들어가야 해요.', remedialFlowStartNodeId: 'prem_step2_B_diagnose', weaknessId: 'g2_poly_remainder' },
+          { text: 'f(x)를 직접 나눈 값을 구한다', correct: false, feedback: '직접 나눠도 되지만, 나머지정리를 쓰면 한 번의 대입으로 끝나요.', remedialFlowStartNodeId: 'prem_step2_C_diagnose', weaknessId: 'g2_poly_remainder' },
         ],
       },
       {
@@ -1400,8 +1400,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'f(2)=0 → (x-2)는 f(x)의 인수 → 조립제법으로 분해',
         choices: [
           { text: 'f(a)=0이면 (x-a)가 인수이다', correct: true, feedback: '맞아요! 이 동치 관계가 인수정리의 핵심이에요.' },
-          { text: 'f(a)=0이어도 인수가 아닐 수 있다', correct: false, feedback: 'f(a)=0은 곧 (x−a)가 인수라는 뜻이에요. 동치 관계로 묶여 있어요.' },
-          { text: '인수정리는 나머지정리와 다른 개념이다', correct: false, feedback: '인수정리는 나머지정리의 특수한 경우예요. 같은 뿌리에서 나온 도구예요.' },
+          { text: 'f(a)=0이어도 인수가 아닐 수 있다', correct: false, feedback: 'f(a)=0은 곧 (x−a)가 인수라는 뜻이에요. 동치 관계로 묶여 있어요.', remedialFlowStartNodeId: 'prem_step3_B_diagnose', weaknessId: 'g2_poly_remainder' },
+          { text: '인수정리는 나머지정리와 다른 개념이다', correct: false, feedback: '인수정리는 나머지정리의 특수한 경우예요. 같은 뿌리에서 나온 도구예요.', remedialFlowStartNodeId: 'prem_step3_C_diagnose', weaknessId: 'g2_poly_remainder' },
         ],
       },
     ],
