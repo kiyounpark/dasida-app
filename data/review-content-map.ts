@@ -1682,8 +1682,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"3의 배수 또는 5의 배수": A=3의 배수 개수, B=5의 배수 개수',
         choices: [
           { text: 'A와 B를 각각 먼저 구한다', correct: true, feedback: '맞아요! 각 사건 수를 따로 정리해야 포함-배제가 정확히 적용돼요.' },
-          { text: 'A와 B를 한 번에 구한다', correct: false, feedback: '한 번에 구하면 겹침을 잘 다루지 못해요. 분리해서 보는 게 안전해요.' },
-          { text: '조건이 두 개면 그냥 더하면 된다', correct: false, feedback: '그냥 더하면 공통 부분이 두 번 세어져요. 한 번 빼는 보정이 필요해요.' },
+          { text: 'A와 B를 한 번에 구한다', correct: false, feedback: '한 번에 구하면 겹침을 잘 다루지 못해요. 분리해서 보는 게 안전해요.', remedialFlowStartNodeId: 'ovc_step1_B_diagnose', weaknessId: 'g2_counting_overcounting' },
+          { text: '조건이 두 개면 그냥 더하면 된다', correct: false, feedback: '그냥 더하면 공통 부분이 두 번 세어져요. 한 번 빼는 보정이 필요해요.', remedialFlowStartNodeId: 'ovc_step1_C_diagnose', weaknessId: 'g2_counting_overcounting' },
         ],
       },
       {
@@ -1693,8 +1693,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '"3과 5의 공배수 = 15의 배수": n(A∩B) 계산',
         choices: [
           { text: '두 조건을 동시에 만족하는 경우를 찾는다', correct: true, feedback: '맞아요! 공통 부분을 정확히 잡아야 중복을 제거할 수 있어요.' },
-          { text: '겹치는 경우는 항상 없다', correct: false, feedback: '두 조건이 동시에 성립하는 경우가 자주 있어요. 한 번 확인해야 빠뜨리지 않아요.' },
-          { text: '겹치는 경우는 무시한다', correct: false, feedback: '무시하면 두 번 세어진 채로 남아요. 정확히 한 번 빼야 균형이 맞아요.' },
+          { text: '겹치는 경우는 항상 없다', correct: false, feedback: '두 조건이 동시에 성립하는 경우가 자주 있어요. 한 번 확인해야 빠뜨리지 않아요.', remedialFlowStartNodeId: 'ovc_step2_B_diagnose', weaknessId: 'g2_counting_overcounting' },
+          { text: '겹치는 경우는 무시한다', correct: false, feedback: '무시하면 두 번 세어진 채로 남아요. 정확히 한 번 빼야 균형이 맞아요.', remedialFlowStartNodeId: 'ovc_step2_C_diagnose', weaknessId: 'g2_counting_overcounting' },
         ],
       },
       {
@@ -1704,8 +1704,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: 'n(A)=33, n(B)=20, n(A∩B)=6 → 33+20-6=47',
         choices: [
           { text: '겹치는 경우를 정확히 한 번 뺀다', correct: true, feedback: '맞아요! 두 번 세진 만큼 한 번 보정해주는 게 핵심이에요.' },
-          { text: '겹치는 경우를 두 번 뺀다', correct: false, feedback: '두 번 빼면 한 번도 세어지지 않아요. 한 번만 빼야 균형이 맞아요.' },
-          { text: '겹치는 경우를 더한다', correct: false, feedback: '더하면 부풀려져요. 보정의 방향은 빼기예요.' },
+          { text: '겹치는 경우를 두 번 뺀다', correct: false, feedback: '두 번 빼면 한 번도 세어지지 않아요. 한 번만 빼야 균형이 맞아요.', remedialFlowStartNodeId: 'ovc_step3_B_diagnose', weaknessId: 'g2_counting_overcounting' },
+          { text: '겹치는 경우를 더한다', correct: false, feedback: '더하면 부풀려져요. 보정의 방향은 빼기예요.', remedialFlowStartNodeId: 'ovc_step3_C_diagnose', weaknessId: 'g2_counting_overcounting' },
         ],
       },
     ],

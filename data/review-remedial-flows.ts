@@ -123,6 +123,7 @@ import { g2_diff_application_flow } from './remedial-flows/g2_diff_application';
 import { g2_integral_basic_flow } from './remedial-flows/g2_integral_basic';
 import { g2_integral_definite_flow } from './remedial-flows/g2_integral_definite';
 import { g2_counting_method_flow } from './remedial-flows/g2_counting_method';
+import { g2_counting_overcounting_flow } from './remedial-flows/g2_counting_overcounting';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -174,6 +175,7 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_integral_basic: g2_integral_basic_flow,
   g2_integral_definite: g2_integral_definite_flow,
   g2_counting_method: g2_counting_method_flow,
+  g2_counting_overcounting: g2_counting_overcounting_flow,
 };
 
 export function getRemedialNode(
