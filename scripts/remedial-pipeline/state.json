@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-15T08:35:25.385Z",
+  "lastUpdateAt": "2026-05-15T08:35:44.838Z",
   "queue": [
     "g2_integral_basic",
     "g2_integral_definite",
@@ -66,7 +66,7 @@
   "failed": [],
   "totalTokens": 23800000,
   "completedCount": 45,
-  "lastProgressReportAt": 39,
+  "lastProgressReportAt": 45,
   "lastDriftCheckAt": 0,
   "retryStats": [
     {
