@@ -194,7 +194,7 @@ export const g1_geometry_flow: RemedialFlow = {
       id: 'g1g_step2_C_remedy',
       kind: 'explain',
       title: '5²+12² = 169 → 빗변 13',
-      body: '5²=25, 12²=144 이고 두 값을 더하면 169 예요. 169 의 제곱근이 13 이라 빗변은 13 이에요. 144−25 처럼 빼면 다른 곡선의 답처럼 완전히 틀린 값이 나와요.',
+      body: '5²=25, 12²=144 이고 두 값을 더하면 169 예요. 169 의 제곱근이 13 이라 빗변은 13 이에요. 144−25 처럼 빼면 완전히 틀린 값이 나와요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g1g_step2_C_check',
       secondaryLabel: '모르겠어요',
