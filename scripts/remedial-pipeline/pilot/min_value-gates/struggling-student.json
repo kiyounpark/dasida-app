@@ -1,0 +1,245 @@
+{
+  "verdict": "approve",
+  "perNode": [
+    {
+      "nodeId": "minv_step1_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_A_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_C_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_summary",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step1_exit",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_A_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_C_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_summary",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step2_exit",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_A_pinpoint2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_diagnose",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_r1_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_r2_explain",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_check",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_diagnose2",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_pinpoint1",
+      "state": "understood",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_C_pinpoint2",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_summary",
+      "state": "bored",
+      "where": null
+    },
+    {
+      "nodeId": "minv_step3_exit",
+      "state": "understood",
+      "where": null
+    }
+  ]
+}

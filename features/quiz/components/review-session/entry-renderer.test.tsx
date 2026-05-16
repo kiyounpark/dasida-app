@@ -11,6 +11,7 @@ const baseProps = {
   onPressDoneCta: jest.fn(),
   onRemedialExplainPrimary: jest.fn(), onRemedialExplainSecondary: jest.fn(),
   onRemedialCheckOption: jest.fn(), onRemedialCheckDontKnow: jest.fn(),
+  onRemedialDiagnoseOption: jest.fn(), onRemedialSummaryContinue: jest.fn(),
 };
 
 describe('EntryRenderer', () => {

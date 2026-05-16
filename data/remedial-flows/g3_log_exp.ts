@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: g3l_step<N>_<choice>_<role>
+// 약점 prefix: g3l
+// 깊이: shallow (1-shot 구조)
+
+export const g3_log_exp_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 A ("같은 밑의 곱은 지수를 곱한다") 분기 ───────────
+    'g3l_step1_A_explain': {
+      id: 'g3l_step1_A_explain',
+      kind: 'explain',
+      title: '같은 밑이면 지수는 더해요',
+      body: '거듭제곱(같은 수를 여러 번 곱한 식, 예: 2³ = 2×2×2)에서 위의 작은 수가 지수, 아래가 밑이에요. 밑이 같은 두 거듭제곱의 곱은 지수끼리 더해서 풀어요. 그래서 aˣ·aʸ = aˣ⁺ʸ 가 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step1_A_easy',
+      summary: '같은 밑끼리 곱하면 지수는 더한다 — aˣ·aʸ = aˣ⁺ʸ',
+      triggers: [
+        '같은 밑이면 지수도 곱하는 거 아닌가요',
+        '곱셈인데 왜 더하는지 모르겠어요',
+        '지수가 어떻게 합쳐지는지',
+      ],
+    },
+    'g3l_step1_A_easy': {
+      id: 'g3l_step1_A_easy',
+      kind: 'explain',
+      title: '풀어 쓰면 보여요',
+      body: '2³ × 2² 는 (2×2×2) × (2×2) 라서 2를 다섯 번 곱한 거예요. 그래서 2⁵ 이고, 지수 3과 2를 더한 5가 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step1_exit',
+    },
+    'g3l_step1_A_check': {
+      id: 'g3l_step1_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '3² × 3⁴ 의 결과를 지수 꼴로 쓰면?',
+      options: [
+        { id: 'correct', text: '3⁶', isCorrect: true, nextNodeId: 'g3l_step1_exit' },
+        { id: 'wrong1',  text: '3⁸', isCorrect: false, nextNodeId: 'g3l_step1_A_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: '9⁶', isCorrect: false, nextNodeId: 'g3l_step1_A_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step1_A_easy',
+    },
+    'g3l_step1_A_remedy': {
+      id: 'g3l_step1_A_remedy',
+      kind: 'explain',
+      title: '지수를 더해요',
+      body: '밑이 둘 다 3으로 같으니까 지수 2와 4를 더해서 3⁶ 이에요. 밑은 그대로 두고 지수만 바뀌어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("밑이 달라도 지수를 더할 수 있다") 분기 ───────────
+    'g3l_step1_C_explain': {
+      id: 'g3l_step1_C_explain',
+      kind: 'explain',
+      title: '밑이 같아야 지수를 더해요',
+      body: '지수법칙 aˣ·aʸ = aˣ⁺ʸ 는 밑(거듭제곱 아래의 수)이 같을 때만 써요. 2³ × 5² 같이 밑이 다르면 지수를 그냥 더할 수 없어요. 밑이 다르면 먼저 같은 밑으로 바꾸거나 따로 계산해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step1_A_easy',
+      summary: '밑이 다르면 지수를 더할 수 없다 — 지수법칙은 같은 밑끼리만 적용',
+      triggers: [
+        '밑이 달라도 지수만 보면 되는 줄 알았어요',
+        '왜 밑이 같아야 하나요',
+        '지수가 같으면 합쳐도 되는 거 아닌가요',
+      ],
+    },
+    'g3l_step1_C_check': {
+      id: 'g3l_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '2³ × 5² 를 지수법칙으로 한 번에 합칠 수 있을까요?',
+      options: [
+        { id: 'correct', text: '밑이 달라서 그대로 합칠 수 없어요', isCorrect: true, nextNodeId: 'g3l_step1_exit' },
+        { id: 'wrong1',  text: '10⁵ 로 합칠 수 있어요', isCorrect: false, nextNodeId: 'g3l_step1_C_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: '7⁵ 로 합칠 수 있어요', isCorrect: false, nextNodeId: 'g3l_step1_C_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step1_A_easy',
+    },
+    'g3l_step1_C_remedy': {
+      id: 'g3l_step1_C_remedy',
+      kind: 'explain',
+      title: '밑이 다르면 따로 계산',
+      body: '2³ = 8, 5² = 25 이라 8 × 25 = 200 으로 풀어요. 밑이 다른 거듭제곱은 지수만 더해서 합칠 수 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step1_exit',
+    },
+
+    'g3l_step1_exit': { id: 'g3l_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 A ("곱의 로그는 각 로그의 곱이다") 분기 ───────────
+    'g3l_step2_A_explain': {
+      id: 'g3l_step2_A_explain',
+      kind: 'explain',
+      title: '곱은 로그의 합으로 풀려요',
+      body: '로그(어떤 수를 만들려면 밑을 몇 번 곱해야 하는지를 나타내는 값)는 곱셈을 덧셈으로 풀어줘요. 그래서 logₐ(bc) 는 logₐb 와 logₐc 의 합이에요. 두 로그를 곱하는 게 아니라 더하는 거예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step2_A_easy',
+      summary: '곱의 로그는 로그의 합 — logₐ(bc) = logₐb + logₐc',
+      triggers: [
+        '로그도 곱하면 곱하는 거 아닌가요',
+        '왜 곱이 합으로 바뀌는지',
+        '로그끼리 곱하는 식과 헷갈려요',
+      ],
+    },
+    'g3l_step2_A_easy': {
+      id: 'g3l_step2_A_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: 'log₂(4×8) 은 log₂4 + log₂8 = 2 + 3 = 5 이고, 4×8 = 32 = 2⁵ 이라 답도 5예요. 합으로 풀어야 맞아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step2_exit',
+    },
+    'g3l_step2_A_check': {
+      id: 'g3l_step2_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'log₂(2×16) 의 값은?',
+      options: [
+        { id: 'correct', text: '5', isCorrect: true, nextNodeId: 'g3l_step2_exit' },
+        { id: 'wrong1',  text: '4', isCorrect: false, nextNodeId: 'g3l_step2_A_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: '8', isCorrect: false, nextNodeId: 'g3l_step2_A_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step2_A_easy',
+    },
+    'g3l_step2_A_remedy': {
+      id: 'g3l_step2_A_remedy',
+      kind: 'explain',
+      title: '1 + 4 = 5',
+      body: 'log₂2 = 1, log₂16 = 4 이고 둘을 더하면 5예요. log₂(2×16) = log₂32 = 5 와 똑같아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("로그 안의 수를 나누면 지수를 나눈다") 분기 ───────────
+    'g3l_step2_C_explain': {
+      id: 'g3l_step2_C_explain',
+      kind: 'explain',
+      title: '나눗셈은 로그의 차로 풀려요',
+      body: '로그(밑을 몇 번 곱해야 진수가 되는지 나타내는 값)는 나눗셈을 뺄셈으로 풀어줘요. 진수(로그 안의 수) 자리에 b/c 가 오면 logₐb − logₐc 로 나뉘어요. 진수만 나누는 게 아니라 두 로그를 따로 만들어 빼는 거예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step2_A_easy',
+      summary: '나눗셈의 로그는 로그의 차 — logₐ(b/c) = logₐb − logₐc',
+      triggers: [
+        '진수(로그 안의 수)를 나누면 지수도 나뉘는 거 아닌가요',
+        '나눗셈은 어떻게 풀어요',
+        '뺄셈으로 바뀌는 이유를 모르겠어요',
+      ],
+    },
+    'g3l_step2_C_check': {
+      id: 'g3l_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'log₂(16/4) 의 값은?',
+      options: [
+        { id: 'correct', text: '2', isCorrect: true, nextNodeId: 'g3l_step2_exit' },
+        { id: 'wrong1',  text: '4', isCorrect: false, nextNodeId: 'g3l_step2_C_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: '6', isCorrect: false, nextNodeId: 'g3l_step2_C_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step2_A_easy',
+    },
+    'g3l_step2_C_remedy': {
+      id: 'g3l_step2_C_remedy',
+      kind: 'explain',
+      title: '4 − 2 = 2',
+      body: 'log₂16 = 4, log₂4 = 2 이고 둘의 차는 2예요. log₂(16/4) = log₂4 = 2 와 같아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step2_exit',
+    },
+
+    'g3l_step2_exit': { id: 'g3l_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 A ("logₐb = log a / log b") 분기 ───────────
+    'g3l_step3_A_explain': {
+      id: 'g3l_step3_A_explain',
+      kind: 'explain',
+      title: '진수가 분자, 밑이 분모예요',
+      body: '밑(로그 아래에 쓰는 수)을 바꾸고 싶을 때 logₐb = log b / log a 로 풀어 써요. 진수(로그 안의 수) b 는 분자로, 원래 밑 a 는 분모로 가요. 위·아래 자리를 바꿔 쓰면 결과 값이 달라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step3_A_easy',
+      summary: '밑 변환은 진수가 분자, 밑이 분모 — logₐb = log b / log a',
+      triggers: [
+        '분자랑 분모가 헷갈려요',
+        '밑이 위로 가는 줄 알았어요',
+        '어느 쪽이 위인지 모르겠어요',
+      ],
+    },
+    'g3l_step3_A_easy': {
+      id: 'g3l_step3_A_easy',
+      kind: 'explain',
+      title: '값으로 확인해요',
+      body: 'log₂8 은 8을 만들려고 2를 세 번 곱하니까 3이에요. 공식 log 8 / log 2 = 3 으로도 똑같이 3이 나오죠. log 2 / log 8 로 뒤집으면 1/3 이라 다른 값이 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step3_exit',
+    },
+    'g3l_step3_A_check': {
+      id: 'g3l_step3_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'log₃9 (밑이 3, 진수가 9) 를 밑 변환 공식으로 바르게 옮긴 식은?',
+      options: [
+        { id: 'correct', text: 'log 9 / log 3', isCorrect: true, nextNodeId: 'g3l_step3_exit' },
+        { id: 'wrong1',  text: 'log 3 / log 9', isCorrect: false, nextNodeId: 'g3l_step3_A_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: 'log(9 − 3)', isCorrect: false, nextNodeId: 'g3l_step3_A_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step3_A_easy',
+    },
+    'g3l_step3_A_remedy': {
+      id: 'g3l_step3_A_remedy',
+      kind: 'explain',
+      title: '진수 9가 위로 가요',
+      body: 'logₐb 에서 b 가 위, a 가 아래예요. 그래서 log₃9 = log 9 / log 3 이고, 값은 2가 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("logₐb = log(a-b)") 분기 ───────────
+    'g3l_step3_C_explain': {
+      id: 'g3l_step3_C_explain',
+      kind: 'explain',
+      title: '뺄셈이 아니라 나눗셈이에요',
+      body: '"log(a−b)" 같은 차의 로그는 따로 정의되지 않아요. 밑 변환은 두 로그를 비(나눗셈)로 묶어 logₐb = log b / log a 로 풀어요. 예를 들어 log₂8 = log 8 / log 2 = 3 처럼 값이 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step3_A_easy',
+      summary: '밑 변환은 두 로그의 비 — 차의 로그 같은 형태가 아님',
+      triggers: [
+        '뺄셈으로 바뀌는 게 아닌가요',
+        '차의 로그가 따로 있는 줄 알았어요',
+        '나눗셈 꼴인 이유를 모르겠어요',
+      ],
+    },
+    'g3l_step3_C_check': {
+      id: 'g3l_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'log₂8 을 밑 10인 로그로 바꿔 쓰면?',
+      options: [
+        { id: 'correct', text: 'log 8 / log 2', isCorrect: true, nextNodeId: 'g3l_step3_exit' },
+        { id: 'wrong1',  text: 'log(2 − 8)', isCorrect: false, nextNodeId: 'g3l_step3_C_remedy', weaknessId: 'g3_log_exp' },
+        { id: 'wrong2',  text: 'log 8 − log 2', isCorrect: false, nextNodeId: 'g3l_step3_C_remedy', weaknessId: 'g3_log_exp' },
+      ],
+      dontKnowNextNodeId: 'g3l_step3_A_easy',
+    },
+    'g3l_step3_C_remedy': {
+      id: 'g3l_step3_C_remedy',
+      kind: 'explain',
+      title: '비로 묶어요',
+      body: '밑 변환은 진수를 분자, 밑을 분모로 두는 비예요. log₂8 = log 8 / log 2 = 3 이에요. 뺄셈이나 차의 로그로 옮기면 다른 값이 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3l_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3l_step3_exit',
+    },
+
+    'g3l_step3_exit': { id: 'g3l_step3_exit', kind: 'exit' },
+  },
+};

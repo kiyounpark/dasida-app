@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: rsm_step<N>_<choice>_<role>
+// 약점 prefix: rsm
+// choice 는 review-content-map.ts 의 g2_radical_simplify 오답 위치(step별 오답 2개: B, C)
+
+export const g2_radical_simplify_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("근호 안 수를 반으로 나눈다") 분기 ───────────
+    'rsm_step1_B_explain': {
+      id: 'rsm_step1_B_explain',
+      kind: 'explain',
+      title: '반으로 나누는 게 아니에요',
+      body: '근호(√, 제곱근 기호)를 간단하게 만들 때는 안의 수를 반으로 나누지 않아요. 안의 수를 소인수분해(작은 소수들의 곱으로 쪼개기, 소수는 1과 자기 자신으로만 나뉘는 수예요)해서 같은 수가 두 번 곱해진 제곱 묶음을 찾는 거예요. 예: √18 = √(2·3·3) 에서 3·3 이 제곱 묶음이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step1_B_easy',
+      summary: '근호 안 수는 반으로 나누는 게 아니라 소인수분해로 제곱 묶음을 찾는다',
+      triggers: [
+        '근호 안 수를 반으로 나누면 되는 줄 알았어요',
+        '왜 나누면 안 되나요',
+        '소인수분해를 왜 해야 하나요',
+      ],
+    },
+    'rsm_step1_B_easy': {
+      id: 'rsm_step1_B_easy',
+      kind: 'explain',
+      title: '더 짧게 한 번 더',
+      body: '√12 를 보면 12 = 2·2·3 이에요. 여기서 2·2 가 제곱 묶음이에요. 반으로 나눈 √6 은 값이 달라서 틀려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step1_exit',
+    },
+    'rsm_step1_B_check': {
+      id: 'rsm_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√50 을 간단하게 하려면 가장 먼저 무엇을 해야 하나요?',
+      options: [
+        { id: 'correct', text: '50 을 소수들의 곱으로 쪼갠다 (50 = 2·5·5)', isCorrect: true, nextNodeId: 'rsm_step1_exit' },
+        { id: 'wrong1', text: '50 을 2 로 나눠 √25 로 만든다', isCorrect: false, nextNodeId: 'rsm_step1_B_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '50 을 반으로 나눈다', isCorrect: false, nextNodeId: 'rsm_step1_B_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step1_B_easy',
+    },
+    'rsm_step1_B_remedy': {
+      id: 'rsm_step1_B_remedy',
+      kind: 'explain',
+      title: '쪼개서 같은 수 찾기',
+      body: '50 = 2·5·5 예요. 여기서 5·5 가 같은 수 두 번 곱해진 제곱 묶음이에요. 반으로 나누면 값이 변해서 답이 틀려져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("소인수분해 없이 간소화할 수 있다") 분기 ───────────
+    'rsm_step1_C_explain': {
+      id: 'rsm_step1_C_explain',
+      kind: 'explain',
+      title: '쪼개야 묶음이 보여요',
+      body: '큰 수는 눈으로 봐서는 제곱 묶음이 안 보여요. 소인수분해(작은 소수들의 곱으로 쪼개기)를 해야 같은 수가 두 번 곱해진 부분이 드러나요. 그래서 쪼개는 단계를 빼면 간단하게 만들 기회를 놓쳐요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step1_C_remedy',
+      summary: '소인수분해를 빼면 큰 수의 제곱 묶음이 안 보여 간단화 기회를 놓친다',
+      triggers: [
+        '소인수분해 안 해도 되지 않나요',
+        '그냥 봐서 답하면 안 되나요',
+        '쪼개는 게 왜 꼭 필요한가요',
+      ],
+    },
+    'rsm_step1_C_check': {
+      id: 'rsm_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√72 를 간단하게 만들 때 소인수분해가 필요한 이유로 맞는 것은?',
+      options: [
+        { id: 'correct', text: '72 = 2·2·2·3·3 으로 쪼개야 제곱 묶음이 보여서', isCorrect: true, nextNodeId: 'rsm_step1_exit' },
+        { id: 'wrong1', text: '소인수분해 없이 바로 답을 알 수 있어서', isCorrect: false, nextNodeId: 'rsm_step1_C_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '72 는 쪼갤 필요가 없어서', isCorrect: false, nextNodeId: 'rsm_step1_C_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step1_C_remedy',
+    },
+    'rsm_step1_C_remedy': {
+      id: 'rsm_step1_C_remedy',
+      kind: 'explain',
+      title: '쪼개야 보이는 묶음',
+      body: '72 = 2·2·2·3·3 으로 쪼개면 2·2 와 3·3 이라는 제곱 묶음이 보여요. 쪼개지 않으면 이 묶음을 못 찾아 √72 를 그대로 둘 수밖에 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step1_exit',
+    },
+
+    'rsm_step1_exit': { id: 'rsm_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("제곱수를 그대로 근호 안에 둔다") 분기 ───────────
+    'rsm_step2_B_explain': {
+      id: 'rsm_step2_B_explain',
+      kind: 'explain',
+      title: '제곱은 밖으로 보낼 수 있어요',
+      body: '제곱수(같은 수를 두 번 곱한 수, 예: 9 = 3·3)는 근호 밖으로 꺼낼 수 있어요. √(3·3·2) 에서 3·3 은 근호를 풀면 3 이 되어 밖으로 나가요. 그래서 √18 = 3√2 가 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step2_B_easy',
+      summary: '제곱 묶음은 근호 안에 두지 않고 양의 제곱근을 밖으로 꺼낸다',
+      triggers: [
+        '제곱수를 왜 밖으로 꺼내나요',
+        '그대로 근호 안에 두면 안 되나요',
+        '√(9·2) 에서 9 를 어떻게 하나요',
+      ],
+    },
+    'rsm_step2_B_easy': {
+      id: 'rsm_step2_B_easy',
+      kind: 'explain',
+      title: '예시로 보기',
+      body: '√(4·5) 에서 4 = 2·2 예요. 2·2 는 근호를 풀면 2 가 되어 밖으로 나가요. 그래서 √20 = 2√5 예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step2_exit',
+    },
+    'rsm_step2_B_check': {
+      id: 'rsm_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√(25·2) 를 간단하게 하면?',
+      options: [
+        { id: 'correct', text: '5√2', isCorrect: true, nextNodeId: 'rsm_step2_exit' },
+        { id: 'wrong1', text: '√(25·2) 그대로 둔다', isCorrect: false, nextNodeId: 'rsm_step2_B_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '25√2', isCorrect: false, nextNodeId: 'rsm_step2_B_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step2_B_easy',
+    },
+    'rsm_step2_B_remedy': {
+      id: 'rsm_step2_B_remedy',
+      kind: 'explain',
+      title: '25 는 5·5 예요',
+      body: '25 = 5·5 이고, 근호를 풀면 5 가 밖으로 나가요. 그래서 √(25·2) = 5√2 예요. 그대로 두거나 25 를 그냥 밖에 쓰면 틀려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("제곱수를 나누기로 처리한다") 분기 ───────────
+    'rsm_step2_C_explain': {
+      id: 'rsm_step2_C_explain',
+      kind: 'explain',
+      title: '나누는 게 아니라 빼내는 거예요',
+      body: '근호 안은 곱셈 구조예요. √(9·2) 에서 9 는 9 로 나누는 게 아니라, 9 = 3·3 이라 근호를 풀면 3 이 곱으로 빠져나오는 거예요. 그래서 √18 = 3√2 처럼 앞에 곱해진 수로 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step2_C_remedy',
+      summary: '제곱수는 나누기가 아니라 √(a²·b)=a√b 처럼 곱으로 빠져나온다',
+      triggers: [
+        '제곱수를 나누면 되는 거 아닌가요',
+        '왜 나누기가 아니에요',
+        '근호 안에서 나누기를 했어요',
+      ],
+    },
+    'rsm_step2_C_check': {
+      id: 'rsm_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√(16·3) 을 바르게 간단하게 한 것은?',
+      options: [
+        { id: 'correct', text: '4√3 (16 = 4·4 라 4 가 곱으로 밖으로 나온다)', isCorrect: true, nextNodeId: 'rsm_step2_exit' },
+        { id: 'wrong1', text: '√3 ÷ 16', isCorrect: false, nextNodeId: 'rsm_step2_C_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '3 ÷ 16 의 제곱근', isCorrect: false, nextNodeId: 'rsm_step2_C_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step2_C_remedy',
+    },
+    'rsm_step2_C_remedy': {
+      id: 'rsm_step2_C_remedy',
+      kind: 'explain',
+      title: '곱으로 빠져나와요',
+      body: '16 = 4·4 이고, 근호를 풀면 4 가 곱으로 앞에 나와요. 그래서 √(16·3) = 4√3 이에요. 나누기로 처리하면 값이 완전히 달라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step2_exit',
+    },
+
+    'rsm_step2_exit': { id: 'rsm_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("근호 안 수도 함께 더한다") 분기 ───────────
+    'rsm_step3_B_explain': {
+      id: 'rsm_step3_B_explain',
+      kind: 'explain',
+      title: '근호 안은 그대로 둬요',
+      body: '근호 안의 수가 같은 항(더하거나 빼는 한 덩어리)끼리는 앞에 곱해진 수, 즉 계수(근호 앞에 곱해진 수)만 더하거나 빼요. 근호 안의 수는 그대로 둬요. 예: 3√2 + 2√2 = (3+2)√2 = 5√2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step3_B_easy',
+      summary: '같은 근호 항은 계수만 더하고 근호 안 수는 그대로 둔다',
+      triggers: [
+        '근호 안 수도 더하는 거 아닌가요',
+        '왜 안의 수는 안 더해요',
+        '3√2 + 2√2 가 5√4 인 줄 알았어요',
+      ],
+    },
+    'rsm_step3_B_easy': {
+      id: 'rsm_step3_B_easy',
+      kind: 'explain',
+      title: '더 짧게 한 번 더',
+      body: '√2 를 한 덩어리로 봐요. 사과 3개 + 사과 2개 = 사과 5개 처럼, 3√2 + 2√2 = 5√2 예요. √2 자체는 변하지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step3_exit',
+    },
+    'rsm_step3_B_check': {
+      id: 'rsm_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '4√3 + √3 을 정리하면?',
+      options: [
+        { id: 'correct', text: '5√3', isCorrect: true, nextNodeId: 'rsm_step3_exit' },
+        { id: 'wrong1', text: '5√6', isCorrect: false, nextNodeId: 'rsm_step3_B_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '4√6', isCorrect: false, nextNodeId: 'rsm_step3_B_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step3_B_easy',
+    },
+    'rsm_step3_B_remedy': {
+      id: 'rsm_step3_B_remedy',
+      kind: 'explain',
+      title: '계수만 더해요',
+      body: '4√3 + √3 에서 √3 은 그대로 두고 계수 4 와 1 만 더해요. 4 + 1 = 5 라서 5√3 이에요. 근호 안 3 을 더해 6 으로 만들면 틀려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("√a가 같아도 합산할 수 없다") 분기 ───────────
+    'rsm_step3_C_explain': {
+      id: 'rsm_step3_C_explain',
+      kind: 'explain',
+      title: '같으면 합칠 수 있어요',
+      body: '근호 안의 수가 같으면 √2, √2 처럼 같은 덩어리예요. 같은 덩어리는 개수를 세듯이 합칠 수 있어요. 예: 3√2 - 2√2 + √2 = (3-2+1)√2 = 2√2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step3_C_remedy',
+      summary: '근호 안 수가 같으면 같은 덩어리라 계수끼리 합산 가능하다',
+      triggers: [
+        '근호가 같아도 못 합치는 거 아닌가요',
+        '왜 합칠 수 있어요',
+        '√2 끼리 더할 수 있는지 몰랐어요',
+      ],
+    },
+    'rsm_step3_C_check': {
+      id: 'rsm_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '5√7 - 3√7 을 정리하면?',
+      options: [
+        { id: 'correct', text: '2√7', isCorrect: true, nextNodeId: 'rsm_step3_exit' },
+        { id: 'wrong1', text: '합칠 수 없다', isCorrect: false, nextNodeId: 'rsm_step3_C_remedy', weaknessId: 'g2_radical_simplify' },
+        { id: 'wrong2', text: '2√0', isCorrect: false, nextNodeId: 'rsm_step3_C_remedy', weaknessId: 'g2_radical_simplify' },
+      ],
+      dontKnowNextNodeId: 'rsm_step3_C_remedy',
+    },
+    'rsm_step3_C_remedy': {
+      id: 'rsm_step3_C_remedy',
+      kind: 'explain',
+      title: '같은 덩어리는 합쳐요',
+      body: '√7 이 둘 다 같으니 같은 덩어리예요. 계수 5 에서 3 을 빼면 2 라서 2√7 이에요. 근호 안이 같으면 못 합친다는 건 틀린 생각이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'rsm_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'rsm_step3_exit',
+    },
+
+    'rsm_step3_exit': { id: 'rsm_step3_exit', kind: 'exit' },
+  },
+};

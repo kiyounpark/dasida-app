@@ -47,6 +47,8 @@ export function ReviewSessionScreenView({
   onRemedialExplainSecondary,
   onRemedialCheckOption,
   onRemedialCheckDontKnow,
+  onRemedialDiagnoseOption,
+  onRemedialSummaryContinue,
 }: UseReviewSessionScreenResult) {
   const insets = useSafeAreaInsets();
   const isTablet = useIsTablet();
@@ -157,6 +159,8 @@ export function ReviewSessionScreenView({
     onRemedialExplainSecondary,
     onRemedialCheckOption,
     onRemedialCheckDontKnow,
+    onRemedialDiagnoseOption,
+    onRemedialSummaryContinue,
   };
 
   const renderedEntries = entries.map((entry: ReviewEntry, idx: number) => (

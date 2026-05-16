@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: g3m_step<N>_<choice>_<role>
+// 약점 prefix: g3m
+// 깊이: shallow (1-shot 구조)
+
+export const g3_limit_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("0/0 = 1로 처리한다") 분기 ───────────
+    'g3m_step1_B_explain': {
+      id: 'g3m_step1_B_explain',
+      kind: 'explain',
+      title: '0/0 은 답이 정해진 식이 아니에요',
+      body: '0/0 같은 모양을 부정형(값이 하나로 정해지지 않는 모양)이라고 해요. 분자와 분모가 같이 0이 되는 식은 1도 될 수 있고 다른 수도 될 수 있어 그대로 둘 수 없어요. 그래서 식을 먼저 인수분해(곱셈 형태로 쪼개기)해서 같은 덩어리를 약분(위·아래 같은 부분을 나눠 줄이기)한 다음 x를 넣어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step1_B_easy',
+      summary: '0/0 부정형은 1이 아니라 식을 인수분해 후 약분해서 풀어야 한다',
+      triggers: [
+        '0/0 은 그냥 1 아닌가요',
+        '0 나누기 0 은 어떻게 되는지 모르겠어요',
+        '왜 바로 답이 안 나오는지',
+      ],
+    },
+    'g3m_step1_B_easy': {
+      id: 'g3m_step1_B_easy',
+      kind: 'explain',
+      title: '예시로 봐요',
+      body: 'lim(x→2) (x²−4)/(x−2) 에 2를 바로 넣으면 0/0 이에요. 그런데 x²−4 = (x−2)(x+2) 라서 (x−2) 를 위·아래에서 약분하면 x+2 만 남고, 거기에 2를 넣어 4가 답이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step1_exit',
+    },
+    'g3m_step1_B_check': {
+      id: 'g3m_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→3) (x²−9)/(x−3) 에서 가장 먼저 해야 할 일은?',
+      options: [
+        { id: 'correct', text: '분자를 인수분해해서 약분한다', isCorrect: true, nextNodeId: 'g3m_step1_exit' },
+        { id: 'wrong1',  text: '0/0 이므로 답은 1이라고 쓴다', isCorrect: false, nextNodeId: 'g3m_step1_B_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '값이 없다고 결론 짓는다', isCorrect: false, nextNodeId: 'g3m_step1_B_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step1_B_easy',
+    },
+    'g3m_step1_B_remedy': {
+      id: 'g3m_step1_B_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어요',
+      body: 'x²−9 = (x−3)(x+3) 이라서 (x−3) 을 위·아래에서 약분하면 x+3 이 남고, 3을 넣으면 6이에요. 0/0 이 보이면 인수분해부터 떠올려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("극한이 존재하지 않는다") 분기 ───────────
+    'g3m_step1_C_explain': {
+      id: 'g3m_step1_C_explain',
+      kind: 'explain',
+      title: '0/0 만 보고 단정 짓지 않아요',
+      body: '0/0 은 부정형(아직 값이 정해지지 않은 모양)이라서 "없다"가 아니라 "더 풀어봐야 안다"는 뜻이에요. 분자·분모를 인수분해해서 공통인수(위·아래에 같이 있는 덩어리)를 약분하면 진짜 극한값이 나와요. 그래서 0/0 은 풀어보기 전에 결론을 내리면 안 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step1_B_easy',
+      summary: '0/0 부정형은 "극한 없음"이 아니라 식 변형 후 확인해야 한다',
+      triggers: [
+        '0/0 이면 답이 없는 거 아닌가요',
+        '극한이 존재하지 않는다고 봤어요',
+        '왜 풀어봐야 아는 건지',
+      ],
+    },
+    'g3m_step1_C_check': {
+      id: 'g3m_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→1) (x²−1)/(x−1) 의 값은?',
+      options: [
+        { id: 'correct', text: '2', isCorrect: true, nextNodeId: 'g3m_step1_exit' },
+        { id: 'wrong1',  text: '존재하지 않는다', isCorrect: false, nextNodeId: 'g3m_step1_C_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '0', isCorrect: false, nextNodeId: 'g3m_step1_C_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step1_B_easy',
+    },
+    'g3m_step1_C_remedy': {
+      id: 'g3m_step1_C_remedy',
+      kind: 'explain',
+      title: '인수분해 후 약분이 답',
+      body: 'x²−1 = (x−1)(x+1) 이라 (x−1) 을 약분하면 x+1 이 남아요. 거기에 1을 넣으면 2 가 나와요. 0/0 은 풀면 값이 보여요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step1_exit',
+    },
+
+    'g3m_step1_exit': { id: 'g3m_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("상수항끼리의 비") 분기 ───────────
+    'g3m_step2_B_explain': {
+      id: 'g3m_step2_B_explain',
+      kind: 'explain',
+      title: 'x→∞ 에서는 최고차항이 결정해요',
+      body: 'x 가 한없이 커지면 숫자 하나만 있는 부분(상수항)은 영향이 거의 없어지고, 가장 차수가 큰 항(최고차항, x 가 가장 여러 번 곱해진 덩어리)만 크게 커져요. 그래서 ∞/∞ 모양에서는 분자·분모를 최고차항으로 나눠 비교해요. 분자와 분모의 차수가 같으면 두 최고차항의 계수(변수 앞에 곱해진 수)끼리의 비가 답이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step2_B_easy',
+      summary: '∞/∞ 부정형은 상수항이 아니라 최고차항의 계수비가 답이다',
+      triggers: [
+        '상수끼리만 보면 되는 줄 알았어요',
+        '왜 최고차항만 보나요',
+        '맨 끝 숫자가 답 같았어요',
+      ],
+    },
+    'g3m_step2_B_easy': {
+      id: 'g3m_step2_B_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: 'lim(x→∞) (3x²+5)/(x²−7) 에서 가장 큰 항은 3x² 와 x² 예요. 계수의 비 3/1 = 3 이 답이에요. +5 나 −7 은 너무 작아서 결과를 흔들지 못해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step2_exit',
+    },
+    'g3m_step2_B_check': {
+      id: 'g3m_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→∞) (4x²+1)/(2x²−3) 의 값은?',
+      options: [
+        { id: 'correct', text: '2', isCorrect: true, nextNodeId: 'g3m_step2_exit' },
+        { id: 'wrong1',  text: '−1/3', isCorrect: false, nextNodeId: 'g3m_step2_B_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '1/2', isCorrect: false, nextNodeId: 'g3m_step2_B_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step2_B_easy',
+    },
+    'g3m_step2_B_remedy': {
+      id: 'g3m_step2_B_remedy',
+      kind: 'explain',
+      title: '4 ÷ 2 = 2',
+      body: '분자 최고차항은 4x², 분모 최고차항은 2x² 예요. 계수의 비 4/2 = 2 가 답이에요. 상수 +1, −3 은 무시해도 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("분자 차수가 크면 극한은 0") 분기 ───────────
+    'g3m_step2_C_explain': {
+      id: 'g3m_step2_C_explain',
+      kind: 'explain',
+      title: '차수를 헷갈리지 않게 정리해요',
+      body: '∞/∞ 모양에서는 분자·분모의 차수(가장 큰 항이 x 를 몇 번 곱했는지)를 비교해요. 분자 차수가 더 크면 위가 훨씬 빨리 커져서 한없이 커지거나 작아져요 (이걸 발산이라고 해요). 0 이 되는 건 반대로 분자 차수가 더 작아 위가 거의 안 자라는 경우예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step2_B_easy',
+      summary: '∞/∞ 차수 비교: 분자>분모이면 ±∞, 같으면 계수비, 분자<분모이면 0',
+      triggers: [
+        '분자가 크면 0 이 되는 줄 알았어요',
+        '차수가 다른 두 식 비교를 모르겠어요',
+        '극한이 어디로 가는지 헷갈려요',
+      ],
+    },
+    'g3m_step2_C_check': {
+      id: 'g3m_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→∞) (x³+1)/(x²−2) 의 값은?',
+      options: [
+        { id: 'correct', text: '∞ (발산)', isCorrect: true, nextNodeId: 'g3m_step2_exit' },
+        { id: 'wrong1',  text: '0', isCorrect: false, nextNodeId: 'g3m_step2_C_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '1', isCorrect: false, nextNodeId: 'g3m_step2_C_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step2_B_easy',
+    },
+    'g3m_step2_C_remedy': {
+      id: 'g3m_step2_C_remedy',
+      kind: 'explain',
+      title: '분자가 더 빨리 커져요',
+      body: '분자 차수 3, 분모 차수 2 이므로 위가 훨씬 빨리 커져서 한없이 커져요 (이를 ∞ 로 발산한다고 해요). 0 이 되는 건 분모가 더 빨리 커지는 반대 경우예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step2_exit',
+    },
+
+    'g3m_step2_exit': { id: 'g3m_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("항상 인수분해부터") 분기 ───────────
+    'g3m_step3_B_explain': {
+      id: 'g3m_step3_B_explain',
+      kind: 'explain',
+      title: '부정형이 아니면 바로 대입해요',
+      body: '부정형(0/0 이나 ∞/∞ 같이 값이 아직 정해지지 않은 모양)이 아닐 때는 x 값을 식에 곧장 넣으면 답이 나와요. 인수분해(곱셈 형태로 쪼개기)는 0/0 처럼 풀어야 할 모양이 보일 때만 쓰는 도구예요. 그렇지 않으면 한 번 더 손대지 않아도 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step3_B_easy',
+      summary: '부정형이 아니면 인수분해 없이 바로 대입한다',
+      triggers: [
+        '극한은 무조건 인수분해해야 하는 거 아닌가요',
+        '대입을 먼저 해도 되는지 모르겠어요',
+        '언제 인수분해를 쓰는지 헷갈려요',
+      ],
+    },
+    'g3m_step3_B_easy': {
+      id: 'g3m_step3_B_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: 'lim(x→1) (x+2) 에 1 을 넣으면 3 이 바로 나와요. 이건 0/0 도 ∞/∞ 도 아니어서 인수분해 없이 끝나요. 식이 깨끗하면 바로 대입이 가장 빠른 길이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step3_exit',
+    },
+    'g3m_step3_B_check': {
+      id: 'g3m_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→2) (x+5) 의 값은?',
+      options: [
+        { id: 'correct', text: '7 (바로 대입)', isCorrect: true, nextNodeId: 'g3m_step3_exit' },
+        { id: 'wrong1',  text: '먼저 인수분해해야 답이 나와요', isCorrect: false, nextNodeId: 'g3m_step3_B_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '대입할 수 없어요', isCorrect: false, nextNodeId: 'g3m_step3_B_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step3_B_easy',
+    },
+    'g3m_step3_B_remedy': {
+      id: 'g3m_step3_B_remedy',
+      kind: 'explain',
+      title: '2 + 5 = 7',
+      body: 'x+5 는 0/0 처럼 막히는 모양이 아니에요. 그래서 x=2 를 그대로 넣어 7 이 답이에요. 부정형이 아닐 때는 인수분해를 쓰지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("극한은 절대 직접 대입할 수 없다") 분기 ───────────
+    'g3m_step3_C_explain': {
+      id: 'g3m_step3_C_explain',
+      kind: 'explain',
+      title: '대입이 안 되는 경우는 따로 있어요',
+      body: '극한 문제에서 대입이 막히는 건 0/0 이나 ∞/∞ 같은 부정형(값이 아직 정해지지 않은 모양)이 나올 때뿐이에요. 그래프가 한 점에서 끊기지 않고 매끄럽게 이어지는 식은 연속이라고 하는데, 연속인 식에는 x 값을 그대로 넣어도 답이 나와요. "극한은 절대 대입할 수 없다"는 사실과 달라요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step3_B_easy',
+      summary: '대입이 막히는 건 부정형일 때뿐, 그 외엔 바로 대입 가능',
+      triggers: [
+        '극한은 대입하면 안 되는 거 아닌가요',
+        '왜 어떤 건 대입이 되는지 모르겠어요',
+        '바로 답을 적어도 되는지 헷갈려요',
+      ],
+    },
+    'g3m_step3_C_check': {
+      id: 'g3m_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'lim(x→0) (x²+3) 의 값은?',
+      options: [
+        { id: 'correct', text: '3 (바로 대입)', isCorrect: true, nextNodeId: 'g3m_step3_exit' },
+        { id: 'wrong1',  text: '대입할 수 없어요', isCorrect: false, nextNodeId: 'g3m_step3_C_remedy', weaknessId: 'g3_limit' },
+        { id: 'wrong2',  text: '0', isCorrect: false, nextNodeId: 'g3m_step3_C_remedy', weaknessId: 'g3_limit' },
+      ],
+      dontKnowNextNodeId: 'g3m_step3_B_easy',
+    },
+    'g3m_step3_C_remedy': {
+      id: 'g3m_step3_C_remedy',
+      kind: 'explain',
+      title: '0² + 3 = 3',
+      body: 'x²+3 는 0/0 모양이 아니라 매끄럽게 이어지는 식이에요. 0 을 넣으면 3 이 바로 나와요. 부정형만 아니면 대입이 가장 빠른 길이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3m_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3m_step3_exit',
+    },
+
+    'g3m_step3_exit': { id: 'g3m_step3_exit', kind: 'exit' },
+  },
+};

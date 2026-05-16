@@ -1,0 +1,8 @@
+{
+  "verdict": "approve",
+  "weaknessId": "calc_repeated_error",
+  "depth": "deep",
+  "nodesVisited": 52,
+  "studentJourney": "학생은 오답 클릭 후 자신의 오개념 이유를 고르는 diagnose 노드로 진입한다. 이유에 맞는 explain 카드를 보고 check(확인 문제)를 푼다. 틀리면 diagnose2 → pinpoint1 or pinpoint2(심화 설명) 경로를 타고, '모르겠어요'를 누르면 이제 pinpoint2(또는 pinpoint1)를 거쳐 다시 check로 돌아온다. 재시도 check를 맞히면 summary → exit으로 마무리된다. 이전 리뷰에서 지적된 7개 '막다른 길'(pinpoint → summary 직행) 이 모두 해소됐고, step3.C diagnose 본문도 중립적 질문으로 교체됐다. 전체 3개 step × A·C 6개 진입점에서 check 재시도 경로가 빠짐없이 연결돼 있으며, 톤·말씨도 친근한 존댓말로 일관된다.",
+  "issues": []
+}

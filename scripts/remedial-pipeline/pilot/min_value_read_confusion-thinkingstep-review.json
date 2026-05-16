@@ -1,0 +1,6 @@
+{
+  "verdict": "approve",
+  "weaknessId": "min_value_read_confusion",
+  "studentJourney": "heroPrompt에서 '최솟값과 그 위치를 나눠 읽기'라는 주제를 친근하게 만난다. step1에서 '(x−a)²+b 꼴로 먼저 확인해요'라는 body와 a=3, b=2 예시가 바로 이어지니 따라가기 쉽고, a와 b 역할을 뒤집는 오답이 진짜 혼동 패턴을 짚어준다. step2에서 '가장 작을 때 0이고 남는 건 b뿐'이라는 중간 단계가 명확히 풀어져 있어 최솟값=b를 자연스럽게 납득한다. step3에서 '0이 되려면 x=a여야 해요'로 위치를 확인하고, 'x=a일 때 최솟값도 a이다' 오답이 이 약점 핵심을 다시 한번 상기시켜 마무리된다. heroPrompt부터 feedback까지 내내 친근한 존댓말이 유지돼 읽는 리듬이 끊기지 않는다.",
+  "issues": []
+}

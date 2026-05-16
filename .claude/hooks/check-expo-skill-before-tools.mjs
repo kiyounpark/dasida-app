@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// CCR 자동 루틴 환경에서는 스킵 (HOME 이 /Users/ 로 시작 안 하면 macOS 외 → 자동 환경)
+if (!process.env.HOME?.startsWith('/Users/')) process.exit(0);
+
 import {
   findSkillNameForPath,
   getUnreadSkillEntries,

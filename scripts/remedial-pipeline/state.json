@@ -1,0 +1,807 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-13T14:07:47.453Z",
+  "lastUpdateAt": "2026-05-16T03:11:17.954Z",
+  "queue": [],
+  "completed": [
+    "calc_repeated_error",
+    "min_value_read_confusion",
+    "radical_simplification_error",
+    "vertex_formula_memorization",
+    "coefficient_sign_confusion",
+    "derivative_calculation",
+    "factoring_pattern_recall",
+    "max_min_judgement_confusion",
+    "solving_order_confusion",
+    "complex_factoring_difficulty",
+    "quadratic_formula_memorization",
+    "rationalization_error",
+    "expansion_sign_error",
+    "like_terms_error",
+    "imaginary_unit_confusion",
+    "simultaneous_equation_error",
+    "remainder_substitution_error",
+    "counting_overcounting",
+    "counting_method_confusion",
+    "g3_diff",
+    "g3_sequence",
+    "g3_log_exp",
+    "g3_integral",
+    "g3_trig",
+    "g3_limit",
+    "g3_conic",
+    "g3_counting",
+    "g3_probability",
+    "g3_statistics",
+    "g2_set_operation",
+    "g2_set_complement",
+    "g2_set_count",
+    "g2_prop_contrapositive",
+    "g2_prop_necessary_sufficient",
+    "g2_prop_quantifier",
+    "g2_trig_unit_circle",
+    "g2_trig_equation_range",
+    "g2_trig_identity",
+    "g2_poly_factoring",
+    "g2_eq_setup",
+    "g2_poly_remainder",
+    "g2_radical_simplify",
+    "g2_radical_rationalize",
+    "g2_diff_application",
+    "g2_integral_basic",
+    "g2_integral_definite",
+    "g2_counting_method",
+    "g2_counting_overcounting",
+    "g2_inequality_range",
+    "g2_function_domain",
+    "g3_vector",
+    "g3_space_geometry",
+    "g1_geometry",
+    "complex_calc_error",
+    "g3_function"
+  ],
+  "manualReview": [],
+  "failed": [],
+  "totalTokens": 28444000,
+  "completedCount": 55,
+  "lastProgressReportAt": 51,
+  "lastDriftCheckAt": 48,
+  "retryStats": [
+    {
+      "weaknessId": "calc_repeated_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "min_value_read_confusion",
+      "retries": 1
+    },
+    {
+      "weaknessId": "radical_simplification_error",
+      "retries": 3
+    },
+    {
+      "weaknessId": "vertex_formula_memorization",
+      "retries": 2
+    },
+    {
+      "weaknessId": "coefficient_sign_confusion",
+      "retries": 2
+    },
+    {
+      "weaknessId": "derivative_calculation",
+      "retries": 2
+    },
+    {
+      "weaknessId": "solving_order_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "retries": 1
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "retries": 1
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "retries": 2
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "solving_order_confusion",
+      "retries": 4
+    },
+    {
+      "weaknessId": "rationalization_error",
+      "retries": 1
+    },
+    {
+      "weaknessId": "complex_factoring_difficulty",
+      "retries": 2
+    },
+    {
+      "weaknessId": "quadratic_formula_memorization",
+      "retries": 2
+    },
+    {
+      "weaknessId": "rationalization_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "expansion_sign_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "like_terms_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "imaginary_unit_confusion",
+      "retries": 2
+    },
+    {
+      "weaknessId": "simultaneous_equation_error",
+      "retries": 0
+    },
+    {
+      "weaknessId": "complex_calc_error",
+      "retries": 3
+    },
+    {
+      "weaknessId": "remainder_substitution_error",
+      "retries": 2
+    },
+    {
+      "weaknessId": "counting_overcounting",
+      "retries": 3
+    },
+    {
+      "weaknessId": "counting_method_confusion",
+      "retries": 3
+    },
+    {
+      "weaknessId": "g3_diff",
+      "retries": 3
+    },
+    {
+      "weaknessId": "g3_sequence",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_log_exp",
+      "retries": 2
+    },
+    {
+      "weaknessId": "g3_integral",
+      "retries": 2
+    },
+    {
+      "weaknessId": "g3_trig",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g3_limit",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_conic",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g3_counting",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_probability",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_statistics",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_set_operation",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_set_complement",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_set_count",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_contrapositive",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_necessary_sufficient",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_prop_quantifier",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_trig_unit_circle",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_trig_equation_range",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_trig_identity",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_poly_factoring",
+      "retries": 2
+    },
+    {
+      "weaknessId": "g2_eq_setup",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_poly_remainder",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_radical_simplify",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_radical_rationalize",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_diff_application",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_integral_basic",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_integral_definite",
+      "retries": 2
+    },
+    {
+      "weaknessId": "g2_counting_method",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_counting_overcounting",
+      "retries": 0
+    },
+    {
+      "weaknessId": "g2_inequality_range",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g2_function_domain",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_vector",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_space_geometry",
+      "retries": 2
+    },
+    {
+      "weaknessId": "g1_geometry",
+      "retries": 1
+    },
+    {
+      "weaknessId": "g3_function",
+      "retries": 1
+    }
+  ],
+  "rejectionHistory": [
+    {
+      "weaknessId": "solving_order_confusion",
+      "gate": "struggling-student",
+      "reason": "미분 prerequisite 의존 — 3회 retry 후에도 학생 페르소나가 도함수/극대극소/방정식 용어에서 confused"
+    },
+    {
+      "weaknessId": "max_min_judgement_confusion",
+      "gate": "struggling-student",
+      "reason": "병렬 subagent 자체평가 후 검증에서 학생 7 confused (볼록 방향 정의, f(x) 표기, 꼭짓점)"
+    },
+    {
+      "weaknessId": "factoring_pattern_recall",
+      "gate": "struggling-student",
+      "reason": "병렬 subagent 자체평가 후 검증에서 학생 8 confused (x²/b/c/p/q 변수, 전개, 절댓값)"
+    },
+    {
+      "weaknessId": "rationalization_error",
+      "gate": "keyword-mapping",
+      "reason": "data/exam intent 중 유리화/분모 무리수 관련 표현이 0건 — 매핑 ≥10건 미달 (이후 수동 경로로 통과)"
+    },
+    {
+      "weaknessId": "like_terms_error",
+      "gate": "remedial-flow",
+      "reason": "C분기 secondaryNextNodeId가 A_easy 로 점프 (분기 의미 부재) — 각 step C_easy 신설로 해결"
+    },
+    {
+      "weaknessId": "imaginary_unit_confusion",
+      "gate": "appearance-reviewer",
+      "reason": "iuc_step1_A_explain body 4문장 한도(3) 초과 + remedial-flow 동어반복 → 본문 차별화로 해결"
+    },
+    {
+      "weaknessId": "complex_calc_error",
+      "gate": "remedial-flow",
+      "reason": "C분기 easy 연결 끊김·shallow 흐름 요약 부재 — 3회 재시도 초과"
+    },
+    {
+      "weaknessId": "counting_overcounting",
+      "gate": "remedial-flow",
+      "reason": "shallow 패턴 본질 한계 — 막다른 길/동어반복 fix 시 deep 구조 전환 필요"
+    },
+    {
+      "weaknessId": "counting_method_confusion",
+      "gate": "struggling-student",
+      "reason": "복합 기호(nPr/nCr/r!/(n-r)!) 풀어쓰기 한계 — 학생 게이트가 누적 정의 부담 지적"
+    },
+    {
+      "weaknessId": "g3_diff",
+      "gate": "struggling-student,thinkingstep-flow",
+      "reason": "체인룰/곱의 미분 기호식 압축이 6등급 기준 점프 — 그리고 thinkingstep 검수자가 예시 단계별 전개 요구"
+    },
+    {
+      "weaknessId": "force-pass-note",
+      "gate": "user-override",
+      "reason": "사용자 요청으로 coc/cmc/g3d를 manualReview에서 passed로 force-pass (검수자 perfectionist loop 종료)"
+    }
+  ],
+  "passedGates": {
+    "calc_repeated_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "min_value_read_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "radical_simplification_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "vertex_formula_memorization": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "coefficient_sign_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "derivative_calculation": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "solving_order_confusion": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    },
+    "max_min_judgement_confusion": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    },
+    "factoring_pattern_recall": {
+      "math-teacher": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "struggling-student": true
+    },
+    "complex_factoring_difficulty": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "quadratic_formula_memorization": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "rationalization_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "expansion_sign_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "like_terms_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "imaginary_unit_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "simultaneous_equation_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "complex_calc_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "thinkingstep-flow": true,
+      "remedial-flow": true
+    },
+    "remainder_substitution_error": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "counting_overcounting": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "sympy": true
+    },
+    "counting_method_confusion": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "sympy": true
+    },
+    "g3_diff": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true,
+      "sympy": true
+    },
+    "g3_sequence": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_log_exp": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_integral": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_trig": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_limit": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_conic": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_counting": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_probability": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_statistics": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_set_operation": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_set_complement": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_set_count": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_contrapositive": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_necessary_sufficient": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_prop_quantifier": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_unit_circle": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_equation_range": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_trig_identity": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_poly_factoring": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_eq_setup": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_poly_remainder": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_radical_simplify": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_radical_rationalize": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_diff_application": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_integral_basic": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_integral_definite": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_counting_method": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_counting_overcounting": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_inequality_range": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g2_function_domain": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_vector": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_space_geometry": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g1_geometry": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_function": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    }
+  },
+  "backfillQueue": []
+}

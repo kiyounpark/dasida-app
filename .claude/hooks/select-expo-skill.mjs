@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// CCR 자동 루틴 환경에서는 스킵
+if (!process.env.HOME?.startsWith('/Users/')) process.exit(0);
+
 import {
   buildSkillState,
   detectSkills,

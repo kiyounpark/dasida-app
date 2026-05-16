@@ -70,4 +70,4 @@ coverage/
 .env.local
 
 scripts/remedial-pipeline/intent-weakness-map.json
-scripts/remedial-pipeline/state.json
+# state.json 은 git 추적 (CCR 루틴이 진행 상태를 push 해야 함)

@@ -1,0 +1,42 @@
+{
+  "verdict": "pass",
+  "weaknessId": "radical_simplification_error",
+  "depth": "full",
+  "nodesVisited": 27,
+  "reviewedCommit": "d64ea89",
+  "studentJourney": "학생이 오답을 선택해 보완 흐름에 진입한다. step1에서 소인수분해로 제곱 묶음을 찾는 법을 배우고, 확인 문제를 거쳐 exit한다. step2에서 √(a²×b) = a√b 규칙으로 제곱 묶음을 근호 밖으로 꺼내는 법을 익히고, step3에서 밖으로 나온 수들을 곱해 최종 계수를 구하는 흐름을 따라간다. 세 단계 각각의 A·C 분기는 오답 선택 이유에 맞게 다른 설명을 제공하며, 이전 리뷰에서 지적된 4개 구조 결함이 모두 해소되었다.",
+  "previousIssues": [
+    {
+      "path": "rad_step1_C_remedy → body",
+      "criterion": "범위 선취",
+      "status": "fixed",
+      "resolution": "body에서 step2 내용(√50 = √(5² × 2) = 5√2)을 삭제하고 '이 묶음을 찾는 게 단순화의 첫 단계예요.'로 마무리함. step1 범위가 유지됨."
+    },
+    {
+      "path": "rad_step1_C_explain → secondaryNextNodeId",
+      "criterion": "분기 의미 부재",
+      "status": "fixed",
+      "resolution": "secondaryNextNodeId가 rad_step1_A_easy(A 분기)에서 rad_step1_C_remedy(C 분기 본인)로 회수됨."
+    },
+    {
+      "path": "rad_step2_C_explain → secondaryNextNodeId",
+      "criterion": "분기 의미 부재",
+      "status": "fixed",
+      "resolution": "secondaryNextNodeId가 rad_step2_A_easy(A 분기)에서 rad_step2_C_remedy(C 분기 본인)로 회수됨."
+    },
+    {
+      "path": "rad_step3_C_explain → secondaryNextNodeId",
+      "criterion": "분기 의미 부재",
+      "status": "fixed",
+      "resolution": "secondaryNextNodeId가 rad_step3_A_easy(A 분기)에서 rad_step3_C_remedy(C 분기 본인)로 회수됨."
+    }
+  ],
+  "issues": [],
+  "observations": [
+    {
+      "path": "rad_step1_C_check / rad_step2_C_check / rad_step3_C_check → dontKnowNextNodeId",
+      "criterion": "분기 공유 (낮은 심각도)",
+      "observation": "C 분기 check 노드 세 곳의 dontKnowNextNodeId가 각각 A 분기 보조 설명(A_easy)을 가리킨다. dontKnow 경로는 확인 문제에서 '모르겠어요'를 누른 경우이므로 맥락 이탈 정도가 secondaryNextNodeId보다 낮고, A_easy의 내용(구체적인 숫자 예시)이 C 오해 해소에도 간접 도움이 된다. 즉각적인 구조 결함으로 보지 않으나, 향후 C 전용 보조 설명 노드 추가 시 개선 가능."
+    }
+  ]
+}

@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: ibs_step<N>_<choice>_<role>
+// 약점 prefix: ibs
+// 약점: g2_integral_basic (부정적분 공식 ∫xⁿdx = xⁿ⁺¹/(n+1)+C 적용 오류)
+
+export const g2_integral_basic_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 B ("지수를 앞으로 내리고 1을 뺀다 (미분 공식)") 분기 ───────────
+    'ibs_step1_B_explain': {
+      id: 'ibs_step1_B_explain',
+      kind: 'explain',
+      title: '적분은 미분의 반대 방향이에요',
+      body: '부정적분(미분의 반대로 원래 식을 되찾는 계산)에서는 지수를 1 더하고, 그 더한 지수로 나눠요. 지수를 앞으로 내리고 1을 빼는 건 미분(변화율을 구하는 계산)이라서 방향이 정반대예요. 그래서 ∫x²dx 는 x³/3 이 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step1_B_easy',
+      summary: '부정적분은 지수를 1 더하고 그 지수로 나눔 — 미분(지수 내리고 1 빼기)과 정반대 방향',
+      triggers: [
+        '지수를 앞으로 내리는 거 아니었나요',
+        '미분 공식이랑 헷갈려요',
+        '적분이 미분이랑 어떻게 다른지 모르겠어요',
+      ],
+    },
+    'ibs_step1_B_easy': {
+      id: 'ibs_step1_B_easy',
+      kind: 'explain',
+      title: '더 짧게 한 번 더',
+      body: '∫x³dx 라면 지수 3에 1을 더해 4, 그 4로 나눠서 x⁴/4 예요. 지수는 올리고 나눈다, 이 두 가지만 기억해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step1_exit',
+    },
+    'ibs_step1_B_check': {
+      id: 'ibs_step1_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '∫x⁴dx 를 구하면? (적분상수 C는 생략해요)',
+      options: [
+        { id: 'correct', text: 'x⁵/5', isCorrect: true, nextNodeId: 'ibs_step1_exit' },
+        { id: 'wrong1', text: '4x³', isCorrect: false, nextNodeId: 'ibs_step1_B_remedy' },
+        { id: 'wrong2', text: 'x⁵/4', isCorrect: false, nextNodeId: 'ibs_step1_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step1_B_easy',
+    },
+    'ibs_step1_B_remedy': {
+      id: 'ibs_step1_B_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: '지수 4에 1을 더하면 5, 그 5로 나눠서 x⁵/5 예요. 4x³ 은 거꾸로 미분한 결과라 적분에서는 쓰지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step1_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("상수항은 적분해도 사라진다") 분기 ───────────
+    'ibs_step1_C_explain': {
+      id: 'ibs_step1_C_explain',
+      kind: 'explain',
+      title: '상수항은 사라지지 않아요',
+      body: '상수항(숫자 하나만 있는 덩어리, 예: 식 끝의 5)을 적분하면 사라지는 게 아니라 x가 붙은 일차 덩어리로 바뀌어요. 예를 들어 ∫5dx 는 5x 가 돼요. 미분할 때 상수가 0이 되니까 적분은 그 반대로 x를 붙여 주는 거예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step1_B_easy',
+      summary: '상수항을 적분하면 사라지지 않고 x가 붙은 일차 덩어리가 됨 (∫5dx = 5x)',
+      triggers: [
+        '상수는 적분하면 없어지는 거 아닌가요',
+        '숫자만 있는 부분은 어떻게 적분하나요',
+        '상수항 처리가 헷갈려요',
+      ],
+    },
+    'ibs_step1_C_check': {
+      id: 'ibs_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '∫3dx 를 구하면? (적분상수 C는 생략해요)',
+      options: [
+        { id: 'correct', text: '3x', isCorrect: true, nextNodeId: 'ibs_step1_exit' },
+        { id: 'wrong1', text: '0', isCorrect: false, nextNodeId: 'ibs_step1_C_remedy' },
+        { id: 'wrong2', text: '3', isCorrect: false, nextNodeId: 'ibs_step1_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step1_B_easy',
+    },
+    'ibs_step1_C_remedy': {
+      id: 'ibs_step1_C_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: '상수 3을 적분하면 x가 붙어서 3x 예요. 0이 되는 건 상수를 미분했을 때라서 방향이 반대예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step1_exit',
+    },
+
+    'ibs_step1_exit': { id: 'ibs_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 B ("계수는 지수처럼 앞으로 내린다") 분기 ───────────
+    'ibs_step2_B_explain': {
+      id: 'ibs_step2_B_explain',
+      kind: 'explain',
+      title: '계수는 그대로 두면 돼요',
+      body: '계수(변수 앞에 곱해진 수, 예: 6x²의 6)는 적분할 때 앞으로 내리지 않고 그대로 둬요. 지수만 1 올린 뒤, 그 올린 지수로 계수를 나누면 끝이에요. ∫6x²dx 는 6을 그대로 두고, 지수 2를 1 올린 3으로 나눠서 6·x³/3 = 2x³ 이 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step2_B_easy',
+      summary: '적분에서 계수는 앞으로 내리지 않고 그대로 둔 뒤 새 지수로 나눔 (∫6x²dx = 2x³)',
+      triggers: [
+        '계수도 앞으로 내리는 거 아닌가요',
+        '계수랑 지수를 같이 처리해야 하나요',
+        '계수를 어떻게 두는지 모르겠어요',
+      ],
+    },
+    'ibs_step2_B_easy': {
+      id: 'ibs_step2_B_easy',
+      kind: 'explain',
+      title: '더 짧게 한 번 더',
+      body: '∫4x³dx 라면 4는 그대로, 지수 3을 1 올려 4로 만든 뒤 그 4로 나눠서 4·x⁴/4 = x⁴ 이에요. 계수는 손대지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step2_exit',
+    },
+    'ibs_step2_B_check': {
+      id: 'ibs_step2_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '∫10x⁴dx 를 구하면? (적분상수 C는 생략해요)',
+      options: [
+        { id: 'correct', text: '2x⁵', isCorrect: true, nextNodeId: 'ibs_step2_exit' },
+        { id: 'wrong1', text: '40x³', isCorrect: false, nextNodeId: 'ibs_step2_B_remedy' },
+        { id: 'wrong2', text: '10x⁵', isCorrect: false, nextNodeId: 'ibs_step2_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step2_B_easy',
+    },
+    'ibs_step2_B_remedy': {
+      id: 'ibs_step2_B_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: '지수 4에 1을 더해 5, 계수 10을 그 5로 나눠서 10/5 = 2, 그래서 2x⁵ 예요. 계수 10은 앞으로 내리지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step2_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("계수는 지수를 올리기 전 값으로 나눈다") 분기 ───────────
+    'ibs_step2_C_explain': {
+      id: 'ibs_step2_C_explain',
+      kind: 'explain',
+      title: '나눌 때는 올린 지수로 나눠요',
+      body: '계수를 나눌 때는 원래 지수가 아니라 1을 더해 올린 지수로 나눠요. ∫6x²dx 에서 지수 2를 3으로 올린 뒤, 그 3으로 6을 나눠야 6·x³/3 = 2x³ 이 돼요. 올리기 전 값 2로 나누면 결과가 어긋나요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step2_B_easy',
+      summary: '계수는 올리기 전 지수가 아니라 1 더해 올린 지수(n+1)로 나눠야 함',
+      triggers: [
+        '원래 지수로 나누는 거 아닌가요',
+        '어떤 지수로 나눠야 하는지 헷갈려요',
+        '올린 지수랑 원래 지수 중 뭘 쓰나요',
+      ],
+    },
+    'ibs_step2_C_check': {
+      id: 'ibs_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '∫12x³dx 에서 계수 12를 나눌 때 사용하는 수는?',
+      options: [
+        { id: 'correct', text: '4 (지수 3에 1을 더한 값)', isCorrect: true, nextNodeId: 'ibs_step2_exit' },
+        { id: 'wrong1', text: '3 (올리기 전 지수)', isCorrect: false, nextNodeId: 'ibs_step2_C_remedy' },
+        { id: 'wrong2', text: '12 (계수 그대로)', isCorrect: false, nextNodeId: 'ibs_step2_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step2_B_easy',
+    },
+    'ibs_step2_C_remedy': {
+      id: 'ibs_step2_C_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: '지수 3에 1을 더하면 4, 그 4로 12를 나눠서 12/4 = 3, 그래서 3x⁴ 예요. 올리기 전 지수 3으로 나누면 답이 틀려요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step2_exit',
+    },
+
+    'ibs_step2_exit': { id: 'ibs_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 B ("미분과 적분은 역관계가 아니다") 분기 ───────────
+    'ibs_step3_B_explain': {
+      id: 'ibs_step3_B_explain',
+      kind: 'explain',
+      title: '미분과 적분은 서로의 반대예요',
+      body: '적분하기 전의 처음 식을 f(x), 그 f(x)를 적분해서 구한 식을 F(x)라고 불러요. F(x)를 다시 미분하면 처음 식 f(x)로 돌아와요. 두 계산이 서로 반대라서 이게 가능하고, 그래서 적분이 맞는지 미분으로 되짚어 검산(한 줄씩 다시 짚어보기)할 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step3_B_easy',
+      summary: '미분과 적분은 서로의 반대 계산 — 적분 결과를 미분하면 원래 식으로 돌아옴',
+      triggers: [
+        '미분이랑 적분이 반대가 아닌가요',
+        '왜 미분으로 검산이 되는지 모르겠어요',
+        '두 계산 관계가 헷갈려요',
+      ],
+    },
+    'ibs_step3_B_easy': {
+      id: 'ibs_step3_B_easy',
+      kind: 'explain',
+      title: '예시로 확인해요',
+      body: '∫3x²dx = x³ 인데, x³ 을 미분하면 다시 3x² 가 나와요. 출발한 곳으로 돌아오니까 두 계산은 반대예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step3_exit',
+    },
+    'ibs_step3_B_check': {
+      id: 'ibs_step3_B_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '∫4x³dx = x⁴ 이 맞는지 확인하려면 어떻게 하나요?',
+      options: [
+        { id: 'correct', text: 'x⁴ 을 미분해서 4x³ 이 나오는지 본다', isCorrect: true, nextNodeId: 'ibs_step3_exit' },
+        { id: 'wrong1', text: 'x⁴ 을 한 번 더 적분해 본다', isCorrect: false, nextNodeId: 'ibs_step3_B_remedy' },
+        { id: 'wrong2', text: '검산할 방법이 없다', isCorrect: false, nextNodeId: 'ibs_step3_B_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step3_B_easy',
+    },
+    'ibs_step3_B_remedy': {
+      id: 'ibs_step3_B_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: 'x⁴ 을 미분하면 4x³ 이 나와요. 적분하기 전의 처음 식 4x³ 과 똑같으니 적분이 맞은 거예요. 이렇게 미분으로 되짚는 게 검산 방법이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step3_B_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("상수 C는 미분하면 1이 된다") 분기 ───────────
+    'ibs_step3_C_explain': {
+      id: 'ibs_step3_C_explain',
+      kind: 'explain',
+      title: '상수를 미분하면 0이에요',
+      body: '적분상수 C(부정적분에서 마지막에 붙는 정해지지 않은 숫자 하나)는 미분하면 1이 아니라 0이 돼요. 숫자 하나만 있는 부분은 변화가 없어서 미분하면 항상 0이거든요. 그래서 적분에 +C를 붙여도 미분으로 검산하면 깔끔하게 사라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step3_B_easy',
+      summary: '상수를 미분하면 1이 아니라 0 — 그래서 +C는 미분 검산 시 사라짐',
+      triggers: [
+        '상수 미분하면 1이 되는 거 아닌가요',
+        'C는 미분하면 어떻게 되나요',
+        '왜 C가 검산할 때 없어지는지 모르겠어요',
+      ],
+    },
+    'ibs_step3_C_check': {
+      id: 'ibs_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'x³ + 7 을 미분하면?',
+      options: [
+        { id: 'correct', text: '3x² (상수 7은 0이 되어 사라짐)', isCorrect: true, nextNodeId: 'ibs_step3_exit' },
+        { id: 'wrong1', text: '3x² + 1', isCorrect: false, nextNodeId: 'ibs_step3_C_remedy' },
+        { id: 'wrong2', text: '3x² + 7', isCorrect: false, nextNodeId: 'ibs_step3_C_remedy' },
+      ],
+      dontKnowNextNodeId: 'ibs_step3_B_easy',
+    },
+    'ibs_step3_C_remedy': {
+      id: 'ibs_step3_C_remedy',
+      kind: 'explain',
+      title: '한 번 더 짚어봐요',
+      body: '상수 7은 미분하면 0이라 사라지고, x³ 만 미분해서 3x² 가 남아요. 상수는 미분하면 1이 아니라 늘 0이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'ibs_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'ibs_step3_exit',
+    },
+
+    'ibs_step3_exit': { id: 'ibs_step3_exit', kind: 'exit' },
+  },
+};

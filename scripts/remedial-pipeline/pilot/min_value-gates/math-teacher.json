@@ -1,0 +1,109 @@
+{
+  "verdict": "approve",
+  "issues": [
+    {
+      "nodeId": "minv_step2_A_r1_explain",
+      "severity": "minor",
+      "issue": "이차항 계수가 양수(>0)임을 명시하지 않고 '꼭짓점 — 그래프의 가장 낮거나 높은 지점'이라고 서술함. (x-a)²+b 꼴은 이차항 계수가 1(>0)이므로 최솟값이 존재하지만, 이 전제를 본문에서 한 번도 언급하지 않아 '가장 낮거나 높은'이라는 표현이 맥락 없이 나옴.",
+      "suggestion": "'꼭짓점'을 처음 언급할 때 '이 꼴((x-a)²+b)은 아래로 볼록이므로 꼭짓점이 가장 낮은 점'이라고 한 줄 추가."
+    },
+    {
+      "nodeId": "minv_step1_A_r1_explain",
+      "severity": "minor",
+      "issue": "body가 'a와 b 자리를 바꿔 읽기 쉬워요'라는 결과만 서술하고, 왜 꼴을 확인하지 않으면 바꿔 읽는지 근거가 없음. 논리 비약은 아니나 설명 밀도가 낮아 학생이 납득하기 어려울 수 있음.",
+      "suggestion": "'(x-3)²+2를 빨리 읽으면 눈에 먼저 들어오는 3을 b로 착각하기 쉽다'는 구체적 오류 예시를 한 줄 추가."
+    }
+  ],
+  "equationsToVerify": [
+    {
+      "id": "minv_step1_C_r2_explain.eq1",
+      "lhs": "(x - a)**2",
+      "rhs": "0"
+    },
+    {
+      "id": "minv_step1_C_pinpoint1.eq1",
+      "lhs": "(a - a)**2",
+      "rhs": "0"
+    },
+    {
+      "id": "minv_step1_C_pinpoint1.eq2",
+      "lhs": "0 + b",
+      "rhs": "b"
+    },
+    {
+      "id": "minv_step2_A_pinpoint1.eq1",
+      "lhs": "(5 - 5)**2 + 1",
+      "rhs": "1"
+    },
+    {
+      "id": "minv_step2_A_pinpoint2.eq1",
+      "lhs": "(x - a)**2 + b",
+      "rhs": "b"
+    },
+    {
+      "id": "minv_step2_C_r2_explain.eq1",
+      "lhs": "(x - 3)**2 + 2",
+      "rhs": "2"
+    },
+    {
+      "id": "minv_step2_C_r2_explain.eq2",
+      "lhs": "(x - 3)**2 - 5",
+      "rhs": "-5"
+    },
+    {
+      "id": "minv_step2_C_pinpoint1.eq1",
+      "lhs": "(2 - 2)**2 - 3",
+      "rhs": "-3"
+    },
+    {
+      "id": "minv_step3_A_pinpoint1.eq1",
+      "lhs": "(4 - 4)**2 + 7",
+      "rhs": "7"
+    },
+    {
+      "id": "minv_step3_C_pinpoint1.eq1",
+      "lhs": "(3 - 3)**2 + 2",
+      "rhs": "2"
+    },
+    {
+      "id": "minv_step1_A_check.answer",
+      "lhs": "3",
+      "rhs": "3"
+    },
+    {
+      "id": "minv_step1_C_check.answer_min",
+      "lhs": "2",
+      "rhs": "2"
+    },
+    {
+      "id": "minv_step1_C_check.answer_pos",
+      "lhs": "3",
+      "rhs": "3"
+    },
+    {
+      "id": "minv_step2_A_check.answer",
+      "lhs": "1",
+      "rhs": "1"
+    },
+    {
+      "id": "minv_step2_C_check.answer",
+      "lhs": "-3",
+      "rhs": "-3"
+    },
+    {
+      "id": "minv_step3_A_check.answer_min",
+      "lhs": "7",
+      "rhs": "7"
+    },
+    {
+      "id": "minv_step3_A_check.answer_pos",
+      "lhs": "4",
+      "rhs": "4"
+    },
+    {
+      "id": "minv_step3_C_check.answer",
+      "lhs": "2",
+      "rhs": "2"
+    }
+  ]
+}

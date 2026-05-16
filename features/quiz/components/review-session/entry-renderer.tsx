@@ -10,7 +10,9 @@ import { FeedbackBanner } from './feedback-banner';
 import { InputArea } from './input-area';
 import { Paper } from './paper-tokens';
 import { RemedialCheckCard } from './remedial-check-card';
+import { RemedialDiagnoseCard } from './remedial-diagnose-card';
 import { RemedialExplainCard } from './remedial-explain-card';
+import { RemedialSummaryCard } from './remedial-summary-card';
 import type { ReviewEntry } from './review-entries';
 import { StepCard } from './step-card';
 
@@ -33,6 +35,8 @@ type Props = {
   onRemedialExplainSecondary: (nodeId: string) => void;
   onRemedialCheckOption: (nodeId: string, optionId: string) => void;
   onRemedialCheckDontKnow: (nodeId: string) => void;
+  onRemedialDiagnoseOption: (nodeId: string, optionId: string) => void;
+  onRemedialSummaryContinue: (nodeId: string) => void;
 };
 
 export function EntryRenderer(props: Props) {
@@ -108,6 +112,24 @@ export function EntryRenderer(props: Props) {
             interactive={entry.interactive}
             onPressOption={(opt) => props.onRemedialCheckOption(node.id, opt)}
             onPressDontKnow={() => props.onRemedialCheckDontKnow(node.id)}
+          />
+        );
+      }
+      if (node.kind === 'diagnose') {
+        return (
+          <RemedialDiagnoseCard
+            node={node}
+            interactive={entry.interactive}
+            onPressOption={(opt) => props.onRemedialDiagnoseOption(node.id, opt)}
+          />
+        );
+      }
+      if (node.kind === 'summary') {
+        return (
+          <RemedialSummaryCard
+            node={node}
+            interactive={entry.interactive}
+            onPressContinue={() => props.onRemedialSummaryContinue(node.id)}
           />
         );
       }

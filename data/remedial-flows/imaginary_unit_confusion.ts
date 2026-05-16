@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: iuc_step<N>_<A|C>_<role>
+// 약점 prefix: iuc
+// 용어 통일: "허수단위 i"(= √−1, 제곱하면 −1이 되는 새로운 수), "복소수"(실수부 + 허수부로 이루어진 수, 예: −3+2i), "실수부"(i가 없는 항), "허수부"(i가 붙은 항)
+
+export const imaginary_unit_confusion_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 A ("i²=1이다") 분기 ───────────
+    'iuc_step1_A_explain': {
+      id: 'iuc_step1_A_explain',
+      kind: 'explain',
+      title: 'i²은 1이 아니라 −1이에요',
+      body: '허수단위 i (제곱하면 −1이 되도록 약속한 새 수)는 i² = −1 로 정의해요. 1이 아니라 −1 이라는 부호 차이가 모든 복소수 계산의 출발점이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step1_A_easy',
+      summary: 'i² = −1 (정의). 1이 아님 — 허수단위 i는 √−1이므로 제곱하면 −1',
+      triggers: [
+        'i²이 1 아닌가요',
+        '제곱하면 양수 아닌가요',
+        '왜 i²이 음수인지',
+      ],
+    },
+    'iuc_step1_A_easy': {
+      id: 'iuc_step1_A_easy',
+      kind: 'explain',
+      title: '약속이라 외워두는 한 줄',
+      body: 'i 는 "제곱하면 −1 이 되도록" 약속된 새로운 수예요. 양수만 제곱하면 양수가 나오던 세계에 −1 이 나오는 자리를 새로 만든 거예요. 그래서 i² = −1 은 외우는 정의예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step1_exit',
+    },
+    'iuc_step1_A_check': {
+      id: 'iuc_step1_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'i²의 값은?',
+      options: [
+        { id: 'correct', text: '−1', isCorrect: true, nextNodeId: 'iuc_step1_exit' },
+        { id: 'wrong1',  text: '1', isCorrect: false, nextNodeId: 'iuc_step1_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: 'i', isCorrect: false, nextNodeId: 'iuc_step1_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step1_A_easy',
+    },
+    'iuc_step1_A_remedy': {
+      id: 'iuc_step1_A_remedy',
+      kind: 'explain',
+      title: '−1 자리만 콕 짚어요',
+      body: 'i² 의 값은 1 도 i 도 아닌 정확히 −1 이에요. 약속이라 증명 없이 외우는 한 줄이에요. 부호 하나(−)를 놓치면 답이 정반대로 나와요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("i²=i이다") 분기 ───────────
+    'iuc_step1_C_explain': {
+      id: 'iuc_step1_C_explain',
+      kind: 'explain',
+      title: 'i를 두 번 곱하면 i가 아니에요',
+      body: 'i²은 i 를 두 번 곱한 값이에요. 허수단위 i 는 "제곱하면 −1 이 되도록" 약속된 수라서 i × i = −1 이 돼요. 그러니까 답은 i 가 아니라 −1 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step1_C_remedy',
+      summary: 'i² ≠ i. 같은 수를 두 번 곱한 결과는 자기 자신이 아니며, i² = −1 (정의)',
+      triggers: [
+        'i²이 i 아닌가요',
+        '제곱해도 i 그대로 아닌가요',
+        '왜 i가 사라지는지',
+      ],
+    },
+    'iuc_step1_C_check': {
+      id: 'iuc_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: 'i × i 는 얼마일까요?',
+      options: [
+        { id: 'correct', text: '−1', isCorrect: true, nextNodeId: 'iuc_step1_exit' },
+        { id: 'wrong1',  text: 'i (그대로)', isCorrect: false, nextNodeId: 'iuc_step1_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: '2i', isCorrect: false, nextNodeId: 'iuc_step1_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step1_C_remedy',
+    },
+    'iuc_step1_C_remedy': {
+      id: 'iuc_step1_C_remedy',
+      kind: 'explain',
+      title: 'i × i = −1, 정의 그대로',
+      body: 'i 의 약속(=정의)이 곧 "제곱했을 때 −1" 이에요. 그래서 i × i = i² = −1 이에요. i 가 그대로 남는 게 아니라 부호 있는 숫자 −1 로 바뀐다는 점이 헷갈리기 쉬워요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step1_exit',
+    },
+
+    'iuc_step1_exit': { id: 'iuc_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 A ("i²를 마지막에 치환한다") 분기 ───────────
+    'iuc_step2_A_explain': {
+      id: 'iuc_step2_A_explain',
+      kind: 'explain',
+      title: 'i²은 보이는 즉시 −1로 바꿔요',
+      body: 'i² (i를 두 번 곱한 부분)은 식 안에 보이는 순간 −1로 교체해야 식이 짧아져요. 마지막까지 미루면 중간 식이 길어지고 항(더하거나 빼는 한 덩어리)이 늘어나 실수가 쌓여요. 예: 3i² + 2i = 3(−1) + 2i = −3 + 2i 처럼 즉시 바꿔요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step2_A_easy',
+      summary: 'i² 발견 즉시 −1 치환 — 미루면 항이 늘어나 실수 누적',
+      triggers: [
+        'i²은 나중에 정리해도 되지 않나요',
+        '계산 끝에 한 번에 바꾸면 안 되나요',
+        '왜 즉시 바꿔야 하는지',
+      ],
+    },
+    'iuc_step2_A_easy': {
+      id: 'iuc_step2_A_easy',
+      kind: 'explain',
+      title: '치환은 빠를수록 단순해요',
+      body: 'i² 이 보이면 곧장 −1 로 갈아치우는 게 핵심이에요. 예) i² + 1 → (−1) + 1 = 0 처럼 한 단계에 정리돼요. 미루면 i² 덩어리가 계속 따라다녀 식이 길어져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step2_exit',
+    },
+    'iuc_step2_A_check': {
+      id: 'iuc_step2_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '식 5i² + 4 를 가장 깔끔하게 정리하는 방법은?',
+      options: [
+        { id: 'correct', text: 'i²을 바로 −1로 바꿔 5(−1) + 4 = −1', isCorrect: true, nextNodeId: 'iuc_step2_exit' },
+        { id: 'wrong1',  text: 'i²은 그대로 두고 5i² + 4 라고 답한다', isCorrect: false, nextNodeId: 'iuc_step2_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: '계산 마지막에 가서 i²을 처리한다', isCorrect: false, nextNodeId: 'iuc_step2_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step2_A_easy',
+    },
+    'iuc_step2_A_remedy': {
+      id: 'iuc_step2_A_remedy',
+      kind: 'explain',
+      title: '발견 즉시 교체가 정석',
+      body: 'i²이 보이면 바로 −1로 바꿔요. 5i² + 4 = 5(−1) + 4 = −1 처럼 한 줄로 정리돼요. 미루면 i² 덩어리가 계속 남아 식이 길어져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("i²는 계산 마지막에 처리한다") 분기 ───────────
+    'iuc_step2_C_explain': {
+      id: 'iuc_step2_C_explain',
+      kind: 'explain',
+      title: '마지막까지 끌면 중간 식이 길어져요',
+      body: 'i²을 마지막에 처리하면 중간 식이 i² 항을 계속 끌고 다녀 한 줄이 더 길어져요. 보이는 순간 −1로 바꾸면 항(더하거나 빼는 한 덩어리)이 줄어 정리가 빨라져요. 예: 2i² − 5 = 2(−1) − 5 = −7 처럼 바로 숫자로 정리돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step2_C_remedy',
+      summary: '마지막 처리는 식을 길게 만들 뿐 — 즉시 치환이 안전한 길',
+      triggers: [
+        'i²은 맨 마지막에 정리하는 거 아닌가요',
+        '중간에 바꾸지 않고 끝에서 한 번에 처리하면 안 되나요',
+        '왜 빨리 바꿔야 하는지',
+      ],
+    },
+    'iuc_step2_C_check': {
+      id: 'iuc_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '2i² − 5 를 어떻게 정리할까요?',
+      options: [
+        { id: 'correct', text: '바로 2(−1) − 5 = −7 로 정리', isCorrect: true, nextNodeId: 'iuc_step2_exit' },
+        { id: 'wrong1',  text: '2i² − 5 그대로 두고 답으로 쓴다', isCorrect: false, nextNodeId: 'iuc_step2_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: '맨 마지막에 i²만 따로 처리한다', isCorrect: false, nextNodeId: 'iuc_step2_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step2_C_remedy',
+    },
+    'iuc_step2_C_remedy': {
+      id: 'iuc_step2_C_remedy',
+      kind: 'explain',
+      title: '미루기 vs 즉시 치환 비교',
+      body: '미루면: 2i² − 5 → … i² 항 그대로 끌고감 → 마지막에야 2(−1)−5. 즉시 치환: 2i² − 5 = 2(−1) − 5 = −7 한 줄. 같은 답이지만 줄 수가 다르고 부호 실수 위험도 달라요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step2_exit',
+    },
+
+    'iuc_step2_exit': { id: 'iuc_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 A ("실수부와 허수부를 더한다") 분기 ───────────
+    'iuc_step3_A_explain': {
+      id: 'iuc_step3_A_explain',
+      kind: 'explain',
+      title: '실수부와 허수부는 따로 모아요',
+      body: '복소수(실수부 + 허수부로 이루어진 수)에서 실수부(i 없는 항)와 허수부(i 붙은 항)는 단위가 달라 그냥 더할 수 없어요. 예를 들어 −3 + 2i 에서 −3과 2i는 합쳐서 한 숫자로 만들 수 없어요. 답은 −3 + 2i 그대로, 두 부분을 분리해서 적어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step3_A_easy',
+      summary: '실수부와 허수부는 단위가 달라 합쳐지지 않음 — a + bi 형태로 분리 표기',
+      triggers: [
+        '−3 + 2i 를 한 숫자로 합치는 거 아닌가요',
+        '실수와 허수를 그냥 더하면 안 되나요',
+        '왜 분리해서 적는지',
+      ],
+    },
+    'iuc_step3_A_easy': {
+      id: 'iuc_step3_A_easy',
+      kind: 'explain',
+      title: '단위가 다르면 못 합쳐요',
+      body: '2개와 3마리를 더해서 "5"라고 못 쓰는 것처럼, 실수부 −3과 허수부 2i 도 단위가 달라요. 그래서 답은 −3 + 2i 형태로 분리해서 적어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step3_exit',
+    },
+    'iuc_step3_A_check': {
+      id: 'iuc_step3_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '−3 + 2i 를 정리하면?',
+      options: [
+        { id: 'correct', text: '−3 + 2i (그대로, 분리 표기)', isCorrect: true, nextNodeId: 'iuc_step3_exit' },
+        { id: 'wrong1',  text: '−1 (−3 + 2 = −1)', isCorrect: false, nextNodeId: 'iuc_step3_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: '−3 × 2i = −6i', isCorrect: false, nextNodeId: 'iuc_step3_A_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step3_A_easy',
+    },
+    'iuc_step3_A_remedy': {
+      id: 'iuc_step3_A_remedy',
+      kind: 'explain',
+      title: '빈칸 채우기로 보면 쉬워요',
+      body: '복소수 답은 "( ) + ( )i" 모양의 빈칸 두 자리예요. 첫 자리에는 i 없는 수, 둘째 자리에는 i 앞 숫자가 들어가요. −3 + 2i 라면 첫 자리 −3, 둘째 자리 2 가 각각 들어가고, 두 자리는 합쳐지지 않아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("허수부는 무시하고 실수부만 쓴다") 분기 ───────────
+    'iuc_step3_C_explain': {
+      id: 'iuc_step3_C_explain',
+      kind: 'explain',
+      title: '허수부도 답의 일부예요',
+      body: '복소수(실수부 + 허수부로 이루어진 수)의 답은 두 부분이 모두 있어야 완성돼요. 허수부(i 붙은 항)를 빼고 실수부만 쓰면 다른 수가 되어버려요. −3 + 2i 에서 2i 를 빼면 −3이 되는데, 이건 원래 답과 전혀 다른 값이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step3_C_remedy',
+      summary: '복소수 답은 a + bi 둘 다 필요 — 허수부 빼면 다른 수가 됨',
+      triggers: [
+        '허수부는 빼도 되는 거 아닌가요',
+        '실수부만 답으로 쓰면 안 되나요',
+        '왜 둘 다 적어야 하는지',
+      ],
+    },
+    'iuc_step3_C_check': {
+      id: 'iuc_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '5 − 4i 의 답으로 올바른 표기는?',
+      options: [
+        { id: 'correct', text: '5 − 4i (실수부와 허수부 둘 다)', isCorrect: true, nextNodeId: 'iuc_step3_exit' },
+        { id: 'wrong1',  text: '5 (허수부 빼고 실수부만)', isCorrect: false, nextNodeId: 'iuc_step3_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+        { id: 'wrong2',  text: '−4i (실수부 빼고 허수부만)', isCorrect: false, nextNodeId: 'iuc_step3_C_remedy', weaknessId: 'imaginary_unit_confusion' },
+      ],
+      dontKnowNextNodeId: 'iuc_step3_C_remedy',
+    },
+    'iuc_step3_C_remedy': {
+      id: 'iuc_step3_C_remedy',
+      kind: 'explain',
+      title: '두 부분을 모두 적어야 완성',
+      body: '복소수의 답은 실수부와 허수부 둘 다 있어야 완성돼요. 5 − 4i 에서 −4i 를 빼면 5만 남는데, 이건 원래 수와 전혀 다른 값이에요. 둘 다 그대로 적어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'iuc_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'iuc_step3_exit',
+    },
+
+    'iuc_step3_exit': { id: 'iuc_step3_exit', kind: 'exit' },
+  },
+};

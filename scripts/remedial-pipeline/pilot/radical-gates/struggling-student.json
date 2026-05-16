@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "persona": "수포자 학생 (6등급)",
+    "flow": "radical_simplification_error",
+    "total_nodes": 24,
+    "review_date": "2026-05-14",
+    "review_round": 4,
+    "description": "commit 852d296 기준 4차 리뷰. 수정 사항(rad_step1_A_explain 소수 정의 괄호 추가, rad_step1_C_explain 약분 실패 예시 추가) 반영 후 6등급 학생 페르소나로 재순회."
+  },
+  "verdict": "approve",
+  "summary": {
+    "understood": 22,
+    "confused": 0,
+    "partially_understood": 2,
+    "gave_up": 0,
+    "verdict_detail": "4차 수정 효과 확인: rad_step1_A_explain 소수 괄호 정의(1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거) 추가로 confused→understood 전환. rad_step1_C_explain √8 ÷ √2 실패 예시 + 4×2 분해 대안 추가로 confused→understood 전환. confused 2→0, verdict approve.",
+    "top2_confused_nodes": []
+  },
+  "node_reviews": [
+    {
+      "nodeId": "rad_step1_A_explain",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step1_A_check",
+      "comment": "이번엔 '소수'가 뭔지 바로 설명이 있어요! '1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거' — 그냥 숫자 나열이 아니라 정의가 같이 있으니까 처음 읽어도 '아, 이런 수구나' 감이 와요. 72 예시도 있고 제곱 묶음이 보이는 형태까지 보여주니 한 번에 따라갔어요. 3차에서 막혔던 포인트가 해소됐어요."
+    },
+    {
+      "nodeId": "rad_step1_A_easy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step1_A_check",
+      "comment": "√50, 50 = 2 × 5² 작은 숫자 예시는 여전히 따라갈 수 있어요. '5²가 제곱 묶음'이라는 포인트가 명확해요."
+    },
+    {
+      "nodeId": "rad_step1_A_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "2² × 3² × 2",
+      "is_correct": true,
+      "next_node": "rad_step1_exit",
+      "comment": "explain에서 72 분해를 직접 봤으니까 그대로 골랐어요."
+    },
+    {
+      "nodeId": "rad_step1_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step1 A 분기 종료."
+    },
+    {
+      "nodeId": "rad_step1_C_explain",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step1_C_check",
+      "comment": "'√8 ÷ √2처럼 같은 모양이 아니면 약분처럼 줄일 수 없어요'라는 예시가 추가됐어요. 그리고 바로 옆에 '대신 근호 안 8을 4×2로 쪼개 √4 × √2 = 2√2로 만드는 게 옳은 방법이에요'라는 올바른 방법도 있어요. 약분을 쓰면 어떤 상황에서만 되고 왜 이 경우는 안 되는지, 대신 어떻게 해야 하는지가 한 흐름으로 이어지니까 이번엔 납득됐어요. 3차에서 막혔던 '이유 없는 단정' 문제가 해소됐어요."
+    },
+    {
+      "nodeId": "rad_step1_C_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "50을 소수의 곱으로 쪼개 제곱 묶음을 찾는다",
+      "is_correct": true,
+      "next_node": "rad_step1_exit",
+      "comment": "방금 explain에서 '소수의 곱으로 쪼개야 한다'는 걸 봤으니까 바로 선택했어요."
+    },
+    {
+      "nodeId": "rad_step1_C_remedy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step1_C_check",
+      "comment": "50 = 2 × 5², 5²가 제곱 묶음이라는 게 짧고 명확해요."
+    },
+    {
+      "nodeId": "rad_step1_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step1 C 분기 종료."
+    },
+    {
+      "nodeId": "rad_step2_A_explain",
+      "kind": "explain",
+      "student_reaction": "partially_understood",
+      "selected_option": "secondaryLabel",
+      "next_node": "rad_step2_A_easy",
+      "comment": "숫자 예시(√4=2, √9=3, √25=5)가 먼저 나와서 이전보다 훨씬 따라가기 좋아요. '9=3²니까 3이 밖으로 나온다'는 흐름이 보여요. 조금 더 확인하고 싶어서 '모르겠어요'."
+    },
+    {
+      "nodeId": "rad_step2_A_easy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step2_A_check",
+      "comment": "숫자 예시만 있어요 — √4=2, 4=2²니까 √(2²)=2. 문자 없이 숫자로만 확인할 수 있어요. 한 번에 읽혔어요."
+    },
+    {
+      "nodeId": "rad_step2_A_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "3√5",
+      "is_correct": true,
+      "next_node": "rad_step2_exit",
+      "comment": "easy에서 본 '9=3²니까 3이 나온다'를 기억하고 3√5 선택했어요."
+    },
+    {
+      "nodeId": "rad_step2_A_remedy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step2_A_check",
+      "comment": "'9=3²니까 밖에 나오면 3, 계수가 3²가 아닌 3'이 명확해요."
+    },
+    {
+      "nodeId": "rad_step2_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step2 A 분기 종료."
+    },
+    {
+      "nodeId": "rad_step2_C_explain",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step2_C_check",
+      "comment": "√(4×9×2)에서 4=2², 9=3²를 꺼내 2×3×√2=6√2라는 예시가 한 번에 따라가져요."
+    },
+    {
+      "nodeId": "rad_step2_C_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "6√2",
+      "is_correct": true,
+      "next_node": "rad_step2_exit",
+      "comment": "explain에서 똑같은 숫자를 봐서 바로 6√2 선택했어요."
+    },
+    {
+      "nodeId": "rad_step2_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step2 C 분기 종료."
+    },
+    {
+      "nodeId": "rad_step3_A_explain",
+      "kind": "explain",
+      "student_reaction": "partially_understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_A_check",
+      "comment": "'√를 각각 떼어내면 원래 곱셈이 그대로 이어지므로'라는 이유가 있어서 왜 더하면 안 되는지 조금 납득돼요. 완전히 체화는 안 됐지만 읽고 넘어갈 수 있어요. '다음으로'."
+    },
+    {
+      "nodeId": "rad_step3_A_easy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_A_check",
+      "comment": "√(4×25×3)에서 2×5=10이라는 예시. 이전 라운드에서도 본 내용이라 따라가요."
+    },
+    {
+      "nodeId": "rad_step3_A_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "2 × 3 = 6 → 6√3",
+      "is_correct": true,
+      "next_node": "rad_step3_exit",
+      "comment": "remedy 후 2회차. '곱해야 한다'는 걸 기억하고 맞췄어요."
+    },
+    {
+      "nodeId": "rad_step3_A_remedy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_A_check",
+      "comment": "√(4×9×3)=2×3×√3=6√3 전개가 명확해요."
+    },
+    {
+      "nodeId": "rad_step3_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step3 A 분기 종료."
+    },
+    {
+      "nodeId": "rad_step3_C_explain",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_C_check",
+      "comment": "'근호 안에 같은 수가 남아 있어야 더할 수 있어요 — 4√2+3√2=7√2처럼요'라는 예시가 붙으니까 계수를 바로 정리해야 한다는 이유가 맥락 안에서 이해돼요. '계수는 꺼내는 그 순간에 정리해야 빠뜨리지 않아요'라는 실용적 이유도 납득돼요. 3차 partially_understood에서 이번엔 understood로 올라왔어요 — 여러 번 봐서 익숙해진 부분도 있어요."
+    },
+    {
+      "nodeId": "rad_step3_C_check",
+      "kind": "check",
+      "student_reaction": "understood",
+      "selected_option": "correct",
+      "selected_text": "6 (= 2 × 3)",
+      "is_correct": true,
+      "next_node": "rad_step3_exit",
+      "comment": "이번엔 문제 표현 '근호에서 4와 9를 꺼낸 결과를 곱하면'이라는 말에서 꺼낸 결과가 2, 3이라는 걸 hint로 받아들였어요. explain에서 4√2+3√2=7√2 예시를 보고 왔고, remedy 경고 문구도 기억하고 있어서 13 오류를 피했어요. 6 (= 2 × 3) 선택."
+    },
+    {
+      "nodeId": "rad_step3_C_remedy",
+      "kind": "explain",
+      "student_reaction": "understood",
+      "selected_option": "primaryLabel",
+      "next_node": "rad_step3_C_check",
+      "comment": "'주의: 근호에서 꺼내면 √4가 2가 돼요 — 4와 다른 값이에요. 꺼낸 수(2, 3)끼리 곱하지, 원래 수(4, 9)끼리 더하지 않아요.' 이게 정확히 혼동 지점을 짚어줘요."
+    },
+    {
+      "nodeId": "rad_step3_exit",
+      "kind": "exit",
+      "student_reaction": "neutral",
+      "comment": "step3 C 분기 종료. 전체 순회 완료."
+    }
+  ],
+  "counts": {
+    "understood": 22,
+    "confused": 0,
+    "partially_understood": 2,
+    "gave_up": 0,
+    "correct_on_first_try": 4,
+    "correct_after_remedy": 3,
+    "total_node_visits": 24,
+    "unique_nodes_visited": 24
+  },
+  "delta_from_round3": {
+    "understood": "+6 (16→22)",
+    "confused": "-2 (2→0)",
+    "partially_understood": "-4 (6→2)",
+    "gave_up": "0 (0→0)",
+    "correct_on_first_try": "+2 (2→4)",
+    "total_node_visits": "-4 (28→24)"
+  },
+  "observations": [
+    "rad_step1_A_explain 소수 정의 괄호 추가 효과 확인 — '1과 자기 자신으로만 나뉘는 수: 2, 3, 5, 7, 11 같은 거' 삽입으로 3차 confused → 4차 understood. 첫 문장에서 막히던 문제 해소됨.",
+    "rad_step1_C_explain 약분 실패 예시 추가 효과 확인 — '√8 ÷ √2처럼 같은 모양이 아니면 약분처럼 줄일 수 없어요' + '8을 4×2로 쪼개 √4 × √2 = 2√2' 대안 제시로 3차 confused → 4차 understood. 이유 없는 단정 문제 해소됨.",
+    "rad_step3_C_explain 3차 partially_understood → 4차 understood — 이유가 명확해진 점 + 반복 노출 효과 복합 작용.",
+    "rad_step3_C_check 첫 방문 오류 해소 — 3차에서 '13(=4+9)' 오류를 냈는데 이번엔 프롬프트 문구 '꺼낸 결과를 곱하면'이 꺼낸 수(2, 3)임을 힌트로 주고, C_explain에서 예시를 본 상태라 첫 방문에서도 correct 선택.",
+    "잔류 partially_understood 2건(rad_step2_A_explain, rad_step3_A_explain)은 각각 easy로 보완되므로 플로우 기능 정상. 학습 완주 가능.",
+    "confused 0건 달성. verdict approve."
+  ]
+}

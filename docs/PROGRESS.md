@@ -933,6 +933,35 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.15 08:35
+- 해시: `3163fa5` (`3163fa54cf8f202f0d4170216b87507d75d7fdd2`)
+- 브랜치: claude/agitated-jackson-08304c
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:36975/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:36975/git/kiyounpark/dasida-app/commit/3163fa54cf8f202f0d4170216b87507d75d7fdd2
+- 작성자: Claude
+- 메시지: chore(remedial): state.json — g2_radical_simplify/rationalize/diff_application passed
+
+### 커밋 2026.05.14 20:31
+- 해시: `14d49c0` (`14d49c08bbb98969d96822adb3f6a6f1038b8481`)
+- 브랜치: claude/agitated-jackson-08304c
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/14d49c08bbb98969d96822adb3f6a6f1038b8481
+- 작성자: 박기윤
+- 메시지: docs(remedial): wrap up multi-pilot session
+- 본문: - 본/부모 스펙 갱신 (§0 분류 정책, 결정 변경) / - 시범 plan 추가 / - 신규 페르소나 2개 (thinkingstep-flow-reviewer, remedial-flow-reviewer) / - 외형 검수자 갱신 (depth-aware rules) / - state.json: 3 시범 약점 completed 기록 (큐 52 남음) / 다음 세션에서 'remedial batch 재개'로 본 배치 진입 가능.
+
+### 커밋 2026.05.14 17:12
+- 해시: `6320663` (`6320663d54aec0d2996975c3b7898ad0798620cc`)
+- 브랜치: claude/agitated-jackson-08304c
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:44411/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:44411/git/kiyounpark/dasida-app/commit/6320663d54aec0d2996975c3b7898ad0798620cc
+- 작성자: Claude
+- 메시지: feat(remedial): remainder_substitution_error, simultaneous_equation_error 6게이트 통과 + 등록
+- 본문: complex_calc_error(manualReview), remainder_substitution_error(passed), simultaneous_equation_error(passed) 3개 약점 처리. / review-content-map.ts 오답 choice에 remedialFlowStartNodeId + weaknessId 연결 완료 (rse 6개, see 6개). / https://claude.ai/code/session_01NJjD41fXT6T8RdSRaeimAb
+
 ### 커밋 2026.05.13 21:51
 - 해시: `0094170` (`009417053641dac05e0e3fd43c5a2686388df2ea`)
 - 브랜치: claude/silly-robinson-baed45

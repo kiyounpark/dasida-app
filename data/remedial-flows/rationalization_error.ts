@@ -1,0 +1,285 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: re_step<N>_<choice>_<role>
+// 약점 prefix: re
+// 용어 통일: "유리화"(분모에 있는 근호를 없애 분모를 유리수로 만드는 과정), "근호"(√ 기호), "무리수"(소수점 아래가 끝없이 이어지는 수, 예: √2), "분모"(분수의 아래쪽 수), "분자"(분수의 위쪽 수)
+
+export const rationalization_error_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 A ("분자에 근호가 있으면 유리화한다") 분기 ───────────
+    're_step1_A_explain': {
+      id: 're_step1_A_explain',
+      kind: 'explain',
+      title: '유리화의 표적은 분모예요',
+      body: '유리화는 분모(분수의 아래쪽 수)에 있는 근호(√ 기호)를 없애서 분모를 깔끔한 수로 만드는 작업이에요. 분자(분수의 위쪽 수)에 √가 있어도 분모가 이미 깔끔하면 유리화는 필요 없어요. 3/√2처럼 분모에 √가 있을 때만 유리화해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step1_A_easy',
+      summary: '유리화는 분모를 유리수로 만드는 작업 — 분자의 근호는 유리화 대상이 아님',
+      triggers: [
+        '분자에 √가 있으면 유리화해야 하나요',
+        '유리화는 분자도 정리하는 거 아닌가요',
+        '√가 어디에 있든 유리화하는 줄 알았어요',
+      ],
+    },
+    're_step1_A_easy': {
+      id: 're_step1_A_easy',
+      kind: 'explain',
+      title: '예시로 한 번 더',
+      body: '√2/3 처럼 분자에만 √가 있고 분모가 3이면, 분모가 이미 깔끔한 수예요. 이런 경우는 유리화를 하지 않아요. 반대로 3/√2는 분모에 √가 있으니 유리화해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step1_exit',
+    },
+    're_step1_A_check': {
+      id: 're_step1_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '다음 분수 중 유리화가 필요한 것은?',
+      options: [
+        { id: 'correct', text: '3/√2 (분모에 √가 있음)', isCorrect: true, nextNodeId: 're_step1_exit' },
+        { id: 'wrong1',  text: '√2/3 (분자에만 √가 있음)', isCorrect: false, nextNodeId: 're_step1_A_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '√3/√5 (분자와 분모 둘 다 √)', isCorrect: false, nextNodeId: 're_step1_A_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step1_A_easy',
+    },
+    're_step1_A_remedy': {
+      id: 're_step1_A_remedy',
+      kind: 'explain',
+      title: '분모에 √가 있는 것만 골라요',
+      body: '유리화의 기준은 단 하나, 분모에 근호가 있느냐예요. 3/√2는 분모에 √2가 있어서 유리화 대상이에요. √2/3은 분모가 3이라 그대로 둬요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("근호가 있으면 항상 유리화한다") 분기 ───────────
+    're_step1_C_explain': {
+      id: 're_step1_C_explain',
+      kind: 'explain',
+      title: '√가 있다고 항상 유리화는 아니에요',
+      body: '유리화는 분모를 깔끔하게 만들기 위한 작업이에요. 분모에 √가 없다면 굳이 손댈 필요가 없어요. 예: √2/3은 분모가 3이라 그대로 두고, 3/√2처럼 분모에 √가 있을 때만 유리화해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step1_C_remedy',
+      summary: '√가 있어도 분모가 깔끔하면 유리화 불필요 — 기준은 분모에 √가 있는지',
+      triggers: [
+        '√가 보이면 무조건 유리화하는 거 아닌가요',
+        '근호가 있으면 다 정리해야 하지 않나요',
+        '왜 어떤 √는 그대로 두는지 모르겠어요',
+      ],
+    },
+    're_step1_C_check': {
+      id: 're_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√5/2는 유리화가 필요할까요?',
+      options: [
+        { id: 'correct', text: '필요 없다 (분모가 2로 깔끔함)', isCorrect: true, nextNodeId: 're_step1_exit' },
+        { id: 'wrong1',  text: '필요하다 (분자에 √5가 있음)', isCorrect: false, nextNodeId: 're_step1_C_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '√가 보이니 무조건 유리화해야 한다', isCorrect: false, nextNodeId: 're_step1_C_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step1_C_remedy',
+    },
+    're_step1_C_remedy': {
+      id: 're_step1_C_remedy',
+      kind: 'explain',
+      title: '분모만 보면 답이 보여요',
+      body: '√5/2에서 분모는 2예요. 2는 √가 없는 깔끔한 수라 유리화 대상이 아니에요. 유리화 여부는 분모만 확인하면 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step1_exit',
+    },
+
+    're_step1_exit': { id: 're_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 A ("분모에만 √a를 곱한다") 분기 ───────────
+    're_step2_A_explain': {
+      id: 're_step2_A_explain',
+      kind: 'explain',
+      title: '분자와 분모에 같은 수를 곱해야 해요',
+      body: '분수의 값을 바꾸지 않으려면 분자와 분모에 똑같은 수를 곱해야 해요. 같은 수를 위아래에 곱하면 ×1이라 값이 그대로지만, 분모에만 곱하면 값이 달라져요. 예: 3/√2 × √2/√2 = 3√2/2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step2_A_easy',
+      summary: '분자·분모에 같은 √a 를 곱해야 ×1과 같아 값이 보존됨 — 분모만 곱하면 값이 바뀜',
+      triggers: [
+        '분모에만 곱하면 안 되나요',
+        '왜 분자에도 같이 곱해야 하나요',
+        '분모만 정리하면 끝 아닌가요',
+      ],
+    },
+    're_step2_A_easy': {
+      id: 're_step2_A_easy',
+      kind: 'explain',
+      title: '같은 수를 위아래에 = ×1',
+      body: '√2/√2 는 1과 같아요. 같은 수를 분자·분모에 곱하면 ×1이라 값이 그대로예요. 그래서 3/√2에 √2/√2를 곱해도 분수의 값은 안 변해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step2_exit',
+    },
+    're_step2_A_check': {
+      id: 're_step2_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '3/√2 를 유리화할 때 곱해야 하는 것은?',
+      options: [
+        { id: 'correct', text: '√2/√2 (분자·분모 둘 다 √2)', isCorrect: true, nextNodeId: 're_step2_exit' },
+        { id: 'wrong1',  text: '분모에만 √2', isCorrect: false, nextNodeId: 're_step2_A_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '분자에만 √2', isCorrect: false, nextNodeId: 're_step2_A_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step2_A_easy',
+    },
+    're_step2_A_remedy': {
+      id: 're_step2_A_remedy',
+      kind: 'explain',
+      title: '√2/√2 = 1, 그래서 값이 보존돼요',
+      body: '3/√2 × √2/√2 = 3√2/2. 위아래에 √2를 같이 곱해야 ×1이 되고, 값이 그대로 유지돼요. 한쪽만 곱하면 분수가 달라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("분자에만 √a를 곱한다") 분기 ───────────
+    're_step2_C_explain': {
+      id: 're_step2_C_explain',
+      kind: 'explain',
+      title: '분자만 곱하면 분수가 달라져요',
+      body: '분자에만 √2를 곱하면 분수의 값 자체가 바뀌어 버려요. 분모는 깔끔하게 만들면서도 값은 그대로 두려면 분자·분모 둘 다에 같은 √2를 곱해야 해요 (예: 3/√2 × √2/√2 = 3√2/2).',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step2_C_remedy',
+      summary: '분자에만 곱하면 분수 값 변화 — 위아래 같은 √a 를 곱해야 값 보존',
+      triggers: [
+        '분자만 곱해도 되는 거 아닌가요',
+        '왜 분모도 같이 곱해야 하는지',
+        '분자만 깔끔하면 되지 않나요',
+      ],
+    },
+    're_step2_C_check': {
+      id: 're_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '3/√2의 분자에만 √2를 곱하면 값이 어떻게 될까요?',
+      options: [
+        { id: 'correct', text: '값이 변한다 (×1이 아니므로)', isCorrect: true, nextNodeId: 're_step2_exit' },
+        { id: 'wrong1',  text: '값이 그대로다', isCorrect: false, nextNodeId: 're_step2_C_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '분모가 자동으로 정리된다', isCorrect: false, nextNodeId: 're_step2_C_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step2_C_remedy',
+    },
+    're_step2_C_remedy': {
+      id: 're_step2_C_remedy',
+      kind: 'explain',
+      title: '같은 수를 위아래에 곱해야 ×1',
+      body: '3/√2의 분자에만 √2를 곱하면 3√2/√2가 되어 분수 값이 달라져요. 분자·분모 둘 다 √2를 곱해야 ×1이 되어 값이 보존돼요: 3/√2 × √2/√2 = 3√2/2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step2_exit',
+    },
+
+    're_step2_exit': { id: 're_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 A ("√a × √a = 2a이다") 분기 ───────────
+    're_step3_A_explain': {
+      id: 're_step3_A_explain',
+      kind: 'explain',
+      title: '√a × √a = a 예요 (2a 아님)',
+      body: '√a를 두 번 곱하면 2a가 아니라 a가 돼요. √는 "제곱하면 a가 되는 수"라는 뜻이라, √a × √a = a 가 정의 그대로 나와요. 예를 들어 √2 × √2 = 2 라, 유리화하면 분모의 √2가 사라지고 2만 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step3_A_easy',
+      summary: '√a × √a = a (정의상). 2a 가 아님 — 같은 √끼리 곱하면 근호가 풀려 안의 수 하나만 남음',
+      triggers: [
+        '√2 × √2가 4 아닌가요',
+        '같은 √끼리 곱하면 2배 되는 거 아닌가요',
+        '왜 √2 × √2가 2인지',
+      ],
+    },
+    're_step3_A_easy': {
+      id: 're_step3_A_easy',
+      kind: 'explain',
+      title: '구체적인 수로 확인',
+      body: '√4 = 2 인데, 2 × 2 = 4 예요. 그래서 √4 × √4 = 2 × 2 = 4 가 돼요. 똑같이 √2 × √2 = 2, √3 × √3 = 3 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step3_exit',
+    },
+    're_step3_A_check': {
+      id: 're_step3_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√2 × √2 의 값은?',
+      options: [
+        { id: 'correct', text: '2', isCorrect: true, nextNodeId: 're_step3_exit' },
+        { id: 'wrong1',  text: '4 (= 2 × 2)', isCorrect: false, nextNodeId: 're_step3_A_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '2√2', isCorrect: false, nextNodeId: 're_step3_A_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step3_A_easy',
+    },
+    're_step3_A_remedy': {
+      id: 're_step3_A_remedy',
+      kind: 'explain',
+      title: '√a를 두 번 곱하면 a',
+      body: '√a는 "제곱하면 a가 되는 수"라는 뜻이에요. 그래서 √2 × √2 = 2 가 돼요. 같은 √끼리 곱하면 안의 수만 하나 남아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("√a × √a = √(2a)이다") 분기 ───────────
+    're_step3_C_explain': {
+      id: 're_step3_C_explain',
+      kind: 'explain',
+      title: '같은 √끼리 곱하면 근호가 풀려요',
+      body: '√a × √a는 √(a × a) = √(a²) 인데, √와 제곱은 서로 풀어내는 관계라 결과는 a 예요. √(2a)가 되지 않아요. 예: √2 × √2 = √(2×2) = √4 = 2.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step3_C_remedy',
+      summary: '√a × √a = √(a·a) = √(a²) = a — 같은 √를 두 번 곱하면 근호가 완전히 풀림',
+      triggers: [
+        '√2 × √2가 √4 아닌가요',
+        '근호 안의 수가 더해지는 거 아닌가요',
+        '왜 근호가 사라지는지',
+      ],
+    },
+    're_step3_C_check': {
+      id: 're_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '√3 × √3 의 값은?',
+      options: [
+        { id: 'correct', text: '3', isCorrect: true, nextNodeId: 're_step3_exit' },
+        { id: 'wrong1',  text: '√6 (= √(2×3))', isCorrect: false, nextNodeId: 're_step3_C_remedy', weaknessId: 'rationalization_error' },
+        { id: 'wrong2',  text: '√9 (그대로 둠)', isCorrect: false, nextNodeId: 're_step3_C_remedy', weaknessId: 'rationalization_error' },
+      ],
+      dontKnowNextNodeId: 're_step3_C_remedy',
+    },
+    're_step3_C_remedy': {
+      id: 're_step3_C_remedy',
+      kind: 'explain',
+      title: '√3 × √3 = √9 = 3',
+      body: '근호 안 수끼리 곱하면 √3 × √3 = √(3×3) = √9 예요. 9 = 3²이라 √9 = 3 으로 풀려요. 결국 √a × √a = a 가 돼요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 're_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 're_step3_exit',
+    },
+
+    're_step3_exit': { id: 're_step3_exit', kind: 'exit' },
+  },
+};
