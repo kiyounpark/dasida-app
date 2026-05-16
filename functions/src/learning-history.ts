@@ -45,6 +45,7 @@ const solveMethodIds = [
   'space_geometry',
   'statistics',
   'trig',
+  'trig_advanced',
   'unknown',
   'vector',
   'vertex',
