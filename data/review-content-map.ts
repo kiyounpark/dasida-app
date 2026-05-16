@@ -2138,8 +2138,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) a⃗=(3,4) → |a⃗|=√(9+16)=√25=5',
         choices: [
           { text: '각 성분을 제곱해서 더한 뒤 제곱근을 취한다', correct: true, feedback: '맞아요! 피타고라스의 일반화가 그대로 작동해요.' },
-          { text: '각 성분을 더한 뒤 제곱근을 취한다', correct: false, feedback: '더한 뒤 제곱근만 취하면 길이가 안 나와요. 제곱이 한 번 들어가야 해요.' },
-          { text: '성분 중 큰 값이 크기가 된다', correct: false, feedback: '큰 성분 하나만으로는 정해지지 않아요. 모든 성분이 함께 영향을 줘요.' },
+          { text: '각 성분을 더한 뒤 제곱근을 취한다', correct: false, feedback: '더한 뒤 제곱근만 취하면 길이가 안 나와요. 제곱이 한 번 들어가야 해요.', remedialFlowStartNodeId: 'g3v_step1_B_explain', weaknessId: 'g3_vector' },
+          { text: '성분 중 큰 값이 크기가 된다', correct: false, feedback: '큰 성분 하나만으로는 정해지지 않아요. 모든 성분이 함께 영향을 줘요.', remedialFlowStartNodeId: 'g3v_step1_C_explain', weaknessId: 'g3_vector' },
         ],
       },
       {
@@ -2149,8 +2149,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) a⃗=(2,3), b⃗=(4,1) → a⃗·b⃗=2×4+3×1=8+3=11',
         choices: [
           { text: '같은 위치 성분끼리 곱해서 더한다', correct: true, feedback: '맞아요! 내적의 표준 정의예요.' },
-          { text: '같은 위치 성분끼리 더한 뒤 곱한다', correct: false, feedback: '정의는 곱한 뒤 더하기예요. 순서를 바꾸면 다른 양이 돼요.' },
-          { text: '내적의 결과는 벡터이다', correct: false, feedback: '내적은 스칼라(수)예요. 벡터를 만드는 건 외적 같은 다른 연산이에요.' },
+          { text: '같은 위치 성분끼리 더한 뒤 곱한다', correct: false, feedback: '정의는 곱한 뒤 더하기예요. 순서를 바꾸면 다른 양이 돼요.', remedialFlowStartNodeId: 'g3v_step2_B_explain', weaknessId: 'g3_vector' },
+          { text: '내적의 결과는 벡터이다', correct: false, feedback: '내적은 스칼라(수)예요. 벡터가 나오는 건 내적이 아닌 다른 연산이에요.', remedialFlowStartNodeId: 'g3v_step2_C_explain', weaknessId: 'g3_vector' },
         ],
       },
       {
@@ -2160,8 +2160,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) a⃗·b⃗=0 → cosθ=0 → θ=90° → 수직',
         choices: [
           { text: '내적이 0이면 두 벡터는 수직이다', correct: true, feedback: '맞아요! cosθ=0이 되려면 θ=90°라 수직이 돼요.' },
-          { text: '내적이 0이면 두 벡터는 평행이다', correct: false, feedback: '평행이면 cosθ=±1이라 내적은 0이 아니에요. 0은 수직의 신호예요.' },
-          { text: '내적이 양수면 두 벡터는 반대 방향이다', correct: false, feedback: '양수는 둘 사이가 예각이라는 뜻이에요. 반대 방향이면 내적이 음수가 돼요.' },
+          { text: '내적이 0이면 두 벡터는 평행이다', correct: false, feedback: '평행이면 cosθ=±1이라 내적은 0이 아니에요. 0은 수직의 신호예요.', remedialFlowStartNodeId: 'g3v_step3_B_explain', weaknessId: 'g3_vector' },
+          { text: '내적이 양수면 두 벡터는 반대 방향이다', correct: false, feedback: '양수는 둘 사이가 예각이라는 뜻이에요. 반대 방향이면 내적이 음수가 돼요.', remedialFlowStartNodeId: 'g3v_step3_C_explain', weaknessId: 'g3_vector' },
         ],
       },
     ],

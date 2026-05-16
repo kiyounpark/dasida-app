@@ -72,7 +72,7 @@ export const g3_vector_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g3v_step1_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g3v_step1_B_easy',
+      secondaryNextNodeId: 'g3v_step1_C_remedy',
       summary: '벡터 크기는 두 성분이 함께 결정 — 큰 성분 하나만으로는 못 구함',
       triggers: [
         '큰 숫자가 크기 아니에요',
@@ -90,7 +90,7 @@ export const g3_vector_flow: RemedialFlow = {
         { id: 'wrong1',  text: '12', isCorrect: false, nextNodeId: 'g3v_step1_C_remedy', weaknessId: 'g3_vector' },
         { id: 'wrong2',  text: '17', isCorrect: false, nextNodeId: 'g3v_step1_C_remedy', weaknessId: 'g3_vector' },
       ],
-      dontKnowNextNodeId: 'g3v_step1_B_easy',
+      dontKnowNextNodeId: 'g3v_step1_C_remedy',
     },
     'g3v_step1_C_remedy': {
       id: 'g3v_step1_C_remedy',
@@ -170,7 +170,7 @@ export const g3_vector_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g3v_step2_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g3v_step2_B_easy',
+      secondaryNextNodeId: 'g3v_step2_C_remedy',
       summary: '내적의 결과는 스칼라(수 하나) — 벡터가 아님',
       triggers: [
         '내적하면 벡터 나오는 거 아니에요',
@@ -188,7 +188,7 @@ export const g3_vector_flow: RemedialFlow = {
         { id: 'wrong1',  text: '(3,8) (벡터)', isCorrect: false, nextNodeId: 'g3v_step2_C_remedy', weaknessId: 'g3_vector' },
         { id: 'wrong2',  text: '(4,6) (벡터)', isCorrect: false, nextNodeId: 'g3v_step2_C_remedy', weaknessId: 'g3_vector' },
       ],
-      dontKnowNextNodeId: 'g3v_step2_B_easy',
+      dontKnowNextNodeId: 'g3v_step2_C_remedy',
     },
     'g3v_step2_C_remedy': {
       id: 'g3v_step2_C_remedy',
@@ -268,7 +268,7 @@ export const g3_vector_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g3v_step3_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g3v_step3_B_easy',
+      secondaryNextNodeId: 'g3v_step3_C_remedy',
       summary: '내적 양수 → cosθ 양수 → 예각 (반대 방향이 아님, 반대면 음수)',
       triggers: [
         '양수면 반대 방향 아니에요',
@@ -286,7 +286,7 @@ export const g3_vector_flow: RemedialFlow = {
         { id: 'wrong1',  text: '180° (반대 방향)', isCorrect: false, nextNodeId: 'g3v_step3_C_remedy', weaknessId: 'g3_vector' },
         { id: 'wrong2',  text: '90° (수직)', isCorrect: false, nextNodeId: 'g3v_step3_C_remedy', weaknessId: 'g3_vector' },
       ],
-      dontKnowNextNodeId: 'g3v_step3_B_easy',
+      dontKnowNextNodeId: 'g3v_step3_C_remedy',
     },
     'g3v_step3_C_remedy': {
       id: 'g3v_step3_C_remedy',

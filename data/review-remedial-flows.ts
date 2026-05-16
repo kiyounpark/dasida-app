@@ -126,6 +126,7 @@ import { g2_counting_method_flow } from './remedial-flows/g2_counting_method';
 import { g2_counting_overcounting_flow } from './remedial-flows/g2_counting_overcounting';
 import { g2_inequality_range_flow } from './remedial-flows/g2_inequality_range';
 import { g2_function_domain_flow } from './remedial-flows/g2_function_domain';
+import { g3_vector_flow } from './remedial-flows/g3_vector';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -180,6 +181,7 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g2_counting_overcounting: g2_counting_overcounting_flow,
   g2_inequality_range: g2_inequality_range_flow,
   g2_function_domain: g2_function_domain_flow,
+  g3_vector: g3_vector_flow,
 };
 
 export function getRemedialNode(
