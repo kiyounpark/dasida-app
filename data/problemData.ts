@@ -280,7 +280,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1/2', '√2/2', '1', '√3/2'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig'],
+    diagnosisMethods: ['trig_advanced'],
   },
   {
     id: 'g3_calc_q7',
@@ -371,7 +371,7 @@ export const problemData: Problem[] = [
     choices: ['0', '1', '√2', '2', '√3+1'],
     answerIndex: 3,
     topic: '삼각함수',
-    diagnosisMethods: ['trig'],
+    diagnosisMethods: ['trig_advanced'],
   },
   {
     id: 'g3_stats_q6',
@@ -462,7 +462,7 @@ export const problemData: Problem[] = [
     choices: ['1/4', '1/2', '3/4', '1', '√3/2'],
     answerIndex: 2,
     topic: '삼각함수',
-    diagnosisMethods: ['trig'],
+    diagnosisMethods: ['trig_advanced'],
   },
   {
     id: 'g3_geom_q5',

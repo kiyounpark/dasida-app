@@ -30,7 +30,8 @@ export type SolveMethodId =
   | 'permutation'
   | 'sequence_limit'
   | 'integral_advanced'
-  | 'diff_advanced';
+  | 'diff_advanced'
+  | 'trig_advanced';
 
 export type MethodOption = {
   id: SolveMethodId;
@@ -79,6 +80,7 @@ export const methodOptions: MethodOption[] = [
   { id: 'sequence_limit', labelKo: '수열의 극한' },
   { id: 'integral_advanced', labelKo: '심화 적분' },
   { id: 'diff_advanced', labelKo: '심화 미분' },
+  { id: 'trig_advanced', labelKo: '심화 삼각함수' },
   { id: 'unknown', labelKo: '잘 모르겠어' },
 ];
 
@@ -745,6 +747,27 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         id: 'da_tangent',
         text: '접선의 방정식 구하는 방법이 헷갈렸어요.',
         weaknessId: 'g3_diff',
+      },
+    ],
+  },
+  trig_advanced: {
+    methodId: 'trig_advanced',
+    prompt: '삼각함수 문제에서 어디가 가장 어려웠나요?',
+    choices: [
+      {
+        id: 'ta_unit_circle',
+        text: '단위원에서 cosθ·sinθ 좌표를 읽는 게 헷갈렸어요.',
+        weaknessId: 'g3_trig',
+      },
+      {
+        id: 'ta_radius',
+        text: '반지름이 1이 아닌 원에서 sin·cos 값을 구하는 게 막혔어요.',
+        weaknessId: 'g3_trig',
+      },
+      {
+        id: 'ta_identity',
+        text: '삼각함수 항등식(sin²θ+cos²θ=1) 적용에서 막혔어요.',
+        weaknessId: 'g3_trig',
       },
     ],
   },

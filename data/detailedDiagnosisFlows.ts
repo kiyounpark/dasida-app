@@ -109,6 +109,7 @@ const methodFallbackWeakness: Record<SolveMethodId, WeaknessId> = {
   sequence_limit: 'g3_limit',
   integral_advanced: 'g3_integral',
   diff_advanced: 'g3_diff',
+  trig_advanced: 'g3_trig',
 };
 
 const customExplainCopyByChoice: Partial<Record<string, ExplainCopy>> = {
