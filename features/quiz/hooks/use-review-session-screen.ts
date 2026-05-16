@@ -37,6 +37,12 @@ const ROUTING_BUBBLE_TEXT = '이 부분 같이 살펴볼게요.';
 const COACH_PROMPT_FOR_DETAIL = '어떤 부분이 헷갈리는지 자세히 말해줄래요?';
 const DONT_KNOW_AI_CHAT_THRESHOLD = 2;
 
+// 보충(remedial) 흐름이 끝날 때 done-cta 직전에 보여주는 고정 마무리 한마디.
+// 모든 보충 종료가 advanceRemedialToNode의 exit 분기로 수렴하므로, 약점별
+// SummaryNode 유무와 무관하게 일관된 부드러운 마무리를 보장한다.
+export const REMEDIAL_CLOSING_MESSAGE =
+  '잘 따라오셨어요. 이 부분은 이제 한결 편하게 느껴질 거예요.';
+
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
   steps: readonly ThinkingStep[];
@@ -425,6 +431,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!next || next.kind === 'exit') {
       const isLast = currentStepIndex === steps.length - 1;
       reviewEntries.appendEntries([
+        createAiBubbleEntry(REMEDIAL_CLOSING_MESSAGE),
         createDoneCtaEntry(isLast ? '이해했어요, 완료' : '이해했어요, 다음으로'),
       ]);
       return;
