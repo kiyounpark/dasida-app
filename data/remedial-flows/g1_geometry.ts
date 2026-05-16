@@ -18,7 +18,7 @@ export const g1_geometry_flow: RemedialFlow = {
       id: 'g1g_step1_B_explain',
       kind: 'explain',
       title: '삼각비는 직각이 있어야 써요',
-      body: '삼각비(sin·cos·tan 처럼 변끼리의 비를 나타내는 값)는 직각삼각형(한 각이 90°인 삼각형)에서만 바로 쓸 수 있어요. 직각이 없는 삼각형이면 보조선(문제에 없던 선을 새로 그어 도형을 쪼개는 선)을 그어 직각을 먼저 만들어야 해요. 직각을 만든 뒤에야 삼각비가 작동해요.',
+      body: '삼각비(sin·cos·tan 처럼 변끼리의 비를 나타내는 값)는 직각삼각형(한 각이 90°인 삼각형)에서만 바로 쓸 수 있어요. 직각이 없는 삼각형이면 보조선(문제에 없던 선을 새로 그어 도형을 쪼개는 선)을 그어 직각을 먼저 만들어야 해요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g1g_step1_B_check',
       secondaryLabel: '모르겠어요',
@@ -72,7 +72,7 @@ export const g1_geometry_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g1g_step1_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g1g_step1_B_easy',
+      secondaryNextNodeId: 'g1g_step1_C_remedy',
       summary: '피타고라스 정리는 직각삼각형에서만 성립 — 직각이 있어야 빗변이 정해짐',
       triggers: [
         '피타고라스는 아무 삼각형에나 되는 거 아닌가요',
@@ -90,7 +90,7 @@ export const g1_geometry_flow: RemedialFlow = {
         { id: 'wrong1',  text: '모든 삼각형',            isCorrect: false, nextNodeId: 'g1g_step1_C_remedy', weaknessId: 'g1_geometry' },
         { id: 'wrong2',  text: '세 변이 모두 같은 삼각형', isCorrect: false, nextNodeId: 'g1g_step1_C_remedy', weaknessId: 'g1_geometry' },
       ],
-      dontKnowNextNodeId: 'g1g_step1_B_easy',
+      dontKnowNextNodeId: 'g1g_step1_C_remedy',
     },
     'g1g_step1_C_remedy': {
       id: 'g1g_step1_C_remedy',
@@ -170,7 +170,7 @@ export const g1_geometry_flow: RemedialFlow = {
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g1g_step2_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g1g_step2_B_easy',
+      secondaryNextNodeId: 'g1g_step2_C_remedy',
       summary: '빗변의 제곱 = 두 변 제곱의 합 (차가 아님) — c²=a²+b²',
       triggers: [
         '더하기였나요 빼기였나요',
@@ -188,7 +188,7 @@ export const g1_geometry_flow: RemedialFlow = {
         { id: 'wrong1',  text: '√119', isCorrect: false, nextNodeId: 'g1g_step2_C_remedy', weaknessId: 'g1_geometry' },
         { id: 'wrong2',  text: '7',    isCorrect: false, nextNodeId: 'g1g_step2_C_remedy', weaknessId: 'g1_geometry' },
       ],
-      dontKnowNextNodeId: 'g1g_step2_B_easy',
+      dontKnowNextNodeId: 'g1g_step2_C_remedy',
     },
     'g1g_step2_C_remedy': {
       id: 'g1g_step2_C_remedy',
@@ -264,11 +264,11 @@ export const g1_geometry_flow: RemedialFlow = {
       id: 'g1g_step3_C_explain',
       kind: 'explain',
       title: '각도만으로는 비율만 정해져요',
-      body: '각도 하나만 알면 변끼리의 비(나누어 얻은 값)만 정해지고 실제 길이는 정해지지 않아요. 한 변 이상의 실제 길이가 같이 주어져야 나머지 변의 값을 구할 수 있어요. 그래서 문제에 길이가 하나는 있는지 먼저 찾아야 해요.',
+      body: '각도만으로는 변끼리의 비(나누어 얻은 값)만 정해져요. 한 변 이상의 실제 길이가 같이 주어져야 나머지 변의 값을 구할 수 있어요. 그래서 문제에 길이가 하나는 있는지 먼저 찾아야 해요.',
       primaryLabel: '다음으로',
       primaryNextNodeId: 'g1g_step3_C_check',
       secondaryLabel: '모르겠어요',
-      secondaryNextNodeId: 'g1g_step3_B_easy',
+      secondaryNextNodeId: 'g1g_step3_C_remedy',
       summary: '각도만으로는 변의 비만 정해짐 — 실제 길이는 한 변 이상이 주어져야 구함',
       triggers: [
         '각도만 알면 길이 나오는 거 아닌가요',
@@ -286,7 +286,7 @@ export const g1_geometry_flow: RemedialFlow = {
         { id: 'wrong1',  text: '그렇다, 각도만으로 다 구해진다',     isCorrect: false, nextNodeId: 'g1g_step3_C_remedy', weaknessId: 'g1_geometry' },
         { id: 'wrong2',  text: '그렇다, 직각이 있으니 충분하다',     isCorrect: false, nextNodeId: 'g1g_step3_C_remedy', weaknessId: 'g1_geometry' },
       ],
-      dontKnowNextNodeId: 'g1g_step3_B_easy',
+      dontKnowNextNodeId: 'g1g_step3_C_remedy',
     },
     'g1g_step3_C_remedy': {
       id: 'g1g_step3_C_remedy',

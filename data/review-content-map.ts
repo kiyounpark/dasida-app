@@ -958,8 +958,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 삼각형의 꼭짓점에서 밑변에 수선을 내리면 두 직각삼각형이 생긴다',
         choices: [
           { text: '보조선을 그어 직각삼각형을 만든다', correct: true, feedback: '맞아요! 직각이 만들어져야 피타고라스와 삼각비가 작동해요.' },
-          { text: '모든 삼각형에 바로 삼각비를 적용한다', correct: false, feedback: '삼각비는 직각삼각형이 전제예요. 직각이 없는 삼각형이라면 보조선부터 그려야 해요.' },
-          { text: '직각이 없어도 피타고라스 정리를 쓸 수 있다', correct: false, feedback: '피타고라스 정리는 직각삼각형에서만 성립해요. 우선 직각을 확보해야 해요.' },
+          { text: '모든 삼각형에 바로 삼각비를 적용한다', correct: false, feedback: '삼각비는 직각삼각형이 전제예요. 직각이 없는 삼각형이라면 보조선부터 그려야 해요.', remedialFlowStartNodeId: 'g1g_step1_B_explain', weaknessId: 'g1_geometry' },
+          { text: '직각이 없어도 피타고라스 정리를 쓸 수 있다', correct: false, feedback: '피타고라스 정리는 직각삼각형에서만 성립해요. 우선 직각을 확보해야 해요.', remedialFlowStartNodeId: 'g1g_step1_C_explain', weaknessId: 'g1_geometry' },
         ],
       },
       {
@@ -969,8 +969,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 두 변이 3, 4이면 빗변=√(9+16)=5',
         choices: [
           { text: '두 변의 제곱의 합 = 빗변의 제곱', correct: true, feedback: '맞아요! a²+b²=c²의 형태가 핵심이에요.' },
-          { text: '두 변의 합 = 빗변', correct: false, feedback: '그냥 더한 값은 빗변과 달라요. 제곱끼리 합쳐야 빗변의 제곱이 나와요.' },
-          { text: '빗변의 제곱 = 두 변의 제곱의 차', correct: false, feedback: '차가 아니라 합이에요. 부호 하나가 결과를 완전히 바꿔놓아요.' },
+          { text: '두 변의 합 = 빗변', correct: false, feedback: '그냥 더한 값은 빗변과 달라요. 제곱끼리 합쳐야 빗변의 제곱이 나와요.', remedialFlowStartNodeId: 'g1g_step2_B_explain', weaknessId: 'g1_geometry' },
+          { text: '빗변의 제곱 = 두 변의 제곱의 차', correct: false, feedback: '차가 아니라 합이에요. 부호 하나가 결과를 완전히 바꿔놓아요.', remedialFlowStartNodeId: 'g1g_step2_C_explain', weaknessId: 'g1_geometry' },
         ],
       },
       {
@@ -980,8 +980,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 빗변=10, θ=30° → 높이=10×sin30°=5, 넓이=(1/2)×밑변×5',
         choices: [
           { text: 'sinθ=대변/빗변으로 높이를 구한 뒤 넓이를 계산한다', correct: true, feedback: '맞아요! 높이를 만들면 (1/2)×밑변×높이로 자연스럽게 이어져요.' },
-          { text: 'sinθ=밑변/빗변이다', correct: false, feedback: 'sin은 대변과 빗변의 비예요. 밑변과 빗변은 cos가 담당해요.' },
-          { text: '각도만 알면 변의 길이를 구할 수 있다', correct: false, feedback: '각도만으로는 비율만 정해져요. 한 변 이상의 길이가 같이 있어야 실제 값이 나와요.' },
+          { text: 'sinθ=밑변/빗변이다', correct: false, feedback: 'sin은 대변과 빗변의 비예요. 밑변과 빗변은 cos가 담당해요.', remedialFlowStartNodeId: 'g1g_step3_B_explain', weaknessId: 'g1_geometry' },
+          { text: '각도만 알면 변의 길이를 구할 수 있다', correct: false, feedback: '각도만으로는 비율만 정해져요. 한 변 이상의 길이가 같이 있어야 실제 값이 나와요.', remedialFlowStartNodeId: 'g1g_step3_C_explain', weaknessId: 'g1_geometry' },
         ],
       },
     ],
