@@ -2242,6 +2242,44 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       },
     ],
   },
+  g3_function: {
+    heroPrompt: '오늘은 역함수로 "거꾸로 가기"가 한 줄기예요. 합성함수 순서도, 일대일대응 판정도 모두 거꾸로 가기와 이어지니 차근차근 같이 볼게요.',
+    thinkingSteps: [
+      {
+        id: 'g3_function.step1',
+        title: '역함수 개념',
+        body: '역함수(들어간 값과 나온 값을 서로 바꾼 함수, f⁻¹로 적어요)는 f가 a를 b로 보냈다면 b를 다시 a로 되돌려 줘요. 그래서 f(2)=5 이면 f⁻¹(5)=2 예요.',
+        example: '예) f(3)=7 이면 f⁻¹(7)=3 (7이 어디서 왔는지 찾기)',
+        choices: [
+          { text: 'f(a)=b 이면 f⁻¹(b)=a — 결과를 입력으로 되돌린다', correct: true, feedback: '맞아요! 화살표를 거꾸로 읽으면 그게 역함수예요.' },
+          { text: 'f⁻¹(b) 는 f(b) 를 다시 계산하면 된다', correct: false, feedback: 'f(5)를 새로 계산하면 거꾸로 가는 게 아니에요. 5가 어디서 왔는지를 찾아야 해요.', remedialFlowStartNodeId: 'g3f_step1_B_explain', weaknessId: 'g3_function' },
+          { text: 'f⁻¹(b) 는 1/f(b) 처럼 분수로 뒤집는다', correct: false, feedback: 'f⁻¹ 의 작은 −1 은 분수 뒤집기 표시가 아니에요. 거꾸로 가는 함수라는 뜻이라 1/9 같은 게 아니에요.', remedialFlowStartNodeId: 'g3f_step1_C_explain', weaknessId: 'g3_function' },
+        ],
+      },
+      {
+        id: 'g3_function.step2',
+        title: '합성함수 계산 순서',
+        body: '합성함수 (f∘g)(x)(g를 먼저 하고 그 결과에 f를 한 번 더 적용하는 함수)는 안쪽 g(x)부터 구해요. g(x)의 결과를 통째로 f에 다시 넣어요.',
+        example: '예) f(x)=x+1, g(x)=2x → (f∘g)(3): g(3)=6, f(6)=7',
+        choices: [
+          { text: '안쪽 g 를 먼저 계산하고 그 결과를 f 에 넣는다', correct: true, feedback: '맞아요! 안쪽부터 한 줄씩 풀면 안 헷갈려요.' },
+          { text: '바깥 f 를 먼저 계산한다', correct: false, feedback: 'f부터 하면 순서가 뒤집혀 다른 답이 나와요. x는 안쪽 g에 먼저 들어가요.', remedialFlowStartNodeId: 'g3f_step2_B_explain', weaknessId: 'g3_function' },
+          { text: '(f∘g)(x) 는 f(x)·g(x) 처럼 곱한다', correct: false, feedback: '∘ 기호는 곱하기가 아니라 함수를 이어 붙이는 표시예요. 곱셈으로 풀면 완전히 다른 값이 돼요.', remedialFlowStartNodeId: 'g3f_step2_C_explain', weaknessId: 'g3_function' },
+        ],
+      },
+      {
+        id: 'g3_function.step3',
+        title: '일대일대응 판정',
+        body: 'step1에서 거꾸로 가려면 결과가 한 번씩만 나와야 했죠. 일대일대응(서로 다른 입력은 서로 다른 결과를 갖는 함수)에서는 두 입력이 같은 결과를 가지면 안 돼요. 결과가 겹치면 거꾸로 되돌릴 수 없어요.',
+        example: '예) f(1)=3, f(2)=3 처럼 결과가 겹치면 일대일대응이 아님',
+        choices: [
+          { text: '서로 다른 입력은 서로 다른 결과를 가져야 한다', correct: true, feedback: '맞아요! 결과가 한 번씩만 나와야 거꾸로 갈 수 있어요.' },
+          { text: '값이 겹쳐도 일대일대응이다', correct: false, feedback: 'f(1)=5, f(2)=5 면 5를 보고 1인지 2인지 알 수 없어요. 겹치는 순간 일대일대응이 아니에요.', remedialFlowStartNodeId: 'g3f_step3_B_explain', weaknessId: 'g3_function' },
+          { text: '그래프가 직선이면 무조건 일대일대응이다', correct: false, feedback: 'y=3 처럼 기울기가 0인 평평한 직선은 모든 입력이 같은 값을 가져 일대일대응이 아니에요. "직선이면 무조건"은 틀린 말이에요.', remedialFlowStartNodeId: 'g3f_step3_C_explain', weaknessId: 'g3_function' },
+        ],
+      },
+    ],
+  },
 };
 
 export function getReviewHeroPrompt(weaknessId: WeaknessId) {
