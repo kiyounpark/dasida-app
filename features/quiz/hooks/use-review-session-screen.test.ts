@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { useReviewSessionScreen } from './use-review-session-screen';
+import { useReviewSessionScreen, REMEDIAL_CLOSING_MESSAGE } from './use-review-session-screen';
 import * as reviewFeedback from '@/features/quiz/review-feedback';
 import * as reviewRouterModule from '@/features/quiz/review-router';
 import * as buildCandidatesModule from '@/features/quiz/components/review-session/build-review-router-candidates';
@@ -231,6 +231,32 @@ describe('entries-based flow', () => {
     expect(kinds).toContain('done-cta');
     const inputArea = result.current.entries.find((e) => e.kind === 'input-area');
     expect(inputArea).toMatchObject({ interactive: false });
+  });
+
+  it('확인문제 정답 → 보충 종료 시 done-cta 직전에 마무리 ai-bubble이 온다', async () => {
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+
+    // 오답 → remedial 진입 → explain primary → check 노드 → 정답 → exit
+    await act(async () => {
+      result.current.onSelectChoice(0);
+    });
+    act(() => {
+      result.current.onRemedialExplainPrimary('fu_step1_A_explain');
+    });
+    act(() => {
+      result.current.onRemedialCheckOption('fu_step1_A_check', 'correct');
+    });
+
+    const entries = result.current.entries;
+    const doneIdx = entries.findIndex((e) => e.kind === 'done-cta');
+    expect(doneIdx).toBeGreaterThan(0);
+
+    const prev = entries[doneIdx - 1];
+    expect(prev).toMatchObject({
+      kind: 'ai-bubble',
+      text: REMEDIAL_CLOSING_MESSAGE,
+    });
   });
 
   it('오답 선택 시 choice-bubble + feedback-banner + 첫 remedial-node 추가', async () => {
@@ -683,6 +709,7 @@ describe('entries-based flow — kind sequence snapshots (spec §3 scenarios)', 
   "remedial-node",
   "remedial-node",
   "user-bubble",
+  "ai-bubble",
   "done-cta",
 ]
 `);
