@@ -1,9 +1,8 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-16T02:28:49.149Z",
+  "lastUpdateAt": "2026-05-16T02:35:49.361Z",
   "queue": [
-    "g3_space_geometry",
     "g1_geometry",
     "g3_function"
   ],
@@ -58,14 +57,15 @@
     "g2_counting_overcounting",
     "g2_inequality_range",
     "g2_function_domain",
-    "g3_vector"
+    "g3_vector",
+    "g3_space_geometry"
   ],
   "manualReview": [
     "complex_calc_error"
   ],
   "failed": [],
-  "totalTokens": 26464000,
-  "completedCount": 52,
+  "totalTokens": 27364000,
+  "completedCount": 53,
   "lastProgressReportAt": 51,
   "lastDriftCheckAt": 48,
   "retryStats": [
@@ -292,6 +292,10 @@
     {
       "weaknessId": "g3_vector",
       "retries": 1
+    },
+    {
+      "weaknessId": "g3_space_geometry",
+      "retries": 2
     }
   ],
   "rejectionHistory": [
@@ -760,6 +764,14 @@
       "thinkingstep-flow": true
     },
     "g3_vector": {
+      "math-teacher": true,
+      "struggling-student": true,
+      "sympy": true,
+      "appearance-reviewer": true,
+      "remedial-flow": true,
+      "thinkingstep-flow": true
+    },
+    "g3_space_geometry": {
       "math-teacher": true,
       "struggling-student": true,
       "sympy": true,

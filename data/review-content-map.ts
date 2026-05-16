@@ -2176,8 +2176,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 직육면체에서 AB와 CD는 꼬인 위치일 수 있다',
         choices: [
           { text: '꼬인 위치는 만나지 않고 평행하지도 않은 두 직선', correct: true, feedback: '맞아요! 같은 평면에 없으면서 만나지 않는 관계가 꼬인 위치예요.' },
-          { text: '꼬인 위치는 만나지 않는 모든 두 직선', correct: false, feedback: '평행도 만나지 않는 관계라 꼬인 위치와 구분해야 해요.' },
-          { text: '꼬인 위치는 같은 평면 위에 있는 두 직선', correct: false, feedback: '같은 평면에 있으면 평행이거나 교차예요. 꼬임은 평면 밖에서 일어나요.' },
+          { text: '꼬인 위치는 만나지 않는 모든 두 직선', correct: false, feedback: '평행도 만나지 않는 관계라 꼬인 위치와 구분해야 해요.', remedialFlowStartNodeId: 'gsg_step1_B_diagnose', weaknessId: 'g3_space_geometry' },
+          { text: '꼬인 위치는 같은 평면 위에 있는 두 직선', correct: false, feedback: '같은 평면에 있으면 평행이거나 교차예요. 꼬임은 평면 밖에서 일어나요.', remedialFlowStartNodeId: 'gsg_step1_C_diagnose', weaknessId: 'g3_space_geometry' },
         ],
       },
       {
@@ -2187,8 +2187,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 정사면체에서 한 면과 밑면이 이루는 각 → 교선에 수직인 선 작도 후 cosθ 계산',
         choices: [
           { text: '교선에 수직인 두 반직선이 이루는 각이 이면각이다', correct: true, feedback: '맞아요! 교선이 기준이 되는 각도라는 점이 핵심이에요.' },
-          { text: '두 평면의 법선벡터가 이루는 각이 이면각이다', correct: false, feedback: '법선각은 이면각의 보각이거나 같은 값이 될 수 있지만, 정의 자체는 교선에 수직인 반직선들이 이루는 각이에요.' },
-          { text: '두 평면이 만나는 선의 길이가 이면각이다', correct: false, feedback: '이면각은 길이가 아니라 각이에요. 단위가 다르다는 점부터 살펴봐요.' },
+          { text: '두 평면에 세운 수직선(법선)이 이루는 각이 이면각이다', correct: false, feedback: '법선이 이루는 각은 이면각과 같거나 합쳐서 180°가 되는 경우라 흔들려요. 정의는 교선에 수직인 두 반직선이 이루는 각으로 봐요.', remedialFlowStartNodeId: 'gsg_step2_B_diagnose', weaknessId: 'g3_space_geometry' },
+          { text: '두 평면이 만나는 선의 길이가 이면각이다', correct: false, feedback: '이면각은 길이가 아니라 각이에요. 단위가 다르다는 점부터 살펴봐요.', remedialFlowStartNodeId: 'gsg_step2_C_diagnose', weaknessId: 'g3_space_geometry' },
         ],
       },
       {
@@ -2198,8 +2198,8 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         example: '예) 넓이 10인 도형, 이면각 60° → 정사영 넓이=10×cos60°=5',
         choices: [
           { text: '정사영 넓이 = 원래 넓이 × cosθ', correct: true, feedback: '맞아요! 정사영의 표준 공식이에요.' },
-          { text: '정사영 넓이 = 원래 넓이 × sinθ', correct: false, feedback: 'sinθ가 아니라 cosθ를 곱해요. θ=0이면 그대로 보존되어야 한다는 직관과 맞아요.' },
-          { text: '정사영 넓이 = 원래 넓이 × tanθ', correct: false, feedback: 'tan을 쓰면 θ=90°에서 발산해요. 정사영은 cos을 써야 자연스러워요.' },
+          { text: '정사영 넓이 = 원래 넓이 × sinθ', correct: false, feedback: 'sinθ가 아니라 cosθ를 곱해요. θ=0이면 그대로 보존되어야 한다는 직관과 맞아요.', remedialFlowStartNodeId: 'gsg_step3_B_diagnose', weaknessId: 'g3_space_geometry' },
+          { text: '정사영 넓이 = 원래 넓이 × tanθ', correct: false, feedback: 'tan을 쓰면 θ=90°에서 발산해요. 정사영은 cos을 써야 자연스러워요.', remedialFlowStartNodeId: 'gsg_step3_C_diagnose', weaknessId: 'g3_space_geometry' },
         ],
       },
     ],
