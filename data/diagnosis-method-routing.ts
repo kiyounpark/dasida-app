@@ -354,4 +354,16 @@ export const diagnosisMethodRoutingCatalog: Record<SolveMethodId, DiagnosisMetho
     ],
     followupLabel: '심화 미분을 활용함',
   },
+  trig_advanced: {
+    id: 'trig_advanced',
+    labelKo: '심화 삼각함수',
+    summary: '단위원에서 cosθ·sinθ 좌표 읽기, 반지름이 1이 아닌 원에서의 값, 삼각함수 항등식(sin²θ+cos²θ=1)을 다루는 방식',
+    keywords: ['삼각함수', '단위원', '항등식', 'sin', 'cos', 'sin²+cos²', '삼각함수 항등식', '단위원 좌표'],
+    exampleUtterances: [
+      '단위원에서 cos·sin 좌표를 읽는 게 헷갈렸어요',
+      '반지름이 1이 아닌 원에서 sin·cos 값 구하는 게 막혔어요',
+      '삼각함수 항등식 sin²θ+cos²θ=1 적용에서 막혔어요',
+    ],
+    followupLabel: '심화 삼각함수 활용',
+  },
 };
