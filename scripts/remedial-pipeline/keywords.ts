@@ -705,6 +705,18 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '직선과 평면',
     '공간에서 두',
   ],
+  g3_function: [
+    '역함수',
+    '합성함수',
+    '일대일대응',
+    '일대일함수',
+    '함수의 정의',
+    '주기함수',
+    '합성함수의 미분',
+    '역함수가 존재',
+    '역함수의 성질',
+    '합성함수와 역함수',
+  ],
   g1_geometry: [
     '피타고라스',
     '삼각비',
