@@ -129,6 +129,7 @@ import { g2_function_domain_flow } from './remedial-flows/g2_function_domain';
 import { g3_vector_flow } from './remedial-flows/g3_vector';
 import { g3_space_geometry_flow } from './remedial-flows/g3_space_geometry';
 import { g1_geometry_flow } from './remedial-flows/g1_geometry';
+import { complex_calc_error_flow } from './remedial-flows/complex_calc_error';
 
 export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   formula_understanding: formula_understanding_flow,
@@ -186,6 +187,7 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g3_vector: g3_vector_flow,
   g3_space_geometry: g3_space_geometry_flow,
   g1_geometry: g1_geometry_flow,
+  complex_calc_error: complex_calc_error_flow,
 };
 
 export function getRemedialNode(

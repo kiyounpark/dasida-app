@@ -766,9 +766,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '복소수 곱셈은 괄호를 전개한 뒤 나타나는 i²를 −1로 교체한다.',
         example: '예) (2+i)(1+3i) = 2+6i+i+3i² = 2+7i−3',
         choices: [
-          { text: 'i²는 그대로 남긴다', correct: false, feedback: '남겨두면 식이 정리되지 않아요. 전개하자마자 −1로 바꿔야 깔끔해져요.' },
+          { text: 'i²는 그대로 남긴다', correct: false, feedback: '남겨두면 식이 정리되지 않아요. 전개하자마자 −1로 바꿔야 깔끔해져요.', remedialFlowStartNodeId: 'cce_step1_A_explain', weaknessId: 'complex_calc_error' },
           { text: '전개 후 i²를 −1로 교체한다', correct: true, feedback: '맞아요! 전개와 i² 처리가 한 묶음이 되는 흐름이에요.' },
-          { text: 'i²=1로 교체한다', correct: false, feedback: 'i²은 −1이에요. 부호 하나가 바뀌면 결과 전체가 달라져요.' },
+          { text: 'i²=1로 교체한다', correct: false, feedback: 'i²은 −1이에요. 부호 하나가 바뀌면 결과 전체가 달라져요.', remedialFlowStartNodeId: 'cce_step1_C_explain', weaknessId: 'complex_calc_error' },
         ],
       },
       {
@@ -777,9 +777,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'i 없는 항(실수부)끼리 모아서 합산한다.',
         example: '예) 2+(−3) = −1',
         choices: [
-          { text: '실수부와 허수부를 함께 더한다', correct: false, feedback: '단위가 달라 그냥 더할 수 없어요. 두 부분을 분리해서 모아야 해요.' },
+          { text: '실수부와 허수부를 함께 더한다', correct: false, feedback: '단위가 달라 그냥 더할 수 없어요. 두 부분을 분리해서 모아야 해요.', remedialFlowStartNodeId: 'cce_step2_A_explain', weaknessId: 'complex_calc_error' },
           { text: '실수부끼리 먼저 합산한다', correct: true, feedback: '맞아요! 같은 단위끼리 모으는 게 정리의 첫 단계예요.' },
-          { text: '실수부는 변하지 않는다', correct: false, feedback: 'i² 처리에서 실수부에도 변화가 생겨요. 새로 더해진 항을 빠뜨리지 마세요.' },
+          { text: '실수부는 변하지 않는다', correct: false, feedback: 'i² 처리에서 실수부에도 변화가 생겨요. 새로 더해진 항을 빠뜨리지 마세요.', remedialFlowStartNodeId: 'cce_step2_C_explain', weaknessId: 'complex_calc_error' },
         ],
       },
       {
@@ -788,9 +788,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'i가 붙은 항(허수부)끼리 모아서 합산하여 최종 복소수를 완성한다.',
         example: '예) 6i+i = 7i → 최종: −1+7i',
         choices: [
-          { text: '허수부 계수를 곱한다', correct: false, feedback: '허수부는 같은 i 단위라 계수의 합으로 정리돼요. 곱하면 차수가 달라져요.' },
+          { text: '허수부 계수를 곱한다', correct: false, feedback: '허수부는 같은 i 단위라 계수의 합으로 정리돼요. 곱하면 차수가 달라져요.', remedialFlowStartNodeId: 'cce_step3_A_explain', weaknessId: 'complex_calc_error' },
           { text: '허수부 계수를 더해서 정리한다', correct: true, feedback: '맞아요! 같은 i 단위끼리 합치는 흐름이 자연스러워요.' },
-          { text: '허수부는 실수부보다 작아야 한다', correct: false, feedback: '두 부분의 크기 관계는 정해져 있지 않아요. 각 부분을 그대로 정리하면 돼요.' },
+          { text: '허수부는 실수부보다 작아야 한다', correct: false, feedback: '두 부분의 크기 관계는 정해져 있지 않아요. 각 부분을 그대로 정리하면 돼요.', remedialFlowStartNodeId: 'cce_step3_C_explain', weaknessId: 'complex_calc_error' },
         ],
       },
     ],

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-13T14:07:47.453Z",
-  "lastUpdateAt": "2026-05-16T02:39:43.327Z",
+  "lastUpdateAt": "2026-05-16T03:03:56Z",
   "queue": [
     "g3_function"
   ],
@@ -58,11 +58,10 @@
     "g2_function_domain",
     "g3_vector",
     "g3_space_geometry",
-    "g1_geometry"
-  ],
-  "manualReview": [
+    "g1_geometry",
     "complex_calc_error"
   ],
+  "manualReview": [],
   "failed": [],
   "totalTokens": 27964000,
   "completedCount": 54,
@@ -493,7 +492,8 @@
       "struggling-student": true,
       "sympy": true,
       "appearance-reviewer": true,
-      "thinkingstep-flow": true
+      "thinkingstep-flow": true,
+      "remedial-flow": true
     },
     "remainder_substitution_error": {
       "math-teacher": true,
