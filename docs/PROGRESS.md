@@ -933,6 +933,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.17 12:33
+- 해시: `d7904bb` (`d7904bb478eafa60bfbd6f1159f425430c6c6c5e`)
+- 브랜치: claude/gracious-raman-daec61
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:43697/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:43697/git/kiyounpark/dasida-app/commit/d7904bb478eafa60bfbd6f1159f425430c6c6c5e
+- 작성자: Claude
+- 메시지: feat(review-session): 완료 화면 단일 버튼화, onComplete 배선 정리
+
 ### 커밋 2026.05.15 08:35
 - 해시: `3163fa5` (`3163fa54cf8f202f0d4170216b87507d75d7fdd2`)
 - 브랜치: claude/agitated-jackson-08304c

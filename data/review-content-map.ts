@@ -424,9 +424,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '(x−a)²+b 꼴로 표현된 식. 제곱 부분은 항상 0 이상이다.',
         example: '예) (x−2)²+3 → 최솟값 3, x=2일 때',
         choices: [
-          { text: '완전제곱식은 ax²+bx+c 꼴이다', correct: false, feedback: '그건 일반형이에요. 완전제곱식은 (x−a)²+b처럼 제곱과 상수가 분리된 꼴이에요.' },
+          { text: '완전제곱식은 ax²+bx+c 꼴이다', correct: false, feedback: '그건 일반형이에요. 완전제곱식은 (x−a)²+b처럼 제곱과 상수가 분리된 꼴이에요.', weaknessId: 'basic_concept_needed' },
           { text: '완전제곱식은 (x−a)²+b 꼴이다', correct: true, feedback: '맞아요! 이 꼴이면 극값과 위치를 한눈에 읽을 수 있어요.' },
-          { text: '완전제곱식은 항상 양수이다', correct: false, feedback: '(x−a)²은 0 이상이지만 식 전체는 b의 부호에 따라 음수일 수도 있어요.' },
+          { text: '완전제곱식은 항상 양수이다', correct: false, feedback: '(x−a)²은 0 이상이지만 식 전체는 b의 부호에 따라 음수일 수도 있어요.', weaknessId: 'basic_concept_needed' },
         ],
       },
       {
@@ -435,9 +435,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: '극값은 b(상수항), 그 위치는 x=a이다. 두 가지를 혼동하지 않는다.',
         example: '예) (x−2)²+3 → 극값=3, 위치=x=2',
         choices: [
-          { text: '극값은 a이고 위치는 b이다', correct: false, feedback: '역할이 뒤바뀌었어요. 제곱 항이 0이 되는 자리(a)가 위치, 남는 b가 값이에요.' },
+          { text: '극값은 a이고 위치는 b이다', correct: false, feedback: '역할이 뒤바뀌었어요. 제곱 항이 0이 되는 자리(a)가 위치, 남는 b가 값이에요.', weaknessId: 'basic_concept_needed' },
           { text: '극값은 b이고 위치는 x=a이다', correct: true, feedback: '맞아요! 값과 위치를 깔끔하게 분리해서 읽는 감각이 핵심이에요.' },
-          { text: '극값과 위치는 모두 a이다', correct: false, feedback: '한 글자가 두 역할을 동시에 하지는 않아요. 값(b)과 위치(a)를 분리해봐요.' },
+          { text: '극값과 위치는 모두 a이다', correct: false, feedback: '한 글자가 두 역할을 동시에 하지는 않아요. 값(b)과 위치(a)를 분리해봐요.', weaknessId: 'basic_concept_needed' },
         ],
       },
       {
@@ -446,9 +446,9 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
         body: 'a>0이면 (x−a)² 부분이 최소 0이므로 전체 최솟값이 b. a<0이면 최댓값.',
         example: '예) a>0 → 최솟값=b, a<0 → 최댓값=b',
         choices: [
-          { text: 'a 부호와 무관하게 b가 최솟값이다', correct: false, feedback: 'a<0이면 그래프가 위로 볼록해서 b가 최댓값이 돼요. a의 부호가 결정적이에요.' },
+          { text: 'a 부호와 무관하게 b가 최솟값이다', correct: false, feedback: 'a<0이면 그래프가 위로 볼록해서 b가 최댓값이 돼요. a의 부호가 결정적이에요.', weaknessId: 'basic_concept_needed' },
           { text: 'a>0이면 b가 최솟값, a<0이면 최댓값이다', correct: true, feedback: '맞아요! a 한 글자가 최대·최소를 가르는 스위치 역할을 해요.' },
-          { text: 'a<0이면 최솟값이 존재하지 않는다', correct: false, feedback: '위로 볼록이면 최댓값이 생기고, 정의역이 닫혀 있으면 최솟값도 따로 정해져요. 없다고 단정할 수는 없어요.' },
+          { text: 'a<0이면 최솟값이 존재하지 않는다', correct: false, feedback: '위로 볼록이면 최댓값이 생기고, 정의역이 닫혀 있으면 최솟값도 따로 정해져요. 없다고 단정할 수는 없어요.', weaknessId: 'basic_concept_needed' },
         ],
       },
     ],

@@ -68,6 +68,21 @@ describe('weaknessId membership (spec §2.1)', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('every correct:false choice has a weaknessId (spec 2026-05-17)', () => {
+    const offenders: string[] = [];
+    for (const [weaknessKey, content] of Object.entries(reviewContentMap)) {
+      if (!content) continue;
+      content.thinkingSteps.forEach((step, sIdx) => {
+        step.choices.forEach((choice, cIdx) => {
+          if (choice.correct === false && !choice.weaknessId) {
+            offenders.push(`${weaknessKey}.step${sIdx + 1}.choice${cIdx}`);
+          }
+        });
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('every weaknessId in remedial-flows nodes is in weaknessOrder', () => {
     const offenders: string[] = [];
     for (const [weaknessKey, flow] of Object.entries(remedialFlows)) {

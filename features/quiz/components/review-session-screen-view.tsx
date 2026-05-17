@@ -34,8 +34,7 @@ export function ReviewSessionScreenView({
   onSelectChoice,
   onPressNext,
   onPressContinue,
-  onPressRemember,
-  onPressRetry,
+  onComplete,
   entries,
   freeText,
   fallbackText,
@@ -136,8 +135,7 @@ export function ReviewSessionScreenView({
           task={task}
           weaknessLabel={weaknessLabel}
           paddingBottom={insets.bottom + 24}
-          onPressRetry={onPressRetry}
-          onPressRemember={onPressRemember}
+          onComplete={onComplete}
         />
       </View>
     );

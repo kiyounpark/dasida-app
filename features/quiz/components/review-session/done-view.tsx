@@ -9,16 +9,14 @@ interface DoneViewProps {
   task: ReviewTask;
   weaknessLabel: string;
   paddingBottom: number;
-  onPressRetry: () => void;
-  onPressRemember: () => void;
+  onComplete: () => void;
 }
 
 export function DoneView({
   task,
   weaknessLabel,
   paddingBottom,
-  onPressRetry,
-  onPressRemember,
+  onComplete,
 }: DoneViewProps) {
   const isGraduated = task.stage === 'day30';
   const nextLabel =
@@ -74,7 +72,7 @@ export function DoneView({
         <View style={styles.buttons}>
           <Pressable
             style={[styles.primaryBtn, { flex: 1 }]}
-            onPress={onPressRemember}
+            onPress={onComplete}
             accessibilityRole="button"
             accessibilityLabel="홈으로 돌아가기">
             <Text style={styles.primaryBtnText}>홈으로 돌아가기</Text>
@@ -83,18 +81,11 @@ export function DoneView({
       ) : (
         <View style={styles.buttons}>
           <Pressable
-            style={styles.secondaryBtn}
-            onPress={onPressRetry}
+            style={[styles.primaryBtn, { flex: 1 }]}
+            onPress={onComplete}
             accessibilityRole="button"
-            accessibilityLabel="다시 볼게요">
-            <Text style={styles.secondaryBtnText}>🤔 다시 볼게요</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.primaryBtn, styles.primaryBtnDone]}
-            onPress={onPressRemember}
-            accessibilityRole="button"
-            accessibilityLabel="기억났어요">
-            <Text style={styles.primaryBtnText}>✓ 기억났어요!</Text>
+            accessibilityLabel="완료">
+            <Text style={styles.primaryBtnText}>완료</Text>
           </Pressable>
         </View>
       )}
@@ -240,31 +231,10 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 3,
   },
-  primaryBtnDone: { flex: 1.6 },
   primaryBtnText: {
     fontFamily: FontFamilies.bold,
     fontSize: 14,
     color: Paper.cream,
     letterSpacing: -0.2,
-  },
-  secondaryBtn: {
-    flex: 1,
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: Paper.ink,
-    borderRadius: 14,
-    backgroundColor: Paper.cream,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Paper.ink,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  secondaryBtnText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 13,
-    color: Paper.ink,
   },
 });

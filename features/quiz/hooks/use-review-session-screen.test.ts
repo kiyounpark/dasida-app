@@ -6,6 +6,11 @@ import * as reviewRouterModule from '@/features/quiz/review-router';
 import * as buildCandidatesModule from '@/features/quiz/components/review-session/build-review-router-candidates';
 import { reviewContentMap } from '@/data/review-content-map';
 import { remedialFlows } from '@/data/review-remedial-flows';
+import {
+  completeReviewTask,
+  spawnMistakeReviewTasks,
+} from '@/features/learning/review-scheduler';
+import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
@@ -28,7 +33,7 @@ jest.mock('@/features/learner/provider', () => ({
 
 jest.mock('@/features/learning/review-scheduler', () => ({
   completeReviewTask: jest.fn().mockResolvedValue(undefined),
-  rescheduleReviewTask: jest.fn().mockResolvedValue(undefined),
+  spawnMistakeReviewTasks: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@/features/quiz/notifications/review-notification-scheduler', () => ({
@@ -194,7 +199,7 @@ describe('entries-based flow', () => {
       }
     }
 
-    await act(async () => { await result.current.onPressRemember(); });
+    await act(async () => { await result.current.onComplete(); });
 
     expect(mockRecordAttempt).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -208,6 +213,49 @@ describe('entries-based flow', () => {
       expect.arrayContaining(['basic_concept_needed']),
     );
     expect(callArg.questions[1].discoveredWeaknesses).toBeUndefined();
+  });
+
+  it('onComplete: completeReviewTask 후 store 재로드해 spawn 호출, 오답 약점만 전달', async () => {
+    (completeReviewTask as jest.Mock).mockClear();
+    (spawnMistakeReviewTasks as jest.Mock).mockClear();
+    (rescheduleAllReviewNotifications as jest.Mock).mockClear();
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    // step0: 첫 시도 오답 (weaknessId 'basic_concept_needed')
+    await act(async () => { result.current.onSelectChoice(0); });
+    await act(async () => { result.current.onPressContinue(); });
+
+    // 나머지 step은 첫 시도 정답으로 통과
+    for (let i = 1; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex((c) => c.correct);
+      await act(async () => { result.current.onSelectChoice(correctIdx); });
+      if (i < totalSteps - 1) {
+        await act(async () => { await result.current.onPressContinue(); });
+      }
+    }
+
+    await act(async () => { await result.current.onComplete(); });
+
+    expect(completeReviewTask as jest.Mock).toHaveBeenCalledTimes(1);
+    expect(spawnMistakeReviewTasks as jest.Mock).toHaveBeenCalledTimes(1);
+
+    const spawnArgs = (spawnMistakeReviewTasks as jest.Mock).mock.calls[0];
+    const passedWeaknesses = spawnArgs[2] as string[];
+    expect(passedWeaknesses).toEqual(
+      expect.arrayContaining(['basic_concept_needed']),
+    );
+
+    const completeOrder = (completeReviewTask as jest.Mock).mock
+      .invocationCallOrder[0];
+    const spawnOrder = (spawnMistakeReviewTasks as jest.Mock).mock
+      .invocationCallOrder[0];
+    const rescheduleOrder = (rescheduleAllReviewNotifications as jest.Mock).mock
+      .invocationCallOrder[0];
+    expect(completeOrder).toBeLessThan(spawnOrder);
+    expect(spawnOrder).toBeLessThan(rescheduleOrder);
   });
 
   it('초기 entries에 step-card와 input-area가 있다', () => {

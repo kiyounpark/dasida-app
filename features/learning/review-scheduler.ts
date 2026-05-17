@@ -2,13 +2,14 @@
 import { REVIEW_STAGE_OFFSETS, REVIEW_STAGE_ORDER, getNextReviewStage } from './review-stage';
 import type { ReviewTaskStore } from './review-task-store';
 import type { ReviewStage } from './history-types';
+import type { WeaknessId } from '@/data/diagnosisMap';
 
 function toDateString(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function addDaysToToday(days: number): string {
+export function addDaysToToday(days: number): string {
   const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
   const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
@@ -66,29 +67,6 @@ export async function completeReviewTask(
 }
 
 /**
- * "다시 볼게요" — 현재 stage 유지, scheduledFor를 오늘 기준 N일 후로 갱신한다.
- */
-export async function rescheduleReviewTask(
-  accountKey: string,
-  taskId: string,
-  store: ReviewTaskStore,
-): Promise<void> {
-  const tasks = await store.load(accountKey);
-  const task = tasks.find((t) => t.id === taskId);
-  if (!task) {
-    console.warn('[review-scheduler] rescheduleReviewTask: task not found', taskId);
-    return;
-  }
-
-  const updated = tasks.map((t) =>
-    t.id === taskId
-      ? { ...t, scheduledFor: addDaysToToday(REVIEW_STAGE_OFFSETS[t.stage]) }
-      : t,
-  );
-  await store.saveAll(accountKey, updated);
-}
-
-/**
  * 앱 시작 시 기한 초과(overdue) task의 stage를 한 단계 하락시킨다.
  * day1 초과는 day1 유지.
  */
@@ -114,4 +92,59 @@ export async function applyOverduePenalties(
   });
 
   await store.saveAll(accountKey, updated);
+}
+
+/**
+ * "오답 기반 복습 자동 생성" — 세션에서 틀린 실수가 데려간 약점들을
+ * day1·내일로 생성/갱신한다. 중복키 = (sourceId, weaknessId), stage 무시.
+ * 상위 단계 미완료 task는 id/stage 정합성을 위해 삭제 후 __day1 재생성한다.
+ */
+export async function spawnMistakeReviewTasks(
+  accountKey: string,
+  sourceId: string,
+  mistakeWeaknessIds: WeaknessId[],
+  store: ReviewTaskStore,
+): Promise<void> {
+  const unique = Array.from(new Set(mistakeWeaknessIds));
+  if (unique.length === 0) return;
+
+  const tasks = await store.load(accountKey);
+  const tomorrow = addDaysToToday(1);
+  const now = new Date().toISOString();
+  let next = [...tasks];
+
+  for (const weaknessId of unique) {
+    const pending = next.filter(
+      (t) => !t.completed && t.sourceId === sourceId && t.weaknessId === weaknessId,
+    );
+
+    const day1Existing = pending.find((t) => t.stage === 'day1');
+    if (day1Existing) {
+      next = next.map((t) =>
+        t.id === day1Existing.id ? { ...t, scheduledFor: tomorrow } : t,
+      );
+      const stale = new Set(
+        pending.filter((t) => t.id !== day1Existing.id).map((t) => t.id),
+      );
+      next = next.filter((t) => !stale.has(t.id));
+      continue;
+    }
+
+    const removeIds = new Set(pending.map((t) => t.id));
+    next = next.filter((t) => !removeIds.has(t.id));
+    const day1Id = `${sourceId}__${weaknessId}__day1`;
+    next.push({
+      id: day1Id,
+      accountKey,
+      weaknessId,
+      source: 'weakness-practice',
+      sourceId,
+      scheduledFor: tomorrow,
+      stage: 'day1',
+      completed: false,
+      createdAt: now,
+    });
+  }
+
+  await store.saveAll(accountKey, next);
 }

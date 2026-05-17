@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import type { WeaknessId } from '@/data/diagnosisMap';
-import { completeReviewTask, rescheduleReviewTask } from '@/features/learning/review-scheduler';
+import { completeReviewTask, spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
 import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import type { ReviewTask } from '@/features/learning/types';
@@ -52,8 +52,7 @@ export type UseReviewSessionScreenResult = {
   onSelectChoice: (index: number) => void;
   onPressNext: () => void;
   onPressContinue: () => void;
-  onPressRemember: () => void;
-  onPressRetry: () => void;
+  onComplete: () => void;
   onRemedialExplainPrimary: (nodeId: string) => void;
   onRemedialExplainSecondary: (nodeId: string) => void;
   onRemedialCheckOption: (nodeId: string, optionId: string) => void;
@@ -198,7 +197,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const onSelectChoice = (index: number) => {
     setSelectedChoiceIndex(index);
     const choice = steps[currentStepIndex]?.choices[index];
-    // 두 ref는 동시에 채워야 통계 매핑(`onPressRemember`의 questions)이 정합성을 유지한다.
+    // 두 ref는 동시에 채워야 통계 매핑(`onComplete`의 questions)이 정합성을 유지한다.
     if (firstAttemptCorrectRef.current[currentStepIndex] === null) {
       const isCorrect = choice?.correct ?? false;
       firstAttemptCorrectRef.current[currentStepIndex] = isCorrect;
@@ -511,7 +510,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     advanceRemedialToNode(node.nextNodeId);
   };
 
-  const onPressRemember = async () => {
+  const onComplete = async () => {
     if (!task || !profile) {
       return;
     }
@@ -577,26 +576,28 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       console.warn('Failed to record review attempt', error);
     }
 
+    // 첫 시도 오답 스텝이 데려간 약점 전부 (완전정복; discoveredPerStepRef)
+    const mistakeWeaknessIds = Array.from(
+      new Set(
+        firstAttemptCorrectRef.current.flatMap((correct, i) =>
+          correct === false ? (discoveredPerStepRef.current[i] ?? []) : [],
+        ),
+      ),
+    );
+
     try {
       await completeReviewTask(accountKey, task.id, store);
+      // F4: completeReviewTask가 만든 다음 단계 task까지 보고 강등하도록 재로드 후 spawn
+      await spawnMistakeReviewTasks(
+        accountKey,
+        task.sourceId,
+        mistakeWeaknessIds,
+        store,
+      );
       void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
       await refresh();
     } catch (error) {
       console.warn('Failed to complete review task', error);
-    }
-    router.back();
-  };
-
-  const onPressRetry = async () => {
-    if (!task) {
-      return;
-    }
-    try {
-      await rescheduleReviewTask(accountKey, task.id, store);
-      void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
-      await refresh();
-    } catch (error) {
-      console.warn('Failed to reschedule review task', error);
     }
     router.back();
   };
@@ -610,8 +611,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onSelectChoice,
     onPressNext,
     onPressContinue,
-    onPressRemember,
-    onPressRetry,
+    onComplete,
     onRemedialExplainPrimary,
     onRemedialExplainSecondary,
     onRemedialCheckOption,
