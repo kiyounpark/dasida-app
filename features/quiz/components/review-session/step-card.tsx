@@ -1,3 +1,4 @@
+// v2: L1 카드 — 본문 13→15, 제목 17→20, 그림자 강화 (opacity 0.08 → 1.0 hard)
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
@@ -79,36 +80,37 @@ const styles = StyleSheet.create({
     color: Paper.cream,
     letterSpacing: 1.2,
   },
+  // ── L1 카드 ──
   card: {
     backgroundColor: Paper.paper,
     borderWidth: 1.5,
     borderColor: Paper.ink,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 14,
+    borderRadius: 16,             // v2: 14 → 16
+    paddingHorizontal: 18,        // v2: 16 → 18
+    paddingTop: 20,               // v2: 18 → 20
+    paddingBottom: 16,            // v2: 14 → 16
     shadowColor: Paper.ink,
     shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 1,             // v2: 0.08 → 1 (하드 그림자)
     shadowRadius: 0,
     elevation: 2,
   },
   title: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 17,
-    lineHeight: 23,
+    fontSize: 20,                 // v2: 17 → 20
+    lineHeight: 26,               // v2: 23 → 26
     color: Paper.ink,
-    letterSpacing: -0.3,
-    marginBottom: 6,
+    letterSpacing: -0.4,
+    marginBottom: 8,              // v2: 6 → 8
   },
   body: {
     fontFamily: FontFamilies.regular,
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 15,                 // v2: 13 → 15
+    lineHeight: 25,               // v2: 20 → 25
     color: Paper.inkSoft,
   },
   exampleBox: {
-    marginTop: 12,
+    marginTop: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: Paper.edge,
@@ -119,15 +121,15 @@ const styles = StyleSheet.create({
   },
   exampleLabel: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 9,
+    fontSize: 10,                 // v2: 9 → 10
     color: Paper.inkMute,
     letterSpacing: 1.4,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   exampleText: {
     fontFamily: FontFamilies.serifBold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,                 // v2: 14 → 15
+    lineHeight: 22,
     color: Paper.ink,
     letterSpacing: 0.5,
   },

@@ -192,7 +192,7 @@ export function ReviewSessionScreenView({
             enabled={process.env.EXPO_OS !== 'ios'}>
             <ScrollView
               ref={tabletInputScrollRef}
-              style={{ backgroundColor: Paper.cream }}
+              style={{ backgroundColor: Paper.pageBg }}
               contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
               keyboardShouldPersistTaps="handled"
               contentInsetAdjustmentBehavior="automatic"
@@ -234,12 +234,12 @@ export function ReviewSessionScreenView({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Paper.cream,
+    backgroundColor: Paper.pageBg,
   },
   flex: { flex: 1 },
 
   appBar: {
-    backgroundColor: Paper.cream,
+    backgroundColor: Paper.pageBg,
     borderBottomWidth: 1,
     borderBottomColor: Paper.edge,
   },

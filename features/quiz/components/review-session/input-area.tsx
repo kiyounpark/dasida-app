@@ -1,3 +1,4 @@
+// v2: L2 — 보기/입력은 얇은 1px edge 보더, 그림자 제거. 본문 +1~2px.
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
@@ -30,7 +31,7 @@ export function InputArea({
     <View style={styles.container}>
       <Text style={styles.label}>💭 이 단계, 어떻게 이해했나요?</Text>
 
-      <View>
+      <View style={styles.choicesGroup}>
         {step.choices.map((choice, i) => (
           <Pressable
             key={i}
@@ -79,61 +80,95 @@ const styles = StyleSheet.create({
   container: { gap: 10 },
   label: {
     fontFamily: FontFamilies.extrabold,
-    fontSize: 12,
+    fontSize: 13,                 // v2: 12 → 13
     color: Paper.ink,
-    paddingLeft: 4,
+    paddingLeft: 2,
   },
+  // ── L2 보기 그룹 ──
+  choicesGroup: { gap: 8, marginTop: 2 },
   choiceBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderWidth: 1.5,
-    borderColor: Paper.ink,
+    borderWidth: 1,               // v2: 1.5 → 1
+    borderColor: Paper.edge,      // v2: ink → edge (얇고 옅게)
     borderRadius: 12,
     backgroundColor: Paper.paper,
     paddingVertical: 13,
     paddingHorizontal: 14,
-    marginBottom: 8,
-    boxShadow: '0 2px 0 rgba(26,25,22,0.06)',
+    // v2: 그림자 제거 (L2 톤)
   },
   choiceBtnDim: { opacity: 0.5 },
   choiceBadge: {
-    width: 26, height: 26, borderRadius: 13,
-    borderWidth: 1.5, borderColor: Paper.ink, backgroundColor: Paper.cream,
-    alignItems: 'center', justifyContent: 'center',
+    width: 28,                    // v2: 26 → 28
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Paper.creamDeep, // v2: cream → creamDeep (대비)
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   choiceBadgeText: {
-    fontFamily: FontFamilies.serifBold, fontSize: 13, color: Paper.ink,
+    fontFamily: FontFamilies.serifBold,
+    fontSize: 14,                 // v2: 13 → 14
+    color: Paper.ink,
   },
   choiceText: {
-    flex: 1, fontFamily: FontFamilies.medium, fontSize: 13, lineHeight: 19, color: Paper.ink,
+    flex: 1,
+    fontFamily: FontFamilies.medium,
+    fontSize: 14,                 // v2: 13 → 14
+    lineHeight: 20,
+    color: Paper.ink,
   },
   orLabel: {
-    fontFamily: FontFamilies.medium, fontSize: 11, color: Paper.inkMute,
-    paddingLeft: 4, marginTop: 4,
+    fontFamily: FontFamilies.medium,
+    fontSize: 12,                 // v2: 11 → 12
+    color: Paper.inkMute,
+    paddingLeft: 2,
+    marginTop: 4,
   },
+  // ── L2 자유 입력 ──
   freeInputRow: {
-    flexDirection: 'row', gap: 8, alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'flex-end',
   },
   freeInputBox: {
-    flex: 1, minHeight: 50, maxHeight: 120,
-    borderWidth: 1.5, borderColor: Paper.ink, borderRadius: 14,
-    backgroundColor: Paper.paper, paddingHorizontal: 14, paddingVertical: 10,
-    boxShadow: '0 2px 0 rgba(26,25,22,0.06)',
+    flex: 1,
+    minHeight: 50,
+    maxHeight: 120,
+    borderWidth: 1,               // v2: 1.5 → 1
+    borderColor: Paper.edge,      // v2: ink → edge
+    borderRadius: 14,
+    backgroundColor: Paper.paper,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    // v2: 그림자 제거
   },
   freeInputBoxDim: { opacity: 0.5 },
   freeInputText: {
-    fontFamily: FontFamilies.regular, fontSize: 13, color: Paper.ink, padding: 0,
+    fontFamily: FontFamilies.regular,
+    fontSize: 14,                 // v2: 13 → 14
+    color: Paper.ink,
+    padding: 0,
   },
+  // ── send 버튼은 L1 톤 유지 (액션이므로 강조) ──
   sendBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    borderWidth: 1.5, borderColor: Paper.ink, backgroundColor: Paper.forest800,
-    alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: Paper.ink,
+    backgroundColor: Paper.forest800,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendBtnDisabled: {
-    backgroundColor: Paper.creamDeep, borderColor: Paper.edge,
+    backgroundColor: Paper.creamDeep,
+    borderColor: Paper.edge,
   },
   sendBtnText: {
-    fontFamily: FontFamilies.extrabold, fontSize: 18, color: Paper.cream,
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 18,
+    color: Paper.cream,
   },
 });

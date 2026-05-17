@@ -1,3 +1,4 @@
+// v2: L2 — fallback-input을 채팅 흐름에 자연스럽게. 보더 1px edge, 그림자 없음.
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FontFamilies } from '@/constants/typography';
 import { Paper } from './paper-tokens';
@@ -12,8 +13,6 @@ interface Props {
 
 export function FallbackInputCard({ text, turn, interactive, onChangeText, onSubmit }: Props) {
   const canSubmit = interactive && text.trim().length > 0;
-  // Spec §3 시나리오 B: 2번째 입력 재활성 라벨 = "한 번 더 이야기해볼래요?".
-  // 1턴(remedial "모르겠어요" 진입 직후)은 처음 묻는 상황이므로 다른 카피 사용.
   const hint = turn === 1 ? '어떤 부분이 헷갈리는지 적어볼래요?' : '한 번 더 이야기해볼래요?';
   return (
     <View style={[styles.card, !interactive && styles.locked]}>
@@ -44,26 +43,54 @@ export function FallbackInputCard({ text, turn, interactive, onChangeText, onSub
 }
 
 const styles = StyleSheet.create({
+  // ── L2 카드 ──
   card: {
-    marginVertical: 8, padding: 12, gap: 8,
-    backgroundColor: Paper.cream, borderColor: Paper.edge, borderWidth: 1, borderRadius: 12,
+    marginVertical: 4,
+    padding: 14,
+    gap: 8,
+    backgroundColor: Paper.paper,
+    borderColor: Paper.edge,
+    borderWidth: 1,
+    borderRadius: 16,             // v2: 12 → 16 (채팅 버블과 동일)
   },
-  locked: { opacity: 0.55 },
-  hint: { fontFamily: FontFamilies.medium, fontSize: 12, color: Paper.inkMute },
+  locked: { opacity: 0.5 },
+  hint: {
+    fontFamily: FontFamilies.medium,
+    fontSize: 13,                 // v2: 12 → 13
+    color: Paper.inkMute,
+  },
   row: { flexDirection: 'row', gap: 8, alignItems: 'flex-end' },
   inputBox: {
-    flex: 1, minHeight: 44, maxHeight: 100,
-    borderWidth: 1.5, borderColor: Paper.ink, borderRadius: 12,
-    backgroundColor: Paper.paper, paddingHorizontal: 12, paddingVertical: 8,
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 100,
+    borderWidth: 0,               // v2: 1.5 → 0 (카드 안에 또 보더 두지 않음)
+    backgroundColor: Paper.cream, // v2: paper → cream (살짝 들어간 느낌)
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  inputText: { fontFamily: FontFamilies.regular, fontSize: 13, color: Paper.ink, padding: 0 },
+  inputText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 14,                 // v2: 13 → 14
+    color: Paper.ink,
+    padding: 0,
+  },
   sendBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    borderWidth: 1.5, borderColor: Paper.ink, backgroundColor: Paper.forest800,
-    alignItems: 'center', justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Paper.forest800,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // v2: 보더 제거 — 카드 안의 버튼이라 가볍게
   },
   sendBtnDisabled: {
-    backgroundColor: Paper.creamDeep, borderColor: Paper.edge,
+    backgroundColor: Paper.creamDeep,
   },
-  sendBtnText: { fontFamily: FontFamilies.extrabold, fontSize: 16, color: Paper.cream },
+  sendBtnText: {
+    fontFamily: FontFamilies.extrabold,
+    fontSize: 16,
+    color: Paper.cream,
+  },
 });
