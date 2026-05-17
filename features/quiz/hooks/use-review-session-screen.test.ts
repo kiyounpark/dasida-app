@@ -33,7 +33,6 @@ jest.mock('@/features/learner/provider', () => ({
 
 jest.mock('@/features/learning/review-scheduler', () => ({
   completeReviewTask: jest.fn().mockResolvedValue(undefined),
-  rescheduleReviewTask: jest.fn().mockResolvedValue(undefined),
   spawnMistakeReviewTasks: jest.fn().mockResolvedValue(undefined),
 }));
 

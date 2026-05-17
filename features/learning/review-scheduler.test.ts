@@ -95,6 +95,21 @@ describe('spawnMistakeReviewTasks', () => {
     expect(store.all()).toHaveLength(1);
   });
 
+  it('상세 약점==큰 약점: completeReviewTask 직후 상태에서도 미완료 task 1개 (spec §Success Criteria)', async () => {
+    // completeReviewTask가 day1 완료 처리 + 다음 단계(day3) pending 생성한 직후 상태를 시뮬레이션
+    const store = memStore([
+      task({ sourceId: 'src1', weaknessId: 'discriminant_calculation' as any, stage: 'day1', completed: true }),
+      task({ sourceId: 'src1', weaknessId: 'discriminant_calculation' as any, stage: 'day3', scheduledFor: '2026-08-01' }),
+    ]);
+    await spawnMistakeReviewTasks('acc', 'src1', ['discriminant_calculation'] as any, store);
+    const pending = store.all().filter((t) => !t.completed);
+    expect(pending).toHaveLength(1);
+    expect(pending[0].stage).toBe('day1');
+    expect(pending[0].id).toBe('src1__discriminant_calculation__day1');
+    expect(pending[0].scheduledFor).toBe(TOMORROW);
+    expect(store.all().some((t) => t.id === 'src1__discriminant_calculation__day3')).toBe(false);
+  });
+
   it('빈 입력이면 store 변경 없음', async () => {
     const store = memStore([task({ stage: 'day7' })]);
     await spawnMistakeReviewTasks('acc', 'src1', [], store);

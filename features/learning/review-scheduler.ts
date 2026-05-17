@@ -67,29 +67,6 @@ export async function completeReviewTask(
 }
 
 /**
- * "다시 볼게요" — 현재 stage 유지, scheduledFor를 오늘 기준 N일 후로 갱신한다.
- */
-export async function rescheduleReviewTask(
-  accountKey: string,
-  taskId: string,
-  store: ReviewTaskStore,
-): Promise<void> {
-  const tasks = await store.load(accountKey);
-  const task = tasks.find((t) => t.id === taskId);
-  if (!task) {
-    console.warn('[review-scheduler] rescheduleReviewTask: task not found', taskId);
-    return;
-  }
-
-  const updated = tasks.map((t) =>
-    t.id === taskId
-      ? { ...t, scheduledFor: addDaysToToday(REVIEW_STAGE_OFFSETS[t.stage]) }
-      : t,
-  );
-  await store.saveAll(accountKey, updated);
-}
-
-/**
  * 앱 시작 시 기한 초과(overdue) task의 stage를 한 단계 하락시킨다.
  * day1 초과는 day1 유지.
  */
@@ -133,6 +110,7 @@ export async function spawnMistakeReviewTasks(
 
   const tasks = await store.load(accountKey);
   const tomorrow = addDaysToToday(1);
+  const now = new Date().toISOString();
   let next = [...tasks];
 
   for (const weaknessId of unique) {
@@ -164,7 +142,7 @@ export async function spawnMistakeReviewTasks(
       scheduledFor: tomorrow,
       stage: 'day1',
       completed: false,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     });
   }
 
