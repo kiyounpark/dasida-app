@@ -1,0 +1,73 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  computeReviewTaskWrite,
+  type ReviewTask,
+} from '../src/learning-history';
+
+const ACCOUNT_KEY = 'user:test-user';
+
+function makeTask(overrides: Partial<ReviewTask> = {}): ReviewTask {
+  return {
+    id: 'src-1__formula_understanding__day1',
+    accountKey: ACCOUNT_KEY,
+    weaknessId: 'formula_understanding',
+    source: 'weakness-practice',
+    sourceId: 'src-1',
+    scheduledFor: '2026-05-19T00:00:00.000Z',
+    stage: 'day1',
+    completed: false,
+    createdAt: '2026-05-18T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+test('(a) 활성 task 완료 마킹 + 신규 task → upserts에 둘 다, deletes 없음', () => {
+  const a = makeTask();
+  const existing: ReviewTask[] = [a];
+  const aDone = makeTask({ completed: true, completedAt: '2026-05-18T09:00:00.000Z' });
+  const b = makeTask({ id: 'src-2__formula_understanding__day1', sourceId: 'src-2' });
+
+  const { upserts, deletes } = computeReviewTaskWrite(existing, [aDone, b]);
+
+  const upsertIds = upserts.map((t) => t.id).sort();
+  assert.deepEqual(upsertIds, [a.id, b.id].sort());
+  assert.equal(deletes.length, 0);
+});
+
+test('(b) next에서 빠진 기존 task는 deletes에 포함', () => {
+  const a = makeTask();
+  const b = makeTask({ id: 'src-2__formula_understanding__day1', sourceId: 'src-2' });
+
+  const { deletes } = computeReviewTaskWrite([a, b], [a]);
+
+  assert.deepEqual(
+    deletes.map((t) => t.id),
+    [b.id],
+  );
+});
+
+test('(c) 스키마 위반 task → throw', () => {
+  const bad = { ...makeTask(), scheduledFor: 'not-a-datetime' } as ReviewTask;
+  assert.throws(() => computeReviewTaskWrite([], [bad]));
+});
+
+test('(d) sorted는 scheduledFor 오름차순', () => {
+  const later = makeTask({
+    id: 'src-1__formula_understanding__day1',
+    scheduledFor: '2026-05-25T00:00:00.000Z',
+  });
+  const earlier = makeTask({
+    id: 'src-2__formula_understanding__day1',
+    sourceId: 'src-2',
+    scheduledFor: '2026-05-20T00:00:00.000Z',
+  });
+
+  const { sorted } = computeReviewTaskWrite([], [later, earlier]);
+
+  assert.deepEqual(
+    sorted.map((t) => t.scheduledFor),
+    ['2026-05-20T00:00:00.000Z', '2026-05-25T00:00:00.000Z'],
+  );
+});

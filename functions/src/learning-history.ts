@@ -1093,6 +1093,36 @@ export async function listReviewTasks(accountKey: string): Promise<ReviewTask[]>
   return reviewTasksSnapshot.docs.map((doc) => ReviewTaskSchema.parse(doc.data()));
 }
 
+export function computeReviewTaskWrite(
+  existingTasks: ReviewTask[],
+  nextRaw: ReviewTask[],
+): { upserts: ReviewTask[]; deletes: ReviewTask[]; sorted: ReviewTask[] } {
+  const next = nextRaw.map((task) => ReviewTaskSchema.parse(task));
+  const { upserts, deletes } = diffReviewTasks(existingTasks, next);
+  return { upserts, deletes, sorted: sortReviewTasks(next) };
+}
+
+export async function saveReviewTasks(
+  accountKey: string,
+  nextRaw: ReviewTask[],
+): Promise<ReviewTask[]> {
+  const existing = await listReviewTasks(accountKey);
+  const { upserts, deletes, sorted } = computeReviewTaskWrite(existing, nextRaw);
+  const batch = getFirestore().batch();
+  upserts.forEach((task) => {
+    batch.set(
+      getReviewTasksCollection(accountKey).doc(task.id),
+      stripUndefined(task),
+      { merge: true },
+    );
+  });
+  deletes.forEach((task) => {
+    batch.delete(getReviewTasksCollection(accountKey).doc(task.id));
+  });
+  await batch.commit();
+  return sorted;
+}
+
 export async function getLearningAttemptResults(accountKey: string, attemptId: string) {
   const history = await loadLearnerHistory(accountKey);
   return history.results
