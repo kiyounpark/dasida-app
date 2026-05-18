@@ -118,8 +118,11 @@
 
 ## 6. 테스트
 
-- 서버: `saveReviewTasks` 핸들러 — 인증 거부(비-firebase 403), 스키마 검증, diff(upsert/delete) 정확성.
+- 서버(순수 단위, 관례 일치): `computeReviewTaskWrite` diff/sanitize/정렬, `SaveReviewTasksBodySchema`
+  accept/reject. (functions 스위트는 Firestore 모킹/에뮬레이터 미사용 — 순수 함수만 단위 테스트.)
 - 서버: `buildReviewTasks` 멱등성 — 동일 weakness-practice 입력 + 이미 completed/nextStage 존재 시 불변.
+- 서버 I/O(`saveReviewTasks` batch)·`onRequest` 래퍼·인증 분기: 에뮬레이터/Expo 스모크로 검증
+  (검증된 `recordLearningAttempt` batch 패턴 미러링이라 단위 모킹 인프라 신설 회피).
 - 클라: `RemoteReviewTaskStore` load/saveAll 성공·네트워크 폴백 경로.
 - 클라: `ReviewTaskStoreRouter` authed→remote, guest→local 분기.
 - 회귀: `review-scheduler.test.ts`가 라우티드 store(로컬 구현 주입)로도 그린 유지.

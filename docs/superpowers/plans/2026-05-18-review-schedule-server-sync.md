@@ -51,14 +51,40 @@ export async function saveReviewTasks(
 ```
 (`sortReviewTasks`는 L504에 존재. batch 경로는 기존 recordLearningAttempt 영속부와 동형으로 맞춤 — 구현 시 해당 부분 실코드 확인 후 정렬.)
 
-- **Step 1 (실패 테스트):** `functions/tests/save-review-tasks.test.ts` — Firestore 모킹(기존 server 테스트의 모킹 유틸 재사용; 없으면 `learning-history` 기존 테스트 패턴 따름)으로:
-  (a) 기존 [A(day1,completed=false)] + next [A(completed=true), B(day1)] → upsert A·B, delete 없음, 반환 정렬.
-  (b) 기존 [A,B] + next [A] → delete B.
-  (c) 입력 스키마 위반 → throw.
+**테스트 관례 (조정됨):** functions 스위트는 순수 함수만 단위 테스트(Firestore 모킹/에뮬레이터 미사용).
+따라서 순수 코어 `computeReviewTaskWrite(existing, nextRaw)` 를 분리해 테스트하고,
+`saveReviewTasks`는 `recordLearningAttempt`(learning-history.ts:1010-1023)의 검증된 batch 패턴
+(`firestore.batch()` + `getReviewTasksCollection().doc(id)` + `stripUndefined` + `{merge:true}` + delete)
+을 그대로 미러링한 얇은 I/O 래퍼. Firestore 경로는 Task 2 핸들러 검증 + Expo 스모크로 커버.
+
+순수 코어:
+```ts
+export function computeReviewTaskWrite(existing: ReviewTask[], nextRaw: ReviewTask[]) {
+  const next = nextRaw.map((t) => ReviewTaskSchema.parse(t));
+  const { upserts, deletes } = diffReviewTasks(existing, next);
+  return { upserts, deletes, sorted: sortReviewTasks(next) };
+}
+export async function saveReviewTasks(accountKey: string, nextRaw: ReviewTask[]): Promise<ReviewTask[]> {
+  const existing = await listReviewTasks(accountKey);
+  const { upserts, deletes, sorted } = computeReviewTaskWrite(existing, nextRaw);
+  const batch = getFirestore().batch();
+  upserts.forEach((t) => batch.set(getReviewTasksCollection(accountKey).doc(t.id), stripUndefined(t), { merge: true }));
+  deletes.forEach((t) => batch.delete(getReviewTasksCollection(accountKey).doc(t.id)));
+  await batch.commit();
+  return sorted;
+}
+```
+(`getFirestore`/`stripUndefined`/`sortReviewTasks`/`getReviewTasksCollection`/`diffReviewTasks` 모두 동일 모듈 내 존재 — 구현 시 실제 시그니처 확인.)
+
+- **Step 1 (실패 테스트):** `functions/tests/save-review-tasks.test.ts` — `computeReviewTaskWrite` 순수 테스트:
+  (a) 기존 [A(day1,completed=false)] + next [A(completed=true), B(day1)] → upserts에 A·B, deletes 비어있음.
+  (b) 기존 [A,B] + next [A] → deletes에 B.
+  (c) next에 스키마 위반 객체 → throw.
+  (d) sorted가 `sortReviewTasks` 순서와 일치.
 - **Step 2:** `cd functions && npm test` → 신규 테스트 실패 확인.
-- **Step 3:** 위 함수 구현 + 필요한 내부 함수 접근(동일 모듈이므로 비공개 사용 가능).
-- **Step 4:** `cd functions && npm test` 통과.
-- **Step 5:** `git commit -m "feat(functions): saveReviewTasks 영속 헬퍼 (load→diff→batch)"`
+- **Step 3:** `computeReviewTaskWrite` + `saveReviewTasks` 구현 (순수/래퍼 분리).
+- **Step 4:** `cd functions && npm test` 통과 + `cd functions && npm run lint`(tsc).
+- **Step 5:** `git commit -m "feat(functions): saveReviewTasks 영속 헬퍼 + 순수 코어 분리"`
 
 ## Task 2 — Cloud Function 핸들러 `save-review-tasks.ts`
 
@@ -96,10 +122,15 @@ export const saveReviewTasksHandler = onRequest(
 ```
 `index.ts`에 `export { saveReviewTasksHandler as saveReviewTasks } from './save-review-tasks';`
 
-- **Step 1 (실패 테스트):** 405(GET), 400(스키마), 403(비-firebase auth), 200(정상 → saveReviewTasks 호출·반환). auth/헬퍼는 기존 핸들러 테스트 모킹 방식 따름.
+**테스트 관례 (조정됨):** 기존 핸들러 테스트(`review-feedback`/`list-review-tasks`)는 `onRequest`
+래퍼를 단위 테스트하지 않고 **스키마·순수 로직만** 검증. 동일하게 `SaveReviewTasksBodySchema`만
+순수 테스트. 래퍼+인증+Firestore 경로는 에뮬레이터/Expo 스모크(Task 7)로 검증.
+
+- **Step 1 (실패 테스트):** `functions/tests/save-review-tasks.test.ts`에 추가 — `SaveReviewTasksBodySchema`:
+  (a) 정상 바디 통과, (b) accountKey 누락 reject, (c) reviewTasks 비배열 reject, (d) 601개 초과 reject.
 - **Step 2:** `cd functions && npm test` 실패 확인.
-- **Step 3:** 핸들러 + index export 구현.
-- **Step 4:** `cd functions && npm test` 통과 + `cd functions && npx tsc -p tsconfig.json --noEmit`(타입).
+- **Step 3:** 핸들러(`save-review-tasks.ts`, 스키마 export 포함) + `index.ts` export 구현.
+- **Step 4:** `cd functions && npm test` 통과 + `cd functions && npm run lint`.
 - **Step 5:** `git commit -m "feat(functions): saveReviewTasks Cloud Function 핸들러 + export"`
 
 ## Task 3 — `@/constants/env` URL + DI 게이트 확장
