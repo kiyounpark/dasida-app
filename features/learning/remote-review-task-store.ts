@@ -59,6 +59,7 @@ export class RemoteReviewTaskStore implements ReviewTaskStore {
       return reviewTasks;
     } catch (error) {
       if (shouldUseLearningHistoryCacheFallback(error)) {
+        console.warn('[RemoteReviewTaskStore] load falling back to local mirror.', error);
         return this.mirror.load(accountKey);
       }
       throw error;
@@ -82,6 +83,7 @@ export class RemoteReviewTaskStore implements ReviewTaskStore {
     } catch (error) {
       if (shouldUseLearningHistoryCacheFallback(error)) {
         // 변경 유실 방지: 다음 load/saveAll 동기화 때 서버와 재수렴.
+        console.warn('[RemoteReviewTaskStore] saveAll falling back to local mirror.', error);
         await this.mirror.saveAll(accountKey, tasks);
         return;
       }

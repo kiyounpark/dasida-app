@@ -171,6 +171,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         discoveredPerStepRef.current = Array.from({ length: foundStepCount }, () => []);
         sessionStartedAtRef.current = new Date().toISOString();
       }
+    }).catch((error) => {
+      // 라우티드 store는 원격이라 인증 만료 등으로 throw 가능(로컬은 throw 안 했음).
+      // 미처리 거부 방지 — quiz-hub 효과의 .catch와 동일 정책.
+      if (!cancelled) console.warn('Failed to load review task', error);
     });
     return () => {
       cancelled = true;
