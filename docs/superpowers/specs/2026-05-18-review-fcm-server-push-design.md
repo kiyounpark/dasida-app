@@ -214,13 +214,21 @@ collectionGroup `reviewTasks`에 대한 복합 인덱스
 
 구현·테스트 그린 후, 아래를 **순서대로** 직접 수행해야 실제 동작:
 
-0. **(선행) 푸시 자격증명 — 생략 불가**:
-   - EAS projectId가 앱 설정에 존재(`getExpoPushTokenAsync`가 요구 —
-     없으면 토큰 취득 단계에서 throw).
-   - **Android**: Expo/EAS 프로젝트에 **FCM V1 service account 키
-     업로드**(없으면 안드로이드 푸시가 조용히 실패 — 에러도 안 남).
-   - **iOS**: APNs 키가 EAS에 등록.
-   이 3개가 없으면 이후 단계가 모두 통과해도 실제 알림이 안 온다.
+0. **(선행) 푸시 자격증명 — 검증 완료(2026-05-18, production)**:
+   - ✅ EAS projectId 존재: `e398244b-6a71-42d3-bad0-1f69e0fe2148`
+     (`app.json:95`, `app.config.js:88`).
+   - ✅ iOS APNs Push Key 등록됨 (Developer Portal ID `WR835R397C`,
+     `eas credentials -p ios` production 확인). iOS는 추가 작업 없음.
+   - ❌ **Android FCM V1 미등록** (`eas credentials -p android`
+     production → "Push Notifications (FCM V1)" = `None assigned yet`).
+     **업로드 필요 — 없으면 안드로이드 푸시가 조용히 실패(에러도 안 남).**
+     절차:
+     1. Firebase 콘솔 → 프로젝트 설정 → 서비스 계정 → 새 비공개 키
+        생성(JSON 다운로드).
+     2. `eas credentials -p android` → production →
+        "Push Notifications (FCM V1)" → Google Service Account Key
+        설정 → 위 JSON 업로드.
+     3. `eas credentials -p android`로 재확인 — FCM V1에 키가 표시되면 완료.
 1. **(선행) 1단계 배포·활성**:
    `firebase deploy --only functions:saveReviewTasks` →
    출력 URL을 `EXPO_PUBLIC_SAVE_REVIEW_TASKS_URL`에 설정 → 1단계 스모크.
@@ -252,7 +260,10 @@ collectionGroup `reviewTasks`에 대한 복합 인덱스
   확인. firestore.indexes.json 배포 타깃 부재 확인 → 콘솔 생성으로 명시.
 - 자기검토 반영 3건: (1) 날짜 경계 KST-instant→날짜라벨 규칙으로 정정,
   (2) 전환 시 기존 로컬 알림 취소 단계 신설(§3.2), (3) 푸시 자격증명
-  (EAS projectId·FCM·APNs) §8 선행 0번으로 명시.
+  §8 선행 0번으로 명시.
+- 자격증명 실제 검증(2026-05-18, production): projectId ✅,
+  iOS APNs Push Key ✅, Android FCM V1 ❌(업로드 절차 §8-0 명시).
+  → 구현·테스트와 무관하게 진행 가능, Android 키 업로드는 핸드오프 필수.
 - 멱등성: 슬롯 가드로 함수 재시도/중복 실행 안전.
 - 게스트 무영향: 데이터 흐름·테스트·리스크에 각각 명시.
 - 1단계 의존을 "안전 실패(발송 0)"로 처리 + 핸드오프 1번에 선행 명시.
