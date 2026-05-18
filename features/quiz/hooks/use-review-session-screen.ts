@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { completeReviewTask, spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -72,12 +71,11 @@ export type UseReviewSessionScreenResult = {
   __test_discoveredForStep?: (stepIndex: number) => WeaknessId[];
 };
 
-const store = new LocalReviewTaskStore();
-
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const params = useLocalSearchParams();
   const taskId = getSingleParam(params.taskId) ?? '';
-  const { session, refresh, profile, recordAttempt } = useCurrentLearner();
+  const { session, refresh, profile, recordAttempt, reviewTaskStore: store } =
+    useCurrentLearner();
   const accountKey = session?.accountKey ?? '';
 
   const [task, setTask] = useState<ReviewTask | null>(null);
@@ -173,6 +171,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         discoveredPerStepRef.current = Array.from({ length: foundStepCount }, () => []);
         sessionStartedAtRef.current = new Date().toISOString();
       }
+    }).catch((error) => {
+      // 라우티드 store는 원격이라 인증 만료 등으로 throw 가능(로컬은 throw 안 했음).
+      // 미처리 거부 방지 — quiz-hub 효과의 .catch와 동일 정책.
+      if (!cancelled) console.warn('Failed to load review task', error);
     });
     return () => {
       cancelled = true;

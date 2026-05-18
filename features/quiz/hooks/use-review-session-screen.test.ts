@@ -28,6 +28,11 @@ jest.mock('@/features/learner/provider', () => ({
     refresh: jest.fn(),
     profile: { learnerId: 'l-1', grade: 'middle1' },
     recordAttempt: mockRecordAttempt,
+    reviewTaskStore: {
+      load: jest.fn().mockResolvedValue([]),
+      saveAll: jest.fn().mockResolvedValue(undefined),
+      reset: jest.fn().mockResolvedValue(undefined),
+    },
   }),
 }));
 
