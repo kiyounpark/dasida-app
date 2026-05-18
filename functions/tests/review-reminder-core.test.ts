@@ -34,3 +34,41 @@ test('dedupeAccountKeys: 중복 제거, 입력 순서 보존', () => {
     ['user:a', 'user:b', 'user:c'],
   );
 });
+
+import {
+  shouldSendForSlot,
+  recordSlotSent,
+  removeInvalidTokens,
+  type ReminderSentLog,
+} from '../src/review-reminder-core';
+
+test('shouldSendForSlot: 미발송이면 true', () => {
+  assert.equal(shouldSendForSlot(undefined, '2026-05-19', 'morning'), true);
+  assert.equal(shouldSendForSlot({}, '2026-05-19', 'morning'), true);
+});
+
+test('shouldSendForSlot: 같은 날짜+슬롯 이미 발송이면 false', () => {
+  const log: ReminderSentLog = { '2026-05-19': { morning: true } };
+  assert.equal(shouldSendForSlot(log, '2026-05-19', 'morning'), false);
+  assert.equal(shouldSendForSlot(log, '2026-05-19', 'evening'), true);
+});
+
+test('recordSlotSent: 슬롯 기록 + 오늘/어제만 유지(가지치기)', () => {
+  const log: ReminderSentLog = {
+    '2026-05-10': { morning: true, evening: true },
+    '2026-05-18': { morning: true },
+  };
+  const next = recordSlotSent(log, '2026-05-19', 'evening');
+  assert.equal(next['2026-05-19'].evening, true);
+  assert.equal(next['2026-05-18'].morning, true);
+  assert.equal(next['2026-05-10'], undefined);
+});
+
+test('removeInvalidTokens: DeviceNotRegistered 토큰만 제거', () => {
+  const tokens = [
+    { token: 'ExponentPushToken[A]', platform: 'ios' as const, updatedAt: '2026-05-18T00:00:00.000Z' },
+    { token: 'ExponentPushToken[B]', platform: 'android' as const, updatedAt: '2026-05-18T00:00:00.000Z' },
+  ];
+  const result = removeInvalidTokens(tokens, new Set(['ExponentPushToken[B]']));
+  assert.deepEqual(result.map((t) => t.token), ['ExponentPushToken[A]']);
+});
