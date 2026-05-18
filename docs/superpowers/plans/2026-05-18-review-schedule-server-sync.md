@@ -138,7 +138,10 @@ export const saveReviewTasksHandler = onRequest(
 **Files:** 수정 `constants/env.ts`(또는 env 상수 정의 파일), `features/learning/create-learning-history-repository.ts`; 수정 테스트 해당 시
 
 - `constants/env`에 `learningHistorySaveReviewTasksUrl` 추가 (기존 `learningHistoryListReviewTasksUrl`과 동일 규약/소스).
-- `create-learning-history-repository.ts`: `isLearningHistoryRemoteCrudConfigured()`에 `learningHistorySaveReviewTasksUrl` 조건 추가.
+- **수정(실행 중 결정)**: `isLearningHistoryRemoteCrudConfigured()`에 새 URL을 추가하지 **않는다**
+  — 기존 배포에 `SAVE_REVIEW_TASKS_URL` 미설정 시 학습기록 전체가 remote→local로 퇴행하기 때문.
+  대신 Task 5에서 **복습 task 전용 게이트** `isReviewTaskRemoteSyncConfigured()`
+  (list + save URL 모두 존재) 신설, `createReviewTaskStore`만 사용. 기존 게이트 불변.
 
 - **Step 1 (실패 테스트):** `create-learning-history-repository` 기존 테스트가 있으면 거기에 "saveReviewTasksUrl 누락 시 remote 비구성" 케이스 추가; 없으면 Task 5 라우터 테스트에서 커버하므로 본 태스크는 타입체크로 검증.
 - **Step 2:** `npx tsc --noEmit` 실패(미정의 심볼) 확인.
