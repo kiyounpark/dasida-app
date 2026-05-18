@@ -410,6 +410,11 @@ export const ImportLocalLearningHistoryRequestSchema = z
     }
   });
 
+export const SaveReviewTasksRequestSchema = z.object({
+  accountKey: z.string().min(1).max(200),
+  reviewTasks: z.array(ReviewTaskSchema).max(600),
+});
+
 export type FeaturedExamState = z.infer<typeof FeaturedExamStateSchema>;
 export type FinalizedAttemptInput = z.infer<typeof FinalizedAttemptInputSchema>;
 export type LearnerSummaryCurrent = z.infer<typeof LearnerSummaryCurrentSchema>;

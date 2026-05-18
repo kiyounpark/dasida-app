@@ -15,4 +15,5 @@ export { saveFeaturedExamStateHandler as saveFeaturedExamState } from './save-fe
 export { reviewFeedback } from './review-feedback';
 export { deleteAccountHandler as deleteAccount } from './delete-account';
 export { listReviewTasksHandler as listReviewTasks } from './list-review-tasks';
+export { saveReviewTasksHandler as saveReviewTasks } from './save-review-tasks';
 export { reviewRouter } from './review-router';

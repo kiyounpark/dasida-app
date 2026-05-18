@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   computeReviewTaskWrite,
+  SaveReviewTasksRequestSchema,
   type ReviewTask,
 } from '../src/learning-history';
 
@@ -51,6 +52,37 @@ test('(b) next에서 빠진 기존 task는 deletes에 포함', () => {
 test('(c) 스키마 위반 task → throw', () => {
   const bad = { ...makeTask(), scheduledFor: 'not-a-datetime' } as ReviewTask;
   assert.throws(() => computeReviewTaskWrite([], [bad]));
+});
+
+test('스키마: 정상 바디 통과', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [makeTask()],
+  });
+  assert.equal(parsed.success, true);
+});
+
+test('스키마: accountKey 누락 reject', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({ reviewTasks: [] });
+  assert.equal(parsed.success, false);
+});
+
+test('스키마: reviewTasks 비배열 reject', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: 'nope',
+  });
+  assert.equal(parsed.success, false);
+});
+
+test('스키마: reviewTasks 600 초과 reject', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: Array.from({ length: 601 }, (_, i) =>
+      makeTask({ id: `src-${i}__formula_understanding__day1`, sourceId: `src-${i}` }),
+    ),
+  });
+  assert.equal(parsed.success, false);
 });
 
 test('(d) sorted는 scheduledFor 오름차순', () => {
