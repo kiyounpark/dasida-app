@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildReviewTasks,
   computeReviewTaskWrite,
+  FinalizedAttemptInputSchema,
   SaveReviewTasksRequestSchema,
   type ReviewTask,
 } from '../src/learning-history';
@@ -83,6 +85,60 @@ test('스키마: reviewTasks 600 초과 reject', () => {
     ),
   });
   assert.equal(parsed.success, false);
+});
+
+test('(e) buildReviewTasks 멱등 — 동일 weakness-practice 재적용 시 불변 (spec §6)', () => {
+  const activeId = 'min_value_read_confusion__min_value_read_confusion__day1';
+  const parsed = FinalizedAttemptInputSchema.parse({
+    attemptId: 'wp-idem-1',
+    accountKey: ACCOUNT_KEY,
+    learnerId: 'learner-1',
+    source: 'weakness-practice',
+    sourceEntityId: 'min_value_read_confusion',
+    gradeSnapshot: 'g3',
+    startedAt: '2026-05-18T09:00:00.000Z',
+    completedAt: '2026-05-18T09:05:00.000Z',
+    questionCount: 1,
+    correctCount: 1,
+    wrongCount: 0,
+    accuracy: 100,
+    primaryWeaknessId: 'min_value_read_confusion',
+    topWeaknesses: ['min_value_read_confusion'],
+    questions: [
+      {
+        questionId: 'q1',
+        questionNumber: 1,
+        topic: '최솟값',
+        selectedIndex: 1,
+        isCorrect: true,
+        finalWeaknessId: 'min_value_read_confusion',
+        methodId: null,
+        diagnosisSource: null,
+        finalMethodSource: null,
+        diagnosisCompleted: true,
+        usedDontKnow: false,
+        usedAiHelp: false,
+      },
+    ],
+    reviewContext: { reviewTaskId: activeId, reviewStage: 'day1' },
+  });
+
+  const existing: ReviewTask[] = [
+    makeTask({
+      id: activeId,
+      weaknessId: 'min_value_read_confusion',
+      sourceId: 'min_value_read_confusion',
+      stage: 'day1',
+      completed: false,
+    }),
+  ];
+
+  const once = buildReviewTasks(parsed, existing);
+  const twice = buildReviewTasks(parsed, once);
+
+  assert.deepEqual(twice, once);
+  assert.equal(once.find((t) => t.id === activeId)?.completed, true);
+  assert.equal(once.some((t) => t.stage === 'day3'), true);
 });
 
 test('(d) sorted는 scheduledFor 오름차순', () => {

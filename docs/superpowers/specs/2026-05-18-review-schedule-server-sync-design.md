@@ -115,6 +115,14 @@
 - **네트워크 실패**: `saveAll` 실패 시 로컬 미러에 보존 + 다음 `load`/동기화 때 서버와 재수렴.
   최소한 단일 기기 경험은 기존 로컬 수준 유지(퇴행 없음).
 - **applyOverduePenalties**: 앱 시작/허브 진입 시 라우티드 store로 동작 → 서버 일정 기준 패널티 후 saveAll.
+- **요약 doc staleness 경계 (서버 검토 S1 반영, 의도적 결정)**: `saveReviewTasks`는
+  reviewTasks 서브컬렉션만 쓰고 learner-summary doc은 재빌드하지 않는다(`recordLearningAttempt`와 차이).
+  근거로 1단계 범위에서 수용: (1) 스케줄러 read 경로는 §3.2 `load()`가 `listReviewTasks` GET(라이브
+  서브컬렉션)을 읽어 항상 정합. (2) 지배적 `onComplete` 흐름은 `recordAttempt`가 선행해
+  요약을 재빌드한다. (3) 사용자 노출 next/due는 `getLearnerSummary`의 `applyReviewTaskState`
+  오버레이가 라이브 reviewTasks에서 재유도. → 독립 `saveReviewTasks`(예: overdue-only)
+  단독 시 요약 doc의 일부 reviewTask-파생 집계(예: recentActivity completed 항목) 지연 가능은
+  **1단계 비범위**로 명시, Task 7 검증 항목으로 둔다. 전면 요약 동기화는 후속(FCM 단계와 함께 재검토).
 
 ## 6. 테스트
 
