@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { completeReviewTask, spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -72,12 +71,11 @@ export type UseReviewSessionScreenResult = {
   __test_discoveredForStep?: (stepIndex: number) => WeaknessId[];
 };
 
-const store = new LocalReviewTaskStore();
-
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const params = useLocalSearchParams();
   const taskId = getSingleParam(params.taskId) ?? '';
-  const { session, refresh, profile, recordAttempt } = useCurrentLearner();
+  const { session, refresh, profile, recordAttempt, reviewTaskStore: store } =
+    useCurrentLearner();
   const accountKey = session?.accountKey ?? '';
 
   const [task, setTask] = useState<ReviewTask | null>(null);

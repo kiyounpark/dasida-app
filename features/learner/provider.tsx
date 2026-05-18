@@ -22,8 +22,11 @@ import { createCurrentLearnerController } from '@/features/learner/current-learn
 import { AnonymousAwareLearnerProfileStore } from '@/features/learner/anonymous-aware-learner-profile-store';
 import { FirestoreLearnerProfileStore } from '@/features/learner/firestore-learner-profile-store';
 import { LocalLearnerProfileStore } from '@/features/learner/local-learner-profile-store';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
-import { createLearningHistoryRepository } from '@/features/learning/create-learning-history-repository';
+import { LocalReviewTaskStore, type ReviewTaskStore } from '@/features/learning/review-task-store';
+import {
+  createLearningHistoryRepository,
+  createReviewTaskStore,
+} from '@/features/learning/create-learning-history-repository';
 import type {
   FinalizedAttemptInput,
   HistoryMigrationStatus,
@@ -50,6 +53,9 @@ const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
 const localReviewTaskStore = new LocalReviewTaskStore();
+// 스케줄러 경로(복습 세션/허브)용 라우티드 store — authed→remote, guest→local.
+// 컨트롤러의 localReviewTaskStore(마이그레이션/시드 전용)와는 별개(스펙 §3.4).
+const routedReviewTaskStore = createReviewTaskStore(authClient);
 const availableAuthProviders = getRequiredAuthProviders(authClient.getSupportedProviders());
 const fallbackAuthBlockingReason = getAuthBlockingReason({
   availableProviders: availableAuthProviders,
@@ -120,6 +126,7 @@ export type CurrentLearnerContextValue = {
   clearPendingPractice(): Promise<void>;
   markDiagnosticResultViewed(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
+  reviewTaskStore: ReviewTaskStore;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
   pullReviewDueDates(): Promise<void>;
@@ -334,6 +341,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         const snapshot = await learnerController.recordAttempt(input);
         setState(toLearnerState(snapshot));
       },
+      reviewTaskStore: routedReviewTaskStore,
       saveFeaturedExamState: async (featuredExamState) => {
         const snapshot = await learnerController.saveFeaturedExamState(featuredExamState);
         setState(toLearnerState(snapshot));

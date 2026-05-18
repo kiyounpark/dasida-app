@@ -7,7 +7,6 @@ import { logEvent } from '@/features/analytics/log-event';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
-import { LocalReviewTaskStore } from '@/features/learning/review-task-store';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { WeaknessId } from '@/data/diagnosisMap';
@@ -21,8 +20,6 @@ import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progre
 import { getLatestExamAttempts } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
-
-const hubReviewStore = new LocalReviewTaskStore();
 
 type CurrentLearnerSnapshot = ReturnType<typeof useCurrentLearner>;
 
@@ -66,6 +63,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     profile,
     refresh,
     session,
+    reviewTaskStore: hubReviewStore,
   } = useCurrentLearner();
   const { hydrateResult } = useExamSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
