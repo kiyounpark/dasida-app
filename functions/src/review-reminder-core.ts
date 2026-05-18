@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type ReminderSlot = 'morning' | 'evening';
 
 export function computeReminderDateBounds(todayLabel: string): {
@@ -65,3 +67,34 @@ export function removeInvalidTokens(
 ): PushTokenRecord[] {
   return tokens.filter((t) => !invalid.has(t.token));
 }
+
+export const MAX_PUSH_TOKENS = 10;
+
+export function upsertPushToken(
+  prev: PushTokenRecord[],
+  next: PushTokenRecord,
+): PushTokenRecord[] {
+  const existingIdx = prev.findIndex((t) => t.token === next.token);
+  let merged: PushTokenRecord[];
+  if (existingIdx >= 0) {
+    merged = prev.slice();
+    merged[existingIdx] = { ...merged[existingIdx], ...next };
+  } else {
+    merged = [...prev, next];
+  }
+  if (merged.length <= MAX_PUSH_TOKENS) return merged;
+  return merged
+    .slice()
+    .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
+    .slice(merged.length - MAX_PUSH_TOKENS);
+}
+
+export const RegisterPushTokenRequestSchema = z.object({
+  accountKey: z.string().min(1).max(200),
+  token: z.string().regex(/^ExponentPushToken\[.+\]$/),
+  platform: z.enum(['ios', 'android']),
+});
+
+export type RegisterPushTokenRequest = z.infer<
+  typeof RegisterPushTokenRequestSchema
+>;

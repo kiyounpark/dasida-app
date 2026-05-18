@@ -72,3 +72,75 @@ test('removeInvalidTokens: DeviceNotRegistered 토큰만 제거', () => {
   const result = removeInvalidTokens(tokens, new Set(['ExponentPushToken[B]']));
   assert.deepEqual(result.map((t) => t.token), ['ExponentPushToken[A]']);
 });
+
+import {
+  upsertPushToken,
+  RegisterPushTokenRequestSchema,
+  MAX_PUSH_TOKENS,
+} from '../src/review-reminder-core';
+
+test('upsertPushToken: 신규 추가', () => {
+  const next = upsertPushToken([], {
+    token: 'ExponentPushToken[A]',
+    platform: 'ios',
+    updatedAt: '2026-05-18T00:00:00.000Z',
+  });
+  assert.equal(next.length, 1);
+});
+
+test('upsertPushToken: 동일 token이면 updatedAt만 갱신(중복 추가 안 함)', () => {
+  const prev = [
+    { token: 'ExponentPushToken[A]', platform: 'ios' as const, updatedAt: '2026-05-10T00:00:00.000Z' },
+  ];
+  const next = upsertPushToken(prev, {
+    token: 'ExponentPushToken[A]',
+    platform: 'ios',
+    updatedAt: '2026-05-18T00:00:00.000Z',
+  });
+  assert.equal(next.length, 1);
+  assert.equal(next[0].updatedAt, '2026-05-18T00:00:00.000Z');
+});
+
+test('upsertPushToken: 상한 초과 시 가장 오래된 updatedAt 제거', () => {
+  const prev = Array.from({ length: MAX_PUSH_TOKENS }, (_, i) => ({
+    token: `ExponentPushToken[${i}]`,
+    platform: 'ios' as const,
+    updatedAt: `2026-05-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
+  }));
+  const next = upsertPushToken(prev, {
+    token: 'ExponentPushToken[NEW]',
+    platform: 'android',
+    updatedAt: '2026-06-01T00:00:00.000Z',
+  });
+  assert.equal(next.length, MAX_PUSH_TOKENS);
+  assert.equal(next.some((t) => t.token === 'ExponentPushToken[NEW]'), true);
+  assert.equal(next.some((t) => t.token === 'ExponentPushToken[0]'), false);
+});
+
+test('RegisterPushTokenRequestSchema: 정상 통과', () => {
+  const r = RegisterPushTokenRequestSchema.safeParse({
+    accountKey: 'user:abc',
+    token: 'ExponentPushToken[xxxxxxxx]',
+    platform: 'ios',
+  });
+  assert.equal(r.success, true);
+});
+
+test('RegisterPushTokenRequestSchema: 형식 위반 reject', () => {
+  assert.equal(
+    RegisterPushTokenRequestSchema.safeParse({
+      accountKey: 'user:abc',
+      token: 'not-an-expo-token',
+      platform: 'ios',
+    }).success,
+    false,
+  );
+  assert.equal(
+    RegisterPushTokenRequestSchema.safeParse({
+      accountKey: 'user:abc',
+      token: 'ExponentPushToken[x]',
+      platform: 'windows',
+    }).success,
+    false,
+  );
+});
