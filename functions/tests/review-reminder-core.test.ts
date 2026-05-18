@@ -144,3 +144,15 @@ test('RegisterPushTokenRequestSchema: 형식 위반 reject', () => {
     false,
   );
 });
+
+import { chunkExpoMessages } from '../src/review-reminder-core';
+
+test('chunkExpoMessages: 100건 단위로 분할', () => {
+  const msgs = Array.from({ length: 250 }, (_, i) => ({ to: `t${i}` }));
+  const chunks = chunkExpoMessages(msgs, 100);
+  assert.deepEqual(chunks.map((c) => c.length), [100, 100, 50]);
+});
+
+test('chunkExpoMessages: 빈 입력 → 빈 배열', () => {
+  assert.deepEqual(chunkExpoMessages([], 100), []);
+});
