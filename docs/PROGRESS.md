@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.19 10:43
+- 해시: `a768d88` (`a768d882b6fb15aee0853308cb312b19bbc29986`)
+- 브랜치: claude/sync-exam-data-vcmDw
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app/commit/a768d882b6fb15aee0853308cb312b19bbc29986
+- 작성자: Claude
+- 메시지: docs: PROGRESS에 학습 기록 재전송 큐 작업 기록 (PR #28)
+- 본문: 릴리스 순서 제약(서버 replay 모드 선배포 필요) 명시. / https://claude.ai/code/session_016YNMZErxR7Hj6PoA1RusGk
+
 ### 커밋 2026.05.17 12:33
 - 해시: `d7904bb` (`d7904bb478eafa60bfbd6f1159f425430c6c6c5e`)
 - 브랜치: claude/gracious-raman-daec61
