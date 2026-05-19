@@ -17,4 +17,8 @@ export { deleteAccountHandler as deleteAccount } from './delete-account';
 export { listReviewTasksHandler as listReviewTasks } from './list-review-tasks';
 export { saveReviewTasksHandler as saveReviewTasks } from './save-review-tasks';
 export { registerPushTokenHandler as registerPushToken } from './register-push-token';
+export {
+  sendReviewRemindersMorning,
+  sendReviewRemindersEvening,
+} from './send-review-reminders';
 export { reviewRouter } from './review-router';
