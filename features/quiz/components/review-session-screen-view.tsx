@@ -18,6 +18,8 @@ import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-rev
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
+import { AllDoneView } from './review-session/all-done-view';
+import { BridgeView } from './review-session/bridge-view';
 import { DoneView } from './review-session/done-view';
 import { EntryRenderer } from './review-session/entry-renderer';
 import { LoadingView } from './review-session/loading-view';
@@ -35,6 +37,10 @@ export function ReviewSessionScreenView({
   onPressNext,
   onPressContinue,
   onComplete,
+  completionOutcome,
+  onAdvanceChain,
+  onGraduationContinue,
+  onHome,
   entries,
   freeText,
   fallbackText,
@@ -127,7 +133,36 @@ export function ReviewSessionScreenView({
   const step = steps[currentStepIndex];
   const totalSteps = steps.length;
 
-  if (sessionComplete || !step) {
+  if (completionOutcome) {
+    if (completionOutcome.kind === 'bridge') {
+      return (
+        <View style={styles.screen}>
+          {appBar}
+          <BridgeView
+            prevLabel={completionOutcome.prevLabel}
+            nextLabel={completionOutcome.nextLabel}
+            chainDone={completionOutcome.chainDone}
+            chainTotal={completionOutcome.chainTotal}
+            nextStageDays={completionOutcome.nextStageDays}
+            paddingBottom={insets.bottom + 24}
+            onContinue={onAdvanceChain}
+          />
+        </View>
+      );
+    }
+    if (completionOutcome.kind === 'allDone') {
+      return (
+        <View style={styles.screen}>
+          {appBar}
+          <AllDoneView
+            totalCount={completionOutcome.totalCount}
+            paddingBottom={insets.bottom + 24}
+            onHome={onHome}
+          />
+        </View>
+      );
+    }
+    // graduation: 기존 졸업 화면 재사용, 자동 진행 없음(버튼 탭만).
     return (
       <View style={styles.screen}>
         {appBar}
@@ -135,8 +170,18 @@ export function ReviewSessionScreenView({
           task={task}
           weaknessLabel={weaknessLabel}
           paddingBottom={insets.bottom + 24}
-          onComplete={onComplete}
+          onComplete={onGraduationContinue}
         />
+      </View>
+    );
+  }
+
+  if (sessionComplete || !step) {
+    // 저장/결과 계산 중(아주 짧음) — 빈 화면 대신 로딩 표시.
+    return (
+      <View style={styles.screen}>
+        {appBar}
+        <LoadingView spin={spin} />
       </View>
     );
   }
