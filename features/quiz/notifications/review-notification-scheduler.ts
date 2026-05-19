@@ -160,6 +160,22 @@ export async function scheduleTestNotification(): Promise<void> {
 }
 
 /**
+ * 예약된 review_* 로컬 알림을 모두 취소.
+ * 인증 사용자 전환(서버 푸시) 또는 재예약 전에 호출.
+ */
+export async function cancelAllReviewNotifications(): Promise<void> {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const reviewIds = scheduled
+    .map((n) => n.identifier)
+    .filter((id) => id.startsWith(NOTIFICATION_ID_PREFIX));
+  await Promise.all(
+    reviewIds.map((id) =>
+      Notifications.cancelScheduledNotificationAsync(id).catch(() => {}),
+    ),
+  );
+}
+
+/**
  * 전체 review 알림을 취소하고 현재 task 목록 기준으로 재예약.
  * overdue penalty 적용 후 또는 앱 마운트 시 호출.
  */
@@ -170,14 +186,7 @@ export async function rescheduleAllReviewNotifications(
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') return;
 
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  const reviewIds = scheduled
-    .map((n) => n.identifier)
-    .filter((id) => id.startsWith(NOTIFICATION_ID_PREFIX));
-
-  await Promise.all(
-    reviewIds.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})),
-  );
+  await cancelAllReviewNotifications();
 
   await scheduleReviewNotifications(accountKey, store);
 }

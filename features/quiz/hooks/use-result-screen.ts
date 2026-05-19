@@ -78,6 +78,7 @@ export function useResultScreen({
     markDiagnosticResultViewed,
     profile,
     recordAttempt,
+    registerPushToken,
     session,
     summary: currentSummary,
   } = useCurrentLearner();
@@ -119,6 +120,8 @@ export function useResultScreen({
   const optIn = useNotificationOptIn({
     accountKey: session?.accountKey,
     hasWeaknesses: (liveSummary?.topWeaknesses?.length ?? 0) > 0,
+    isAuthenticated: session?.status === 'authenticated',
+    registerPushToken,
   });
 
   const weaknessLabels = useMemo(() => {
