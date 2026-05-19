@@ -313,6 +313,14 @@ export function createCurrentLearnerController({
       (await learningHistoryRepository.loadCurrentSummary(session.accountKey)) ??
       createEmptyLearnerSummary(session.accountKey);
 
+    if (session.status === 'authenticated') {
+      // 부팅/스냅샷 갱신 시 큐에 밀린 학습 기록을 best-effort 재전송.
+      // 재진입 가드가 있어 중복 호출은 즉시 무시된다.
+      void learningHistoryRepository
+        .flushPendingAttempts(session.accountKey)
+        .catch(() => {});
+    }
+
     return buildSnapshot({
       authGateState:
         options?.authGateState ?? (session.status === 'authenticated' ? 'authenticated' : 'guest-dev'),
@@ -446,6 +454,13 @@ export function createCurrentLearnerController({
         await learningHistoryRepository.listReviewTasks(nextSession.accountKey);
       } catch (error) {
         console.warn('Failed to sync review tasks after sign-in.', error);
+      }
+
+      // 네트워크 실패로 큐에 밀린 학습 기록 재전송 (실패해도 로그인 흐름 계속)
+      try {
+        await learningHistoryRepository.flushPendingAttempts(nextSession.accountKey);
+      } catch (error) {
+        console.warn('Failed to flush pending attempts after sign-in.', error);
       }
 
       if (previousSession?.status !== 'anonymous' || nextSession.status !== 'authenticated') {
