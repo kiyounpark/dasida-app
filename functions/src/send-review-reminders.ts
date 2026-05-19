@@ -76,6 +76,10 @@ export async function runReviewReminders(
         data: { notificationType: 'review_reminder', slot },
       }));
 
+      // MAX_PUSH_TOKENS=10 < 100이라 계정당 항상 단일 청크 → 전송 throw 시
+      // 아무것도 전달되지 않고 sent-log 미기록 → 다음 슬롯에서 안전 재시도
+      // (이중 발송 없음). 향후 토큰 상한을 100 이상으로 올리면 부분 청크
+      // 실패 시 이중 발송 가능 — 그 경우 청크 단위 sent-log 재설계 필요.
       const invalid = new Set<string>();
       let tokenCursor = 0;
       for (const chunk of chunkExpoMessages(messages, 100)) {
@@ -88,6 +92,17 @@ export async function runReviewReminders(
         for (const tk of collectInvalidTokensFromTickets(chunkTokens, tickets)) {
           invalid.add(tk);
         }
+        tickets.forEach((ticket, i) => {
+          if (
+            ticket.status === 'error' &&
+            ticket.details?.error !== 'DeviceNotRegistered'
+          ) {
+            logger.warn('Expo ticket error (unhandled)', {
+              token: chunkTokens[i],
+              details: ticket.details,
+            });
+          }
+        });
         tokenCursor += chunk.length;
       }
 
