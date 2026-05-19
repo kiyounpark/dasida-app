@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.19 20:21
+- 해시: `ea729ba` (`ea729baf2934b1eb4a1f203119e6b769ffd35541`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ea729baf2934b1eb4a1f203119e6b769ffd35541
+- 작성자: 박기윤
+- 메시지: chore: 앱 버전 1.0.4로 상향 (App Store 재제출용)
+- 본문: Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.19 10:43
 - 해시: `a768d88` (`a768d882b6fb15aee0853308cb312b19bbc29986`)
 - 브랜치: claude/sync-exam-data-vcmDw
