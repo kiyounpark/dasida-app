@@ -177,6 +177,31 @@ describe('useNotificationOptIn', () => {
     expect(scheduleSpy).not.toHaveBeenCalled();
   });
 
+  it('인증 사용자: 권한 이미 granted면 마운트 시 자동 활성화 — 취소O 로컬예약X 토큰등록O', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'granted' });
+    const registerPushToken = jest.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useNotificationOptIn({
+        accountKey: 'user:abc',
+        hasWeaknesses: true,
+        isAuthenticated: true,
+        registerPushToken,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.state).toBe('granted'));
+    await waitFor(() =>
+      expect(registerPushToken).toHaveBeenCalledWith(
+        'user:abc',
+        'ExponentPushToken[X]',
+        expect.stringMatching(/ios|android/),
+      ),
+    );
+    expect(mockCancel).toHaveBeenCalled();
+    expect(mockSchedule).not.toHaveBeenCalled();
+  });
+
   it('게스트: 기존 로컬 예약 유지', async () => {
     const scheduleSpy = jest
       .spyOn(scheduler, 'scheduleReviewNotifications')

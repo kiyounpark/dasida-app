@@ -88,6 +88,9 @@ export function useNotificationOptIn({
     [isAuthenticated, registerPushToken],
   );
 
+  // accountKey/hasWeaknesses 변동 시 재활성화될 수 있음(예: 세션 결과로
+  // hasWeaknesses 토글). 인증 사용자의 토큰 등록은 서버 upsert로 멱등,
+  // cancel도 멱등이라 의도적으로 허용 — best-effort 설계.
   useEffect(() => {
     let cancelled = false;
     if (!accountKey || !hasWeaknesses) {
