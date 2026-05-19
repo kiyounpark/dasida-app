@@ -76,6 +76,7 @@ export type LearningHistoryRepository = {
   ): Promise<LearningAttempt[]>;
   listAttemptResults(accountKey: string, attemptId: string): Promise<LearningAttemptResult[]>;
   listReviewTasks(accountKey: string): Promise<ReviewTask[]>;
+  flushPendingAttempts(accountKey: string): Promise<void>;
 };
 
 export type LocalLearningHistorySnapshot = {

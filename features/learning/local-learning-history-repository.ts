@@ -615,6 +615,9 @@ export class LocalLearningHistoryRepository implements LearningHistoryRepository
     return readLearningHistoryJson<ReviewTask[]>(getReviewTasksStorageKey(accountKey), []);
   }
 
+  // 게스트/익명은 로컬이 진실원천이라 재전송 큐 대상이 아니다(enqueue 미진입). no-op.
+  async flushPendingAttempts(): Promise<void> {}
+
   async saveFeaturedExamState(
     accountKey: string,
     state: FeaturedExamState,
