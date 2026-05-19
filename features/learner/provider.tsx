@@ -45,12 +45,14 @@ import { LocalLearningHistoryRepository } from '@/features/learning/local-learni
 import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-learning-history-snapshot-store';
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
+import { createRegisterPushToken } from '@/features/learning/register-push-token-api';
 import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
-import { deleteAccountUrl } from '@/constants/env';
+import { deleteAccountUrl, registerPushTokenUrl } from '@/constants/env';
 import { setAnalyticsUserId } from '@/features/analytics/log-event';
 
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
+const registerPushToken = createRegisterPushToken({ authClient, registerPushTokenUrl });
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
 const localReviewTaskStore = new LocalReviewTaskStore();
 // 스케줄러 경로(복습 세션/허브)용 라우티드 store — authed→remote, guest→local.
@@ -127,6 +129,7 @@ export type CurrentLearnerContextValue = {
   markDiagnosticResultViewed(): Promise<void>;
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   reviewTaskStore: ReviewTaskStore;
+  registerPushToken: (accountKey: string, token: string, platform: 'ios' | 'android') => Promise<void>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
   pullReviewDueDates(): Promise<void>;
@@ -342,6 +345,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         setState(toLearnerState(snapshot));
       },
       reviewTaskStore: routedReviewTaskStore,
+      registerPushToken,
       saveFeaturedExamState: async (featuredExamState) => {
         const snapshot = await learnerController.saveFeaturedExamState(featuredExamState);
         setState(toLearnerState(snapshot));

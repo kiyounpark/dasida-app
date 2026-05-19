@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diagnosisMap } from '@/data/diagnosisMap';
+import { buildReviewReminderCopy } from '@/features/quiz/notifications/review-reminder-copy';
 import type { ReviewTask } from '@/features/learning/types';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
@@ -81,15 +82,12 @@ export async function scheduleReviewNotifications(
     ? diagnosisMap[representativeTask.weaknessId]?.labelKo
     : undefined;
 
-  const morningTitle = label
-    ? `벌써 잊혀지고 있어요. ${label}, 지금 3분이면 돼요`
-    : '벌써 잊혀지고 있어요. 지금 3분이면 돼요';
-  const morningBody = '오늘 안 하면 내일 처음부터예요';
-
-  const eveningTitle = label
-    ? `${label}, 오늘 자기 전 마지막 기회예요`
-    : '오늘 복습 마감, 자기 전 3분만요';
-  const eveningBody = '잠들기 전 3분, 기억이 굳어져요';
+  const morning = buildReviewReminderCopy('morning', label);
+  const evening = buildReviewReminderCopy('evening', label);
+  const morningTitle = morning.title;
+  const morningBody = morning.body;
+  const eveningTitle = evening.title;
+  const eveningBody = evening.body;
 
   const now = new Date();
 
@@ -162,6 +160,22 @@ export async function scheduleTestNotification(): Promise<void> {
 }
 
 /**
+ * 예약된 review_* 로컬 알림을 모두 취소.
+ * 인증 사용자 전환(서버 푸시) 또는 재예약 전에 호출.
+ */
+export async function cancelAllReviewNotifications(): Promise<void> {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const reviewIds = scheduled
+    .map((n) => n.identifier)
+    .filter((id) => id.startsWith(NOTIFICATION_ID_PREFIX));
+  await Promise.all(
+    reviewIds.map((id) =>
+      Notifications.cancelScheduledNotificationAsync(id).catch(() => {}),
+    ),
+  );
+}
+
+/**
  * 전체 review 알림을 취소하고 현재 task 목록 기준으로 재예약.
  * overdue penalty 적용 후 또는 앱 마운트 시 호출.
  */
@@ -172,14 +186,7 @@ export async function rescheduleAllReviewNotifications(
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') return;
 
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  const reviewIds = scheduled
-    .map((n) => n.identifier)
-    .filter((id) => id.startsWith(NOTIFICATION_ID_PREFIX));
-
-  await Promise.all(
-    reviewIds.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})),
-  );
+  await cancelAllReviewNotifications();
 
   await scheduleReviewNotifications(accountKey, store);
 }

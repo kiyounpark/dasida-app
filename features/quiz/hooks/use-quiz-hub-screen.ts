@@ -7,7 +7,10 @@ import { logEvent } from '@/features/analytics/log-event';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import type { HomeJourneyState } from '@/features/learning/home-journey-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
-import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
+import {
+  cancelAllReviewNotifications,
+  rescheduleAllReviewNotifications,
+} from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import {
@@ -87,8 +90,16 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     if (!accountKey) {
       return;
     }
+    const isAuthenticated = session?.status === 'authenticated';
     applyOverduePenalties(accountKey, hubReviewStore).then(() => {
-      void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(console.warn);
+      if (isAuthenticated) {
+        // 인증 사용자는 서버가 발송 주도 — 로컬 재예약 금지, 기존 예약 취소.
+        void cancelAllReviewNotifications().catch(console.warn);
+      } else {
+        void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(
+          console.warn,
+        );
+      }
       void refresh();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
