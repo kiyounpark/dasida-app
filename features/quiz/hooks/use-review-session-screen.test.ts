@@ -16,9 +16,15 @@ jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
 }));
 
+// 모듈 수준 mock 변수 — jest.mock factory 내에서 참조 가능 (mock 접두사 필요)
+const mockSearchParams: { taskId: string; chainTotal?: string; chainDone?: string } = {
+  taskId: '__mock__',
+};
+const mockStoreLoad = jest.fn().mockResolvedValue([]);
+
 jest.mock('expo-router', () => ({
-  router: { back: jest.fn() },
-  useLocalSearchParams: () => ({ taskId: '__mock__' }),
+  router: { back: jest.fn(), replace: jest.fn() },
+  useLocalSearchParams: () => mockSearchParams,
 }));
 
 const mockRecordAttempt = jest.fn().mockResolvedValue(undefined);
@@ -29,7 +35,7 @@ jest.mock('@/features/learner/provider', () => ({
     profile: { learnerId: 'l-1', grade: 'middle1' },
     recordAttempt: mockRecordAttempt,
     reviewTaskStore: {
-      load: jest.fn().mockResolvedValue([]),
+      load: mockStoreLoad,
       saveAll: jest.fn().mockResolvedValue(undefined),
       reset: jest.fn().mockResolvedValue(undefined),
     },
@@ -65,6 +71,14 @@ jest.mock('@/features/quiz/components/review-session/build-review-router-candida
       .buildReviewRouterCandidates,
   ),
 }));
+
+// 각 테스트 전에 mock 상태를 초기 기본값으로 복원한다
+beforeEach(() => {
+  mockSearchParams.taskId = '__mock__';
+  delete mockSearchParams.chainTotal;
+  delete mockSearchParams.chainDone;
+  mockStoreLoad.mockReset().mockResolvedValue([]);
+});
 
 describe('entries-based flow', () => {
   // Task 6 fixture: inject weaknessId labels into formula_understanding data so that
@@ -261,6 +275,38 @@ describe('entries-based flow', () => {
       .invocationCallOrder[0];
     expect(completeOrder).toBeLessThan(spawnOrder);
     expect(spawnOrder).toBeLessThan(rescheduleOrder);
+  });
+
+  it('finalize 가드: sessionComplete 자동 finalize 후 onComplete 직접 호출은 no-op', async () => {
+    (completeReviewTask as jest.Mock).mockClear();
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    for (let i = 0; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex(
+        (c) => c.correct,
+      );
+      await act(async () => {
+        result.current.onSelectChoice(correctIdx);
+      });
+      await act(async () => {
+        result.current.onPressContinue();
+      });
+    }
+
+    // 마지막 onPressContinue → sessionComplete=true → finalize 이펙트가 onComplete 1회 실행
+    await waitFor(() =>
+      expect(result.current.completionOutcome).not.toBeNull(),
+    );
+    expect(completeReviewTask as jest.Mock).toHaveBeenCalledTimes(1);
+
+    // 직접 한 번 더 호출해도 가드로 인해 재저장 없음
+    await act(async () => {
+      await result.current.onComplete();
+    });
+    expect(completeReviewTask as jest.Mock).toHaveBeenCalledTimes(1);
   });
 
   it('초기 entries에 step-card와 input-area가 있다', () => {
@@ -967,5 +1013,117 @@ describe('Remedial 도중 "모르겠어요" 정적 이동 (Phase 2)', () => {
 
     expect(result.current.entries.some((e: any) => e.kind === 'ai-typing')).toBe(false);
     expect(result.current.entries.some((e: any) => e.kind === 'fallback-input')).toBe(false);
+  });
+});
+
+describe('completionOutcome 분기 (스펙 §8)', () => {
+  // store 경유 task 헬퍼: formula_understanding weaknessId로 실제 store.load 경로를 탄다
+  const TODAY = new Date().toISOString().slice(0, 10);
+
+  function makeTask(overrides: Partial<{
+    id: string;
+    stage: 'day1' | 'day3' | 'day7' | 'day30';
+    weaknessId: string;
+    completed: boolean;
+    scheduledFor: string;
+  }> = {}) {
+    return {
+      id: overrides.id ?? 'task-1',
+      accountKey: 'acc-1',
+      weaknessId: overrides.weaknessId ?? 'formula_understanding',
+      source: 'diagnostic' as const,
+      sourceId: overrides.id ?? 'task-1',
+      scheduledFor: (overrides.scheduledFor ?? TODAY) + 'T00:00:00.000Z',
+      stage: overrides.stage ?? 'day1',
+      completed: overrides.completed ?? false,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  // 모든 스텝을 정답으로 통과하는 헬퍼 (store 경유 태스크 로드 완료 후 호출)
+  async function driveAllStepsCorrect(result: any) {
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+    for (let i = 0; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex((c: any) => c.correct);
+      await act(async () => { result.current.onSelectChoice(correctIdx); });
+      await act(async () => { result.current.onPressContinue(); });
+    }
+  }
+
+  it('졸업(day30) 분기: task.stage가 day30이면 completionOutcome.kind === "graduation"', async () => {
+    const currentTask = makeTask({ id: 'task-day30', stage: 'day30' });
+    // mount 시 store.load → [currentTask]; post-complete reload → [currentTask(completed)]
+    mockStoreLoad.mockResolvedValue([{ ...currentTask, completed: true }]);
+    // 첫 로드는 미완료 태스크로 찾아야 하므로 첫 호출만 미완료로 반환
+    mockStoreLoad.mockResolvedValueOnce([currentTask]);
+
+    mockSearchParams.taskId = currentTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(result.current.completionOutcome).not.toBeNull());
+    expect(result.current.completionOutcome?.kind).toBe('graduation');
+  });
+
+  it('라벨 폴백: nextDue task의 weaknessId가 diagnosisMap에 없으면 bridge.nextLabel === null', async () => {
+    const currentTask = makeTask({ id: 'task-current', stage: 'day1' });
+    const nextTask = makeTask({
+      id: 'task-next',
+      stage: 'day1',
+      // diagnosisMap에 없는 weaknessId — 타입을 우회해 폴백 경로 확인
+      weaknessId: 'nonexistent_weakness_id' as any,
+    });
+
+    // mount: currentTask 로드
+    mockStoreLoad.mockResolvedValueOnce([currentTask, nextTask]);
+    // post-complete reload: currentTask 완료 처리 후 nextTask가 남아있음
+    mockStoreLoad.mockResolvedValue([{ ...currentTask, completed: true }, nextTask]);
+
+    mockSearchParams.taskId = currentTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(result.current.completionOutcome).not.toBeNull());
+    expect(result.current.completionOutcome?.kind).toBe('bridge');
+    if (result.current.completionOutcome?.kind === 'bridge') {
+      expect(result.current.completionOutcome.nextLabel).toBeNull();
+    }
+  });
+
+  it('분모 고정 (스펙 §5.3): 완료 후 store에 새 task가 추가돼도 chainTotal은 시작 시점 값 유지', async () => {
+    // 시작 시점 due 태스크: current + 2개 = 3개
+    const currentTask = makeTask({ id: 'task-a', stage: 'day1' });
+    const extra1 = makeTask({ id: 'task-b', stage: 'day1', weaknessId: 'formula_understanding' });
+    const extra2 = makeTask({ id: 'task-c', stage: 'day1', weaknessId: 'formula_understanding' });
+    const newSpawned = makeTask({ id: 'task-spawned', stage: 'day1', weaknessId: 'formula_understanding' });
+
+    // 첫 번째 store.load (mount 시점): 3개 due → countDueReviews = 3
+    mockStoreLoad.mockResolvedValueOnce([currentTask, extra1, extra2]);
+    // 두 번째 store.load (onComplete 내 post-complete reload): 4개 (spawn 포함)
+    mockStoreLoad.mockResolvedValue([
+      { ...currentTask, completed: true },
+      extra1,
+      extra2,
+      newSpawned,
+    ]);
+
+    mockSearchParams.taskId = currentTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(result.current.completionOutcome).not.toBeNull());
+    // chainTotal은 시작 시점(3)이어야 하며 post-complete 4개에 영향받지 않아야 한다
+    if (result.current.completionOutcome?.kind === 'bridge') {
+      expect(result.current.completionOutcome.chainTotal).toBe(3);
+    } else if (result.current.completionOutcome?.kind === 'allDone') {
+      expect(result.current.completionOutcome.totalCount).toBe(3);
+    } else {
+      // graduation이면 chainTotal 없음 — 이 시나리오에서는 발생하면 안 됨
+      throw new Error(`예상치 못한 kind: ${result.current.completionOutcome?.kind}`);
+    }
   });
 });

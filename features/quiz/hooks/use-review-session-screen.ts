@@ -3,8 +3,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
-import type { WeaknessId } from '@/data/diagnosisMap';
+import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import { completeReviewTask, spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
+import {
+  resolveNextDueReview,
+  countDueReviews,
+  nextStageOffsetDays,
+  type NextDueResolution,
+} from '@/features/learning/review-chain';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import type { ReviewTask } from '@/features/learning/types';
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -42,6 +48,19 @@ const DONT_KNOW_AI_CHAT_THRESHOLD = 2;
 export const REMEDIAL_CLOSING_MESSAGE =
   '잘 따라오셨어요. 이 부분은 이제 한결 편하게 느껴질 거예요.';
 
+export type CompletionOutcome =
+  | {
+      kind: 'bridge';
+      prevLabel: string | null;
+      nextLabel: string | null;
+      nextTaskId: string;
+      chainDone: number;
+      chainTotal: number;
+      nextStageDays: number | null;
+    }
+  | { kind: 'graduation'; prevLabel: string | null; nextTaskId: string | null }
+  | { kind: 'allDone'; totalCount: number };
+
 export type UseReviewSessionScreenResult = {
   task: ReviewTask | null;
   steps: readonly ThinkingStep[];
@@ -52,6 +71,10 @@ export type UseReviewSessionScreenResult = {
   onPressNext: () => void;
   onPressContinue: () => void;
   onComplete: () => void;
+  completionOutcome: CompletionOutcome | null;
+  onAdvanceChain: () => void;
+  onGraduationContinue: () => void;
+  onHome: () => void;
   onRemedialExplainPrimary: (nodeId: string) => void;
   onRemedialExplainSecondary: (nodeId: string) => void;
   onRemedialCheckOption: (nodeId: string, optionId: string) => void;
@@ -74,6 +97,11 @@ export type UseReviewSessionScreenResult = {
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const params = useLocalSearchParams();
   const taskId = getSingleParam(params.taskId) ?? '';
+  const chainTotalParam = Number(getSingleParam(params.chainTotal));
+  const chainDoneParam = Number(getSingleParam(params.chainDone));
+  const hasChainParams =
+    Number.isFinite(chainTotalParam) && chainTotalParam > 0;
+  const chainDone = Number.isFinite(chainDoneParam) ? chainDoneParam : 0;
   const { session, refresh, profile, recordAttempt, reviewTaskStore: store } =
     useCurrentLearner();
   const accountKey = session?.accountKey ?? '';
@@ -83,6 +111,13 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [completionOutcome, setCompletionOutcome] =
+    useState<CompletionOutcome | null>(null);
+  const [resolvedChainTotal, setResolvedChainTotal] = useState<number | null>(
+    hasChainParams ? chainTotalParam : null,
+  );
+  // finalize는 정확히 한 번만 (이펙트 + 직접 호출 모두 가드).
+  const finalizeStartedRef = useRef(false);
 
   const [freeText, setFreeText] = useState('');
   const [fallbackText, setFallbackText] = useState('');
@@ -170,6 +205,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         dontKnowCountPerStepRef.current = new Array(foundStepCount).fill(0);
         discoveredPerStepRef.current = Array.from({ length: foundStepCount }, () => []);
         sessionStartedAtRef.current = new Date().toISOString();
+        if (!hasChainParams) {
+          setResolvedChainTotal(countDueReviews(tasks));
+        }
       }
     }).catch((error) => {
       // 라우티드 store는 원격이라 인증 만료 등으로 throw 가능(로컬은 throw 안 했음).
@@ -516,6 +554,11 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     if (!task || !profile) {
       return;
     }
+    // 이미 finalize가 시작됐으면 중복 실행 방지 (자동 finalize 이펙트 이후 직접 호출 시 no-op)
+    if (finalizeStartedRef.current) {
+      return;
+    }
+    finalizeStartedRef.current = true;
 
     const completedAt = new Date().toISOString();
     const results = firstAttemptCorrectRef.current;
@@ -587,6 +630,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       ),
     );
 
+    let resolution: NextDueResolution = { nextDue: null, dueRemaining: 0 };
     try {
       await completeReviewTask(accountKey, task.id, store);
       // F4: completeReviewTask가 만든 다음 단계 task까지 보고 강등하도록 재로드 후 spawn
@@ -598,11 +642,82 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       );
       void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
       await refresh();
+      // due 판정 단일 소스: 저장 직후 store 재조회 (인메모리 homeState 신뢰 안 함).
+      const latest = await store.load(accountKey);
+      resolution = resolveNextDueReview(latest, task.id);
     } catch (error) {
       console.warn('Failed to complete review task', error);
     }
-    router.back();
+    if (isCancelled()) return;
+
+    const labelFor = (id: WeaknessId): string | null =>
+      diagnosisMap[id]?.labelKo ?? null;
+    const total = resolvedChainTotal ?? chainDone + 1;
+    const doneNow = chainDone + 1;
+
+    if (task.stage === 'day30') {
+      setCompletionOutcome({
+        kind: 'graduation',
+        prevLabel: labelFor(task.weaknessId),
+        nextTaskId: resolution.nextDue?.id ?? null,
+      });
+    } else if (resolution.nextDue) {
+      setCompletionOutcome({
+        kind: 'bridge',
+        prevLabel: labelFor(task.weaknessId),
+        nextLabel: labelFor(resolution.nextDue.weaknessId),
+        nextTaskId: resolution.nextDue.id,
+        chainDone: doneNow,
+        chainTotal: total,
+        nextStageDays: nextStageOffsetDays(task.stage),
+      });
+    } else {
+      setCompletionOutcome({ kind: 'allDone', totalCount: total });
+    }
   };
+
+  // 마지막 스텝 완료 → sessionComplete=true가 되면 저장/결과계산을 자동 1회 실행한다.
+  useEffect(() => {
+    if (
+      sessionComplete &&
+      !completionOutcome &&
+      !finalizeStartedRef.current &&
+      task &&
+      profile
+    ) {
+      void onComplete();
+    }
+  }, [sessionComplete, completionOutcome, task, profile]);
+
+  const onAdvanceChain = () => {
+    if (completionOutcome?.kind !== 'bridge') return;
+    router.replace({
+      pathname: '/quiz/review-session',
+      params: {
+        taskId: completionOutcome.nextTaskId,
+        chainTotal: String(completionOutcome.chainTotal),
+        chainDone: String(completionOutcome.chainDone),
+      },
+    });
+  };
+
+  const onGraduationContinue = () => {
+    if (completionOutcome?.kind !== 'graduation') return;
+    if (completionOutcome.nextTaskId) {
+      router.replace({
+        pathname: '/quiz/review-session',
+        params: {
+          taskId: completionOutcome.nextTaskId,
+          chainTotal: String(resolvedChainTotal ?? chainDone + 1),
+          chainDone: String(chainDone + 1),
+        },
+      });
+    } else {
+      router.back();
+    }
+  };
+
+  const onHome = () => router.back();
 
   return {
     task,
@@ -614,6 +729,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     onPressNext,
     onPressContinue,
     onComplete,
+    completionOutcome,
+    onAdvanceChain,
+    onGraduationContinue,
+    onHome,
     onRemedialExplainPrimary,
     onRemedialExplainSecondary,
     onRemedialCheckOption,
