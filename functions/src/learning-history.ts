@@ -901,6 +901,23 @@ export function buildReviewTasks(
   return sortReviewTasks(nextTasks);
 }
 
+/**
+ * 시도 1건에 대한 reviewTask 변경(upsert/delete)을 계산하는 순수 함수.
+ * replay=true(재전송 큐 드레인)면 reviewTask를 일절 건드리지 않는다.
+ * stale 시도가 라이브 복습 일정을 후퇴/중복시키는 것을 구조적으로 차단.
+ */
+export function computeAttemptReviewTaskWrite(
+  input: FinalizedAttemptInput,
+  existingTasks: ReviewTask[],
+  options?: { replay?: boolean },
+): { upserts: ReviewTask[]; deletes: ReviewTask[] } {
+  if (options?.replay) {
+    return { upserts: [], deletes: [] };
+  }
+  const next = buildReviewTasks(input, existingTasks);
+  return diffReviewTasks(existingTasks, next);
+}
+
 export function buildSummary(
   accountKey: string,
   attempts: LearningAttempt[],
@@ -992,7 +1009,10 @@ export async function loadLearnerHistory(accountKey: string) {
   };
 }
 
-export async function recordLearningAttempt(input: FinalizedAttemptInput) {
+export async function recordLearningAttempt(
+  input: FinalizedAttemptInput,
+  options?: { replay?: boolean },
+) {
   const firestore = getFirestore();
   const attemptRef = getAttemptRef(input.accountKey, input.attemptId);
   const [existingAttempt, existingReviewTasksSnapshot] = await Promise.all([
@@ -1011,8 +1031,11 @@ export async function recordLearningAttempt(input: FinalizedAttemptInput) {
 
   const attempt = buildAttempt(input, createdAt);
   const results = buildAttemptResults(input);
-  const nextReviewTasks = buildReviewTasks(input, existingReviewTasks);
-  const reviewTaskMutations = diffReviewTasks(existingReviewTasks, nextReviewTasks);
+  const reviewTaskMutations = computeAttemptReviewTaskWrite(
+    input,
+    existingReviewTasks,
+    options,
+  );
   const batch = firestore.batch();
 
   batch.set(attemptRef, stripUndefined(attempt), { merge: true });

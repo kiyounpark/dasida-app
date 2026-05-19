@@ -11,4 +11,5 @@ export const StorageKeys = {
   examDiagnosisProgressPrefix: 'dasida/exam-diagnosis/',
   scratchpadPrefix: 'dasida/scratchpad/',
   scratchpadSplitRatioPrefix: 'dasida/scratchpad-split-ratio/',
+  pendingAttemptsPrefix: 'dasida/pending-attempts/',
 } as const;

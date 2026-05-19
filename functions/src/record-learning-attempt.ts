@@ -32,7 +32,8 @@ export const recordLearningAttemptHandler = onRequest(
         parsedRequest.data.accountKey,
       );
 
-      const result = await recordLearningAttempt(parsedRequest.data);
+      const replay = request.body?.replay === true;
+      const result = await recordLearningAttempt(parsedRequest.data, { replay });
       response.status(200).json(result);
     } catch (error) {
       if (error instanceof LearningHistoryAuthError) {

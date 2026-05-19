@@ -73,4 +73,8 @@ export class LearningHistoryRepositoryRouter implements LearningHistoryRepositor
   async listReviewTasks(accountKey: string): Promise<ReviewTask[]> {
     return (await this.resolveRepository(accountKey)).listReviewTasks(accountKey);
   }
+
+  async flushPendingAttempts(accountKey: string): Promise<void> {
+    return (await this.resolveRepository(accountKey)).flushPendingAttempts(accountKey);
+  }
 }

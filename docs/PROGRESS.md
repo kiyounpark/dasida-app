@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.19 10:43
+- 해시: `a768d88` (`a768d882b6fb15aee0853308cb312b19bbc29986`)
+- 브랜치: claude/sync-exam-data-vcmDw
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app/commit/a768d882b6fb15aee0853308cb312b19bbc29986
+- 작성자: Claude
+- 메시지: docs: PROGRESS에 학습 기록 재전송 큐 작업 기록 (PR #28)
+- 본문: 릴리스 순서 제약(서버 replay 모드 선배포 필요) 명시. / https://claude.ai/code/session_016YNMZErxR7Hj6PoA1RusGk
+
 ### 커밋 2026.05.17 12:33
 - 해시: `d7904bb` (`d7904bb478eafa60bfbd6f1159f425430c6c6c5e`)
 - 브랜치: claude/gracious-raman-daec61
@@ -2822,5 +2832,6 @@
 <!-- 새 작업 로그는 위 형식으로 날짜별로 추가 -->
 - 2026-05-06: 알림 권한 요청 타이밍 재배치 — 묵음 OS 다이얼로그 → 결과 화면 옵트인 카드 (rev2 spec)
 - 2026-05-08: iPad 가로모드(exam-solve) 코드리뷰 fix — 회전 안내 배너 데드 코드 경로 해소, orientation listener와 useScratchpad를 화면 훅(`use-exam-solve-screen`)으로 호이스트, `useExamScreenOrientation` 훅 분리 + 단위 테스트 추가, iPad 가드(`isTablet`) 추가. CHANGELOG에 `requireFullScreen: true`로 인한 iPad Split View 비활성화 명시.
+- 2026-05-19: 학습 기록 재전송 큐 (모의고사/약점진단/복습 유실 방지, PR #28). 인증 사용자가 완료한 `recordAttempt`가 네트워크 실패 시 로컬 폴백만 되고 서버에 영영 도달 못 해 조용히 유실되던 문제. AsyncStorage 계정별 FIFO 큐(계정별 async mutex로 RMW 직렬화, attemptId upsert, cap 100 loud drop, 항목 8회 dead-letter) 신설, `FirebaseLearningHistoryRepository` 실패→enqueue(흐름 미차단)·성공→기회적 flush, `flushPendingAttempts`(replay:true 재전송, 3분류 에러 처리: network/5xx 보존·중단·4xx dead-letter·401 보존, 계정 스코프 assert, 재진입 가드), 라우터 패스스루 + signIn/부팅 best-effort 배선(게스트 no-op). 서버 `recordLearningAttempt(input, { replay })` + 순수 `computeAttemptReviewTaskWrite` 신설 — replay 시 reviewTask 재구성 스킵으로 stale 재전송이 라이브 복습 일정 후퇴시키던 C1 결함 구조적 차단(하위호환). superpowers 워크플로우(spec→plan v2→TDD) + 1차 레드팀·2차 독립 리뷰어 교차검증으로 C1/C2 해소, M1~M5 보강. 클라 features/learning 70 + 서버 37 테스트 그린, tsc 0. **릴리스 순서 제약**: 서버 replay 모드가 클라보다 먼저(또는 동시) 배포돼야 함 — 구 서버에 replay 재전송이 닿으면 destructive buildReviewTasks가 그대로 실행되어 배포 전 윈도에서 C1 재현. PR #28 드래프트 유지. 검증 한계: 원격 컨테이너라 Expo 실기기 스모크·functions 실배포 미수행, Notion MCP 미연결로 개발기록 페이지 수동 등록 필요.
 - 2026-05-18: 복습 일정 서버 동기화 1단계 (split-brain 해소, PR #27). 스케줄러 변경(complete/spawn/overdue)이 로컬 AsyncStorage에만 남던 문제를 인증 사용자에 한해 서버(Firestore) 영속으로 일원화. 신규 Cloud Function `saveReviewTasks`(+순수 코어 `computeReviewTaskWrite`, recordLearningAttempt batch 패턴 미러링), `RemoteReviewTaskStore`(미러 폴백·UNAUTHORIZED 재시도), `ReviewTaskStoreRouter`+`createReviewTaskStore`(전용 게이트 `isReviewTaskRemoteSyncConfigured`로 학습기록 게이트와 독립), provider 노출 + 두 훅 하드코딩 store 제거. superpowers 워크플로우(spec→plan→TDD) + 서버/클라 검토 서브에이전트 2회. 클라 454 + 서버 35 테스트 그린, tsc 0(비테스트). FCM 서버 주도 푸시는 본 토대 위 후속. 검증 한계: 원격 컨테이너라 Expo 시뮬레이터 스모크 미실행(변경은 TS/Cloud Function/env 상수뿐, 네이티브 의존성 0 → prebuild 불필요).
 - 2026-05-19: 복습 알림 서버 주도 푸시 2단계(FCM). Expo Push(내부 FCM/APNs) + `onSchedule`(KST 7:30/20:00, `Asia/Seoul`) + Firestore 게이트 `config/notifications.enabled`. 신규 서버: `review-reminder-core`(순수: 날짜경계·dedupe·슬롯가드·토큰 upsert/prune·티켓파서·청크), `review-reminder-copy`, `push-token-store`, `register-push-token`(onRequest), `send-review-reminders`(collectionGroup 조회→accountKey dedupe→Expo 배치→무효토큰 정리). 클라: 카피 모듈 추출(서버/클라 바이트 동일, 양쪽 테스트로 드리프트 차단), `register-push-token-api`, opt-in 훅 인증 분기(토큰 등록+기존 로컬 `review_*` 1회 취소+로컬 예약 스킵), 허브 훅 동일 분기. 게스트/익명은 기존 로컬 무영향. 날짜 경계는 KST-instant 변환이 아닌 라벨 D 기준 `[D T00:00Z, D+1 T00:00Z)`로 현행 `slice(0,10)===today`와 1:1. superpowers 워크플로우(spec→plan→subagent TDD 12태스크) + 코드리뷰 서브에이전트(Task5/7/10) 반영. functions 56 + 클라 신규/수정 24 그린, 양 패키지 tsc 0. 자격증명 검증: EAS projectId·iOS APNs ✅, Android FCM V1 ❌(핸드오프 업로드 필요). 검증 한계: 실제 푸시 수신 스모크는 사용자 몫(환경 제약). 후속 핸드오프(자격증명·배포·게이트 ON)는 spec §8.
