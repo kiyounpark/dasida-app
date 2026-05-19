@@ -17,7 +17,7 @@ jest.mock('@/features/analytics/log-event', () => ({
 }));
 
 jest.mock('expo-router', () => ({
-  router: { back: jest.fn() },
+  router: { back: jest.fn(), replace: jest.fn() },
   useLocalSearchParams: () => ({ taskId: '__mock__' }),
 }));
 
@@ -261,6 +261,38 @@ describe('entries-based flow', () => {
       .invocationCallOrder[0];
     expect(completeOrder).toBeLessThan(spawnOrder);
     expect(spawnOrder).toBeLessThan(rescheduleOrder);
+  });
+
+  it('finalize 가드: sessionComplete 자동 finalize 후 onComplete 직접 호출은 no-op', async () => {
+    (completeReviewTask as jest.Mock).mockClear();
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await waitFor(() => expect(result.current.steps.length).toBeGreaterThan(0));
+    const totalSteps = result.current.steps.length;
+
+    for (let i = 0; i < totalSteps; i += 1) {
+      const correctIdx = result.current.steps[i].choices.findIndex(
+        (c) => c.correct,
+      );
+      await act(async () => {
+        result.current.onSelectChoice(correctIdx);
+      });
+      await act(async () => {
+        result.current.onPressContinue();
+      });
+    }
+
+    // 마지막 onPressContinue → sessionComplete=true → finalize 이펙트가 onComplete 1회 실행
+    await waitFor(() =>
+      expect(result.current.completionOutcome).not.toBeNull(),
+    );
+    expect(completeReviewTask as jest.Mock).toHaveBeenCalledTimes(1);
+
+    // 직접 한 번 더 호출해도 가드로 인해 재저장 없음
+    await act(async () => {
+      await result.current.onComplete();
+    });
+    expect(completeReviewTask as jest.Mock).toHaveBeenCalledTimes(1);
   });
 
   it('초기 entries에 step-card와 input-area가 있다', () => {
