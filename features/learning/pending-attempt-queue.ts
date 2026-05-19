@@ -5,6 +5,8 @@ import { StorageKeys } from '@/constants/storage-keys';
 import type { FinalizedAttemptInput } from './history-repository';
 
 export const MAX_PENDING_ATTEMPTS = 100;
+// 한 항목이 transient 실패로 이만큼 재시도되면 dead-letter(드롭) — 무한 wedge 방지.
+export const MAX_ITEM_ATTEMPTS = 8;
 
 export type PendingAttempt = {
   input: FinalizedAttemptInput;
