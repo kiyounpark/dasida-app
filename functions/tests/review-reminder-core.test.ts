@@ -156,3 +156,24 @@ test('chunkExpoMessages: 100건 단위로 분할', () => {
 test('chunkExpoMessages: 빈 입력 → 빈 배열', () => {
   assert.deepEqual(chunkExpoMessages([], 100), []);
 });
+
+import {
+  collectInvalidTokensFromTickets,
+  type ExpoPushTicket,
+} from '../src/review-reminder-core';
+
+test('collectInvalidTokensFromTickets: DeviceNotRegistered만 무효 집합', () => {
+  const sent = ['ExponentPushToken[A]', 'ExponentPushToken[B]', 'ExponentPushToken[C]'];
+  const tickets: ExpoPushTicket[] = [
+    { status: 'ok' },
+    { status: 'error', details: { error: 'DeviceNotRegistered' } },
+    { status: 'error', details: { error: 'MessageRateExceeded' } },
+  ];
+  const invalid = collectInvalidTokensFromTickets(sent, tickets);
+  assert.deepEqual([...invalid], ['ExponentPushToken[B]']);
+});
+
+test('collectInvalidTokensFromTickets: 길이 불일치 안전(짧은 쪽 기준)', () => {
+  const invalid = collectInvalidTokensFromTickets(['ExponentPushToken[A]'], []);
+  assert.equal(invalid.size, 0);
+});

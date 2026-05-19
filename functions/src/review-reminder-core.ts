@@ -106,3 +106,25 @@ export function chunkExpoMessages<T>(items: T[], size: number): T[][] {
   }
   return chunks;
 }
+
+export type ExpoPushTicket = {
+  status: 'ok' | 'error';
+  details?: { error?: string };
+};
+
+export function collectInvalidTokensFromTickets(
+  sentTokens: string[],
+  tickets: ExpoPushTicket[],
+): Set<string> {
+  const invalid = new Set<string>();
+  const n = Math.min(sentTokens.length, tickets.length);
+  for (let i = 0; i < n; i++) {
+    if (
+      tickets[i].status === 'error' &&
+      tickets[i].details?.error === 'DeviceNotRegistered'
+    ) {
+      invalid.add(sentTokens[i]);
+    }
+  }
+  return invalid;
+}
