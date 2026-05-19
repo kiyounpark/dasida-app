@@ -555,9 +555,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       return;
     }
     // 이미 finalize가 시작됐으면 중복 실행 방지 (자동 finalize 이펙트 이후 직접 호출 시 no-op)
-    if (finalizeStartedRef.current && completionOutcome) {
+    if (finalizeStartedRef.current) {
       return;
     }
+    finalizeStartedRef.current = true;
 
     const completedAt = new Date().toISOString();
     const results = firstAttemptCorrectRef.current;
@@ -684,7 +685,6 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
       task &&
       profile
     ) {
-      finalizeStartedRef.current = true;
       void onComplete();
     }
   }, [sessionComplete, completionOutcome, task, profile]);
