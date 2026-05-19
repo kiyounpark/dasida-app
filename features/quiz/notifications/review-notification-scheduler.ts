@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diagnosisMap } from '@/data/diagnosisMap';
+import { buildReviewReminderCopy } from '@/features/quiz/notifications/review-reminder-copy';
 import type { ReviewTask } from '@/features/learning/types';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
@@ -81,15 +82,12 @@ export async function scheduleReviewNotifications(
     ? diagnosisMap[representativeTask.weaknessId]?.labelKo
     : undefined;
 
-  const morningTitle = label
-    ? `벌써 잊혀지고 있어요. ${label}, 지금 3분이면 돼요`
-    : '벌써 잊혀지고 있어요. 지금 3분이면 돼요';
-  const morningBody = '오늘 안 하면 내일 처음부터예요';
-
-  const eveningTitle = label
-    ? `${label}, 오늘 자기 전 마지막 기회예요`
-    : '오늘 복습 마감, 자기 전 3분만요';
-  const eveningBody = '잠들기 전 3분, 기억이 굳어져요';
+  const morning = buildReviewReminderCopy('morning', label);
+  const evening = buildReviewReminderCopy('evening', label);
+  const morningTitle = morning.title;
+  const morningBody = morning.body;
+  const eveningTitle = evening.title;
+  const eveningBody = evening.body;
 
   const now = new Date();
 
