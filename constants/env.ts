@@ -39,6 +39,9 @@ export const learningHistoryListReviewTasksUrl = (
 export const learningHistorySaveReviewTasksUrl = (
   process.env.EXPO_PUBLIC_SAVE_REVIEW_TASKS_URL ?? ''
 ).trim();
+export const registerPushTokenUrl = (
+  process.env.EXPO_PUBLIC_REGISTER_PUSH_TOKEN_URL ?? ''
+).trim();
 
 export const diagnosisRouterTimeoutMs = 8000;
 export const diagnosisExplainTimeoutMs = 12000;
