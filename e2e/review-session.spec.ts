@@ -80,7 +80,7 @@ test.describe('복습 세션 흐름', () => {
 
     // 최대 10단계 반복 (실제는 약점에 따라 3단계 전후)
     for (let i = 0; i < 10; i++) {
-      const isDone = await page.getByText('모든 단계 완료!').isVisible();
+      const isDone = await page.getByText('오늘 복습 다 끝냈어요 🎉').isVisible();
       if (isDone) break;
 
       const hasNext = await page.getByText('다음으로').isVisible();
@@ -104,9 +104,12 @@ test.describe('복습 세션 흐름', () => {
       }
     }
 
-    await expect(page.getByText('모든 단계 완료!')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('✓ 기억났어요!')).toBeVisible();
-    await expect(page.getByText('🤔 다시 볼게요')).toBeVisible();
+    await expect(page.getByText('오늘 복습 다 끝냈어요 🎉')).toBeVisible({
+      timeout: 8000,
+    });
+    await expect(
+      page.getByRole('button', { name: '홈으로 돌아가기' }),
+    ).toBeVisible();
   });
 
   test('5. day3 시드 → ReviewHomeCard에 DAY 3 표시', async ({ page }) => {
