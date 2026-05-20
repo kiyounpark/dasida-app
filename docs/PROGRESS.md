@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.20 08:35
+- 해시: `bc5808e` (`bc5808ef85c2c023aa4733a37263e67e254c5ed9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/bc5808ef85c2c023aa4733a37263e67e254c5ed9
+- 작성자: 박기윤
+- 메시지: Merge branch 'claude/frosty-meitner-61a924': 복습 자동 이어풀기 기능
+- 본문: 홈으로 안 나가고 징검다리(Bridge) 화면을 거쳐 다음 due 복습으로 자동 진행. 졸업(day30) 자동 진행 금지, 마지막 복습 후 AllDoneView. / - review-chain.ts 순수 헬퍼 (TDD, 4 tests) / - BridgeView (2.5초 자동진행 + 터치/스크롤/AppState 취소) / - AllDoneView / - 훅 completionOutcome 분기 + finalize 가드(in-flight 윈도우 차단) / - 라우트 key={taskId} 강제 리마운트 / - 신규 단위 테스트 7건(졸업/라벨폴백/분모고정 §8 포함) / - e2e AllDone 화면 기준 갱신 / 스펙: docs/superpowers/specs/2026-05-19-review-auto-continue-design.md / 계획: docs/superpowers/plans/2026-05-19-review-auto-continue.md / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 커밋 2026.05.19 20:21
 - 해시: `ea729ba` (`ea729baf2934b1eb4a1f203119e6b769ffd35541`)
 - 브랜치: main
