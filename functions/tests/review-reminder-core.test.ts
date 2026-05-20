@@ -177,3 +177,30 @@ test('collectInvalidTokensFromTickets: 길이 불일치 안전(짧은 쪽 기준
   const invalid = collectInvalidTokensFromTickets(['ExponentPushToken[A]'], []);
   assert.equal(invalid.size, 0);
 });
+
+import { buildPushMessages } from '../src/review-reminder-core';
+
+test('buildPushMessages: 모든 메시지에 priority=high, channelId=default 부여 — Android 저우선 채널 묵음 회귀 방지', () => {
+  const tokens = ['ExponentPushToken[A]', 'ExponentPushToken[B]'];
+  const messages = buildPushMessages(
+    tokens,
+    { title: 'T', body: 'B' },
+    'morning',
+  );
+  assert.equal(messages.length, 2);
+  for (const m of messages) {
+    assert.equal(m.priority, 'high');
+    assert.equal(m.channelId, 'default');
+    assert.equal(m.sound, 'default');
+    assert.equal(m.title, 'T');
+    assert.equal(m.body, 'B');
+    assert.deepEqual(m.data, { notificationType: 'review_reminder', slot: 'morning' });
+  }
+  assert.equal(messages[0].to, 'ExponentPushToken[A]');
+  assert.equal(messages[1].to, 'ExponentPushToken[B]');
+});
+
+test('buildPushMessages: slot이 data에 그대로 전달 (evening)', () => {
+  const [m] = buildPushMessages(['ExponentPushToken[X]'], { title: 't', body: 'b' }, 'evening');
+  assert.deepEqual(m.data, { notificationType: 'review_reminder', slot: 'evening' });
+});

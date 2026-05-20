@@ -3,6 +3,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
+  buildPushMessages,
   chunkExpoMessages,
   collectInvalidTokensFromTickets,
   computeReminderDateBounds,
@@ -14,7 +15,7 @@ import {
   type ReminderSlot,
 } from './review-reminder-core';
 import { buildReviewReminderCopy } from './review-reminder-copy';
-import { sendExpoPushChunk, type ExpoPushMessage } from './expo-push-client';
+import { sendExpoPushChunk } from './expo-push-client';
 import {
   getUserPushState,
   writePushTokens,
@@ -66,15 +67,9 @@ export async function runReviewReminders(
       if (pushTokens.length === 0) continue;
       if (!shouldSendForSlot(reminderSentLog, dateLabel, slot)) continue;
 
-      const { title, body } = buildReviewReminderCopy(slot, undefined);
+      const copy = buildReviewReminderCopy(slot, undefined);
       const sentTokens = pushTokens.map((t) => t.token);
-      const messages: ExpoPushMessage[] = sentTokens.map((to) => ({
-        to,
-        title,
-        body,
-        sound: 'default',
-        data: { notificationType: 'review_reminder', slot },
-      }));
+      const messages = buildPushMessages(sentTokens, copy, slot);
 
       // MAX_PUSH_TOKENS=10 < 100이라 계정당 항상 단일 청크 → 전송 throw 시
       // 아무것도 전달되지 않고 sent-log 미기록 → 다음 슬롯에서 안전 재시도

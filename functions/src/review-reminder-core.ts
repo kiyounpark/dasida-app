@@ -99,6 +99,30 @@ export type RegisterPushTokenRequest = z.infer<
   typeof RegisterPushTokenRequestSchema
 >;
 
+// 푸시 메시지 빌더 (순수). `priority`/`channelId`는 Android에서 알림이 저우선
+// 채널로 묶여 화면 표시가 묵음 처리되는 회귀를 막기 위해 항상 부여한다 — iOS는
+// 무영향. 클라가 별도 채널을 보장하지 않더라도 Expo가 default 채널을 자동
+// 생성하므로 `'default'`로 고정. 페이로드 누락은 회귀 테스트로 차단.
+// 주의: 클라 `review-notification-scheduler.ts`의 `'review'` 채널은 **게스트
+// 로컬 스케줄 경로에서만** 생성되며 인증 사용자 서버 푸시 경로에서는 보장되지
+// 않는다. 그래서 `'review'`로 "통일"하지 말 것 — 그렇게 하면 인증 Android
+// 사용자에게 다시 묵음 회귀가 일어난다(이 회귀를 잡은 fix가 본 함수임).
+export function buildPushMessages(
+  tokens: string[],
+  copy: { title: string; body: string },
+  slot: ReminderSlot,
+): import('./expo-push-client').ExpoPushMessage[] {
+  return tokens.map((to) => ({
+    to,
+    title: copy.title,
+    body: copy.body,
+    sound: 'default',
+    priority: 'high',
+    channelId: 'default',
+    data: { notificationType: 'review_reminder', slot },
+  }));
+}
+
 export function chunkExpoMessages<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
