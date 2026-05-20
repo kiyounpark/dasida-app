@@ -74,6 +74,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "508273060403-061h8acmhbt6mb2k6tbhg6rb3vgqvgnr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dasida.app.dev",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "508273060403-7sqov4svhi249ntosh1os57o730f2uhh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dasida.app.dev",
+            "certificate_hash": "6e841dc02f3662e8a7dfb558d183b5a5b95b9ea9"
+          }
+        },
+        {
           "client_id": "508273060403-f6rcd1snmf8p1qih7ll2auv8p5j8tbcp.apps.googleusercontent.com",
           "client_type": 3
         }
