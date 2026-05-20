@@ -92,6 +92,7 @@ function makeMockDeps(mockListAttempts: jest.Mock) {
       recordAttempt: jest.fn(),
       saveFeaturedExamState: jest.fn(),
       listReviewTasks: jest.fn().mockResolvedValue([]),
+      flushPendingAttempts: jest.fn().mockResolvedValue(undefined),
     },
     localLearningHistoryRepository: {
       reset: jest.fn(),
