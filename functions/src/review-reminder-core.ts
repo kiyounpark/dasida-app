@@ -107,10 +107,13 @@ export type RegisterPushTokenRequest = z.infer<
 // 로컬 스케줄 경로에서만** 생성되며 인증 사용자 서버 푸시 경로에서는 보장되지
 // 않는다. 그래서 `'review'`로 "통일"하지 말 것 — 그렇게 하면 인증 Android
 // 사용자에게 다시 묵음 회귀가 일어난다(이 회귀를 잡은 fix가 본 함수임).
+// `taskId`는 클라 알림 탭 핸들러(app/_layout.tsx)가 `/quiz/review-session`로
+// 라우팅하기 위해 요구한다. 누락 시 탭이 무동작 회귀가 발생하므로 필수.
 export function buildPushMessages(
   tokens: string[],
   copy: { title: string; body: string },
   slot: ReminderSlot,
+  taskId: string,
 ): import('./expo-push-client').ExpoPushMessage[] {
   return tokens.map((to) => ({
     to,
@@ -119,8 +122,18 @@ export function buildPushMessages(
     sound: 'default',
     priority: 'high',
     channelId: 'default',
-    data: { notificationType: 'review_reminder', slot },
+    data: { notificationType: 'review_reminder', slot, taskId },
   }));
+}
+
+export function pickRepresentativeTaskIdByAccount(
+  docs: ReadonlyArray<{ accountKey: string; taskId: string }>,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const d of docs) {
+    if (!map.has(d.accountKey)) map.set(d.accountKey, d.taskId);
+  }
+  return map;
 }
 
 export function chunkExpoMessages<T>(items: T[], size: number): T[][] {

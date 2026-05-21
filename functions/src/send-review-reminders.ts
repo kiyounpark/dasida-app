@@ -8,6 +8,7 @@ import {
   collectInvalidTokensFromTickets,
   computeReminderDateBounds,
   dedupeAccountKeys,
+  pickRepresentativeTaskIdByAccount,
   recordSlotSent,
   removeInvalidTokens,
   shouldSendForSlot,
@@ -55,11 +56,16 @@ export async function runReviewReminders(
     .where('scheduledFor', '<', lt)
     .get();
 
-  const accountKeys = dedupeAccountKeys(
-    snap.docs
-      .map((d) => d.ref.parent.parent?.id)
-      .filter((id): id is string => Boolean(id)),
-  );
+  const accountDocs = snap.docs
+    .map((d) => {
+      const accountKey = d.ref.parent.parent?.id;
+      const taskId = d.id;
+      return accountKey ? { accountKey, taskId } : null;
+    })
+    .filter((x): x is { accountKey: string; taskId: string } => x !== null);
+
+  const accountKeys = dedupeAccountKeys(accountDocs.map((d) => d.accountKey));
+  const taskIdByAccount = pickRepresentativeTaskIdByAccount(accountDocs);
 
   for (const accountKey of accountKeys) {
     try {
@@ -67,9 +73,12 @@ export async function runReviewReminders(
       if (pushTokens.length === 0) continue;
       if (!shouldSendForSlot(reminderSentLog, dateLabel, slot)) continue;
 
+      const taskId = taskIdByAccount.get(accountKey);
+      if (!taskId) continue;
+
       const copy = buildReviewReminderCopy(slot, undefined);
       const sentTokens = pushTokens.map((t) => t.token);
-      const messages = buildPushMessages(sentTokens, copy, slot);
+      const messages = buildPushMessages(sentTokens, copy, slot, taskId);
 
       // MAX_PUSH_TOKENS=10 < 100이라 계정당 항상 단일 청크 → 전송 throw 시
       // 아무것도 전달되지 않고 sent-log 미기록 → 다음 슬롯에서 안전 재시도
