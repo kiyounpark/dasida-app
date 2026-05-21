@@ -186,6 +186,7 @@ test('buildPushMessages: 모든 메시지에 priority=high, channelId=default �
     tokens,
     { title: 'T', body: 'B' },
     'morning',
+    'task-1',
   );
   assert.equal(messages.length, 2);
   for (const m of messages) {
@@ -194,13 +195,43 @@ test('buildPushMessages: 모든 메시지에 priority=high, channelId=default �
     assert.equal(m.sound, 'default');
     assert.equal(m.title, 'T');
     assert.equal(m.body, 'B');
-    assert.deepEqual(m.data, { notificationType: 'review_reminder', slot: 'morning' });
+    assert.equal(m.data?.notificationType, 'review_reminder');
+    assert.equal(m.data?.slot, 'morning');
   }
   assert.equal(messages[0].to, 'ExponentPushToken[A]');
   assert.equal(messages[1].to, 'ExponentPushToken[B]');
 });
 
 test('buildPushMessages: slot이 data에 그대로 전달 (evening)', () => {
-  const [m] = buildPushMessages(['ExponentPushToken[X]'], { title: 't', body: 'b' }, 'evening');
-  assert.deepEqual(m.data, { notificationType: 'review_reminder', slot: 'evening' });
+  const [m] = buildPushMessages(['ExponentPushToken[X]'], { title: 't', body: 'b' }, 'evening', 'task-x');
+  assert.equal(m.data?.notificationType, 'review_reminder');
+  assert.equal(m.data?.slot, 'evening');
+});
+
+import { pickRepresentativeTaskIdByAccount } from '../src/review-reminder-core';
+
+// 서버는 collectionGroup으로 모든 계정의 오늘 task를 한 번에 가져오므로,
+// 계정별 대표 taskId(첫 번째 미완료 task)를 뽑아 푸시 페이로드에 실어야 한다.
+test('pickRepresentativeTaskIdByAccount: 계정별로 첫 task id를 매핑', () => {
+  const docs = [
+    { accountKey: 'user:a', taskId: 't1' },
+    { accountKey: 'user:b', taskId: 't2' },
+    { accountKey: 'user:a', taskId: 't3' },
+  ];
+  const map = pickRepresentativeTaskIdByAccount(docs);
+  assert.equal(map.get('user:a'), 't1');
+  assert.equal(map.get('user:b'), 't2');
+});
+
+// 알림 탭 → 복습 세션 라우팅을 위해 클라가 data.taskId를 요구한다
+// (app/_layout.tsx의 notification response handler). taskId가 빠지면
+// 인증 사용자 서버 푸시 경로에서 탭이 무동작이 되는 회귀가 발생.
+test('buildPushMessages: data.taskId가 페이로드에 포함된다 — 탭 라우팅 회귀 방지', () => {
+  const messages = buildPushMessages(
+    ['ExponentPushToken[A]'],
+    { title: 'T', body: 'B' },
+    'morning',
+    'task-123',
+  );
+  assert.equal(messages[0].data?.taskId, 'task-123');
 });

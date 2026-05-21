@@ -19,6 +19,7 @@ import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { logEvent } from '@/features/analytics/log-event';
 import { initAnalytics } from '@/features/analytics/session-lifecycle';
 import type { NotificationType } from '@/features/analytics/event-types';
+import { resolveNotificationRoute } from '@/features/quiz/notifications/notification-route';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -52,7 +53,7 @@ let coldStartHandled = false;
 function SplashGate() {
   const { authGateState, isReady } = useCurrentLearner();
   const [splashHidden, setSplashHidden] = useState(false);
-  const pendingTaskIdRef = useRef<string | null>(null);
+  const pendingRouteRef = useRef<ReturnType<typeof resolveNotificationRoute>>(null);
   const handledNotificationIdRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -79,10 +80,10 @@ function SplashGate() {
     if (!splashHidden) return;
     if (!isReady) return;
     if (authGateState !== 'authenticated' && authGateState !== 'guest-dev') return;
-    if (!pendingTaskIdRef.current) return;
-    const taskId = pendingTaskIdRef.current;
-    pendingTaskIdRef.current = null;
-    router.push({ pathname: '/quiz/review-session', params: { taskId } });
+    const route = pendingRouteRef.current;
+    if (!route) return;
+    pendingRouteRef.current = null;
+    router.push(route);
   }, [splashHidden, isReady, authGateState]);
 
   // 콜드스타트 알림 페이로드 캡처 (Stack 마운트 전에 ref에만 저장)
@@ -102,9 +103,7 @@ function SplashGate() {
         scheduled_at: scheduledAt,
         opened_at: new Date().toISOString(),
       });
-      if (notificationType === 'review_reminder' && taskId) {
-        pendingTaskIdRef.current = taskId;
-      }
+      pendingRouteRef.current = resolveNotificationRoute(data);
     }
 
     // 포그라운드/백그라운드 알림 탭
@@ -121,9 +120,8 @@ function SplashGate() {
         scheduled_at: scheduledAt,
         opened_at: new Date().toISOString(),
       });
-      if (notificationType === 'review_reminder' && taskId) {
-        router.push({ pathname: '/quiz/review-session', params: { taskId } });
-      }
+      const route = resolveNotificationRoute(data);
+      if (route) router.push(route);
     });
     return () => subscription.remove();
   }, []);
