@@ -20,7 +20,6 @@ import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
 import type { LearnerTrack } from '@/features/learner/types';
 import type { UseProfileScreenResult } from '@/features/profile/hooks/use-profile-screen';
-import { FoundingMemberCard } from '@/features/profile/components/founding-member-card';
 
 function maskAccountKey(accountKey: string) {
   if (accountKey.length <= 18) {
@@ -231,8 +230,6 @@ export function ProfileScreenView({
             계정과 학습 환경을 설정합니다.
           </Text>
         </View>
-
-        {profile?.accountKey.startsWith('user:') ? <FoundingMemberCard /> : null}
 
         {errorMessage ? <SecondaryNotice tone="error" message={errorMessage} /> : null}
         {noticeMessage ? <SecondaryNotice tone="success" message={noticeMessage} /> : null}
