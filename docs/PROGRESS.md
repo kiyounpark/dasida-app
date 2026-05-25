@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.25 23:36
+- 해시: `5cd3fa4` (`5cd3fa494721ef8acd68de8ccde7325c7f7bf706`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5cd3fa494721ef8acd68de8ccde7325c7f7bf706
+- 작성자: 박기윤
+- 메시지: feat(analytics): PostHogProvider 통합 — in-app Survey 자동 popover 활성화
+- 본문: plan: docs/superpowers/plans/2026-05-23-posthog-provider-integration.md / - PostHogProvider를 RootLayout에 추가, autocapture=false / - 싱글톤 client를 client prop으로 공유 (인스턴스 1개, 이중 캡쳐 위험 0) / - posthog.ts를 lazy/Promise → sync init으로 리팩터, 생성자 try/catch / - jest.setup.js에 posthog-react-native defensive mock 추가 / 다음: dev build 검증 + PostHog 대시보드 Display conditions 설정 → Survey Launch. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.25 11:59
 - 해시: `dcfaee5` (`dcfaee5692d99112c3f7d0b5e9662f22a2068a47`)
 - 브랜치: main
