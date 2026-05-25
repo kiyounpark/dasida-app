@@ -1,5 +1,10 @@
 # Founding Member 카드 Implementation Plan
 
+> **⚠️ 이 plan은 2026-05-25에 폐기되었습니다.**
+> Founding Member 제도 자체가 2026-05-22에 폐기되면서, 이 plan으로 구현된 코드(`features/profile/components/founding-member-card.tsx` + 관련 import/렌더링)는 2026-05-25 (commit `d2f1596`)에 삭제되었습니다.
+> 본 문서는 사고 흐름 자산으로 보존됩니다.
+> 최종 결정 흐름: `docs/superpowers/specs/2026-05-22-founding-member-deprecation.md`
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 설정 탭 상단에 골드 테두리 Founding Member 카드를 추가해 로그인 유저에게 "현재 기능 영구 무료 + 프리미엄 1년 무료" 혜택을 표시한다.
