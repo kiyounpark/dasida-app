@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.25 11:59
+- 해시: `dcfaee5` (`dcfaee5692d99112c3f7d0b5e9662f22a2068a47`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: http://local_proxy@127.0.0.1:41391/git/kiyounpark/dasida-app
+- 링크: http://local_proxy@127.0.0.1:41391/git/kiyounpark/dasida-app/commit/dcfaee5692d99112c3f7d0b5e9662f22a2068a47
+- 작성자: Claude
+- 메시지: docs(spec): Survey 질문 6개 + 기프티콘 정책 디테일 확정
+- 본문: learning-mode 대화 결과: / - 1:1 통화 인터뷰 없음, Survey만으로 정성 데이터 수집 / - 기프티콘: 월 3만원, 매월 6명 × 5천원 (스타벅스) / - 박기윤이 답변 직접 읽고 성실 응답자 추첨 / - 운영 의식: 주 1회 몰아서 보기 + 부정적 답변 일주일 뒤 재검토 / Survey 질문 6개: / Q1 도움된 순간 → Q2 사라진다면(PMF) → Q3 알게 된 경로 / → Q4 친구/부모 보여줬나 → Q5 지불 의향 → Q6 연락처(선택) / 각 질문에 follow-up 트리거(① 화면/기능 ② 이유 등) 미리 삽입. / Survey 한계(통화 불가) 보완. / 수용한 트레이드오프: / "왜 안 쓰는지"는 Survey 트리거 조건 때문에 영원히 모름. / → GA4 이탈 funnel로만 보고, 필요 시 6개월 후 별도 채널 검토.
+
 ### 커밋 2026.05.21 22:09
 - 해시: `1f1ad1c` (`1f1ad1c36b58f43c53b34437dbb3576b1bc5994d`)
 - 브랜치: main
