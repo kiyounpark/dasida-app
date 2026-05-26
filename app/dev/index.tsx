@@ -45,6 +45,16 @@ const SCREENS = [
         params: { taskId: '__mock_disc__' },
       }),
   },
+  {
+    title: '🎬 캡처용 · 약점 상세',
+    desc: '마케팅 영상용 · solving_order_confusion (풀이 순서 혼동)',
+    onPress: () => router.push('/dev/capture-weakness'),
+  },
+  {
+    title: '🎬 캡처용 · 약점 비교',
+    desc: '마케팅 영상 12~22초 · "미분 약함" → "f\'(x)=0 까먹기" 전환',
+    onPress: () => router.push('/dev/capture-comparison'),
+  },
 ] as const;
 
 export default function DevHubScreen() {
