@@ -21,7 +21,9 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "APP_VARIANT": "dev"
+        "APP_VARIANT": "dev",
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_uRKgqXDrFnWHKENVPXjoHtQwZc6QxLgvyQJgsPwn7gA6",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"
       },
       "android": {
         "buildType": "apk"
@@ -30,6 +32,10 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_uRKgqXDrFnWHKENVPXjoHtQwZc6QxLgvyQJgsPwn7gA6",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"
+      },
       "android": {
         "buildType": "apk"
       }
@@ -37,6 +43,10 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_uRKgqXDrFnWHKENVPXjoHtQwZc6QxLgvyQJgsPwn7gA6",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"
+      },
       "ios": {
         "distribution": "store"
       },
