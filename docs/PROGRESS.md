@@ -933,6 +933,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.26 18:07
+- 해시: `613b2de` (`613b2de8684e41c046d44c953ecec1abd9359b11`)
+- 브랜치: claude/amazing-bassi-9ca65d
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/613b2de8684e41c046d44c953ecec1abd9359b11
+- 작성자: 박기윤
+- 메시지: feat(dev): 마케팅 영상 캡처용 dev 화면 2개 추가
+- 본문: - capture-weakness: 약점 상세 화면 mock (solving_order_confusion) / - capture-comparison: 12~22초 비교 애니메이션 mock (수동 ▶ 재생) / - dev 허브에 진입 버튼 2개 추가 / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.25 11:59
 - 해시: `dcfaee5` (`dcfaee5692d99112c3f7d0b5e9662f22a2068a47`)
 - 브랜치: main
