@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.26 19:18
+- 해시: `ee4d2cf` (`ee4d2cf6b17399e95be3aea29722799203ac5bc4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ee4d2cf6b17399e95be3aea29722799203ac5bc4
+- 작성자: 박기윤
+- 메시지: chore(env): PostHog 키를 EAS Build 모든 profile에 추가
+- 본문: 문제: 어제까지 PostHog 키가 .env에만 있었음. EAS Build는 .env를 안 봐서 / TestFlight/Preview/Production 빌드에서 PostHog가 silent no-op 상태였음. / 변경: / - eas.json: development, preview, production 3개 profile의 env에 / EXPO_PUBLIC_POSTHOG_API_KEY + EXPO_PUBLIC_POSTHOG_HOST 추가 / - .env.example: PostHog 항목 + EAS env 설정 안내 코멘트 추가 / 키는 PostHog "Write-only" 토큰으로 클라이언트 번들에 inline되는 공개 키. / PostHog 공식 안내상 public app embed 안전. / 다음 단계: production .aab 재빌드 → Play Console 비공개 테스트 트랙 / 업로드 (기존 v1.0.4 build be176205... 는 PostHog 없는 상태라 폐기) / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.26 18:07
 - 해시: `613b2de` (`613b2de8684e41c046d44c953ecec1abd9359b11`)
 - 브랜치: claude/amazing-bassi-9ca65d
