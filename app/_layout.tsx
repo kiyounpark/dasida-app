@@ -7,6 +7,7 @@ import { router, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PostHogProvider } from 'posthog-react-native';
 import 'react-native-reanimated';
 
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
@@ -17,6 +18,7 @@ import { lockToLandscape, lockToPortrait } from '@/hooks/use-orientation-lock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useScreenTracking } from '@/features/analytics/use-screen-tracking';
 import { logEvent } from '@/features/analytics/log-event';
+import { getPostHogClient } from '@/features/analytics/posthog';
 import { initAnalytics } from '@/features/analytics/session-lifecycle';
 import type { NotificationType } from '@/features/analytics/event-types';
 import { resolveNotificationRoute } from '@/features/quiz/notifications/notification-route';
@@ -219,26 +221,38 @@ export default function RootLayout() {
     }
   }, []);
 
+  const posthogClient = getPostHogClient();
+
+  const themedTree = (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <CurrentLearnerProvider>
+        <ExamSessionProvider>
+          <SplashGate />
+          <AuthGateRedirector />
+          <ScreenTracker />
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
+            {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
+          </Stack>
+        </ExamSessionProvider>
+      </CurrentLearnerProvider>
+      <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
+    </ThemeProvider>
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <CurrentLearnerProvider>
-          <ExamSessionProvider>
-            <SplashGate />
-            <AuthGateRedirector />
-            <ScreenTracker />
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
-              {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
-            </Stack>
-          </ExamSessionProvider>
-        </CurrentLearnerProvider>
-        <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
-      </ThemeProvider>
+      {posthogClient ? (
+        <PostHogProvider client={posthogClient} autocapture={false}>
+          {themedTree}
+        </PostHogProvider>
+      ) : (
+        themedTree
+      )}
     </GestureHandlerRootView>
   );
 }

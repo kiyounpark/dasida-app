@@ -4,6 +4,90 @@
 
 ---
 
+## 2026-05-26 — PostHog Survey 통합 (인터뷰 모집 채널 활성화)
+
+**목표**: 다시다 앱 안에서 PostHog Survey 자동 popover로 인터뷰 모집. Spec: `docs/superpowers/specs/2026-05-22-founding-member-deprecation.md` (Plan B). Plan: `docs/superpowers/plans/2026-05-23-posthog-provider-integration.md`.
+
+### ✅ 오늘 한 것
+
+**1. PostHog 대시보드 — Survey 질문 + 카피 작성**
+- "다시다 인터뷰 모집 (draft)" Survey의 기존 4개 질문 → spec의 6개 질문으로 전면 교체
+- 시작 카피: "다시다 5분만 도와주실래요? 답변해주신 분 중 매월 6명에게 추첨으로 스타벅스 기프티콘을 드려요 🎁" (Q1 Label에 배치, 본 질문은 Description에 분리)
+- 6개 질문 모두 Freeform text. Q6(연락처)만 Optional.
+- 라우팅 Q1→Q2→...→Q6→Confirmation 정상.
+- 상태: **draft 유지** (Launch 안 함, Display conditions 아직 설정 안 됨)
+
+**2. PostHogProvider 코드 통합 (커밋 `5cd3fa4`, `a364871`)**
+- `app/_layout.tsx`: PostHogProvider 추가, `autocapture={false}`
+- 옵션 A2 선택: 싱글톤 client를 `client` prop으로 공유 → 인스턴스 1개, 이중 캡쳐 위험 0
+- `features/analytics/posthog.ts`: lazy/Promise → sync init으로 리팩터, `createPostHogClient()` try/catch 보강
+- `jest.setup.js`: `posthog-react-native` defensive mock 추가 (테스트 환경에서 실제 인스턴스 부팅 방지)
+- 검증: typecheck ✅ / lint ✅ / jest 76 suites 493 tests ✅
+- 리뷰: superpowers code-reviewer 통과 (Ready with fixes — 모두 적용)
+
+**3. dev build 실기기 검증**
+- ⚠️ **발견**: `EXPO_PUBLIC_POSTHOG_API_KEY`가 `.env`, `.env.local`, `eas.json` 어디에도 없었음 → 그동안 모든 빌드에서 PostHog가 silent no-op
+- `.env` + `.env.local` 둘 다에 키 추가: `phc_uRKgqXDrFnWHKENVPXjoHtQwZc6QxLgvyQJgsPwn7gA6` + host
+- A2 검증 통과: `[posthog-check] same instance? true` (Provider가 싱글톤 client 그대로 사용 확정)
+- Activity 페이지 회귀 검증: 박기윤 학습자 ID(`hTgegn7uFYZmD4t4CbDkxjWTfk83`)로 Screen × 4, user_engagement × 2, Identify × 1 정상 수신. 이게 **dev 빌드에서 PostHog가 처음으로 실제 작동한 순간**.
+
+**4. 임시 디버그 코드 적용/제거**
+- `ScreenTracker`에 `usePostHog()` vs `getPostHogClient()` 객체 정체성 비교 로그 추가 → 검증 후 삭제 (net diff 0, 별도 커밋 없음)
+
+### 🔍 추가 발견 (오늘 처리 안 함, 별도 작업 필요)
+
+1. **`saveReviewTasks` 백엔드 버그**: dev 빌드에서 `Invalid ISO datetime` 6건 동시 발생, fallback to local mirror. 우리 PostHog 작업과 무관한 사전 버그. 별도 spec 필요.
+2. **`[splash] forced hide after 3s timeout`**: 부팅 시 한 번 발생. 이번 sync init 변경이 원인일 가능성 있음 (단정 못 함). 박기윤이 이전 빌드에서도 떴는지 확인 필요. 만약 신규면 lazy init 복원 검토.
+3. **`.env.example` / EAS Build 환경변수 누락**: 다른 환경/팀원이 클론하면 또 silent no-op. PostHog 키 placeholder 추가 + EAS Build profile env 설정 필요.
+
+---
+
+## 📋 내일 (2026-05-27) 할 것 — 우선순위 순
+
+### 1. PostHog Cohort 만들기 + Survey에 적용 (10분)
+
+목적: Survey trigger를 spec 의도("학습 사이클 완주한 학생")대로 정확히 셋업.
+
+**Step 1**: `https://us.posthog.com/project/422352/cohorts/new`
+- Name: `다시다 인터뷰 대상자 (학습 사이클 완주)`
+- Type: Dynamic
+- Matching criteria: **Match all** of:
+  - Completed event `diagnosis_completed` at least **2** times
+  - Completed event `mock_exam_completed` at least **1** times
+  - Completed event `review_completed` at least **1** times
+- Save
+
+**Step 2**: Survey 편집 페이지 (`/surveys/019e4ab2-a391-0000-50ae-368eb0a245c0?edit=true`)
+- Display conditions → `Only users who match conditions`
+- Audience filters → `Add property targeting` → Cohort 타입 → 위에서 만든 cohort 선택
+- TRIGGERS(User sends events)는 비워둠
+- Frequency: **Once** (한 번만 표시)
+- Save (Launch는 아직)
+
+### 2. Survey Launch 전 최종 점검 + Launch
+
+- Q1 Label/Description, 6개 질문, Optional 설정 다시 한 번 훑기
+- Display conditions가 cohort + Once로 들어갔는지 확인
+- Launch 버튼 클릭 → draft → active
+- 확인: 시뮬레이터나 실기기에서 트리거 조건 만족시켜서 popover 실제로 뜨는지 (이건 진단 2번 + 모의 1번 + 복습 1번 채워야 해서 시간 걸림)
+
+### 3. Notion "DASIDA 개발 기록" 페이지 업데이트
+
+- 페이지: `https://www.notion.so/36773f8626048105ab8ff686fa7bbf1b` (또는 PostHog 통합 plan 페이지)
+- 상태: 구현완료
+- 구현완료일: 2026-05-26
+- Spec/Plan 필드: GitHub permalink (커밋 `5cd3fa4` 포함 URL)
+- 본문에 `## 완료 메모`: PostHog 키 누락 발견 + 추가, A2 검증 통과 요약
+
+### 4. 별도 정리 (시간 남으면 / 후속 PR)
+
+- `.env.example`에 `EXPO_PUBLIC_POSTHOG_API_KEY` 항목 추가 + 안내 코멘트
+- `eas.json` build profiles (development, preview, production)에 PostHog env 추가 또는 EAS secrets 등록 — production 빌드에서도 PostHog 작동하게
+- `[splash] forced hide after 3s timeout`이 이번 변경으로 신규인지 확인 → 신규면 lazy init 복원 검토
+- `saveReviewTasks` `Invalid ISO datetime` 버그 별도 spec 작성
+
+---
+
 ## 2026-05-13 — 복습 보완 콘텐츠 파이프라인 시범 1개 완료
 
 **시범 약점**: `discriminant_calculation` (이차방정식 판별식)
@@ -942,6 +1026,16 @@
 - 작성자: 박기윤
 - 메시지: feat(dev): 마케팅 영상 캡처용 dev 화면 2개 추가
 - 본문: - capture-weakness: 약점 상세 화면 mock (solving_order_confusion) / - capture-comparison: 12~22초 비교 애니메이션 mock (수동 ▶ 재생) / - dev 허브에 진입 버튼 2개 추가 / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### 커밋 2026.05.25 23:36
+- 해시: `5cd3fa4` (`5cd3fa494721ef8acd68de8ccde7325c7f7bf706`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5cd3fa494721ef8acd68de8ccde7325c7f7bf706
+- 작성자: 박기윤
+- 메시지: feat(analytics): PostHogProvider 통합 — in-app Survey 자동 popover 활성화
+- 본문: plan: docs/superpowers/plans/2026-05-23-posthog-provider-integration.md / - PostHogProvider를 RootLayout에 추가, autocapture=false / - 싱글톤 client를 client prop으로 공유 (인스턴스 1개, 이중 캡쳐 위험 0) / - posthog.ts를 lazy/Promise → sync init으로 리팩터, 생성자 try/catch / - jest.setup.js에 posthog-react-native defensive mock 추가 / 다음: dev build 검증 + PostHog 대시보드 Display conditions 설정 → Survey Launch. / Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 ### 커밋 2026.05.25 11:59
 - 해시: `dcfaee5` (`dcfaee5692d99112c3f7d0b5e9662f22a2068a47`)

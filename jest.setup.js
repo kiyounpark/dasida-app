@@ -107,6 +107,23 @@ jest.mock('expo-router', () => ({
 
 jest.mock('expo-apple-authentication', () => ({}));
 
+// PostHog SDK는 생성자에서 AsyncStorage hydration + flushInterval 타이머를 띄움.
+// 테스트 환경에 EXPO_PUBLIC_POSTHOG_API_KEY가 설정되면 실제 인스턴스가 부팅돼
+// Jest hang / dev 환경으로 이벤트 누수 위험. 방어적으로 mock.
+jest.mock('posthog-react-native', () => {
+  const stub = {
+    capture: jest.fn(),
+    screen: jest.fn(),
+    identify: jest.fn(),
+    reset: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => stub),
+    PostHogProvider: ({ children }) => children,
+  };
+});
+
 jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'mock-uuid'),
   digestStringAsync: jest.fn(() => Promise.resolve('mock-hash')),
