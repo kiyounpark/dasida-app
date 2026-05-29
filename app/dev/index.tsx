@@ -55,6 +55,11 @@ const SCREENS = [
     desc: '마케팅 영상 12~22초 · "미분 약함" → "f\'(x)=0 까먹기" 전환',
     onPress: () => router.push('/dev/capture-comparison'),
   },
+  {
+    title: '🎬 캡처용 · 약점 진단 플로우',
+    desc: '실제 진단 화면 자동 재생 · 미분 오답 → 풀이 순서 혼동',
+    onPress: () => router.push('/dev/capture-diagnosis-flow'),
+  },
 ] as const;
 
 export default function DevHubScreen() {
