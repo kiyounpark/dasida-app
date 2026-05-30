@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.05.29 23:04
+- 해시: `e76bc4b` (`e76bc4bb1a89f0923c6eec26171bc10e44002118`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e76bc4bb1a89f0923c6eec26171bc10e44002118
+- 작성자: 박기윤
+- 메시지: feat(dev): 마케팅 캡처용 약점 진단 플로우 자동재생 화면 추가
+- 본문: - 미분 오답 → '풀이 순서 혼동' 진단을 실제 진단 컴포넌트/데이터로 자동 재생 / - 다시다 로고 앱바(DasidaLogo) + 상단 새로고침(녹화 시 크롭용) / - 진단 엔진을 그대로 walk → 부수효과(저장/세션) 없음 / - 개발자 도구 허브에 진입 항목 추가 / Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.26 19:18
 - 해시: `ee4d2cf` (`ee4d2cf6b17399e95be3aea29722799203ac5bc4`)
 - 브랜치: main
