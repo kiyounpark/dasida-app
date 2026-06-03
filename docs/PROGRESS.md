@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.06.03 15:28
+- 해시: `dea5a25` (`dea5a256b318a175a2b190fbe0a2a2943a9bab9c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dea5a256b318a175a2b190fbe0a2a2943a9bab9c
+- 작성자: 박기윤
+- 메시지: fix(auth): 신규 가입자 온보딩 우회 차단
+- 본문: handleSignIn/handleContinueAsDevGuest가 프로필 검사 없이 무조건 / /(tabs)/quiz로 replace해 온보딩 가드(AuthGateRedirector)를 우회, / 신규 유저가 nickname=''·grade='unknown' 상태로 본화면에 진입하던 문제 수정. / 무조건 네비게이션을 제거해 라우팅을 AuthGateRedirector(_layout.tsx)에 위임 / → 신규=/onboarding, 완료=/(tabs)/quiz로 올바르게 분기. dev-guest 동일. / 미사용 router import 제거 + 회귀 테스트 추가. / ultracode 멀티에이전트 분석·교차검증 기반 (Top10 #1). / Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.05.29 23:04
 - 해시: `e76bc4b` (`e76bc4bb1a89f0923c6eec26171bc10e44002118`)
 - 브랜치: main
