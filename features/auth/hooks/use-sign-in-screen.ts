@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 
 import { AuthFlowCancelledError } from '@/features/auth/auth-client';
@@ -59,7 +58,8 @@ export function useSignInScreen() {
 
     try {
       await signIn(provider);
-      router.replace('/(tabs)/quiz');
+      // 라우팅은 AuthGateRedirector(app/_layout.tsx)가 grade/nickname 기준으로 담당.
+      // 여기서 무조건 (tabs)로 보내면 신규 유저가 온보딩 가드를 우회함.
     } catch (error) {
       if (!(error instanceof AuthFlowCancelledError)) {
         setErrorMessage(formatErrorMessage(error));
@@ -75,7 +75,7 @@ export function useSignInScreen() {
 
     try {
       await continueAsDevGuest();
-      router.replace('/(tabs)/quiz');
+      // 라우팅은 AuthGateRedirector가 담당 (handleSignIn과 동일).
     } catch (error) {
       setErrorMessage(formatErrorMessage(error));
     } finally {
