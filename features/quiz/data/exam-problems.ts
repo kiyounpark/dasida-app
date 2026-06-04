@@ -10,7 +10,6 @@ export type ExamProblem = {
   answer: number;
   topic: string;
   diagnosisMethods: string[];
-  imageKey?: string;
 };
 
 type ProblemsJson = { problems: ExamProblem[] };
@@ -39,6 +38,7 @@ const examProblemsMap: Record<string, ExamProblem[]> = {
   'g3-calc-mock-2024-09': (require('../../../data/exam/g3-calc-mock-2024-09/problems.json') as ProblemsJson).problems,
   'g3-calc-mock-2025-06': (require('../../../data/exam/g3-calc-mock-2025-06/problems.json') as ProblemsJson).problems,
   'g3-calc-mock-2025-09': (require('../../../data/exam/g3-calc-mock-2025-09/problems.json') as ProblemsJson).problems,
+  'g3-calc-mock-2026-06': (require('../../../data/exam/g3-calc-mock-2026-06/problems.json') as ProblemsJson).problems,
   'g3-geom-academic-2022-03': (require('../../../data/exam/g3-geom-academic-2022-03/problems.json') as ProblemsJson).problems,
   'g3-geom-academic-2023-03': (require('../../../data/exam/g3-geom-academic-2023-03/problems.json') as ProblemsJson).problems,
   'g3-geom-academic-2024-03': (require('../../../data/exam/g3-geom-academic-2024-03/problems.json') as ProblemsJson).problems,
@@ -56,6 +56,7 @@ const examProblemsMap: Record<string, ExamProblem[]> = {
   'g3-geom-mock-2024-09': (require('../../../data/exam/g3-geom-mock-2024-09/problems.json') as ProblemsJson).problems,
   'g3-geom-mock-2025-06': (require('../../../data/exam/g3-geom-mock-2025-06/problems.json') as ProblemsJson).problems,
   'g3-geom-mock-2025-09': (require('../../../data/exam/g3-geom-mock-2025-09/problems.json') as ProblemsJson).problems,
+  'g3-geom-mock-2026-06': (require('../../../data/exam/g3-geom-mock-2026-06/problems.json') as ProblemsJson).problems,
   'g3-stats-academic-2022-03': (require('../../../data/exam/g3-stats-academic-2022-03/problems.json') as ProblemsJson).problems,
   'g3-stats-academic-2023-03': (require('../../../data/exam/g3-stats-academic-2023-03/problems.json') as ProblemsJson).problems,
   'g3-stats-academic-2024-03': (require('../../../data/exam/g3-stats-academic-2024-03/problems.json') as ProblemsJson).problems,
@@ -73,6 +74,7 @@ const examProblemsMap: Record<string, ExamProblem[]> = {
   'g3-stats-mock-2024-09': (require('../../../data/exam/g3-stats-mock-2024-09/problems.json') as ProblemsJson).problems,
   'g3-stats-mock-2025-06': (require('../../../data/exam/g3-stats-mock-2025-06/problems.json') as ProblemsJson).problems,
   'g3-stats-mock-2025-09': (require('../../../data/exam/g3-stats-mock-2025-09/problems.json') as ProblemsJson).problems,
+  'g3-stats-mock-2026-06': (require('../../../data/exam/g3-stats-mock-2026-06/problems.json') as ProblemsJson).problems,
 };
 
 export function getExamProblems(examId: string): ExamProblem[] {
