@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.06.05 07:57
+- 해시: `10e82c4` (`10e82c4fd5070ad71995159fbe285da63acefcde`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/10e82c4fd5070ad71995159fbe285da63acefcde
+- 작성자: 박기윤
+- 메시지: fix(exam): 6월 모평 약점 태깅 해설지 검증 — #21 미분→극한 정정
+- 본문: - EBS 해설지 [출제의도]로 어제 태깅(46명 이미지 교차검증) 대조 → 45/46 일치 / - #21 "함수의 연속성을 이용" → diff에서 limit으로 정정 (3과목 공통) / - 출제의도 기반 독립 검증 46명 추가: 44 일치, 충돌 2건(calc#25·#30)은 / 실제 이미지(무한급수 ∑∞ / 무리함수 ∛ 미분)로 sequence_limit·diff_advanced 확정 / - 약점 태깅 3중 교차검증(키워드+이미지+출제의도) 완료, 46/46 / Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.06.04 19:42
 - 해시: `8acd040` (`8acd040b79760b25765f448e249de72c523163f6`)
 - 브랜치: main
