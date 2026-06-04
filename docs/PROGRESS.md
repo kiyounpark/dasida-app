@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.06.04 19:42
+- 해시: `8acd040` (`8acd040b79760b25765f448e249de72c523163f6`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8acd040b79760b25765f448e249de72c523163f6
+- 작성자: 박기윤
+- 메시지: feat(exam): 2027학년도 6월 모평 수학 3과목 추가 (문제·정답·이미지·약점태깅)
+- 본문: - 확률과통계/미적분/기하 각 30문제 (공통 22 + 선택 8) / - 정답·배점: KICE 공식 정답표로 90/90 교차검증 (2 독립 출처) / - 문제별 이미지 크롭(scripts/crop_exam.py): 문제번호 앵커 기반 bbox, / 단 구분선·안내박스·푸터 제거, 그림 보존, 754px 통일 / - 약점 태깅 1차(scripts/tag_exam.py): 한글텍스트 자동 태깅 / + 46 에이전트 blind 교차검증으로 8건 정정 (#16·#17은 정답 산수로 확정) / - 약점 태깅은 EBS 해설지 [출제의도] 공개되면 정밀 교체 예정 (#21 미분으로 유지) / Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 ### 커밋 2026.06.03 15:28
 - 해시: `dea5a25` (`dea5a256b318a175a2b190fbe0a2a2943a9bab9c`)
 - 브랜치: main

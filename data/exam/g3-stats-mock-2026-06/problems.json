@@ -348,9 +348,9 @@
       "type": "short_answer",
       "score": 4,
       "answer": 11,
-      "topic": "미분",
+      "topic": "극한·연속",
       "diagnosisMethods": [
-        "diff"
+        "limit"
       ],
       "imageKey": "assets/exam/g3-stats-mock-2026-06/problems/21.webp",
       "bbox": {
