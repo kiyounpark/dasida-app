@@ -60,6 +60,11 @@ const SCREENS = [
     desc: '실제 진단 화면 자동 재생 · 미분 오답 → 풀이 순서 혼동',
     onPress: () => router.push('/dev/capture-diagnosis-flow'),
   },
+  {
+    title: '🎬 캡처용 · 약점 리포트',
+    desc: '마케팅 영상 컷6 · 미적분 약점 5개 한눈에 (풀이 순서 혼동 외)',
+    onPress: () => router.push('/dev/capture-report'),
+  },
 ] as const;
 
 export default function DevHubScreen() {
