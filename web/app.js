@@ -134,7 +134,7 @@
     setActions(approachActions());
   });
 
-  // ----- 진단 사이클: 선택 → 짚기 → 설명 → 확인 → 잡음 -----
+  // ----- 진단 사이클: 선택 한 번 → 짚기·설명·확인질문이 자동으로 쭉 이어짐 -----
   function approachActions() {
     return P.approaches.map((a, idx) => ({
       label: a.label,
@@ -142,42 +142,19 @@
       onClick: () => {
         logEvent('approach_select', { step: a.brokenStep, index: idx });
         userSays(a.label);
-        assistantSays(a.comment, 'warning');
-        appendStepMap(a.brokenStep, '어긋난 단계');
-        setActions([
-          { label: '왜 그런지 볼래요?', kind: 'primary', onClick: () => enterExplain(a) },
-          ctaAction2(),
-        ]);
+        actionsBox.innerHTML = ''; // 선택 끝 — 코치가 이어서 말하는 동안 버튼 없음
+        // 짚기 → 지도 → 설명 → 확인질문, 자동 순차 (게이트 버튼 없음)
+        let t = 400;
+        setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 750;
+        setTimeout(() => appendStepMap(a.brokenStep, '어긋난 단계'), t); t += 650;
+        setTimeout(() => assistantSays(a.explain), t); t += 900;
+        setTimeout(() => askCheck(a), t);
       },
     }));
   }
 
-  // 사이클 건너뛰고 싶은 사람용 보조 마무리
-  function ctaAction2() {
-    return { label: '여기까지만 볼래요', kind: 'secondary', onClick: goCta };
-  }
-
-  function enterExplain(a) {
-    logEvent('cycle_explain', { step: a.brokenStep });
-    userSays('왜 그런지 볼래요');
-    assistantSays(a.explain);
-    setActions([
-      { label: '이해했어요 — 확인해볼래요', kind: 'primary', onClick: () => enterCheck(a) },
-      { label: '아직 잘 모르겠어요', kind: 'secondary', onClick: () => enterEasy(a) },
-    ]);
-  }
-
-  function enterEasy(a) {
-    logEvent('cycle_easy', { step: a.brokenStep });
-    userSays('아직 잘 모르겠어요');
-    assistantSays(a.easy);
-    setActions([
-      { label: '이해했어요 — 확인해볼래요', kind: 'primary', onClick: () => enterCheck(a) },
-    ]);
-  }
-
-  function enterCheck(a) {
-    userSays('이해했어요');
+  function askCheck(a) {
+    logEvent('cycle_check_shown', { step: a.brokenStep });
     assistantSays('좋아요, 확인 한 번만 해볼게요. ' + a.check.question);
     setActions(checkActions(a));
   }
@@ -190,14 +167,21 @@
         const correct = idx === a.check.correctIndex;
         logEvent('cycle_check', { step: a.brokenStep, correct });
         userSays(opt);
+        actionsBox.innerHTML = '';
         if (correct) {
           logEvent('cycle_done', { step: a.brokenStep });
-          assistantSays('맞아요. 이 단계, 이제 잡혔어요 ✅ 다음에 이 유형을 만나면, 같은 자리에서 안 무너져요.', 'positive');
-          appendStepMap(a.brokenStep, '잡은 단계', 'fixed');
-          setActions([ctaAction]);
+          setTimeout(() => {
+            assistantSays('맞아요. 이 단계, 이제 잡혔어요 ✅ 다음에 이 유형을 만나면, 같은 자리에서 안 무너져요.', 'positive');
+          }, 350);
+          setTimeout(() => {
+            appendStepMap(a.brokenStep, '잡은 단계', 'fixed');
+            setActions([ctaAction]);
+          }, 1000);
         } else {
-          assistantSays('💡 ' + a.check.hint, 'warning');
-          setActions(checkActions(a));
+          setTimeout(() => {
+            assistantSays('💡 ' + a.check.hint, 'warning');
+            setActions(checkActions(a));
+          }, 350);
         }
       },
     }));
