@@ -181,7 +181,7 @@
     setActions(approachActions());
   });
 
-  // ----- 진단 사이클: 선택 한 번 → 짚기·설명·확인질문이 자동으로 쭉 이어짐 -----
+  // ----- 진단 대화 트리: 선택 → 짚기·그림·intro → 질문 4개(소크라테스식) → outro → 정리 -----
   function approachActions() {
     return P.approaches.map((a, idx) => ({
       label: a.label,
@@ -190,70 +190,51 @@
         logEvent('approach_select', { step: a.brokenStep, index: idx });
         userSays(a.label);
         actionsBox.innerHTML = ''; // 선택 끝 — 코치가 이어서 말하는 동안 버튼 없음
-        // 짚기 → 개념 그림 → 설명(짧은 말풍선) → 확인질문, 자동 순차
+        // 짚기 → 개념 그림 → intro 말풍선, 자동 순차 → 첫 질문
         let t = 400;
         setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 850;
         if (a.figure) { setTimeout(() => appendFigure(a.figure), t); t += 800; }
-        const chunks = Array.isArray(a.explain) ? a.explain : [a.explain];
-        chunks.forEach((chunk) => {
-          setTimeout(() => assistantSays(chunk), t); t += 750;
+        (a.dialogue.intro || []).forEach((line) => {
+          setTimeout(() => assistantSays(line), t); t += 750;
         });
-        setTimeout(() => askCheckpoint(a), t);
+        setTimeout(() => askQuestion(a, 0), t);
       },
     }));
   }
 
-  // 이해 확인 체크포인트 (앱처럼 되묻기) — "네" 또는 "한 번 더 쉽게"
-  function askCheckpoint(a) {
-    if (!a.checkpoint) { askCheck(a); return; }
-    logEvent('cycle_checkpoint_shown', { step: a.brokenStep });
-    assistantSays(a.checkpoint.prompt);
-    setActions([
-      { label: '네, 이해됐어요', kind: 'primary', onClick: () => {
-        userSays('네, 이해됐어요');
-        logEvent('cycle_checkpoint', { step: a.brokenStep, got: true });
-        actionsBox.innerHTML = '';
-        setTimeout(() => askCheck(a), 350);
-      } },
-      { label: '음, 한 번 더 쉽게', kind: 'secondary', onClick: () => {
-        userSays('음, 한 번 더 쉽게');
-        logEvent('cycle_checkpoint', { step: a.brokenStep, got: false });
-        actionsBox.innerHTML = '';
-        setTimeout(() => assistantSays(a.checkpoint.easy, 'positive'), 350);
-        setTimeout(() => askCheck(a), 1300);
-      } },
-    ]);
-  }
-
-  function askCheck(a) {
-    logEvent('cycle_check_shown', { step: a.brokenStep });
-    assistantSays('좋아요, 그럼 확인 한 번만 해볼게요. ' + a.check.question);
-    setActions(checkActions(a));
-  }
-
-  function checkActions(a) {
-    return a.check.options.map((opt, idx) => ({
+  // 질문 하나 던지고 3지선다 → 답 반응(정답/오답) → 다음 질문 or outro
+  function askQuestion(a, qi) {
+    const q = a.dialogue.questions[qi];
+    assistantSays(q.q);
+    setActions(q.options.map((opt, oi) => ({
       label: opt,
       kind: 'option',
       onClick: () => {
-        const correct = idx === a.check.correctIndex;
-        logEvent('cycle_check', { step: a.brokenStep, correct });
+        const correct = oi === q.correct;
+        logEvent('dialogue_answer', { step: a.brokenStep, q: qi, correct });
         userSays(opt);
         actionsBox.innerHTML = '';
-        if (correct) {
-          logEvent('cycle_done', { step: a.brokenStep });
-          setTimeout(() => {
-            assistantSays('맞아요. 이 단계, 이제 잡혔어요 ✅', 'positive');
-          }, 350);
-          setTimeout(() => showSummary('weakness', a.brokenStep), 1300);
+        const reaction = correct ? q.right : q.wrong[oi];
+        setTimeout(() => assistantSays(reaction, correct ? 'positive' : 'warning'), 350);
+        // 오답이어도 재시도 없이 다음으로 (correct-and-continue, 막다른 길 없음)
+        const nextQi = qi + 1;
+        if (nextQi < a.dialogue.questions.length) {
+          setTimeout(() => askQuestion(a, nextQi), 1250);
         } else {
-          setTimeout(() => {
-            assistantSays('💡 ' + a.check.hint, 'warning');
-            setActions(checkActions(a));
-          }, 350);
+          finishDialogue(a);
         }
       },
-    }));
+    })));
+  }
+
+  function finishDialogue(a) {
+    logEvent('cycle_done', { step: a.brokenStep });
+    let t = 1250;
+    (a.dialogue.outro || []).forEach((line, i) => {
+      setTimeout(() => assistantSays(line, i === 0 ? 'positive' : undefined), t);
+      t += 850;
+    });
+    setTimeout(() => showSummary('weakness', a.brokenStep), t);
   }
 
   // ----- 상태 3: 마무리 CTA -----

@@ -567,7 +567,9 @@ git push origin main
 
 ## 구현 핸드오프 (2026-07-11): 소크라테스식 대화 트리 — app.js 재작성 필요
 
-`web/problem-data.js`의 approaches가 **대화 트리 구조로 교체됨** (검증 완료: 구조 검증 스크립트 + 수학 검산 + 오르비 해설 일치). ⚠️ 현재 `web/app.js`는 구 필드(`explain`/`checkpoint`/`check`)를 참조하므로 **이 시점 브랜치는 실행 시 깨짐** — 아래를 구현해야 한다.
+> **✅ 구현 완료 (2026-07-11):** `web/app.js`에 대화 러너 반영(`askQuestion`/`finishDialogue`, 구 `askCheckpoint`/`askCheck`/`checkActions` 제거). 브라우저 전체 흐름 검증 통과 — 오답 포함 4질문 → outro → 약점 정리 페이지, 정답(11) 통과 경로, 콘솔 에러 0, 구 필드 참조 0.
+
+`web/problem-data.js`의 approaches가 **대화 트리 구조로 교체됨** (검증 완료: 구조 검증 스크립트 + 수학 검산 + 오르비 해설 일치). 아래는 구현 명세(이력 보존용).
 
 ### 새 데이터 구조 (approach당)
 ```js
