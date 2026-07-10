@@ -9,7 +9,7 @@
   const screens = {
     problem: document.getElementById('screen-problem'),
     chat: document.getElementById('screen-chat'),
-    cta: document.getElementById('screen-cta'),
+    summary: document.getElementById('screen-summary'),
   };
 
   function show(name) {
@@ -53,32 +53,6 @@
     scrollToLatest();
   }
 
-  function appendStepMap(brokenStep, breakTag, variant) {
-    const card = document.createElement('ol');
-    card.className = 'step-map chat-card';
-    P.steps.forEach((s, i) => {
-      const li = document.createElement('li');
-      li.dataset.num = String(i + 1);
-      if (i === brokenStep) li.classList.add(variant === 'fixed' ? 'fixed' : 'broken');
-      li.innerHTML =
-        '<span class="step-name"></span><span class="step-desc"></span>' +
-        (i === brokenStep ? '<span class="break-tag"></span>' : '');
-      li.querySelector('.step-name').textContent = s.name;
-      li.querySelector('.step-desc').textContent = s.desc;
-      if (i === brokenStep) {
-        li.querySelector('.break-tag').textContent =
-          (variant === 'fixed' ? '✅ ' : '⚡ ') + breakTag;
-      }
-      card.appendChild(li);
-    });
-    thread.appendChild(card);
-    const note = document.createElement('p');
-    note.className = 'chat-note';
-    note.textContent = P.sourceNote;
-    thread.appendChild(note);
-    scrollToLatest();
-  }
-
   // buttons: [{ label, kind: 'primary'|'secondary'|'option', onClick }]
   function setActions(buttons) {
     actionsBox.innerHTML = '';
@@ -95,11 +69,29 @@
     scrollToLatest();
   }
 
-  function goCta() {
-    logEvent('cta_open');
-    show('cta');
+  // ----- 약점 정리 페이지 (앱 done-view 스탬프 스타일) -----
+  function showSummary(mode, stepIdx) {
+    logEvent('summary_shown', { mode, step: stepIdx });
+    const step = P.steps[stepIdx];
+    const passed = mode === 'passed';
+    document.getElementById('stamp-ko').textContent = passed ? '통 과' : '완 료';
+    document.getElementById('stamp-en').textContent = passed ? 'PASSED' : 'REVIEWED';
+    document.getElementById('stamp-leaf').textContent = passed ? '✅' : '🌿';
+    document.getElementById('summary-title').textContent =
+      passed ? '이 문제, 통과했어요' : '이 약점, 오늘 짚었어요';
+    document.getElementById('summary-sub').textContent =
+      passed
+        ? '근데 이 문제, 대부분 여기서 무너져요. 넌 넘었고요.'
+        : '이제 이 유형을 다시 만나도, 같은 자리에서 안 무너져요.';
+    document.getElementById('summary-card-label').textContent =
+      passed ? '사람들이 무너지는 단계' : '오늘 짚은 약점';
+    document.getElementById('summary-weakness').textContent = step.name;
+    document.getElementById('summary-desc').textContent = step.desc;
+    const note = document.getElementById('summary-note');
+    note.textContent = P.sourceNote;
+    note.hidden = !passed; // "무너지는 단계"(정답 경로)에만 출처 명시
+    show('summary');
   }
-  const ctaAction = { label: '이걸 내 오답에도 하고 싶다면', kind: 'primary', onClick: goCta };
 
   // ----- 상태 1: 문제 렌더링 -----
   document.getElementById('hook-text').textContent = P.hook;
@@ -117,8 +109,7 @@
     if (correct) {
       assistantSays('정답이에요 👏', 'positive');
       assistantSays(P.commonBreak.comment);
-      appendStepMap(P.commonBreak.stepIndex, '사람들이 가장 많이 무너지는 단계');
-      setActions([ctaAction]);
+      setTimeout(() => showSummary('passed', P.commonBreak.stepIndex), 1400);
     } else {
       assistantSays('아깝네요. 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 어디서 어긋났는지 짚어드릴게요.');
       setActions(approachActions());
@@ -143,11 +134,10 @@
         logEvent('approach_select', { step: a.brokenStep, index: idx });
         userSays(a.label);
         actionsBox.innerHTML = ''; // 선택 끝 — 코치가 이어서 말하는 동안 버튼 없음
-        // 짚기 → 지도 → 설명 → 확인질문, 자동 순차 (게이트 버튼 없음)
+        // 짚기 → 설명 → 확인질문, 자동 순차 (단계 지도 카드 없음)
         let t = 400;
-        setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 750;
-        setTimeout(() => appendStepMap(a.brokenStep, '어긋난 단계'), t); t += 650;
-        setTimeout(() => assistantSays(a.explain), t); t += 900;
+        setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 850;
+        setTimeout(() => assistantSays(a.explain), t); t += 950;
         setTimeout(() => askCheck(a), t);
       },
     }));
@@ -171,12 +161,9 @@
         if (correct) {
           logEvent('cycle_done', { step: a.brokenStep });
           setTimeout(() => {
-            assistantSays('맞아요. 이 단계, 이제 잡혔어요 ✅ 다음에 이 유형을 만나면, 같은 자리에서 안 무너져요.', 'positive');
+            assistantSays('맞아요. 이 단계, 이제 잡혔어요 ✅', 'positive');
           }, 350);
-          setTimeout(() => {
-            appendStepMap(a.brokenStep, '잡은 단계', 'fixed');
-            setActions([ctaAction]);
-          }, 1000);
+          setTimeout(() => showSummary('weakness', a.brokenStep), 1300);
         } else {
           setTimeout(() => {
             assistantSays('💡 ' + a.check.hint, 'warning');

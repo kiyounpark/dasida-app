@@ -43,20 +43,6 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
   font-size: 0.95rem; font-family: inherit; cursor: pointer; }
 .method-option:hover { background: #EEF4EE; border-color: #89A78E; }     /* choiceActive */
 
-.step-map { list-style: none; margin: 16px 0; }
-.step-map li { position: relative; padding: 13px 14px 13px 40px; margin-bottom: 8px;
-  background: #FFFCF8; border: 1px solid #D9E0D4; border-radius: 14px; }
-.step-map li::before { content: attr(data-num); position: absolute; left: 13px;
-  top: 14px; width: 22px; height: 22px; border-radius: 50%; background: #E4EBE1;
-  color: #4A5A4C; font-size: 0.75rem; font-weight: 700; display: flex;
-  align-items: center; justify-content: center; }
-.step-map li.broken { border-color: #D64545; background: #FBEDED; }     /* danger */
-.step-map li.broken::before { background: #D64545; color: #fff; }
-.step-name { font-weight: 700; display: block; color: #243229; }
-.step-desc { font-size: 0.85rem; color: #5B6A5D; }
-.break-tag { display: inline-block; margin-top: 6px; font-size: 0.78rem;
-  font-weight: 700; color: #D64545; }
-
 /* 진단 대화 (앱 diagnosis-chat-bubble.tsx 이식) */
 .chat-thread { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
 .bubble-row { display: flex; align-items: flex-end; gap: 8px; }
@@ -70,13 +56,32 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
 .bubble.assistant.positive { background: #EEF7EF; border-color: #B8D6BF; color: #355B43; }
 .bubble.user { max-width: 76%; background: #2F5A43; color: #FFFFFF;   /* userBubble */
   font-weight: 700; border-top-right-radius: 10px; }
-.chat-card { margin: 4px 0 0 36px; }
-.chat-note { font-size: 0.72rem; color: #8A958B; margin: 0 0 4px 36px; }
 .chat-actions { margin-top: 16px; }
 .chat-actions .method-option:last-child { margin-bottom: 0; }
-.step-map li.fixed { border-color: #B8D6BF; background: #EEF7EF; }
-.step-map li.fixed::before { background: #2F9E44; color: #fff; }
-.step-map li.fixed .break-tag { color: #2F9E44; }
+
+/* 약점 정리 페이지 (앱 done-view.tsx 스탬프 스타일) */
+#screen-summary { text-align: center; padding-top: 12px; }
+.stamp { position: relative; display: inline-block; margin: 8px auto 14px; }
+.stamp-ring { width: 110px; height: 110px; border-radius: 50%;
+  border: 2.5px solid #7A2E1F; background: rgba(201,90,63,0.08);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transform: rotate(-7deg); }
+.stamp-ko { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 1.4rem;
+  letter-spacing: 4px; color: #7A2E1F; line-height: 1.1; }
+.stamp-en { font-weight: 800; font-size: 0.5rem; letter-spacing: 2px;
+  color: #7A2E1F; margin-top: 4px; }
+.stamp-leaf { position: absolute; top: -8px; right: -10px; font-size: 1.4rem; }
+.summary-title { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 1.4rem;
+  color: #1A1916; letter-spacing: -0.3px; margin: 6px 0 8px; }
+.summary-sub { font-size: 0.9rem; line-height: 1.6; color: #6B675E; margin-bottom: 18px; }
+.summary-card { text-align: left; border: 1.5px dashed #1A1916; border-radius: 14px;
+  background: #FFFFFF; padding: 16px 18px; margin-bottom: 20px;
+  box-shadow: 3px 3px 0 rgba(26,25,22,0.08); }
+.summary-card-label { display: block; font-size: 0.62rem; font-weight: 800;
+  letter-spacing: 1.4px; color: #6B675E; margin-bottom: 5px; }
+.summary-card-val { display: block; font-family: 'Gowun Batang', serif; font-weight: 700;
+  font-size: 1.15rem; color: #293B27; margin-bottom: 8px; }
+.summary-card-desc { font-size: 0.88rem; line-height: 1.55; color: #3A3833; }
 
 .source-note { font-size: 0.75rem; color: #8A958B; margin-bottom: 20px; }
 #result-comment { margin-bottom: 4px; color: #243229; }

@@ -8,6 +8,10 @@
   <meta property="og:description" content="풀 줄 아는 문제를 또 틀리는 이유 — 풀이의 어느 단계가 어긋났는지 짚어드려요." />
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -34,13 +38,25 @@
       <div id="chat-actions" class="chat-actions"></div>
     </section>
 
-    <!-- 상태 4: 마무리 CTA -->
-    <section id="screen-cta" hidden>
-      <h2>다시다는 이걸 네 모든 오답에 해요</h2>
-      <p>실제 모의고사와 같은 환경에서 풀고, 틀린 문제마다
-         "풀이 어느 단계에서 어긋났는지"를 기록해요.</p>
+    <!-- 상태 4: 약점 정리 페이지 (앱 done-view 스탬프 스타일) -->
+    <section id="screen-summary" hidden>
+      <div class="stamp">
+        <div class="stamp-ring">
+          <span class="stamp-ko" id="stamp-ko">완 료</span>
+          <span class="stamp-en" id="stamp-en">REVIEWED</span>
+        </div>
+        <span class="stamp-leaf" id="stamp-leaf">🌿</span>
+      </div>
+      <h2 class="summary-title" id="summary-title"></h2>
+      <p class="summary-sub" id="summary-sub"></p>
+      <div class="summary-card">
+        <span class="summary-card-label" id="summary-card-label"></span>
+        <span class="summary-card-val" id="summary-weakness"></span>
+        <p class="summary-card-desc" id="summary-desc"></p>
+      </div>
+      <p class="source-note" id="summary-note" hidden></p>
       <a class="btn-primary" id="store-link"
-         href="https://apps.apple.com/kr/app/dasida" target="_blank" rel="noopener">다시다 보러 가기</a>
+         href="https://apps.apple.com/kr/app/dasida" target="_blank" rel="noopener">다시다는 네 모든 오답에 이걸 해요</a>
       <p class="cta-sub">강요 아님. 이 페이지만 써도 돼요.</p>
     </section>
 
