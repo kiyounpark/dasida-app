@@ -57,6 +57,16 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
 .break-tag { display: inline-block; margin-top: 6px; font-size: 0.78rem;
   font-weight: 700; color: #D64545; }
 
+/* 사이클: 설명·확인 (DiagnosisTheme infoBg/warningBg/successBg) */
+.explain-body { font-size: 0.95rem; color: #243229; background: #FFFCF8;
+  border: 1px solid #D9E0D4; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+.check-hint { font-size: 0.85rem; color: #8A6A1B; background: #FFF6E8;
+  border: 1px solid #E7C98A; border-radius: 12px; padding: 12px 14px; margin-top: 4px; }
+.method-option.wrong { border-color: #D64545; background: #FBEDED; }
+.step-map li.fixed { border-color: #B8D6BF; background: #EEF7EF; }
+.step-map li.fixed::before { background: #2F9E44; color: #fff; }
+.step-map li.fixed .break-tag { color: #2F9E44; }
+
 .source-note { font-size: 0.75rem; color: #8A958B; margin-bottom: 20px; }
 #result-comment { margin-bottom: 4px; color: #243229; }
 .cta-sub { font-size: 0.8rem; color: #667268; text-align: center; margin-top: 10px; }

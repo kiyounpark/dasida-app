@@ -44,6 +44,22 @@
       <button id="btn-finish" class="btn-primary">이걸 내 오답에도 하고 싶다면</button>
     </section>
 
+    <!-- 상태 3.5: 사이클 — 왜 그런지 설명 -->
+    <section id="screen-explain" hidden>
+      <h2 id="explain-title"></h2>
+      <p id="explain-body" class="explain-body"></p>
+      <button id="btn-got-it" class="btn-primary">이해했어요 — 확인해볼래요</button>
+      <button id="btn-easier" class="btn-secondary">아직 잘 모르겠어요</button>
+    </section>
+
+    <!-- 상태 3.6: 사이클 — 확인 미니 질문 -->
+    <section id="screen-check" hidden>
+      <h2>확인 한 번만 해볼게요</h2>
+      <p id="check-question" class="sub"></p>
+      <div id="check-options"></div>
+      <p id="check-hint" class="check-hint" hidden></p>
+    </section>
+
     <!-- 상태 4: 마무리 CTA -->
     <section id="screen-cta" hidden>
       <h2>다시다는 이걸 네 모든 오답에 해요</h2>
