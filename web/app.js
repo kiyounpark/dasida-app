@@ -198,14 +198,36 @@
         chunks.forEach((chunk) => {
           setTimeout(() => assistantSays(chunk), t); t += 750;
         });
-        setTimeout(() => askCheck(a), t);
+        setTimeout(() => askCheckpoint(a), t);
       },
     }));
   }
 
+  // 이해 확인 체크포인트 (앱처럼 되묻기) — "네" 또는 "한 번 더 쉽게"
+  function askCheckpoint(a) {
+    if (!a.checkpoint) { askCheck(a); return; }
+    logEvent('cycle_checkpoint_shown', { step: a.brokenStep });
+    assistantSays(a.checkpoint.prompt);
+    setActions([
+      { label: '네, 이해됐어요', kind: 'primary', onClick: () => {
+        userSays('네, 이해됐어요');
+        logEvent('cycle_checkpoint', { step: a.brokenStep, got: true });
+        actionsBox.innerHTML = '';
+        setTimeout(() => askCheck(a), 350);
+      } },
+      { label: '음, 한 번 더 쉽게', kind: 'secondary', onClick: () => {
+        userSays('음, 한 번 더 쉽게');
+        logEvent('cycle_checkpoint', { step: a.brokenStep, got: false });
+        actionsBox.innerHTML = '';
+        setTimeout(() => assistantSays(a.checkpoint.easy, 'positive'), 350);
+        setTimeout(() => askCheck(a), 1300);
+      } },
+    ]);
+  }
+
   function askCheck(a) {
     logEvent('cycle_check_shown', { step: a.brokenStep });
-    assistantSays('좋아요, 확인 한 번만 해볼게요. ' + a.check.question);
+    assistantSays('좋아요, 그럼 확인 한 번만 해볼게요. ' + a.check.question);
     setActions(checkActions(a));
   }
 
