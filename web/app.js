@@ -40,9 +40,34 @@
     img.alt = '';
     const bubble = document.createElement('div');
     bubble.className = 'bubble assistant' + (tone ? ' ' + tone : '');
-    bubble.textContent = text;
+    fillWithBold(bubble, text);
     row.append(img, bubble);
     thread.appendChild(row);
+    scrollToLatest();
+  }
+
+  // "**핵심어**" 마커를 <strong>으로 (텍스트 노드로만 조립 — 주입 없음)
+  function fillWithBold(el, text) {
+    text.split('**').forEach((part, i) => {
+      if (!part) return;
+      if (i % 2 === 1) {
+        const strong = document.createElement('strong');
+        strong.textContent = part;
+        el.appendChild(strong);
+      } else {
+        el.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
+  // 개념 그림 카드 (figures.js의 정적 SVG)
+  function appendFigure(key) {
+    const svg = (window.FIGURES || {})[key];
+    if (!svg) return;
+    const card = document.createElement('div');
+    card.className = 'figure-card';
+    card.innerHTML = svg; // 로컬 정적 자산 — 외부 입력 아님
+    thread.appendChild(card);
     scrollToLatest();
   }
 
@@ -138,9 +163,10 @@
         logEvent('approach_select', { step: a.brokenStep, index: idx });
         userSays(a.label);
         actionsBox.innerHTML = ''; // 선택 끝 — 코치가 이어서 말하는 동안 버튼 없음
-        // 짚기 → 설명(짧은 말풍선 여러 개) → 확인질문, 자동 순차
+        // 짚기 → 개념 그림 → 설명(짧은 말풍선) → 확인질문, 자동 순차
         let t = 400;
         setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 850;
+        if (a.figure) { setTimeout(() => appendFigure(a.figure), t); t += 800; }
         const chunks = Array.isArray(a.explain) ? a.explain : [a.explain];
         chunks.forEach((chunk) => {
           setTimeout(() => assistantSays(chunk), t); t += 750;

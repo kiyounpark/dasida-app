@@ -49,8 +49,17 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
 .bubble-row.user { justify-content: flex-end; }
 .avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
 .avatar.ghost { visibility: hidden; }
-.bubble { border-radius: 18px; padding: 12px 15px; font-size: 0.95rem;
+.bubble { border-radius: 18px; padding: 12px 15px; font-size: 1rem;
   line-height: 1.62; box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.bubble.assistant strong { font-weight: 800; color: #1E4D33; }
+.bubble.assistant.warning strong { color: #8A5A10; }
+.bubble.assistant.positive strong { color: #1E4D33; }
+
+.figure-card { max-width: 84%; margin-left: 36px; background: #FFFFFF;
+  border: 1px solid #E2E7DE; border-radius: 14px; padding: 12px 10px 6px;
+  box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.figure-card svg { display: block; width: 100%; height: auto;
+  font-family: inherit; }
 .bubble.assistant { max-width: 84%; background: #FFFFFF; color: #243229;
   border: 1px solid #E2E7DE; border-bottom-left-radius: 4px; }        /* assistantBubble */
 .bubble.assistant.warning { background: #FFF6E8; border-color: #E7C98A; color: #775520; }
