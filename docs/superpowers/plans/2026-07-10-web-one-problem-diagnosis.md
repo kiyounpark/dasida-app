@@ -562,3 +562,37 @@ git push origin main
 
 이 계획에 없으면 만들지 않는다: 문제 2개 이상, **수집한 통계를 화면에 표시**(무너지는 단계 실시간 반영은 v2), 회원가입/오답 저장, 딥링크, Expo 웹 빌드, 커스텀 도메인, 자동 테스트.
 > 참고: GA4로 기윤이 **대시보드에서** 보는 행동 데이터 수집은 v1에 포함(Task 6). 화면의 정직 문구("실제 방문자 통계 아님")는 그대로 유지 — GA는 뒤에서 수집만 하고 화면엔 표시하지 않기 때문.
+
+---
+
+## 구현 핸드오프 (2026-07-11): 소크라테스식 대화 트리 — app.js 재작성 필요
+
+`web/problem-data.js`의 approaches가 **대화 트리 구조로 교체됨** (검증 완료: 구조 검증 스크립트 + 수학 검산 + 오르비 해설 일치). ⚠️ 현재 `web/app.js`는 구 필드(`explain`/`checkpoint`/`check`)를 참조하므로 **이 시점 브랜치는 실행 시 깨짐** — 아래를 구현해야 한다.
+
+### 새 데이터 구조 (approach당)
+```js
+{ label, brokenStep, comment /*짚기, warning톤*/, figure /*'cubic'|'parabola'*/,
+  dialogue: {
+    intro: [string],                    // 그림 뒤 소개 말풍선 (0~1개)
+    questions: [                        // 반드시 4개
+      { q, options: [3개], correct: idx,
+        right: string,                  // 정답 반응 (positive 톤)
+        wrong: [3]                      // 오답별 반응(warning 톤), 정답 자리는 null
+      }
+    ],
+    outro: [string],                    // 정리 말풍선 (첫 개 positive 톤)
+  } }
+```
+
+### 구현할 흐름 (app.js — askCheckpoint/askCheck/checkActions 제거하고 대체)
+1. approach 선택 → `comment`(warning) → `figure` → `intro` 말풍선들 (기존과 같은 자동 순차·딜레이)
+2. 질문 i 진행: `assistantSays(q.q)` + 선택지 3개를 액션 버튼으로
+3. 답 선택: `userSays(선택)` → 정답이면 `q.right`(positive), 오답이면 `q.wrong[선택idx]`(warning) → **재시도 없이 다음 질문으로** (correct-and-continue, 막다른 길 없음)
+4. 4번 질문 끝 → `outro` 말풍선들(첫 개 positive) → `showSummary('weakness', a.brokenStep)`
+5. GA: `dialogue_answer {step, q, correct}` + 기존 `approach_select`/`cycle_done`/`summary_shown` 유지
+6. 정답(11) 경로·문제버블·스킵 경로·약점정리 페이지는 변경 없음
+
+### 검증 방법
+- `node --check web/app.js`
+- 브라우저: 스킵 → 각 approach → 4질문(정답/오답 섞어) → outro → 정리 페이지, 콘솔 에러 0
+- 오답 눌렀을 때 warning 말풍선 후 다음 질문으로 넘어가는지 확인
