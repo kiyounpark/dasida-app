@@ -28,10 +28,14 @@
   }
 
   function assistantSays(text, tone) {
+    // 연속된 코치 말풍선은 첫 개에만 아바타 (앱 showAvatar 방식)
+    const prev = thread.lastElementChild;
+    const prevAssistant = prev && prev.classList.contains('bubble-row')
+      && !prev.classList.contains('user');
     const row = document.createElement('div');
     row.className = 'bubble-row';
     const img = document.createElement('img');
-    img.className = 'avatar';
+    img.className = 'avatar' + (prevAssistant ? ' ghost' : '');
     img.src = './assets/ai-coach-avatar.png';
     img.alt = '';
     const bubble = document.createElement('div');
@@ -134,10 +138,13 @@
         logEvent('approach_select', { step: a.brokenStep, index: idx });
         userSays(a.label);
         actionsBox.innerHTML = ''; // 선택 끝 — 코치가 이어서 말하는 동안 버튼 없음
-        // 짚기 → 설명 → 확인질문, 자동 순차 (단계 지도 카드 없음)
+        // 짚기 → 설명(짧은 말풍선 여러 개) → 확인질문, 자동 순차
         let t = 400;
         setTimeout(() => assistantSays(a.comment, 'warning'), t); t += 850;
-        setTimeout(() => assistantSays(a.explain), t); t += 950;
+        const chunks = Array.isArray(a.explain) ? a.explain : [a.explain];
+        chunks.forEach((chunk) => {
+          setTimeout(() => assistantSays(chunk), t); t += 750;
+        });
         setTimeout(() => askCheck(a), t);
       },
     }));
