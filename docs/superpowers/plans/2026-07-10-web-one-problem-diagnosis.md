@@ -20,19 +20,18 @@
 
 ```
 web/
-├── index.html        # 페이지 구조 (4개 상태 섹션) + GA4 스니펫
+├── index.html        # 페이지 구조 (4개 상태 섹션) + GA4 gtag 스니펫 + window.track
 ├── styles.css        # 모바일 우선 스타일
 ├── app.js            # 상태 전환 + 렌더링 로직 + 이벤트 로깅 호출
 ├── problem-data.js   # 문제 1개 데이터 (전역 PROBLEM 객체)
-├── analytics.js      # Firebase Analytics(GA4) 초기화 + track() 헬퍼
 ├── netlify.toml      # Netlify 배포 설정 (base = web/)
 └── assets/
     └── problem-21.webp  # 앱 자산에서 복사한 문제 이미지
 ```
 
 - `problem-data.js`와 `app.js` 분리 이유: 문제를 교체할 때 데이터 파일만 바꾸면 되게.
-- `analytics.js` 분리 이유: 측정 로직을 한곳에 모아 `app.js`는 이벤트 이름만 호출하게.
-- 앱 코드(`app/`, `features/`)는 일절 건드리지 않는다. (앱 Firebase 프로젝트는 web 앱 등록만, 앱 코드 변경 없음)
+- GA4는 순수 gtag 스니펫이라 별도 파일 없이 `index.html` `<head>`에 인라인 (Firebase SDK 불필요).
+- 앱 코드(`app/`, `features/`)는 일절 건드리지 않는다. (GA4는 앱과 별개 속성 — 웹 실험 데이터만 깨끗이)
 
 ---
 
@@ -473,72 +472,53 @@ git push origin main
 
 ---
 
-### Task 6: Firebase Analytics(GA4) 연동
+### Task 6: GA4 연동 (순수 gtag)
 
-앱이 이미 쓰는 Firebase 프로젝트에 **웹 앱**을 등록하고, `app.js`가 부르는 이벤트를 GA4로 흘려보낸다. 앱 코드는 건드리지 않는다 (Firebase 콘솔에서 웹 앱 등록만).
+Google Analytics 4에 **웹 데이터 스트림(URL)**만 등록하고, `app.js`가 부르는 이벤트를 gtag로 흘려보낸다. Firebase SDK·웹앱 등록 불필요 — 스니펫 한 줄이면 끝. 앱 코드도, 앱 Firebase 프로젝트도 건드리지 않는다.
 
 **Files:**
-- Create: `web/analytics.js`
-- Modify: `web/index.html` (스크립트 태그 추가)
+- Modify: `web/index.html` (`<head>`에 gtag 스니펫 + `window.track` 정의)
 
-- [ ] **Step 1: Firebase 콘솔에서 웹 앱 등록 (기윤 진행)**
+- [ ] **Step 1: GA4 속성·데이터 스트림 만들기 (기윤 진행)**
 
-Firebase 콘솔 → 앱의 기존 프로젝트 → "앱 추가" → **웹(</>)** → 앱 닉네임 `dasida-web-diagnosis` → Google Analytics **사용** 선택. 발급되는 `firebaseConfig` 객체(apiKey·projectId·appId·measurementId 등)를 복사한다.
-> measurementId(`G-XXXXXXX`)가 포함돼야 GA4로 이벤트가 간다.
+[analytics.google.com](https://analytics.google.com) → 관리 → 속성 만들기(예: `dasida-web`) → 데이터 스트림 → **웹** → 배포될 사이트 URL 등록(예: `https://dasida-one-problem.netlify.app`) → 발급되는 **측정 ID `G-XXXXXXX`**를 복사한다.
+> URL은 나중에 확정되므로, 아직 배포 전이면 임시로 넣고 배포 후 스트림 URL만 맞춰도 측정은 된다 (측정 ID가 핵심).
 
-- [ ] **Step 2: `web/analytics.js` 작성**
+- [ ] **Step 2: `web/index.html` `<head>`에 gtag 스니펫 추가**
 
-Firebase JS SDK를 CDN 모듈로 불러와 초기화하고, `window.track` 헬퍼를 노출한다. `firebaseConfig`는 Step 1에서 받은 값으로 채운다 (웹 클라이언트 config는 공개돼도 안전한 값).
-
-```javascript
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAnalytics, logEvent }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
-
-// Step 1에서 복사한 값으로 교체
-const firebaseConfig = {
-  apiKey: 'REPLACE_ME',
-  authDomain: 'REPLACE_ME',
-  projectId: 'REPLACE_ME',
-  appId: 'REPLACE_ME',
-  measurementId: 'G-REPLACE_ME',
-};
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// app.js가 호출하는 전역 헬퍼
-window.track = (name, params = {}) => {
-  try { logEvent(analytics, name, params); } catch (e) { /* 측정 실패는 무시 */ }
-};
-```
-
-- [ ] **Step 3: `web/index.html`에 스크립트 연결**
-
-`analytics.js`는 ES 모듈이므로 `type="module"`로, `app.js`보다 **먼저** 로드해 `window.track`이 준비되게 한다. (app.js는 가드가 있어 순서가 어긋나도 에러는 안 나지만, 초기 이벤트를 놓치지 않게 먼저 둔다.)
-
-`</body>` 직전 스크립트 부분을 다음으로 교체:
+`G-XXXXXXX`를 Step 1의 측정 ID로 교체해서 `<head>` 안에 넣는다. `window.track`도 여기서 바로 정의한다 (별도 파일 불필요).
 
 ```html
-  <script type="module" src="./analytics.js"></script>
-  <script src="./problem-data.js"></script>
-  <script src="./app.js"></script>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXX');
+    // app.js가 호출하는 전역 헬퍼
+    window.track = (name, params = {}) => {
+      try { gtag('event', name, params); } catch (e) { /* 측정 실패는 무시 */ }
+    };
+  </script>
 ```
 
-- [ ] **Step 4: 로컬에서 이벤트 발생 확인**
+> `app.js`는 `window.track` 가드가 있어, 스니펫을 아직 안 넣은 Task 1~5 동안에도 에러 없이 동작한다. 이 스니펫을 넣는 순간 측정이 켜진다.
+
+- [ ] **Step 3: 로컬에서 이벤트 발생 확인**
 
 ```bash
 python3 -m http.server 8000 --directory web
 ```
 
-브라우저 개발자도구 → Network 탭에서 정답/오답/선택지/ CTA 조작 시 `google-analytics.com/g/collect` (또는 `firebase` analytics) 요청이 나가는지 확인. 콘솔 에러 0개.
-> GA4 실시간 대시보드(Firebase 콘솔 → Analytics → 실시간)에 자기 방문이 잡히면 성공. (집계 리포트는 24시간 지연될 수 있음)
+브라우저 개발자도구 → Network 탭에서 정답/오답/선택지/CTA 조작 시 `google-analytics.com/g/collect` 요청이 나가는지 확인. 콘솔 에러 0개.
+> GA4 실시간 리포트(analytics.google.com → 보고서 → 실시간)에 자기 방문·이벤트가 잡히면 성공. (집계 리포트는 24~48시간 지연될 수 있음)
 
-- [ ] **Step 5: Commit + 배포 반영**
+- [ ] **Step 4: Commit + 배포 반영**
 
 ```bash
-git add web/analytics.js web/index.html
-git commit -m "feat(web): Firebase Analytics(GA4) 연동 — 5개 이벤트 측정"
+git add web/index.html
+git commit -m "feat(web): GA4(gtag) 연동 — 5개 이벤트 측정"
 git push origin main
 ```
 
