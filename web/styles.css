@@ -57,12 +57,23 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
 .break-tag { display: inline-block; margin-top: 6px; font-size: 0.78rem;
   font-weight: 700; color: #D64545; }
 
-/* 사이클: 설명·확인 (DiagnosisTheme infoBg/warningBg/successBg) */
-.explain-body { font-size: 0.95rem; color: #243229; background: #FFFCF8;
-  border: 1px solid #D9E0D4; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
-.check-hint { font-size: 0.85rem; color: #8A6A1B; background: #FFF6E8;
-  border: 1px solid #E7C98A; border-radius: 12px; padding: 12px 14px; margin-top: 4px; }
-.method-option.wrong { border-color: #D64545; background: #FBEDED; }
+/* 진단 대화 (앱 diagnosis-chat-bubble.tsx 이식) */
+.chat-thread { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.bubble-row { display: flex; align-items: flex-end; gap: 8px; }
+.bubble-row.user { justify-content: flex-end; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.bubble { border-radius: 18px; padding: 13px 16px; font-size: 0.95rem;
+  line-height: 1.55; box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.bubble.assistant { max-width: 82%; background: #FFFFFF; color: #243229;
+  border: 1px solid #E2E7DE; border-bottom-left-radius: 4px; }        /* assistantBubble */
+.bubble.assistant.warning { background: #FFF6E8; border-color: #E7C98A; color: #775520; }
+.bubble.assistant.positive { background: #EEF7EF; border-color: #B8D6BF; color: #355B43; }
+.bubble.user { max-width: 76%; background: #2F5A43; color: #FFFFFF;   /* userBubble */
+  font-weight: 700; border-top-right-radius: 10px; }
+.chat-card { margin: 4px 0 0 36px; }
+.chat-note { font-size: 0.72rem; color: #8A958B; margin: 0 0 4px 36px; }
+.chat-actions { margin-top: 16px; }
+.chat-actions .method-option:last-child { margin-bottom: 0; }
 .step-map li.fixed { border-color: #B8D6BF; background: #EEF7EF; }
 .step-map li.fixed::before { background: #2F9E44; color: #fff; }
 .step-map li.fixed .break-tag { color: #2F9E44; }

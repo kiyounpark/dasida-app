@@ -28,36 +28,10 @@
       <p class="skip-hint">기억 안 나도 괜찮아요. 선택지 보면 떠올라요.</p>
     </section>
 
-    <!-- 상태 2: 풀이 선택 (오답일 때만) -->
-    <section id="screen-method" hidden>
-      <h2 id="method-title">아깝네요. 어떻게 푸셨어요?</h2>
-      <p class="sub">가장 가까운 걸 골라주세요. 어디서 어긋났는지 짚어드릴게요.</p>
-      <div id="method-options"></div>
-    </section>
-
-    <!-- 상태 3: 진단 / 지도 (같은 컴포넌트, 하이라이트만 다름) -->
-    <section id="screen-result" hidden>
-      <h2 id="result-title"></h2>
-      <p id="result-comment"></p>
-      <ol id="step-map" class="step-map"></ol>
-      <p class="source-note" id="source-note"></p>
-      <button id="btn-finish" class="btn-primary">이걸 내 오답에도 하고 싶다면</button>
-    </section>
-
-    <!-- 상태 3.5: 사이클 — 왜 그런지 설명 -->
-    <section id="screen-explain" hidden>
-      <h2 id="explain-title"></h2>
-      <p id="explain-body" class="explain-body"></p>
-      <button id="btn-got-it" class="btn-primary">이해했어요 — 확인해볼래요</button>
-      <button id="btn-easier" class="btn-secondary">아직 잘 모르겠어요</button>
-    </section>
-
-    <!-- 상태 3.6: 사이클 — 확인 미니 질문 -->
-    <section id="screen-check" hidden>
-      <h2>확인 한 번만 해볼게요</h2>
-      <p id="check-question" class="sub"></p>
-      <div id="check-options"></div>
-      <p id="check-hint" class="check-hint" hidden></p>
+    <!-- 상태 2: 진단 대화 (앱의 약점 진단 채팅 UI 이식) -->
+    <section id="screen-chat" hidden>
+      <div id="chat-thread" class="chat-thread"></div>
+      <div id="chat-actions" class="chat-actions"></div>
     </section>
 
     <!-- 상태 4: 마무리 CTA -->
