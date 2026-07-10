@@ -55,6 +55,19 @@ h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
 .bubble.assistant.warning strong { color: #8A5A10; }
 .bubble.assistant.positive strong { color: #1E4D33; }
 
+/* 문제 버블 (앱 diagnosis-problem-bubble.tsx 이식) */
+.problem-bubble { position: relative; max-width: 92%; overflow: hidden;
+  background: #FBF8F1; border: 1px solid #D9E0D4; border-radius: 14px;
+  padding: 16px; margin-bottom: 4px; box-shadow: 0 14px 28px rgba(36,50,41,0.08); }
+.pb-band { position: absolute; top: 0; left: 0; right: 0; height: 14px; background: #D9E7D7; }
+.pb-eyebrow { font-size: 0.72rem; font-weight: 800; color: #54705B;
+  letter-spacing: 0.4px; margin-top: 6px; }
+.pb-chip { display: inline-block; margin: 8px 0; padding: 5px 10px; border-radius: 999px;
+  background: #E9F1E8; color: #243229; font-size: 0.72rem; font-weight: 700; }
+.pb-panel { padding: 8px; border: 1px solid #E5E7DE; border-radius: 12px; background: #FFFCF8; }
+.pb-panel img { display: block; width: 100%; border-radius: 6px; }
+.pb-helper { padding-top: 8px; font-size: 0.85rem; line-height: 1.5; color: #667268; }
+
 .figure-card { max-width: 84%; margin-left: 36px; background: #FFFFFF;
   border: 1px solid #E2E7DE; border-radius: 14px; padding: 12px 10px 6px;
   box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }

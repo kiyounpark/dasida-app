@@ -60,6 +60,32 @@
     });
   }
 
+  // 문제 버블 — 진단 채팅 최상단 (앱 diagnosis-problem-bubble 이식)
+  function appendProblemBubble() {
+    const card = document.createElement('div');
+    card.className = 'problem-bubble';
+    const band = document.createElement('div');
+    band.className = 'pb-band';
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'pb-eyebrow';
+    eyebrow.textContent = '오늘 같이 볼 문제';
+    const chip = document.createElement('span');
+    chip.className = 'pb-chip';
+    chip.textContent = P.topic;
+    const panel = document.createElement('div');
+    panel.className = 'pb-panel';
+    const img = document.createElement('img');
+    img.src = P.image;
+    img.alt = '문제';
+    panel.appendChild(img);
+    const helper = document.createElement('p');
+    helper.className = 'pb-helper';
+    helper.textContent = '이 문제를 어떻게 풀었는지부터 같이 볼게요.';
+    card.append(band, eyebrow, chip, panel, helper);
+    thread.appendChild(card);
+    scrollToLatest();
+  }
+
   // 개념 그림 카드 (figures.js의 정적 SVG)
   function appendFigure(key) {
     const svg = (window.FIGURES || {})[key];
@@ -140,7 +166,8 @@
       assistantSays(P.commonBreak.comment);
       setTimeout(() => showSummary('passed', P.commonBreak.stepIndex), 1400);
     } else {
-      assistantSays('아깝네요. 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 어디서 어긋났는지 짚어드릴게요.');
+      appendProblemBubble();
+      assistantSays('아깝네요. 이 문제, 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 어디서 어긋났는지 짚어드릴게요.');
       setActions(approachActions());
     }
   });
@@ -149,8 +176,8 @@
   document.getElementById('btn-skip').addEventListener('click', () => {
     logEvent('skip_to_diagnosis');
     show('chat');
-    userSays('6모 때 틀렸던 문제예요. 어디서 막혔는지 볼래요.');
-    assistantSays('그때 그 문제, 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 기억 안 나도 보면 떠올라요.');
+    appendProblemBubble();
+    assistantSays('그때 그 문제죠. 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 기억 안 나도 보면 떠올라요.');
     setActions(approachActions());
   });
 

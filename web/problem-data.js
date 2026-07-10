@@ -3,6 +3,7 @@
 window.PROBLEM = {
   id: 'g3-calc-mock-2026-06-21',
   sourceLabel: '2027학년도 6월 모의평가 수학 (공통) 21번 · 4점',
+  topic: '함수의 연속 · 삼차함수',
   image: './assets/problem-21.webp',
   answer: 11,
   hook: '풀 줄 아는 문제인데, 시험만 보면 또 틀리지 않나요?',
