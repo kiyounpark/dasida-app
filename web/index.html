@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>이 문제, 왜 틀렸는지 30초 만에 알 수 있어요 | 다시다</title>
+  <meta property="og:title" content="6월 모평 수학 21번, 어디서 무너졌는지 30초 진단" />
+  <meta property="og:description" content="풀 줄 아는 문제를 또 틀리는 이유 — 풀이의 어느 단계가 어긋났는지 짚어드려요." />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="container">
+
+    <!-- 상태 1: 문제 -->
+    <section id="screen-problem">
+      <p class="hook" id="hook-text"></p>
+      <p class="source-label" id="source-label"></p>
+      <img id="problem-image" alt="6월 모평 수학 21번 문제" />
+      <form id="answer-form">
+        <label for="answer-input" class="answer-label">정답 (자연수)</label>
+        <input id="answer-input" type="number" inputmode="numeric" min="1" max="999"
+               placeholder="답을 입력하세요" required />
+        <button type="submit" class="btn-primary">채점하기</button>
+      </form>
+    </section>
+
+    <!-- 상태 2: 풀이 선택 (오답일 때만) -->
+    <section id="screen-method" hidden>
+      <h2>아깝네요. 어떻게 푸셨어요?</h2>
+      <p class="sub">가장 가까운 걸 골라주세요. 어디서 어긋났는지 짚어드릴게요.</p>
+      <div id="method-options"></div>
+    </section>
+
+    <!-- 상태 3: 진단 / 지도 (같은 컴포넌트, 하이라이트만 다름) -->
+    <section id="screen-result" hidden>
+      <h2 id="result-title"></h2>
+      <p id="result-comment"></p>
+      <ol id="step-map" class="step-map"></ol>
+      <p class="source-note" id="source-note"></p>
+      <button id="btn-finish" class="btn-primary">이걸 내 오답에도 하고 싶다면</button>
+    </section>
+
+    <!-- 상태 4: 마무리 CTA -->
+    <section id="screen-cta" hidden>
+      <h2>다시다는 이걸 네 모든 오답에 해요</h2>
+      <p>실제 모의고사와 같은 환경에서 풀고, 틀린 문제마다
+         "풀이 어느 단계에서 어긋났는지"를 기록해요.</p>
+      <a class="btn-primary" id="store-link"
+         href="https://apps.apple.com/kr/app/dasida" target="_blank" rel="noopener">다시다 보러 가기</a>
+      <p class="cta-sub">강요 아님. 이 페이지만 써도 돼요.</p>
+    </section>
+
+  </main>
+  <script src="./problem-data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
