@@ -37,9 +37,18 @@
         breakTag: '사람들이 가장 많이 무너지는 단계',
       });
     } else {
+      document.getElementById('method-title').textContent = '아깝네요. 어떻게 푸셨어요?';
       renderMethodOptions();
       show('method');
     }
+  });
+
+  // 채점 없이 바로 진단 (6모 때 틀렸던 사람용 — 모바일 다수 경로)
+  document.getElementById('btn-skip').addEventListener('click', () => {
+    logEvent('skip_to_diagnosis');
+    document.getElementById('method-title').textContent = '그때 그 문제, 어떻게 푸셨어요?';
+    renderMethodOptions();
+    show('method');
   });
 
   // ----- 상태 2: 풀이 선택 (오답) -----

@@ -6,6 +6,8 @@
   <title>이 문제, 왜 틀렸는지 30초 만에 알 수 있어요 | 다시다</title>
   <meta property="og:title" content="6월 모평 수학 21번, 어디서 무너졌는지 30초 진단" />
   <meta property="og:description" content="풀 줄 아는 문제를 또 틀리는 이유 — 풀이의 어느 단계가 어긋났는지 짚어드려요." />
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -22,11 +24,13 @@
                placeholder="답을 입력하세요" required />
         <button type="submit" class="btn-primary">채점하기</button>
       </form>
+      <button id="btn-skip" type="button" class="btn-secondary">6모 때 틀렸던 문제예요 — 어디서 막혔는지 볼래요</button>
+      <p class="skip-hint">기억 안 나도 괜찮아요. 선택지 보면 떠올라요.</p>
     </section>
 
     <!-- 상태 2: 풀이 선택 (오답일 때만) -->
     <section id="screen-method" hidden>
-      <h2>아깝네요. 어떻게 푸셨어요?</h2>
+      <h2 id="method-title">아깝네요. 어떻게 푸셨어요?</h2>
       <p class="sub">가장 가까운 걸 골라주세요. 어디서 어긋났는지 짚어드릴게요.</p>
       <div id="method-options"></div>
     </section>
