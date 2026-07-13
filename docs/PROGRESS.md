@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.13 22:04
+- 해시: `4445f55` (`4445f550f124e381f224c68f5bbf225e534036a1`)
+- 브랜치: feat/web-one-problem-diagnosis
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4445f550f124e381f224c68f5bbf225e534036a1
+- 작성자: 박기윤
+- 메시지: feat(web): GA4 측정 연결 + 스토어 링크 실제 URL·플랫폼 분기
+- 본문: - web/analytics.js(신규): GA4(G-FC6DM6V021) 연결, window.track→gtag 이벤트 전달 / - index.html: analytics.js 로드(app.js보다 먼저), 스토어 링크 실제 URL, 에셋 캐시버스팅 v4 / - app.js: 스토어 링크 iOS/Android 플랫폼 자동 분기, store_click에 platform 파라미터 / - .gitignore: .netlify 로컬 폴더 제외 / 검증: / - prod(dasida-21.netlify.app) 재배포 후 window.track 함수·gtag.js 로드 확인 / - 이벤트 g/collect POST(tid=G-FC6DM6V021) 전송 확인 / - GA4 실시간 보고서에 활성 사용자 1 잡힘 / Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 ### 커밋 2026.07.13 21:26
 - 해시: `9bf1339` (`9bf13394a86f3e8c4dd257e07e9179f0dc152b35`)
 - 브랜치: feat/web-one-problem-diagnosis
