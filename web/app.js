@@ -124,11 +124,13 @@
     scrollToLatest();
   }
 
-  // ----- 약점 정리 페이지 (앱 done-view 스탬프 스타일) -----
-  function showSummary(mode, stepIdx) {
-    logEvent('summary_shown', { mode, step: stepIdx });
-    const step = P.steps[stepIdx];
+  // ----- 약점 정리 페이지 (지도 + 진단 + 처방) -----
+  // source: 오답이면 approach 객체, 정답이면 commonBreak — 둘 다 .diagnosis 보유
+  function showSummary(mode, brokenIdx, source) {
+    logEvent('summary_shown', { mode, step: brokenIdx });
     const passed = mode === 'passed';
+
+    // 스탬프 + 제목
     document.getElementById('stamp-ko').textContent = passed ? '통 과' : '완 료';
     document.getElementById('stamp-en').textContent = passed ? 'PASSED' : 'REVIEWED';
     document.getElementById('stamp-leaf').textContent = passed ? '✅' : '🌿';
@@ -137,15 +139,89 @@
     document.getElementById('summary-sub').textContent =
       passed
         ? '근데 이 문제, 대부분 여기서 무너져요. 넌 넘었고요.'
-        : '이제 이 유형을 다시 만나도, 같은 자리에서 안 무너져요.';
-    document.getElementById('summary-card-label').textContent =
-      passed ? '사람들이 무너지는 단계' : '오늘 짚은 약점';
-    document.getElementById('summary-weakness').textContent = step.name;
-    document.getElementById('summary-desc').textContent = step.desc;
+        : '방금 채팅으로 스스로 뚫은 지점이에요 — 지도 위에 찍어뒀어요.';
+
+    // 📍 지도
+    buildSpine(brokenIdx, passed);
+
+    // 🔍 진단
+    document.getElementById('diagnosis-label').textContent = passed ? '🔍 이 문제의 함정' : '🔍 진단';
+    const dh = document.getElementById('diagnosis-headline');
+    const db = document.getElementById('diagnosis-body');
+    dh.textContent = '';
+    fillWithBold(dh, source.diagnosis.headline);
+    db.textContent = '';
+    fillWithBold(db, source.diagnosis.body);
+
+    // ✅ 처방 (오답 경로에만)
+    const rx = document.getElementById('rx-card');
+    if (!passed && source.prescription) {
+      rx.hidden = false;
+      const rb = document.getElementById('rx-body');
+      rb.textContent = '';
+      fillWithBold(rb, source.prescription);
+    } else {
+      rx.hidden = true;
+    }
+
+    // 출처 주석: "무너지는 단계"(정답 경로)에만 명시
     const note = document.getElementById('summary-note');
     note.textContent = P.sourceNote;
-    note.hidden = !passed; // "무너지는 단계"(정답 경로)에만 출처 명시
+    note.hidden = !passed;
+
     show('summary');
+  }
+
+  // 풀이 스파인 5단계 렌더 — 막힌(또는 대부분 무너지는) 단계 핀포인트
+  function buildSpine(brokenIdx, passed) {
+    const spine = document.getElementById('summary-spine');
+    spine.innerHTML = '';
+    P.steps.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'spine-step';
+      const badge = document.createElement('span');
+      badge.className = 'spine-badge';
+      const col = document.createElement('div');
+      col.className = 'spine-text';
+      const name = document.createElement('span');
+      name.className = 'spine-name';
+      name.textContent = s.name;
+      col.appendChild(name);
+
+      let showDesc = false;
+      let tagText = '';
+      if (passed) {
+        badge.textContent = '✓';
+        row.classList.add(i === brokenIdx ? 'common' : 'done');
+        if (i === brokenIdx) { tagText = '대부분 여기서'; showDesc = true; }
+      } else if (i < brokenIdx) {
+        row.classList.add('done');
+        badge.textContent = '✓';
+      } else if (i === brokenIdx) {
+        row.classList.add('broke');
+        badge.textContent = String(i + 1);
+        tagText = '← 여기서 막혔어요';
+        showDesc = true;
+      } else {
+        badge.textContent = String(i + 1); // 아직 안 간 단계
+      }
+
+      if (tagText) {
+        const tag = document.createElement('span');
+        tag.className = 'spine-tag';
+        tag.textContent = tagText;
+        name.appendChild(tag);
+      }
+      if (showDesc) {
+        const desc = document.createElement('div');
+        desc.className = 'spine-desc';
+        desc.textContent = s.desc;
+        col.appendChild(desc);
+      }
+
+      row.append(badge, col);
+      spine.appendChild(row);
+    });
   }
 
   // ----- 상태 1: 문제 렌더링 -----
@@ -164,7 +240,7 @@
     if (correct) {
       assistantSays('정답이에요 👏', 'positive');
       assistantSays(P.commonBreak.comment);
-      setTimeout(() => showSummary('passed', P.commonBreak.stepIndex), 1400);
+      setTimeout(() => showSummary('passed', P.commonBreak.stepIndex, P.commonBreak), 1400);
     } else {
       appendProblemBubble();
       assistantSays('아깝네요. 이 문제, 어떻게 푸셨어요? 가장 가까운 걸 골라주세요 — 어디서 어긋났는지 짚어드릴게요.');
@@ -234,7 +310,7 @@
       setTimeout(() => assistantSays(line, i === 0 ? 'positive' : undefined), t);
       t += 850;
     });
-    setTimeout(() => showSummary('weakness', a.brokenStep), t);
+    setTimeout(() => showSummary('weakness', a.brokenStep, a), t);
   }
 
   // ----- 상태 3: 마무리 CTA -----

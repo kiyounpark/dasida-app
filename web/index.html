@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=2" />
 </head>
 <body>
   <main class="container">
@@ -49,11 +49,23 @@
       </div>
       <h2 class="summary-title" id="summary-title"></h2>
       <p class="summary-sub" id="summary-sub"></p>
-      <div class="summary-card">
-        <span class="summary-card-label" id="summary-card-label"></span>
-        <span class="summary-card-val" id="summary-weakness"></span>
-        <p class="summary-card-desc" id="summary-desc"></p>
+
+      <!-- 📍 지도: 풀이 스파인 5단계 (막힌 단계 표시) -->
+      <div class="spine" id="summary-spine"></div>
+
+      <!-- 🔍 진단: 약점의 성격 규정 -->
+      <div class="diagnosis-card" id="diagnosis-card">
+        <span class="dc-label" id="diagnosis-label">🔍 진단</span>
+        <p class="dc-headline" id="diagnosis-headline"></p>
+        <p class="dc-body" id="diagnosis-body"></p>
       </div>
+
+      <!-- ✅ 처방: 다음에 챙길 행동 한 줄 (오답 경로에만) -->
+      <div class="rx-card" id="rx-card">
+        <span class="rx-label">✅ 다음에 이거 하나만</span>
+        <p class="rx-body" id="rx-body"></p>
+      </div>
+
       <p class="source-note" id="summary-note" hidden></p>
       <a class="btn-primary" id="store-link"
          href="https://apps.apple.com/kr/app/dasida" target="_blank" rel="noopener">다시다는 네 모든 오답에 이걸 해요</a>
@@ -61,8 +73,8 @@
     </section>
 
   </main>
-  <script src="./figures.js"></script>
-  <script src="./problem-data.js"></script>
-  <script src="./app.js"></script>
+  <script src="./figures.js?v=2"></script>
+  <script src="./problem-data.js?v=2"></script>
+  <script src="./app.js?v=2"></script>
 </body>
 </html>
