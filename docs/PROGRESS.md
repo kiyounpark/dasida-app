@@ -1017,6 +1017,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.13 21:26
+- 해시: `9bf1339` (`9bf13394a86f3e8c4dd257e07e9179f0dc152b35`)
+- 브랜치: feat/web-one-problem-diagnosis
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9bf13394a86f3e8c4dd257e07e9179f0dc152b35
+- 작성자: 박기윤
+- 메시지: feat(web): 진단 결과 카드 v2 — 지도+진단+처방 3단 (EBS 원문 검수 완료)
+- 본문: 기존 결과 카드가 "약점 라벨 1줄"이라 채팅 진단의 보상감이 약했던 문제 해결. / - 📍 지도: 풀이 5단계 스파인, 막힌 단계 핀포인트 (스크린샷 기념품) / - 🔍 진단: 단계 이름 대신 성격 규정(계산 vs 관찰 등), 4경로별 문구 / - ✅ 처방: 다음에 챙길 행동 한 줄 / - 정답 경로: 동일 지도 + "대부분 무너지는 곳" 호박색 강조, 처방 숨김 / - CTA는 정직하게 유지("네 모든 오답에 이 진단을") — 연습 약속 안 함 / - 에셋 캐시버스팅 ?v=2 / 검증: / - EBS 2027 6월 모평 해설지 21번 원문 대조 → 대화 트리 16문항 전항목 일치 / - 브라우저 실구동(오답 4경로 + 정답 경로), 콘솔 에러 0 / Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
+### 커밋 2026.06.26 20:46
+- 해시: `71eaa28` (`71eaa28ddb4ec44b5953dabfa58281935c2f969b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/71eaa28ddb4ec44b5953dabfa58281935c2f969b
+- 작성자: 박기윤
+- 메시지: feat(dev): 마케팅 영상 컷6용 약점 리포트 캡처 화면 추가
+- 본문: - app/dev/capture-report.tsx: 실제 QuizResultReportView를 미적분 약점 데이터로 렌더링하는 캡처 전용 화면 / - 대표 약점 '풀이 순서 혼동'으로 컷5 진단 플로우 데모와 흐름 일치 / - 지어낸 성과 수치 없이 실제 약점/단원만 사용 / - dev 허브에 '🎬 캡처용 · 약점 리포트' 진입 카드 추가 / Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 ### 커밋 2026.06.05 07:57
 - 해시: `10e82c4` (`10e82c4fd5070ad71995159fbe285da63acefcde`)
 - 브랜치: main

@@ -313,9 +313,18 @@
     setTimeout(() => showSummary('weakness', a.brokenStep, a), t);
   }
 
-  // ----- 상태 3: 마무리 CTA -----
-  document.getElementById('store-link').addEventListener('click', () => {
-    logEvent('store_click');
+  // ----- 상태 3: 마무리 CTA (플랫폼별 스토어 링크) -----
+  const storeLink = document.getElementById('store-link');
+  const ua = navigator.userAgent || '';
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const platform = isAndroid ? 'android' : isIOS ? 'ios' : 'other';
+  // 안드 → Play, 그 외(iOS·데스크톱) → App Store (오르비 유입 모바일 다수)
+  storeLink.href = isAndroid
+    ? 'https://play.google.com/store/apps/details?id=com.dasida.app'
+    : 'https://apps.apple.com/app/id6761792023';
+  storeLink.addEventListener('click', () => {
+    logEvent('store_click', { platform });
   });
 
   show('problem');

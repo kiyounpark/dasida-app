@@ -71,3 +71,6 @@ coverage/
 
 scripts/remedial-pipeline/intent-weakness-map.json
 # state.json 은 git 추적 (CCR 루틴이 진행 상태를 push 해야 함)
+
+# Local Netlify folder
+.netlify
