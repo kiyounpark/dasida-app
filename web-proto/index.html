@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>다시다 — 오답노트 대신 써드림</title>
+<style>
+  :root {
+    --cream: #FBF7EF;
+    --cream-2: #F3ECDD;
+    --green: #1F3B30;
+    --green-soft: #2E5344;
+    --ink: #26221B;
+    --muted: #7A7263;
+    --line: #E4DAC6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "SUIT", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wrap { width: 100%; max-width: 480px; padding: 40px 22px 60px; }
+  .brand { font-size: 15px; font-weight: 800; color: var(--green); letter-spacing: -0.2px; }
+  h1 {
+    font-size: 26px; font-weight: 800; line-height: 1.35;
+    letter-spacing: -0.5px; margin: 22px 0 10px;
+  }
+  h1 .hl { color: var(--green); }
+  .sub { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0 0 28px; }
+  .drop {
+    border: 1.5px dashed var(--line);
+    background: #fff;
+    border-radius: 18px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--green-soft); background: var(--cream-2); }
+  .drop .icon { font-size: 34px; }
+  .drop .big { font-size: 16px; font-weight: 700; margin-top: 12px; }
+  .drop .small { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .picked { display: none; margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--green); }
+  .steps { margin: 30px 0 0; padding: 0; list-style: none; }
+  .steps li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.5;
+  }
+  .steps li .n {
+    flex: 0 0 22px; height: 22px; border-radius: 50%;
+    background: var(--green); color: #fff; font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cta {
+    display: block; width: 100%; margin-top: 26px;
+    background: var(--green); color: #fff; border: 0; border-radius: 14px;
+    padding: 16px; font-size: 16px; font-weight: 800; cursor: pointer;
+    opacity: .45; pointer-events: none; transition: opacity .15s;
+    font-family: inherit;
+  }
+  .cta.ready { opacity: 1; pointer-events: auto; }
+  .foot { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; color:var(--green-soft); background:var(--cream-2); border:1px solid var(--line); border-radius:999px; padding:4px 10px; }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand">다시다</div>
+    <h1>시험지 올리면<br /><span class="hl">오답노트를 대신</span> 써줌</h1>
+    <p class="sub">틀린 문제 번호만 알려주면, "어디서 막혔나"만 뽑아서 한 장으로 정리해줌. 베끼는 건 우리가 함.</p>
+
+    <div class="drop" id="drop">
+      <div class="icon">📄</div>
+      <div class="big">시험지 사진이나 PDF 올리기</div>
+      <div class="small">탭하거나 여기로 끌어다 놓기</div>
+      <div class="picked" id="picked"></div>
+      <input type="file" id="file" accept="image/*,application/pdf" hidden />
+    </div>
+
+    <ol class="steps">
+      <li><span class="n">1</span><span>푼 시험지 올림 (기출·모의고사 아무거나)</span></li>
+      <li><span class="n">2</span><span>틀린 문제 번호만 체크</span></li>
+      <li><span class="n">3</span><span>"어디서 막혔나" 오답노트 한 장 받음</span></li>
+    </ol>
+
+    <button class="cta" id="cta">다음 — 틀린 번호 고르기</button>
+
+    <p class="foot">
+      <span class="tag">지금 무료</span><br />
+      설치·로그인 없음 · 사설 실모는 분석만, 원문은 안 남김
+    </p>
+  </main>
+
+<script>
+  // 오늘 밤 = 껍데기. 파일 고르면 이름만 표시하고 CTA 활성화. 실제 처리·틀린번호 화면·LLM은 내일.
+  const drop = document.getElementById('drop');
+  const file = document.getElementById('file');
+  const picked = document.getElementById('picked');
+  const cta = document.getElementById('cta');
+
+  drop.addEventListener('click', () => file.click());
+  file.addEventListener('change', () => setFile(file.files[0]));
+  ['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) setFile(f); });
+
+  function setFile(f) {
+    if (!f) return;
+    picked.textContent = '✓ ' + f.name;
+    picked.style.display = 'block';
+    cta.classList.add('ready');
+  }
+
+  cta.addEventListener('click', () => {
+    alert('여기까지가 오늘 밤 몫. 틀린 번호 고르기 화면은 내일.');
+  });
+</script>
+</body>
+</html>
