@@ -2,7 +2,6 @@
   // ── 설정 ──
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
-  const DIAGNOSE_METHOD_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
@@ -59,7 +58,10 @@
   let selectedFile = null;
 
   drop.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+  fileInput.addEventListener('change', () => {
+    setFile(fileInput.files[0]);
+    fileInput.value = ''; // 같은 파일 재선택 시 change가 다시 발화하도록
+  });
   ['dragover', 'dragenter'].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add('over'); }));
   ['dragleave', 'drop'].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', (ev) => { const f = ev.dataTransfer.files[0]; if (f) setFile(f); });
@@ -73,14 +75,26 @@
   }
 
   cta.addEventListener('click', async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || cta.disabled) return;
+    cta.disabled = true; // 더블클릭 → vision 이중 호출(이중 과금) 방지
     show('analyzing');
+
+    let imageDataUrl;
     try {
-      const imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
+      imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
+    } catch {
+      show('upload');
+      cta.disabled = false;
+      alert('이 사진 형식을 못 읽었어요. jpg나 png 사진으로 다시 시도해줘요.');
+      return;
+    }
+
+    try {
       const response = await fetch(ANALYZE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageDataUrl }),
+        signal: AbortSignal.timeout(75_000), // 함수 타임아웃(60s)보다 살짝 길게
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const result = await response.json();
@@ -88,18 +102,20 @@
       routeFromAnalysis(result);
     } catch (error) {
       show('upload');
+      cta.disabled = false;
       alert('분석에 실패했어요. 잠시 후 다시 시도해줘요. (' + error.message + ')');
     }
   });
 
   // 사진 축소 — 전송량·비용 절감 (긴 변 1568px, JPEG 0.82)
   async function downscaleToDataUrl(file, maxDim, quality) {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
     const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close(); // 원본 해상도 비트맵 메모리 즉시 해제
     return canvas.toDataURL('image/jpeg', quality);
   }
 
@@ -118,7 +134,13 @@
 
   // 갈래 1: 단언 + 탈출구
   function assertMethod(result) {
-    const label = catalog[result.predictedMethodId].labelKo;
+    const info = catalog[result.predictedMethodId];
+    if (!info) {
+      // 서버·웹 카탈로그가 어긋난 경우(사본 드리프트) — 죽지 말고 후보 카드로
+      showCandidateCards(result.candidateMethodIds);
+      return;
+    }
+    const label = info.labelKo;
     const snippet = firstSnippet(result.transcription);
     coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
@@ -134,58 +156,60 @@
   }
 
   // 갈래 2: 후보 카드 (후보 없으면 전체 목록)
-  function showCandidateCards(candidateIds) {
-    const candidates = candidateIds.filter((id) => id !== 'unknown');
-    coachSays(candidates.length > 0 ? '풀이를 봤는데 두 가지로 읽혀. 어떤 방법이었어?' : '어떤 방법으로 풀었어?');
+  function showCandidateCards(candidateIds, promptText) {
+    // unknown·웹 카탈로그에 없는 id(사본 드리프트) 방어
+    const candidates = candidateIds.filter((id) => id !== 'unknown' && catalog[id]);
+    coachSays(
+      promptText ??
+        (candidates.length > 0 ? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?' : '어떤 방법으로 풀었어?')
+    );
     const list = candidates.length > 0 ? candidates : selectableMethods.map((m) => m.id);
     const buttons = list.map((id) => ({
       label: catalog[id].labelKo,
       onPress: () => { userSays(catalog[id].labelKo); startFlow(id); },
     }));
     if (candidates.length > 0) {
-      buttons.push({ label: '둘 다 아니야', kind: 'ghost', onPress: () => showCandidateCards([]) });
+      buttons.push({ label: '이 중엔 없어', kind: 'ghost', onPress: () => showCandidateCards([]) });
     }
     setActions(buttons);
   }
 
-  // 갈래 3: 질문 폴백 (기존 diagnoseMethod 함수 재사용)
+  // 갈래 3: 질문 폴백 — 카탈로그 키워드로 로컬 매칭 (앱 mock 라우터와 같은 원리)
+  // 주의: 배포된 diagnoseMethod는 allowedMethods를 최대 12개만 받아 31개 전송 시 항상 400 →
+  // 원격 호출 대신 번들에 이미 있는 keywords로 후보를 좁히고 최종 선택은 학생이 한다.
+  function matchMethodsByKeywords(rawText) {
+    const text = rawText.toLowerCase();
+    return selectableMethods
+      .map((m) => {
+        const c = catalog[m.id];
+        const hits = [...c.keywords, c.labelKo].reduce(
+          (n, kw) => n + (text.includes(kw.toLowerCase()) ? 1 : 0), 0);
+        return { id: m.id, hits };
+      })
+      .filter((s) => s.hits > 0)
+      .sort((a, b) => b.hits - a.hits)
+      .slice(0, 3)
+      .map((s) => s.id);
+  }
+
   function askMethodByText() {
     coachSays('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
     const input = document.createElement('input');
     input.className = 'fallback-input';
     input.placeholder = '예: 근의 공식에 바로 대입했어';
+    input.maxLength = 200;
     actionsBox.innerHTML = '';
     actionsBox.appendChild(input);
     const submit = document.createElement('button');
     submit.className = 'primary';
     submit.textContent = '보내기';
-    submit.addEventListener('click', async () => {
+    submit.addEventListener('click', () => {
       const rawText = input.value.trim();
       if (!rawText) return;
       userSays(rawText);
       actionsBox.innerHTML = '';
-      try {
-        const allowedMethods = selectableMethods.map((m) => {
-          const c = catalog[m.id];
-          return { id: c.id, labelKo: c.labelKo, summary: c.summary, exampleUtterances: c.exampleUtterances.slice(0, 2) };
-        });
-        const response = await fetch(DIAGNOSE_METHOD_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            problemId: 'photo-proto',
-            rawText,
-            allowedMethodIds: allowedMethods.map((m) => m.id),
-            allowedMethods,
-          }),
-        });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const result = await response.json();
-        if (result.needsManualSelection) showCandidateCards(result.candidateMethodIds);
-        else startFlow(result.predictedMethodId);
-      } catch {
-        showCandidateCards([]);  // 라우터 실패 시 전체 목록으로
-      }
+      const matched = matchMethodsByKeywords(rawText);
+      showCandidateCards(matched, matched.length > 0 ? '이 중에 있어?' : undefined);
     });
     actionsBox.appendChild(submit);
     input.focus();

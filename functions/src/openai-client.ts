@@ -404,7 +404,8 @@ export async function requestPhotoAnalysisFromOpenAI({
   imageDataUrl: string;
   methodContextText: string;
 }): Promise<{ result: unknown; responseId: string; model: string }> {
-  const client = new OpenAI({ apiKey });
+  // SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 45초로 제한
+  const client = new OpenAI({ apiKey, timeout: 45_000, maxRetries: 1 });
 
   const response = await client.responses.create({
     model,

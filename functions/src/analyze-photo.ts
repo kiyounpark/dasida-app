@@ -18,9 +18,12 @@ const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
 const AnalyzePhotoRequestSchema = z.object({
   imageDataUrl: z
     .string()
-    .startsWith('data:image/')
+    .regex(/^data:image\/(jpeg|png|webp);base64,/)
     .max(MAX_IMAGE_DATA_URL_LENGTH),
 });
+
+// 정적 카탈로그 프롬프트 — 요청마다 재생성할 필요 없음
+const METHOD_CONTEXT_TEXT = buildMethodContextText();
 
 const VisionRawResultSchema = z.object({
   hasSolvingWork: z.boolean(),
@@ -39,6 +42,9 @@ export const analyzePhoto = onRequest(
     cors: true,
     invoker: 'public',
     secrets: [openAiApiKey],
+    // 비용 가드: 공개 엔드포인트라 병렬 vision 호출 상한을 걸어둔다 (3인스턴스 × 5동시 = 최대 15)
+    maxInstances: 3,
+    concurrency: 5,
   },
   async (request, response) => {
     if (request.method !== 'POST') {
@@ -60,12 +66,14 @@ export const analyzePhoto = onRequest(
         apiKey: openAiApiKey.value(),
         model: openAiVisionModel.value(),
         imageDataUrl: parsedRequest.data.imageDataUrl,
-        methodContextText: buildMethodContextText(),
+        methodContextText: METHOD_CONTEXT_TEXT,
       });
 
       const raw = VisionRawResultSchema.parse(openAiResponse.result);
       const result = buildPhotoRouterResult(raw);
 
+      // Firestore 런 로그(diagnoseMethod의 logDiagnosisMethodRun 상당)는 프로토타입 단계라 의도적으로 생략.
+      // 정확도 데이터가 필요해지면(검증 B 이후) 추가한다.
       logger.info('analyzePhoto done', {
         predictedMethodId: result.predictedMethodId,
         confidence: result.confidence,

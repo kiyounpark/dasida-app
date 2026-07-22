@@ -1,5 +1,5 @@
-// 사본: data/diagnosis-method-routing.ts (2026-07-22)
-// functions 패키지는 앱 코드를 import할 수 없어 사본을 둔다. 원본 변경 시 다시 복사.
+// 사본: data/diagnosis-method-routing.ts (카탈로그 본문) + data/diagnosisTree.ts (SolveMethodId 유니온) (2026-07-22)
+// functions 패키지는 앱 코드를 import할 수 없어 사본을 둔다. 두 원본 중 하나라도 바뀌면 다시 복사.
 export type SolveMethodId =
   | 'cps'
   | 'vertex'

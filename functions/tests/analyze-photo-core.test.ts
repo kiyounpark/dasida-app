@@ -59,6 +59,33 @@ test('풀이 흔적 없으면 confidence 높아도 needsManualSelection=true', (
   assert.equal(result.needsManualSelection, true);
 });
 
+test('confidence 정확히 0.74(경계값)는 needsManualSelection=false', () => {
+  const result = buildPhotoRouterResult({
+    hasSolvingWork: true,
+    userAnswer: '1',
+    transcription: '풀이',
+    predictedMethodId: 'diff',
+    confidence: 0.74,
+    candidateMethodIds: ['diff'],
+    reason: 'boundary',
+  });
+  assert.equal(result.needsManualSelection, false);
+});
+
+test('예측·후보 전부 허용 밖이면 후보가 [unknown]으로 수렴', () => {
+  const result = buildPhotoRouterResult({
+    hasSolvingWork: true,
+    userAnswer: null,
+    transcription: '뭔가 씀',
+    predictedMethodId: 'made_up',
+    confidence: 0.9,
+    candidateMethodIds: ['also_fake', 'still_fake'],
+    reason: 'hallucination',
+  });
+  assert.deepEqual(result.candidateMethodIds, ['unknown']);
+  assert.equal(result.needsManualSelection, true);
+});
+
 test('카탈로그 컨텍스트에 unknown은 빠지고 labelKo가 들어간다', () => {
   const text = buildMethodContextText();
   assert.ok(text.includes('근의 공식'));
