@@ -351,3 +351,91 @@ export async function requestReviewFeedbackFromOpenAI({
 
   return { replyText };
 }
+
+const PHOTO_ANALYSIS_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    hasSolvingWork: { type: 'boolean' },
+    userAnswer: { type: ['string', 'null'] },
+    transcription: { type: 'string', maxLength: 600 },
+    predictedMethodId: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 1 },
+    candidateMethodIds: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 4,
+      items: { type: 'string' },
+    },
+    reason: { type: 'string', minLength: 1, maxLength: 120 },
+  },
+  required: [
+    'hasSolvingWork',
+    'userAnswer',
+    'transcription',
+    'predictedMethodId',
+    'confidence',
+    'candidateMethodIds',
+    'reason',
+  ],
+} as const;
+
+const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
+  '당신은 한국 수능 수학 오답 사진 분석기입니다.',
+  '사진에는 학생이 틀린 문제 하나와 학생의 손글씨 풀이가 담겨 있습니다.',
+  '할 일: ① 학생이 적은 최종 답 읽기 ② 손글씨 풀이를 짧게 전사 ③ 어떤 풀이 방법을 시도했는지 분류.',
+  '문제를 직접 풀지 마세요. 해설하지 마세요. 학생이 실제로 쓴 것만 근거로 삼으세요.',
+  '손글씨 풀이 과정이 사진에 없으면 hasSolvingWork를 false로 하고 transcription은 빈 문자열로 두세요.',
+  'userAnswer는 학생이 적은 최종 답(예: "3", "27"). 안 보이면 null.',
+  'transcription은 학생 풀이의 핵심 단계를 한국어 1~3문장으로 요약 전사하세요.',
+  '반드시 허용된 풀이법 id 중 하나를 predictedMethodId로 반환하세요. 근거가 약하면 unknown.',
+  'confidence는 정직하게: 풀이가 흐릿하거나 애매하면 낮게 매기세요.',
+  'candidateMethodIds는 가능성 높은 순서로 1~4개. reason은 내부 디버그용으로 짧고 건조하게.',
+].join('\n');
+
+export async function requestPhotoAnalysisFromOpenAI({
+  apiKey,
+  model,
+  imageDataUrl,
+  methodContextText,
+}: {
+  apiKey: string;
+  model: string;
+  imageDataUrl: string;
+  methodContextText: string;
+}): Promise<{ result: unknown; responseId: string; model: string }> {
+  const client = new OpenAI({ apiKey });
+
+  const response = await client.responses.create({
+    model,
+    instructions: PHOTO_ANALYSIS_SYSTEM_PROMPT,
+    input: [
+      {
+        role: 'user',
+        content: [
+          { type: 'input_text', text: methodContextText },
+          { type: 'input_image', image_url: imageDataUrl, detail: 'high' },
+        ],
+      },
+    ],
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'photo_analysis_result',
+        schema: PHOTO_ANALYSIS_SCHEMA,
+        strict: true,
+      },
+    },
+  });
+
+  const outputText = response.output_text?.trim();
+  if (!outputText) {
+    throw new Error('OpenAI photo analysis did not include output_text');
+  }
+
+  return {
+    result: JSON.parse(outputText),
+    responseId: response.id,
+    model,
+  };
+}
