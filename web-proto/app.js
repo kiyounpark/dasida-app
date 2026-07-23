@@ -5,8 +5,8 @@
   const FLOW_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseFlow`;
 
   // 진단 flow(문진표 트리·약점 매핑·키워드 규칙)는 서버에서만 돈다.
-  // 브라우저는 서버가 내려주는 "노드 하나 + draft 토큰"만 그려주는 껍데기다.
-  let draft = null;
+  // 브라우저는 서버가 내려주는 "노드 하나 + 서명된 상태 토큰"만 다루는 껍데기다.
+  let flowToken = null;
 
   async function callFlow(payload) {
     const res = await fetch(FLOW_URL, {
@@ -17,6 +17,12 @@
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
+  }
+
+  function friendlyError(error) {
+    return /429/.test(error && error.message)
+      ? '조금 빠르게 누르고 있어요. 잠깐 쉬었다가 다시 눌러줄래?'
+      : '연결이 잠깐 끊겼어. 한 번만 다시 눌러줄래?';
   }
 
   // ── 화면 전환 ──
@@ -52,10 +58,9 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
-  // 버튼 클릭은 대부분 서버 호출이라, 실패해도 안 죽고 버튼을 복원하도록 일괄 래핑한다.
-  let lastButtons = [];
+  // 버튼 클릭은 대부분 서버 호출이라 실패해도 안 죽게 일괄 래핑한다.
+  // 실패 시: 이번 클릭이 그리다 만 말풍선을 걷어내고(중복 방지) 안내 후 버튼을 복원한다.
   function setActions(buttons) {
-    lastButtons = buttons;
     actionsBox.innerHTML = '';
     buttons.forEach(({ label, kind, onPress }) => {
       const b = document.createElement('button');
@@ -63,11 +68,13 @@
       b.textContent = label;
       b.addEventListener('click', async () => {
         actionsBox.innerHTML = '';
+        const threadLen = thread.children.length;
         try {
           await onPress();
         } catch (error) {
-          coachSays('연결이 잠깐 끊겼어. 한 번만 다시 눌러줄래?');
-          setActions(lastButtons);
+          while (thread.children.length > threadLen) thread.removeChild(thread.lastChild);
+          coachSays(friendlyError(error));
+          setActions(buttons);
         }
       });
       actionsBox.appendChild(b);
@@ -151,7 +158,7 @@
         return;
       }
       if (result.needsManualSelection) {
-        await showCandidateCards(result.candidateMethodIds); // 갈래 2: 애매 → 후보 카드
+        await showCandidateCards(await labelsFor(result.candidateMethodIds)); // 갈래 2: 애매 → 후보 카드
         return;
       }
       await assertMethod(result); // 갈래 1: 확신 → 단언
@@ -161,13 +168,18 @@
     }
   }
 
-  // 갈래 1: 단언 + 탈출구 (라벨은 서버에서 받아온다)
+  // 서버에서 방법 라벨을 받아온다. 서버가 unknown·미확인 id를 걸러 valid만 반환한다.
+  async function labelsFor(ids) {
+    const { methods } = await callFlow({ action: 'labels', ids });
+    return methods;
+  }
+
+  // 갈래 1: 단언 + 탈출구
   async function assertMethod(result) {
-    const { methods } = await callFlow({ action: 'labels', ids: [result.predictedMethodId] });
-    const info = methods[0];
+    const [info] = await labelsFor([result.predictedMethodId]);
     if (!info) {
       // 서버가 라벨을 못 준 경우(알 수 없는 방법) — 죽지 말고 후보 카드로
-      await showCandidateCards(result.candidateMethodIds);
+      await showCandidateCards(await labelsFor(result.candidateMethodIds));
       return;
     }
     const snippet = firstSnippet(result.transcription);
@@ -184,16 +196,9 @@
     return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
   }
 
-  // 갈래 2: 후보 카드 (후보 없으면 전체 목록) — 라벨·목록 모두 서버에서 받는다
-  async function showCandidateCards(candidateIds, promptText) {
-    let candidates = [];
-    if (candidateIds && candidateIds.length > 0) {
-      const res = await callFlow({ action: 'labels', ids: candidateIds });
-      candidates = res.methods; // 서버가 unknown·미확인 id를 이미 걸러 valid만 반환
-    }
-    const list = candidates.length > 0
-      ? candidates
-      : (await callFlow({ action: 'labels', ids: [] })).methods; // 후보 없으면 전체 선택 목록
+  // 갈래 2: 후보 카드. candidates는 [{id, labelKo}] — 비어 있으면 전체 선택 목록을 받아온다.
+  async function showCandidateCards(candidates, promptText) {
+    const list = candidates.length > 0 ? candidates : await labelsFor([]);
     coachSays(
       promptText ??
         (candidates.length > 0 ? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?' : '어떤 방법으로 풀었어?')
@@ -211,10 +216,16 @@
   // 갈래 3: 질문 폴백 — 서버가 키워드 매칭 (규칙이 브라우저에 없다)
   function askMethodByText() {
     coachSays('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
+    renderMethodInput('');
+  }
+
+  // 입력 UI만 다시 그린다 — 재시도 시 안내 멘트가 중복되지 않고, 쓰던 텍스트를 보존한다.
+  function renderMethodInput(initialText) {
     const input = document.createElement('input');
     input.className = 'fallback-input';
     input.placeholder = '예: 근의 공식에 바로 대입했어';
     input.maxLength = 200;
+    input.value = initialText;
     actionsBox.innerHTML = '';
     actionsBox.appendChild(input);
     const submit = document.createElement('button');
@@ -226,12 +237,14 @@
       submit.disabled = true;
       userSays(rawText);
       actionsBox.innerHTML = '';
+      const threadLen = thread.children.length;
       try {
         const { methods, matched } = await callFlow({ action: 'matchText', text: rawText });
-        await showCandidateCards(methods.map((m) => m.id), matched ? '이 중에 있어?' : undefined);
+        await showCandidateCards(methods, matched ? '이 중에 있어?' : undefined);
       } catch (error) {
-        coachSays('연결이 잠깐 끊겼어. 다시 알려줄래?');
-        askMethodByText();
+        while (thread.children.length > threadLen) thread.removeChild(thread.lastChild);
+        coachSays(friendlyError(error));
+        renderMethodInput(rawText);
       }
     });
     actionsBox.appendChild(submit);
@@ -240,13 +253,13 @@
 
   // ── 진단 flow 러너 (서버가 노드를 한 스텝씩 내려준다) ──
   async function startFlow(methodId) {
-    const { draft: next, node } = await callFlow({ action: 'start', methodId });
-    draft = next;
+    const { token, node } = await callFlow({ action: 'start', methodId });
+    flowToken = token;
     renderNode(node);
   }
   async function advance(event) {
-    const { draft: next, node } = await callFlow({ action: 'advance', draft, event });
-    draft = next;
+    const { token, node } = await callFlow({ action: 'advance', token: flowToken, event });
+    flowToken = token;
     renderNode(node);
   }
   function renderNode(node) {
