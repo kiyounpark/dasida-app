@@ -1,0 +1,67 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { SlidingWindowLimiter } from '../src/flow/rate-limit';
+import { createStateToken, verifyStateToken, type FlowStatePayload } from '../src/flow/state-token';
+
+const KEY = Buffer.from('11'.repeat(32), 'hex');
+const OTHER_KEY = Buffer.from('22'.repeat(32), 'hex');
+const PAYLOAD: FlowStatePayload = { m: 'cps', n: 'cps_root', d: 0, s: 3 };
+
+test('토큰 왕복: 서명 → 검증하면 payload 그대로', () => {
+  const token = createStateToken(PAYLOAD, KEY);
+  assert.deepEqual(verifyStateToken(token, KEY), PAYLOAD);
+});
+
+test('위조 차단: payload를 조작하면 검증 실패', () => {
+  const token = createStateToken(PAYLOAD, KEY);
+  const [, sig] = token.split('.');
+  const forgedBody = Buffer.from(JSON.stringify({ ...PAYLOAD, n: 'cps_final' })).toString('base64url');
+  assert.equal(verifyStateToken(`${forgedBody}.${sig}`, KEY), null);
+});
+
+test('위조 차단: 다른 키로 서명한 토큰은 거부', () => {
+  const token = createStateToken(PAYLOAD, OTHER_KEY);
+  assert.equal(verifyStateToken(token, KEY), null);
+});
+
+test('쓰레기 입력에 throw 없이 null', () => {
+  for (const garbage of ['', '.', 'abc', 'a.b', '..', 'ab.cd.ef', '\u0000.\u0000']) {
+    assert.equal(verifyStateToken(garbage, KEY), null, `input: ${JSON.stringify(garbage)}`);
+  }
+});
+
+test('payload 형식 검증: 필드 누락·타입 오류는 서명이 맞아도 거부', () => {
+  const bad = [
+    { m: 'cps', n: 'x', d: 2, s: 0 },       // d 범위 밖
+    { m: 'cps', n: 'x', d: 0, s: -1 },       // 음수 스텝
+    { m: 'cps', n: 'x', d: 0, s: 1.5 },      // 소수 스텝
+    { m: '', n: 'x', d: 0, s: 0 },           // 빈 methodId
+    { m: 'cps', d: 0, s: 0 },                // n 누락
+  ];
+  for (const payload of bad) {
+    const token = createStateToken(payload as FlowStatePayload, KEY);
+    assert.equal(verifyStateToken(token, KEY), null, JSON.stringify(payload));
+  }
+});
+
+test('속도 제한: 상한까지 허용, 초과 거부, 윈도우 지나면 다시 허용', () => {
+  const limiter = new SlidingWindowLimiter(3, 1_000);
+  const t0 = 1_000_000;
+  assert.equal(limiter.allow('ip1', t0), true);
+  assert.equal(limiter.allow('ip1', t0 + 10), true);
+  assert.equal(limiter.allow('ip1', t0 + 20), true);
+  assert.equal(limiter.allow('ip1', t0 + 30), false);      // 4번째 → 차단
+  assert.equal(limiter.allow('ip2', t0 + 30), true);       // 다른 IP는 독립
+  assert.equal(limiter.allow('ip1', t0 + 1_050), true);    // 윈도우 경과 → 회복
+});
+
+test('속도 제한: 키 수 상한에서 메모리가 무한 증가하지 않는다', () => {
+  const limiter = new SlidingWindowLimiter(1, 1_000, 5);
+  const t0 = 2_000_000;
+  for (let i = 0; i < 50; i++) {
+    limiter.allow(`ip-${i}`, t0 + i);
+  }
+  // 상한 5를 크게 넘지 않아야 한다 (evict 동작 확인 — 정확 값 대신 상한 검사)
+  assert.ok((limiter as unknown as { hits: Map<string, number[]> }).hits.size <= 6);
+});

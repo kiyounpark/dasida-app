@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8000", "--directory", "web"],
       "port": 8000
+    },
+    {
+      "name": "web-proto",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4599", "--directory", "web-proto"],
+      "port": 4599
     }
   ]
 }
