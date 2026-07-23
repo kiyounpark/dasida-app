@@ -2,10 +2,22 @@
   // ── 설정 ──
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
+  const FLOW_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseFlow`;
 
-  const F = window.DasidaFlow;
-  const catalog = F.diagnosisMethodRoutingCatalog;
-  const selectableMethods = F.methodOptions.filter((m) => m.id !== 'unknown');
+  // 진단 flow(문진표 트리·약점 매핑·키워드 규칙)는 서버에서만 돈다.
+  // 브라우저는 서버가 내려주는 "노드 하나 + draft 토큰"만 그려주는 껍데기다.
+  let draft = null;
+
+  async function callFlow(payload) {
+    const res = await fetch(FLOW_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
 
   // ── 화면 전환 ──
   const screens = {
@@ -39,13 +51,25 @@
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
+
+  // 버튼 클릭은 대부분 서버 호출이라, 실패해도 안 죽고 버튼을 복원하도록 일괄 래핑한다.
+  let lastButtons = [];
   function setActions(buttons) {
+    lastButtons = buttons;
     actionsBox.innerHTML = '';
     buttons.forEach(({ label, kind, onPress }) => {
       const b = document.createElement('button');
       if (kind) b.className = kind;
       b.textContent = label;
-      b.addEventListener('click', () => { actionsBox.innerHTML = ''; onPress(); });
+      b.addEventListener('click', async () => {
+        actionsBox.innerHTML = '';
+        try {
+          await onPress();
+        } catch (error) {
+          coachSays('연결이 잠깐 끊겼어. 한 번만 다시 눌러줄래?');
+          setActions(lastButtons);
+        }
+      });
       actionsBox.appendChild(b);
     });
   }
@@ -99,7 +123,7 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const result = await response.json();
       show('chat');
-      routeFromAnalysis(result);
+      await routeFromAnalysis(result);
     } catch (error) {
       show('upload');
       cta.disabled = false;
@@ -120,33 +144,38 @@
   }
 
   // ── 분석 결과 → 3갈래 라우팅 ──
-  function routeFromAnalysis(result) {
-    if (!result.hasSolvingWork) {
-      askMethodByText();  // 갈래 3: 풀이 흔적 없음 → 질문 폴백
-      return;
+  async function routeFromAnalysis(result) {
+    try {
+      if (!result.hasSolvingWork) {
+        askMethodByText(); // 갈래 3: 풀이 흔적 없음 → 질문 폴백
+        return;
+      }
+      if (result.needsManualSelection) {
+        await showCandidateCards(result.candidateMethodIds); // 갈래 2: 애매 → 후보 카드
+        return;
+      }
+      await assertMethod(result); // 갈래 1: 확신 → 단언
+    } catch (error) {
+      coachSays('진단을 불러오다 연결이 끊겼어. 새로고침하고 다시 올려줄래?');
+      setActions([{ label: '다시 시도', kind: 'primary', onPress: () => window.location.reload() }]);
     }
-    if (result.needsManualSelection) {
-      showCandidateCards(result.candidateMethodIds);  // 갈래 2: 애매 → 후보 카드
-      return;
-    }
-    assertMethod(result);  // 갈래 1: 확신 → 단언
   }
 
-  // 갈래 1: 단언 + 탈출구
-  function assertMethod(result) {
-    const info = catalog[result.predictedMethodId];
+  // 갈래 1: 단언 + 탈출구 (라벨은 서버에서 받아온다)
+  async function assertMethod(result) {
+    const { methods } = await callFlow({ action: 'labels', ids: [result.predictedMethodId] });
+    const info = methods[0];
     if (!info) {
-      // 서버·웹 카탈로그가 어긋난 경우(사본 드리프트) — 죽지 말고 후보 카드로
-      showCandidateCards(result.candidateMethodIds);
+      // 서버가 라벨을 못 준 경우(알 수 없는 방법) — 죽지 말고 후보 카드로
+      await showCandidateCards(result.candidateMethodIds);
       return;
     }
-    const label = info.labelKo;
     const snippet = firstSnippet(result.transcription);
-    coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
+    coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${info.labelKo}(으)로 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
-      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); startFlow(result.predictedMethodId); } },
-      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showCandidateCards([]); } },
+      { label: '맞아, 시작하자', kind: 'primary', onPress: async () => { userSays('맞아'); await startFlow(result.predictedMethodId); } },
+      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: async () => { userSays('아니야'); await showCandidateCards([]); } },
     ]);
   }
   function firstSnippet(transcription) {
@@ -155,43 +184,31 @@
     return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
   }
 
-  // 갈래 2: 후보 카드 (후보 없으면 전체 목록)
-  function showCandidateCards(candidateIds, promptText) {
-    // unknown·웹 카탈로그에 없는 id(사본 드리프트) 방어
-    const candidates = candidateIds.filter((id) => id !== 'unknown' && catalog[id]);
+  // 갈래 2: 후보 카드 (후보 없으면 전체 목록) — 라벨·목록 모두 서버에서 받는다
+  async function showCandidateCards(candidateIds, promptText) {
+    let candidates = [];
+    if (candidateIds && candidateIds.length > 0) {
+      const res = await callFlow({ action: 'labels', ids: candidateIds });
+      candidates = res.methods; // 서버가 unknown·미확인 id를 이미 걸러 valid만 반환
+    }
+    const list = candidates.length > 0
+      ? candidates
+      : (await callFlow({ action: 'labels', ids: [] })).methods; // 후보 없으면 전체 선택 목록
     coachSays(
       promptText ??
         (candidates.length > 0 ? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?' : '어떤 방법으로 풀었어?')
     );
-    const list = candidates.length > 0 ? candidates : selectableMethods.map((m) => m.id);
-    const buttons = list.map((id) => ({
-      label: catalog[id].labelKo,
-      onPress: () => { userSays(catalog[id].labelKo); startFlow(id); },
+    const buttons = list.map((m) => ({
+      label: m.labelKo,
+      onPress: async () => { userSays(m.labelKo); await startFlow(m.id); },
     }));
     if (candidates.length > 0) {
-      buttons.push({ label: '이 중엔 없어', kind: 'ghost', onPress: () => showCandidateCards([]) });
+      buttons.push({ label: '이 중엔 없어', kind: 'ghost', onPress: async () => { await showCandidateCards([]); } });
     }
     setActions(buttons);
   }
 
-  // 갈래 3: 질문 폴백 — 카탈로그 키워드로 로컬 매칭 (앱 mock 라우터와 같은 원리)
-  // 주의: 배포된 diagnoseMethod는 allowedMethods를 최대 12개만 받아 31개 전송 시 항상 400 →
-  // 원격 호출 대신 번들에 이미 있는 keywords로 후보를 좁히고 최종 선택은 학생이 한다.
-  function matchMethodsByKeywords(rawText) {
-    const text = rawText.toLowerCase();
-    return selectableMethods
-      .map((m) => {
-        const c = catalog[m.id];
-        const hits = [...c.keywords, c.labelKo].reduce(
-          (n, kw) => n + (text.includes(kw.toLowerCase()) ? 1 : 0), 0);
-        return { id: m.id, hits };
-      })
-      .filter((s) => s.hits > 0)
-      .sort((a, b) => b.hits - a.hits)
-      .slice(0, 3)
-      .map((s) => s.id);
-  }
-
+  // 갈래 3: 질문 폴백 — 서버가 키워드 매칭 (규칙이 브라우저에 없다)
   function askMethodByText() {
     coachSays('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
     const input = document.createElement('input');
@@ -203,33 +220,41 @@
     const submit = document.createElement('button');
     submit.className = 'primary';
     submit.textContent = '보내기';
-    submit.addEventListener('click', () => {
+    submit.addEventListener('click', async () => {
       const rawText = input.value.trim();
       if (!rawText) return;
+      submit.disabled = true;
       userSays(rawText);
       actionsBox.innerHTML = '';
-      const matched = matchMethodsByKeywords(rawText);
-      showCandidateCards(matched, matched.length > 0 ? '이 중에 있어?' : undefined);
+      try {
+        const { methods, matched } = await callFlow({ action: 'matchText', text: rawText });
+        await showCandidateCards(methods.map((m) => m.id), matched ? '이 중에 있어?' : undefined);
+      } catch (error) {
+        coachSays('연결이 잠깐 끊겼어. 다시 알려줄래?');
+        askMethodByText();
+      }
     });
     actionsBox.appendChild(submit);
     input.focus();
   }
 
-  // ── 진단 flow 러너 (앱 엔진 그대로 걷기) ──
-  let draft = null;
-  function startFlow(methodId) {
-    draft = F.createDiagnosisFlowDraft(methodId);
-    renderCurrentNode();
+  // ── 진단 flow 러너 (서버가 노드를 한 스텝씩 내려준다) ──
+  async function startFlow(methodId) {
+    const { draft: next, node } = await callFlow({ action: 'start', methodId });
+    draft = next;
+    renderNode(node);
   }
-  function renderCurrentNode() {
-    const flow = F.getDiagnosisFlow(draft.methodId);
-    const node = F.getNode(flow, draft.currentNodeId);
-
+  async function advance(event) {
+    const { draft: next, node } = await callFlow({ action: 'advance', draft, event });
+    draft = next;
+    renderNode(node);
+  }
+  function renderNode(node) {
     if (node.kind === 'choice') {
       cardEl(node.title, node.body);
       setActions(node.options.map((option) => ({
         label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromChoice(draft, option.id); renderCurrentNode(); },
+        onPress: async () => { userSays(option.text); await advance({ type: 'choice', optionId: option.id }); },
       })));
       return;
     }
@@ -237,8 +262,8 @@
     if (node.kind === 'explain') {
       cardEl(node.title, node.body);
       setActions([
-        { label: node.primaryLabel, kind: 'primary', onPress: () => { draft = F.advanceFromExplain(draft, 'continue'); renderCurrentNode(); } },
-        { label: node.secondaryLabel, kind: 'ghost', onPress: () => { draft = F.advanceFromExplain(draft, 'dont_know'); renderCurrentNode(); } },
+        { label: node.primaryLabel, kind: 'primary', onPress: async () => { await advance({ type: 'explain', reply: 'continue' }); } },
+        { label: node.secondaryLabel, kind: 'ghost', onPress: async () => { await advance({ type: 'explain', reply: 'dont_know' }); } },
       ]);
       return;
     }
@@ -247,9 +272,9 @@
       cardEl(node.title, node.prompt);
       const buttons = node.options.map((option) => ({
         label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromCheck(draft, option.id); renderCurrentNode(); },
+        onPress: async () => { userSays(option.text); await advance({ type: 'check', optionId: option.id }); },
       }));
-      buttons.push({ label: '모르겠어요', kind: 'ghost', onPress: () => { draft = F.advanceFromCheck(draft, undefined); renderCurrentNode(); } });
+      buttons.push({ label: '모르겠어요', kind: 'ghost', onPress: async () => { await advance({ type: 'check' }); } });
       setActions(buttons);
       return;
     }

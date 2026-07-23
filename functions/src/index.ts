@@ -5,6 +5,7 @@ if (getApps().length === 0) {
 }
 
 export { diagnoseMethod } from './diagnosis-method';
+export { diagnoseFlow } from './diagnose-flow';
 export { analyzePhoto } from './analyze-photo';
 export { explainDiagnosisNode } from './explain-diagnosis-node';
 export { getLearningAttemptResultsHandler as getLearningAttemptResults } from './get-learning-attempt-results';
