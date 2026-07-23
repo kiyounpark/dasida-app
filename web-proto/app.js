@@ -7,6 +7,11 @@
   const catalog = F.diagnosisMethodRoutingCatalog;
   const selectableMethods = F.methodOptions.filter((m) => m.id !== 'unknown');
 
+  // 후보를 못 좁혔을 때 '전체 카탈로그'를 쏟지 않고 주제 기반 상위 N개만 보여준다
+  const TOPIC_TOP_N = 5;
+  // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
+  let lastAnalysisText = '';
+
   // ── 화면 전환 ──
   const screens = {
     upload: document.getElementById('screen-upload'),
@@ -121,6 +126,8 @@
 
   // ── 분석 결과 → 3갈래 라우팅 ──
   function routeFromAnalysis(result) {
+    // 후보를 못 좁혔을 때 주제 좁히기에 쓸 재료 (읽은 풀이 + 근거)
+    lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     if (!result.hasSolvingWork) {
       askMethodByText();  // 갈래 3: 풀이 흔적 없음 → 질문 폴백
       return;
@@ -146,7 +153,7 @@
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
       { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); startFlow(result.predictedMethodId); } },
-      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showCandidateCards([]); } },
+      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showTopicMethods(undefined, [result.predictedMethodId]); } },
     ]);
   }
   function firstSnippet(transcription) {
@@ -155,30 +162,61 @@
     return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
   }
 
-  // 갈래 2: 후보 카드 (후보 없으면 전체 목록)
-  function showCandidateCards(candidateIds, promptText) {
-    // unknown·웹 카탈로그에 없는 id(사본 드리프트) 방어
-    const candidates = candidateIds.filter((id) => id !== 'unknown' && catalog[id]);
-    coachSays(
-      promptText ??
-        (candidates.length > 0 ? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?' : '어떤 방법으로 풀었어?')
-    );
-    const list = candidates.length > 0 ? candidates : selectableMethods.map((m) => m.id);
-    const buttons = list.map((id) => ({
+  function methodButton(id) {
+    return {
       label: catalog[id].labelKo,
       onPress: () => { userSays(catalog[id].labelKo); startFlow(id); },
-    }));
-    if (candidates.length > 0) {
-      buttons.push({ label: '이 중엔 없어', kind: 'ghost', onPress: () => showCandidateCards([]) });
+    };
+  }
+
+  // 갈래 2: AI 후보 카드 (최대 4개). 후보가 비면 전체를 쏟지 않고 주제 기반으로 좁힌다.
+  function showCandidateCards(candidateIds, promptText, excludeIds = []) {
+    // unknown·웹 카탈로그에 없는 id(사본 드리프트)·이미 아니라고 한 방법 방어
+    const candidates = candidateIds.filter(
+      (id) => id !== 'unknown' && catalog[id] && !excludeIds.includes(id),
+    );
+    if (candidates.length === 0) {
+      // 후보가 없으면 전체 목록 대신 주제 기반 상위 N개로 안내
+      showTopicMethods(promptText, excludeIds);
+      return;
     }
+    coachSays(promptText ?? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?');
+    const buttons = candidates.map(methodButton);
+    buttons.push({
+      label: '이 중엔 없어',
+      kind: 'ghost',
+      onPress: () => showTopicMethods(undefined, excludeIds),
+    });
+    setActions(buttons);
+  }
+
+  // 후보를 못 좁혔을 때: 읽은 풀이 내용의 주제로 상위 N개만 추리고,
+  // 그래도 못 맞추면 학생이 직접 입력하도록 한다 (전체 31개를 쏟지 않는다).
+  function showTopicMethods(promptText, excludeIds = []) {
+    const matched = matchMethodsByKeywords(lastAnalysisText, TOPIC_TOP_N).filter(
+      (id) => !excludeIds.includes(id),
+    );
+    if (matched.length === 0) {
+      // 주제조차 못 좁힘 → 직접 입력 폴백
+      askMethodByText();
+      return;
+    }
+    coachSays(promptText ?? '이 문제엔 보통 이런 방법들을 써. 어떤 걸로 풀었어?');
+    const buttons = matched.map(methodButton);
+    buttons.push({
+      label: '여기에도 없어, 직접 쓸게',
+      kind: 'ghost',
+      onPress: () => askMethodByText(),
+    });
     setActions(buttons);
   }
 
   // 갈래 3: 질문 폴백 — 카탈로그 키워드로 로컬 매칭 (앱 mock 라우터와 같은 원리)
   // 주의: 배포된 diagnoseMethod는 allowedMethods를 최대 12개만 받아 31개 전송 시 항상 400 →
   // 원격 호출 대신 번들에 이미 있는 keywords로 후보를 좁히고 최종 선택은 학생이 한다.
-  function matchMethodsByKeywords(rawText) {
-    const text = rawText.toLowerCase();
+  function matchMethodsByKeywords(rawText, limit = 3) {
+    const text = (rawText || '').toLowerCase();
+    if (!text) return [];
     return selectableMethods
       .map((m) => {
         const c = catalog[m.id];
@@ -188,7 +226,7 @@
       })
       .filter((s) => s.hits > 0)
       .sort((a, b) => b.hits - a.hits)
-      .slice(0, 3)
+      .slice(0, limit)
       .map((s) => s.id);
   }
 
@@ -208,7 +246,8 @@
       if (!rawText) return;
       userSays(rawText);
       actionsBox.innerHTML = '';
-      const matched = matchMethodsByKeywords(rawText);
+      lastAnalysisText = rawText; // 이후 주제 좁히기는 학생이 쓴 말을 재료로
+      const matched = matchMethodsByKeywords(rawText, TOPIC_TOP_N);
       showCandidateCards(matched, matched.length > 0 ? '이 중에 있어?' : undefined);
     });
     actionsBox.appendChild(submit);
