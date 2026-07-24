@@ -20,8 +20,9 @@ const DiagnosisMethodRequestSchema = z
   .object({
     problemId: z.string().min(1).max(100),
     rawText: z.string().trim().min(1).max(500),
-    allowedMethodIds: z.array(z.string().min(1)).min(1).max(12),
-    allowedMethods: z.array(MethodDescriptorSchema).min(1).max(12),
+    // 12 → 35: 사진 flow 웹은 문제를 미리 모르는 채 전체 카탈로그(31개)를 보낸다 (2026-07-23)
+    allowedMethodIds: z.array(z.string().min(1)).min(1).max(35),
+    allowedMethods: z.array(MethodDescriptorSchema).min(1).max(35),
   })
   .superRefine((value, ctx) => {
     const descriptorIds = new Set(value.allowedMethods.map((method) => method.id));

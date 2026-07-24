@@ -1,0 +1,154 @@
+/* ────────────────────────────────────────────────────────────
+ * web/styles.css 에서 이식 (2026.07.20 · office-hours 프로토타입)
+ * 출처: 다시다 앱 디자인 토큰 (constants/diagnosis-theme.ts, brand.ts, typography.ts)
+ * 재활용 대상: 결과물 UI — 스탬프 / 📍지도(스파인) / 🔍진단카드 / ✅처방카드
+ * 입력부(문제 고정 트리)는 가져오지 않음 — 업로드 대행은 입력 모델이 다름
+ * ──────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'SUIT', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', sans-serif;
+  background: #F6F2EA;              /* DiagnosisTheme.canvas */
+  color: #243229;                  /* DiagnosisTheme.ink */
+  line-height: 1.6;
+}
+.container { max-width: 480px; margin: 0 auto; padding: 24px 16px 48px; }
+
+.hook { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px;
+  margin-bottom: 4px; color: #243229; }
+.source-label { font-size: 0.8rem; font-weight: 500; color: #667268;   /* inkMuted */
+  margin-bottom: 16px; }
+
+#problem-image { width: 100%; border-radius: 14px; background: #FFFCF8;  /* panel */
+  border: 1px solid #D9E0D4; margin-bottom: 16px; }                     /* line */
+
+.answer-label { display: block; font-size: 0.9rem; font-weight: 600;
+  color: #243229; margin-bottom: 6px; }
+#answer-input { width: 100%; padding: 14px; font-size: 1.1rem; font-family: inherit;
+  background: #FFFCF8; color: #243229;
+  border: 1px solid #D9E0D4; border-radius: 12px; margin-bottom: 12px; }
+#answer-input::placeholder { color: #9AA69B; }
+
+.btn-primary { display: block; width: 100%; padding: 15px; font-size: 1rem;
+  font-weight: 700; font-family: inherit; color: #F8F3E8; background: #293B27;  /* primary */
+  border: none; border-radius: 12px; text-align: center; text-decoration: none; cursor: pointer; }
+.btn-secondary { display: block; width: 100%; padding: 13px; font-size: 0.95rem;
+  font-weight: 600; font-family: inherit; color: #2A5C38; background: #FFFCF8;
+  border: 1px solid #DCE4DA; border-radius: 12px; text-align: center;
+  cursor: pointer; margin-top: 10px; }
+.skip-hint { font-size: 0.78rem; color: #8A958B; text-align: center; margin-top: 6px; }
+
+h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.2px;
+  color: #243229; margin-bottom: 8px; }
+.sub { font-size: 0.9rem; color: #5B6A5D; margin-bottom: 16px; }
+
+.method-option { display: block; width: 100%; text-align: left; padding: 15px;
+  margin-bottom: 10px; background: #FFFFFF; color: #243229;              /* choiceBg */
+  border: 1px solid #DCE4DA; border-radius: 14px;                        /* choiceBorder */
+  font-size: 0.95rem; font-family: inherit; cursor: pointer; }
+.method-option:hover { background: #EEF4EE; border-color: #89A78E; }     /* choiceActive */
+
+/* 진단 대화 (앱 diagnosis-chat-bubble.tsx 이식) */
+.chat-thread { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.bubble-row { display: flex; align-items: flex-end; gap: 8px; }
+.bubble-row.user { justify-content: flex-end; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.avatar.ghost { visibility: hidden; }
+.bubble { border-radius: 18px; padding: 12px 15px; font-size: 1rem;
+  line-height: 1.62; box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.bubble.assistant strong { font-weight: 800; color: #1E4D33; }
+.bubble.assistant.warning strong { color: #8A5A10; }
+.bubble.assistant.positive strong { color: #1E4D33; }
+
+/* 문제 버블 (앱 diagnosis-problem-bubble.tsx 이식) */
+.problem-bubble { position: relative; max-width: 92%; overflow: hidden;
+  background: #FBF8F1; border: 1px solid #D9E0D4; border-radius: 14px;
+  padding: 16px; margin-bottom: 4px; box-shadow: 0 14px 28px rgba(36,50,41,0.08); }
+.pb-band { position: absolute; top: 0; left: 0; right: 0; height: 14px; background: #D9E7D7; }
+.pb-eyebrow { font-size: 0.72rem; font-weight: 800; color: #54705B;
+  letter-spacing: 0.4px; margin-top: 6px; }
+.pb-chip { display: inline-block; margin: 8px 0; padding: 5px 10px; border-radius: 999px;
+  background: #E9F1E8; color: #243229; font-size: 0.72rem; font-weight: 700; }
+.pb-panel { padding: 8px; border: 1px solid #E5E7DE; border-radius: 12px; background: #FFFCF8; }
+.pb-panel img { display: block; width: 100%; border-radius: 6px; }
+.pb-helper { padding-top: 8px; font-size: 0.85rem; line-height: 1.5; color: #667268; }
+
+.figure-card { max-width: 84%; margin-left: 36px; background: #FFFFFF;
+  border: 1px solid #E2E7DE; border-radius: 14px; padding: 12px 10px 6px;
+  box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.figure-card svg { display: block; width: 100%; height: auto;
+  font-family: inherit; }
+.bubble.assistant { max-width: 84%; background: #FFFFFF; color: #243229;
+  border: 1px solid #E2E7DE; border-bottom-left-radius: 4px; }        /* assistantBubble */
+.bubble.assistant.warning { background: #FFF6E8; border-color: #E7C98A; color: #775520; }
+.bubble.assistant.positive { background: #EEF7EF; border-color: #B8D6BF; color: #355B43; }
+.bubble.user { max-width: 76%; background: #2F5A43; color: #FFFFFF;   /* userBubble */
+  font-weight: 700; border-top-right-radius: 10px; }
+.chat-actions { margin-top: 16px; }
+.chat-actions .method-option:last-child { margin-bottom: 0; }
+
+/* 약점 정리 페이지 (앱 done-view.tsx 스탬프 스타일) */
+#screen-summary { text-align: center; padding-top: 12px; }
+.stamp { position: relative; display: inline-block; margin: 8px auto 14px; }
+.stamp-ring { width: 110px; height: 110px; border-radius: 50%;
+  border: 2.5px solid #7A2E1F; background: rgba(201,90,63,0.08);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transform: rotate(-7deg); }
+.stamp-ko { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 1.4rem;
+  letter-spacing: 4px; color: #7A2E1F; line-height: 1.1; }
+.stamp-en { font-weight: 800; font-size: 0.5rem; letter-spacing: 2px;
+  color: #7A2E1F; margin-top: 4px; }
+.stamp-leaf { position: absolute; top: -8px; right: -10px; font-size: 1.4rem; }
+.summary-title { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 1.4rem;
+  color: #1A1916; letter-spacing: -0.3px; margin: 6px 0 8px; }
+.summary-sub { font-size: 0.9rem; line-height: 1.6; color: #6B675E; margin-bottom: 18px; }
+/* 📍 지도: 풀이 스파인 5단계 (막힌 단계 핀포인트) */
+.spine { text-align: left; margin: 6px 0 18px; }
+.spine-step { position: relative; display: flex; gap: 12px; padding-bottom: 14px; }
+.spine-step:last-child { padding-bottom: 0; }
+.spine-step:not(:last-child)::before { content: ''; position: absolute;
+  left: 12px; top: 26px; bottom: 0; width: 2px; background: #DCE4DA; }
+.spine-badge { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; z-index: 1;
+  font-size: 0.72rem; font-weight: 800;
+  background: #EAF0E7; color: #8A958B; border: 1.5px solid #DCE4DA; }
+.spine-text { flex: 1; padding-top: 3px; }
+.spine-name { font-size: 0.92rem; font-weight: 600; color: #8A958B; }
+/* 통과한 단계 */
+.spine-step.done .spine-badge { background: #E4EEE2; color: #4E7A57; border-color: #C4D8C6; }
+.spine-step.done .spine-name { color: #667268; }
+/* 막힌 단계 (오답) */
+.spine-step.broke .spine-badge { background: #FBEDE9; color: #A23B26; border-color: #E3B5A9; }
+.spine-step.broke .spine-name { color: #1A1916; font-weight: 800; font-size: 0.98rem; }
+.spine-tag { display: inline-block; margin-left: 6px; font-size: 0.72rem; font-weight: 800; }
+.spine-step.broke .spine-tag { color: #A23B26; }
+/* 대부분 무너지는 단계 (정답자에게 표시) */
+.spine-step.common .spine-badge { background: #FCF3E2; color: #8A5A10; border-color: #E7C98A; }
+.spine-step.common .spine-name { color: #1A1916; font-weight: 800; }
+.spine-step.common .spine-tag { color: #8A5A10; }
+.spine-desc { margin-top: 6px; font-size: 0.85rem; line-height: 1.5;
+  color: #6B675E; font-weight: 500; }
+
+/* 🔍 진단: 약점의 성격 규정 */
+.diagnosis-card { text-align: left; background: #FFFFFF; border: 1px solid #E2E7DE;
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+  box-shadow: 0 8px 20px rgba(36, 50, 41, 0.06); }
+.dc-label { display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.3px;
+  color: #4E7A57; background: #EAF3EA; padding: 3px 9px; border-radius: 999px; margin-bottom: 10px; }
+.dc-headline { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 1.12rem;
+  color: #1A1916; line-height: 1.42; margin-bottom: 8px; }
+.dc-headline strong { color: #A23B26; }
+.dc-body { font-size: 0.9rem; line-height: 1.6; color: #3A3833; }
+.dc-body strong { font-weight: 800; color: #1E4D33; }
+
+/* ✅ 처방: 다음에 챙길 행동 한 줄 */
+.rx-card { text-align: left; background: #F0F6EF; border: 1px solid #C9DEC9;
+  border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; }
+.rx-label { display: inline-block; font-size: 0.72rem; font-weight: 800; color: #2A5C38;
+  margin-bottom: 8px; }
+.rx-body { font-size: 0.92rem; line-height: 1.55; color: #274B31; font-weight: 500; }
+.rx-body strong { font-weight: 800; color: #1E4D33; }
+
+.source-note { font-size: 0.75rem; color: #8A958B; margin-bottom: 20px; }
+#result-comment { margin-bottom: 4px; color: #243229; }
+.cta-sub { font-size: 0.8rem; color: #667268; text-align: center; margin-top: 10px; }

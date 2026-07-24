@@ -25,29 +25,28 @@ import {
 } from '@/features/quiz/diagnosis-flow-engine';
 import { ExamProblemCard } from '@/features/quiz/exam/components/exam-problem-card';
 import { DiagnosisMiniCard } from '@/features/quiz/exam/components/diagnosis-mini-card';
-import { buildMiniCardText } from '@/features/quiz/exam/diagnosis-mini-card-text';
 
 /**
  * 마케팅 영상 캡처 전용 — 실제 진단 컴포넌트/데이터를 그대로 사용해
- * "미분 오답 → 풀이 순서 혼동" 진단 플로우를 자동 재생한다.
+ * "극한 오답 → 0/0 케이스 누락" 진단 플로우를 자동 재생한다.
  *
  * 상단 앱바는 홈/퀴즈 화면의 BrandHeader(다시다 로고)를 사용한다.
  * 새로고침은 앱바 우측에 겹쳐 둔 dev 컨트롤 — 누르면 처음부터 자동 재생.
  * 진단 엔진을 손으로 타지 않고 미리 계산된 경로를 타이머로 노출한다. 부수효과 없음.
  */
 
-// 실제로 이미지가 번들된 미분 문제 (g3 미적분 학평 2024-03 2번, 정답 3번)
-const EXAM_KEY = 'g3-calc-academic-2024-03/2';
-const PROBLEM_NUMBER = 2;
-const CORRECT_ANSWER = 3;
-const USER_ANSWER = 2;
-const METHOD_LABEL = '미분';
+// 쇼츠 3호와 같은 문제 (2025 9월 모평 미적분 13번, 정답 ④ / 오답 ③ 시나리오)
+const EXAM_KEY = 'g3-calc-mock-2025-09/13';
+const PROBLEM_NUMBER = 13;
+const CORRECT_ANSWER = 4;
+const USER_ANSWER = 3;
+const METHOD_LABEL = '극한';
 
-const DIFF_METHOD: DiagnosisMethodCardOption = {
-  id: 'diff',
+const LIMIT_METHOD: DiagnosisMethodCardOption = {
+  id: 'limit',
   labelKo: METHOD_LABEL,
-  summary: '미분해서 풀었어요',
-  exampleUtterances: ["미분해서 f'(x)=0을 풀었어요"],
+  summary: '극한으로 풀었어요',
+  exampleUtterances: ['분모가 0 안 되게 판별식으로 풀었어요'],
 };
 
 const STEP_INTERVAL_MS = 1700;
@@ -59,18 +58,18 @@ type Item =
   | { kind: 'flow-node'; node: DiagnosisFlowNode }
   | { kind: 'mini-card'; patternName: string; patternDescription: string };
 
-/** 진단 엔진을 실제로 walk 해서 "풀이 순서 혼동" 경로의 노드 + 자막을 만든다. */
+/** 진단 엔진을 실제로 walk 해서 "0/0 케이스 누락" 경로의 노드 + 자막을 만든다. */
 function buildTimeline(): Item[] {
-  const flow = getDiagnosisFlow('diff');
+  const flow = getDiagnosisFlow('limit');
 
-  const draftRoot = createDiagnosisFlowDraft('diff');
+  const draftRoot = createDiagnosisFlowDraft('limit');
   const rootNode = getNode(flow, draftRoot.currentNodeId);
   const chosenOptionText =
     rootNode.kind === 'choice'
-      ? rootNode.options.find((o) => o.id === 'diff_order')?.text ?? ''
+      ? rootNode.options.find((o) => o.id === 'lim_zero')?.text ?? ''
       : '';
 
-  const draftExplain = advanceFromChoice(draftRoot, 'diff_order');
+  const draftExplain = advanceFromChoice(draftRoot, 'lim_zero');
   const explainNode = getNode(flow, draftExplain.currentNodeId);
 
   const draftCheck = advanceFromExplain(draftExplain, 'continue');
@@ -82,13 +81,11 @@ function buildTimeline(): Item[] {
   const draftFinal = advanceFromCheck(draftCheck, correctOption?.id);
   const finalNode = getNode(flow, draftFinal.currentNodeId);
 
-  // 실제 mini-card 자막 로직과 동일: 마지막 explain/check 노드 텍스트를 패턴 설명으로 사용
-  const lastNodeText =
-    checkNode.kind === 'check' ? checkNode.prompt ?? checkNode.title : null;
-  const { patternName, patternDescription } = buildMiniCardText({
-    methodLabel: METHOD_LABEL,
-    lastNodeText,
-  });
+  // 촬영용 고정 카피 — 쇼츠 3호의 빨간펜 메모("경우 하나 빼먹음")와 문구를 일치시킨다.
+  // 실제 앱은 buildMiniCardText로 동적 생성하지만, 이 화면은 13번 스토리 전용이라 고정.
+  const patternName = '경우 하나 빼먹음';
+  const patternDescription =
+    '분모가 0인 지점에서 분자도 0이 되는 경우(k=6)를 놓쳤어요. 실근이 없어야 한다는 조건만 보면 한 경우가 빠져요.';
 
   return [
     { kind: 'problem' },
@@ -221,7 +218,7 @@ function ItemRenderer({ item, isActive }: { item: Item; isActive: boolean }) {
   if (item.kind === 'selector') {
     return (
       <DiagnosisMethodSelectorCard
-        methods={[DIFF_METHOD]}
+        methods={[LIMIT_METHOD]}
         diagnosisInput=""
         routerResult={null}
         suggestedMethods={[]}
