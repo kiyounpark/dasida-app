@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.23 01:26
+- 해시: `9081d9c` (`9081d9c3cae7990235dfdb9f8c838184335292ed`)
+- 브랜치: feat/photo-flow-auto-routing
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9081d9c3cae7990235dfdb9f8c838184335292ed
+- 작성자: 박기윤
+- 메시지: feat(functions): diagnoseMethod 방법 목록 상한 12→35 확대
+- 본문: 사진 flow 웹은 문제를 미리 모르는 채 전체 카탈로그(31개)를 보내야 함. / 상한 완화라 기존 앱 요청(문제별 3~5개)은 영향 없음. 배포 + 31개 실요청 200 확인. / Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 ### 커밋 2026.07.13 22:04
 - 해시: `4445f55` (`4445f550f124e381f224c68f5bbf225e534036a1`)
 - 브랜치: feat/web-one-problem-diagnosis
