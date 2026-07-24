@@ -315,9 +315,21 @@
       return;
     }
 
-    // 그래도 못 좁힘 → 방법 특정 없이 진행 가능한 '잘 모르겠어' 진단 flow로
-    coachSays('괜찮아, 방법 이름은 몰라도 돼. 어디서 막혔는지부터 같이 짚어보자.');
-    startFlow('unknown');
+    // 2번 물어봐도 못 좁힘 → 마지막 수단으로 전체 목록에서 직접 고르게
+    showAllMethods();
+  }
+
+  // 마지막 수단: 전체 카탈로그를 보여주고 직접 고르게 한다.
+  // 목록에도 없으면 '잘 모르겠어'로 방법 특정 없이 진행 가능한 진단 flow로.
+  function showAllMethods() {
+    coachSays('그럼 전체 목록에서 직접 골라볼래?');
+    const buttons = selectableMethods.map((m) => methodButton(m.id));
+    buttons.push({
+      label: '잘 모르겠어',
+      kind: 'ghost',
+      onPress: () => { userSays('잘 모르겠어'); startFlow('unknown'); },
+    });
+    setActions(buttons);
   }
 
   // ── 진단 flow 러너 (앱 엔진 그대로 걷기) ──
