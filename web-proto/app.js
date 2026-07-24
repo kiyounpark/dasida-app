@@ -2,6 +2,7 @@
   // ── 설정 ──
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
+  const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
@@ -11,6 +12,19 @@
   const TOPIC_TOP_N = 5;
   // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
   let lastAnalysisText = '';
+  // 텍스트로 물어본 횟수 — 2번 물어봐도 못 좁히면 unknown flow로 진행해 막다른 길을 없앤다
+  let textAskCount = 0;
+
+  // diagnoseMethod에 보낼 '보기 목록' (전체 카탈로그, unknown 제외)
+  const methodDescriptors = selectableMethods.map((m) => {
+    const c = catalog[m.id];
+    return {
+      id: c.id,
+      labelKo: c.labelKo,
+      summary: c.summary,
+      exampleUtterances: c.exampleUtterances.slice(0, 5),
+    };
+  });
 
   // ── 화면 전환 ──
   const screens = {
@@ -129,7 +143,8 @@
     // 후보를 못 좁혔을 때 주제 좁히기에 쓸 재료 (읽은 풀이 + 근거)
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     if (!result.hasSolvingWork) {
-      askMethodByText();  // 갈래 3: 풀이 흔적 없음 → 질문 폴백
+      // 갈래 3: 풀이 흔적 없음 → 질문 폴백
+      askMethodByText('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
       return;
     }
     if (result.needsManualSelection) {
@@ -185,7 +200,8 @@
     buttons.push({
       label: '이 중엔 없어',
       kind: 'ghost',
-      onPress: () => showTopicMethods(undefined, excludeIds),
+      // 방금 보여준 후보는 다음 목록에서 제외 — 거절한 게 또 뜨지 않게
+      onPress: () => showTopicMethods(undefined, [...excludeIds, ...candidates]),
     });
     setActions(buttons);
   }
@@ -197,11 +213,11 @@
       (id) => !excludeIds.includes(id),
     );
     if (matched.length === 0) {
-      // 주제조차 못 좁힘 → 직접 입력 폴백
+      // 주제조차 못 좁힘 → 직접 물어보기
       askMethodByText();
       return;
     }
-    coachSays(promptText ?? '이 문제엔 보통 이런 방법들을 써. 어떤 걸로 풀었어?');
+    coachSays(promptText ?? '네가 푼 방식이랑 비슷해 보이는 방법들이야. 이 중에 있어?');
     const buttons = matched.map(methodButton);
     buttons.push({
       label: '여기에도 없어, 직접 쓸게',
@@ -211,9 +227,7 @@
     setActions(buttons);
   }
 
-  // 갈래 3: 질문 폴백 — 카탈로그 키워드로 로컬 매칭 (앱 mock 라우터와 같은 원리)
-  // 주의: 배포된 diagnoseMethod는 allowedMethods를 최대 12개만 받아 31개 전송 시 항상 400 →
-  // 원격 호출 대신 번들에 이미 있는 keywords로 후보를 좁히고 최종 선택은 학생이 한다.
+  // 카탈로그 keywords 로컬 매칭 — diagnoseMethod 호출 실패 시(오프라인·구버전 배포)의 폴백
   function matchMethodsByKeywords(rawText, limit = 3) {
     const text = (rawText || '').toLowerCase();
     if (!text) return [];
@@ -230,8 +244,9 @@
       .map((s) => s.id);
   }
 
-  function askMethodByText() {
-    coachSays('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
+  // 직접 물어보기: 학생이 자기 말로 적으면 diagnoseMethod(AI)가 방법을 찾아 flow에 자동 연결
+  function askMethodByText(promptText) {
+    coachSays(promptText ?? '어떻게 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼.');
     const input = document.createElement('input');
     input.className = 'fallback-input';
     input.placeholder = '예: 근의 공식에 바로 대입했어';
@@ -244,14 +259,65 @@
     submit.addEventListener('click', () => {
       const rawText = input.value.trim();
       if (!rawText) return;
+      submit.disabled = true; // 응답 대기 중 중복 전송 방지
       userSays(rawText);
       actionsBox.innerHTML = '';
-      lastAnalysisText = rawText; // 이후 주제 좁히기는 학생이 쓴 말을 재료로
-      const matched = matchMethodsByKeywords(rawText, TOPIC_TOP_N);
-      showCandidateCards(matched, matched.length > 0 ? '이 중에 있어?' : undefined);
+      lastAnalysisText = rawText; // 이후 좁히기는 학생이 쓴 말을 재료로
+      routeFromText(rawText);
     });
     actionsBox.appendChild(submit);
     input.focus();
+  }
+
+  // 학생이 쓴 글 → AI 판별 → flow 자동 연결. AI 실패 시 키워드 매칭 폴백,
+  // 2번 물어봐도 못 좁히면 '잘 모르겠어' 진단 flow로 진행 (막다른 길 없음)
+  async function routeFromText(rawText) {
+    textAskCount += 1;
+    coachSays('잠깐만, 읽어볼게…');
+
+    let result = null;
+    try {
+      const response = await fetch(DIAGNOSE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problemId: 'photo-flow-web', // 사진 flow는 문제를 미리 모른다 → 로그 구분용 고정 id
+          rawText,
+          allowedMethodIds: selectableMethods.map((m) => m.id),
+          allowedMethods: methodDescriptors,
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      result = await response.json();
+    } catch {
+      // 오프라인·구버전 배포(12개 제한) 등 — 아래에서 키워드 매칭으로 폴백
+    }
+
+    // AI가 확신하면 그 방법의 flow로 바로 연결
+    if (result && !result.needsManualSelection && catalog[result.predictedMethodId]) {
+      const label = catalog[result.predictedMethodId].labelKo;
+      coachSays(`${label}(으)로 풀었구나. 그럼 여기서부터 같이 보자.`);
+      startFlow(result.predictedMethodId);
+      return;
+    }
+
+    // 애매하면 AI 후보로, AI 실패면 키워드 매칭으로 후보 카드
+    const candidateIds = result ? result.candidateMethodIds : matchMethodsByKeywords(rawText, TOPIC_TOP_N);
+    const candidates = candidateIds.filter((id) => id !== 'unknown' && catalog[id]);
+    if (candidates.length > 0) {
+      showCandidateCards(candidates, '이 중에 있어?');
+      return;
+    }
+
+    if (textAskCount < 2) {
+      askMethodByText('음… 잘 못 알아들었어. 어떤 공식이나 방법을 썼는지 조금만 더 자세히 알려줄래?');
+      return;
+    }
+
+    // 그래도 못 좁힘 → 방법 특정 없이 진행 가능한 '잘 모르겠어' 진단 flow로
+    coachSays('괜찮아, 방법 이름은 몰라도 돼. 어디서 막혔는지부터 같이 짚어보자.');
+    startFlow('unknown');
   }
 
   // ── 진단 flow 러너 (앱 엔진 그대로 걷기) ──
