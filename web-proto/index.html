@@ -69,8 +69,18 @@
   .bubble.me { background: var(--green); color: #fff; align-self: flex-end; border-top-right-radius: 4px; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
   .card .card-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
-  .card .card-body { font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .card .card-body { font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-line; }
   .card.final { border-color: var(--green-soft); background: var(--cream-2); }
+  .curve-card { width: 100%; }
+  .curve-card svg { display: block; width: 100%; max-width: 100%; height: auto; }
+  .curve-marks { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .curve-marks li { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+  .curve-marks .n {
+    flex: 0 0 20px; height: 20px; border-radius: 50%;
+    background: var(--green); color: #fff; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .curve-marks .n.dim { background: var(--muted); }
   .actions { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 30px; }
   .actions button {
     border: 1.5px solid var(--green-soft); background: #fff; color: var(--green);
@@ -109,7 +119,7 @@
 
     <!-- 화면 2: 분석 중 -->
     <section class="screen" id="screen-analyzing" hidden>
-      <div class="spinner">풀이 읽는 중… (10초 정도)</div>
+      <div class="spinner">풀이 읽는 중… 어디서 틀렸는지 찾는 중이야 (15초 정도)</div>
     </section>
 
     <!-- 화면 3: 진단 대화 -->
@@ -119,6 +129,7 @@
     </section>
   </main>
   <script src="./flow-bundle.js" defer></script>
+  <script src="./survey-data.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

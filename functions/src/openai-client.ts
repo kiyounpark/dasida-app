@@ -352,7 +352,9 @@ export async function requestReviewFeedbackFromOpenAI({
   return { replyText };
 }
 
-const PHOTO_ANALYSIS_SCHEMA = {
+// strict: true 규약 — properties의 모든 키가 required에도 있어야 한다. 어기면 실제 호출에서 400.
+// 빌드로는 못 잡으니 테스트로 잠근다(analyze-photo-core.test.ts) → export.
+export const PHOTO_ANALYSIS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
@@ -368,6 +370,36 @@ const PHOTO_ANALYSIS_SCHEMA = {
       items: { type: 'string' },
     },
     reason: { type: 'string', minLength: 1, maxLength: 120 },
+    errorCandidates: {
+      type: 'array',
+      minItems: 0,
+      maxItems: 2,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          quote: { type: 'string', maxLength: 160 },
+          why: { type: 'string', maxLength: 400 },
+          mistakeType: {
+            type: 'string',
+            enum: ['concept_gap', 'formula_recall', 'setup_error', 'calc_slip', 'procedure_miss', 'answer_read'],
+          },
+          fix: { type: 'string', maxLength: 200 },
+          checkPrompt: { type: 'string', maxLength: 200 },
+          checkOptions: { type: 'array', minItems: 3, maxItems: 3, items: { type: 'string', maxLength: 80 } },
+          checkAnswerIndex: { type: 'integer', minimum: 0, maximum: 2 },
+          retrySetup: { type: ['string', 'null'], maxLength: 300 },
+          retryPrompt: { type: ['string', 'null'], maxLength: 200 },
+          retryOptions: { type: ['array', 'null'], minItems: 3, maxItems: 3, items: { type: 'string', maxLength: 80 } },
+          retryAnswerIndex: { type: ['integer', 'null'], minimum: 0, maximum: 2 },
+        },
+        required: [
+          'quote', 'why', 'mistakeType', 'fix', 'checkPrompt', 'checkOptions', 'checkAnswerIndex',
+          'retrySetup', 'retryPrompt', 'retryOptions', 'retryAnswerIndex',
+        ],
+      },
+    },
+    errorConfidence: { type: 'number', minimum: 0, maximum: 1 },
   },
   required: [
     'hasSolvingWork',
@@ -377,30 +409,70 @@ const PHOTO_ANALYSIS_SCHEMA = {
     'confidence',
     'candidateMethodIds',
     'reason',
+    'errorCandidates',
+    'errorConfidence',
   ],
 } as const;
 
 const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '당신은 한국 수능 수학 오답 사진 분석기입니다.',
   '사진에는 학생이 틀린 문제 하나와 학생의 손글씨 풀이가 담겨 있습니다.',
-  '할 일: ① 학생이 적은 최종 답 읽기 ② 손글씨 풀이를 짧게 전사 ③ 어떤 풀이 방법을 시도했는지 분류.',
-  '문제를 직접 풀지 마세요. 해설하지 마세요. 학생이 실제로 쓴 것만 근거로 삼으세요.',
-  '손글씨 풀이 과정이 사진에 없으면 hasSolvingWork를 false로 하고 transcription은 빈 문자열로 두세요.',
+  '할 일: ① 학생이 적은 최종 답 읽기 ② 손글씨 풀이를 짧게 전사 ③ 어떤 풀이 방법을 시도했는지 분류 ④ 풀이에서 틀린 지점 찾기.',
+  '학생이 쓴 각 줄이 맞는지는 속으로 반드시 검산하세요. 검산하지 않으면 계산 실수를 찾을 수 없습니다.',
+  '단, 당신이 푼 풀이나 답을 학생에게 말하지 마세요. 해설도 하지 마세요. 인용은 반드시 학생이 실제로 쓴 줄에서만 하세요.',
+  '손글씨 풀이 과정이 사진에 없으면 hasSolvingWork를 false로 하고 transcription은 빈 문자열, errorCandidates는 빈 배열로 두세요.',
   'userAnswer는 학생이 적은 최종 답(예: "3", "27"). 안 보이면 null.',
   'transcription은 학생 풀이의 핵심 단계를 한국어 1~3문장으로 요약 전사하세요.',
   '반드시 허용된 풀이법 id 중 하나를 predictedMethodId로 반환하세요. 근거가 약하면 unknown.',
   'confidence는 정직하게: 풀이가 흐릿하거나 애매하면 낮게 매기세요.',
   'candidateMethodIds는 가능성 높은 순서로 1~4개. reason은 내부 디버그용으로 짧고 건조하게.',
+  '',
+  '[오류 짚기 규칙 — 반드시 지킬 것]',
+  '1. quote에는 학생이 실제로 쓴 줄만 그대로 인용하세요. 사진에 없는 식을 지어내는 것은 최악의 실패입니다.',
+  '2. errorCandidates는 자신 있는 순서로 최대 2개. 확실한 오류가 하나뿐이면 하나만 넣으세요. 억지 2등 금지.',
+  '3. 여러 군데 틀렸어도 후보 하나당 오류 하나만.',
+  '   순서는 풀이 과정 → 최종 답. 풀이 과정에 틀린 곳이 있으면 그것을 1번 후보로 올리고,',
+  '   최종 답 줄의 오류는 2번으로 미루세요.',
+  '   풀이 과정이 전부 맞을 때만 최종 답의 오류를 1번으로 짚으세요.',
+  '   (이유: 과정이 틀리면 답도 따라 틀리므로, 위쪽을 고쳐야 아래가 같이 고쳐집니다.)',
+  '   줄마다 계산이 다 맞아도 끝난 게 아닙니다. 마지막에 나온 값이 문제가 물어본 바로 그 값인지,',
+  '   그리고 그 종류의 값으로 나올 수 있는 값인지 확인하세요.',
+  '   계산은 전부 맞는데 마지막 해석 한 줄만 틀린 오답이 흔합니다. 그럴 때는 멀쩡한 계산 줄을 짚지 말고 그 마지막 줄을 짚으세요.',
+  '4. mistakeType은 주어진 6종 중 하나만.',
+  '5. 오류를 못 찾았거나 애매하면 errorCandidates를 비우고 errorConfidence를 낮게 쓰세요. 억지로 짚는 것보다 훨씬 낫습니다.',
+  '6. why와 fix에서 정답이나 최종 값을 알려주지 마세요. 틀린 이유까지만.',
+  '7. 새로운 풀이 방법을 제안하지 마세요. 학생이 쓴 방법 안에서만 이야기하세요.',
+  '8. checkPrompt는 방금 짚은 그 한 조각만 확인하는 새 미니 문제. 새 개념 금지.',
+  '    보기는 checkOptions 배열에만 넣으세요. checkPrompt 안에 ①②③처럼 보기를 다시 적으면 화면에 두 번 나옵니다. 질문 문장만 쓰세요.',
+  '9. why는 2~3문장 + 탓하지 않는 한 줄(예: "√ 붙은 나누기는 원래 헷갈리기 쉬운 자리야"). 반말 코치 톤, 다그침 금지.',
+  '10. 아래 모범 예시는 모양(말투·깊이·구조) 참고용입니다. 예시 속 숫자·식·내용을 절대 가져다 쓰지 마세요. 모든 내용은 이 학생의 사진에서만 나와야 합니다.',
+  '11. 재도전 문제(retry*): 학생이 틀린 그 단계만 다시 밟는 쌍둥이 문제.',
+  '    retrySetup은 그 단계 직전까지 세팅된 새 상황(같은 원리, 숫자만 변경) 1~2문장,',
+  '    retryPrompt는 "여기서 다음 한 수는?" 형태의 질문, 새 개념 금지. 보기는 retryOptions에만 넣고 질문 안에 다시 적지 마세요.',
+  '    retryAnswerIndex가 가리키는 보기가 실제 정답인지 속으로 반드시 검산하세요.',
+  '    checkPrompt(방금 짚은 조각 확인)와 달리 retry는 새 숫자로 적용을 확인한다.',
+  '    자신 없으면 retry 필드 4개를 모두 null로 두세요. 억지 생성 금지.',
+  '',
+  '[모범 예시 — 모양 참고용, 내용 복사 금지]',
+  '문제: f(x) = x² − 10x + 29의 최솟값은?',
+  '진단 질문 톤: "완전제곱식 풀이에서 어디가 가장 어려웠나요?"',
+  '설명 톤: "더하고 뺀 수를 0으로 맞춰야 식이 유지됩니다. 또 마지막 상수항 계산에서 부호를 자주 놓칩니다."',
+  '',
+  '[❌/⭕ 대조 — 규칙 10의 시범]',
+  '❌ 나쁜 why: "4를 더하고 빼는 원리가 헷갈렸구나" → 이 학생 문제에 없는 예시 내용이 새어 들어옴.',
+  '⭕ 좋은 why: "√20을 2로 나눌 때 반으로 줄이는 대신 2를 곱했어. √가 붙은 나누기는 원래 헷갈리기 쉬운 자리야." → 모양은 예시, 내용은 학생 사진.',
 ].join('\n');
 
 export async function requestPhotoAnalysisFromOpenAI({
   apiKey,
   model,
+  reasoningEffort,
   imageDataUrl,
   methodContextText,
 }: {
   apiKey: string;
   model: string;
+  reasoningEffort?: string;
   imageDataUrl: string;
   methodContextText: string;
 }): Promise<{ result: unknown; responseId: string; model: string }> {
@@ -409,6 +481,9 @@ export async function requestPhotoAnalysisFromOpenAI({
 
   const response = await client.responses.create({
     model,
+    // 추론 모델만 reasoning을 받는다 — 비추론 모델(gpt-4.1 등)로 되돌릴 때 400 나지 않게 빈 값이면 생략.
+    // 실측: 인수분해 오류는 생각을 켜야 잡힌다 (medium 3/3, off 1/3)
+    ...(reasoningEffort ? { reasoning: { effort: reasoningEffort as 'low' | 'medium' | 'high' } } : {}),
     instructions: PHOTO_ANALYSIS_SYSTEM_PROMPT,
     input: [
       {

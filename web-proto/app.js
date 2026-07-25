@@ -3,6 +3,16 @@
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
   const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
+  // 스토어 링크 출처: iOS는 eas.json의 ascAppId(6761792023), 안드로이드는 app.json의 android.package(com.dasida.app).
+  const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
+  const STORE_URL_ANDROID = 'https://play.google.com/store/apps/details?id=com.dasida.app';
+  function storeUrl() {
+    // iPadOS 13+ 사파리는 기본이 데스크톱 모드라 UA에 'iPad'가 아니라 'Macintosh'로 찍힌다.
+    // 그래서 UA 정규식만으로는 실제 아이패드를 거의 못 잡는다 — '터치 되는 Mac'(=아이패드)을 함께 본다.
+    // 이 검사를 지우면 아이패드 학생이 플레이스토어로 간다.
+    const isIpadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) || isIpadOs ? STORE_URL_IOS : STORE_URL_ANDROID;
+  }
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
@@ -10,6 +20,13 @@
 
   // 후보를 못 좁혔을 때 '전체 카탈로그'를 쏟지 않고 주제 기반 상위 N개만 보여준다
   const TOPIC_TOP_N = 5;
+  // 오류 짚기 검문소 문턱 — 낮게 시작해 채점표 데이터로 조인다 (spec §2)
+  const ERROR_CONFIDENCE_MIN = 0.5;
+  // 추측 확인(경우 2 중간 확신) 하한 — 이 미만이면 바로 후보 카드
+  const SOFT_ASSERT_MIN = 0.45;
+  const SURVEY = window.DasidaPhotoSurvey;
+  // 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효.
+  let pocket = null;
   // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
   let lastAnalysisText = '';
   // 텍스트로 물어본 횟수 — 2번 물어봐도 못 좁히면 unknown flow로 진행해 막다른 길을 없앤다
@@ -67,6 +84,10 @@
       b.addEventListener('click', () => { actionsBox.innerHTML = ''; onPress(); });
       actionsBox.appendChild(b);
     });
+    // 말풍선만 스크롤하면 본문이 긴 화면(재도전·엔딩)에서 버튼이 통째로 화면 밖에 남는다.
+    // block:'end'가 아니라 'nearest'인 이유 — 전체 목록(31개)처럼 화면보다 긴 줄에서는
+    // 'end'가 목록 끝까지 내려가 질문을 1000px 넘게 밀어낸다. 'nearest'는 짧은 줄에선 'end'와 같다.
+    actionsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // ── 화면 1: 업로드 ──
@@ -140,18 +161,22 @@
 
   // ── 분석 결과 → 3갈래 라우팅 ──
   function routeFromAnalysis(result) {
-    // 후보를 못 좁혔을 때 주제 좁히기에 쓸 재료 (읽은 풀이 + 근거)
+    pocket = result;
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     if (!result.hasSolvingWork) {
-      // 갈래 3: 풀이 흔적 없음 → 질문 폴백
-      askMethodByText('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
+      offerRetake(); // 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 (Task 8)
       return;
     }
     if (result.needsManualSelection) {
-      showCandidateCards(result.candidateMethodIds);  // 갈래 2: 애매 → 후보 카드
+      // 경우 2: 1등 추측이 살아 있고 확신이 중간이면 추측 확인부터
+      if (result.predictedMethodId !== 'unknown' && result.confidence >= SOFT_ASSERT_MIN && catalog[result.predictedMethodId]) {
+        softAssertMethod(result);
+        return;
+      }
+      showCandidateCards(result.candidateMethodIds); // 확신 낮음: 바로 보기 제시
       return;
     }
-    assertMethod(result);  // 갈래 1: 확신 → 단언
+    assertMethod(result); // 경우 1: 단언
   }
 
   // 갈래 1: 단언 + 탈출구
@@ -167,7 +192,7 @@
     coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
-      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); startFlow(result.predictedMethodId); } },
+      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
       { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showTopicMethods(undefined, [result.predictedMethodId]); } },
     ]);
   }
@@ -177,10 +202,45 @@
     return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
   }
 
+  // 경우 2 중간 확신: 단정 대신 추측 확인 — "~같아. 맞아?"
+  function softAssertMethod(result) {
+    const info = catalog[result.predictedMethodId];
+    const snippet = firstSnippet(result.transcription);
+    coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${info.labelKo}(으)로 푼 것 같아. 맞아?`);
+    setActions([
+      { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
+      {
+        label: '아니야, 다른 방법이야', kind: 'ghost',
+        onPress: () => {
+          userSays('아니야');
+          // 거절된 1등은 후보에서 제외 — 거절한 게 또 뜨지 않게
+          showCandidateCards(result.candidateMethodIds, undefined, [result.predictedMethodId]);
+        },
+      },
+    ]);
+  }
+
+  // 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문.
+  function confirmMethod(methodId) {
+    const pocketAlive = pocket && methodId === pocket.predictedMethodId;
+    if (pocketAlive && pocket.errorCandidates?.length > 0 && pocket.errorConfidence >= ERROR_CONFIDENCE_MIN) {
+      startPointing(0);
+      return;
+    }
+    if (pocketAlive && pocket.hasSolvingWork) {
+      // 가지 6 = B안: 방법은 맞는데 오류를 못 찾은 날 — 관찰을 솔직하게 보고
+      coachSays('그런데 좀 신기해 — 풀이 과정에서는 틀린 데를 못 찾았어. 과정은 맞게 간 것 같거든.');
+      coachSays('이러면 보통 마지막에 답을 옮겨 적을 때나 검산에서 새는 경우가 많아.');
+      showFeelingSurvey(methodId, '풀면서 느낌상 뭐가 걸렸어?', true);
+      return;
+    }
+    showFeelingSurvey(methodId); // 방법 뒤집힘·풀이 없음: 주머니 무효
+  }
+
   function methodButton(id) {
     return {
       label: catalog[id].labelKo,
-      onPress: () => { userSays(catalog[id].labelKo); startFlow(id); },
+      onPress: () => { userSays(catalog[id].labelKo); confirmMethod(id); },
     };
   }
 
@@ -298,7 +358,7 @@
     if (result && !result.needsManualSelection && catalog[result.predictedMethodId]) {
       const label = catalog[result.predictedMethodId].labelKo;
       coachSays(`${label}(으)로 풀었구나. 그럼 여기서부터 같이 보자.`);
-      startFlow(result.predictedMethodId);
+      confirmMethod(result.predictedMethodId);
       return;
     }
 
@@ -327,55 +387,212 @@
     buttons.push({
       label: '잘 모르겠어',
       kind: 'ghost',
-      onPress: () => { userSays('잘 모르겠어'); startFlow('unknown'); },
+      onPress: () => { userSays('잘 모르겠어'); showFeelingSurvey(null); },
     });
     setActions(buttons);
   }
 
-  // ── 진단 flow 러너 (앱 엔진 그대로 걷기) ──
-  let draft = null;
-  function startFlow(methodId) {
-    draft = F.createDiagnosisFlowDraft(methodId);
-    renderCurrentNode();
-  }
-  function renderCurrentNode() {
-    const flow = F.getDiagnosisFlow(draft.methodId);
-    const node = F.getNode(flow, draft.currentNodeId);
-
-    if (node.kind === 'choice') {
-      cardEl(node.title, node.body);
-      setActions(node.options.map((option) => ({
-        label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromChoice(draft, option.id); renderCurrentNode(); },
-      })));
-      return;
-    }
-
-    if (node.kind === 'explain') {
-      cardEl(node.title, node.body);
-      setActions([
-        { label: node.primaryLabel, kind: 'primary', onPress: () => { draft = F.advanceFromExplain(draft, 'continue'); renderCurrentNode(); } },
-        { label: node.secondaryLabel, kind: 'ghost', onPress: () => { draft = F.advanceFromExplain(draft, 'dont_know'); renderCurrentNode(); } },
-      ]);
-      return;
-    }
-
-    if (node.kind === 'check') {
-      cardEl(node.title, node.prompt);
-      const buttons = node.options.map((option) => ({
-        label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromCheck(draft, option.id); renderCurrentNode(); },
-      }));
-      buttons.push({ label: '모르겠어요', kind: 'ghost', onPress: () => { draft = F.advanceFromCheck(draft, undefined); renderCurrentNode(); } });
-      setActions(buttons);
-      return;
-    }
-
-    // final: 최종 약점 카드
-    cardEl(node.title, node.body, 'final');
-    coachSays('오늘 여기까지. 이 카드가 네 진짜 약점이야 — 다음에 같은 자리에서 안 틀리게, 앱에서 이어서 잡아줄게.');
+  // 갈래 3: 풀이 흔적 없음. (b)문제만 찍은 학생을 경우 1로 승격시키는 사다리.
+  function offerRetake() {
+    coachSays('사진에서 풀이 과정을 못 찾았어. 혹시 종이에 풀었으면, 풀이까지 나오게 다시 찍어줄래? 그러면 어디서 틀렸는지 내가 직접 짚어줄 수 있어.');
+    coachSays('머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게만 알려줘.');
     setActions([
-      { label: '다른 문제도 올려보기', kind: 'primary', onPress: () => window.location.reload() },
+      { label: '📷 풀이까지 나오게 다시 찍기', kind: 'primary', onPress: () => window.location.reload() },
+      { label: '✏️ 직접 알려줄게', kind: 'ghost', onPress: () => askMethodByText('어떤 방법으로 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼.') },
     ]);
+  }
+
+  // ── 오류 짚기 · 쪽지시험 · 약점 카드 ──
+
+  // 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. 세 번째 시도 없음.
+  function startPointing(idx) {
+    const cand = pocket.errorCandidates[idx];
+    if (!cand) {
+      showFeelingSurvey(pocket.predictedMethodId, '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?');
+      return;
+    }
+    if (idx === 0) {
+      coachSays('그럼 풀이를 좀 더 보자.');
+      coachSays(`여기 — "${cand.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
+    } else {
+      coachSays(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${cand.quote}" 쓴 줄. 여기 아니야?`);
+    }
+    setActions([
+      { label: idx === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야', kind: 'primary',
+        onPress: () => { userSays('맞아, 거기야'); showWhy(idx); } },
+      { label: idx === 0 ? '아니야, 거기 아니야' : '아니야', kind: 'ghost',
+        onPress: () => { userSays('아니야'); startPointing(idx + 1); } },
+    ]);
+  }
+
+  function showWhy(idx) {
+    const cand = pocket.errorCandidates[idx];
+    coachSays(cand.why);
+    setActions([
+      { label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(idx) },
+    ]);
+  }
+
+  function showCheck(idx) {
+    const cand = pocket.errorCandidates[idx];
+    coachSays(`그럼 진짜 아는지 보자. ${cand.checkPrompt}`);
+    setActions(cand.checkOptions.map((opt, i) => ({
+      label: opt,
+      onPress: () => {
+        userSays(opt);
+        const passed = i === cand.checkAnswerIndex;
+        if (passed) {
+          coachSays('그렇지. 이제 이 자리에서는 안 틀리겠네.');
+        } else {
+          // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
+          coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
+        }
+        showWeaknessCard({
+          idx,
+          methodId: pocket.predictedMethodId,
+          mistakeType: cand.mistakeType,
+          evidence: cand.quote,
+          fix: cand.fix,
+          aiConfirmed: true,
+          checkPassed: passed,
+        });
+      },
+    })));
+  }
+
+  // 약점 카드 v2 = 방법 × 실수 유형 × 증거. 설문 경로(aiConfirmed=false)는 증거 없이 조심스러운 톤.
+  function showWeaknessCard({ idx, methodId, mistakeType, evidence, fix, aiConfirmed, checkPassed }) {
+    const methodLabel = methodId && catalog[methodId] ? catalog[methodId].labelKo : '방법 미상';
+    const typeInfo = SURVEY.TYPES[mistakeType];
+    const title = `오늘 찾은 ${aiConfirmed ? '진짜 ' : ''}약점 — ${methodLabel} × ${typeInfo.label}`;
+    const lines = [];
+    if (aiConfirmed && evidence) lines.push(`짚은 자리: "${evidence}"`);
+    if (!aiConfirmed) lines.push('(네가 직접 짚어준 것)');
+    lines.push(fix || typeInfo.fix);
+    if (aiConfirmed) {
+      lines.push(checkPassed
+        ? '확인 문제는 한 번에 통과 — 원리는 잡았어. 이제 손이 기억하게 만드는 게 다음이야.'
+        : '확인 문제도 헷갈렸어 — 급하게 문제 더 풀지 말고, 이 원리 하나 확실히 잡는 게 먼저야.');
+    }
+    cardEl(title, lines.join('\n'), 'final');
+    // AI 경로는 재도전 한 판 더, 설문 경로는 곡선으로 직행. 어느 쪽이든 곡선에서 끝난다.
+    const ctx = { methodId, mistakeType };
+    if (aiConfirmed) {
+      startRetry(idx, ctx);
+    } else {
+      showForgettingCurve('survey', ctx);
+    }
+  }
+
+  // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
+  function startRetry(idx, ctx) {
+    const cand = pocket?.errorCandidates?.[idx];
+    // 보기 개수를 상수로 박지 않고 실제 배열 길이에서 뽑는다 — 서버가 4지선다로 가도 웹이 조용히 죽지 않게.
+    // 범위 검사가 핵심: 정답 인덱스가 보기 밖이면 전부 오답 처리되고 '정답은 "undefined"'가 학생에게 노출된다.
+    const opts = cand?.retryOptions;
+    const hasRetry = cand && cand.retrySetup && cand.retryPrompt &&
+      Array.isArray(opts) && opts.length >= 2 &&
+      Number.isInteger(cand.retryAnswerIndex) &&
+      cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length;
+    if (!hasRetry) { showForgettingCurve('success', ctx); return; } // if 관문: 조용히 건너뜀
+    coachSays('그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
+    coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
+    const buttons = cand.retryOptions.map((opt, i) => ({
+      label: opt,
+      onPress: () => {
+        userSays(opt);
+        if (i === cand.retryAnswerIndex) {
+          coachSays('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
+          showForgettingCurve('success', ctx);
+        } else {
+          coachSays(`아깝다 — 정답은 "${cand.retryOptions[cand.retryAnswerIndex]}". 아까랑 같은 원리야.`);
+          showForgettingCurve('fail', ctx); // 재시도 없음
+        }
+      },
+    }));
+    buttons.push({ label: '지금은 넘어갈래', kind: 'ghost',
+      onPress: () => { userSays('지금은 넘어갈래'); showForgettingCurve('success', ctx); } });
+    setActions(buttons);
+  }
+
+  // ── 엔딩: 개인화 망각곡선 ──
+  // 일반 에빙하우스 곡선이 아니라 '방금 찾은 약점'을 곡선 위에 얹어, 앱이 왜 필요한지까지 잇는다.
+  const CURVE_LINES = {
+    success: '지금은 잡았어. 근데 뇌는 내일이면 이 감각의 절반을 지워 — 네 의지 문제가 아니라 원래 그래.',
+    fail: '지금 헷갈린 건 내일이면 더 흐려져. 네 의지 문제가 아니라 뇌가 원래 그래.',
+    survey: '네가 짚어준 이 약점, 내일이면 감각의 절반이 사라져. 네 의지 문제가 아니라 뇌가 원래 그래.',
+  };
+
+  // 곡선·점은 SVG, 라벨 3개는 HTML — 방법명 길이가 제각각이라 SVG text로는 줄바꿈을 보장할 수 없다.
+  function showForgettingCurve(variant, ctx = {}) {
+    const methodLabel = ctx.methodId && catalog[ctx.methodId] ? catalog[ctx.methodId].labelKo : '방법 미상';
+    // 설문·건너뛰기 경로에선 유형이 없을 수 있다 — 마지막 화면이 죽으면 안 되니 폴백.
+    const typeLabel = SURVEY.TYPES[ctx.mistakeType]?.label || '유형 미상';
+
+    coachSays(CURVE_LINES[variant] || CURVE_LINES.fail);
+
+    const el = document.createElement('div');
+    el.className = 'card curve-card';
+    el.innerHTML = `
+      <svg viewBox="0 0 340 180" aria-hidden="true">
+        <path d="M24,26 C 96,32 128,116 322,150 L322,166 L24,166 Z" fill="var(--green)" opacity="0.07" />
+        <line x1="24" y1="166" x2="322" y2="166" stroke="var(--line)" stroke-width="1.5" />
+        <path d="M24,26 C 96,32 128,116 322,150" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" />
+        <circle cx="24" cy="26" r="11" fill="var(--green)" />
+        <text x="24" y="26" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">1</text>
+        <circle cx="80" cy="47" r="11" fill="var(--green)" />
+        <text x="80" y="47" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">2</text>
+        <circle cx="146" cy="88" r="11" fill="var(--muted)" />
+        <text x="146" y="88" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">3</text>
+      </svg>
+      <ul class="curve-marks">
+        <li><span class="n">1</span><span class="t"></span></li>
+        <li><span class="n">2</span><span class="t"></span></li>
+        <li><span class="n dim">3</span><span class="t"></span></li>
+      </ul>`;
+    const marks = el.querySelectorAll('.curve-marks .t');
+    marks[0].textContent = `방금 잡은 자리 — ${methodLabel} × ${typeLabel} (지금 100%)`;
+    marks[1].textContent = '🔔 그 직전에 내가 다시 물어볼게';
+    marks[2].textContent = '내일이면 여기쯤 — 절반';
+    thread.appendChild(el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    coachSays(variant === 'survey'
+      ? '앱에서는 네 약점을 문제로 만들어서, 타이밍 맞춰 다시 물어봐 줘.'
+      : '그래서 타이밍은 내가 챙길게. 앱에서는 이걸 알림으로 해줘.');
+
+    // setActions는 클릭 시 버튼을 지운다 — 스토어는 새 탭이라 돌아왔을 때 빈 화면이 되지 않게 다시 그린다.
+    const endingActions = () => setActions([
+      { label: '📱 다시다에서 이어서 하기', kind: 'primary',
+        onPress: () => { window.open(storeUrl(), '_blank'); endingActions(); } },
+      { label: '다른 문제도 올려보기', kind: 'ghost', onPress: () => window.location.reload() },
+    ]);
+    endingActions();
+  }
+
+  // 느낌 설문: "어디서 틀렸어?"(분석 숙제)가 아니라 "뭐가 걸렸어?"(경험 증언)만 묻는다.
+  function showFeelingSurvey(methodId, promptText, withAnswerReadHint) {
+    const options = SURVEY.optionsFor(methodId);
+    if (withAnswerReadHint) {
+      // B안: 마지막 보기를 힌트 버전으로 교체 (없으면 추가)
+      const i = options.findIndex((o) => o.type === 'answer_read');
+      if (i >= 0) options[i] = SURVEY.ANSWER_READ_HINT; else options.push(SURVEY.ANSWER_READ_HINT);
+    }
+    coachSays(promptText || '그럼 — 풀면서 느낌상 뭐가 제일 걸렸어?');
+    const buttons = options.map((opt) => ({
+      label: opt.text,
+      onPress: () => {
+        userSays(opt.text);
+        showWeaknessCard({ methodId, mistakeType: opt.type, aiConfirmed: false });
+      },
+    }));
+    buttons.push({
+      label: '잘 모르겠어', kind: 'ghost',
+      onPress: () => {
+        userSays('잘 모르겠어');
+        showWeaknessCard({ methodId, mistakeType: 'concept_gap', aiConfirmed: false });
+      },
+    });
+    setActions(buttons);
   }
 })();
