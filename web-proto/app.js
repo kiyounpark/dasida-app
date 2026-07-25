@@ -10,6 +10,13 @@
 
   // 후보를 못 좁혔을 때 '전체 카탈로그'를 쏟지 않고 주제 기반 상위 N개만 보여준다
   const TOPIC_TOP_N = 5;
+  // 오류 짚기 검문소 문턱 — 낮게 시작해 채점표 데이터로 조인다 (spec §2)
+  const ERROR_CONFIDENCE_MIN = 0.5;
+  // 추측 확인(경우 2 중간 확신) 하한 — 이 미만이면 바로 후보 카드
+  const SOFT_ASSERT_MIN = 0.45;
+  const SURVEY = window.DasidaPhotoSurvey;
+  // 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효.
+  let pocket = null;
   // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
   let lastAnalysisText = '';
   // 텍스트로 물어본 횟수 — 2번 물어봐도 못 좁히면 unknown flow로 진행해 막다른 길을 없앤다
@@ -140,18 +147,22 @@
 
   // ── 분석 결과 → 3갈래 라우팅 ──
   function routeFromAnalysis(result) {
-    // 후보를 못 좁혔을 때 주제 좁히기에 쓸 재료 (읽은 풀이 + 근거)
+    pocket = result;
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     if (!result.hasSolvingWork) {
-      // 갈래 3: 풀이 흔적 없음 → 질문 폴백
-      askMethodByText('사진에서 풀이 과정을 못 찾았어. 머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게 알려줄래?');
+      offerRetake(); // 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 (Task 8)
       return;
     }
     if (result.needsManualSelection) {
-      showCandidateCards(result.candidateMethodIds);  // 갈래 2: 애매 → 후보 카드
+      // 경우 2: 1등 추측이 살아 있고 확신이 중간이면 추측 확인부터
+      if (result.confidence >= SOFT_ASSERT_MIN && catalog[result.predictedMethodId]) {
+        softAssertMethod(result);
+        return;
+      }
+      showCandidateCards(result.candidateMethodIds); // 확신 낮음: 바로 보기 제시
       return;
     }
-    assertMethod(result);  // 갈래 1: 확신 → 단언
+    assertMethod(result); // 경우 1: 단언
   }
 
   // 갈래 1: 단언 + 탈출구
@@ -167,7 +178,7 @@
     coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
-      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); startFlow(result.predictedMethodId); } },
+      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
       { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showTopicMethods(undefined, [result.predictedMethodId]); } },
     ]);
   }
@@ -177,10 +188,45 @@
     return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
   }
 
+  // 경우 2 중간 확신: 단정 대신 추측 확인 — "~같아. 맞아?"
+  function softAssertMethod(result) {
+    const info = catalog[result.predictedMethodId];
+    const snippet = firstSnippet(result.transcription);
+    coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${info.labelKo}(으)로 푼 것 같아. 맞아?`);
+    setActions([
+      { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
+      {
+        label: '아니야, 다른 방법이야', kind: 'ghost',
+        onPress: () => {
+          userSays('아니야');
+          // 거절된 1등은 후보에서 제외 — 거절한 게 또 뜨지 않게
+          showCandidateCards(result.candidateMethodIds, undefined, [result.predictedMethodId]);
+        },
+      },
+    ]);
+  }
+
+  // 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문.
+  function confirmMethod(methodId) {
+    const pocketAlive = pocket && methodId === pocket.predictedMethodId;
+    if (pocketAlive && pocket.errorCandidates.length > 0 && pocket.errorConfidence >= ERROR_CONFIDENCE_MIN) {
+      startPointing(0);
+      return;
+    }
+    if (pocketAlive && pocket.hasSolvingWork) {
+      // 가지 6 = B안: 방법은 맞는데 오류를 못 찾은 날 — 관찰을 솔직하게 보고
+      coachSays('그런데 좀 신기해 — 풀이 과정에서는 틀린 데를 못 찾았어. 과정은 맞게 간 것 같거든.');
+      coachSays('이러면 보통 마지막에 답을 옮겨 적을 때나 검산에서 새는 경우가 많아.');
+      showFeelingSurvey(methodId, '풀면서 느낌상 뭐가 걸렸어?', true);
+      return;
+    }
+    showFeelingSurvey(methodId); // 방법 뒤집힘·풀이 없음: 주머니 무효
+  }
+
   function methodButton(id) {
     return {
       label: catalog[id].labelKo,
-      onPress: () => { userSays(catalog[id].labelKo); startFlow(id); },
+      onPress: () => { userSays(catalog[id].labelKo); confirmMethod(id); },
     };
   }
 
@@ -298,7 +344,7 @@
     if (result && !result.needsManualSelection && catalog[result.predictedMethodId]) {
       const label = catalog[result.predictedMethodId].labelKo;
       coachSays(`${label}(으)로 풀었구나. 그럼 여기서부터 같이 보자.`);
-      startFlow(result.predictedMethodId);
+      confirmMethod(result.predictedMethodId);
       return;
     }
 
@@ -327,55 +373,112 @@
     buttons.push({
       label: '잘 모르겠어',
       kind: 'ghost',
-      onPress: () => { userSays('잘 모르겠어'); startFlow('unknown'); },
+      onPress: () => { userSays('잘 모르겠어'); showFeelingSurvey(null); },
     });
     setActions(buttons);
   }
 
-  // ── 진단 flow 러너 (앱 엔진 그대로 걷기) ──
-  let draft = null;
-  function startFlow(methodId) {
-    draft = F.createDiagnosisFlowDraft(methodId);
-    renderCurrentNode();
+  // ── 오류 짚기 · 쪽지시험 · 약점 카드 ──
+
+  // 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. 세 번째 시도 없음.
+  function startPointing(idx) {
+    const cand = pocket.errorCandidates[idx];
+    if (!cand) {
+      showFeelingSurvey(pocket.predictedMethodId, '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?');
+      return;
+    }
+    if (idx === 0) {
+      coachSays('그럼 풀이를 좀 더 보자.');
+      coachSays(`여기 — "${cand.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
+    } else {
+      coachSays(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${cand.quote}" 쓴 줄. 여기 아니야?`);
+    }
+    setActions([
+      { label: idx === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야', kind: 'primary',
+        onPress: () => { userSays('맞아, 거기야'); showWhy(idx); } },
+      { label: idx === 0 ? '아니야, 거기 아니야' : '아니야', kind: 'ghost',
+        onPress: () => { userSays('아니야'); startPointing(idx + 1); } },
+    ]);
   }
-  function renderCurrentNode() {
-    const flow = F.getDiagnosisFlow(draft.methodId);
-    const node = F.getNode(flow, draft.currentNodeId);
 
-    if (node.kind === 'choice') {
-      cardEl(node.title, node.body);
-      setActions(node.options.map((option) => ({
-        label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromChoice(draft, option.id); renderCurrentNode(); },
-      })));
-      return;
+  function showWhy(idx) {
+    const cand = pocket.errorCandidates[idx];
+    coachSays(cand.why);
+    setActions([
+      { label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(idx) },
+    ]);
+  }
+
+  function showCheck(idx) {
+    const cand = pocket.errorCandidates[idx];
+    coachSays(`그럼 진짜 아는지 보자. ${cand.checkPrompt}`);
+    setActions(cand.checkOptions.map((opt, i) => ({
+      label: opt,
+      onPress: () => {
+        userSays(opt);
+        const passed = i === cand.checkAnswerIndex;
+        if (passed) {
+          coachSays('그렇지. 이제 이 자리에서는 안 틀리겠네.');
+        } else {
+          // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
+          coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
+        }
+        showWeaknessCard({
+          methodId: pocket.predictedMethodId,
+          mistakeType: cand.mistakeType,
+          evidence: cand.quote,
+          fix: cand.fix,
+          aiConfirmed: true,
+          checkPassed: passed,
+        });
+      },
+    })));
+  }
+
+  // 약점 카드 v2 = 방법 × 실수 유형 × 증거. 설문 경로(aiConfirmed=false)는 증거 없이 조심스러운 톤.
+  function showWeaknessCard({ methodId, mistakeType, evidence, fix, aiConfirmed, checkPassed }) {
+    const methodLabel = methodId && catalog[methodId] ? catalog[methodId].labelKo : '방법 미상';
+    const typeInfo = SURVEY.TYPES[mistakeType];
+    const title = `오늘 찾은 ${aiConfirmed ? '진짜 ' : ''}약점 — ${methodLabel} × ${typeInfo.label}`;
+    const lines = [];
+    if (aiConfirmed && evidence) lines.push(`짚은 자리: "${evidence}"`);
+    if (!aiConfirmed) lines.push('(네가 직접 짚어준 것)');
+    lines.push(fix || typeInfo.fix);
+    if (aiConfirmed) {
+      lines.push(checkPassed
+        ? '확인 문제는 한 번에 통과 — 원리는 잡았어. 이제 손이 기억하게 만드는 게 다음이야.'
+        : '확인 문제도 헷갈렸어 — 급하게 문제 더 풀지 말고, 이 원리 하나 확실히 잡는 게 먼저야.');
     }
-
-    if (node.kind === 'explain') {
-      cardEl(node.title, node.body);
-      setActions([
-        { label: node.primaryLabel, kind: 'primary', onPress: () => { draft = F.advanceFromExplain(draft, 'continue'); renderCurrentNode(); } },
-        { label: node.secondaryLabel, kind: 'ghost', onPress: () => { draft = F.advanceFromExplain(draft, 'dont_know'); renderCurrentNode(); } },
-      ]);
-      return;
-    }
-
-    if (node.kind === 'check') {
-      cardEl(node.title, node.prompt);
-      const buttons = node.options.map((option) => ({
-        label: option.text,
-        onPress: () => { userSays(option.text); draft = F.advanceFromCheck(draft, option.id); renderCurrentNode(); },
-      }));
-      buttons.push({ label: '모르겠어요', kind: 'ghost', onPress: () => { draft = F.advanceFromCheck(draft, undefined); renderCurrentNode(); } });
-      setActions(buttons);
-      return;
-    }
-
-    // final: 최종 약점 카드
-    cardEl(node.title, node.body, 'final');
-    coachSays('오늘 여기까지. 이 카드가 네 진짜 약점이야 — 다음에 같은 자리에서 안 틀리게, 앱에서 이어서 잡아줄게.');
+    cardEl(title, lines.join('\n'), 'final');
+    coachSays('오늘 여기까지. 다음에 같은 자리에서 안 틀리게, 앱에서 이어서 잡아줄게.');
     setActions([
       { label: '다른 문제도 올려보기', kind: 'primary', onPress: () => window.location.reload() },
     ]);
+  }
+
+  // 느낌 설문: "어디서 틀렸어?"(분석 숙제)가 아니라 "뭐가 걸렸어?"(경험 증언)만 묻는다.
+  function showFeelingSurvey(methodId, promptText, withAnswerReadHint) {
+    const options = SURVEY.optionsFor(methodId);
+    if (withAnswerReadHint) {
+      // B안: 마지막 보기를 힌트 버전으로 교체 (없으면 추가)
+      const i = options.findIndex((o) => o.type === 'answer_read');
+      if (i >= 0) options[i] = SURVEY.ANSWER_READ_HINT; else options.push(SURVEY.ANSWER_READ_HINT);
+    }
+    coachSays(promptText || '그럼 — 풀면서 느낌상 뭐가 제일 걸렸어?');
+    const buttons = options.map((opt) => ({
+      label: opt.text,
+      onPress: () => {
+        userSays(opt.text);
+        showWeaknessCard({ methodId, mistakeType: opt.type, aiConfirmed: false });
+      },
+    }));
+    buttons.push({
+      label: '잘 모르겠어', kind: 'ghost',
+      onPress: () => {
+        userSays('잘 모르겠어');
+        showWeaknessCard({ methodId, mistakeType: 'concept_gap', aiConfirmed: false });
+      },
+    });
+    setActions(buttons);
   }
 })();
