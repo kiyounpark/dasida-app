@@ -7,6 +7,7 @@ import {
   sanitizeErrorCandidates,
   MISTAKE_TYPE_IDS,
 } from '../src/analyze-photo-core';
+import { PHOTO_ANALYSIS_SCHEMA } from '../src/openai-client';
 
 test('확신 높은 결과는 needsManualSelection=false', () => {
   const result = buildPhotoRouterResult({
@@ -223,6 +224,51 @@ test('sanitizeErrorCandidates: retry 불량이어도 후보는 살고 retry 필�
   );
   assert.equal(emptySetup.length, 1);
   assert.equal('retrySetup' in emptySetup[0], false);
+
+  // 소수 인덱스: 범위 안이라 typeof 검사는 통과하지만 웹이 Number.isInteger로 되돌려보낸다
+  const floatIndex = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryAnswerIndex: 1.5 }],
+    true,
+  );
+  assert.equal(floatIndex.length, 1);
+  assert.equal('retryAnswerIndex' in floatIndex[0], false);
+});
+
+test('sanitizeErrorCandidates: retry 보기에 빈 값이 섞이면 정답 인덱스가 밀리므로 retry만 탈락', () => {
+  // 인덱스 밀림 함정: 4개 중 빈 값 하나 → filter로 '고치면' 3개가 되어 정답 인덱스가 밀린다
+  const shifted = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryOptions: ['a', '', 'b', 'c'], retryAnswerIndex: 1 }],
+    true,
+  );
+  assert.equal(shifted.length, 1);
+  assert.equal('retryOptions' in shifted[0], false);
+});
+
+test('sanitizeErrorCandidates: retry는 전부 있거나 전부 없거나 — 반쪽 방출 금지', () => {
+  // 모델이 앞 두 필드만 쓰고 포기하는 게 가장 흔한 실패 — 필드별로 흘리면 웹 hasRetry 검문소가 뚫린다
+  const partial = sanitizeErrorCandidates(
+    [{
+      ...validCandidate,
+      retrySetup: '새 상황', retryPrompt: '다음 한 수는?',
+      retryOptions: null, retryAnswerIndex: null,
+    }],
+    true,
+  );
+  assert.equal(partial.length, 1); // 후보 자체는 살아야 한다
+  for (const key of ['retrySetup', 'retryPrompt', 'retryOptions', 'retryAnswerIndex']) {
+    assert.equal(key in partial[0], false);
+  }
+});
+
+test('PHOTO_ANALYSIS_SCHEMA: strict 모드에서 properties와 required가 정확히 일치', () => {
+  // strict: true는 properties의 모든 키가 required에도 있길 요구한다.
+  // 선택 필드라고 required에서 빼면 빌드는 통과하고 실제 호출에서만 400 — 그래서 여기서 잠근다.
+  assert.deepEqual(
+    [...PHOTO_ANALYSIS_SCHEMA.required].sort(),
+    Object.keys(PHOTO_ANALYSIS_SCHEMA.properties).sort(),
+  );
+  const items = PHOTO_ANALYSIS_SCHEMA.properties.errorCandidates.items;
+  assert.deepEqual([...items.required].sort(), Object.keys(items.properties).sort());
 });
 
 test('sanitizeErrorCandidates: retry 키가 아예 없어도(기존 배포 형태) 그대로 통과', () => {

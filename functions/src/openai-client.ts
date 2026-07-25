@@ -352,7 +352,9 @@ export async function requestReviewFeedbackFromOpenAI({
   return { replyText };
 }
 
-const PHOTO_ANALYSIS_SCHEMA = {
+// strict: true 규약 — properties의 모든 키가 required에도 있어야 한다. 어기면 실제 호출에서 400.
+// 빌드로는 못 잡으니 테스트로 잠근다(analyze-photo-core.test.ts) → export.
+export const PHOTO_ANALYSIS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
@@ -444,6 +446,7 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '11. 재도전 문제(retry*): 학생이 틀린 그 단계만 다시 밟는 쌍둥이 문제.',
   '    retrySetup은 그 단계 직전까지 세팅된 새 상황(같은 원리, 숫자만 변경) 1~2문장,',
   '    retryPrompt는 "여기서 다음 한 수는?" 형태의 질문, 새 개념 금지. 보기는 retryOptions에만 넣고 질문 안에 다시 적지 마세요.',
+  '    retryAnswerIndex가 가리키는 보기가 실제 정답인지 속으로 반드시 검산하세요.',
   '    checkPrompt(방금 짚은 조각 확인)와 달리 retry는 새 숫자로 적용을 확인한다.',
   '    자신 없으면 retry 필드 4개를 모두 null로 두세요. 억지 생성 금지.',
   '',

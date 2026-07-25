@@ -61,6 +61,8 @@ export const allowedMethodIds: SolveMethodId[] = (
 
 // AI 응답 방어: 규칙 위반 후보(6종 밖 유형, 빈 인용, 보기≠3, 인덱스 초과)는 버린다.
 // 후보가 전부 탈락하면 웹이 알아서 설문으로 가므로 여기서 죽지 않는 게 중요.
+// 단, retry 불량은 후보를 버리지 않고 네 필드만 뺀다 — 전부 있거나 전부 없거나.
+// (재도전이 망가졌다고 오류 짚기·쪽지시험까지 같이 잃으면 손해가 더 크다.)
 export function sanitizeErrorCandidates(
   raw: unknown[],
   hasSolvingWork: boolean,
@@ -87,12 +89,15 @@ export function sanitizeErrorCandidates(
     if (checkOptions.length !== 3 || checkAnswerIndex < 0 || checkAnswerIndex > 2) continue;
     const retrySetup = typeof c.retrySetup === 'string' ? c.retrySetup.trim() : '';
     const retryPrompt = typeof c.retryPrompt === 'string' ? c.retryPrompt.trim() : '';
+    // checkOptions와 같은 이유로 걸러내지 않고 검증만 한다 — 빼면 retryAnswerIndex가 밀린다.
     const retryOptions =
       Array.isArray(c.retryOptions) &&
       c.retryOptions.every((o) => typeof o === 'string' && o.trim() !== '')
         ? (c.retryOptions as string[])
         : [];
-    const retryAnswerIndex = typeof c.retryAnswerIndex === 'number' ? c.retryAnswerIndex : -1;
+    // 1.5 같은 소수는 웹이 Number.isInteger로 어차피 걸러낸다 — 여기서 같은 잣대로 막아야 헛도는 페이로드가 안 나간다.
+    const retryAnswerIndex = Number.isInteger(c.retryAnswerIndex) ? (c.retryAnswerIndex as number) : -1;
+    // 전부 있거나 전부 없거나 — 웹 hasRetry가 네 필드를 한 묶음으로 보므로 반쪽만 나가면 재도전 화면이 깨진다.
     const retryValid =
       retrySetup !== '' && retryPrompt !== '' &&
       retryOptions.length === 3 && retryAnswerIndex >= 0 && retryAnswerIndex <= 2;
