@@ -81,6 +81,8 @@ export const analyzePhoto = onRequest(
         confidence: result.confidence,
         hasSolvingWork: result.hasSolvingWork,
         needsManualSelection: result.needsManualSelection,
+        errorCandidateCount: result.errorCandidates.length,
+        errorConfidence: result.errorConfidence,
         model: openAiResponse.model,
         responseId: openAiResponse.responseId,
       });
