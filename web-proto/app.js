@@ -155,7 +155,7 @@
     }
     if (result.needsManualSelection) {
       // 경우 2: 1등 추측이 살아 있고 확신이 중간이면 추측 확인부터
-      if (result.confidence >= SOFT_ASSERT_MIN && catalog[result.predictedMethodId]) {
+      if (result.predictedMethodId !== 'unknown' && result.confidence >= SOFT_ASSERT_MIN && catalog[result.predictedMethodId]) {
         softAssertMethod(result);
         return;
       }
@@ -209,7 +209,7 @@
   // 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문.
   function confirmMethod(methodId) {
     const pocketAlive = pocket && methodId === pocket.predictedMethodId;
-    if (pocketAlive && pocket.errorCandidates.length > 0 && pocket.errorConfidence >= ERROR_CONFIDENCE_MIN) {
+    if (pocketAlive && pocket.errorCandidates?.length > 0 && pocket.errorConfidence >= ERROR_CONFIDENCE_MIN) {
       startPointing(0);
       return;
     }
