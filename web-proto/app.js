@@ -3,6 +3,12 @@
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
   const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
+  // TODO(기윤 확인): 실제 스토어 링크 — eas.json ascAppId / app.json android.package에서 유도. 출시 후 1회 육안 확인 필요.
+  const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
+  const STORE_URL_ANDROID = 'https://play.google.com/store/apps/details?id=com.dasida.app';
+  function storeUrl() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) ? STORE_URL_IOS : STORE_URL_ANDROID;
+  }
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
@@ -464,6 +470,61 @@
     setActions([
       { label: '다른 문제도 올려보기', kind: 'primary', onPress: () => window.location.reload() },
     ]);
+  }
+
+  // ── 엔딩: 개인화 망각곡선 ──
+  // 일반 에빙하우스 곡선이 아니라 '방금 찾은 약점'을 곡선 위에 얹어, 앱이 왜 필요한지까지 잇는다.
+  const CURVE_LINES = {
+    success: '지금은 잡았어. 근데 뇌는 내일이면 이 감각의 절반을 지워 — 네 의지 문제가 아니라 원래 그래.',
+    fail: '지금 헷갈린 건 내일이면 더 흐려져. 네 의지 문제가 아니라 뇌가 원래 그래.',
+    survey: '네가 짚어준 이 약점, 내일이면 감각의 절반이 사라져. 네 의지 문제가 아니라 뇌가 원래 그래.',
+  };
+
+  // 곡선·점은 SVG, 라벨 3개는 HTML — 방법명 길이가 제각각이라 SVG text로는 줄바꿈을 보장할 수 없다.
+  function showForgettingCurve(variant, ctx = {}) {
+    const methodLabel = ctx.methodId && catalog[ctx.methodId] ? catalog[ctx.methodId].labelKo : '방법 미상';
+    // 설문·건너뛰기 경로에선 유형이 없을 수 있다 — 마지막 화면이 죽으면 안 되니 폴백.
+    const typeLabel = SURVEY.TYPES[ctx.mistakeType]?.label || '유형 미상';
+
+    coachSays(CURVE_LINES[variant] || CURVE_LINES.fail);
+
+    const el = document.createElement('div');
+    el.className = 'card curve-card';
+    el.innerHTML = `
+      <svg viewBox="0 0 340 180" aria-hidden="true">
+        <path d="M24,26 C 96,32 128,116 322,150 L322,166 L24,166 Z" fill="var(--green)" opacity="0.07" />
+        <line x1="24" y1="166" x2="322" y2="166" stroke="var(--line)" stroke-width="1.5" />
+        <path d="M24,26 C 96,32 128,116 322,150" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" />
+        <circle cx="24" cy="26" r="11" fill="var(--green)" />
+        <text x="24" y="26" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">1</text>
+        <circle cx="80" cy="47" r="11" fill="var(--green)" />
+        <text x="80" y="47" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">2</text>
+        <circle cx="146" cy="88" r="11" fill="var(--muted)" />
+        <text x="146" y="88" dy="0.35em" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">3</text>
+      </svg>
+      <ul class="curve-marks">
+        <li><span class="n">1</span><span class="t"></span></li>
+        <li><span class="n">2</span><span class="t"></span></li>
+        <li><span class="n dim">3</span><span class="t"></span></li>
+      </ul>`;
+    const marks = el.querySelectorAll('.curve-marks .t');
+    marks[0].textContent = `방금 잡은 자리 — ${methodLabel} × ${typeLabel} (지금 100%)`;
+    marks[1].textContent = '🔔 그 직전에 내가 다시 물어볼게';
+    marks[2].textContent = '내일이면 여기쯤 — 절반';
+    thread.appendChild(el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    coachSays(variant === 'survey'
+      ? '앱에서는 네 약점을 문제로 만들어서, 타이밍 맞춰 다시 물어봐 줘.'
+      : '그래서 타이밍은 내가 챙길게. 앱에서는 이걸 알림으로 해줘.');
+
+    // setActions는 클릭 시 버튼을 지운다 — 스토어는 새 탭이라 돌아왔을 때 빈 화면이 되지 않게 다시 그린다.
+    const endingActions = () => setActions([
+      { label: '📱 다시다에서 이어서 하기', kind: 'primary',
+        onPress: () => { window.open(storeUrl(), '_blank'); endingActions(); } },
+      { label: '다른 문제도 올려보기', kind: 'ghost', onPress: () => window.location.reload() },
+    ]);
+    endingActions();
   }
 
   // 느낌 설문: "어디서 틀렸어?"(분석 숙제)가 아니라 "뭐가 걸렸어?"(경험 증언)만 묻는다.

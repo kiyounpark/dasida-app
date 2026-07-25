@@ -71,6 +71,16 @@
   .card .card-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
   .card .card-body { font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-line; }
   .card.final { border-color: var(--green-soft); background: var(--cream-2); }
+  .curve-card { width: 100%; }
+  .curve-card svg { display: block; width: 100%; max-width: 100%; height: auto; }
+  .curve-marks { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .curve-marks li { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+  .curve-marks .n {
+    flex: 0 0 20px; height: 20px; border-radius: 50%;
+    background: var(--green); color: #fff; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .curve-marks .n.dim { background: var(--muted); }
   .actions { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 30px; }
   .actions button {
     border: 1.5px solid var(--green-soft); background: #fff; color: var(--green);
