@@ -19,6 +19,10 @@ export type ErrorCandidate = {
   checkPrompt: string;    // 쪽지시험 질문
   checkOptions: string[]; // 보기 정확히 3개
   checkAnswerIndex: number; // 0~2
+  retrySetup?: string;
+  retryPrompt?: string;
+  retryOptions?: string[];   // 정확히 3개
+  retryAnswerIndex?: number; // 0~2
 };
 
 export type VisionRawResult = {
@@ -81,7 +85,21 @@ export function sanitizeErrorCandidates(
     const mistakeType = MISTAKE_TYPE_IDS.find((id) => id === c.mistakeType);
     if (!quote || !why || !fix || !checkPrompt || !mistakeType) continue;
     if (checkOptions.length !== 3 || checkAnswerIndex < 0 || checkAnswerIndex > 2) continue;
-    out.push({ quote, why, mistakeType, fix, checkPrompt, checkOptions, checkAnswerIndex });
+    const retrySetup = typeof c.retrySetup === 'string' ? c.retrySetup.trim() : '';
+    const retryPrompt = typeof c.retryPrompt === 'string' ? c.retryPrompt.trim() : '';
+    const retryOptions =
+      Array.isArray(c.retryOptions) &&
+      c.retryOptions.every((o) => typeof o === 'string' && o.trim() !== '')
+        ? (c.retryOptions as string[])
+        : [];
+    const retryAnswerIndex = typeof c.retryAnswerIndex === 'number' ? c.retryAnswerIndex : -1;
+    const retryValid =
+      retrySetup !== '' && retryPrompt !== '' &&
+      retryOptions.length === 3 && retryAnswerIndex >= 0 && retryAnswerIndex <= 2;
+    out.push({
+      quote, why, mistakeType, fix, checkPrompt, checkOptions, checkAnswerIndex,
+      ...(retryValid ? { retrySetup, retryPrompt, retryOptions, retryAnswerIndex } : {}),
+    });
   }
   return out;
 }

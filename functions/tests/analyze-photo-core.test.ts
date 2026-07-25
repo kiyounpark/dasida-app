@@ -176,3 +176,60 @@ test('errorConfidence: 후보가 살아남으면 통과, 전부 탈락하면 0',
   assert.equal(dropped.errorCandidates.length, 0);
   assert.equal(dropped.errorConfidence, 0);
 });
+
+const validRetry = {
+  retrySetup: '이번엔 √50을 3으로 나누는 상황이야.',
+  retryPrompt: '여기서 다음 한 수는?',
+  retryOptions: ['5√2', '√50/3', '3√2'],
+  retryAnswerIndex: 0,
+};
+
+test('sanitizeErrorCandidates: 유효한 retry 페이로드는 4개 필드 모두 유지', () => {
+  const out = sanitizeErrorCandidates([{ ...validCandidate, ...validRetry }], true);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].retrySetup, validRetry.retrySetup);
+  assert.equal(out[0].retryPrompt, validRetry.retryPrompt);
+  assert.deepEqual(out[0].retryOptions, validRetry.retryOptions);
+  assert.equal(out[0].retryAnswerIndex, 0);
+});
+
+test('sanitizeErrorCandidates: retry 불량이어도 후보는 살고 retry 필드만 빠진다', () => {
+  const allNull = sanitizeErrorCandidates(
+    [{ ...validCandidate, retrySetup: null, retryPrompt: null, retryOptions: null, retryAnswerIndex: null }],
+    true,
+  );
+  assert.equal(allNull.length, 1);
+  assert.equal(allNull[0].quote, validCandidate.quote);
+  assert.equal(allNull[0].checkAnswerIndex, validCandidate.checkAnswerIndex);
+  assert.equal('retrySetup' in allNull[0], false);
+
+  const shortOptions = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryOptions: ['a', 'b'] }],
+    true,
+  );
+  assert.equal(shortOptions.length, 1);
+  assert.equal('retryOptions' in shortOptions[0], false);
+
+  const badIndex = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryAnswerIndex: 3 }],
+    true,
+  );
+  assert.equal(badIndex.length, 1);
+  assert.equal('retryAnswerIndex' in badIndex[0], false);
+
+  const emptySetup = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retrySetup: '' }],
+    true,
+  );
+  assert.equal(emptySetup.length, 1);
+  assert.equal('retrySetup' in emptySetup[0], false);
+});
+
+test('sanitizeErrorCandidates: retry 키가 아예 없어도(기존 배포 형태) 그대로 통과', () => {
+  const out = sanitizeErrorCandidates([validCandidate], true);
+  assert.equal(out.length, 1);
+  assert.equal('retrySetup' in out[0], false);
+  assert.equal('retryPrompt' in out[0], false);
+  assert.equal('retryOptions' in out[0], false);
+  assert.equal('retryAnswerIndex' in out[0], false);
+});
