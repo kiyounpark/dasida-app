@@ -440,6 +440,7 @@
           coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
         }
         showWeaknessCard({
+          idx,
           methodId: pocket.predictedMethodId,
           mistakeType: cand.mistakeType,
           evidence: cand.quote,
@@ -452,7 +453,7 @@
   }
 
   // 약점 카드 v2 = 방법 × 실수 유형 × 증거. 설문 경로(aiConfirmed=false)는 증거 없이 조심스러운 톤.
-  function showWeaknessCard({ methodId, mistakeType, evidence, fix, aiConfirmed, checkPassed }) {
+  function showWeaknessCard({ idx, methodId, mistakeType, evidence, fix, aiConfirmed, checkPassed }) {
     const methodLabel = methodId && catalog[methodId] ? catalog[methodId].labelKo : '방법 미상';
     const typeInfo = SURVEY.TYPES[mistakeType];
     const title = `오늘 찾은 ${aiConfirmed ? '진짜 ' : ''}약점 — ${methodLabel} × ${typeInfo.label}`;
@@ -466,10 +467,40 @@
         : '확인 문제도 헷갈렸어 — 급하게 문제 더 풀지 말고, 이 원리 하나 확실히 잡는 게 먼저야.');
     }
     cardEl(title, lines.join('\n'), 'final');
-    coachSays('오늘 여기까지. 다음에 같은 자리에서 안 틀리게, 앱에서 이어서 잡아줄게.');
-    setActions([
-      { label: '다른 문제도 올려보기', kind: 'primary', onPress: () => window.location.reload() },
-    ]);
+    // AI 경로는 재도전 한 판 더, 설문 경로는 곡선으로 직행. 어느 쪽이든 곡선에서 끝난다.
+    const ctx = { methodId, mistakeType };
+    if (aiConfirmed) {
+      startRetry(idx, ctx);
+    } else {
+      showForgettingCurve('survey', ctx);
+    }
+  }
+
+  // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
+  function startRetry(idx, ctx) {
+    const cand = pocket?.errorCandidates?.[idx];
+    const hasRetry = cand && cand.retrySetup && cand.retryPrompt &&
+      Array.isArray(cand.retryOptions) && cand.retryOptions.length === 3 &&
+      Number.isInteger(cand.retryAnswerIndex);
+    if (!hasRetry) { showForgettingCurve('success', ctx); return; } // if 관문: 조용히 건너뜀
+    coachSays('그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
+    coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
+    const buttons = cand.retryOptions.map((opt, i) => ({
+      label: opt,
+      onPress: () => {
+        userSays(opt);
+        if (i === cand.retryAnswerIndex) {
+          coachSays('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
+          showForgettingCurve('success', ctx);
+        } else {
+          coachSays(`아깝다 — 정답은 "${cand.retryOptions[cand.retryAnswerIndex]}". 아까랑 같은 원리야.`);
+          showForgettingCurve('fail', ctx); // 재시도 없음
+        }
+      },
+    }));
+    buttons.push({ label: '지금은 넘어갈래', kind: 'ghost',
+      onPress: () => { userSays('지금은 넘어갈래'); showForgettingCurve('success', ctx); } });
+    setActions(buttons);
   }
 
   // ── 엔딩: 개인화 망각곡선 ──
