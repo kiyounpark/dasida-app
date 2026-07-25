@@ -33,6 +33,8 @@ const VisionRawResultSchema = z.object({
   confidence: z.number().min(0).max(1),
   candidateMethodIds: z.array(z.string()).min(1).max(4),
   reason: z.string(),
+  errorCandidates: z.array(z.unknown()).max(2),
+  errorConfidence: z.number().min(0).max(1),
 });
 
 export const analyzePhoto = onRequest(
