@@ -3,11 +3,15 @@
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
   const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
-  // TODO(기윤 확인): 실제 스토어 링크 — eas.json ascAppId / app.json android.package에서 유도. 출시 후 1회 육안 확인 필요.
+  // 스토어 링크 출처: iOS는 eas.json의 ascAppId(6761792023), 안드로이드는 app.json의 android.package(com.dasida.app).
   const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
   const STORE_URL_ANDROID = 'https://play.google.com/store/apps/details?id=com.dasida.app';
   function storeUrl() {
-    return /iPhone|iPad|iPod/.test(navigator.userAgent) ? STORE_URL_IOS : STORE_URL_ANDROID;
+    // iPadOS 13+ 사파리는 기본이 데스크톱 모드라 UA에 'iPad'가 아니라 'Macintosh'로 찍힌다.
+    // 그래서 UA 정규식만으로는 실제 아이패드를 거의 못 잡는다 — '터치 되는 Mac'(=아이패드)을 함께 본다.
+    // 이 검사를 지우면 아이패드 학생이 플레이스토어로 간다.
+    const isIpadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) || isIpadOs ? STORE_URL_IOS : STORE_URL_ANDROID;
   }
 
   const F = window.DasidaFlow;
@@ -80,6 +84,10 @@
       b.addEventListener('click', () => { actionsBox.innerHTML = ''; onPress(); });
       actionsBox.appendChild(b);
     });
+    // 말풍선만 스크롤하면 본문이 긴 화면(재도전·엔딩)에서 버튼이 통째로 화면 밖에 남는다.
+    // block:'end'가 아니라 'nearest'인 이유 — 전체 목록(31개)처럼 화면보다 긴 줄에서는
+    // 'end'가 목록 끝까지 내려가 질문을 1000px 넘게 밀어낸다. 'nearest'는 짧은 줄에선 'end'와 같다.
+    actionsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // ── 화면 1: 업로드 ──
@@ -479,9 +487,13 @@
   // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
   function startRetry(idx, ctx) {
     const cand = pocket?.errorCandidates?.[idx];
+    // 보기 개수를 상수로 박지 않고 실제 배열 길이에서 뽑는다 — 서버가 4지선다로 가도 웹이 조용히 죽지 않게.
+    // 범위 검사가 핵심: 정답 인덱스가 보기 밖이면 전부 오답 처리되고 '정답은 "undefined"'가 학생에게 노출된다.
+    const opts = cand?.retryOptions;
     const hasRetry = cand && cand.retrySetup && cand.retryPrompt &&
-      Array.isArray(cand.retryOptions) && cand.retryOptions.length === 3 &&
-      Number.isInteger(cand.retryAnswerIndex);
+      Array.isArray(opts) && opts.length >= 2 &&
+      Number.isInteger(cand.retryAnswerIndex) &&
+      cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length;
     if (!hasRetry) { showForgettingCurve('success', ctx); return; } // if 관문: 조용히 건너뜀
     coachSays('그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
     coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
