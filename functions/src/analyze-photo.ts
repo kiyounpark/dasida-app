@@ -10,7 +10,13 @@ import {
 import { requestPhotoAnalysisFromOpenAI } from './openai-client';
 
 const openAiApiKey = defineSecret('OPENAI_API_KEY');
-const openAiVisionModel = defineString('OPENAI_VISION_MODEL', { default: 'gpt-4.1' });
+// 손글씨 시험지 실측(같은 사진 3회씩): 생각 끈 모델은 인수분해 오류를 못 잡는다.
+// gpt-4.1 1/3 · gpt-5.4-mini(생각 off) 1/3 · gpt-5.4-nano(off) 0/3 → 생각 켜면 전부 3/3.
+// .env.dasida-app은 gitignore라 값이 로컬에만 있다 → 기본값을 운영값과 맞춰 새 체크아웃에서 조용히 강등되지 않게.
+const openAiVisionModel = defineString('OPENAI_VISION_MODEL', { default: 'gpt-5.4-mini' });
+// 빈 문자열이면 reasoning을 아예 안 보낸다(gpt-4.1 등 비추론 모델로 되돌릴 때 400 방지).
+// high는 3배 느리고(38초) 출력 토큰 3배인데 적중률이 medium과 같아 살 이유가 없었다.
+const openAiVisionReasoningEffort = defineString('OPENAI_VISION_REASONING_EFFORT', { default: 'medium' });
 
 // base64 +33% 감안 원본 약 6MB 상한 — 요청 크기·비용 가드 (웹은 1568px로 축소해 보냄)
 const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
@@ -67,6 +73,7 @@ export const analyzePhoto = onRequest(
       const openAiResponse = await requestPhotoAnalysisFromOpenAI({
         apiKey: openAiApiKey.value(),
         model: openAiVisionModel.value(),
+        reasoningEffort: openAiVisionReasoningEffort.value(),
         imageDataUrl: parsedRequest.data.imageDataUrl,
         methodContextText: METHOD_CONTEXT_TEXT,
       });

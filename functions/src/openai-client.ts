@@ -459,11 +459,13 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
 export async function requestPhotoAnalysisFromOpenAI({
   apiKey,
   model,
+  reasoningEffort,
   imageDataUrl,
   methodContextText,
 }: {
   apiKey: string;
   model: string;
+  reasoningEffort?: string;
   imageDataUrl: string;
   methodContextText: string;
 }): Promise<{ result: unknown; responseId: string; model: string }> {
@@ -472,6 +474,9 @@ export async function requestPhotoAnalysisFromOpenAI({
 
   const response = await client.responses.create({
     model,
+    // 추론 모델만 reasoning을 받는다 — 비추론 모델(gpt-4.1 등)로 되돌릴 때 400 나지 않게 빈 값이면 생략.
+    // 실측: 인수분해 오류는 생각을 켜야 잡힌다 (medium 3/3, off 1/3)
+    ...(reasoningEffort ? { reasoning: { effort: reasoningEffort as 'low' | 'medium' | 'high' } } : {}),
     instructions: PHOTO_ANALYSIS_SYSTEM_PROMPT,
     input: [
       {
