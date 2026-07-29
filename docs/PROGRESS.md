@@ -1021,11 +1021,21 @@
 - 해시: `51a31c8` (`51a31c8c6b4eeda3359af956e1ccf97c37ee24ad`)
 - 브랜치: claude/notion-daily-log-analysis-pgufse
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:41729/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:41729/git/kiyounpark/dasida-app/commit/51a31c8c6b4eeda3359af956e1ccf97c37ee24ad
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/51a31c8c6b4eeda3359af956e1ccf97c37ee24ad
 - 작성자: Claude
 - 메시지: fix(web-proto): 지수 표기 위첨자 변환 — 원희 피드백 규칙 1호
 - 본문: a^2 ✗ → a² ○. 손으로 쓴 시험지 모양과 같아야 학생이 안 튕긴다. / - 앱 MathText.tsx의 formatMathText를 웹용 fmtMath로 이식 / - 채팅 프리미티브 3곳(bubble·cardEl·setActions)에 연결 — AI 풀이 인용· / 확인 문제·재도전 보기·번들 데이터의 ^ 표기가 화면에 닿기 직전 전부 변환 / - ar^(n-1) → ar⁽ⁿ⁻¹⁾ (등비수열 일반항, 피드백 7번 표기 부분) / - x^{2} 중괄호(AI LaTeX 습관) 방어 추가 / - 변환 불가 글자(대문자·q)는 반쪽 변환 대신 원문 유지 / - 검증: node --check + 실소스 슬라이스 테스트 17케이스 전부 통과 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com> / Claude-Session: https://claude.ai/code/session_01PZHAhdvmmCesBJirQgvhUX
+
+### 커밋 2026.07.25 17:44
+- 해시: `35db328` (`35db3286ab53264b78b6e255a66f3670b1413b99`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/35db3286ab53264b78b6e255a66f3670b1413b99
+- 작성자: 박기윤
+- 메시지: Merge pull request #35 from kiyounpark/feat/photo-flow-error-pointing
+- 본문: feat(photo-flow): 오류 짚기 — 물어보는 앱에서 짚어주는 앱으로
 
 ### 커밋 2026.07.23 01:26
 - 해시: `9081d9c` (`9081d9c3cae7990235dfdb9f8c838184335292ed`)
