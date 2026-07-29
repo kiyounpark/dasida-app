@@ -54,6 +54,54 @@
     window.scrollTo(0, 0);
   }
 
+  // ── 수식 표기 (원희 피드백 규칙 1호: 지수는 위첨자로 — a^2 ✗ → a² ○) ──
+  // 앱 components/math/MathText.tsx의 formatMathText를 웹용으로 이식.
+  // 손으로 쓴 시험지 모양과 같아야 학생이 안 튕긴다. AI가 읽어준 풀이 인용·확인 문제·
+  // 번들 데이터의 ^ 표기를 화면에 닿기 직전(채팅 프리미티브)에 전부 변환한다.
+  const SUPERSCRIPT_MAP = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    '+': '⁺', '-': '⁻', '(': '⁽', ')': '⁾',
+    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ', l: 'ˡ',
+    m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
+  };
+  function toSuperscript(value) {
+    let converted = '';
+    for (const char of value) {
+      const mapped = SUPERSCRIPT_MAP[char];
+      if (!mapped) return null; // 못 바꾸는 글자(대문자·q 등)면 원문 유지 — 반쪽 변환 금지
+      converted += mapped;
+    }
+    return converted;
+  }
+  function fmtMath(input) {
+    return String(input ?? '')
+      .replace(/<=/g, '≤')
+      .replace(/>=/g, '≥')
+      .replace(/!=/g, '≠')
+      .replace(/(\d|[A-Za-z)\]])\s*\*\s*(\d|[A-Za-z([])/g, '$1×$2')
+      .replace(/(\d|[A-Za-z)\]])\s*\/\s*(\d|[A-Za-z(])/g, '$1⁄$2')
+      .replace(/sqrt\s*\(/gi, '√(')
+      .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
+      // x^{n-1} — AI 응답의 LaTeX 습관 방어. 중괄호는 수학 표기가 아니라 묶음이라 벗긴다.
+      .replace(/(\)|\d|[A-Za-z])\^\{\s*([A-Za-z0-9+-]+)\s*\}/g, (match, base, exponent) => {
+        const superscript = toSuperscript(exponent);
+        return superscript ? `${base}${superscript}` : match;
+      })
+      // ar^(n-1) → ar⁽ⁿ⁻¹⁾ — 괄호째 위첨자 (앱 MathText와 같은 규칙)
+      .replace(/(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g, (match, base, exponent) => {
+        const superscript = toSuperscript(`(${exponent})`);
+        return superscript ? `${base}${superscript}` : match;
+      })
+      .replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, (match, base, exponent) => {
+        const superscript = toSuperscript(exponent);
+        return superscript ? `${base}${superscript}` : match;
+      })
+      .replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, (match, base, exponent) => {
+        const superscript = toSuperscript(exponent);
+        return superscript ? `${base}${superscript}` : match;
+      });
+  }
+
   // ── 채팅 프리미티브 ──
   const thread = document.getElementById('thread');
   const actionsBox = document.getElementById('actions');
@@ -62,7 +110,7 @@
   function bubble(who, text) {
     const el = document.createElement('div');
     el.className = 'bubble ' + who;
-    el.textContent = text;
+    el.textContent = fmtMath(text);
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
@@ -70,8 +118,8 @@
     const el = document.createElement('div');
     el.className = 'card' + (extraClass ? ' ' + extraClass : '');
     el.innerHTML = '<div class="card-title"></div><div class="card-body"></div>';
-    el.querySelector('.card-title').textContent = title;
-    el.querySelector('.card-body').textContent = body || '';
+    el.querySelector('.card-title').textContent = fmtMath(title);
+    el.querySelector('.card-body').textContent = fmtMath(body || '');
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
@@ -80,7 +128,7 @@
     buttons.forEach(({ label, kind, onPress }) => {
       const b = document.createElement('button');
       if (kind) b.className = kind;
-      b.textContent = label;
+      b.textContent = fmtMath(label);
       b.addEventListener('click', () => { actionsBox.innerHTML = ''; onPress(); });
       actionsBox.appendChild(b);
     });
