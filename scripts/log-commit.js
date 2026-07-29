@@ -139,7 +139,7 @@ try {
   }
   const remoteWebUrl = toWebUrl(remoteUrl);
   commitLink = getCommitLink(remoteWebUrl, fullHash);
-} catch (error) {
+} catch (_error) {
   console.error(`커밋 정보를 읽지 못했습니다: ${ref}`);
   process.exit(1);
 }
