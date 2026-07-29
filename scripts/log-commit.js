@@ -8,6 +8,10 @@ const ref = process.argv[2] || 'HEAD';
 const START_MARKER = '<!-- COMMIT_LOGS_START -->';
 const END_MARKER = '<!-- COMMIT_LOGS_END -->';
 
+// 샌드박스(격리 환경)에서 실행하면 origin이 127.0.0.1 프록시 주소로 잡혀
+// 나중에 열리지 않는 링크가 기록된다. 그럴 때는 정식 주소로 되돌린다.
+const CANONICAL_REMOTE_URL = 'https://github.com/kiyounpark/dasida-app.git';
+
 function runGit(args, allowFailure = false) {
   try {
     return execFileSync('git', args, { encoding: 'utf8' }).trim();
@@ -19,6 +23,10 @@ function runGit(args, allowFailure = false) {
 
 function getSingleLine(value) {
   return value.replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean).join(' / ');
+}
+
+function isLocalRemote(remoteUrl) {
+  return /^[a-z][a-z0-9+.-]*:\/\/(?:[^/@]*@)?(?:127\.0\.0\.1|localhost|0\.0\.0\.0|\[::1\])(?::\d+)?(?:\/|$)/i.test(remoteUrl);
 }
 
 function toWebUrl(remoteUrl) {
@@ -125,6 +133,10 @@ try {
   body = runGit(['show', '-s', '--format=%b', ref], true);
   branchName = runGit(['rev-parse', '--abbrev-ref', ref], true);
   remoteUrl = runGit(['remote', 'get-url', remoteName], true);
+  if (isLocalRemote(remoteUrl)) {
+    console.warn(`원격 주소가 로컬 프록시(${remoteUrl})라서 정식 주소로 대체합니다.`);
+    remoteUrl = CANONICAL_REMOTE_URL;
+  }
   const remoteWebUrl = toWebUrl(remoteUrl);
   commitLink = getCommitLink(remoteWebUrl, fullHash);
 } catch (error) {
