@@ -1151,8 +1151,8 @@
 - 해시: `dcfaee5` (`dcfaee5692d99112c3f7d0b5e9662f22a2068a47`)
 - 브랜치: main
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:41391/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:41391/git/kiyounpark/dasida-app/commit/dcfaee5692d99112c3f7d0b5e9662f22a2068a47
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dcfaee5692d99112c3f7d0b5e9662f22a2068a47
 - 작성자: Claude
 - 메시지: docs(spec): Survey 질문 6개 + 기프티콘 정책 디테일 확정
 - 본문: learning-mode 대화 결과: / - 1:1 통화 인터뷰 없음, Survey만으로 정성 데이터 수집 / - 기프티콘: 월 3만원, 매월 6명 × 5천원 (스타벅스) / - 박기윤이 답변 직접 읽고 성실 응답자 추첨 / - 운영 의식: 주 1회 몰아서 보기 + 부정적 답변 일주일 뒤 재검토 / Survey 질문 6개: / Q1 도움된 순간 → Q2 사라진다면(PMF) → Q3 알게 된 경로 / → Q4 친구/부모 보여줬나 → Q5 지불 의향 → Q6 연락처(선택) / 각 질문에 follow-up 트리거(① 화면/기능 ② 이유 등) 미리 삽입. / Survey 한계(통화 불가) 보완. / 수용한 트레이드오프: / "왜 안 쓰는지"는 Survey 트리거 조건 때문에 영원히 모름. / → GA4 이탈 funnel로만 보고, 필요 시 6개월 후 별도 채널 검토.
@@ -1200,8 +1200,8 @@
 - 해시: `a768d88` (`a768d882b6fb15aee0853308cb312b19bbc29986`)
 - 브랜치: claude/sync-exam-data-vcmDw
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:41541/git/kiyounpark/dasida-app/commit/a768d882b6fb15aee0853308cb312b19bbc29986
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a768d882b6fb15aee0853308cb312b19bbc29986
 - 작성자: Claude
 - 메시지: docs: PROGRESS에 학습 기록 재전송 큐 작업 기록 (PR #28)
 - 본문: 릴리스 순서 제약(서버 replay 모드 선배포 필요) 명시. / https://claude.ai/code/session_016YNMZErxR7Hj6PoA1RusGk
@@ -1210,8 +1210,8 @@
 - 해시: `d7904bb` (`d7904bb478eafa60bfbd6f1159f425430c6c6c5e`)
 - 브랜치: claude/gracious-raman-daec61
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:43697/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:43697/git/kiyounpark/dasida-app/commit/d7904bb478eafa60bfbd6f1159f425430c6c6c5e
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d7904bb478eafa60bfbd6f1159f425430c6c6c5e
 - 작성자: Claude
 - 메시지: feat(review-session): 완료 화면 단일 버튼화, onComplete 배선 정리
 
@@ -1219,8 +1219,8 @@
 - 해시: `3163fa5` (`3163fa54cf8f202f0d4170216b87507d75d7fdd2`)
 - 브랜치: claude/agitated-jackson-08304c
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:36975/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:36975/git/kiyounpark/dasida-app/commit/3163fa54cf8f202f0d4170216b87507d75d7fdd2
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3163fa54cf8f202f0d4170216b87507d75d7fdd2
 - 작성자: Claude
 - 메시지: chore(remedial): state.json — g2_radical_simplify/rationalize/diff_application passed
 
@@ -1238,8 +1238,8 @@
 - 해시: `6320663` (`6320663d54aec0d2996975c3b7898ad0798620cc`)
 - 브랜치: claude/agitated-jackson-08304c
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:44411/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:44411/git/kiyounpark/dasida-app/commit/6320663d54aec0d2996975c3b7898ad0798620cc
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6320663d54aec0d2996975c3b7898ad0798620cc
 - 작성자: Claude
 - 메시지: feat(remedial): remainder_substitution_error, simultaneous_equation_error 6게이트 통과 + 등록
 - 본문: complex_calc_error(manualReview), remainder_substitution_error(passed), simultaneous_equation_error(passed) 3개 약점 처리. / review-content-map.ts 오답 choice에 remedialFlowStartNodeId + weaknessId 연결 완료 (rse 6개, see 6개). / https://claude.ai/code/session_01NJjD41fXT6T8RdSRaeimAb
@@ -1396,8 +1396,8 @@
 - 해시: `9e49e29` (`9e49e290187f9e8ae15afbd4229d53c733fe5aed`)
 - 브랜치: claude/ipad-landscape-journey-split-qv9bu
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:34579/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:34579/git/kiyounpark/dasida-app/commit/9e49e290187f9e8ae15afbd4229d53c733fe5aed
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9e49e290187f9e8ae15afbd4229d53c733fe5aed
 - 작성자: Claude
 - 메시지: perf(quiz-hub): split layout leftBoard 렌더러 useCallback 메모이제이션
 
@@ -1405,8 +1405,8 @@
 - 해시: `00c397b` (`00c397b221887e0031928547a5e465a9f40fccf4`)
 - 브랜치: claude/ipad-landscape-journey-split-qv9bu
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:35079/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:35079/git/kiyounpark/dasida-app/commit/00c397b221887e0031928547a5e465a9f40fccf4
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/00c397b221887e0031928547a5e465a9f40fccf4
 - 작성자: Claude
 - 메시지: feat(quiz-hub): 태블릿 가로에서 좌우 분할 레이아웃 적용
 - 본문: https://claude.ai/code/session_01X4j9A8AYzKorbcMknuQzZt
@@ -1601,8 +1601,8 @@
 - 해시: `d6e993a` (`d6e993a2a8249ca6662b625d8f0267ef3bf4391c`)
 - 브랜치: claude/weakness-accumulation-phase-2-dlTNd
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:44871/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:44871/git/kiyounpark/dasida-app/commit/d6e993a2a8249ca6662b625d8f0267ef3bf4391c
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d6e993a2a8249ca6662b625d8f0267ef3bf4391c
 - 작성자: Claude
 - 메시지: docs(progress): record Phase 2 weakness cumulative + detail screen completion
 
@@ -1610,8 +1610,8 @@
 - 해시: `a566d17` (`a566d1742adcd91e1065447630131f78c40a1c79`)
 - 브랜치: claude/fix-diagnosis-bugs-O5Nql
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:38375/git/kiyounpark/dasida-app/commit/a566d1742adcd91e1065447630131f78c40a1c79
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a566d1742adcd91e1065447630131f78c40a1c79
 - 작성자: Claude
 - 메시지: fix(quiz): address code review — back button, solve guard, resumed=1, comments
 
@@ -1619,8 +1619,8 @@
 - 해시: `64a5643` (`64a5643dbe30a1e39d03dbe660300a5c0c40e04f`)
 - 브랜치: claude/fix-diagnosis-bugs-O5Nql
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:44711/git/kiyounpark/dasida-app/commit/64a5643dbe30a1e39d03dbe660300a5c0c40e04f
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/64a5643dbe30a1e39d03dbe660300a5c0c40e04f
 - 작성자: Claude
 - 메시지: fix(quiz): navigate to result on diagnosis completion to ensure report shows (Bug 2)
 
@@ -1628,8 +1628,8 @@
 - 해시: `2a62733` (`2a627331844e5ab931703110bbff96110187512c`)
 - 브랜치: claude/diagnosis-minicard-v1inline-ghIwD
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:36689/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:36689/git/kiyounpark/dasida-app/commit/2a627331844e5ab931703110bbff96110187512c
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2a627331844e5ab931703110bbff96110187512c
 - 작성자: Claude
 - 메시지: feat(quiz): DiagnosisMiniCard V1Inline 리디자인 적용
 - 본문: - 큰 초록 completionBlock과 44px checkCircle 제거 / - 작은 인라인 배지(22px 서클 + 텍스트)로 "분석 완료" 조용히 처리 / - 패턴 카드를 메인 시각 요소로 (굵은 테두리 + offset shadow) / - NoteCollectionBar import 제거, 카드 하단 노트 태그(pill)로 통합 / - DiagnosisMilestoneBanner와 동일 디자인 언어(raw hex, boxShadow CSS) / - Props 인터페이스 동일, 호출부 영향 없음 / Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
@@ -1767,8 +1767,8 @@
 - 해시: `27d2c77` (`27d2c77b0fa9de90ef79739ca51f54112a9cb23d`)
 - 브랜치: claude/remove-bottom-nav-aZXRe
 - 원격: origin
-- 원격 URL: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app
-- 링크: http://local_proxy@127.0.0.1:30772/git/kiyounpark/dasida-app/commit/27d2c77b0fa9de90ef79739ca51f54112a9cb23d
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/27d2c77b0fa9de90ef79739ca51f54112a9cb23d
 - 작성자: Claude
 - 메시지: feat: 약점 학습 플로우 화면을 루트 Stack으로 이동하여 바텀 네비게이션 제거
 - 본문: - app/(tabs)/quiz/ 하위 플로우 화면 10개를 app/quiz/로 이동 / (diagnostic, result, practice, feedback, review-session, step-complete, exam/*) / - app/quiz/_layout.tsx 생성: QuizSessionProvider + 플로우 스크린 Stack / - app/quiz/exam/_layout.tsx 생성: ExamSessionProvider + exam 서브 Stack / - app/_layout.tsx: Root Stack에 quiz Screen 등록 / - app/(tabs)/quiz/_layout.tsx: index, exams만 유지하도록 정리 / - 허브(quiz/index)와 모의고사 목록(exams)은 (tabs) 유지 → 탭바 보임 / - 플로우 진행 중에는 Root Stack 화면으로 렌더링 → 탭바 없음 / https://claude.ai/code/session_017qee8dB95Yt2AKk4ZhAY2c
