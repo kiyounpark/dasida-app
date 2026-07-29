@@ -78,8 +78,10 @@
       .replace(/<=/g, '≤')
       .replace(/>=/g, '≥')
       .replace(/!=/g, '≠')
-      .replace(/(\d|[A-Za-z)\]])\s*\*\s*(\d|[A-Za-z([])/g, '$1×$2')
-      .replace(/(\d|[A-Za-z)\]])\s*\/\s*(\d|[A-Za-z(])/g, '$1⁄$2')
+      // 뒤 피연산자는 lookahead로 둔다 — 소비하면 4*1*2에서 1이 먹혀
+      // 두 번째 *가 앞 문자를 못 찾아 4×1*2로 반만 변환된다.
+      .replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, '$1×')
+      .replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, '$1⁄')
       .replace(/sqrt\s*\(/gi, '√(')
       .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
       // x^{n-1} — AI 응답의 LaTeX 습관 방어. 중괄호는 수학 표기가 아니라 묶음이라 벗긴다.
