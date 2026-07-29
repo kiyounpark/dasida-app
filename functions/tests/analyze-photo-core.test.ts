@@ -279,3 +279,47 @@ test('sanitizeErrorCandidates: retry 키가 아예 없어도(기존 배포 형�
   assert.equal('retryOptions' in out[0], false);
   assert.equal('retryAnswerIndex' in out[0], false);
 });
+
+// 아래 3건: 2026-07-29 검증 배치(10장×3회)에서 실제로 학생 화면까지 나갔던 오염 보기 2종을 봉함.
+// 보기 4개 이상을 3칸에 욱여넣다 두 표현이 구분자로 붙은 흔적 — 학생에겐 보기 하나가 두 개로 보인다.
+test('sanitizeErrorCandidates: check 보기 오염이면 후보 탈락 (실측 2종)', () => {
+  assert.equal(
+    sanitizeErrorCandidates(
+      [{ ...validCandidate, checkOptions: ['ar^2', 'ar^3', "ar^4','ar^5"] }],
+      true,
+    ).length,
+    0,
+  );
+  assert.equal(
+    sanitizeErrorCandidates(
+      [{ ...validCandidate, checkOptions: ['6x(x-3)', 'x(3x-6)', '6x(x-3)」「x(3x-6)'] }],
+      true,
+    ).length,
+    0,
+  );
+});
+
+test('sanitizeErrorCandidates: retry 보기 오염이면 retry만 빠지고 후보는 산다', () => {
+  const out = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryOptions: ['ar, ar^3', 'ar^2, ar^4', "a, ar^2','a, ar^3"] }],
+    true,
+  );
+  assert.equal(out.length, 1);
+  assert.equal(out[0].checkPrompt, validCandidate.checkPrompt);
+  assert.equal('retryPrompt' in out[0], false);
+});
+
+test('sanitizeErrorCandidates: 정상 보기 안의 따옴표·쉼표는 오염으로 오인하지 않는다', () => {
+  const quoted = sanitizeErrorCandidates(
+    [{ ...validCandidate, checkOptions: ['"제곱"을 먼저 한다', '2로 나눈다', "'근'을 구한다"] }],
+    true,
+  );
+  assert.equal(quoted.length, 1);
+
+  const comma = sanitizeErrorCandidates(
+    [{ ...validCandidate, ...validRetry, retryOptions: ['ar, ar^3', 'ar^2, ar^4', 'a, ar^2'] }],
+    true,
+  );
+  assert.equal(comma.length, 1);
+  assert.equal(comma[0].retryPrompt, validRetry.retryPrompt);
+});
