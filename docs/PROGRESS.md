@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.30 18:30
+- 해시: `d61e4e1` (`d61e4e151f9a58c6c20a590b17757469a8c78430`)
+- 브랜치: claude/chinese-ai-api-overview-29c380
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d61e4e151f9a58c6c20a590b17757469a8c78430
+- 작성자: 박기윤
+- 메시지: feat(functions): 쪽지시험 checkSetup(상황 칸) 신설 — 불합격 24%→10%
+- 본문: 3라운드 검증(같은 10장×3회, 같은 학생·교사 심판)의 결론 반영. / 어제 남은 병목이 쪽지시험 9/21이었고, 원인은 규칙이 아니라 그릇이었다 — / 재도전엔 retrySetup 칸이 있어 재료를 적는데 쪽지엔 질문 한 칸뿐이라 / 카드 밖(사진 속 원래 식)을 지칭하다 아무도 못 푸는 문제가 나갔다. / - PHOTO_ANALYSIS_SCHEMA에 checkSetup(string|null) 추가 — strict 규약대로 required 포함 / - 규칙 8에 상황 칸 사용법, 규칙 12①에 재료 적을 자리 명시 / - 규칙 12에 수식 표기 조항 추가 — LaTeX 명령 금지(학생 화면에 \int 등 코드 노출 실측 3건) / - sanitizeErrorCandidates: checkSetup 통과(없거나 null이면 필드 생략 — 하위호환) / - web-proto showCheck: 상황 칸이 오면 질문보다 먼저 표시 / - 검증 하네스 덤프에 쪽지 상황 표시 / 측정: 불합격 43%(1차) → 24%(2차) → 10%(3차, 4/40). / 자기완결 위반 10→8→1, 재도전 0/17 청정, 학생 판단불가 5→2→0. / 생성률 확인: 쪽지 23개 중 21개가 상황 칸을 채움 — "칸이 있으면 채운다" 입증. / 남은 4건(복수정답·형식·중의성·재료 부분 누락)은 규칙으로 안 잡히는 / 생성자 자기맹점 유형 — 런타임 검증자 도입은 업로드 5명 검증 후 판단. / 검증: functions 86/86, tsc 0, analyzePhoto 배포 완료(LaTeX 조항 포함 재배포). / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.07.29 06:42
 - 해시: `51a31c8` (`51a31c8c6b4eeda3359af956e1ccf97c37ee24ad`)
 - 브랜치: claude/notion-daily-log-analysis-pgufse
