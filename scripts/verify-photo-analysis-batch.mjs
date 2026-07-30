@@ -125,6 +125,7 @@ for (const f of files) {
     R.errorCandidates.forEach((c, i) => {
       console.log(`  --- 후보${i + 1} [${c.mistakeType}]`);
       console.log(`  인용: ${c.quote}`);
+      if (c.checkSetup) console.log(`  쪽지 상황: ${c.checkSetup}`);
       console.log(`  쪽지: ${c.checkPrompt}`);
       c.checkOptions.forEach((o, j) => console.log(`    ${j === c.checkAnswerIndex ? '✓' : '·'} ${o}`));
       if (c.retryPrompt) {

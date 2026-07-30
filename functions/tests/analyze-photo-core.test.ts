@@ -309,6 +309,25 @@ test('sanitizeErrorCandidates: retry 보기 오염이면 retry만 빠지고 후�
   assert.equal('retryPrompt' in out[0], false);
 });
 
+// checkSetup(쪽지시험 상황 칸, 2026-07-30 신설): 있으면 유지, 없거나 null이어도 후보는 산다.
+// 자기완결 위반(카드 밖 지칭) 9/21의 그릇 해결 — 재도전 retrySetup과 같은 패턴.
+test('sanitizeErrorCandidates: checkSetup 있으면 유지, 없거나 null이면 필드만 생략', () => {
+  const withSetup = sanitizeErrorCandidates(
+    [{ ...validCandidate, checkSetup: '원래 식은 x²-4x+3이었다.' }],
+    true,
+  );
+  assert.equal(withSetup.length, 1);
+  assert.equal(withSetup[0].checkSetup, '원래 식은 x²-4x+3이었다.');
+
+  const without = sanitizeErrorCandidates([validCandidate], true);
+  assert.equal(without.length, 1);
+  assert.equal('checkSetup' in without[0], false);
+
+  const nullSetup = sanitizeErrorCandidates([{ ...validCandidate, checkSetup: null }], true);
+  assert.equal(nullSetup.length, 1);
+  assert.equal('checkSetup' in nullSetup[0], false);
+});
+
 test('sanitizeErrorCandidates: 정상 보기 안의 따옴표·쉼표는 오염으로 오인하지 않는다', () => {
   const quoted = sanitizeErrorCandidates(
     [{ ...validCandidate, checkOptions: ['"제곱"을 먼저 한다', '2로 나눈다', "'근'을 구한다"] }],

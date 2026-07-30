@@ -16,6 +16,7 @@ export type ErrorCandidate = {
   why: string;            // 왜 틀렸는지 2~3문장
   mistakeType: MistakeTypeId;
   fix: string;            // 학생 맞춤 처방 한 줄
+  checkSetup?: string;    // 쪽지시험 상황 칸 — 풀이에 필요한 재료(원래 식·구한 값). 질문 자체 완결이면 생략
   checkPrompt: string;    // 쪽지시험 질문
   checkOptions: string[]; // 보기 정확히 3개
   checkAnswerIndex: number; // 0~2
@@ -87,6 +88,8 @@ export function sanitizeErrorCandidates(
     const why = typeof c.why === 'string' ? c.why.trim() : '';
     const fix = typeof c.fix === 'string' ? c.fix.trim() : '';
     const checkPrompt = typeof c.checkPrompt === 'string' ? c.checkPrompt.trim() : '';
+    // 상황 칸(2026-07-30 신설)은 없어도 후보 유효 — 하위호환 + 질문 자체 완결형 허용
+    const checkSetup = typeof c.checkSetup === 'string' ? c.checkSetup.trim() : '';
     // 걸러내지 않고 검증만 한다 — 빈 보기를 제거하면 checkAnswerIndex가 밀려 오답이 정답이 된다.
     const checkOptions =
       Array.isArray(c.checkOptions) && c.checkOptions.every(isCleanOption)
@@ -111,6 +114,7 @@ export function sanitizeErrorCandidates(
       retryOptions.length === 3 && retryAnswerIndex >= 0 && retryAnswerIndex <= 2;
     out.push({
       quote, why, mistakeType, fix, checkPrompt, checkOptions, checkAnswerIndex,
+      ...(checkSetup ? { checkSetup } : {}),
       ...(retryValid ? { retrySetup, retryPrompt, retryOptions, retryAnswerIndex } : {}),
     });
   }

@@ -485,7 +485,13 @@
 
   function showCheck(idx) {
     const cand = pocket.errorCandidates[idx];
-    coachSays(`그럼 진짜 아는지 보자. ${cand.checkPrompt}`);
+    // checkSetup(상황 칸)이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
+    if (cand.checkSetup) {
+      coachSays(`그럼 진짜 아는지 보자. ${cand.checkSetup}`);
+      coachSays(cand.checkPrompt);
+    } else {
+      coachSays(`그럼 진짜 아는지 보자. ${cand.checkPrompt}`);
+    }
     setActions(cand.checkOptions.map((opt, i) => ({
       label: opt,
       onPress: () => {
