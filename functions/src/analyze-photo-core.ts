@@ -16,6 +16,7 @@ export type ErrorCandidate = {
   why: string;            // 왜 틀렸는지 2~3문장
   mistakeType: MistakeTypeId;
   fix: string;            // 학생 맞춤 처방 한 줄
+  checkSetup?: string;    // 쪽지시험 상황 칸 — 풀이에 필요한 재료(원래 식·구한 값). 질문 자체 완결이면 생략
   checkPrompt: string;    // 쪽지시험 질문
   checkOptions: string[]; // 보기 정확히 3개
   checkAnswerIndex: number; // 0~2
@@ -59,6 +60,16 @@ export const allowedMethodIds: SolveMethodId[] = (
   Object.keys(diagnosisMethodRoutingCatalog) as SolveMethodId[]
 ).filter((id) => id !== 'unknown');
 
+// AI가 보기 4개 이상을 3칸에 욱여넣다 남긴 오염 흔적 2종(실측 2026-07-29):
+//   "ar^4','ar^5"  ·  "6x(x-3)」「x(3x-6)"
+// 학생 화면엔 보기 하나가 두 개로 보인다. 프롬프트 규칙 12③으로도 막지만, 뚫렸을 때의 2겹.
+// 오염 보기는 제거가 아니라 무효 처리한다 — 빼면 checkAnswerIndex가 밀려 오답이 정답이 된다(빈 보기와 같은 이유).
+const OPTION_CONTAMINATION = /['"’”]\s*,\s*['"‘“]|」\s*「/;
+
+function isCleanOption(option: unknown): option is string {
+  return typeof option === 'string' && option.trim() !== '' && !OPTION_CONTAMINATION.test(option);
+}
+
 // AI 응답 방어: 규칙 위반 후보(6종 밖 유형, 빈 인용, 보기≠3, 인덱스 초과)는 버린다.
 // 후보가 전부 탈락하면 웹이 알아서 설문으로 가므로 여기서 죽지 않는 게 중요.
 // 단, retry 불량은 후보를 버리지 않고 네 필드만 뺀다 — 전부 있거나 전부 없거나.
@@ -77,10 +88,11 @@ export function sanitizeErrorCandidates(
     const why = typeof c.why === 'string' ? c.why.trim() : '';
     const fix = typeof c.fix === 'string' ? c.fix.trim() : '';
     const checkPrompt = typeof c.checkPrompt === 'string' ? c.checkPrompt.trim() : '';
+    // 상황 칸(2026-07-30 신설)은 없어도 후보 유효 — 하위호환 + 질문 자체 완결형 허용
+    const checkSetup = typeof c.checkSetup === 'string' ? c.checkSetup.trim() : '';
     // 걸러내지 않고 검증만 한다 — 빈 보기를 제거하면 checkAnswerIndex가 밀려 오답이 정답이 된다.
     const checkOptions =
-      Array.isArray(c.checkOptions) &&
-      c.checkOptions.every((o) => typeof o === 'string' && o.trim() !== '')
+      Array.isArray(c.checkOptions) && c.checkOptions.every(isCleanOption)
         ? (c.checkOptions as string[])
         : [];
     const checkAnswerIndex = typeof c.checkAnswerIndex === 'number' ? c.checkAnswerIndex : -1;
@@ -91,8 +103,7 @@ export function sanitizeErrorCandidates(
     const retryPrompt = typeof c.retryPrompt === 'string' ? c.retryPrompt.trim() : '';
     // checkOptions와 같은 이유로 걸러내지 않고 검증만 한다 — 빼면 retryAnswerIndex가 밀린다.
     const retryOptions =
-      Array.isArray(c.retryOptions) &&
-      c.retryOptions.every((o) => typeof o === 'string' && o.trim() !== '')
+      Array.isArray(c.retryOptions) && c.retryOptions.every(isCleanOption)
         ? (c.retryOptions as string[])
         : [];
     // 1.5 같은 소수는 웹이 Number.isInteger로 어차피 걸러낸다 — 여기서 같은 잣대로 막아야 헛도는 페이로드가 안 나간다.
@@ -103,6 +114,7 @@ export function sanitizeErrorCandidates(
       retryOptions.length === 3 && retryAnswerIndex >= 0 && retryAnswerIndex <= 2;
     out.push({
       quote, why, mistakeType, fix, checkPrompt, checkOptions, checkAnswerIndex,
+      ...(checkSetup ? { checkSetup } : {}),
       ...(retryValid ? { retrySetup, retryPrompt, retryOptions, retryAnswerIndex } : {}),
     });
   }

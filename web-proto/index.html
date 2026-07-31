@@ -81,6 +81,20 @@
     display: flex; align-items: center; justify-content: center;
   }
   .curve-marks .n.dim { background: var(--muted); }
+  /* --- 오답노트 카드: "완성된 노트 한 장"으로 보이게 (07.31) --- */
+  .note-card { width: 100%; border-color: var(--green-soft); background: #fff; }
+  .note-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .note-title { font-weight: 800; font-size: 15px; color: var(--green); }
+  .note-date { font-size: 12px; color: var(--muted); font-weight: 700; }
+  /* contain: 세로로 긴 시험지 사진도 통째로 — cover는 인용한 그 손글씨 줄을 잘라먹는다 */
+  .note-photo { display: block; width: 100%; max-height: 240px; object-fit: contain; background: var(--cream-2); border-radius: 10px; border: 1px solid var(--line); margin-bottom: 10px; }
+  .note-row { display: flex; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--line); font-size: 14px; line-height: 1.55; }
+  .note-label { flex: 0 0 96px; font-weight: 800; font-size: 13px; color: var(--green-soft); }
+  /* min-width:0 + anywhere: 안 끊기는 긴 수식 토큰이 카드 밖으로 삐져나가지 않게 */
+  .note-row > span:last-child { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .note-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .note-tags { color: var(--green-soft); }
+  .note-capture { margin-top: 10px; font-size: 12px; color: var(--muted); text-align: center; }
   .actions { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 30px; }
   .actions button {
     border: 1.5px solid var(--green-soft); background: #fff; color: var(--green);

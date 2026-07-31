@@ -1017,6 +1017,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.31 14:35
+- 해시: `eb613d1` (`eb613d1888db6b4db17d7ae6e3a32db3284d4414`)
+- 브랜치: claude/chinese-ai-api-overview-29c380
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/eb613d1888db6b4db17d7ae6e3a32db3284d4414
+- 작성자: 박기윤
+- 메시지: feat(web-proto): 오답노트 카드 — 흐름의 결과물로 (A안) + 적대 리뷰 7건 반영
+- 본문: 차가운 방문자 검증(07.31)의 처방: "오답노트"가 화면에 0회 — 물건은 만들어주는데 / 이름이 없었다. 약점 카드를 쪽지·재도전 뒤로 옮겨 "완성된 노트 한 장"으로 바꾼다. / - 흐름 A안: 쪽지("통과하면 오늘 오답노트 완성이야" 예고) → 재도전 → 오답노트 → 곡선 / - showWrongNote 신설: 내 풀이 사진(축소본 재사용) + ✂️갈라진 지점(quote) + 왜(why) / + 다음엔(fix) + 오늘 확인(쪽지/재도전 ✔✗) + 태그 + 캡처 유도 한 줄 / - showWeaknessCard는 설문 경로 전용으로 축소 (AI 분기는 노트가 대체 — 죽은 가지 정리) / - 재도전 스킵은 노트에 표기하지 않음(기윤 판정 A) / 쪽지 오답 시에만 완충 문장(판정 B) / 적대 리뷰(Claude 서브에이전트) 7건 자동 수정: / - 노트 본문 fmtMath 누락 — 캡처 카드만 a^2 생으로 나가던 규칙 1호 위반 (conf 9) / - 쪽지 ✗ + 미만회인데 성공 톤 곡선 문구가 붙던 모순 → fail 톤으로 (실측 확인) / - 마지막 스크롤을 노트 머리로 — 곡선·버튼 스크롤에 캡처 문구가 밀려나던 것 / (자동화 탭은 smooth 스크롤 정지 상태라 실기기 확인 1회 필요) / - 사진 cover→contain — 세로 시험지에서 인용한 그 손글씨 줄이 잘리던 것 / - 긴 수식 토큰 overflow (min-width:0 + overflow-wrap) / 라벨 96px / 설문 TYPES 폴백 / 검증: 실사진 E2E 2회(정답 경로·오답+스킵 경로), XSS 없음(textContent 전수), / 재업로드 상태 누수 없음(reload 경유). 미검증: 실기기 스크롤 착지. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.07.30 18:30
+- 해시: `d61e4e1` (`d61e4e151f9a58c6c20a590b17757469a8c78430`)
+- 브랜치: claude/chinese-ai-api-overview-29c380
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d61e4e151f9a58c6c20a590b17757469a8c78430
+- 작성자: 박기윤
+- 메시지: feat(functions): 쪽지시험 checkSetup(상황 칸) 신설 — 불합격 24%→10%
+- 본문: 3라운드 검증(같은 10장×3회, 같은 학생·교사 심판)의 결론 반영. / 어제 남은 병목이 쪽지시험 9/21이었고, 원인은 규칙이 아니라 그릇이었다 — / 재도전엔 retrySetup 칸이 있어 재료를 적는데 쪽지엔 질문 한 칸뿐이라 / 카드 밖(사진 속 원래 식)을 지칭하다 아무도 못 푸는 문제가 나갔다. / - PHOTO_ANALYSIS_SCHEMA에 checkSetup(string|null) 추가 — strict 규약대로 required 포함 / - 규칙 8에 상황 칸 사용법, 규칙 12①에 재료 적을 자리 명시 / - 규칙 12에 수식 표기 조항 추가 — LaTeX 명령 금지(학생 화면에 \int 등 코드 노출 실측 3건) / - sanitizeErrorCandidates: checkSetup 통과(없거나 null이면 필드 생략 — 하위호환) / - web-proto showCheck: 상황 칸이 오면 질문보다 먼저 표시 / - 검증 하네스 덤프에 쪽지 상황 표시 / 측정: 불합격 43%(1차) → 24%(2차) → 10%(3차, 4/40). / 자기완결 위반 10→8→1, 재도전 0/17 청정, 학생 판단불가 5→2→0. / 생성률 확인: 쪽지 23개 중 21개가 상황 칸을 채움 — "칸이 있으면 채운다" 입증. / 남은 4건(복수정답·형식·중의성·재료 부분 누락)은 규칙으로 안 잡히는 / 생성자 자기맹점 유형 — 런타임 검증자 도입은 업로드 5명 검증 후 판단. / 검증: functions 86/86, tsc 0, analyzePhoto 배포 완료(LaTeX 조항 포함 재배포). / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.07.29 06:42
 - 해시: `51a31c8` (`51a31c8c6b4eeda3359af956e1ccf97c37ee24ad`)
 - 브랜치: claude/notion-daily-log-analysis-pgufse
