@@ -146,6 +146,7 @@
   const picked = document.getElementById('picked');
   const cta = document.getElementById('cta');
   let selectedFile = null;
+  let uploadedImageDataUrl = null; // 오답노트 카드에 "내 풀이 사진"으로 다시 쓴다 (축소본 재사용 — 재인코딩 없음)
 
   drop.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
@@ -172,6 +173,7 @@
     let imageDataUrl;
     try {
       imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
+      uploadedImageDataUrl = imageDataUrl;
     } catch {
       show('upload');
       cta.disabled = false;
@@ -485,12 +487,13 @@
 
   function showCheck(idx) {
     const cand = pocket.errorCandidates[idx];
+    // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다 (차가운 방문자 '중' 위험 대응)
     // checkSetup(상황 칸)이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
     if (cand.checkSetup) {
-      coachSays(`그럼 진짜 아는지 보자. ${cand.checkSetup}`);
+      coachSays(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${cand.checkSetup}`);
       coachSays(cand.checkPrompt);
     } else {
-      coachSays(`그럼 진짜 아는지 보자. ${cand.checkPrompt}`);
+      coachSays(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${cand.checkPrompt}`);
     }
     setActions(cand.checkOptions.map((opt, i) => ({
       label: opt,
@@ -503,41 +506,20 @@
           // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
           coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
         }
-        showWeaknessCard({
-          idx,
-          methodId: pocket.predictedMethodId,
-          mistakeType: cand.mistakeType,
-          evidence: cand.quote,
-          fix: cand.fix,
-          aiConfirmed: true,
-          checkPassed: passed,
-        });
+        // A안(07.31): 쪽지 → 재도전 → 오답노트 완성 → 곡선. 노트가 마지막 결과물로 나온다.
+        startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkPassed: passed });
       },
     })));
   }
 
-  // 약점 카드 v2 = 방법 × 실수 유형 × 증거. 설문 경로(aiConfirmed=false)는 증거 없이 조심스러운 톤.
-  function showWeaknessCard({ idx, methodId, mistakeType, evidence, fix, aiConfirmed, checkPassed }) {
+  // 약점 카드 = 설문 경로 전용 (07.31부터). AI 경로는 showWrongNote(오답노트)가 결과물을 맡는다.
+  // 설문 경로는 사진 인용·쪽지 기록이 없어 노트를 채울 재료가 부족 — 기존 카드 톤 유지.
+  function showWeaknessCard({ methodId, mistakeType }) {
     const methodLabel = methodId && catalog[methodId] ? catalog[methodId].labelKo : '방법 미상';
-    const typeInfo = SURVEY.TYPES[mistakeType];
-    const title = `오늘 찾은 ${aiConfirmed ? '진짜 ' : ''}약점 — ${methodLabel} × ${typeInfo.label}`;
-    const lines = [];
-    if (aiConfirmed && evidence) lines.push(`짚은 자리: "${evidence}"`);
-    if (!aiConfirmed) lines.push('(네가 직접 짚어준 것)');
-    lines.push(fix || typeInfo.fix);
-    if (aiConfirmed) {
-      lines.push(checkPassed
-        ? '확인 문제는 한 번에 통과 — 원리는 잡았어. 이제 손이 기억하게 만드는 게 다음이야.'
-        : '확인 문제도 헷갈렸어 — 급하게 문제 더 풀지 말고, 이 원리 하나 확실히 잡는 게 먼저야.');
-    }
-    cardEl(title, lines.join('\n'), 'final');
-    // AI 경로는 재도전 한 판 더, 설문 경로는 곡선으로 직행. 어느 쪽이든 곡선에서 끝난다.
-    const ctx = { methodId, mistakeType };
-    if (aiConfirmed) {
-      startRetry(idx, ctx);
-    } else {
-      showForgettingCurve('survey', ctx);
-    }
+    const typeInfo = SURVEY.TYPES[mistakeType] || { label: '유형 미상', fix: '' };
+    const title = `오늘 찾은 약점 — ${methodLabel} × ${typeInfo.label}`;
+    cardEl(title, ['(네가 직접 짚어준 것)', typeInfo.fix].join('\n'), 'final');
+    showForgettingCurve('survey', { methodId, mistakeType });
   }
 
   // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
@@ -550,8 +532,11 @@
       Array.isArray(opts) && opts.length >= 2 &&
       Number.isInteger(cand.retryAnswerIndex) &&
       cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length;
-    if (!hasRetry) { showForgettingCurve('success', ctx); return; } // if 관문: 조용히 건너뜀
-    coachSays('그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
+    if (!hasRetry) { showWrongNote(idx, ctx, 'none'); return; } // if 관문: 조용히 건너뜀 — 노트는 그래도 나온다
+    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축)
+    coachSays(ctx.checkPassed
+      ? '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.'
+      : '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.');
     coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
     const buttons = cand.retryOptions.map((opt, i) => ({
       label: opt,
@@ -559,16 +544,58 @@
         userSays(opt);
         if (i === cand.retryAnswerIndex) {
           coachSays('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
-          showForgettingCurve('success', ctx);
+          showWrongNote(idx, ctx, 'pass');
         } else {
           coachSays(`아깝다 — 정답은 "${cand.retryOptions[cand.retryAnswerIndex]}". 아까랑 같은 원리야.`);
-          showForgettingCurve('fail', ctx); // 재시도 없음
+          showWrongNote(idx, ctx, 'fail'); // 재시도 없음
         }
       },
     }));
     buttons.push({ label: '지금은 넘어갈래', kind: 'ghost',
-      onPress: () => { userSays('지금은 넘어갈래'); showForgettingCurve('success', ctx); } });
+      onPress: () => { userSays('지금은 넘어갈래'); showWrongNote(idx, ctx, 'skip'); } });
     setActions(buttons);
+  }
+
+  // ── 오답노트 카드: 흐름의 결과물 (07.31 스케치 · A안) ──
+  // "진단 결과"가 아니라 "완성된 노트 한 장"으로 — 학생이 아는 양식(내 풀이/갈라진 지점/왜/다음엔)이
+  // 자기 손글씨 사진과 함께, 자기가 한 글자도 안 썼는데 채워져 나온다. 정답 칸은 없다(갈라진 지점 노트).
+  function showWrongNote(idx, ctx, retryResult) {
+    const cand = pocket?.errorCandidates?.[idx];
+    const methodLabel = ctx.methodId && catalog[ctx.methodId] ? catalog[ctx.methodId].labelKo : '방법 미상';
+    const typeLabel = SURVEY.TYPES[ctx.mistakeType]?.label || '유형 미상';
+
+    coachSays('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
+
+    const today = new Date();
+    const el = document.createElement('div');
+    el.className = 'card note-card';
+    el.innerHTML = `
+      <div class="note-head"><span class="note-title">오늘의 오답노트 · 1장</span><span class="note-date"></span></div>
+      <img class="note-photo" alt="내가 올린 풀이 사진" />
+      <div class="note-row"><span class="note-label">✂️ 갈라진 지점</span><span class="note-quote"></span></div>
+      <div class="note-row"><span class="note-label">왜</span><span class="note-why"></span></div>
+      <div class="note-row"><span class="note-label">다음엔</span><span class="note-fix"></span></div>
+      <div class="note-foot"><span class="note-checks"></span><span class="note-tags"></span></div>
+      <div class="note-capture">📸 이 카드, 여기선 저장 안 돼 — 캡처해서 가져가.</div>`;
+    // 학생 데이터(인용·설명)는 전부 textContent로 — HTML 해석 금지
+    el.querySelector('.note-date').textContent = `${today.getMonth() + 1}/${today.getDate()}`;
+    const photo = el.querySelector('.note-photo');
+    if (uploadedImageDataUrl) photo.src = uploadedImageDataUrl; else photo.remove();
+    // 규칙 1호: 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 채팅 프리미티브와 같이 fmtMath를 거친다
+    el.querySelector('.note-quote').textContent = cand?.quote ? fmtMath(`"${cand.quote}"`) : '(없음)';
+    el.querySelector('.note-why').textContent = fmtMath(cand?.why || '');
+    el.querySelector('.note-fix').textContent = fmtMath(cand?.fix || SURVEY.TYPES[ctx.mistakeType]?.fix || '');
+    const retryMark = { pass: ' · 재도전 ✔', fail: ' · 재도전 ✗', skip: '', none: '' }[retryResult] || '';
+    el.querySelector('.note-checks').textContent = `오늘 확인: 쪽지시험 ${ctx.checkPassed ? '✔' : '✗'}${retryMark}`;
+    el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
+    thread.appendChild(el);
+
+    // 쪽지 ✗인데 재도전으로 만회 못 했으면(실패·스킵·없음) 성공 톤 금지 — 노트의 ✗와 곡선 문구가 모순되지 않게
+    const recovered = retryResult === 'pass';
+    showForgettingCurve(ctx.checkPassed || recovered ? (retryResult === 'fail' ? 'fail' : 'success') : 'fail', ctx);
+
+    // 곡선·버튼이 각자 스크롤을 가져가면 캡처하라는 노트가 화면 밖으로 밀린다 — 마지막 스크롤은 노트 머리로
+    requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   // ── 엔딩: 개인화 망각곡선 ──
