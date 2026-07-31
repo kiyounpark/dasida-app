@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.07.31 14:35
+- 해시: `eb613d1` (`eb613d1888db6b4db17d7ae6e3a32db3284d4414`)
+- 브랜치: claude/chinese-ai-api-overview-29c380
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/eb613d1888db6b4db17d7ae6e3a32db3284d4414
+- 작성자: 박기윤
+- 메시지: feat(web-proto): 오답노트 카드 — 흐름의 결과물로 (A안) + 적대 리뷰 7건 반영
+- 본문: 차가운 방문자 검증(07.31)의 처방: "오답노트"가 화면에 0회 — 물건은 만들어주는데 / 이름이 없었다. 약점 카드를 쪽지·재도전 뒤로 옮겨 "완성된 노트 한 장"으로 바꾼다. / - 흐름 A안: 쪽지("통과하면 오늘 오답노트 완성이야" 예고) → 재도전 → 오답노트 → 곡선 / - showWrongNote 신설: 내 풀이 사진(축소본 재사용) + ✂️갈라진 지점(quote) + 왜(why) / + 다음엔(fix) + 오늘 확인(쪽지/재도전 ✔✗) + 태그 + 캡처 유도 한 줄 / - showWeaknessCard는 설문 경로 전용으로 축소 (AI 분기는 노트가 대체 — 죽은 가지 정리) / - 재도전 스킵은 노트에 표기하지 않음(기윤 판정 A) / 쪽지 오답 시에만 완충 문장(판정 B) / 적대 리뷰(Claude 서브에이전트) 7건 자동 수정: / - 노트 본문 fmtMath 누락 — 캡처 카드만 a^2 생으로 나가던 규칙 1호 위반 (conf 9) / - 쪽지 ✗ + 미만회인데 성공 톤 곡선 문구가 붙던 모순 → fail 톤으로 (실측 확인) / - 마지막 스크롤을 노트 머리로 — 곡선·버튼 스크롤에 캡처 문구가 밀려나던 것 / (자동화 탭은 smooth 스크롤 정지 상태라 실기기 확인 1회 필요) / - 사진 cover→contain — 세로 시험지에서 인용한 그 손글씨 줄이 잘리던 것 / - 긴 수식 토큰 overflow (min-width:0 + overflow-wrap) / 라벨 96px / 설문 TYPES 폴백 / 검증: 실사진 E2E 2회(정답 경로·오답+스킵 경로), XSS 없음(textContent 전수), / 재업로드 상태 누수 없음(reload 경유). 미검증: 실기기 스크롤 착지. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.07.30 18:30
 - 해시: `d61e4e1` (`d61e4e151f9a58c6c20a590b17757469a8c78430`)
 - 브랜치: claude/chinese-ai-api-overview-29c380
