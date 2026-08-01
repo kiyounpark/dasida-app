@@ -1023,9 +1023,19 @@
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
 - 링크: https://github.com/kiyounpark/dasida-app/commit/014fc09025e35d16ae21e25b15bca8ac51f0dded
-- 작성자: 박기윤
+- 작성자: 박기윤
 - 메시지: fix(app): 홈 화면 useCallback을 early return 위로 — 훅 순서 깨짐 수정
 - 본문: QuizHubScreenView에서 renderTabletSplitBoard의 useCallback이 / isReady / profile·homeState·session·journey null 체크 early return / 뒤에 있었다. 로딩 상태에서 정상 상태로 넘어갈 때 훅 개수가 달라져 / "Rendered more hooks than during the previous render."로 터진다. / 호출 위치만 useTabletSplitLayout 앞으로 옮겼고 본문과 의존성 배열 / [isCompactLayout, journey, onPressJourneyCta]는 그대로다. 콜백 안에 / 이미 journey null 가드가 있어 렌더 결과는 동일하다. / 전환을 그대로 재현하는 회귀 테스트 2건 추가. 수정 전 코드로 돌리면 / 위 에러로 실패하고, 수정 후 통과한다. 태블릿 split 좌측 컬럼 measure / 후 JourneyBoard가 렌더되는 것까지 확인한다. / 검증: eslint 0 error, tsc 통과, jest 497 PASS (78 suites) / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.01 17:21
+- 해시: `d470192` (`d470192a5e55efba495c7c5727a3ccf932fef267`)
+- 브랜치: claude/app-photo-entry-first-piece
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d470192a5e55efba495c7c5727a3ccf932fef267
+- 작성자: 박기윤
+- 메시지: feat(app): 사진 입구 첫 조각 — dev 화면에서 사진 → analyzePhoto 왕복 확인
+- 본문: 앱에는 사진 관련 패키지가 0개였다(web-proto에만 있었음). 홈을 건드리기 전에 / "앱에서 사진이 도는가"만 먼저 재려고 app/dev/에 실험 화면 하나를 세운다. / 모르던 것 3개 → 실기기(iPhone 12 mini) 실측으로 답: / - 권한: granted / - 크기: 3024x4032 원본 → 1176x1568 축소 → 473~695KB / 상한 8MB (여유 17배) / - 왕복: 8.1초 (손글씨 시험지 기준). 빵 사진은 5.7초 / 덤으로 분석 품질도 앱 경로에서 확인됨: / - 시험지: hasSolvingWork=true, method=integral, confidence 0.9, 오류 후보 1건(0.96) / - 빵: confidence 0.08, needsManualSelection=true — 우기지 않고 학생에게 넘김 / (07.21 자신감 게이트가 그대로 동작) / web-proto 코드를 그대로 옮기면 안 되는 자리 1호: AbortSignal.timeout은 / 브라우저에만 있어 RN에서 TypeError. AbortController + setTimeout으로 대체. / 축소 규칙(긴 변 1568px, JPEG 0.82)과 타임아웃 75초는 web-proto와 같은 값. / 화면은 app/dev/ 폴더 관습을 따라 인라인 상태로 둔다(기존 dev 화면들과 동일). / 진짜 화면으로 승격할 때 features/로 옮기면서 훅을 가른다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 커밋 2026.07.31 14:35
 - 해시: `eb613d1` (`eb613d1888db6b4db17d7ae6e3a32db3284d4414`)
