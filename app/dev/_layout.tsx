@@ -7,6 +7,7 @@ export default function DevLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ title: '개발 허브', headerShown: true }} />
+      <Stack.Screen name="photo-flow" options={{ title: '사진 → 대화', headerShown: true }} />
       <Stack.Screen name="photo-analyze" options={{ title: '사진 분석', headerShown: true }} />
       <Stack.Screen name="exam-result" options={{ headerShown: false }} />
       <Stack.Screen name="quiz-stage" options={{ headerShown: false }} />

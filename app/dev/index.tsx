@@ -4,6 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SCREENS = [
   {
+    title: '💬 사진 → 대화 (두 번째 조각)',
+    desc: '사진 고르기 → 분석 중 문구 → 짚어주는 대화 첫 갈래',
+    onPress: () => router.push('/dev/photo-flow'),
+  },
+  {
     title: '📷 사진 분석 (첫 조각)',
     desc: '사진 고르기 → analyzePhoto → 권한·크기·왕복 시간 측정',
     onPress: () => router.push('/dev/photo-analyze'),
