@@ -154,6 +154,21 @@ export function QuizHubScreenView({
           screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
         );
 
+  // early return보다 위에서 호출해야 렌더마다 훅 순서가 유지된다 (react-hooks/rules-of-hooks).
+  const renderTabletSplitBoard = useCallback(
+    (containerWidth: number) =>
+      journey ? (
+        <JourneyBoard
+          availableHeight={0}
+          containerWidth={containerWidth}
+          isCompactLayout={isCompactLayout}
+          onPressCurrentStep={onPressJourneyCta}
+          state={journey}
+        />
+      ) : null,
+    [isCompactLayout, journey, onPressJourneyCta],
+  );
+
   const useTabletSplitLayout =
     isTablet &&
     isReady &&
@@ -192,20 +207,6 @@ export function QuizHubScreenView({
       </View>
     );
   }
-
-  const renderTabletSplitBoard = useCallback(
-    (containerWidth: number) =>
-      journey ? (
-        <JourneyBoard
-          availableHeight={0}
-          containerWidth={containerWidth}
-          isCompactLayout={isCompactLayout}
-          onPressCurrentStep={onPressJourneyCta}
-          state={journey}
-        />
-      ) : null,
-    [isCompactLayout, journey, onPressJourneyCta],
-  );
 
   if (useTabletSplitLayout) {
     const analysisResumeItems = analysisState.isInProgress

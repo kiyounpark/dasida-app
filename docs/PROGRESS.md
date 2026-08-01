@@ -1017,6 +1017,46 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.01 23:56
+- 해시: `8f50b52` (`8f50b524a6b9721c976edb25d29019c54b7690df`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8f50b524a6b9721c976edb25d29019c54b7690df
+- 작성자: 박기윤
+- 메시지: Merge pull request #44 from kiyounpark/claude/app-photo-flow-note
+- 본문: feat(app): 짚어주는 대화 → 쪽지시험 → 재도전 → 오답노트 (web-proto 이식 2/5)
+
+### 커밋 2026.08.01 18:53
+- 해시: `5b45ee2` (`5b45ee282fc2e9547da6cb65d9846e6379f89fbe`)
+- 브랜치: claude/app-photo-flow-note
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5b45ee282fc2e9547da6cb65d9846e6379f89fbe
+- 작성자: 박기윤
+- 메시지: feat(app): 짚어주는 대화 → 쪽지시험 → 재도전 → 오답노트 (web-proto 이식 2/5)
+- 본문: 사이클이 닫혔다. 사진 한 장 넣으면 오답노트 한 장이 나오는 데까지 / 앱 안에서 끝난다. 문구·분기는 web-proto가 원본이고 새로 정하지 않았다. / 추가된 갈래: / - 짚기 사다리 — 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. / 세 번째 시도 없음. 인용문(quote)과 이유(why)는 서버가 이미 보내준다. / - 쪽지시험 — "이거 통과하면 오늘 오답노트 완성이야"로 결과물을 먼저 예고. / 재시험 없음(늘어지면 귀찮음 축 침범). / - 재도전 — 쪽지를 틀린 학생에게만 한 템포 늦춘 문구. 맞힌 학생은 빠르게. / - 오답노트 카드 — 내 사진 + 갈라진 지점 + 왜 + 다음엔 + 태그. / "진단 결과"가 아니라 학생이 아는 양식이 한 글자도 안 썼는데 채워져 나온다. / 방어 로직을 옮긴 자리 (features/photo/flow/quiz-guard.ts): / 보기·정답 번호가 깨져 오면 그 문제를 조용히 건너뛴다. 범위 검사를 / 빼면 전부 오답 처리되고 학생 화면에 정답이 "undefined"로 노출된다. / web-proto가 2026-07-29에 실측으로 겪은 자리라 그대로 가져왔다. / 쪽지·재도전 둘 다 걸었고, 건너뛰어도 노트는 그대로 나온다. / 고친 것 하나 — 흐름 함수의 클로저는 최초 렌더에서 만들어져 나중에 / 바뀐 state를 못 본다. 노트의 사진 uri와 확정된 방법을 state가 아니라 / ref로 들고 있게 했다. 안 그러면 노트에서 사진이 빈다. / web-proto와 다른 자리: / - 망각곡선은 다음 조각(SVG). 노트 뒤에 어디로 이어지는지만 말한다. / - 노트의 캡처 안내를 "여기선 저장 안 돼"에서 "아직 저장은 안 돼"로. / 웹 전용 표현이라 앱 문맥에 맞췄다. / 검증: jest 528 PASS (기존 516 + 12) · tsc 0 에러 · lint 0 에러 / 사진 → 노트 한 바퀴를 그대로 걷는 화면 테스트 포함. / 실기기 확인은 아직 안 함. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.01 18:33
+- 해시: `014fc09` (`014fc09025e35d16ae21e25b15bca8ac51f0dded`)
+- 브랜치: claude/bold-sutherland-0443a8
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/014fc09025e35d16ae21e25b15bca8ac51f0dded
+- 작성자: 박기윤
+- 메시지: fix(app): 홈 화면 useCallback을 early return 위로 — 훅 순서 깨짐 수정
+- 본문: QuizHubScreenView에서 renderTabletSplitBoard의 useCallback이 / isReady / profile·homeState·session·journey null 체크 early return / 뒤에 있었다. 로딩 상태에서 정상 상태로 넘어갈 때 훅 개수가 달라져 / "Rendered more hooks than during the previous render."로 터진다. / 호출 위치만 useTabletSplitLayout 앞으로 옮겼고 본문과 의존성 배열 / [isCompactLayout, journey, onPressJourneyCta]는 그대로다. 콜백 안에 / 이미 journey null 가드가 있어 렌더 결과는 동일하다. / 전환을 그대로 재현하는 회귀 테스트 2건 추가. 수정 전 코드로 돌리면 / 위 에러로 실패하고, 수정 후 통과한다. 태블릿 split 좌측 컬럼 measure / 후 JourneyBoard가 렌더되는 것까지 확인한다. / 검증: eslint 0 error, tsc 통과, jest 497 PASS (78 suites) / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.01 17:21
+- 해시: `d470192` (`d470192a5e55efba495c7c5727a3ccf932fef267`)
+- 브랜치: claude/app-photo-entry-first-piece
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d470192a5e55efba495c7c5727a3ccf932fef267
+- 작성자: 박기윤
+- 메시지: feat(app): 사진 입구 첫 조각 — dev 화면에서 사진 → analyzePhoto 왕복 확인
+- 본문: 앱에는 사진 관련 패키지가 0개였다(web-proto에만 있었음). 홈을 건드리기 전에 / "앱에서 사진이 도는가"만 먼저 재려고 app/dev/에 실험 화면 하나를 세운다. / 모르던 것 3개 → 실기기(iPhone 12 mini) 실측으로 답: / - 권한: granted / - 크기: 3024x4032 원본 → 1176x1568 축소 → 473~695KB / 상한 8MB (여유 17배) / - 왕복: 8.1초 (손글씨 시험지 기준). 빵 사진은 5.7초 / 덤으로 분석 품질도 앱 경로에서 확인됨: / - 시험지: hasSolvingWork=true, method=integral, confidence 0.9, 오류 후보 1건(0.96) / - 빵: confidence 0.08, needsManualSelection=true — 우기지 않고 학생에게 넘김 / (07.21 자신감 게이트가 그대로 동작) / web-proto 코드를 그대로 옮기면 안 되는 자리 1호: AbortSignal.timeout은 / 브라우저에만 있어 RN에서 TypeError. AbortController + setTimeout으로 대체. / 축소 규칙(긴 변 1568px, JPEG 0.82)과 타임아웃 75초는 web-proto와 같은 값. / 화면은 app/dev/ 폴더 관습을 따라 인라인 상태로 둔다(기존 dev 화면들과 동일). / 진짜 화면으로 승격할 때 features/로 옮기면서 훅을 가른다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.07.31 14:35
 - 해시: `eb613d1` (`eb613d1888db6b4db17d7ae6e3a32db3284d4414`)
 - 브랜치: claude/chinese-ai-api-overview-29c380
