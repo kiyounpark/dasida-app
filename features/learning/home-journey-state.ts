@@ -1,5 +1,6 @@
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { LearnerProfile } from '@/features/learner/types';
+import { DEV_FORCE_GRADUATED } from '@/features/learning/dev-force-graduated';
 import type { LearnerSummaryCurrent } from '@/features/learning/types';
 
 /**
@@ -306,7 +307,8 @@ export function getCurrentState(
   profile: LearnerProfile | null,
 ): JourneyStateKey {
   // 1: 졸업은 항상 최우선.
-  if (profile?.practiceGraduatedAt) {
+  //   DEV_FORCE_GRADUATED는 화면 미리보기용 강제 스위치(기본 false, DB에는 쓰지 않음).
+  if (DEV_FORCE_GRADUATED || profile?.practiceGraduatedAt) {
     return 'journey_graduated';
   }
 

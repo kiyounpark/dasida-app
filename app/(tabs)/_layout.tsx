@@ -8,6 +8,7 @@ import { FontFamilies } from '@/constants/typography';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { DEV_FORCE_GRADUATED } from '@/features/learning/dev-force-graduated';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -15,7 +16,8 @@ export default function TabLayout() {
   const tabBarHeight = 66 + insets.bottom;
   const tabBarPaddingBottom = 9 + insets.bottom;
   const { profile } = useCurrentLearner();
-  const isGraduated = Boolean(profile?.practiceGraduatedAt);
+  // DEV_FORCE_GRADUATED는 화면 미리보기용 강제 스위치(기본 false, DB에는 쓰지 않음).
+  const isGraduated = DEV_FORCE_GRADUATED || Boolean(profile?.practiceGraduatedAt);
 
   const defaultTabBarStyle = useMemo(() => ({
     backgroundColor: '#FFFEF8',
