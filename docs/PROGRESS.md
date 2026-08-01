@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.01 23:56
+- 해시: `8f50b52` (`8f50b524a6b9721c976edb25d29019c54b7690df`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8f50b524a6b9721c976edb25d29019c54b7690df
+- 작성자: 박기윤
+- 메시지: Merge pull request #44 from kiyounpark/claude/app-photo-flow-note
+- 본문: feat(app): 짚어주는 대화 → 쪽지시험 → 재도전 → 오답노트 (web-proto 이식 2/5)
+
 ### 커밋 2026.08.01 18:53
 - 해시: `5b45ee2` (`5b45ee282fc2e9547da6cb65d9846e6379f89fbe`)
 - 브랜치: claude/app-photo-flow-note
