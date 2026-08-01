@@ -77,6 +77,12 @@ module.exports = {
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
       'expo-localization',
+      [
+        'expo-image-picker',
+        {
+          photosPermission: '틀린 문제 사진을 골라 분석하는 데만 사용해요.',
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
