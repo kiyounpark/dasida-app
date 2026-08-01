@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>다시다 — 틀린 문제, 왜 틀렸는지 알려줌</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --cream: #FBF7EF;
@@ -67,6 +69,38 @@
   .bubble { max-width: 88%; padding: 12px 14px; border-radius: 16px; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
   .bubble.coach { background: #fff; border: 1px solid var(--line); align-self: flex-start; border-top-left-radius: 4px; }
   .bubble.me { background: var(--green); color: #fff; align-self: flex-end; border-top-right-radius: 4px; }
+  /* 한 덩어리 안의 문단 — 생각이 바뀌는 자리만 벌린다 (말풍선을 쪼개지 않는다) */
+  .bubble .p { display: block; }
+  .bubble .p + .p { margin-top: 9px; }
+  /* 답할 차례인 말풍선: 폭·바탕·테두리로 "여기 네가 답한다"를 읽기 전에 알게 한다 */
+  .bubble.coach.ask {
+    align-self: stretch; max-width: 100%;
+    background: var(--cream-2); border: 1.5px solid var(--green-soft);
+    border-bottom-left-radius: 4px; border-top-left-radius: 16px;
+  }
+  .bubble.coach.ask .p:last-child { font-weight: 700; color: var(--green); }
+  /* 수식 — 배경도 테두리도 없이 서체만 바꾼다. 말풍선은 조용하게, 숫자만 읽히게. */
+  .m {
+    font-family: "Noto Serif KR", Georgia, "Apple SD Gothic Neo", serif;
+    font-weight: 600; font-size: 1.12em; color: var(--green);
+    letter-spacing: 0.2px; overflow-wrap: anywhere;
+  }
+  .m sub { font-size: 0.7em; }
+  /* 내 말풍선: 진한 초록 바탕에서 세리프 600은 획이 사라진다 — 굵기와 크기를 올린다 */
+  .bubble.me .m { color: #fff; font-weight: 700; font-size: 1.18em; letter-spacing: 0.4px; }
+  .bubble.me .m sub { font-size: 0.72em; }
+  .bubble.me .m.q { background: rgba(255,255,255,0.16); border: 0; }
+  /* 인용부호 안의 수식 = "네가 쓴 그 줄" — 여기서만 바탕을 깔아 한 번 더 잡는다 */
+  .m.q { background: var(--cream-2); border-radius: 5px; padding: 1px 5px; }
+  .bubble.coach.ask .m.q, .card.final .m.q { background: #fff; border: 1px solid var(--line); }
+  /* 문단 전체가 수식이면 제 줄에 크게 — 긴 식은 360px에서 가로 스크롤 */
+  .bubble .p.math-line {
+    border-left: 3px solid var(--green-soft); border-radius: 0 8px 8px 0;
+    background: var(--cream); padding: 9px 12px; font-size: 19px;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .bubble.coach.ask .p.math-line { background: #fff; }
+  .bubble .p.math-line .m { font-size: 1em; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
   .card .card-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
   .card .card-body { font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-line; }
@@ -104,6 +138,9 @@
   .actions button.primary { background: var(--green); color: #fff; border-color: var(--green); }
   .actions button.ghost { border-color: var(--line); color: var(--muted); font-weight: 500; }
   .spinner { text-align: center; padding: 60px 0; color: var(--muted); font-size: 15px; }
+  /* 문구가 바뀔 때 글자가 튀지 않게 — 두 줄짜리가 와도 자리를 미리 잡아둔다 */
+  .spinner-step { min-height: 44px; transition: opacity .25s; }
+  .spinner-note { margin-top: 10px; font-size: 13px; opacity: .7; }
   .fallback-input { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px; font-size: 15px; font-family: inherit; }
 </style>
 </head>
@@ -133,7 +170,10 @@
 
     <!-- 화면 2: 분석 중 -->
     <section class="screen" id="screen-analyzing" hidden>
-      <div class="spinner">풀이 읽는 중… 어디서 틀렸는지 찾는 중이야 (15초 정도)</div>
+      <div class="spinner">
+        <div class="spinner-step" id="analyzing-step">사진에서 네 손글씨 읽는 중…</div>
+        <div class="spinner-note">15초 정도 걸려</div>
+      </div>
     </section>
 
     <!-- 화면 3: 진단 대화 -->

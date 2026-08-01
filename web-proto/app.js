@@ -59,6 +59,37 @@
   function show(name) {
     Object.entries(screens).forEach(([key, el]) => { el.hidden = key !== name; });
     window.scrollTo(0, 0);
+    if (name === 'analyzing') startAnalyzingSteps(); else stopAnalyzingSteps();
+  }
+
+  // ── 분석 중 문구 ──
+  // 실제로는 vision 호출 한 번이라 진행률이 없다. 가짜 퍼센트 막대는 정직 라벨에 어긋나므로,
+  // AI가 실제로 하는 일들을 4초씩 돌려 보여준다. 16초를 넘기면 더 걸린다고 인정한다 —
+  // "15초"라고 해놓고 계속 우기면 그때부터 화면 전체가 안 믿긴다.
+  const ANALYZING_STEPS = [
+    '사진에서 네 손글씨 읽는 중…',
+    '어떤 방법으로 풀었는지 보는 중…',
+    '해설이랑 한 줄씩 맞춰보는 중…',
+    '처음 갈라진 데 찾는 중…',
+  ];
+  const ANALYZING_OVERTIME = '거의 다 됐어. 조금만…';
+  let analyzingTimer = null;
+  function startAnalyzingSteps() {
+    const el = document.getElementById('analyzing-step');
+    if (!el) return;
+    stopAnalyzingSteps();
+    let i = 0;
+    el.textContent = ANALYZING_STEPS[0];
+    analyzingTimer = setInterval(() => {
+      i += 1;
+      const next = i < ANALYZING_STEPS.length ? ANALYZING_STEPS[i] : ANALYZING_OVERTIME;
+      el.style.opacity = '0';
+      setTimeout(() => { el.textContent = next; el.style.opacity = '1'; }, 250);
+      if (i >= ANALYZING_STEPS.length) stopAnalyzingSteps(); // 마지막 문구에서 멈춘다
+    }, 4000);
+  }
+  function stopAnalyzingSteps() {
+    if (analyzingTimer) { clearInterval(analyzingTimer); analyzingTimer = null; }
   }
 
   // ── 수식 표기 (원희 피드백 규칙 1호: 지수는 위첨자로 — a^2 ✗ → a² ○) ──
@@ -111,33 +142,102 @@
       });
   }
 
+  // 수식은 문장과 다른 서체로 읽힌다 — fmtMath가 만든 문자열에서 수식 구간만 공라내 <span class="m">으로 감싼다.
+  // innerHTML을 쓰지 않는다 — AI 응답이 그대로 들어오므로 노드로만 쌓는다.
+  const SUP = '\\u00b2\\u00b3\\u00b9\\u2070-\\u209f\\u1d43-\\u1dbf';
+  const MATH_TRIGGER = new RegExp('[=×⁄√≤≥≠_' + SUP + ']');
+  const MATH_RUN = new RegExp('[A-Za-z0-9_(√][A-Za-z0-9_^(){}\\[\\]+\\-−×÷⁄√≤≥≠=.,:\\s' + SUP + ']*', 'g');
+  function mathSpan(token, source, start) {
+    const el = document.createElement('span');
+    // 앞글자가 따옴표면 "네가 쓴 그 줄"을 인용한 것 — 칩으로 한 번 더 세게 잡는다.
+    el.className = source[start - 1] === '"' ? 'm q' : 'm';
+    // a_n — 아래첨자는 유니코드 맵이 없어 밑줄로 남았던 자리. <sub>로 살린다.
+    token.split(/_(\(?[A-Za-z0-9+-]+\)?)/).forEach((part, i) => {
+      if (!part) return;
+      if (i % 2) {
+        const sub = document.createElement('sub');
+        sub.textContent = part.replace(/^\(|\)$/g, '');
+        el.appendChild(sub);
+      } else el.appendChild(document.createTextNode(part));
+    });
+    return el;
+  }
+  function mathFrag(text) {
+    const s = fmtMath(text);
+    const frag = document.createDocumentFragment();
+    let cursor = 0, m;
+    MATH_RUN.lastIndex = 0;
+    while ((m = MATH_RUN.exec(s))) {
+      const start = m.index;
+      const token = m[0].replace(/[\s.,:]+$/, '');
+      if (!token || !MATH_TRIGGER.test(token)) {
+        if (MATH_RUN.lastIndex <= start) MATH_RUN.lastIndex = start + 1;
+        continue;
+      }
+      if (start > cursor) frag.appendChild(document.createTextNode(s.slice(cursor, start)));
+      frag.appendChild(mathSpan(token, s, start));
+      cursor = start + token.length;
+      MATH_RUN.lastIndex = cursor;
+    }
+    if (cursor < s.length) frag.appendChild(document.createTextNode(s.slice(cursor)));
+    return frag;
+  }
+  function setMath(el, text) { el.textContent = ''; el.appendChild(mathFrag(text)); }
+
   // ── 채팅 프리미티브 ──
   const thread = document.getElementById('thread');
   const actionsBox = document.getElementById('actions');
-  function coachSays(text) { bubble('coach', text); }
+  // 연달아 나오는 코치 말은 새 말풍선을 만들지 않고 '문단'으로 이어 붙인다.
+  // 한 생각 = 한 덩어리. 문단 사이는 .p 간격, 문단 안 \n은 pre-wrap 그대로.
+  // 단, 이미 답을 기다리는 말풍선(.ask)에는 붙이지 않는다 — 질문 덩어리는 닫아 둔다.
+  function para(text) {
+    const p = document.createElement('span');
+    p.className = 'p';
+    setMath(p, text);
+    // 문단 전체가 수식 하나면 줄밖으로 내려 크게 않힌다 (칠판 줄).
+    if (p.childNodes.length === 1 && p.firstChild.classList?.contains('m')) p.classList.add('math-line');
+    return p;
+  }
+  function coachSays(text) {
+    const last = thread.lastElementChild;
+    if (last && last.classList.contains('bubble') && last.classList.contains('coach') && !last.classList.contains('ask')) {
+      last.appendChild(para(text));
+      last.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      return last;
+    }
+    return bubble('coach', text);
+  }
   function userSays(text) { bubble('me', text); }
   function bubble(who, text) {
     const el = document.createElement('div');
     el.className = 'bubble ' + who;
-    el.textContent = fmtMath(text);
+    el.appendChild(para(text));
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    return el;
+  }
+  // 답할 차례임을 말풍선에 표시 — 버튼이 붙는 그 말풍선만 색이 바뀌고,
+  // 덩어리의 마지막 문단(=실제 질문)이 굵게 도드라진다.
+  function markAsk() {
+    const last = thread.lastElementChild;
+    if (last && last.classList.contains('bubble') && last.classList.contains('coach')) last.classList.add('ask');
   }
   function cardEl(title, body, extraClass) {
     const el = document.createElement('div');
     el.className = 'card' + (extraClass ? ' ' + extraClass : '');
     el.innerHTML = '<div class="card-title"></div><div class="card-body"></div>';
-    el.querySelector('.card-title').textContent = fmtMath(title);
-    el.querySelector('.card-body').textContent = fmtMath(body || '');
+    setMath(el.querySelector('.card-title'), title);
+    setMath(el.querySelector('.card-body'), body || '');
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
   function setActions(buttons) {
+    markAsk();
     actionsBox.innerHTML = '';
     buttons.forEach(({ label, kind, onPress }) => {
       const b = document.createElement('button');
       if (kind) b.className = kind;
-      b.textContent = fmtMath(label);
+      setMath(b, label);
       b.addEventListener('click', () => { actionsBox.innerHTML = ''; onPress(); });
       actionsBox.appendChild(b);
     });
@@ -371,6 +471,7 @@
     input.className = 'fallback-input';
     input.placeholder = '예: 근의 공식에 바로 대입했어';
     input.maxLength = 200;
+    markAsk();
     actionsBox.innerHTML = '';
     actionsBox.appendChild(input);
     const submit = document.createElement('button');
@@ -590,9 +691,10 @@
     const photo = el.querySelector('.note-photo');
     if (uploadedImageDataUrl) photo.src = uploadedImageDataUrl; else photo.remove();
     // 규칙 1호: 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 채팅 프리미티브와 같이 fmtMath를 거친다
-    el.querySelector('.note-quote').textContent = cand?.quote ? fmtMath(`"${cand.quote}"`) : '(없음)';
-    el.querySelector('.note-why').textContent = fmtMath(cand?.why || '');
-    el.querySelector('.note-fix').textContent = fmtMath(cand?.fix || SURVEY.TYPES[ctx.mistakeType]?.fix || '');
+    if (cand?.quote) setMath(el.querySelector('.note-quote'), `"${cand.quote}"`);
+    else el.querySelector('.note-quote').textContent = '(없음)';
+    setMath(el.querySelector('.note-why'), cand?.why || '');
+    setMath(el.querySelector('.note-fix'), cand?.fix || SURVEY.TYPES[ctx.mistakeType]?.fix || '');
     const retryMark = { pass: ' · 재도전 ✔', fail: ' · 재도전 ✗', skip: '', none: '' }[retryResult] || '';
     el.querySelector('.note-checks').textContent = `오늘 확인: 쪽지시험 ${ctx.checkPassed ? '✔' : '✗'}${retryMark}`;
     el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
