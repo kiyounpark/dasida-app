@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.01 18:33
+- 해시: `014fc09` (`014fc09025e35d16ae21e25b15bca8ac51f0dded`)
+- 브랜치: claude/bold-sutherland-0443a8
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/014fc09025e35d16ae21e25b15bca8ac51f0dded
+- 작성자: 박기윤
+- 메시지: fix(app): 홈 화면 useCallback을 early return 위로 — 훅 순서 깨짐 수정
+- 본문: QuizHubScreenView에서 renderTabletSplitBoard의 useCallback이 / isReady / profile·homeState·session·journey null 체크 early return / 뒤에 있었다. 로딩 상태에서 정상 상태로 넘어갈 때 훅 개수가 달라져 / "Rendered more hooks than during the previous render."로 터진다. / 호출 위치만 useTabletSplitLayout 앞으로 옮겼고 본문과 의존성 배열 / [isCompactLayout, journey, onPressJourneyCta]는 그대로다. 콜백 안에 / 이미 journey null 가드가 있어 렌더 결과는 동일하다. / 전환을 그대로 재현하는 회귀 테스트 2건 추가. 수정 전 코드로 돌리면 / 위 에러로 실패하고, 수정 후 통과한다. 태블릿 split 좌측 컬럼 measure / 후 JourneyBoard가 렌더되는 것까지 확인한다. / 검증: eslint 0 error, tsc 통과, jest 497 PASS (78 suites) / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.07.31 14:35
 - 해시: `eb613d1` (`eb613d1888db6b4db17d7ae6e3a32db3284d4414`)
 - 브랜치: claude/chinese-ai-api-overview-29c380
