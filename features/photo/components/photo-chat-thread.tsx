@@ -5,6 +5,7 @@ import { BrandSpacing } from '@/constants/brand';
 import { DiagnosisChatBubble } from '@/features/quiz/components/diagnosis-chat-bubble';
 
 import type { PhotoBubble } from '../types';
+import { PhotoNoteCard } from './photo-note-card';
 
 /**
  * 쌓인 대화. 앱에 이미 있는 DiagnosisChatBubble을 그대로 쓴다 —
@@ -14,6 +15,9 @@ export function PhotoChatThread({ bubbles }: { bubbles: PhotoBubble[] }) {
   return (
     <View style={{ gap: BrandSpacing.sm }}>
       {bubbles.map((bubble, index) => {
+        if (bubble.kind === 'note') {
+          return <PhotoNoteCard key={bubble.id} note={bubble.note} />;
+        }
         // 문단은 빈 줄로 벌린다 — web-proto의 .p 간격과 같은 자리
         const text = bubble.paras.map(formatMathText).join('\n\n');
         if (bubble.kind === 'me') {

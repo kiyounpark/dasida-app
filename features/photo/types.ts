@@ -1,5 +1,33 @@
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+/** functions/src/analyze-photo-core.ts의 MISTAKE_TYPE_IDS와 같은 순서·같은 값 */
+export const MISTAKE_TYPE_IDS = [
+  'concept_gap',
+  'formula_recall',
+  'setup_error',
+  'calc_slip',
+  'procedure_miss',
+  'answer_read',
+] as const;
+
+export type MistakeTypeId = (typeof MISTAKE_TYPE_IDS)[number];
+
+/** AI가 짚은 오류 후보 하나. 원본은 functions/src/analyze-photo-core.ts의 ErrorCandidate. */
+export type ErrorCandidate = {
+  quote: string; // 학생이 실제 쓴 줄 인용
+  why: string; // 왜 틀렸는지
+  mistakeType: MistakeTypeId;
+  fix: string; // 학생 맞춤 처방 한 줄
+  checkSetup?: string; // 쪽지시험 상황 칸 — 질문이 그 자체로 완결이면 없다
+  checkPrompt: string;
+  checkOptions: string[];
+  checkAnswerIndex: number;
+  retrySetup?: string;
+  retryPrompt?: string;
+  retryOptions?: string[];
+  retryAnswerIndex?: number;
+};
+
 /**
  * analyzePhoto(Cloud Functions) 응답.
  * 원본은 functions/src/analyze-photo-core.ts의 PhotoRouterResult — functions가 별도 패키지라
@@ -14,8 +42,28 @@ export type AnalyzePhotoResult = {
   candidateMethodIds: SolveMethodId[];
   reason: string;
   needsManualSelection: boolean;
-  errorCandidates: unknown[];
+  errorCandidates: ErrorCandidate[];
   errorConfidence: number;
+};
+
+/** 재도전까지 마친 결과 — 오답노트의 '오늘 확인' 칸에 들어간다 */
+export type RetryResult = 'pass' | 'fail' | 'skip' | 'none';
+
+/**
+ * 오답노트 한 장. "진단 결과"가 아니라 학생이 아는 양식(내 풀이 / 갈라진 지점 / 왜 / 다음엔)이
+ * 자기 손글씨 사진과 함께, 한 글자도 안 썼는데 채워져 나온다. 정답 칸은 없다.
+ */
+export type PhotoNote = {
+  /** 노트를 만든 날 (예: '8/1') — 만드는 시점에 찍어 둔다 */
+  dateLabel: string;
+  photoUri: string | null;
+  quote: string;
+  why: string;
+  fix: string;
+  methodLabel: string;
+  typeLabel: string;
+  checkPassed: boolean;
+  retryResult: RetryResult;
 };
 
 /**
@@ -25,7 +73,8 @@ export type AnalyzePhotoResult = {
  */
 export type PhotoBubble =
   | { id: number; kind: 'coach'; paras: string[]; ask: boolean }
-  | { id: number; kind: 'me'; paras: string[] };
+  | { id: number; kind: 'me'; paras: string[] }
+  | { id: number; kind: 'note'; note: PhotoNote };
 
 /** 하단 버튼. 하나를 누르면 통째로 갈아끼운다. */
 export type PhotoAction = {

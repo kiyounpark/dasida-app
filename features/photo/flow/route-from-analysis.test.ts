@@ -1,5 +1,4 @@
-import type { AnalyzePhotoResult } from '../types';
-
+import { makeCandidate, makeResult } from './__fixtures__/analysis';
 import {
   canPointAtError,
   filterCandidates,
@@ -7,22 +6,6 @@ import {
   matchMethodsByKeywords,
   routeFromAnalysis,
 } from './route-from-analysis';
-
-function makeResult(overrides: Partial<AnalyzePhotoResult> = {}): AnalyzePhotoResult {
-  return {
-    hasSolvingWork: true,
-    userAnswer: null,
-    transcription: '완전제곱식으로 묶어서 풀었다',
-    predictedMethodId: 'cps',
-    confidence: 0.9,
-    candidateMethodIds: ['cps', 'vertex'],
-    reason: '',
-    needsManualSelection: false,
-    errorCandidates: [],
-    errorConfidence: 0,
-    ...overrides,
-  };
-}
 
 describe('routeFromAnalysis — 네 갈래', () => {
   it('풀이 흔적이 없으면 다시 찍기로 간다', () => {
@@ -88,17 +71,17 @@ describe('matchMethodsByKeywords', () => {
 
 describe('canPointAtError', () => {
   it('방법이 뒤집히면 주머니가 무효라 짚지 않는다', () => {
-    const result = makeResult({ errorCandidates: [{}], errorConfidence: 0.9 });
+    const result = makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 });
     expect(canPointAtError(result, 'vertex')).toBe(false);
   });
 
   it('자신감이 문턱 미만이면 짚지 않는다', () => {
-    const result = makeResult({ errorCandidates: [{}], errorConfidence: 0.4 });
+    const result = makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.4 });
     expect(canPointAtError(result, 'cps')).toBe(false);
   });
 
   it('주머니가 살아 있고 자신감이 문턱을 넘으면 짚는다', () => {
-    const result = makeResult({ errorCandidates: [{}], errorConfidence: 0.9 });
+    const result = makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 });
     expect(canPointAtError(result, 'cps')).toBe(true);
   });
 });

@@ -3,6 +3,8 @@ import { useRef, useState } from 'react';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
+import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
+import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
 import {
   canPointAtError,
   filterCandidates,
@@ -12,8 +14,20 @@ import {
   selectableMethodIds,
   type PhotoRoute,
 } from '../flow/route-from-analysis';
-import type { AnalyzePhotoResult, PhotoAction } from '../types';
+import type {
+  AnalyzePhotoResult,
+  MistakeTypeId,
+  PhotoAction,
+  RetryResult,
+} from '../types';
 import { usePhotoThread, type PhotoThread } from './use-photo-thread';
+
+/** 오답노트를 채우는 데 필요한, 대화가 진행되며 쌓인 것 */
+type NoteContext = {
+  methodId: SolveMethodId;
+  mistakeType: MistakeTypeId;
+  checkPassed: boolean;
+};
 
 export type PhotoFlowStatus = 'upload' | 'analyzing' | 'chat';
 
@@ -41,9 +55,13 @@ export function usePhotoFlow(): PhotoFlow {
   const [error, setError] = useState<string | null>(null);
   /** 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효가 된다. */
   const resultRef = useRef<AnalyzePhotoResult | null>(null);
+  // 아래 둘은 state가 아니라 ref다 — 흐름 함수들의 클로저는 최초 렌더에서 만들어져
+  // 나중에 바뀐 state를 못 본다. 노트의 사진이 비는 게 그 증상이었다.
+  const photoUriRef = useRef<string | null>(null);
+  const methodIdRef = useRef<SolveMethodId | null>(null);
   const busyRef = useRef(false);
 
-  const { say, mySay, ask } = thread;
+  const { say, mySay, showNote, ask } = thread;
 
   async function start() {
     if (busyRef.current) return; // 두 번 눌러 vision이 두 번 도는 것(이중 과금) 방지
@@ -52,6 +70,7 @@ export function usePhotoFlow(): PhotoFlow {
     try {
       const photo = await pickPhoto();
       if (!photo) return; // 취소
+      photoUriRef.current = photo.uri;
       setImageUri(photo.uri);
       setStatus('analyzing');
 
@@ -71,6 +90,8 @@ export function usePhotoFlow(): PhotoFlow {
 
   function restart() {
     resultRef.current = null;
+    photoUriRef.current = null;
+    methodIdRef.current = null;
     thread.clear();
     setImageUri(null);
     setError(null);
@@ -225,9 +246,9 @@ export function usePhotoFlow(): PhotoFlow {
   /** 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문. */
   function confirmMethod(methodId: SolveMethodId) {
     const result = resultRef.current;
+    methodIdRef.current = methodId;
     if (canPointAtError(result, methodId)) {
-      say('좋아. 그럼 풀이를 좀 더 보자 — 여기서부터 틀린 데를 짚어줄게.');
-      stopHere('짚어주는 대화');
+      startPointing(0);
       return;
     }
     if (result && result.predictedMethodId === methodId && result.hasSolvingWork) {
@@ -240,7 +261,162 @@ export function usePhotoFlow(): PhotoFlow {
     stopHere('느낌 설문');
   }
 
-  /** 오늘 만든 조각은 여기까지. 다음이 아직 없으니 어디로 갈 차례였는지만 정직하게 말한다. */
+  function candidateAt(index: number) {
+    return resultRef.current?.errorCandidates?.[index];
+  }
+
+  /** 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. 세 번째 시도는 없다. */
+  function startPointing(index: number) {
+    const candidate = candidateAt(index);
+    if (!candidate) {
+      say(
+        '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?',
+      );
+      stopHere('느낌 설문');
+      return;
+    }
+
+    if (index === 0) {
+      say('그럼 풀이를 좀 더 보자.');
+      say(`여기 — "${candidate.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
+    } else {
+      say(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${candidate.quote}" 쓴 줄. 여기 아니야?`);
+    }
+
+    ask([
+      {
+        label: index === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야',
+        kind: 'primary',
+        onPress: () => {
+          mySay('맞아, 거기야');
+          showWhy(index);
+        },
+      },
+      {
+        label: index === 0 ? '아니야, 거기 아니야' : '아니야',
+        kind: 'ghost',
+        onPress: () => {
+          mySay('아니야');
+          startPointing(index + 1);
+        },
+      },
+    ]);
+  }
+
+  function showWhy(index: number) {
+    const candidate = candidateAt(index);
+    if (!candidate) return;
+    say(candidate.why);
+    ask([{ label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(index) }]);
+  }
+
+  function showCheck(index: number) {
+    const candidate = candidateAt(index);
+    if (!candidate) return;
+    const context = (passed: boolean): NoteContext => ({
+      methodId: (methodIdRef.current ?? resultRef.current?.predictedMethodId) as SolveMethodId,
+      mistakeType: candidate.mistakeType,
+      checkPassed: passed,
+    });
+
+    const quiz = readCheckQuiz(candidate);
+    if (!quiz) {
+      // 보기·정답이 깨져 온 날은 쪽지시험을 조용히 건너뛴다 — 노트는 그래도 나온다
+      startRetry(index, context(false));
+      return;
+    }
+
+    // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다
+    if (quiz.setup) {
+      say(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${quiz.setup}`);
+      say(quiz.prompt);
+    } else {
+      say(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${quiz.prompt}`);
+    }
+
+    ask(
+      quiz.options.map((option, i) => ({
+        label: option,
+        onPress: () => {
+          mySay(option);
+          const passed = i === quiz.answerIndex;
+          if (passed) {
+            say('그렇지. 이제 이 자리에서는 안 틀리겠네.');
+          } else {
+            // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
+            say(`아직 헷갈리는구나. 정답은 "${quiz.options[quiz.answerIndex]}" — 아까랑 같은 원리야.`);
+          }
+          startRetry(index, context(passed));
+        },
+      })),
+    );
+  }
+
+  function startRetry(index: number, context: NoteContext) {
+    const quiz = readRetryQuiz(candidateAt(index));
+    if (!quiz) {
+      showWrongNote(index, context, 'none');
+      return;
+    }
+
+    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축)
+    say(
+      context.checkPassed
+        ? '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.'
+        : '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.',
+    );
+    say(`${quiz.setup}\n${quiz.prompt}`);
+
+    ask([
+      ...quiz.options.map((option, i) => ({
+        label: option,
+        onPress: () => {
+          mySay(option);
+          if (i === quiz.answerIndex) {
+            say('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
+            showWrongNote(index, context, 'pass');
+          } else {
+            say(`아깝다 — 정답은 "${quiz.options[quiz.answerIndex]}". 아까랑 같은 원리야.`);
+            showWrongNote(index, context, 'fail'); // 재시도 없음
+          }
+        },
+      })),
+      {
+        label: '지금은 넘어갈래',
+        kind: 'ghost' as const,
+        onPress: () => {
+          mySay('지금은 넘어갈래');
+          showWrongNote(index, context, 'skip');
+        },
+      },
+    ]);
+  }
+
+  /** 흐름의 결과물. 학생이 한 글자도 안 썼는데 채워져 나오는 노트 한 장. */
+  function showWrongNote(index: number, context: NoteContext, retryResult: RetryResult) {
+    const candidate = candidateAt(index);
+    const now = new Date();
+
+    say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
+    showNote({
+      dateLabel: `${now.getMonth() + 1}/${now.getDate()}`,
+      photoUri: photoUriRef.current,
+      quote: candidate?.quote ?? '',
+      why: candidate?.why ?? '',
+      // 짚기가 성공한 경로에선 AI의 처방을, 비었으면 유형별 통조림을 쓴다
+      fix: candidate?.fix || mistakeTypeFix(context.mistakeType),
+      methodLabel: methodLabel(context.methodId),
+      typeLabel: mistakeTypeLabel(context.mistakeType),
+      checkPassed: context.checkPassed,
+      retryResult,
+    });
+
+    // web-proto는 이 뒤에 개인화 망각곡선이 붙는다 — 다음 조각
+    say('여기까지가 오늘 만든 데야. 다음 조각은 이 노트 뒤에 붙는 망각곡선이고.');
+    ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
+  }
+
+  /** 아직 안 만든 갈래로 갈 차례였을 때, 어디로 갈 차례였는지만 정직하게 말한다. */
   function stopHere(nextPiece: string) {
     say(`(여기까지가 오늘 만든 조각이야. 다음은 "${nextPiece}"로 이어져.)`);
     ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
