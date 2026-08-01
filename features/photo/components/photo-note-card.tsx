@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MathText } from '@/components/math/MathText';
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
+import { FontFamilies } from '@/constants/typography';
 
 import type { PhotoNote, RetryResult } from '../types';
 
@@ -59,8 +60,14 @@ function NoteRow({ label, text }: { label: string; text: string }) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
-      {/* 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 말풍선과 같이 수식 표기를 거친다 */}
-      <MathText selectable style={styles.rowText} text={text} />
+      {/* 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 말풍선과 같이 수식만 세리프로 뗀다 */}
+      <MathText
+        highlightMath
+        mathSegmentStyle={styles.rowMath}
+        selectable
+        style={styles.rowText}
+        text={text}
+      />
     </View>
   );
 }
@@ -120,6 +127,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: DiagnosisTheme.ink,
+  },
+  rowMath: {
+    fontFamily: FontFamilies.serifBold,
+    fontSize: 16,
+    color: '#1F3B30',
+    letterSpacing: 0.2,
   },
   foot: {
     flexDirection: 'row',

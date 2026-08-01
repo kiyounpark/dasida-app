@@ -1,6 +1,5 @@
 import { View } from 'react-native';
 
-import { formatMathText } from '@/components/math/MathText';
 import { BrandSpacing } from '@/constants/brand';
 import { DiagnosisChatBubble } from '@/features/quiz/components/diagnosis-chat-bubble';
 
@@ -18,14 +17,16 @@ export function PhotoChatThread({ bubbles }: { bubbles: PhotoBubble[] }) {
         if (bubble.kind === 'note') {
           return <PhotoNoteCard key={bubble.id} note={bubble.note} />;
         }
-        // 문단은 빈 줄로 벌린다 — web-proto의 .p 간격과 같은 자리
-        const text = bubble.paras.map(formatMathText).join('\n\n');
+        // 문단은 빈 줄로 벌린다 — web-proto의 .p 간격과 같은 자리.
+        // 수식 표기는 MathText가 안에서 하므로 여기서 미리 바꾸지 않는다.
+        const text = bubble.paras.join('\n\n');
         if (bubble.kind === 'me') {
-          return <DiagnosisChatBubble key={bubble.id} role="user" text={text} />;
+          return <DiagnosisChatBubble highlightMath key={bubble.id} role="user" text={text} />;
         }
         const previous = bubbles[index - 1];
         return (
           <DiagnosisChatBubble
+            highlightMath
             key={bubble.id}
             role="assistant"
             text={text}
