@@ -2,10 +2,9 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
-import { BrandRadius, BrandSpacing } from '@/constants/brand';
-import { DiagnosisTheme } from '@/constants/diagnosis-theme';
 import { FontFamilies } from '@/constants/typography';
 
+import { PhotoTheme } from '../theme';
 import type { PhotoNote, RetryResult } from '../types';
 
 const RETRY_MARK: Record<RetryResult, string> = {
@@ -77,10 +76,10 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: DiagnosisTheme.successBorder,
-    borderRadius: BrandRadius.md,
+    borderColor: PhotoTheme.greenSoft,
+    borderRadius: 16,
     borderCurve: 'continuous',
-    padding: BrandSpacing.md,
+    padding: 16,
   },
   head: {
     flexDirection: 'row',
@@ -89,75 +88,77 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
+    fontFamily: FontFamilies.extrabold,
     fontSize: 15,
-    fontWeight: '800',
-    color: '#2A5C38',
+    color: PhotoTheme.green,
   },
   date: {
+    fontFamily: FontFamilies.bold,
     fontSize: 12,
-    fontWeight: '700',
-    color: DiagnosisTheme.inkMuted,
+    color: PhotoTheme.muted,
   },
   photo: {
     width: '100%',
     height: 240,
-    backgroundColor: DiagnosisTheme.panelAlt,
-    borderRadius: BrandRadius.sm,
+    backgroundColor: PhotoTheme.cream2,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: DiagnosisTheme.line,
+    borderColor: PhotoTheme.line,
     marginBottom: 10,
   },
   row: {
     flexDirection: 'row',
     gap: 10,
-    paddingVertical: BrandSpacing.xs,
+    paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: DiagnosisTheme.line,
+    borderTopColor: PhotoTheme.line,
     borderStyle: 'dashed',
   },
   label: {
     width: 96,
+    fontFamily: FontFamilies.extrabold,
     fontSize: 13,
     lineHeight: 22,
-    fontWeight: '800',
-    color: '#4E7A57',
+    color: PhotoTheme.greenSoft,
   },
   rowText: {
     flex: 1,
+    fontFamily: FontFamilies.regular,
     fontSize: 14,
     lineHeight: 22,
-    color: DiagnosisTheme.ink,
+    color: PhotoTheme.ink,
   },
   rowMath: {
     fontFamily: FontFamilies.serifBold,
     fontSize: 16,
-    color: '#1F3B30',
+    color: PhotoTheme.green,
     letterSpacing: 0.2,
   },
   foot: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    gap: BrandSpacing.xs,
+    gap: 8,
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: DiagnosisTheme.line,
+    borderTopColor: PhotoTheme.line,
   },
   checks: {
+    fontFamily: FontFamilies.bold,
     fontSize: 12.5,
-    fontWeight: '700',
-    color: DiagnosisTheme.ink,
+    color: PhotoTheme.ink,
   },
   tags: {
+    fontFamily: FontFamilies.bold,
     fontSize: 12.5,
-    fontWeight: '700',
-    color: '#4E7A57',
+    color: PhotoTheme.greenSoft,
   },
   capture: {
+    fontFamily: FontFamilies.regular,
     marginTop: 10,
     fontSize: 12,
-    color: DiagnosisTheme.inkMuted,
+    color: PhotoTheme.muted,
     textAlign: 'center',
   },
 });

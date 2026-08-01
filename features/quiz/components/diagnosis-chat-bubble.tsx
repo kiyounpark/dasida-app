@@ -1,10 +1,8 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { MathText } from '@/components/math/MathText';
 import { BrandRadius, BrandSpacing } from '@/constants/brand';
 import { DiagnosisTheme } from '@/constants/diagnosis-theme';
-import { FontFamilies } from '@/constants/typography';
 
 type DiagnosisChatBubbleProps = {
   role: 'assistant' | 'user';
@@ -12,8 +10,6 @@ type DiagnosisChatBubbleProps = {
   variant?: 'assistant' | 'user';
   tone?: 'neutral' | 'positive' | 'warning' | 'info';
   showAvatar?: boolean;
-  /** 수식만 세리프로 띄워 문장에서 떼어낸다. 배경도 테두리도 없이 서체만 바꾼다. */
-  highlightMath?: boolean;
 };
 
 export function DiagnosisChatBubble({
@@ -22,7 +18,6 @@ export function DiagnosisChatBubble({
   variant,
   tone = 'neutral',
   showAvatar = false,
-  highlightMath = false,
 }: DiagnosisChatBubbleProps) {
   const resolvedVariant = variant ?? role;
   const isUser = resolvedVariant === 'user';
@@ -54,33 +49,17 @@ export function DiagnosisChatBubble({
             ]}
           />
         ) : null}
-        {highlightMath ? (
-          <MathText
-            highlightMath
-            mathSegmentStyle={isUser ? styles.userMath : styles.assistantMath}
-            selectable
-            style={[
-              styles.text,
-              isUser ? styles.userText : styles.assistantText,
-              !isUser && tone === 'positive' ? styles.positiveText : null,
-              !isUser && tone === 'warning' ? styles.warningText : null,
-              !isUser && tone === 'info' ? styles.infoText : null,
-            ]}
-            text={text}
-          />
-        ) : (
-          <Text
-            selectable
-            style={[
-              styles.text,
-              isUser ? styles.userText : styles.assistantText,
-              !isUser && tone === 'positive' ? styles.positiveText : null,
-              !isUser && tone === 'warning' ? styles.warningText : null,
-              !isUser && tone === 'info' ? styles.infoText : null,
-            ]}>
-            {text}
-          </Text>
-        )}
+        <Text
+          selectable
+          style={[
+            styles.text,
+            isUser ? styles.userText : styles.assistantText,
+            !isUser && tone === 'positive' ? styles.positiveText : null,
+            !isUser && tone === 'warning' ? styles.warningText : null,
+            !isUser && tone === 'info' ? styles.infoText : null,
+          ]}>
+          {text}
+        </Text>
       </View>
     </View>
   );
@@ -159,20 +138,6 @@ const styles = StyleSheet.create({
   userText: {
     color: DiagnosisTheme.userBubbleText,
     fontWeight: '700',
-  },
-  // 수식은 배경도 테두리도 없이 서체만 바꾼다 — 말풍선은 조용하게, 숫자만 읽히게 (web-proto .m)
-  assistantMath: {
-    fontFamily: FontFamilies.serifBold,
-    fontSize: 18,
-    color: '#1F3B30',
-    letterSpacing: 0.2,
-  },
-  // 진한 초록 바탕에서 세리프는 획이 사라진다 — 크기를 한 칸 더 올린다 (web-proto .bubble.me .m)
-  userMath: {
-    fontFamily: FontFamilies.serifBold,
-    fontSize: 19,
-    color: '#FFFFFF',
-    letterSpacing: 0.4,
   },
   positiveText: { color: '#355B43', paddingLeft: BrandSpacing.sm },
   warningText: { color: '#775520', paddingLeft: BrandSpacing.sm },

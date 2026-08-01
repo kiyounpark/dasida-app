@@ -50,14 +50,14 @@ beforeEach(() => {
 describe('PhotoFlowScreen', () => {
   it('업로드 화면부터 뜬다', () => {
     render(<PhotoFlowScreen />);
-    expect(screen.getByText('사진 고르기')).toBeTruthy();
+    expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy();
   });
 
   it('단언 갈래면 읽어낸 방법이 대화에 뜬다', async () => {
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
 
     await waitFor(() => expect(screen.getByText(/완전제곱식\(으\)로 접근했네/)).toBeTruthy());
     expect(screen.getByText('맞아, 시작하자')).toBeTruthy();
@@ -67,7 +67,7 @@ describe('PhotoFlowScreen', () => {
     mockAnalyze.mockResolvedValue(makeResult({ hasSolvingWork: false }));
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
 
     await waitFor(() => expect(screen.getByText('📷 풀이까지 나오게 다시 찍기')).toBeTruthy());
   });
@@ -76,10 +76,10 @@ describe('PhotoFlowScreen', () => {
     mockAnalyze.mockRejectedValue(new Error('분석 서버가 500으로 답했어'));
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
 
     await waitFor(() => expect(screen.getByText('분석 서버가 500으로 답했어')).toBeTruthy());
-    expect(screen.getByText('사진 고르기')).toBeTruthy();
+    expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy();
   });
 
   it('사진부터 오답노트까지 한 바퀴 돈다', async () => {
@@ -88,7 +88,7 @@ describe('PhotoFlowScreen', () => {
     );
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
 
     // 방법 확정 → 짚기
@@ -120,7 +120,7 @@ describe('PhotoFlowScreen', () => {
     );
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
     await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
@@ -146,7 +146,7 @@ describe('PhotoFlowScreen', () => {
     );
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
     await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
@@ -171,7 +171,7 @@ describe('PhotoFlowScreen', () => {
     );
     render(<PhotoFlowScreen />);
 
-    fireEvent.press(screen.getByText('사진 고르기'));
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
 
