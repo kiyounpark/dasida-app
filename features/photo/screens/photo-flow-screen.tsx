@@ -3,14 +3,12 @@ import { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BrandRadius, BrandSpacing } from '@/constants/brand';
-import { DiagnosisTheme } from '@/constants/diagnosis-theme';
-
 import { PhotoActionButtons } from '../components/photo-action-buttons';
 import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
 import { PhotoChatThread } from '../components/photo-chat-thread';
 import { PhotoUploadView } from '../components/photo-upload-view';
 import { usePhotoFlow } from '../hooks/use-photo-flow';
+import { PhotoTheme } from '../theme';
 
 /** 화면 셋(업로드 · 분석 중 · 대화)을 조합하기만 한다. 흐름은 use-photo-flow가 들고 있다. */
 export function PhotoFlowScreen() {
@@ -36,7 +34,8 @@ export function PhotoFlowScreen() {
           ref={scrollRef}>
           {imageUri && (
             <View style={styles.previewFrame}>
-              <Image contentFit="cover" source={{ uri: imageUri }} style={styles.preview} />
+              {/* contain: 세로로 긴 시험지도 통째로 — cover는 인용한 그 손글씨 줄을 잘라먹는다 */}
+              <Image contentFit="contain" source={{ uri: imageUri }} style={styles.preview} />
             </View>
           )}
           <PhotoChatThread bubbles={bubbles} />
@@ -50,23 +49,25 @@ export function PhotoFlowScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: DiagnosisTheme.canvas,
+    backgroundColor: PhotoTheme.cream,
   },
+  // web-proto .wrap(가로 22) · .thread(위 8 아래 24) · .actions(아래 30)와 같은 여백
   list: {
-    padding: BrandSpacing.md,
-    gap: BrandSpacing.sm,
-    paddingBottom: BrandSpacing.lg,
+    paddingHorizontal: 22,
+    paddingTop: 8,
+    paddingBottom: 30,
+    gap: 10,
   },
   previewFrame: {
-    borderRadius: BrandRadius.md,
+    borderRadius: 12,
     borderCurve: 'continuous',
     borderWidth: 1,
-    borderColor: DiagnosisTheme.line,
-    backgroundColor: DiagnosisTheme.heroBg,
+    borderColor: PhotoTheme.line,
+    backgroundColor: PhotoTheme.cream2,
     overflow: 'hidden',
   },
   preview: {
     width: '100%',
-    height: 160,
+    height: 320,
   },
 });

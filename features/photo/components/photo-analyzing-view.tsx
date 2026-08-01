@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { BrandSpacing } from '@/constants/brand';
-import { DiagnosisTheme } from '@/constants/diagnosis-theme';
+import { FontFamilies } from '@/constants/typography';
+
+import { PhotoTheme } from '../theme';
 
 /**
  * 실제로는 vision 호출 한 번이라 진행률이 없다. 가짜 퍼센트 막대는 정직 라벨에 어긋나므로
@@ -33,10 +34,13 @@ export function PhotoAnalyzingView() {
 
   return (
     <View style={styles.wrap}>
-      <ActivityIndicator color={DiagnosisTheme.ink} />
-      <Text selectable style={styles.label}>
-        {label}
-      </Text>
+      {/* 문구가 바뀔 때 글자가 튀지 않게 — 두 줄짜리가 와도 자리를 미리 잡아둔다 */}
+      <View style={styles.stepSlot}>
+        <Text selectable style={styles.label}>
+          {label}
+        </Text>
+      </View>
+      <Text style={styles.note}>15초 정도 걸려</Text>
     </View>
   );
 }
@@ -46,13 +50,25 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: BrandSpacing.md,
-    padding: BrandSpacing.lg,
+    paddingHorizontal: 22,
+  },
+  stepSlot: {
+    minHeight: 44,
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: DiagnosisTheme.inkMuted,
+    fontFamily: FontFamilies.regular,
+    fontSize: 15,
+    lineHeight: 22,
+    color: PhotoTheme.muted,
+    textAlign: 'center',
+  },
+  note: {
+    fontFamily: FontFamilies.regular,
+    marginTop: 10,
+    fontSize: 13,
+    color: PhotoTheme.muted,
+    opacity: 0.7,
     textAlign: 'center',
   },
 });

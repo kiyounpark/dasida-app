@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
-import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { DiagnosisTheme } from '@/constants/diagnosis-theme';
+import { FontFamilies } from '@/constants/typography';
 
+import { PhotoTheme } from '../theme';
 import type { PhotoAction } from '../types';
 
 type PhotoActionButtonsProps = {
@@ -11,67 +11,73 @@ type PhotoActionButtonsProps = {
   onPress: (action: PhotoAction) => void;
 };
 
+/** web-proto/index.html의 `.actions`와 같은 값. 글자는 가운데가 아니라 **왼쪽** 정렬이다. */
 export function PhotoActionButtons({ actions, onPress }: PhotoActionButtonsProps) {
   if (actions.length === 0) return null;
 
   return (
     <View style={styles.wrap}>
-      {actions.map((action, index) => {
-        const isPrimary = action.kind === 'primary';
-        return (
-          <Pressable
-            accessibilityRole="button"
-            key={`${action.label}_${index}`}
-            onPress={() => onPress(action)}
-            style={({ pressed }) => [
-              styles.button,
-              isPrimary ? styles.primary : styles.ghost,
-              pressed && styles.pressed,
-            ]}>
-            <MathText
-              text={action.label}
-              style={[styles.label, isPrimary ? styles.primaryLabel : styles.ghostLabel]}
-            />
-          </Pressable>
-        );
-      })}
+      {actions.map((action, index) => (
+        <Pressable
+          accessibilityRole="button"
+          key={`${action.label}_${index}`}
+          onPress={() => onPress(action)}
+          style={({ pressed }) => [
+            styles.button,
+            action.kind === 'primary' && styles.primary,
+            action.kind === 'ghost' && styles.ghost,
+            pressed && styles.pressed,
+          ]}>
+          <MathText
+            style={[
+              styles.label,
+              action.kind === 'primary' && styles.primaryLabel,
+              action.kind === 'ghost' && styles.ghostLabel,
+            ]}
+            text={action.label}
+          />
+        </Pressable>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: BrandSpacing.xs,
+    gap: 8,
+    paddingTop: 6,
   },
   button: {
-    borderRadius: BrandRadius.md,
+    borderWidth: 1.5,
+    borderColor: PhotoTheme.greenSoft,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     borderCurve: 'continuous',
-    paddingVertical: 15,
-    paddingHorizontal: BrandSpacing.md,
-    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: 14,
   },
   primary: {
-    backgroundColor: BrandColors.primary,
+    backgroundColor: PhotoTheme.green,
+    borderColor: PhotoTheme.green,
   },
   ghost: {
-    backgroundColor: DiagnosisTheme.panel,
-    borderWidth: 1,
-    borderColor: DiagnosisTheme.choiceBorder,
+    borderColor: PhotoTheme.line,
   },
   pressed: {
     opacity: 0.72,
   },
   label: {
-    fontSize: 16,
-    lineHeight: 22,
-    textAlign: 'center',
+    fontFamily: FontFamilies.bold,
+    fontSize: 15,
+    lineHeight: 21,
+    color: PhotoTheme.green,
+    textAlign: 'left',
   },
   primaryLabel: {
-    color: '#F8F3E8',
-    fontWeight: '700',
+    color: '#FFFFFF',
   },
   ghostLabel: {
-    color: '#2A5C38',
-    fontWeight: '600',
+    fontFamily: FontFamilies.medium,
+    color: PhotoTheme.muted,
   },
 });

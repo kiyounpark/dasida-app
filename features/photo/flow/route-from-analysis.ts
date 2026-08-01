@@ -15,8 +15,9 @@ export const selectableMethodIds: SolveMethodId[] = methodOptions
   .map((option) => option.id)
   .filter((id) => id !== 'unknown');
 
-export function methodLabel(id: SolveMethodId): string {
-  return diagnosisMethodRoutingCatalog[id].labelKo;
+/** 카탈로그에 없는 id가 와도 화면이 죽지 않게 — 마지막 화면(노트)이 비는 게 제일 나쁘다 */
+export function methodLabel(id: SolveMethodId | undefined): string {
+  return (id && diagnosisMethodRoutingCatalog[id]?.labelKo) || '방법 미상';
 }
 
 /**

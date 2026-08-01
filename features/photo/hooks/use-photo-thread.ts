@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { PhotoAction, PhotoBubble } from '../types';
+import type { PhotoAction, PhotoBubble, PhotoNote } from '../types';
 
 export type PhotoThread = {
   bubbles: PhotoBubble[];
@@ -9,6 +9,8 @@ export type PhotoThread = {
   say: (text: string) => void;
   /** 내 말풍선 */
   mySay: (text: string) => void;
+  /** 오답노트 한 장을 대화에 얹는다 */
+  showNote: (note: PhotoNote) => void;
   /** 하단 버튼을 통째로 갈아끼우고, 직전 코치 말풍선을 '답 기다리는 중'으로 표시 */
   ask: (buttons: PhotoAction[]) => void;
   /** 버튼을 누르는 통로. 누른 순간 버튼을 먼저 비운다 — 두 번 눌러 흐름이 두 갈래로 가는 걸 막는다. */
@@ -42,6 +44,11 @@ export function usePhotoThread(): PhotoThread {
     setBubbles((prev) => [...prev, { id, kind: 'me', paras: [text] }]);
   }, []);
 
+  const showNote = useCallback((note: PhotoNote) => {
+    const id = (nextId.current += 1);
+    setBubbles((prev) => [...prev, { id, kind: 'note', note }]);
+  }, []);
+
   const ask = useCallback((buttons: PhotoAction[]) => {
     setBubbles((prev) => {
       const last = prev[prev.length - 1];
@@ -61,5 +68,5 @@ export function usePhotoThread(): PhotoThread {
     setActions([]);
   }, []);
 
-  return { bubbles, actions, say, mySay, ask, press, clear };
+  return { bubbles, actions, say, mySay, showNote, ask, press, clear };
 }

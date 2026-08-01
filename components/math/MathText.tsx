@@ -21,7 +21,7 @@ const MATH_MARKER_PATTERN =
 const MATH_CHUNK_PATTERN =
   /[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'](?:[\sA-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ']*[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'])?/g;
 
-type MathDisplaySegment =
+export type MathDisplaySegment =
   | {
       kind: 'text';
       text: string;
@@ -216,7 +216,7 @@ export function splitQuestionDisplaySegments(input: string): QuestionDisplaySegm
   return segments.filter((segment) => segment.text.length > 0);
 }
 
-function splitMathDisplaySegments(input: string): MathDisplaySegment[] {
+export function splitMathDisplaySegments(input: string): MathDisplaySegment[] {
   const formatted = formatMathText(input);
   const segments: MathDisplaySegment[] = [];
   let cursor = 0;
