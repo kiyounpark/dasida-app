@@ -3,6 +3,8 @@
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
   const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
+  // ⚠️ 지금은 호출부가 없다 — 엔딩의 스토어 버튼을 뺐기 때문(앱에 사진 기능이 아직 없음).
+  // 앱에 사진이 생기면 되살린다. 아이패드 UA 판별은 다시 짜기 아까워 남겨둔다.
   // 스토어 링크 출처: iOS는 eas.json의 ascAppId(6761792023), 안드로이드는 app.json의 android.package(com.dasida.app).
   const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
   const STORE_URL_ANDROID = 'https://play.google.com/store/apps/details?id=com.dasida.app';
@@ -13,6 +15,11 @@
     const isIpadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
     return /iPhone|iPad|iPod/.test(navigator.userAgent) || isIpadOs ? STORE_URL_IOS : STORE_URL_ANDROID;
   }
+
+  // GA4 — analytics.js가 window.track을 정의한다. 없으면(로컬·차단) 조용히 넘어간다.
+  const logEvent = (name, params = {}) => {
+    if (typeof window.track === 'function') window.track(name, params);
+  };
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
@@ -169,6 +176,7 @@
     if (!selectedFile || cta.disabled) return;
     cta.disabled = true; // 더블클릭 → vision 이중 호출(이중 과금) 방지
     show('analyzing');
+    logEvent('photo_submit'); // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수
 
     let imageDataUrl;
     try {
@@ -589,6 +597,7 @@
     el.querySelector('.note-checks').textContent = `오늘 확인: 쪽지시험 ${ctx.checkPassed ? '✔' : '✗'}${retryMark}`;
     el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
     thread.appendChild(el);
+    logEvent('note_shown', { retry: retryResult }); // 깔때기 2 — 끝까지 걸어서 노트를 받은 수
 
     // 쪽지 ✗인데 재도전으로 만회 못 했으면(실패·스킵·없음) 성공 톤 금지 — 노트의 ✗와 곡선 문구가 모순되지 않게
     const recovered = retryResult === 'pass';
@@ -635,7 +644,8 @@
       </ul>`;
     const marks = el.querySelectorAll('.curve-marks .t');
     marks[0].textContent = `방금 잡은 자리 — ${methodLabel} × ${typeLabel} (지금 100%)`;
-    marks[1].textContent = '🔔 그 직전에 내가 다시 물어볼게';
+    // 주어를 '앱'으로 못박는다 — 로그인도 저장도 없는 이 웹은 이 약속을 혼자 못 지킨다
+    marks[1].textContent = '🔔 앱에서는 이 타이밍에 다시 물어봐';
     marks[2].textContent = '내일이면 여기쯤 — 절반';
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -643,13 +653,25 @@
     coachSays(variant === 'survey'
       ? '앱에서는 네 약점을 문제로 만들어서, 타이밍 맞춰 다시 물어봐 줘.'
       : '그래서 타이밍은 내가 챙길게. 앱에서는 이걸 알림으로 해줘.');
+    // 복습·알림은 앱에 있지만 사진은 없다. 여기서 안 말하면 스토어에 간 학생이 찾다가 못 찾는다.
+    coachSays('근데 사진으로 노트 만드는 건 아직 앱엔 없어 — 지금 만드는 중이야.');
 
-    // setActions는 클릭 시 버튼을 지운다 — 스토어는 새 탭이라 돌아왔을 때 빈 화면이 되지 않게 다시 그린다.
-    const endingActions = () => setActions([
-      { label: '📱 다시다에서 이어서 하기', kind: 'primary',
-        onPress: () => { window.open(storeUrl(), '_blank'); endingActions(); } },
-      { label: '다른 문제도 올려보기', kind: 'ghost', onPress: () => window.location.reload() },
-    ]);
+    // 스토어로 보내는 버튼은 뺐다 — 5호 글을 보고 온 학생의 기대는 '사진 → 오답노트'인데
+    // 앱에는 그 기능이 없다. 지금 보내면 실망만 남는다. 앱에 사진이 생기면 그때 되살린다.
+    let wantClicked = false; // 같은 사람이 여러 번 눌러 수요가 부풀지 않게 한 번만 센다
+    const endingActions = () => {
+      const buttons = [];
+      // 깔때기 3 — 앱에 '없는' 사진 기능을 원하는 수. 다음에 뭘 만들지의 첫 숫자다.
+      // 누른 흔적은 말풍선이 아니라 '버튼 자리'에 남긴다 — coachSays(block:'end')와
+      // setActions(block:'nearest')가 연달아 smooth 스크롤을 걸어 뒤엣것이 앞엣것을 취소하는 탓에
+      // 말풍선이 화면을 스쳐 지나간다. 반응이 없어 보이면 또 누르거나 그냥 나간다.
+      buttons.push(wantClicked
+        ? { label: '✓ 세어뒀어 — 이거 누른 수 보고 다음 걸 정할게', kind: 'ghost', onPress: () => endingActions() }
+        : { label: '📸 앱에서도 사진으로 이렇게 되면 쓸 듯', kind: 'primary',
+            onPress: () => { wantClicked = true; logEvent('want_photo_in_app'); endingActions(); } });
+      buttons.push({ label: '다른 문제도 올려보기', kind: 'ghost', onPress: () => window.location.reload() });
+      setActions(buttons);
+    };
     endingActions();
   }
 
