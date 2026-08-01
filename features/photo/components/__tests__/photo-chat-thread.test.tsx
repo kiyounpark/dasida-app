@@ -5,18 +5,6 @@ import { FontFamilies } from '@/constants/typography';
 
 import { PhotoChatThread } from '../photo-chat-thread';
 
-// 칠판 줄이 가로 ScrollView를 쓴다 — NativeAnimatedModule 의존을 피하려고 단순 View로 대체.
-jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
-  const React = require('react');
-  const RN = jest.requireActual('react-native');
-  const MockScrollView = React.forwardRef(
-    ({ children, contentContainerStyle: _c, ...props }: any, ref: any) =>
-      React.createElement(RN.View, { ref, ...props }, children),
-  );
-  MockScrollView.displayName = 'ScrollView';
-  return { __esModule: true, default: MockScrollView };
-});
-
 jest.mock('expo-image', () => {
   const React = require('react');
   const RN = jest.requireActual('react-native');
@@ -25,8 +13,8 @@ jest.mock('expo-image', () => {
   };
 });
 
-function styleOf(node: { props: { style?: unknown } }) {
-  return StyleSheet.flatten(node.props.style as never) ?? {};
+function styleOf(node: { props: { style?: unknown } }): Record<string, unknown> {
+  return (StyleSheet.flatten(node.props.style as never) ?? {}) as Record<string, unknown>;
 }
 
 describe('PhotoChatThread — 수식이 문장에서 떨어져 나오는가', () => {
@@ -56,13 +44,22 @@ describe('PhotoChatThread — 수식이 문장에서 떨어져 나오는가', ()
     });
   });
 
-  it('문단 전체가 수식이면 칠판 줄로 크게 떨어진다', () => {
+  it('코치 문단 전체가 수식이면 칠판 줄로 크게 떨어진다', () => {
     render(<PhotoChatThread bubbles={[{ id: 1, kind: 'coach', paras: ['x^2 + 6x'], ask: false }]} />);
 
     expect(styleOf(screen.getByText('x² + 6x'))).toMatchObject({
       fontFamily: FontFamilies.serifBold,
       fontSize: 19,
     });
+  });
+
+  it('내 말풍선의 수식은 칠판 줄이 안 된다 — 크림 바탕이 얹히면 흰 글씨가 안 보인다', () => {
+    render(<PhotoChatThread bubbles={[{ id: 1, kind: 'me', paras: ['x^2 - 1 = 0'] }]} />);
+
+    const math = styleOf(screen.getByText('x² - 1 = 0'));
+    expect(math).toMatchObject({ color: '#FFFFFF', fontSize: 18 });
+    // 칠판 줄이었으면 19가 됐을 자리
+    expect(math.fontSize).not.toBe(19);
   });
 
   it('답할 차례인 말풍선은 마지막 문단이 굵은 초록으로 도드라진다', () => {

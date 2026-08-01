@@ -34,7 +34,8 @@ export function PhotoFlowScreen() {
           ref={scrollRef}>
           {imageUri && (
             <View style={styles.previewFrame}>
-              <Image contentFit="cover" source={{ uri: imageUri }} style={styles.preview} />
+              {/* contain: 세로로 긴 시험지도 통째로 — cover는 인용한 그 손글씨 줄을 잘라먹는다 */}
+              <Image contentFit="contain" source={{ uri: imageUri }} style={styles.preview} />
             </View>
           )}
           <PhotoChatThread bubbles={bubbles} />
@@ -67,6 +68,6 @@ const styles = StyleSheet.create({
   },
   preview: {
     width: '100%',
-    height: 140,
+    height: 320,
   },
 });

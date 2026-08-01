@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import {
   splitMathDisplaySegments,
@@ -56,16 +56,16 @@ type ParagraphProps = {
 function Paragraph({ text, isMe, isAsk, isLast, spaced }: ParagraphProps) {
   const segments = splitMathDisplaySegments(text);
 
-  // 문단 전체가 수식 하나면 칠판 줄로. 긴 식은 360px에서 가로로 민다.
-  if (segments.length === 1 && segments[0].kind === 'math') {
+  // 코치가 문제를 보여주는 문단이 통째로 수식이면 칠판 줄로 떨어뜨린다.
+  // 내 말풍선(진한 초록)에는 안 쓴다 — 크림 바탕이 얹히면 내 답이 안 읽힌다.
+  // 가로 스크롤은 안 쓴다: 세로 ScrollView 안에 가로 ScrollView를 넣으면 높이를 못 정해
+  // 화면 끝까지 늘어난다. 360px에서는 긴 식이 접히는 편이 스크롤보다 낫다.
+  if (!isMe && segments.length === 1 && segments[0].kind === 'math') {
     return (
-      <View style={[styles.mathLine, isAsk && styles.mathLineAsk, spaced && styles.spaced]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {/* 칠판 줄 안에서는 수식이 이미 제 크기다 — 색만 바꾼다 (web-proto .p.math-line .m) */}
-          <Text selectable style={[styles.mathLineText, isMe && styles.mathLineTextMe]}>
-            {segments[0].text}
-          </Text>
-        </ScrollView>
+      <View style={[styles.mathLine, spaced && styles.spaced]}>
+        <Text selectable style={styles.mathLineText}>
+          {segments[0].text}
+        </Text>
       </View>
     );
   }
@@ -87,8 +87,7 @@ function Paragraph({ text, isMe, isAsk, isLast, spaced }: ParagraphProps) {
             style={[
               styles.math,
               isMe && styles.mathMe,
-              isQuoted(segments, index) &&
-                (isMe ? styles.mathQuoteMe : isAsk ? styles.mathQuoteAsk : styles.mathQuote),
+              isQuoted(segments, index) && (isMe ? styles.mathQuoteMe : styles.mathQuote),
             ]}>
             {segment.text}
           </Text>
@@ -130,11 +129,11 @@ const styles = StyleSheet.create({
     backgroundColor: PhotoTheme.green,
     borderTopRightRadius: 4,
   },
-  // 답할 차례: 폭을 꽉 채우고 바탕과 테두리로 잡는다
+  // 답할 차례: 폭을 꽉 채우고 테두리로 잡는다.
+  // 바탕은 흰색 그대로 둔다 — 코치 말풍선이 거의 다 질문이라, 바탕까지 바꾸면 화면 전체가 크림이 된다.
   bubbleAsk: {
     maxWidth: '100%',
     alignSelf: 'stretch',
-    backgroundColor: PhotoTheme.cream2,
     borderWidth: 1.5,
     borderColor: PhotoTheme.greenSoft,
     borderTopLeftRadius: 16,
@@ -171,12 +170,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.4,
   },
-  // RN은 중첩 Text에 padding·borderRadius가 안 먹는다 — 바탕색만으로 칩을 만든다
+  // RN은 중첩 Text에 padding·borderRadius가 안 먹는다 — 바탕색만으로 칩을 만든다.
+  // 말풍선이 흰색이라 칩은 크림으로 깐다(웹은 반대인데, 웹은 질문 말풍선 바탕이 크림이라 그렇다).
   mathQuote: {
     backgroundColor: PhotoTheme.cream2,
-  },
-  mathQuoteAsk: {
-    backgroundColor: '#FFFFFF',
   },
   mathQuoteMe: {
     backgroundColor: 'rgba(255,255,255,0.16)',
@@ -190,17 +187,11 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 12,
   },
-  mathLineAsk: {
-    backgroundColor: '#FFFFFF',
-  },
   mathLineText: {
     fontFamily: FontFamilies.serifBold,
     fontSize: 19,
     lineHeight: 26,
     color: PhotoTheme.green,
     letterSpacing: 0.2,
-  },
-  mathLineTextMe: {
-    color: '#FFFFFF',
   },
 });
