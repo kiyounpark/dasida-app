@@ -1017,6 +1017,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.02 22:21
+- 해시: `accc31c` (`accc31ca6c45e338cbe0316e9139ac5fcec1a1c6`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/accc31ca6c45e338cbe0316e9139ac5fcec1a1c6
+- 작성자: 박기윤
+- 메시지: Merge pull request #49 from kiyounpark/claude/weakness-map-v3
+- 본문: docs: 통역표 3차 검증 (반박 16→6→1, 확정)
+
+### 커밋 2026.08.02 22:04
+- 해시: `46dcf64` (`46dcf64731447c961078045ec10bb72a2d439a51`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/46dcf64731447c961078045ec10bb72a2d439a51
+- 작성자: 박기윤
+- 메시지: Merge pull request #48 from kiyounpark/claude/weakness-type-map-docs
+- 본문: docs: 약점→실수유형 통역표 확정 (검증 2회)
+
 ### 커밋 2026.08.02 21:05
 - 해시: `7b1b737` (`7b1b737d8800f9afe3108b31a9086e26580f4707`)
 - 브랜치: claude/weakness-choice-dedup
