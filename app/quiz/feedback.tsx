@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { BrandButton } from '@/components/brand/BrandButton';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
+import { resolveWeaknessId, resolveWeaknessLabel } from '@/data/diagnosisMap';
 import { useQuizSession } from '@/features/quiz/session';
 import { getSingleParam } from '@/utils/get-single-param';
 
@@ -42,7 +42,7 @@ export default function QuizFeedbackScreen() {
                 <View style={styles.weaknessList}>
                   {summary.topWeaknesses.map((id, index) => (
                     <Text key={id} style={styles.cardBody}>
-                      {index + 1}. {diagnosisMap[id].labelKo}
+                      {index + 1}. {resolveWeaknessLabel(id)}
                     </Text>
                   ))}
                 </View>
@@ -52,7 +52,7 @@ export default function QuizFeedbackScreen() {
             <View style={styles.summaryCard}>
               <Text style={styles.cardTitle}>호환 모드 요약</Text>
               <Text style={styles.cardBody}>
-                약점: {fallbackWeaknessId ? diagnosisMap[fallbackWeaknessId].labelKo : '정보 없음'}
+                약점: {fallbackWeaknessId ? resolveWeaknessLabel(fallbackWeaknessId) : '정보 없음'}
               </Text>
             </View>
           )}

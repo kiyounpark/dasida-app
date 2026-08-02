@@ -286,13 +286,13 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     labelKo: '경우의 수 방법 혼동',
     topicLabel: '경우의 수',
     desc: '순열/조합/수형도 중 어떤 방법을 써야 할지 판단이 어려운 상태입니다.',
-    tip: '순서가 중요하면 순열, 중요하지 않으면 조합을 쓴다는 기준을 먼저 체크하세요.',
+    tip: '순서가 중요하면 순열, 중요하지 않으면 조합을 쓴다는 기준을 먼저 체크하세요. 독립 사건은 곱, 배타 사건은 합입니다.',
   },
   counting_overcounting: {
     id: 'counting_overcounting',
     labelKo: '중복 처리 실수',
     topicLabel: '경우의 수',
-    desc: '경우를 셀 때 같은 경우를 두 번 세거나 조건을 잘못 걸러내는 실수가 발생했습니다.',
+    desc: '경우를 직접 세어 나가는 과정에서 같은 경우를 두 번 세었습니다.',
     tip: '수형도나 표로 경우를 직접 나열하면서 중복 여부를 하나씩 확인하세요.',
   },
   // ─── 고2 공통 ────────────────────────────────────────────────────
@@ -426,7 +426,7 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     id: 'g2_counting_overcounting',
     labelKo: '중복 계산 오류',
     topicLabel: '경우의 수',
-    desc: '조건이 겹치는 경우를 중복으로 세거나 빠뜨렸습니다.',
+    desc: '두 조건이 겹치는 부분을 빼지 않아 전체 개수가 어긋났습니다.',
     tip: '포함-배제 원리: n(A∪B) = n(A)+n(B)-n(A∩B). 겹치는 케이스를 명시적으로 표시하세요.',
   },
   g2_inequality_range: {
@@ -562,4 +562,12 @@ export function resolveWeaknessId(value?: string | null): WeaknessId | undefined
   }
 
   return weaknessLabelToId[value];
+}
+
+// 저장된 기록(Firestore·로컬)에서 온 약점 id는 목록에서 사라졌을 수 있다.
+// 그 id로 이름표를 찾을 때는 이 함수를 쓴다 — 없으면 화면이 죽는 대신 대체 문구가 나간다.
+export function resolveWeaknessLabel(value?: string | null): string {
+  if (!value) return '알 수 없음';
+
+  return diagnosisMap[value as WeaknessId]?.labelKo ?? '알 수 없음';
 }

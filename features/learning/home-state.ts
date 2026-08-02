@@ -1,4 +1,4 @@
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { diagnosisMap, resolveWeaknessLabel } from '@/data/diagnosisMap';
 import { getReviewHeroPrompt } from '@/data/review-content-map';
 import type {
   ActiveReviewTaskSummary,
@@ -67,7 +67,7 @@ function buildHeroContent(
 ): Pick<HomeLearningState, 'hero' | 'heroTitle' | 'heroBody' | 'heroMeta' | 'todayReviewCount'> {
   if (dueReviewTasks.length > 0) {
     const leadTask = dueReviewTasks[0];
-    const weaknessLabel = diagnosisMap[leadTask.weaknessId].labelKo;
+    const weaknessLabel = resolveWeaknessLabel(leadTask.weaknessId);
     const todayReviewCount = dueReviewTasks.length;
     return {
       hero: 'review',
@@ -82,7 +82,7 @@ function buildHeroContent(
   }
 
   if (summary.latestDiagnosticSummary?.topWeaknesses[0]) {
-    const weaknessLabel = diagnosisMap[summary.latestDiagnosticSummary.topWeaknesses[0]].labelKo;
+    const weaknessLabel = resolveWeaknessLabel(summary.latestDiagnosticSummary.topWeaknesses[0]);
     return {
       hero: 'diagnostic',
       heroTitle: '빠른 재진단 10문제',
