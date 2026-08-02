@@ -1,4 +1,4 @@
-import { diagnosisMap, weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
+import { resolveWeaknessLabel, weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import type { ActiveReviewTaskSummary, FeaturedExamState } from '@/features/learner/types';
 
 import type { LearningSource, ReviewStage } from './history-types';
@@ -222,7 +222,7 @@ function buildRecentActivity(
             title: '복습 완료',
             subtitle:
               attempt.primaryWeaknessId !== null
-                ? diagnosisMap[attempt.primaryWeaknessId].labelKo
+                ? resolveWeaknessLabel(attempt.primaryWeaknessId)
                 : `정답률 ${attempt.accuracy}%`,
             occurredAt: attempt.completedAt,
           };
@@ -237,7 +237,7 @@ function buildRecentActivity(
           title: attempt.source === 'featured-exam' ? '대표 모의고사 완료' : '진단 완료',
           subtitle:
             attempt.topWeaknesses[0] !== undefined
-              ? diagnosisMap[attempt.topWeaknesses[0]].labelKo
+              ? resolveWeaknessLabel(attempt.topWeaknesses[0])
               : `정답률 ${attempt.accuracy}%`,
           occurredAt: attempt.completedAt,
         };
@@ -248,7 +248,7 @@ function buildRecentActivity(
         id: `review-${task.id}`,
         kind: 'review' as const,
         title: '복습 완료',
-        subtitle: diagnosisMap[task.weaknessId].labelKo,
+        subtitle: resolveWeaknessLabel(task.weaknessId),
         occurredAt: task.completedAt!,
       })),
   ];

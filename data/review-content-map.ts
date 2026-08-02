@@ -2283,7 +2283,11 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
 };
 
 export function getReviewHeroPrompt(weaknessId: WeaknessId) {
-  return reviewContentMap[weaknessId]?.heroPrompt ?? diagnosisMap[weaknessId].tip;
+  return (
+    reviewContentMap[weaknessId]?.heroPrompt ??
+    diagnosisMap[weaknessId]?.tip ??
+    '지난번에 어디서 막혔는지 떠오르나요?'
+  );
 }
 
 export function getReviewThinkingSteps(weaknessId: WeaknessId): readonly ThinkingStep[] {

@@ -236,11 +236,6 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         weaknessId: 'calc_repeated_error',
       },
       {
-        id: 'g2_radical_simplify',
-        text: '근호 안 수를 간소화하는 단계가 헷갈렸어요.',
-        weaknessId: 'g2_radical_simplify',
-      },
-      {
         id: 'g2_radical_rationalize',
         text: '켤레식으로 유리화하는 계산에서 실수했어요.',
         weaknessId: 'g2_radical_rationalize',
@@ -331,7 +326,7 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
       },
       {
         id: 'counting_overcount',
-        text: '중복을 제대로 처리하지 못했어요.',
+        text: '경우를 세다가 같은 걸 두 번 셌어요.',
         weaknessId: 'counting_overcounting',
       },
       {
@@ -340,13 +335,8 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
         weaknessId: 'basic_concept_needed',
       },
       {
-        id: 'g2_counting_method',
-        text: '순열·조합·곱·합 중 어느 방법을 써야 할지 헷갈렸어요.',
-        weaknessId: 'g2_counting_method',
-      },
-      {
         id: 'g2_counting_overcounting',
-        text: '겹치는 경우를 중복으로 세거나 빠뜨렸어요.',
+        text: '두 조건이 겹치는 부분을 빼는 데서 막혔어요.',
         weaknessId: 'g2_counting_overcounting',
       },
     ],

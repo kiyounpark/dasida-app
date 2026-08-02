@@ -4,7 +4,7 @@ import { BrandButton } from '@/components/brand/BrandButton';
 import { PageContainer } from '@/components/layout/page-container';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { diagnosisMap, resolveWeaknessLabel } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
 import { QuizResultReportView } from '@/features/quiz/components/quiz-result-report-view';
 
@@ -37,7 +37,7 @@ export function QuizResultScreenView({
                 <Text style={styles.legacyLabel}>호환 모드 결과</Text>
                 <Text style={styles.legacyText}>판정: {legacyNextStep}</Text>
                 <Text style={styles.legacyText}>
-                  약점: {legacyWeaknessId ? diagnosisMap[legacyWeaknessId].labelKo : '없음'}
+                  약점: {legacyWeaknessId ? resolveWeaknessLabel(legacyWeaknessId) : '없음'}
                 </Text>
                 <View style={styles.buttonGap}>
                   {legacyNextStep === 'wrong' ? (
@@ -92,6 +92,7 @@ export function QuizResultScreenView({
               </Text>
               {snapshotSummary.topWeaknesses.map((weaknessId, index) => {
                 const info = diagnosisMap[weaknessId];
+                if (!info) return null;
                 return (
                   <View key={weaknessId} style={styles.weaknessRow}>
                     <Text style={styles.weaknessTitle}>
@@ -198,6 +199,7 @@ export function QuizResultScreenView({
             <Text style={styles.cardTitle}>상위 약점 3개</Text>
             {summary.topWeaknesses.map((weaknessId, index) => {
               const info = diagnosisMap[weaknessId];
+              if (!info) return null;
               return (
                 <View key={weaknessId} style={styles.weaknessRow}>
                   <Text style={styles.weaknessTitle}>{index + 1}. {info.labelKo}</Text>

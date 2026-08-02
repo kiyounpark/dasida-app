@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { challengeProblem } from '@/data/challengeProblem';
-import { diagnosisMap, resolveWeaknessId, type WeaknessId } from '@/data/diagnosisMap';
+import { resolveWeaknessId, resolveWeaknessLabel, type WeaknessId } from '@/data/diagnosisMap';
 import { practiceMap } from '@/data/practiceMap';
 import { logEvent } from '@/features/analytics/log-event';
 import { useCurrentLearner } from '@/features/learner/provider';
@@ -223,13 +223,13 @@ export function usePracticeScreen({
     const next: { mode: 'weakness'; weaknessId?: string; weakTag?: string } = { mode };
     if (weaknessId) {
       next.weaknessId = weaknessId;
-      next.weakTag = diagnosisMap[weaknessId].labelKo;
+      next.weakTag = resolveWeaknessLabel(weaknessId);
     }
     return next;
   };
 
   const baseWeaknessLabel =
-    activeWeaknessId !== undefined ? diagnosisMap[activeWeaknessId].labelKo : '약점 연습';
+    activeWeaknessId !== undefined ? resolveWeaknessLabel(activeWeaknessId) : '약점 연습';
 
   const onSubmit = () => {
     if (selectedIndex === null || !activeProblem) {

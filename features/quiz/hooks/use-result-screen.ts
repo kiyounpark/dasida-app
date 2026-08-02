@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { diagnosisMap, resolveWeaknessId } from '@/data/diagnosisMap';
+import { diagnosisMap, resolveWeaknessId, resolveWeaknessLabel } from '@/data/diagnosisMap';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
@@ -141,7 +141,7 @@ export function useResultScreen({
 
   if (legacyWeaknessId) {
     legacyPracticeParams.weaknessId = legacyWeaknessId;
-    legacyPracticeParams.weakTag = diagnosisMap[legacyWeaknessId].labelKo;
+    legacyPracticeParams.weakTag = resolveWeaknessLabel(legacyWeaknessId);
   }
 
   const persistResult = useCallback(async () => {
@@ -228,7 +228,7 @@ export function useResultScreen({
       return null;
     }
 
-    return diagnosisMap[snapshotSummary.topWeaknesses[0]].labelKo;
+    return resolveWeaknessLabel(snapshotSummary.topWeaknesses[0]);
   }, [snapshotSummary]);
 
   return {
