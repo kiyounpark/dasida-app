@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.02 21:05
+- 해시: `7b1b737` (`7b1b737d8800f9afe3108b31a9086e26580f4707`)
+- 브랜치: claude/weakness-choice-dedup
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7b1b737d8800f9afe3108b31a9086e26580f4707
+- 작성자: 박기윤
+- 메시지: fix: 진단 선택지에서 학생이 구분 못 하던 중복 문항 정리
+- 본문: 한 화면에 사실상 같은 문장 두 줄이 떠서 학생이 아무거나 고르고 / 있었다. 어느 쪽을 고르냐에 따라 서로 다른 약점이 붙고, 그 뒤 / 쪽지시험·처방·복습 알림이 전부 그 약점을 따라간다. / - 무리수: '근호 안 수를 간소화' 선택지 삭제 (√ 간소화와 같은 말) / - 경우의 수: '순열·조합·곱·합 중 어느 방법' 선택지 삭제 / 지운 쪽 tip의 곱·합 법칙 문장은 남는 쪽에 합쳤다 / - 중복 세기: 처방이 서로 달라(직접 나열 / 포함-배제) 삭제 대신 / 선택지와 desc를 갈라 학생이 고를 수 있게 했다 / 복습 대본·연습 문제·쪽지시험 콘텐츠는 그대로 두었다. 서버 / (functions/src/learning-history.ts)의 약점 목록도 건드리지 않았다 — / 지우면 옛 기록이 든 요청이 zod 검증에서 튕긴다. / 함께: 저장된 약점 id가 목록에서 사라져도 화면이 죽지 않도록 / resolveWeaknessLabel을 신설하고 이름표 조회 15군데에 적용했다. / 특히 getReviewHeroPrompt의 fallback이 뚫려 있어 홈 화면이 죽을 수 / 있었다. / typecheck 통과 · jest 539 PASS · 변경 파일 lint 에러 0 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.01 23:56
 - 해시: `8f50b52` (`8f50b524a6b9721c976edb25d29019c54b7690df`)
 - 브랜치: main
