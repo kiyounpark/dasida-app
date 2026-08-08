@@ -15,7 +15,7 @@ export type ErrorCandidate = {
   quote: string;          // 학생이 실제 쓴 줄 인용
   why: string;            // 왜 틀렸는지 2~3문장
   mistakeType: MistakeTypeId;
-  fix: string;            // 학생 맞춤 처방 한 줄
+  fix: string;            // 학생 맞춤 처방 한 줄 — "~하면 → ~하자" 두 칸(상황 → 행동)
   checkSetup?: string;    // 쪽지시험 상황 칸 — 풀이에 필요한 재료(원래 식·구한 값). 질문 자체 완결이면 생략
   checkPrompt: string;    // 쪽지시험 질문
   checkOptions: string[]; // 보기 정확히 3개
