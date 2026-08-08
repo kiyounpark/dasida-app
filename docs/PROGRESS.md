@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.08 21:10
+- 해시: `15f1a87` (`15f1a8779ec900f78557d69886bdc78a426ff501`)
+- 브랜치: claude/fix-two-column
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/15f1a8779ec900f78557d69886bdc78a426ff501
+- 작성자: 박기윤
+- 메시지: feat: fix 필드를 "~하면 → ~하자" 두 칸(상황 → 행동)으로 강제
+- 본문: 학생이 실제로 쓰는 오답노트를 긁어보니 문장이 전부 "조건 → 행동" / 두 칸이었다. "이등변이면 수직이등분 하자", "f(x)가 나오면 우함수 / 의심하기", "역함수 나오면 → 연속인지 미분가능한지 보고" 처럼 / 화살표로 앞뒤를 가른다. / 다시다 fix는 뒤칸(행동)만 뱉고 있었다. 행동만 있으면 학생이 / 나중에 그 줄을 언제 꺼내 쓸지 몰라, 노트에 옮겨도 안 쓰인다. / - openai-client.ts: 오류 짚기 규칙 9 아래 두 줄 추가. / 앞칸은 이 실수가 나오는 상황, 뒤칸은 그때 할 행동. / 모양 예시("로그가 나오면 → 밑과 진수 조건부터 적자")도 같이 넣었다. / - analyze-photo-core.ts: fix 필드 주석에 두 칸 명시 / 프롬프트 문자열만 건드렸다. 스키마·파싱·화면은 그대로다. / 함께: 08.07 오르비 조사 원본(docs/research/)을 저장소로 옮겼다. / 노션 데일리 로그가 재료 창고로 이 경로를 가리키고 있어서 / 세션 임시 폴더에 두면 끊긴다. / 검증: functions tsc --noEmit 0 에러. / 아직 실제 모델 출력으로 대조는 안 해봤다 — 다음 방으로 넘긴다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.02 22:21
 - 해시: `accc31c` (`accc31ca6c45e338cbe0316e9139ac5fcec1a1c6`)
 - 브랜치: main
