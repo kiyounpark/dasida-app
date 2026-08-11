@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.11 23:36
+- 해시: `4993727` (`4993727c90e74421f5593583d6d0a4a076789a29`)
+- 브랜치: claude/weakness-type-map
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4993727c90e74421f5593583d6d0a4a076789a29
+- 작성자: 박기윤
+- 메시지: feat: 통역표(약점 58 ↔ 실수 유형 6)를 문서에서 코드로 이관
+- 본문: 08.02에 확정하고 검증 3회 통과한 docs/weakness-type-map/05-final.md 표를 / features/photo/flow/weakness-mistake-type-map.ts로 옮겼다. 손으로 안 베끼고 / 문서를 읽어 코드를 뱉는 일회용 스크립트로 옮겼다 — 문서 표의 마지막 6행 / 순서가 weaknessOrder와 달라서, 순서대로 옮겼으면 확률·통계·벡터·공간도형· / 평면기하·함수 6개가 통째로 밀렸다. / Record<WeaknessId, MistakeTypeId>라 약점이 늘거나 줄면 컴파일이 깨진다. / 고르기 규칙 두 개 (기윤 판정 08.11 — 문서 ①이 "미정"으로 남겨둔 자리): / - 두루뭉술한 약점(calc_repeated_error·basic_concept_needed)은 뒷순위. / 근거는 새로 만든 게 아니라 08.08 커밋 a76a9db "마음가짐 문구 금지"다 — / 이 둘의 tip이 08.07 조사에서 현월 칼럼이 피하라고 한 "반드시 한 번 더 / 보자" 계열이다. 두루뭉술한 것뿐이면 그거라도 준다(막다른 길 방지). / - 그러고도 남는 5자리는 고르지 않고 후보를 돌려준다 — 학생한테 물어본다. / 전부 "같은 풀이의 다른 순간"이라 기계가 못 가른다. 말풍선은 저장 경로를 / 붙일 때 만든다. / 테스트 12개. 태그 분포(19/11/19/4/3/2)와 하나로 좁혀지는 조합 수(50/55)를 / 기준선으로 박아, 태그가 하나라도 옮겨지면 여기서 먼저 울게 했다. / 알려진 구멍(테스트에 숫자로 기록): 고3·심화 15개 풀이법은 진단 트리 선택지 / 3개가 전부 같은 약점이라 186조합 중 131개가 빈손. 통역표가 아니라 트리 쪽 / 문제라 여기서 안 고쳤다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.08 21:10
 - 해시: `15f1a87` (`15f1a8779ec900f78557d69886bdc78a426ff501`)
 - 브랜치: claude/fix-two-column
