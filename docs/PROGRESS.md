@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.12 08:44
+- 해시: `d694acc` (`d694acce143d56ce6adc4d10b1a02584dda8abdd`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d694acce143d56ce6adc4d10b1a02584dda8abdd
+- 작성자: 박기윤
+- 메시지: docs: 오르비 10호(2편) v2 — 예고 A안으로 교체 (미확정)
+- 본문: 본문은 v1 그대로(각주 비는 줄 0개 유지). 바뀐 건 예고 블록 하나. / v1 예고가 본문 논리와 어긋나 반려된 자리 — 본문은 "방법은 답이 아니다"인데 / 예고가 "방법 5개 합쳐서 준다"였음. / 예고 문장은 후보 ㄱ/ㄴ 둘로 남김(기윤 판정 대기). / 08.12 아침에 A안 자체도 흔들림 — 학생이 가져갈 한 줄이 없음(08.08 8호 자리 재발). / 3편 각도가 먼저 정해져야 예고가 맞는 구조라, 현재 예고는 잠정. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.11 23:36
 - 해시: `4993727` (`4993727c90e74421f5593583d6d0a4a076789a29`)
 - 브랜치: claude/weakness-type-map
