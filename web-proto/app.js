@@ -685,6 +685,7 @@
       <div class="note-row"><span class="note-label">왜</span><span class="note-why"></span></div>
       <div class="note-row"><span class="note-label">다음엔</span><span class="note-fix"></span></div>
       <div class="note-foot"><span class="note-checks"></span><span class="note-tags"></span></div>
+      <div class="note-weakness"></div>
       <div class="note-capture">📸 이 카드, 여기선 저장 안 돼 — 캡처해서 가져가.</div>`;
     // 학생 데이터(인용·설명)는 전부 textContent로 — HTML 해석 금지
     el.querySelector('.note-date').textContent = `${today.getMonth() + 1}/${today.getDate()}`;
@@ -698,6 +699,16 @@
     const retryMark = { pass: ' · 재도전 ✔', fail: ' · 재도전 ✗', skip: '', none: '' }[retryResult] || '';
     el.querySelector('.note-checks').textContent = `오늘 확인: 쪽지시험 ${ctx.checkPassed ? '✔' : '✗'}${retryMark}`;
     el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
+    // 통역표 첫 호출 — (풀이법, 실수 유형)으로 약점 이름을 찾는다. 앱(features/photo)과 같은 표를 쓴다.
+    // 못 찾으면 줄 자체를 안 낸다(기윤 판정 2026.08.13) — 빈 이름표는 학생한테 값이 0이다.
+    // 여럿이면 다 나열한다. 하나로 고르는 건 저장 경로를 붙일 때 학생한테 물어본다(08.11 🔒).
+    const weaknessEl = el.querySelector('.note-weakness');
+    const weaknessIds =
+      ctx.methodId && ctx.mistakeType ? F.weaknessCandidatesFor(ctx.methodId, ctx.mistakeType) : [];
+    const weaknessLabels = weaknessIds.map((id) => F.diagnosisMap[id]?.labelKo).filter(Boolean);
+    // 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 브라우저 실측으로 잡음
+    if (weaknessLabels.length > 0) weaknessEl.textContent = `🏷️ ${weaknessLabels.join(' 또는 ')}`;
+    else weaknessEl.remove();
     thread.appendChild(el);
     logEvent('note_shown', { retry: retryResult }); // 깔때기 2 — 끝까지 걸어서 노트를 받은 수
 

@@ -25,10 +25,12 @@ var DasidaFlow = (() => {
     advanceFromChoice: () => advanceFromChoice,
     advanceFromExplain: () => advanceFromExplain,
     createDiagnosisFlowDraft: () => createDiagnosisFlowDraft,
+    diagnosisMap: () => diagnosisMap,
     diagnosisMethodRoutingCatalog: () => diagnosisMethodRoutingCatalog,
     getDiagnosisFlow: () => getDiagnosisFlow,
     getNode: () => getNode,
-    methodOptions: () => methodOptions
+    methodOptions: () => methodOptions,
+    weaknessCandidatesFor: () => weaknessCandidatesFor
   });
 
   // data/diagnosisTree.ts
@@ -217,11 +219,6 @@ var DasidaFlow = (() => {
           weaknessId: "calc_repeated_error"
         },
         {
-          id: "g2_radical_simplify",
-          text: "\uADFC\uD638 \uC548 \uC218\uB97C \uAC04\uC18C\uD654\uD558\uB294 \uB2E8\uACC4\uAC00 \uD5F7\uAC08\uB838\uC5B4\uC694.",
-          weaknessId: "g2_radical_simplify"
-        },
-        {
           id: "g2_radical_rationalize",
           text: "\uCF24\uB808\uC2DD\uC73C\uB85C \uC720\uB9AC\uD654\uD558\uB294 \uACC4\uC0B0\uC5D0\uC11C \uC2E4\uC218\uD588\uC5B4\uC694.",
           weaknessId: "g2_radical_rationalize"
@@ -312,7 +309,7 @@ var DasidaFlow = (() => {
         },
         {
           id: "counting_overcount",
-          text: "\uC911\uBCF5\uC744 \uC81C\uB300\uB85C \uCC98\uB9AC\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694.",
+          text: "\uACBD\uC6B0\uB97C \uC138\uB2E4\uAC00 \uAC19\uC740 \uAC78 \uB450 \uBC88 \uC14C\uC5B4\uC694.",
           weaknessId: "counting_overcounting"
         },
         {
@@ -321,13 +318,8 @@ var DasidaFlow = (() => {
           weaknessId: "basic_concept_needed"
         },
         {
-          id: "g2_counting_method",
-          text: "\uC21C\uC5F4\xB7\uC870\uD569\xB7\uACF1\xB7\uD569 \uC911 \uC5B4\uB290 \uBC29\uBC95\uC744 \uC368\uC57C \uD560\uC9C0 \uD5F7\uAC08\uB838\uC5B4\uC694.",
-          weaknessId: "g2_counting_method"
-        },
-        {
           id: "g2_counting_overcounting",
-          text: "\uACB9\uCE58\uB294 \uACBD\uC6B0\uB97C \uC911\uBCF5\uC73C\uB85C \uC138\uAC70\uB098 \uBE60\uB728\uB838\uC5B4\uC694.",
+          text: "\uB450 \uC870\uAC74\uC774 \uACB9\uCE58\uB294 \uBD80\uBD84\uC744 \uBE7C\uB294 \uB370\uC11C \uB9C9\uD614\uC5B4\uC694.",
           weaknessId: "g2_counting_overcounting"
         }
       ]
@@ -1330,13 +1322,13 @@ var DasidaFlow = (() => {
       labelKo: "\uACBD\uC6B0\uC758 \uC218 \uBC29\uBC95 \uD63C\uB3D9",
       topicLabel: "\uACBD\uC6B0\uC758 \uC218",
       desc: "\uC21C\uC5F4/\uC870\uD569/\uC218\uD615\uB3C4 \uC911 \uC5B4\uB5A4 \uBC29\uBC95\uC744 \uC368\uC57C \uD560\uC9C0 \uD310\uB2E8\uC774 \uC5B4\uB824\uC6B4 \uC0C1\uD0DC\uC785\uB2C8\uB2E4.",
-      tip: "\uC21C\uC11C\uAC00 \uC911\uC694\uD558\uBA74 \uC21C\uC5F4, \uC911\uC694\uD558\uC9C0 \uC54A\uC73C\uBA74 \uC870\uD569\uC744 \uC4F4\uB2E4\uB294 \uAE30\uC900\uC744 \uBA3C\uC800 \uCCB4\uD06C\uD558\uC138\uC694."
+      tip: "\uC21C\uC11C\uAC00 \uC911\uC694\uD558\uBA74 \uC21C\uC5F4, \uC911\uC694\uD558\uC9C0 \uC54A\uC73C\uBA74 \uC870\uD569\uC744 \uC4F4\uB2E4\uB294 \uAE30\uC900\uC744 \uBA3C\uC800 \uCCB4\uD06C\uD558\uC138\uC694. \uB3C5\uB9BD \uC0AC\uAC74\uC740 \uACF1, \uBC30\uD0C0 \uC0AC\uAC74\uC740 \uD569\uC785\uB2C8\uB2E4."
     },
     counting_overcounting: {
       id: "counting_overcounting",
       labelKo: "\uC911\uBCF5 \uCC98\uB9AC \uC2E4\uC218",
       topicLabel: "\uACBD\uC6B0\uC758 \uC218",
-      desc: "\uACBD\uC6B0\uB97C \uC140 \uB54C \uAC19\uC740 \uACBD\uC6B0\uB97C \uB450 \uBC88 \uC138\uAC70\uB098 \uC870\uAC74\uC744 \uC798\uBABB \uAC78\uB7EC\uB0B4\uB294 \uC2E4\uC218\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
+      desc: "\uACBD\uC6B0\uB97C \uC9C1\uC811 \uC138\uC5B4 \uB098\uAC00\uB294 \uACFC\uC815\uC5D0\uC11C \uAC19\uC740 \uACBD\uC6B0\uB97C \uB450 \uBC88 \uC138\uC5C8\uC2B5\uB2C8\uB2E4.",
       tip: "\uC218\uD615\uB3C4\uB098 \uD45C\uB85C \uACBD\uC6B0\uB97C \uC9C1\uC811 \uB098\uC5F4\uD558\uBA74\uC11C \uC911\uBCF5 \uC5EC\uBD80\uB97C \uD558\uB098\uC529 \uD655\uC778\uD558\uC138\uC694."
     },
     // ─── 고2 공통 ────────────────────────────────────────────────────
@@ -1470,7 +1462,7 @@ var DasidaFlow = (() => {
       id: "g2_counting_overcounting",
       labelKo: "\uC911\uBCF5 \uACC4\uC0B0 \uC624\uB958",
       topicLabel: "\uACBD\uC6B0\uC758 \uC218",
-      desc: "\uC870\uAC74\uC774 \uACB9\uCE58\uB294 \uACBD\uC6B0\uB97C \uC911\uBCF5\uC73C\uB85C \uC138\uAC70\uB098 \uBE60\uB728\uB838\uC2B5\uB2C8\uB2E4.",
+      desc: "\uB450 \uC870\uAC74\uC774 \uACB9\uCE58\uB294 \uBD80\uBD84\uC744 \uBE7C\uC9C0 \uC54A\uC544 \uC804\uCCB4 \uAC1C\uC218\uAC00 \uC5B4\uAE0B\uB0AC\uC2B5\uB2C8\uB2E4.",
       tip: "\uD3EC\uD568-\uBC30\uC81C \uC6D0\uB9AC: n(A\u222AB) = n(A)+n(B)-n(A\u2229B). \uACB9\uCE58\uB294 \uCF00\uC774\uC2A4\uB97C \uBA85\uC2DC\uC801\uC73C\uB85C \uD45C\uC2DC\uD558\uC138\uC694."
     },
     g2_inequality_range: {
@@ -1596,6 +1588,147 @@ var DasidaFlow = (() => {
     },
     {}
   );
+
+  // features/photo/flow/weakness-mistake-type-map.ts
+  var weaknessMistakeType = {
+    formula_understanding: "concept_gap",
+    // 공식 이해 부족
+    calc_repeated_error: "calc_slip",
+    // 계산 실수 반복
+    min_value_read_confusion: "answer_read",
+    // 최솟값 읽기 혼동
+    vertex_formula_memorization: "formula_recall",
+    // 공식 암기 부족
+    coefficient_sign_confusion: "setup_error",
+    // 계수 구분 혼동
+    derivative_calculation: "formula_recall",
+    // 미분 계산 부족
+    solving_order_confusion: "procedure_miss",
+    // 풀이 순서 혼동
+    // ⚠️ 아래 둘은 태그는 맞는데 diagnosisMap의 desc·tip이 딴 얘기를 한다 (문서 ②).
+    // max_min: 미분에서 막힌 학생에게 이차함수 처방 — diff+concept_gap의 유일 후보라 피할 길이 없다.
+    // basic_concept: 경우의 수에서 막힌 학생에게 완전제곱식 처방.
+    // 고칠 자리는 이 표가 아니라 diagnosisMap의 문구다. 저장을 붙이기 전에 손봐야 한다.
+    max_min_judgement_confusion: "concept_gap",
+    // 최댓값/최솟값 판단 혼동
+    basic_concept_needed: "concept_gap",
+    // 기초 개념 학습 필요
+    factoring_pattern_recall: "formula_recall",
+    // 인수분해 패턴 암기 부족
+    complex_factoring_difficulty: "concept_gap",
+    // 복잡한 식 인수분해 어려움
+    quadratic_formula_memorization: "formula_recall",
+    // 근의공식 암기 부족
+    discriminant_calculation: "calc_slip",
+    // 판별식 계산 실수
+    radical_simplification_error: "calc_slip",
+    // √ 간소화 실수
+    rationalization_error: "calc_slip",
+    // 분모 유리화 실수
+    expansion_sign_error: "calc_slip",
+    // 전개 부호 실수
+    like_terms_error: "calc_slip",
+    // 동류항 정리 실수
+    imaginary_unit_confusion: "formula_recall",
+    // i² = -1 혼동
+    complex_calc_error: "calc_slip",
+    // 복소수 실수부/허수부 정리 실수
+    remainder_substitution_error: "calc_slip",
+    // 나머지정리 대입 실수
+    simultaneous_equation_error: "setup_error",
+    // 연립방정식 설정 실수
+    counting_method_confusion: "concept_gap",
+    // 경우의 수 방법 혼동
+    counting_overcounting: "procedure_miss",
+    // 중복 처리 실수
+    g2_set_operation: "calc_slip",
+    // 집합 연산 오류
+    g2_set_complement: "concept_gap",
+    // 여집합 범위 혼동
+    g2_set_count: "procedure_miss",
+    // 원소 개수 계산 오류
+    g2_prop_contrapositive: "concept_gap",
+    // 역·이·대우 혼동
+    g2_prop_necessary_sufficient: "concept_gap",
+    // 필요충분조건 오류
+    g2_prop_quantifier: "concept_gap",
+    // 전칭·존재 명제 혼동
+    g2_trig_unit_circle: "concept_gap",
+    // 단위원 좌표 혼동
+    g2_trig_equation_range: "answer_read",
+    // 삼각방정식 범위 오류 (문서 🌙 — 08.02 밤 판정)
+    g2_trig_identity: "formula_recall",
+    // 삼각함수 항등식 오류
+    g2_poly_factoring: "formula_recall",
+    // 인수분해 패턴 누락
+    g2_poly_remainder: "concept_gap",
+    // 나머지정리 적용 오류
+    g2_eq_setup: "setup_error",
+    // 방정식 세우기·순서 오류
+    // 학생 문장 없이 desc·tip만 보고 정한 태그 두 개 (문서 ③, PR #47에서 진단 선택지 삭제).
+    // 지금은 diagnosisTree에 안 달려 있어서 후보로 안 나오는데, 그건 코드가 막는 게 아니라
+    // 데이터가 우연히 막는 것이다. 선택지를 되살리면 사진 flow가 조용히 신규 부착을 시작한다.
+    g2_radical_simplify: "formula_recall",
+    // 무리식 간소화 오류 (근거 얇음 · v2에서 계산→공식으로 뒤집힘)
+    g2_radical_rationalize: "calc_slip",
+    // 유리화 계산 오류
+    g2_diff_application: "procedure_miss",
+    // 미분 활용 오류
+    g2_integral_basic: "formula_recall",
+    // 부정적분 공식 오류
+    g2_integral_definite: "calc_slip",
+    // 정적분 끝값 대입 오류
+    g2_counting_method: "concept_gap",
+    // 경우의 수 방법 선택 오류 (근거 얇음 — 위 ③과 같은 짝)
+    g2_counting_overcounting: "formula_recall",
+    // 중복 계산 오류
+    g2_inequality_range: "concept_gap",
+    // 이차부등식 범위 오류
+    g2_function_domain: "concept_gap",
+    // 정의역·치역 혼동
+    g3_diff: "formula_recall",
+    // 미분 계산
+    g3_sequence: "formula_recall",
+    // 수열 계산
+    g3_log_exp: "formula_recall",
+    // 지수·로그 계산
+    g3_integral: "concept_gap",
+    // 적분 계산
+    g3_trig: "formula_recall",
+    // 삼각함수 계산
+    g3_limit: "concept_gap",
+    // 극한 계산
+    g3_conic: "formula_recall",
+    // 이차곡선
+    g3_counting: "concept_gap",
+    // 경우의 수·순열·조합
+    g3_probability: "formula_recall",
+    // 확률 계산
+    g3_statistics: "formula_recall",
+    // 통계 (정규분포·이항분포)
+    g3_vector: "formula_recall",
+    // 벡터 연산
+    g3_space_geometry: "formula_recall",
+    // 공간도형·정사영
+    g1_geometry: "concept_gap",
+    // 평면기하
+    g3_function: "concept_gap"
+    // 함수 분석
+  };
+  var VAGUE_WEAKNESSES = ["calc_repeated_error", "basic_concept_needed"];
+  function weaknessCandidatesFor(methodId, mistakeType) {
+    const choices = diagnosisTree[methodId]?.choices ?? [];
+    const seen = /* @__PURE__ */ new Set();
+    const candidates = [];
+    for (const choice of choices) {
+      if (seen.has(choice.weaknessId)) continue;
+      if (weaknessMistakeType[choice.weaknessId] !== mistakeType) continue;
+      seen.add(choice.weaknessId);
+      candidates.push(choice.weaknessId);
+    }
+    const specific = candidates.filter((id) => !VAGUE_WEAKNESSES.includes(id));
+    return specific.length > 0 ? specific : candidates;
+  }
 
   // data/detailedDiagnosisFlows.ts
   var CONTINUE_LABEL = "\uD655\uC778 \uBB38\uC81C\uB85C \uB118\uC5B4\uAC08\uAC8C\uC694";
