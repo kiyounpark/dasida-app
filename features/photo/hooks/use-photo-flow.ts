@@ -5,6 +5,7 @@ import type { SolveMethodId } from '@/data/diagnosisTree';
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
 import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
+import { weaknessCandidatesFor } from '../flow/weakness-mistake-type-map';
 import {
   canPointAtError,
   filterCandidates,
@@ -407,6 +408,8 @@ export function usePhotoFlow(): PhotoFlow {
       fix: candidate?.fix || mistakeTypeFix(context.mistakeType),
       methodLabel: methodLabel(context.methodId),
       typeLabel: mistakeTypeLabel(context.mistakeType),
+      // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (고3·심화 15개)
+      weaknessIds: weaknessCandidatesFor(context.methodId, context.mistakeType),
       checkPassed: context.checkPassed,
       retryResult,
     });

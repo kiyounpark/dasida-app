@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
 import { FontFamilies } from '@/constants/typography';
+import { diagnosisMap } from '@/data/diagnosisMap';
 
 import { PhotoTheme } from '../theme';
 import type { PhotoNote, RetryResult } from '../types';
@@ -49,6 +50,14 @@ export function PhotoNoteCard({ note }: { note: PhotoNote }) {
           {`#${note.methodLabel} #${note.typeLabel}`}
         </Text>
       </View>
+
+      {/* 못 찾았으면 줄 자체를 안 낸다 — 빈 이름표는 학생한테 값이 0이다 (기윤 판정 2026.08.13) */}
+      {note.weaknessIds.length > 0 && (
+        <Text selectable style={styles.weakness}>
+          {/* 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 실측으로 잡음 */}
+          {`🏷️ ${note.weaknessIds.map((id) => diagnosisMap[id].labelKo).join(' 또는 ')}`}
+        </Text>
+      )}
 
       <Text style={styles.capture}>📸 아직 저장은 안 돼 — 캡처해서 가져가.</Text>
     </View>
@@ -153,6 +162,12 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 12.5,
     color: PhotoTheme.greenSoft,
+  },
+  weakness: {
+    fontFamily: FontFamilies.bold,
+    marginTop: 8,
+    fontSize: 12.5,
+    color: PhotoTheme.green,
   },
   capture: {
     fontFamily: FontFamilies.regular,

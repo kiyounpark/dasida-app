@@ -1,3 +1,4 @@
+import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
 /** functions/src/analyze-photo-core.ts의 MISTAKE_TYPE_IDS와 같은 순서·같은 값 */
@@ -62,6 +63,11 @@ export type PhotoNote = {
   fix: string;
   methodLabel: string;
   typeLabel: string;
+  /**
+   * 통역표가 (풀이법, 실수 유형)으로 찾아준 약점들. 빈 배열이면 못 찾은 것 — 카드에 줄 자체가 안 뜬다.
+   * 하나로 안 좁혀지는 5개 조합은 여럿이 그대로 담긴다 (고르는 건 저장 경로 붙일 때 학생한테 물어본다, 08.11 🔒).
+   */
+  weaknessIds: WeaknessId[];
   checkPassed: boolean;
   retryResult: RetryResult;
 };
