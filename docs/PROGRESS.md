@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.14 23:39
+- 해시: `3252549` (`32525499400186deeda38e3bf20de480fdeb1ea7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/32525499400186deeda38e3bf20de480fdeb1ea7
+- 작성자: 박기윤
+- 메시지: docs: 오르비 제목 크롤 원본 1,198편 (2026-08-14)
+- 본문: 제목 형태 3분류(준다/질문한다/판정한다) 실측의 원본 데이터. / 제목·조회·좋아요·댓글·날짜·검색어 포함. 크롤 실패 0건. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.14 23:32
 - 해시: `faf37cc` (`faf37cc02783719c583332f1eff6eb8ed4605d75`)
 - 브랜치: main
