@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.14 23:32
+- 해시: `faf37cc` (`faf37cc02783719c583332f1eff6eb8ed4605d75`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/faf37cc02783719c583332f1eff6eb8ed4605d75
+- 작성자: 박기윤
+- 메시지: chore: 수학 선생님 규칙 3줄 보강 (첫 실전 채점 흠 반영)
+- 본문: - ② 검사 항목에 「확인 문제가 딴 걸 묻나」 추가 / - 코드·문서 인용에도 각주 규칙 적용 (파일·줄 못 대면 지움) / - ②용 답 형식 신설 — 다섯 칸 전부 기록, 안 본 칸이 남을 수 없게 / 08.14 첫 실전 채점 흠 넷 중 셋 반영. 잣대 불균일과 "없다" 0개는 / 같은 구멍이라 답 형식 하나로 잡음. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.14 09:13
 - 해시: `b9b1647` (`b9b16472e0acfeca533109566a3537cea8106800`)
 - 브랜치: main
