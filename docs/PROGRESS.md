@@ -1017,6 +1017,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.25 23:36
+- 해시: `293942e` (`293942e955a0021753d2e37ef2bb9b32ba6d9021`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/293942e955a0021753d2e37ef2bb9b32ba6d9021
+- 작성자: 박기윤
+- 메시지: chore(release): 1.0.7 출시 준비 — 서버가 모르는 약점 이름 차단
+- 본문: 지수·로그 진단 갈래를 g3_log_exp_base → g3_log_exp 로 되돌렸다. / 지금 떠 있는 서버의 weaknessOrder 에 그 이름이 없어서(z.enum 거절), / 그대로 내면 그 갈래를 고른 학생의 진단 10문제가 통째로 저장에서 버려진다. / 화면엔 "저장됨"이 뜨고 에러는 안 나서 학생도 모른다. / 새 약점의 연습·복습·보충 296줄은 그대로 두고 입구만 막았다. / 서버 배포 뒤 diagnosisTree 한 줄만 다시 걸면 살아난다. / 같이 넣은 것: / - version 1.0.6 → 1.0.7 (안 올리면 iOS 제출 자체가 막힘) / - expo-image-picker 마이크 권한 차단, 카메라 권한 문구를 한글로 / (카메라 호출은 아직 0건이지만 기윤 판정으로 권한은 남김) / - 통역표 기준선 50/5 로 복귀 + 다시 걸 자리 주석 / typecheck 통과 · jest 85 suite / 554 test 전부 통과 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.25 18:57
 - 해시: `dc424af` (`dc424afc5ad19627d58bead389179e3df268c26b`)
 - 브랜치: (브랜치 정보 없음)
