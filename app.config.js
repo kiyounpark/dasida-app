@@ -4,7 +4,7 @@ module.exports = {
   expo: {
     name: IS_DEV ? '다시다 Dev' : '다시다',
     slug: 'dasida-app',
-    version: '1.0.6',
+    version: '1.0.7',
     orientation: 'default',
     icon: './assets/images/icon.png',
     scheme: IS_DEV ? 'dasidaapp-dev' : 'dasidaapp',
@@ -81,6 +81,8 @@ module.exports = {
         'expo-image-picker',
         {
           photosPermission: '틀린 문제 사진을 골라 분석하는 데만 사용해요.',
+          cameraPermission: '틀린 문제를 바로 찍어 분석하는 데만 사용해요.',
+          microphonePermission: false,
         },
       ],
     ],

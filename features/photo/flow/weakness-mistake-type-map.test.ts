@@ -119,8 +119,9 @@ describe('weaknessCandidatesFor', () => {
 
   // 태그를 하나라도 옮기면 이 숫자가 흔들린다 — 저장 규칙을 정하기 전의 기준선.
   // 두루뭉술한 것 뒷순위 규칙(08.11) 적용 뒤 46 → 50. 남은 자리가 아직 안 정한 곳이다.
-  // g3_log_exp_base가 갈라져 나오면서 지수·로그+공식이 1개 → 2개가 됐다: 50 → 49, 5 → 6.
-  it('전체 조합 55개 중 49개가 하나로 좁혀진다 (기준선)', () => {
+  // g3_log_exp_base는 서버가 아직 그 이름을 몰라 1.0.7에서 진단 갈래를 되돌렸다(08.25).
+  // 서버 배포 뒤 갈래를 다시 걸면 지수·로그+공식이 2개가 되면서 50 → 49, 5 → 6.
+  it('전체 조합 55개 중 50개가 하나로 좁혀진다 (기준선)', () => {
     let single = 0;
     let multiple = 0;
     const widest: Record<string, WeaknessId[]> = {};
@@ -137,8 +138,8 @@ describe('weaknessCandidatesFor', () => {
       }
     }
 
-    expect(single).toBe(49);
-    expect(multiple).toBe(6);
+    expect(single).toBe(50);
+    expect(multiple).toBe(5);
     expect(widest['radical+calc_slip']).toHaveLength(3);
   });
 });

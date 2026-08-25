@@ -479,7 +479,7 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
       {
         id: 'exp_law',
         text: '지수 법칙 변환이나 밑 통일이 어려웠어요.',
-        weaknessId: 'g3_log_exp_base',
+        weaknessId: 'g3_log_exp',
       },
       {
         id: 'log_eq',
