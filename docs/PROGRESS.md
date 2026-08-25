@@ -1017,6 +1017,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.25 18:57
+- 해시: `dc424af` (`dc424afc5ad19627d58bead389179e3df268c26b`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dc424afc5ad19627d58bead389179e3df268c26b
+- 작성자: 박기윤
+- 메시지: docs: 오르비 10호(2편) v6 + 발행본 — 2026.08.17 발행 완료
+- 본문: 제목 "오르비 오답노트 글 1,500개 읽었는데 방법은 하나였음". / v6는 각주 포함 원본, publish는 각주 걷은 붙여넣기용. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.25 18:57
+- 해시: `38351be` (`38351be7ca9c3e34340edf7bf88bdfe04e496336`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/38351be7ca9c3e34340edf7bf88bdfe04e496336
+- 작성자: 박기윤
+- 메시지: feat: 59번째 약점 "지수법칙·밑 통일 오류" — 진단부터 보충까지
+- 본문: 지수·로그에서 밑을 못 맞춰 막히는 자리를 g3_log_exp 에서 떼어냈다. / 진단 갈래·연습·복습·보충 플로우(296줄)·키워드·통역표까지 전부 연결하고, / 통역표 정본 문서(05-final.md)도 58 → 59로 갱신. / 조합 55개 중 하나로 좁혀지는 것 50 → 49, 여럿 남는 자리 5 → 6. / (지수·로그+공식이 g3_log_exp / g3_log_exp_base 둘로 갈림 — 학생한테 묻는다) / typecheck 통과 · jest 89 suite / 558 test 전부 통과 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.14 23:39
 - 해시: `3252549` (`32525499400186deeda38e3bf20de480fdeb1ea7`)
 - 브랜치: main
