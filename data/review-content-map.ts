@@ -1938,6 +1938,44 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       },
     ],
   },
+  g3_log_exp_base: {
+    heroPrompt: '4ˣ = 8ˣ⁻¹ 처럼 밑이 다른 식을 밑 2 하나로 모으는 흐름을 같이 볼까요?',
+    thinkingSteps: [
+      {
+        id: 'g3_log_exp_base.step1',
+        title: '밑을 하나로 맞추기',
+        body: '4ˣ = 8ˣ⁻¹ 는 밑이 4와 8로 달라서 그대로 비교할 수 없다. 4 = 2², 8 = 2³ 이니 양변을 밑 2로 바꿔 쓴다.',
+        example: '예) 4ˣ = (2²)ˣ, 8ˣ⁻¹ = (2³)ˣ⁻¹',
+        choices: [
+          { text: '4 = 2², 8 = 2³ 으로 보고 양변을 밑 2로 바꾼다', correct: true, feedback: '맞아요! 4와 8은 둘 다 2의 거듭제곱이라 밑 2로 모을 수 있어요.' },
+          { text: '4 = 2², 8 = 2⁴ 로 보고 양변을 밑 2로 바꾼다', correct: false, feedback: '2⁴ 는 16이에요. 8은 2를 세 번 곱한 2³ 이에요.', remedialFlowStartNodeId: 'g3lb_step1_A_explain', weaknessId: 'g3_log_exp_base' },
+          { text: '4와 8은 밑이 서로 다르니 맞출 수 없다고 보고 그대로 둔다', correct: false, feedback: '4 = 2², 8 = 2³ 이라 둘 다 2의 거듭제곱으로 쓸 수 있어요. 밑을 맞출 수 있어요.', remedialFlowStartNodeId: 'g3lb_step1_C_explain', weaknessId: 'g3_log_exp_base' },
+        ],
+      },
+      {
+        id: 'g3_log_exp_base.step2',
+        title: '거듭제곱의 거듭제곱 정리',
+        body: '(aˣ)ʸ = aˣʸ 처럼 거듭제곱의 거듭제곱은 지수끼리 곱한다. (2²)ˣ = 2²ˣ, (2³)ˣ⁻¹ = 2³ˣ⁻³ 이 된다.',
+        example: '예) (2³)² = 2⁶ = 64, 3 × (x − 1) = 3x − 3',
+        choices: [
+          { text: '(2²)ˣ = 2²ˣ, (2³)ˣ⁻¹ = 2³ˣ⁻³ 처럼 지수끼리 곱한다', correct: true, feedback: '맞아요! 괄호 밖 지수를 괄호 안 지수 전체에 곱하면 돼요.' },
+          { text: '(2²)ˣ = 2²⁺ˣ 처럼 지수끼리 더한다', correct: false, feedback: '지수를 더하는 건 2²·2ˣ 같은 곱셈일 때예요. 거듭제곱의 거듭제곱은 지수를 곱해요.', remedialFlowStartNodeId: 'g3lb_step2_A_explain', weaknessId: 'g3_log_exp_base' },
+          { text: '(2³)ˣ⁻¹ 에서 3을 x 에만 곱해 2³ˣ⁻¹ 로 쓴다', correct: false, feedback: '3은 x − 1 전체에 곱해요. 3 × (x − 1) = 3x − 3 이라 2³ˣ⁻³ 이에요.', remedialFlowStartNodeId: 'g3lb_step2_C_explain', weaknessId: 'g3_log_exp_base' },
+        ],
+      },
+      {
+        id: 'g3_log_exp_base.step3',
+        title: '밑이 같아진 뒤 지수 비교',
+        body: '밑이 같은 두 거듭제곱이 서로 같으면 지수도 같다. 2²ˣ = 2³ˣ⁻³ 이므로 2x = 3x − 3, 정리하면 x = 3.',
+        example: '예) x = 3 → 4³ = 64, 8² = 64 로 양변이 같다',
+        choices: [
+          { text: '밑을 2로 맞춘 뒤 지수끼리 놓아 2x = 3x − 3 을 푼다', correct: true, feedback: '맞아요! 밑이 같아진 다음에야 지수끼리 비교할 수 있어요. x = 3 이 나와요.' },
+          { text: '밑을 맞추기 전 4ˣ = 8ˣ⁻¹ 에서 바로 x = x − 1 로 놓는다', correct: false, feedback: '밑이 4와 8로 다를 때는 지수끼리 비교할 수 없어요. x = x − 1 은 0 = −1 이 되는 식이라 답이 안 나와요.', remedialFlowStartNodeId: 'g3lb_step3_A_explain', weaknessId: 'g3_log_exp_base' },
+          { text: '밑이 2로 같아졌으니 지수는 안 봐도 두 식은 항상 같다고 본다', correct: false, feedback: '밑이 같아도 지수가 다르면 값이 달라요. 2²ˣ 와 2³ˣ⁻³ 은 x = 3 일 때만 같아요.', remedialFlowStartNodeId: 'g3lb_step3_C_explain', weaknessId: 'g3_log_exp_base' },
+        ],
+      },
+    ],
+  },
   g3_trig: {
     heroPrompt: '단위원에서 sin·cos 값을 읽는 흐름을 다시 볼게요.',
     thinkingSteps: [

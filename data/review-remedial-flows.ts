@@ -104,6 +104,7 @@ import { counting_method_confusion_flow } from './remedial-flows/counting_method
 import { g3_diff_flow } from './remedial-flows/g3_diff';
 import { g3_sequence_flow } from './remedial-flows/g3_sequence';
 import { g3_log_exp_flow } from './remedial-flows/g3_log_exp';
+import { g3_log_exp_base_flow } from './remedial-flows/g3_log_exp_base';
 import { g3_integral_flow } from './remedial-flows/g3_integral';
 import { g3_trig_flow } from './remedial-flows/g3_trig';
 import { g3_conic_flow } from './remedial-flows/g3_conic';
@@ -157,6 +158,7 @@ export const remedialFlows: Partial<Record<WeaknessId, RemedialFlow>> = {
   g3_diff: g3_diff_flow,
   g3_sequence: g3_sequence_flow,
   g3_log_exp: g3_log_exp_flow,
+  g3_log_exp_base: g3_log_exp_base_flow,
   g3_integral: g3_integral_flow,
   g3_trig: g3_trig_flow,
   g3_conic: g3_conic_flow,

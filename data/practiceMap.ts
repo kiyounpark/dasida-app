@@ -442,6 +442,15 @@ export const practiceMap: Record<WeaknessId, PracticeProblem> = {
     hint: 'log_a(x) = n이면 x = a^n 입니다.',
     explanation: 'log_2(x)=4 → x=2^4=16.',
   },
+  g3_log_exp_base: {
+    id: 'p_g3_log_exp_base',
+    weaknessId: 'g3_log_exp_base',
+    question: '9^x = 27일 때, x의 값은?',
+    choices: ['2/3', '1', '3/2', '2', '3'],
+    answerIndex: 2,
+    hint: '9와 27을 모두 3의 거듭제곱으로 고쳐 밑을 3으로 맞추세요.',
+    explanation: '9^x = (3^2)^x = 3^(2x), 27 = 3^3. 밑이 같으므로 2x = 3 → x = 3/2.',
+  },
   g3_integral: {
     id: 'p_g3_integral',
     weaknessId: 'g3_integral',

@@ -4,11 +4,11 @@ import { diagnosisTree, type SolveMethodId } from '@/data/diagnosisTree';
 import { MISTAKE_TYPE_IDS } from '../types';
 import { weaknessCandidatesFor, weaknessMistakeType } from './weakness-mistake-type-map';
 
-describe('통역표 (약점 58 → 실수 유형 6)', () => {
-  it('약점 58개가 하나도 안 빠지고, 표에만 있는 유령 키도 없다', () => {
+describe('통역표 (약점 59 → 실수 유형 6)', () => {
+  it('약점 59개가 하나도 안 빠지고, 표에만 있는 유령 키도 없다', () => {
     const tagged = Object.keys(weaknessMistakeType).sort();
     expect(tagged).toEqual([...weaknessOrder].sort());
-    expect(weaknessOrder).toHaveLength(58);
+    expect(weaknessOrder).toHaveLength(59);
   });
 
   it('붙은 태그가 전부 실수 유형 6개 안에 있다', () => {
@@ -28,7 +28,7 @@ describe('통역표 (약점 58 → 실수 유형 6)', () => {
     expect(distribution).toEqual({
       concept_gap: 19,
       calc_slip: 11,
-      formula_recall: 19,
+      formula_recall: 20,
       procedure_miss: 4,
       setup_error: 3,
       answer_read: 2,
@@ -118,8 +118,9 @@ describe('weaknessCandidatesFor', () => {
   });
 
   // 태그를 하나라도 옮기면 이 숫자가 흔들린다 — 저장 규칙을 정하기 전의 기준선.
-  // 두루뭉술한 것 뒷순위 규칙(08.11) 적용 뒤 46 → 50. 남은 5개가 아직 안 정한 자리다.
-  it('전체 조합 55개 중 50개가 하나로 좁혀진다 (기준선)', () => {
+  // 두루뭉술한 것 뒷순위 규칙(08.11) 적용 뒤 46 → 50. 남은 자리가 아직 안 정한 곳이다.
+  // g3_log_exp_base가 갈라져 나오면서 지수·로그+공식이 1개 → 2개가 됐다: 50 → 49, 5 → 6.
+  it('전체 조합 55개 중 49개가 하나로 좁혀진다 (기준선)', () => {
     let single = 0;
     let multiple = 0;
     const widest: Record<string, WeaknessId[]> = {};
@@ -136,8 +137,8 @@ describe('weaknessCandidatesFor', () => {
       }
     }
 
-    expect(single).toBe(50);
-    expect(multiple).toBe(5);
+    expect(single).toBe(49);
+    expect(multiple).toBe(6);
     expect(widest['radical+calc_slip']).toHaveLength(3);
   });
 });

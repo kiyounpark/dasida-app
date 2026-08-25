@@ -4,7 +4,7 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import type { MistakeTypeId } from '../types';
 
 /**
- * 통역표 — 약점 58개에 실수 유형 6개 중 하나를 붙인 것.
+ * 통역표 — 약점 59개에 실수 유형 6개 중 하나를 붙인 것.
  *
  * 원본은 `docs/weakness-type-map/05-final.md` (2026.08.02 확정, 검증 3회 · 반박 16→6→1).
  * 이 파일은 그 표를 손이 아니라 기계로 옮긴 것이고, 문서가 여전히 정본이다.
@@ -70,6 +70,7 @@ export const weaknessMistakeType: Record<WeaknessId, MistakeTypeId> = {
   g3_diff: 'formula_recall', // 미분 계산
   g3_sequence: 'formula_recall', // 수열 계산
   g3_log_exp: 'formula_recall', // 지수·로그 계산
+  g3_log_exp_base: 'formula_recall', // 지수법칙·밑 통일 오류
   g3_integral: 'concept_gap', // 적분 계산
   g3_trig: 'formula_recall', // 삼각함수 계산
   g3_limit: 'concept_gap', // 극한 계산
@@ -99,8 +100,9 @@ const VAGUE_WEAKNESSES: readonly WeaknessId[] = ['calc_repeated_error', 'basic_c
 /**
  * (풀이법, 실수 유형) → 후보 약점들.
  *
- * 55개 조합 중 50개는 하나로 좁혀지고, 5개가 여럿으로 남는다:
- * 무리수+계산(3) · 명제+개념(3) · 다항식+계산(2) · 미분+절차(2) · 부등식·함수+개념(2).
+ * 55개 조합 중 49개는 하나로 좁혀지고, 6개가 여럿으로 남는다:
+ * 무리수+계산(3) · 명제+개념(3) · 다항식+계산(2) · 미분+절차(2) · 부등식·함수+개념(2) ·
+ * 지수·로그+공식(2, g3_log_exp / g3_log_exp_base).
  *
  * 🔒 남는 자리 처리 = **학생한테 물어본다** (기윤 판정 2026.08.11).
  * 남은 후보들은 전부 "같은 풀이의 다른 순간"이라(전개 중 vs 정리 중) 기계가 못 가른다.

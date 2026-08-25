@@ -1,0 +1,296 @@
+import type { RemedialFlow } from '../review-remedial-flows';
+
+// nodeId 컨벤션: g3lb_step<N>_<choice>_<role>
+// 약점 prefix: g3lb
+// 깊이: shallow (1-shot 구조)
+// 다루는 문제: 4ˣ = 8ˣ⁻¹ → 밑 2로 맞추기 → 2²ˣ = 2³ˣ⁻³ → 2x = 3x − 3 → x = 3
+
+export const g3_log_exp_base_flow: RemedialFlow = {
+  nodes: {
+    // ─────────── step1: 오답 A ("8 = 2⁴ 로 본다") 분기 ───────────
+    'g3lb_step1_A_explain': {
+      id: 'g3lb_step1_A_explain',
+      kind: 'explain',
+      title: '8은 2를 세 번 곱한 수예요',
+      body: '거듭제곱(같은 수를 여러 번 곱한 식, 예: 2³ = 2 × 2 × 2)에서 아래 큰 수가 밑, 위의 작은 수가 지수예요. 2 × 2 × 2 = 8 이니까 8 = 2³ 이에요. 2⁴ 는 한 번 더 곱한 16이라 8이 될 수 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step1_A_easy',
+      summary: '8 = 2³, 16 = 2⁴ — 2를 몇 번 곱했는지 세어 지수를 정한다',
+      triggers: [
+        '8이 2의 몇 제곱인지 헷갈려요',
+        '8을 2⁴ 로 썼어요',
+        '지수를 어떻게 세는지 모르겠어요',
+      ],
+    },
+    'g3lb_step1_A_easy': {
+      id: 'g3lb_step1_A_easy',
+      kind: 'explain',
+      title: '하나씩 세어 봐요',
+      body: '2를 한 번씩 더 곱하면서 세면 2¹ = 2, 2² = 4, 2³ = 8, 2⁴ = 16 이에요. 지수는 2를 몇 번 곱했는지를 그대로 적은 수예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step1_exit',
+    },
+    'g3lb_step1_A_check': {
+      id: 'g3lb_step1_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '16을 밑이 2인 거듭제곱으로 바르게 쓴 것은?',
+      options: [
+        { id: 'correct', text: '2⁴', isCorrect: true, nextNodeId: 'g3lb_step1_exit' },
+        { id: 'wrong1',  text: '2³', isCorrect: false, nextNodeId: 'g3lb_step1_A_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: '2⁵', isCorrect: false, nextNodeId: 'g3lb_step1_A_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step1_A_easy',
+    },
+    'g3lb_step1_A_remedy': {
+      id: 'g3lb_step1_A_remedy',
+      kind: 'explain',
+      title: '2를 네 번 곱하면 16',
+      body: '2 × 2 = 4, 여기에 × 2 = 8, 한 번 더 × 2 = 16 이에요. 곱셈은 세 번 했지만 곱해진 2는 2 × 2 × 2 × 2 로 네 개예요. 지수는 곱해진 2의 개수라서 16 = 2⁴ 이고, 2가 세 개인 8은 2³ 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step1_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step1_exit',
+    },
+
+    // ─────────── step1: 오답 C ("밑이 다르면 맞출 수 없다") 분기 ───────────
+    'g3lb_step1_C_explain': {
+      id: 'g3lb_step1_C_explain',
+      kind: 'explain',
+      title: '둘 다 2의 거듭제곱이에요',
+      body: '4 = 2 × 2 = 2², 8 = 2 × 2 × 2 = 2³ 이라 4와 8은 모두 밑이 2인 거듭제곱으로 쓸 수 있어요. 그래서 4ˣ = 8ˣ⁻¹ 의 양쪽 밑을 2로 맞출 수 있어요. 밑이 달라 보여도 같은 수의 거듭제곱이면 밑을 맞추는 길이 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step1_A_easy',
+      summary: '4 = 2², 8 = 2³ — 같은 수의 거듭제곱이면 밑을 맞출 수 있다',
+      triggers: [
+        '밑이 다르면 못 푸는 거 아닌가요',
+        '4랑 8은 그냥 다른 수 아닌가요',
+        '밑을 어떻게 맞추는지 모르겠어요',
+      ],
+    },
+    'g3lb_step1_C_check': {
+      id: 'g3lb_step1_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '9와 27을 같은 밑의 거듭제곱으로 쓰려고 해요. 밑도 지수도 자연수(1, 2, 3 …)가 되게 하려면 밑을 무엇으로 맞춰야 할까요?',
+      options: [
+        { id: 'correct', text: '3', isCorrect: true, nextNodeId: 'g3lb_step1_exit' },
+        { id: 'wrong1',  text: '9', isCorrect: false, nextNodeId: 'g3lb_step1_C_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: '밑이 달라서 맞출 수 없어요', isCorrect: false, nextNodeId: 'g3lb_step1_C_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step1_C_remedy',
+    },
+    'g3lb_step1_C_remedy': {
+      id: 'g3lb_step1_C_remedy',
+      kind: 'explain',
+      title: '9도 27도 3으로 만들어져요',
+      body: '3 × 3 = 9 라서 9 = 3², 3 × 3 × 3 = 27 이라서 27 = 3³ 이에요. 그래서 둘 다 밑 3으로 맞출 수 있어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step1_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step1_exit',
+    },
+
+    'g3lb_step1_exit': { id: 'g3lb_step1_exit', kind: 'exit' },
+
+    // ─────────── step2: 오답 A ("(2²)ˣ = 2²⁺ˣ 로 지수를 더한다") 분기 ───────────
+    'g3lb_step2_A_explain': {
+      id: 'g3lb_step2_A_explain',
+      kind: 'explain',
+      title: '괄호가 씌워지면 지수를 곱해요',
+      body: '(2²)ˣ 는 2² 를 x 번 곱한 거예요. 2가 두 개씩 x 묶음이니까 2를 2 × x 번 곱한 셈이라 (2²)ˣ = 2²ˣ 예요. 지수를 더하는 건 2² × 2ˣ 처럼 밑이 같은 거듭제곱끼리 곱할 때예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_A_easy',
+      summary: '거듭제곱의 거듭제곱은 지수끼리 곱한다 — (2²)ˣ = 2²ˣ, 더하는 건 곱셈일 때',
+      triggers: [
+        '괄호 지수는 더하는 거 아닌가요',
+        '언제 더하고 언제 곱하는지 헷갈려요',
+        '(2²)ˣ 를 2²⁺ˣ 로 썼어요',
+      ],
+    },
+    'g3lb_step2_A_easy': {
+      id: 'g3lb_step2_A_easy',
+      kind: 'explain',
+      title: '숫자로 풀어 봐요',
+      body: '(2²)³ 은 4 × 4 × 4 = 64 예요. 64는 2를 여섯 번 곱한 2⁶ 이라 지수 2와 3을 곱한 6이 나와요. 더해서 2⁵ 로 보면 32라 값이 달라져요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_exit',
+    },
+    'g3lb_step2_A_check': {
+      id: 'g3lb_step2_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '(3²)⁴ 를 밑이 3인 하나의 거듭제곱으로 쓰면?',
+      options: [
+        { id: 'correct', text: '3⁸', isCorrect: true, nextNodeId: 'g3lb_step2_exit' },
+        { id: 'wrong1',  text: '3⁶', isCorrect: false, nextNodeId: 'g3lb_step2_A_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: '6⁴', isCorrect: false, nextNodeId: 'g3lb_step2_A_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step2_A_easy',
+    },
+    'g3lb_step2_A_remedy': {
+      id: 'g3lb_step2_A_remedy',
+      kind: 'explain',
+      title: '2 × 4 = 8',
+      body: '(3²)⁴ 는 3² 를 네 번 곱한 거라 3이 2 × 4 = 8 번 곱해져요. 그래서 3⁸ 이에요. 밑 3은 그대로 두고 지수만 곱해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_exit',
+    },
+
+    // ─────────── step2: 오답 C ("(2³)ˣ⁻¹ = 2³ˣ⁻¹ 로 x 에만 곱한다") 분기 ───────────
+    'g3lb_step2_C_explain': {
+      id: 'g3lb_step2_C_explain',
+      kind: 'explain',
+      title: '지수 3과 x − 1 을 곱해요',
+      body: '(2³)ˣ⁻¹ 에서 3은 괄호 안 지수, x − 1 은 괄호 밖 지수예요. 2³ 을 x − 1 번 곱하는 거라 2가 세 개씩 x − 1 묶음, 곧 2를 3 × (x − 1) 번 곱한 셈이라 두 지수를 곱해요. x − 1 은 덩어리가 둘이라 3 × (x − 1) = 3x − 3 이 되고, 2³ˣ⁻¹ 로 쓰면 −1 에 3을 곱하는 걸 빠뜨린 거예요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_C_easy',
+      summary: '괄호 안 지수 3과 괄호 밖 지수 x − 1 을 곱한다 — (2³)ˣ⁻¹ = 2³ˣ⁻³',
+      triggers: [
+        'x 에만 곱하면 되는 거 아닌가요',
+        '−1 은 그대로 두는 줄 알았어요',
+        '괄호를 어떻게 푸는지 모르겠어요',
+      ],
+    },
+    'g3lb_step2_C_easy': {
+      id: 'g3lb_step2_C_easy',
+      kind: 'explain',
+      title: '숫자를 넣어 봐요',
+      body: 'x = 2 를 넣으면 (2³)²⁻¹ = (2³)¹ = 8 이에요. 지수를 3 × (2 − 1) = 3 으로 보면 2³ = 8 로 값이 같은데, 3 × 2 − 1 = 5 로 보면 2⁵ = 32 라 값이 달라져요. x − 1 은 덩어리가 둘이라 3을 x 와 −1 양쪽에 곱해야 해요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_exit',
+    },
+    'g3lb_step2_C_check': {
+      id: 'g3lb_step2_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '(2⁵)ˣ⁻² 를 밑이 2인 하나의 거듭제곱으로 쓰면?',
+      options: [
+        { id: 'correct', text: '2⁵ˣ⁻¹⁰', isCorrect: true, nextNodeId: 'g3lb_step2_exit' },
+        { id: 'wrong1',  text: '2⁵ˣ⁻²', isCorrect: false, nextNodeId: 'g3lb_step2_C_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: '2⁵⁺ˣ⁻²', isCorrect: false, nextNodeId: 'g3lb_step2_C_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step2_C_easy',
+    },
+    'g3lb_step2_C_remedy': {
+      id: 'g3lb_step2_C_remedy',
+      kind: 'explain',
+      title: '5를 두 군데 모두에 곱해요',
+      body: '5 × x = 5x, 5 × (−2) = −10 이라 5 × (x − 2) = 5x − 10 이에요. 그래서 (2⁵)ˣ⁻² = 2⁵ˣ⁻¹⁰ 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step2_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step2_exit',
+    },
+
+    'g3lb_step2_exit': { id: 'g3lb_step2_exit', kind: 'exit' },
+
+    // ─────────── step3: 오답 A ("밑을 맞추기 전에 지수부터 비교한다") 분기 ───────────
+    'g3lb_step3_A_explain': {
+      id: 'g3lb_step3_A_explain',
+      kind: 'explain',
+      title: '밑을 맞춘 뒤에 지수를 비교해요',
+      body: '지수끼리 놓고 비교하는 건 양쪽 밑이 같아진 뒤에만 할 수 있어요. 4ˣ = 8ˣ⁻¹ 은 밑이 4와 8로 달라서 x = x − 1 로 놓으면 0 = −1 이 되어 답이 안 나와요. 4 = 2², 8 = 2³ 으로 바꾸면 지수끼리 곱해져 (2²)ˣ = 2²ˣ, (2³)ˣ⁻¹ = 2³ˣ⁻³ 이 되고, 밑이 2로 같아졌으니 2x = 3x − 3 에서 x = 3 이에요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step3_A_easy',
+      summary: '지수 비교는 밑을 맞춘 다음 — 4ˣ = 8ˣ⁻¹ 은 2²ˣ = 2³ˣ⁻³ 으로 바꾼 뒤 x = 3',
+      triggers: [
+        '그냥 지수끼리 놓으면 안 되나요',
+        'x = x − 1 로 놓았어요',
+        '밑을 언제 맞춰야 하는지 모르겠어요',
+      ],
+    },
+    'g3lb_step3_A_easy': {
+      id: 'g3lb_step3_A_easy',
+      kind: 'explain',
+      title: '작은 식으로 봐요',
+      body: '2ˣ = 8 은 오른쪽을 8 = 2³ 으로 바꿔 2ˣ = 2³ 이 되고, 그제서야 x = 3 이라고 말할 수 있어요. 밑을 2로 맞추기 전에는 x 와 8을 바로 비교할 수 없어요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step3_exit',
+    },
+    'g3lb_step3_A_check': {
+      id: 'g3lb_step3_A_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '4ˣ = 2⁶ 을 만족하는 x 는?',
+      options: [
+        { id: 'correct', text: '3', isCorrect: true, nextNodeId: 'g3lb_step3_exit' },
+        { id: 'wrong1',  text: '6', isCorrect: false, nextNodeId: 'g3lb_step3_A_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: '12', isCorrect: false, nextNodeId: 'g3lb_step3_A_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step3_A_easy',
+    },
+    'g3lb_step3_A_remedy': {
+      id: 'g3lb_step3_A_remedy',
+      kind: 'explain',
+      title: '밑을 2로 맞추면 2x = 6',
+      body: '4 = 2² 이라 4ˣ = (2²)ˣ 이고, 2가 두 개씩 x 묶음이라 지수 2와 x 를 곱해 2²ˣ 이 돼요. 2²ˣ = 2⁶ 으로 밑이 같아졌으니 2x = 6, 곧 x = 3 이에요. 4³ = 64, 2⁶ = 64 로 양쪽이 같아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step3_A_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step3_exit',
+    },
+
+    // ─────────── step3: 오답 C ("밑만 같으면 항상 같다") 분기 ───────────
+    'g3lb_step3_C_explain': {
+      id: 'g3lb_step3_C_explain',
+      kind: 'explain',
+      title: '밑이 같아도 지수까지 같아야 해요',
+      body: '4ˣ = 8ˣ⁻¹ 을 4 = 2², 8 = 2³ 으로 바꾸면 (2²)ˣ = (2³)ˣ⁻¹ 이 되고, 괄호가 씌워지면 지수끼리 곱해져 왼쪽 지수는 2 × x = 2x, 오른쪽 지수는 3 × (x − 1) = 3x − 3 이라 2²ˣ = 2³ˣ⁻³ 이 돼요. 밑이 2로 같아진 건 지수끼리 비교할 준비가 됐다는 뜻이지, 두 식이 벌써 같아졌다는 뜻이 아니에요. 밑 2는 0보다 크고 1도 아닌 수인데, 이런 밑은 지수가 같을 때만 값이 같아서 2x = 3x − 3 을 푼 x = 3 에서만 값이 같아요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step3_C_remedy',
+      summary: '밑이 같아도 지수가 다르면 값이 다르다 — 2²ˣ = 2³ˣ⁻³ 은 x = 3 에서만',
+      triggers: [
+        '밑이 같으면 그냥 같은 거 아닌가요',
+        '지수는 안 봐도 되는 줄 알았어요',
+        '언제 두 식이 같아지는지 모르겠어요',
+      ],
+    },
+    'g3lb_step3_C_check': {
+      id: 'g3lb_step3_C_check',
+      kind: 'check',
+      title: '확인 문제',
+      prompt: '2ˣ⁺¹ = 2⁴ 에서 양쪽 값이 같아지는 x 는?',
+      options: [
+        { id: 'correct', text: 'x = 3 일 때만 같아요', isCorrect: true, nextNodeId: 'g3lb_step3_exit' },
+        { id: 'wrong1',  text: '밑이 2로 같으니 어떤 x 에서도 같아요', isCorrect: false, nextNodeId: 'g3lb_step3_C_remedy', weaknessId: 'g3_log_exp_base' },
+        { id: 'wrong2',  text: 'x = 4 일 때만 같아요', isCorrect: false, nextNodeId: 'g3lb_step3_C_remedy', weaknessId: 'g3_log_exp_base' },
+      ],
+      dontKnowNextNodeId: 'g3lb_step3_C_remedy',
+    },
+    'g3lb_step3_C_remedy': {
+      id: 'g3lb_step3_C_remedy',
+      kind: 'explain',
+      title: 'x + 1 = 4 를 풀어요',
+      body: '밑이 2로 같으니 지수끼리 놓아 x + 1 = 4, 곧 x = 3 이에요. x = 4 를 넣으면 왼쪽이 2⁵ = 32 라 오른쪽 2⁴ = 16 과 달라요.',
+      primaryLabel: '다음으로',
+      primaryNextNodeId: 'g3lb_step3_C_check',
+      secondaryLabel: '모르겠어요',
+      secondaryNextNodeId: 'g3lb_step3_exit',
+    },
+
+    'g3lb_step3_exit': { id: 'g3lb_step3_exit', kind: 'exit' },
+  },
+};

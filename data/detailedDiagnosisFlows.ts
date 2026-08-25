@@ -413,6 +413,15 @@ const checkPromptByWeakness: Partial<Record<WeaknessId, CheckPromptDefinition>> 
       { id: 'wrong2', text: '2', isCorrect: false },
     ],
   },
+  g3_log_exp_base: {
+    title: '밑 통일 확인',
+    prompt: '4ˣ 을 밑이 2인 거듭제곱으로 바꾸면?',
+    options: [
+      { id: 'correct', text: '2²ˣ', isCorrect: true },
+      { id: 'wrong1', text: '2ˣ⁺²', isCorrect: false },
+      { id: 'wrong2', text: '2ˣ', isCorrect: false },
+    ],
+  },
   g3_conic: {
     title: '이차곡선 초점 확인',
     prompt: '포물선 y²=8x의 초점의 x좌표는?',

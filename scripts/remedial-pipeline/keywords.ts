@@ -297,6 +297,18 @@ export const weaknessKeywords: Partial<Record<WeaknessId, readonly string[]>> = 
     '지수에 미지수',
     '상용로그',
   ],
+  g3_log_exp_base: [
+    '밑 통일',
+    '밑을 같게',
+    '지수법칙',
+    '거듭제곱',
+    '거듭제곱근',
+    '밑 변환',
+    '밑변환',
+    '지수의 성질을 이용',
+    '양변의 밑',
+    '지수끼리 비교',
+  ],
   g3_trig: [
     '삼각함수',
     'sin',

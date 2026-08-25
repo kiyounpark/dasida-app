@@ -26,6 +26,7 @@ export type WeaknessId =
   | 'g3_diff'
   | 'g3_sequence'
   | 'g3_log_exp'
+  | 'g3_log_exp_base'
   | 'g3_integral'
   | 'g3_trig'
   | 'g3_limit'
@@ -120,6 +121,7 @@ export const weaknessOrder: WeaknessId[] = [
   'g3_diff',
   'g3_sequence',
   'g3_log_exp',
+  'g3_log_exp_base',
   'g3_integral',
   'g3_trig',
   'g3_limit',
@@ -464,6 +466,13 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     topicLabel: '지수·로그',
     desc: '지수법칙이나 로그 성질 적용 과정에서 오류가 있었습니다.',
     tip: 'logₐb + logₐc = logₐ(bc), aˣ·aʸ = aˣ⁺ʸ 등 기본 성질을 점검하세요.',
+  },
+  g3_log_exp_base: {
+    id: 'g3_log_exp_base',
+    labelKo: '지수법칙·밑 통일 오류',
+    topicLabel: '지수·로그',
+    desc: '지수 법칙으로 식을 바꾸거나 서로 다른 밑을 하나로 맞추는 과정에서 막혔습니다.',
+    tip: 'aˣ·aʸ = aˣ⁺ʸ, (aˣ)ʸ = aˣʸ를 먼저 적어 두고, 8 = 2³처럼 밑을 같은 수로 맞춘 뒤 지수끼리 비교하세요.',
   },
   g3_integral: {
     id: 'g3_integral',
