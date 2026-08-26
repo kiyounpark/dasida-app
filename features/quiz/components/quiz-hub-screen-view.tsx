@@ -11,6 +11,7 @@ import { BrandHeader } from '@/components/brand/BrandHeader';
 import { JourneyBoard } from '@/features/quiz/components/journey-board';
 import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
+import { PhotoEntryCard } from './photo-entry-card';
 import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
@@ -100,6 +101,7 @@ export function QuizHubScreenView({
   onDismissAuthNotice,
   onPressExam,
   onPressJourneyCta,
+  onPressPhoto,
   onPressReviewCard,
   onRefresh,
   onResumeAnalysis,
@@ -294,6 +296,10 @@ export function QuizHubScreenView({
             styles.posterScreenInner,
             isTablet && styles.posterScreenTabletSpacing,
           ]}>
+          {/* 삼항 바깥 — 홈 골격 3개(여정 중·분석 중·졸업)를 이 한 줄로 다 덮는다.
+              보드 위에 두는 이유: 폰에서 홈 콘텐츠가 이미 화면을 넘쳐서,
+              여기가 스크롤 없이 보이는 유일한 자리다. */}
+          <PhotoEntryCard onPress={onPressPhoto} />
           {!showAnalysisResumeCard ? (
             <>
               {showReviewHomeCard && homeState?.nextReviewTask ? (

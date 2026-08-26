@@ -39,6 +39,7 @@ export type UseQuizHubScreenResult = {
   onOpenRecentResult: () => void;
   onPressExam: () => void;
   onPressJourneyCta: () => void;
+  onPressPhoto: () => void;
   onPressReviewCard: () => void;
   onRediagnose: () => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
@@ -209,6 +210,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/(tabs)/exam');
   };
 
+  // 사진 오답노트. 탭 밖 루트 라우트라 탭바가 안 보이고, 헤더 뒤로가기로 홈에 돌아온다.
+  const onPressPhoto = () => {
+    router.push('/photo');
+  };
+
   const onResumeDiagnosis = () => {
     router.push('/quiz/diagnostic');
   };
@@ -359,6 +365,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onOpenRecentResult,
     onPressExam: onPressExamWithAnalytics,
     onPressJourneyCta,
+    onPressPhoto,
     onPressReviewCard,
     onRediagnose: onStartDiagnostic,
     onRefresh: refresh,

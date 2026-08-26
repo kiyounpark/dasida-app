@@ -238,7 +238,10 @@ export default function RootLayout() {
             <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
             {/* 헤더를 켜는 유일한 화면 — 뒤로가기가 없으면 학생이 사진 화면에 갇힌다.
                 PhotoFlowScreen이 SafeAreaView edges={['bottom']}이라 위 여백은 헤더가 맡는다. */}
-            <Stack.Screen name="photo" options={{ title: '사진 오답노트', headerShown: true }} />
+            <Stack.Screen
+              name="photo"
+              options={{ title: '사진 오답노트', headerShown: true, headerBackTitle: '홈' }}
+            />
             {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
           </Stack>
         </ExamSessionProvider>
