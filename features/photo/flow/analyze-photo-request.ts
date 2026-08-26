@@ -24,6 +24,9 @@ export async function pickPhoto(): Promise<PickedPhoto | null> {
   const picked = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     quality: 1, // 축소·압축은 아래 manipulator가 한 번만 한다
+    // 기본값(Automatic)은 카드처럼 뜨는데, 그걸 닫고 나면 뒤 화면의 헤더가
+    // 터치를 못 받는다 — 학생이 취소하면 사진 화면에 갇힌다 (08.26 실기 재현).
+    presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
   });
   if (picked.canceled) return null;
 
