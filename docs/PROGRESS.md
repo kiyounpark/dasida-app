@@ -1017,6 +1017,36 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.28 00:05
+- 해시: `3bca837` (`3bca837ebd9faac1d8833a306870bfed130da628`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3bca837ebd9faac1d8833a306870bfed130da628
+- 작성자: 박기윤
+- 메시지: fix: 개발 빌드가 실제 지표를 오염시키던 것 (GA4·PostHog 미발신 가드)
+- 본문: posthog.ts는 API_KEY만 보고 클라이언트를 켰고, log-event.ts의 GA4 send()도 / 키만 보고 쐈다. 로컬 .env에 키가 다 있으니 시뮬레이터에서 눌러본 게 전부 / 실제 PostHog로 갔다. / DAU가 한 자릿수라 우리 클릭 몇 번이 지표를 통째로 뒤집는데 두 서비스 모두 / 지난 데이터를 못 지운다. 2026.08.13에 web-proto에서 같은 자리를 잡았지만 / (로컬 미발신 + ?qa=1 제외) 앱에는 그 분리가 없었다. / 오늘 사진 계측을 붙이다 발견했다 — 하필 1.0.8이 재려는 그 숫자를 / 우리 손이 먼저 채울 뻔했다. / - features/analytics/analytics-enabled.ts 신설. `!__DEV__` 하나. / 빌드 타임 상수라 출시·TestFlight 빌드에서는 항상 켜진다. 웹의 ?qa= 스위치와 / 달리 "한 번 새면 진짜 학생이 영영 빠지는" 링크가 없다. / - log-event.ts send() 초입 — logEvent·logReservedEvent·logScreenView가 전부 / 이 함수를 지나므로 GA4는 여기 한 곳으로 다 막힌다. / - posthog.ts createPostHogClient() 초입 — 개발 빌드면 posthogClient가 null이 되고, / capture·captureScreen·identify·reset이 전부 `if (!posthogClient) return`으로 / 시작하므로 모든 경로가 같이 막힌다. Provider도 미장착. / - 대신 개발 중엔 logEvent가 콘솔에 찍는다. 서버로 안 가니 계측이 붙었는지 / 눈으로 확인할 길이 그것뿐이다. / 기존 log-event 테스트 9개는 "출시 빌드에서 보낸다"를 재는 것이었다 — / 그 전제를 beforeEach에 명시적으로 세웠다(__DEV__ = false). / ⚠️ 처음 쓴 가드 테스트는 통과했는데 가드 때문이 아니었다. describe를 바깥 / beforeEach 밖에 붙여서 GA4 키가 비어 있었고, "키 없으면 return"에 걸린 것이었다. / 키를 갖춰놓고 다시 돌려 진짜 RED를 본 뒤에 구현했다. / RED를 못 본 테스트는 아무것도 안 지킨다. / ⚠️ 미확인: 오늘 아이패드 시뮬레이터를 돌린 분(온보딩·홈)이 이미 PostHog에 / 들어갔는지는 대시보드를 봐야 안다. / 검증: typecheck 0 · jest 575 test 전부 통과(573 → 575). / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.28 00:01
+- 해시: `ce28b97` (`ce28b97672a863945cb8be49dd498256703d1268`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ce28b97672a863945cb8be49dd498256703d1268
+- 작성자: 박기윤
+- 메시지: feat: 사진 오답노트에 계측을 붙인다 — 1.0.8이 재려는 숫자 (3일차 이어서)
+- 본문: features/photo 전체에 계측이 0건이었다. 진단·연습·복습·기출·홈은 전부 붙어 있는데 / 사진만 없었다. 1·2·3일차로 학생이 닿는 문은 다 열었는데, 그대로 내보내면 / 사진 100장이 모여도 셀 게 없다. / 1.0.8이 재려는 것: "실제 학생 사진에서 약점 이름이 몇 % 붙는가." / 이벤트 셋 (features/analytics/event-types.ts): / - photo_submit — 사진첩에서 실제로 고른 순간. 취소는 안 남긴다. / - photo_analyzed — analyzePhoto 원샷 응답. 실패도 success:false로 남긴다. / method_id / has_solving_work / needs_manual_selection / error_candidate_count. / - photo_weakness_labeled — 오답노트가 나온 순간의 (풀이법 × 실수유형) 칸과 / 그 칸에서 약점 이름이 붙었는지. method_id / mistake_type / weakness_count / labeled. / 세 번째가 본체다. weakness_count === 0 인 빈손이 통역표 186칸 중 131칸(70%)이고, / 그게 진단 트리가 얕은 자리다. 붙은 것만 세면 "몇 %"의 분모가 사라지므로 / 빈손을 반드시 같이 남긴다. / 실패를 세는 경계: 사진을 실제로 고른 뒤(submitted)에 터진 것만 분석 실패로 센다. / 사진첩 자체가 못 열린 건 학생이 시도조차 못 한 것이라 분모에 넣으면 안 된다. / showWrongNote에서 weaknessCandidatesFor 호출을 인라인에서 변수로 뽑았다 — / 같은 값을 계측과 노트가 나눠 쓴다. 두 번 부르면 갈라질 수 있는 자리다. / 테스트 6개. 특히 마지막 둘은 이름이 붙는 칸(cps+concept_gap)과 빈손 칸 / (cps+setup_error)을 각각 끝까지 몰아 labeled true/false를 확인한다. / ⚠️ 남은 것: posthog.ts에 __DEV__ 가드가 없어 개발 빌드에서도 실제로 전송된다 / (features/analytics/posthog.ts:24 — API_KEY만 보고 켠다). 08.13에 web-proto에서 / 잡은 "GA 검증 트래픽 분리"와 같은 자리인데 앱에는 아직 없다. 다음 칸. / 검증: typecheck 0 · jest 573 test 전부 통과(567 → 573). / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.27 23:58
+- 해시: `8841a00` (`8841a00da8f6e31f1544627ff0a6e047da21e01d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8841a00da8f6e31f1544627ff0a6e047da21e01d
+- 작성자: 박기윤
+- 메시지: docs: 3편(11호) 발행용 클린판 (08.28 16:46 발행 준비 완료)
+- 본문: v9 재검(첫 독자 3번째) 통과. 각주 걷고 볼드 3곳 확정 — / 반전 훅·결론·행동. 발행 체크리스트와 발행 후 대비까지. / Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.27 21:14
 - 해시: `3ef46ce` (`3ef46ce2ad313d339bf914ed63dd13b03a0d412b`)
 - 브랜치: main
