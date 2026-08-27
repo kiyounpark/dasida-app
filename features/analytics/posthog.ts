@@ -12,6 +12,7 @@
  * `client` prop으로 전달된다. Provider가 자체 인스턴스를 만들지 않으므로 in-app
  * Survey/Feature Flag UI와 capture/identify 호출이 동일 인스턴스를 공유한다.
  */
+import { analyticsEnabled } from './analytics-enabled';
 import type { PostHogEventProperties } from '@posthog/core';
 import PostHog from 'posthog-react-native';
 
@@ -21,6 +22,8 @@ const HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
 // 생성자가 동기적으로 throw해도 앱 부팅이 죽지 않도록 try/catch로 감싼다.
 // init 실패 시 영구 no-op (재시도 없음) — boot 시점에 깨지면 mid-session에도 못 살아남는다는 판단.
 function createPostHogClient(): PostHog | null {
+  // 개발 빌드는 실제 지표를 오염시키지 않는다 (analytics-enabled.ts 참조)
+  if (!analyticsEnabled()) return null;
   if (!API_KEY) return null;
   try {
     return new PostHog(API_KEY, {

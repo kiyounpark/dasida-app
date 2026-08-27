@@ -42,6 +42,13 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
     process.env.EXPO_PUBLIC_GA4_FIREBASE_APP_ID_ANDROID = '1:test:android:def';
     process.env.EXPO_PUBLIC_GA4_API_SECRET_IOS = 'secret-ios';
     process.env.EXPO_PUBLIC_GA4_API_SECRET_ANDROID = 'secret-android';
+    // 아래 테스트들은 전부 "출시 빌드에서는 보낸다"를 재는 것이다.
+    // 개발 빌드 미발신 가드가 생기면서 그 전제를 명시적으로 세운다.
+    (global as { __DEV__?: boolean }).__DEV__ = false;
+  });
+
+  afterEach(() => {
+    (global as { __DEV__?: boolean }).__DEV__ = true;
   });
 
   describe('logEvent', () => {
@@ -174,5 +181,50 @@ describe('log-event wrapper (GA4 Measurement Protocol, 앱 스트림)', () => {
       await flush();
       expect(mockFetch).not.toHaveBeenCalled();
     });
+  });
+});
+
+/**
+ * 계측 오염 방지.
+ *
+ * DAU가 한 자릿수라 우리가 시뮬레이터에서 몇 번 눌러본 게 지표를 통째로 뒤집는데,
+ * PostHog·GA4는 지난 데이터를 못 지운다. 2026.08.13에 web-proto에서 같은 자리를
+ * 잡았지만(로컬 미발신 + ?qa=1) 앱에는 그 분리가 없었다 — 08.27에 사진 계측을
+ * 붙이면서 발견.
+ *
+ * __DEV__는 빌드 타임 상수라 출시 빌드에서는 항상 false다. 웹의 ?qa= 스위치와 달리
+ * "한 번 새면 영영 빠지는" 링크가 없다.
+ */
+describe('개발 빌드 미발신 가드', () => {
+  it('__DEV__면 GA4로 보내지 않는다', async () => {
+    // 키가 없어서 안 보내는 것과 구별해야 한다 — 키를 갖춰놓고 __DEV__만으로 막히는지 본다.
+    // (처음 쓴 판은 바깥 beforeEach 밖이라 키가 비어 있었고, 가드 없이도 통과했다)
+    (global as { __DEV__?: boolean }).__DEV__ = true;
+    process.env.EXPO_PUBLIC_GA4_FIREBASE_APP_ID_IOS = '1:test:ios:abc';
+    process.env.EXPO_PUBLIC_GA4_API_SECRET_IOS = 'secret-ios';
+    mockGetItem.mockResolvedValue('aaaaaaaabbbbbbbbccccccccdddddddd');
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue({ ok: true });
+    const { logEvent } = loadModule();
+
+    logEvent('review_started', { task_id: 'task-abc' });
+    await flush();
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('출시 빌드(__DEV__ false)에서는 보낸다', async () => {
+    (global as { __DEV__?: boolean }).__DEV__ = false;
+    process.env.EXPO_PUBLIC_GA4_FIREBASE_APP_ID_IOS = '1:test:ios:abc';
+    process.env.EXPO_PUBLIC_GA4_API_SECRET_IOS = 'secret-ios';
+    mockGetItem.mockResolvedValue('aaaaaaaabbbbbbbbccccccccdddddddd');
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue({ ok: true });
+    const { logEvent } = loadModule();
+
+    logEvent('review_started', { task_id: 'task-abc' });
+    await flush();
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

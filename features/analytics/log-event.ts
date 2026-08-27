@@ -16,6 +16,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
+import { analyticsEnabled } from './analytics-enabled';
 import type { EventName, EventParams, ScreenName } from './event-types';
 import {
   capture as posthogCapture,
@@ -91,6 +92,10 @@ async function getClientId(): Promise<string> {
 }
 
 async function send(name: string, params: Record<string, unknown>): Promise<void> {
+  // 개발 빌드는 실제 지표를 오염시키지 않는다 (analytics-enabled.ts 참조)
+  if (!analyticsEnabled()) {
+    return;
+  }
   if (!FIREBASE_APP_ID || !API_SECRET) {
     return;
   }
@@ -125,6 +130,8 @@ export function logEvent<K extends EventName>(
   params: EventParams[K],
 ): void {
   const safeParams = (params ?? {}) as Record<string, unknown>;
+  // 개발 중엔 서버로 안 가는 대신 콘솔로 보인다 — 계측이 붙었는지 눈으로 확인하는 유일한 길
+  if (__DEV__) console.log('[analytics]', name, safeParams);
   void send(name as string, safeParams);
   // PostHog 병렬: GA4와 같은 이벤트 이름/페이로드를 그대로 전송
   posthogCapture(name as string, safeParams);
