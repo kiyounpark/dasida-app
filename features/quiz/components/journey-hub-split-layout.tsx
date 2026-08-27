@@ -12,12 +12,19 @@ export function JourneyHubSplitLayout({
   leftBoard,
   posterBanner,
   rightPanel,
+  topCard,
 }: {
   authNotice: ReactNode | null;
   /** (containerWidth: number) => ReactNode — 좌측 컬럼 폭이 측정된 후 보드를 렌더 */
   leftBoard: (containerWidth: number) => ReactNode;
   posterBanner: ReactNode;
   rightPanel: ReactNode;
+  /**
+   * 좌측 컬럼 맨 위(배너 아래)에 얹는 카드. 폰 홈에서 PageContainer 첫 자식으로 두는 것과 같은 자리다.
+   * 보드와 달리 폭 측정을 안 기다린다 — 측정 전에도 보여야 한다.
+   * 선택 prop인 이유: 필수로 만들면 이 레이아웃을 쓰는 기존 테스트가 캐스팅 없이 깨진다.
+   */
+  topCard?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const [leftColumnWidth, setLeftColumnWidth] = useState(0);
@@ -40,6 +47,11 @@ export function JourneyHubSplitLayout({
           {authNotice ? (
             <View style={styles.authNoticeWrap} testID="journey-split-auth-notice">
               {authNotice}
+            </View>
+          ) : null}
+          {topCard ? (
+            <View style={styles.topCardWrap} testID="journey-split-top-card">
+              {topCard}
             </View>
           ) : null}
           <View style={styles.boardWrap}>
@@ -76,6 +88,11 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginTop: 8,
+  },
+  topCardWrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 12,
   },
   boardWrap: {
     flex: 1,

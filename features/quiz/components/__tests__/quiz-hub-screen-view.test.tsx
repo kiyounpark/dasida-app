@@ -53,6 +53,7 @@ const baseProps = {
   onOpenRecentResult: jest.fn(),
   onPressExam: jest.fn(),
   onPressJourneyCta: jest.fn(),
+  onPressPhoto: jest.fn(),
   onPressReviewCard: jest.fn(),
   onRediagnose: jest.fn(),
   onRefresh: jest.fn(),
@@ -89,5 +90,24 @@ describe('QuizHubScreenView 태블릿 split 레이아웃', () => {
     });
 
     expect(screen.getByTestId('journey-board')).toBeTruthy();
+  });
+
+  /**
+   * 아이패드 홈에도 사진 오답노트로 들어가는 문이 있어야 한다.
+   * 폰(photo-entry-card-on-home.test.tsx)과 태블릿은 렌더 경로가 통째로 갈라져서,
+   * 한쪽에 카드를 붙여도 다른 쪽은 그대로 0개다 — 08.26에 폰만 붙은 채로 하루를 보냈다.
+   */
+  it('사진 오답노트 카드가 보인다 — 좌측 컬럼 measure 전에도', () => {
+    render(<QuizHubScreenView {...baseProps} />);
+    expect(screen.getByText('틀린 문제, 사진 한 장이면 돼요')).toBeTruthy();
+  });
+
+  it('사진 카드를 누르면 사진 화면으로 보내는 손잡이를 부른다', () => {
+    const onPressPhoto = jest.fn();
+    render(<QuizHubScreenView {...baseProps} onPressPhoto={onPressPhoto} />);
+
+    fireEvent.press(screen.getByLabelText('사진으로 물어보기'));
+
+    expect(onPressPhoto).toHaveBeenCalledTimes(1);
   });
 });

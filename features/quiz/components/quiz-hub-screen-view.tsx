@@ -237,6 +237,7 @@ export function QuizHubScreenView({
             ) : null
           }
           leftBoard={renderTabletSplitBoard}
+          topCard={<PhotoEntryCard onPress={onPressPhoto} />}
           rightPanel={
             <JourneyHubRightPanel
               analysisResumeItems={analysisResumeItems}

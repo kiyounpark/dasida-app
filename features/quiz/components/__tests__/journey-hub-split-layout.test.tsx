@@ -17,6 +17,7 @@ const renderLayout = (overrides: Partial<Props> = {}) => {
       posterBanner={overrides.posterBanner ?? <Text testID="poster">POSTER</Text>}
       rightPanel={overrides.rightPanel ?? <Text testID="right">RIGHT</Text>}
       leftBoard={leftBoard}
+      topCard={overrides.topCard}
     />,
   );
   return { leftBoard, ...utils };
@@ -71,5 +72,18 @@ describe('JourneyHubSplitLayout', () => {
     renderLayout({ authNotice: <Text testID="notice-content">NOTICE</Text> });
     expect(screen.getByTestId('journey-split-auth-notice')).toBeTruthy();
     expect(screen.getByTestId('notice-content')).toBeTruthy();
+  });
+
+  // topCard는 선택 prop이다 — 필수로 만들면 이 레이아웃을 쓰는 호출부와
+  // 기존 테스트가 캐스팅 없이 깨진다.
+  it('topCard를 안 주면 wrapper를 렌더하지 않는다', () => {
+    renderLayout();
+    expect(screen.queryByTestId('journey-split-top-card')).toBeNull();
+  });
+
+  it('topCard를 주면 좌측 컬럼에 렌더한다 — measure 전에도', () => {
+    renderLayout({ topCard: <Text testID="top-card-content">CARD</Text> });
+    expect(screen.getByTestId('journey-split-top-card')).toBeTruthy();
+    expect(screen.getByTestId('top-card-content')).toBeTruthy();
   });
 });
