@@ -686,6 +686,7 @@
       <div class="note-row"><span class="note-label">다음엔</span><span class="note-fix"></span></div>
       <div class="note-foot"><span class="note-checks"></span><span class="note-tags"></span></div>
       <div class="note-weakness"></div>
+      <div class="note-ask">📌 "수능장에서 이 풀이를 생각해 낼 수 있는가" — 답이 '당연하지'가 아니면, 이 문제 페이지를 접어 둬.</div>
       <div class="note-capture">📸 이 카드, 여기선 저장 안 돼 — 캡처해서 가져가.</div>`;
     // 학생 데이터(인용·설명)는 전부 textContent로 — HTML 해석 금지
     el.querySelector('.note-date').textContent = `${today.getMonth() + 1}/${today.getDate()}`;
