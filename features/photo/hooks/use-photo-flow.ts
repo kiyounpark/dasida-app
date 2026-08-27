@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 
 import type { SolveMethodId } from '@/data/diagnosisTree';
+import { logEvent } from '@/features/analytics/log-event';
 
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
@@ -68,9 +69,14 @@ export function usePhotoFlow(): PhotoFlow {
     if (busyRef.current) return; // 두 번 눌러 vision이 두 번 도는 것(이중 과금) 방지
     busyRef.current = true;
     setError(null);
+    // 사진을 실제로 고른 뒤에 터진 실패만 '분석 실패'로 센다.
+    // 사진첩 자체가 못 열린 건 학생이 시도조차 못 한 것이라 분모에 넣으면 안 된다.
+    let submitted = false;
     try {
       const photo = await pickPhoto();
       if (!photo) return; // 취소
+      submitted = true;
+      logEvent('photo_submit', {});
       photoUriRef.current = photo.uri;
       setImageUri(photo.uri);
       setStatus('analyzing');
@@ -79,9 +85,18 @@ export function usePhotoFlow(): PhotoFlow {
       const result = await requestAnalyze(imageDataUrl);
       resultRef.current = result;
 
+      logEvent('photo_analyzed', {
+        success: true,
+        method_id: result.predictedMethodId,
+        has_solving_work: result.hasSolvingWork,
+        needs_manual_selection: result.needsManualSelection,
+        error_candidate_count: result.errorCandidates.length,
+      });
+
       setStatus('chat');
       runRoute(routeFromAnalysis(result));
     } catch (caught) {
+      if (submitted) logEvent('photo_analyzed', { success: false });
       setStatus('upload');
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -397,6 +412,16 @@ export function usePhotoFlow(): PhotoFlow {
   function showWrongNote(index: number, context: NoteContext, retryResult: RetryResult) {
     const candidate = candidateAt(index);
     const now = new Date();
+    // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (186칸 중 131칸).
+    const weaknessIds = weaknessCandidatesFor(context.methodId, context.mistakeType);
+
+    // 1.0.8이 재려는 숫자. 빈손(0개)도 반드시 남긴다 — 안 남기면 "몇 %"의 분모가 사라진다.
+    logEvent('photo_weakness_labeled', {
+      method_id: context.methodId,
+      mistake_type: context.mistakeType,
+      weakness_count: weaknessIds.length,
+      labeled: weaknessIds.length > 0,
+    });
 
     say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
     showNote({
@@ -408,8 +433,7 @@ export function usePhotoFlow(): PhotoFlow {
       fix: candidate?.fix || mistakeTypeFix(context.mistakeType),
       methodLabel: methodLabel(context.methodId),
       typeLabel: mistakeTypeLabel(context.mistakeType),
-      // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (고3·심화 15개)
-      weaknessIds: weaknessCandidatesFor(context.methodId, context.mistakeType),
+      weaknessIds,
       checkPassed: context.checkPassed,
       retryResult,
     });

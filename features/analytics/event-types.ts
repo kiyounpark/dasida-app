@@ -14,7 +14,11 @@ export type EventName =
   | 'review_router_called'
   | 'review_router_succeeded'
   | 'review_router_fallback'
-  | 'review_fallback_chat_completed';
+  | 'review_fallback_chat_completed'
+  // 사진 오답노트 (1.0.8) — 이 셋이 "학생 사진에서 약점 이름이 몇 % 붙는가"의 분자와 분모다
+  | 'photo_submit'
+  | 'photo_analyzed'
+  | 'photo_weakness_labeled';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -83,6 +87,29 @@ export type EventParams = {
     weakness_id: string;
     step_index: number;
     turn_count: 1 | 2;
+  };
+  /** 사진첩에서 사진을 실제로 고른 순간. 취소하면 안 남는다 — 깔때기의 첫 칸. */
+  photo_submit: Record<string, never>;
+  /** analyzePhoto 원샷 응답. 실패도 남긴다(success: false) — 안 남기면 분모가 샌다. */
+  photo_analyzed: {
+    success: boolean;
+    /** AI가 읽어낸 풀이법. 실패했으면 없다. */
+    method_id?: string;
+    /** 사진에 풀이 흔적이 있었나. false면 재촬영 갈래로 빠진다. */
+    has_solving_work?: boolean;
+    needs_manual_selection?: boolean;
+    error_candidate_count?: number;
+  };
+  /**
+   * 오답노트가 나온 순간의 (풀이법 × 실수유형) 칸과 그 칸에서 약점 이름이 붙었는지.
+   * weakness_count === 0 이 통역표 186칸 중 131칸(70%)인 빈손 자리다.
+   * 붙은 것만 세면 "몇 %"의 분모가 사라지므로 빈손도 반드시 남긴다.
+   */
+  photo_weakness_labeled: {
+    method_id: string;
+    mistake_type: string;
+    weakness_count: number;
+    labeled: boolean;
   };
 };
 
