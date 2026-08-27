@@ -1017,6 +1017,46 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.27 21:10
+- 해시: `1fb46a8` (`1fb46a8dbd0102425c70c35023e763aac1c458fd`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1fb46a8dbd0102425c70c35023e763aac1c458fd
+- 작성자: 박기윤
+- 메시지: feat: 아이패드 홈에도 사진 오답노트 입구를 놓는다 (1.0.8 3일차)
+- 본문: 2일차에 폰 홈에 놓은 카드가 아이패드에는 없었다. 태블릿은 렌더 경로가 통째로 / 갈라져 있어(JourneyHubSplitLayout) 폰에 붙여도 여기는 그대로 0개다. / - journey-hub-split-layout: topCard 슬롯 신설. 포스터 배너 아래, 여정 보드 위 — / 폰에서 PageContainer 첫 자식으로 두는 것과 같은 자리다. 보드와 달리 폭 측정을 / 기다리지 않는다(measure 전에도 보여야 한다). / 선택 prop인 이유: 필수로 만들면 이 레이아웃을 쓰는 기존 호출부와 테스트가 / 캐스팅 없이 깨진다. / - quiz-hub-screen-view: 태블릿 분기에 topCard 한 줄. / - 테스트 4개. 기존 quiz-hub-screen-view.test.tsx가 태블릿 split 경로라 거기 2개, / split-layout 자체에 선택 prop 보증 2개. / ⚠️ 알고 남긴 것 — 아이패드에서 여정 그림이 잘린다. / 카드 높이(약 190pt)만큼 보드가 밀려 STEP 2·3이 화면 밖으로 나간다. / 실기 A/B로 확인했다: 카드를 빼면 STEP 1·2·3이 보이고, 넣으면 STEP 1만 보인다. / 원인은 카드가 아니라 그 아래 있던 것이다. 태블릿 split은 JourneyBoard에 / availableHeight={0}을 넘긴다(quiz-hub-screen-view.tsx:164). 0은 "높이 제한 없음"이라 / 보드가 세로를 아예 안 본다 — 폰 경로는 실제 값을 넘긴다. / 카드가 없던 어제도 STEP 4는 이미 잘려 있었다. / 안 고치는 이유(기윤 판정): 학습 여정판은 없애기로 잠긴 것(08.26 🔒)이라 / 높이 계산을 붙이면 여정판과 함께 버려진다. 카드를 우측 패널로 옮기는 안도 같은 / 이유로 버려진다. 잘려도 기능은 다 닿는다 — 사진 카드는 온전히 보이고, / 진단 입구('첫 진단 시작하기')는 우측 패널이라 무관하다. / 1.0.8의 목적은 기능 완성이 아니라 측정이다. / ⚠️ 미확인: 애플 심사가 아이패드 레이아웃 잘림을 거는지는 안 봤다. / 검증: iPad (A16) 시뮬레이터 실기 확인 — 홈에서 카드 노출, 좌측 컬럼 폭 625pt로 / 실제 가로 아이패드 계산값(626pt)과 일치. / typecheck 0 · jest 564 test 전부 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.26 21:11
+- 해시: `bc41f8e` (`bc41f8e686ed473d89293ea9f1fb5c34b8b31b9e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/bc41f8e686ed473d89293ea9f1fb5c34b8b31b9e
+- 작성자: 박기윤
+- 메시지: feat(web-proto): 네이버 서치어드바이저 소유확인 메타태그 추가
+- 본문: Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.26 21:02
+- 해시: `d4e1f49` (`d4e1f49d299c74e1c95d0fe55662595948826fa3`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d4e1f49d299c74e1c95d0fe55662595948826fa3
+- 작성자: 박기윤
+- 메시지: feat(web-proto): meta description 추가
+- 본문: 검색결과 설명문이 본문에서 임의로 긁히지 않도록 명시 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.26 21:00
+- 해시: `18c59c8` (`18c59c8ba1bdc2bb679be6e255c2d9b81c600e33`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/18c59c8ba1bdc2bb679be6e255c2d9b81c600e33
+- 작성자: 박기윤
+- 메시지: feat(web-proto): 구글 서치콘솔 소유확인 메타태그 + sitemap.xml + robots.txt
+- 본문: - google-site-verification 메타태그 추가 (HTML 태그 방식, 소유권 확인 완료) / - sitemap.xml 생성 (메인 URL 1건) / - robots.txt 생성 (전체 허용 + sitemap 경로 명시) / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.25 23:36
 - 해시: `293942e` (`293942e955a0021753d2e37ef2bb9b32ba6d9021`)
 - 브랜치: (브랜치 정보 없음)
