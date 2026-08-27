@@ -163,7 +163,7 @@ const customExplainCopyByChoice: Partial<Record<string, ExplainCopy>> = {
   },
   diff_judge: {
     title: '최댓값과 최솟값은 그래프 방향을 먼저 보면 돼요.',
-    body: '이차함수에서는 a의 부호를 보면 위로 볼록인지 아래로 볼록인지 알 수 있습니다.\n\n위로 볼록이면 최솟값, 아래로 볼록이면 최댓값이에요.',
+    body: '이차함수에서는 a의 부호를 보면 위로 볼록인지 아래로 볼록인지 알 수 있습니다.\n\n아래로 볼록이면 최솟값, 위로 볼록이면 최댓값이에요.',
     remedialTitle: '판단 기준만 다시 볼게요.',
     remedialBody: 'a > 0이면 최솟값, a < 0이면 최댓값입니다.\n값을 계산하기 전에 이 판단부터 먼저 하세요.',
   },
