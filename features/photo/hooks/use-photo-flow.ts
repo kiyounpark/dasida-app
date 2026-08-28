@@ -4,6 +4,7 @@ import type { SolveMethodId } from '@/data/diagnosisTree';
 import { logEvent } from '@/features/analytics/log-event';
 
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
+import { askPhotoSource } from '../flow/ask-photo-source';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
 import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
 import { weaknessCandidatesFor } from '../flow/weakness-mistake-type-map';
@@ -73,10 +74,13 @@ export function usePhotoFlow(): PhotoFlow {
     // 사진첩 자체가 못 열린 건 학생이 시도조차 못 한 것이라 분모에 넣으면 안 된다.
     let submitted = false;
     try {
-      const photo = await pickPhoto();
-      if (!photo) return; // 취소
+      const source = await askPhotoSource();
+      if (!source) return; // 묻는 창에서 취소
+
+      const photo = await pickPhoto(source);
+      if (!photo) return; // 카메라·사진첩에서 취소
       submitted = true;
-      logEvent('photo_submit', {});
+      logEvent('photo_submit', { source });
       photoUriRef.current = photo.uri;
       setImageUri(photo.uri);
       setStatus('analyzing');

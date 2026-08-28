@@ -85,19 +85,19 @@ const baseProps = {
 describe('홈의 사진 오답노트 입구 (폰)', () => {
   it('여정 진행 중에도 카드가 보인다', () => {
     render(<QuizHubScreenView {...baseProps} />);
-    expect(screen.getByText('틀린 문제, 사진 한 장이면 돼요')).toBeTruthy();
+    expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
   });
 
   it('시험 분석 중에도 카드가 보인다 — 홈 골격이 바뀌어도 문은 남는다', () => {
     render(<QuizHubScreenView {...baseProps} showAnalysisResumeCard />);
-    expect(screen.getByText('틀린 문제, 사진 한 장이면 돼요')).toBeTruthy();
+    expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
   });
 
   it('누르면 사진 화면으로 보내는 손잡이를 부른다', () => {
     const onPressPhoto = jest.fn();
     render(<QuizHubScreenView {...baseProps} onPressPhoto={onPressPhoto} />);
 
-    fireEvent.press(screen.getByLabelText('사진으로 물어보기'));
+    fireEvent.press(screen.getByLabelText('사진 찍어서 물어보기'));
 
     expect(onPressPhoto).toHaveBeenCalledTimes(1);
   });

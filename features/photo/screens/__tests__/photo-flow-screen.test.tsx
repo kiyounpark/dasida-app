@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 // jest.mock은 babel이 import 위로 끌어올리므로 아래 import들이 목을 먼저 받는다
 import { makeCandidate, makeResult } from '../../flow/__fixtures__/analysis';
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../../flow/analyze-photo-request';
+import { askPhotoSource } from '../../flow/ask-photo-source';
 import { logEvent } from '@/features/analytics/log-event';
 import { PhotoFlowScreen } from '../photo-flow-screen';
 
@@ -38,11 +39,19 @@ jest.mock('../../flow/analyze-photo-request', () => ({
   requestAnalyze: jest.fn(),
 }));
 
+// 찍을지 고를지 묻는 창. 실물은 ActionSheetIOS라 테스트 환경에 네이티브가 없다
+// ("ActionSheetManager doesn't exist"). 아래 테스트들은 그 뒤의 흐름을 재는 것이라
+// 기본값으로 앨범을 골라 통과시킨다 — 창 자체는 ask-photo-source.test.ts가 잰다.
+jest.mock('../../flow/ask-photo-source', () => ({
+  askPhotoSource: jest.fn(),
+}));
+
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
 }));
 
 const mockPick = pickPhoto as jest.Mock;
+const mockAskSource = askPhotoSource as jest.Mock;
 const mockDownscale = downscaleToDataUrl as jest.Mock;
 const mockAnalyze = requestAnalyze as jest.Mock;
 const mockLog = logEvent as jest.Mock;
@@ -69,6 +78,7 @@ function eventNamed(name: string) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAskSource.mockResolvedValue('library');
   mockPick.mockResolvedValue({ uri: 'file://photo.jpg', width: 3024, height: 4032 });
   mockDownscale.mockResolvedValue('data:image/jpeg;base64,AAAA');
 });
@@ -242,6 +252,32 @@ describe('사진 flow 계측', () => {
     await waitFor(() => expect(mockPick).toHaveBeenCalled());
     expect(eventNamed('photo_submit')).toBeFalsy();
   });
+
+  it('묻는 창에서 취소하면 사진첩도 카메라도 안 열린다', async () => {
+    mockAskSource.mockResolvedValue(null);
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAskSource).toHaveBeenCalled());
+    expect(mockPick).not.toHaveBeenCalled();
+    expect(eventNamed('photo_submit')).toBeFalsy();
+  });
+
+  it.each(['camera', 'library'] as const)(
+    '%s를 고르면 그대로 사진을 열고 photo_submit에 실어 보낸다',
+    async (source) => {
+      mockAskSource.mockResolvedValue(source);
+      mockAnalyze.mockResolvedValue(makeResult());
+      render(<PhotoFlowScreen />);
+
+      fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+      await waitFor(() => expect(eventNamed('photo_submit')).toBeTruthy());
+      expect(mockPick).toHaveBeenCalledWith(source);
+      expect(eventNamed('photo_submit')?.[1]).toEqual({ source });
+    },
+  );
 
   it('분석이 되면 photo_analyzed에 success: true와 읽어낸 방법을 싣는다', async () => {
     mockAnalyze.mockResolvedValue(makeResult());

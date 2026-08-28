@@ -88,8 +88,12 @@ export type EventParams = {
     step_index: number;
     turn_count: 1 | 2;
   };
-  /** 사진첩에서 사진을 실제로 고른 순간. 취소하면 안 남는다 — 깔때기의 첫 칸. */
-  photo_submit: Record<string, never>;
+  /**
+   * 사진을 실제로 고르거나 찍은 순간. 취소하면 안 남는다 — 깔때기의 첫 칸.
+   * source는 찍었나 앨범에서 골랐나. 눈앞 종이를 바로 찍는 게 주 경로라고
+   * 보고 만든 건데, 실제로 그런지는 이 칸이 답한다.
+   */
+  photo_submit: { source: 'camera' | 'library' };
   /** analyzePhoto 원샷 응답. 실패도 남긴다(success: false) — 안 남기면 분모가 샌다. */
   photo_analyzed: {
     success: boolean;

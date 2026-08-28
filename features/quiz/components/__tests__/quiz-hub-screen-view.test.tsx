@@ -99,14 +99,14 @@ describe('QuizHubScreenView 태블릿 split 레이아웃', () => {
    */
   it('사진 오답노트 카드가 보인다 — 좌측 컬럼 measure 전에도', () => {
     render(<QuizHubScreenView {...baseProps} />);
-    expect(screen.getByText('틀린 문제, 사진 한 장이면 돼요')).toBeTruthy();
+    expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
   });
 
   it('사진 카드를 누르면 사진 화면으로 보내는 손잡이를 부른다', () => {
     const onPressPhoto = jest.fn();
     render(<QuizHubScreenView {...baseProps} onPressPhoto={onPressPhoto} />);
 
-    fireEvent.press(screen.getByLabelText('사진으로 물어보기'));
+    fireEvent.press(screen.getByLabelText('사진 찍어서 물어보기'));
 
     expect(onPressPhoto).toHaveBeenCalledTimes(1);
   });
