@@ -130,6 +130,32 @@
 
 ## 로그
 
+### 2026.08.29
+
+**1.0.8 스토어 관문 — 계획에 없던 셋을 연달아 찾아 닫음**
+
+코드 변경 0줄. 전부 App Store Connect·Play Console 안에서 한 일이라 커밋에 안 남는다.
+
+**한 것**
+
+- Play Console 데이터 보안에 사진 추가 — 수집 예 / 공유 아니요(OpenAI는 서비스 제공업체) / 임시 처리 / 선택 / 앱 기능. 08.29 접수, 검토 중.
+- 같은 폼의 계정 생성 방법 오신고 정정 — "사용자 이름 및 비밀번호" → OAuth. 이 앱엔 이메일+비번 로그인이 없다(`signInWithEmailAndPassword` 0건, `signInWithCredential`만).
+- App Store Connect App Privacy — User Content > Photos or Videos, App Functionality, 신원 연결 없음, 추적 없음. Published.
+- **애플 개발자 계약이 만료 상태였다.** "regain access to … Certificates, Identifiers & Profiles, App Store Connect API" — 이미 잠겨 있었다. 그대로 뒀으면 1.0.8 iOS 빌드가 실패한다. Accepted August 29, 2026.
+- **연령 등급 소셜 미디어 설문이 새로 필수가 됐다.** 애플 공지 원문 "beginning in September 2026, responses will be required when submitting new apps or updates". Social Media / Social Media Disabled for Users Under 13 둘 다 NO. **등급 4+ 유지**(172개국, 한국 00+).
+- 1.0.8 버전 생성("Prepare for Submission"). What's New 비움, 빌드 미선택.
+
+**알게 된 것**
+
+- **App Information은 편집 가능한 버전이 없으면 잠긴다.** 연령 등급 설문이 읽기 전용으로만 열렸는데(라디오 16개 `disabled: true`), 1.0.8 버전을 만들자 전부 풀렸다. 같은 페이지의 Content Rights·License Agreement에 Edit이 살아 있던 게 "권한 문제가 아니다"의 증거였다.
+- **구글 데이터 보안 검토는 1~2일이 아니라 7일.** 계획표에 1~2일로 적어뒀었다. 원래 자리(09.01)에 냈으면 09.08에 나온다 — 제출 하루 전이다.
+- `features/analytics/analytics-enabled.ts`가 `!__DEV__`를 돌려주고 PostHog·GA4 발신을 막는다(08.27 추가). 그래서 계획표 11·12번의 끝난 기준 "개발 빌드로 돌리고 PostHog에 뜨는 걸 본다"가 **불가능**하다. 확인 방법을 10번 할 때 다시 정해야 한다.
+- **이름을 실제로 수집한다.** `features/auth/firebase-auth-client.ts`가 애플 로그인의 `familyName`+`givenName`을 `displayName`으로 저장한다. 개인정보처리방침 1항에 이름이 없다 — 방침 다음에 열 때 PostHog·GA·푸시 토큰과 같이 고친다.
+
+**계획표**
+
+15일 날짜표를 버리고 순서 의존성 + 여유 카운터로 바꿨다. 끝난 5개 중 계획 날짜에 맞은 게 1개뿐이었다. 남은 일 8개 · 남은 날 11일 · 여유 3일. 남은 날짜는 09.09 제출 하나.
+
 ### 2026.05.09
 
 **iPad/Android tablet landscape-only 구현 완료**
@@ -1016,6 +1042,26 @@
 > - 설정 명령: `npm run setup:hooks` (현재 로컬 저장소 적용 완료)
 
 <!-- COMMIT_LOGS_START -->
+
+### 커밋 2026.08.28 21:56
+- 해시: `654b4d7` (`654b4d7b58d995b62e8ab28f757a795d7836cd0d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/654b4d7b58d995b62e8ab28f757a795d7836cd0d
+- 작성자: 박기윤
+- 메시지: feat: 앱에서도 찍어서 올린다 — 카메라 갈래 (1.0.8)
+- 본문: 웹(dasida-proto)은 처음부터 찍을 수 있었다. `<input type="file" accept="image/*">` / 한 줄에 폰 브라우저가 "사진 찍기 / 사진 보관함"을 얹어주기 때문이다. / 앱만 launchImageLibraryAsync를 직접 불러서 사진첩만 됐다. / 방금 틀린 문제는 사진첩이 아니라 눈앞 종이에 있다. 앨범만 되면 학생이 / 먼저 찍고 앱을 열어야 하는데, 그 두 단계가 우리가 판다는 바로 그 귀찮음이다. / - ask-photo-source.ts 신설. 아이폰은 ActionSheetIOS(아래에서 올라오는 시트), / 안드로이드는 Alert(가운데 창). 세 갈래는 같다 — 찍기 / 앨범 / 취소. / ⚠️ 모든 갈래가 반드시 resolve 해야 한다. 하나라도 새면 use-photo-flow의 / busyRef가 true로 남아 사진 카드가 영영 안 눌린다. 안드로이드 Alert에 / onDismiss를 단 이유가 그것(바깥 눌러 닫는 길). / - pickPhoto(source)로 갈래를 나눴다. 카메라는 카메라 권한을 따로 묻는다. / presentationStyle은 둘 다 FULL_SCREEN — 같은 UIImagePickerController라 / 08.26에 학생을 가둔 함정이 카메라 쪽에도 그대로 있다. / - photo_submit에 source 한 칸. "눈앞 종이를 찍는 게 주 경로"는 지금 짐작이고, / 이 칸이 그 짐작에 답한다. / - 홈 카드 문구를 찍기로 세웠다. 08.26에 "찍어"를 뺐던 건 그때 안 됐기 때문이다. / 앨범도 여전히 되지만 앞에 안 세운다. / 권한 거부 문구도 같이 고쳤다. 학생이 `카메라 권한이 없어 (denied)`를 그대로 / 읽고 있었다 — 에러 메시지가 업로드 화면 카드에 직행한다. 아이폰은 한 번 / 거부하면 다시 안 묻기 때문에, 안내가 없으면 학생은 거기서 끝난다. / 남은 길(카메라↔앨범)이 멀쩡히 있는데도. 두 문구 모두 설정과 반대편 길을 준다. / 카메라는 기존 유저 전부가 처음 보는 팝업이라 거부가 실제로 나온다. / 검증: typecheck 0 · jest 594 통과(589 → 594). / 권한 문구 테스트 4개는 옛 문구로 되돌려 RED를 본 뒤 GREEN을 확인했다 / (08.28 낮에 RED를 못 본 가드 테스트를 쓴 적이 있어 이번엔 먼저 봤다). / 실기(아이폰, Metro): 창 뜸 · 취소 후 안 갇힘 · 카메라로 찍어 분석까지 완주 — 기윤 확인. / ⚠️ 남은 것: / - 아이패드에서 ActionSheetIOS가 어디 뜨는지 미확인. anchor를 안 줬다. / - 권한 거부 화면은 실기 미확인(문구만 고침). / - ios/가 1.0.6 때 것이라 카메라 권한 문구가 아직 영어다. / prebuild --clean이 1.0.8 빌드 전에 한 번 돌아야 한다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.08.28 00:10
+- 해시: `a233532` (`a2335321c61f1d286ec588746222f08d38ffb1d0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a2335321c61f1d286ec588746222f08d38ffb1d0
+- 작성자: 박기윤
+- 메시지: docs: 3편 실험 변수 기록 + 예고 이행 가능 크롤 확인
+- 본문: 바뀐 게 셋이라 인과 못 가름을 판정 전에 적어둠. 4편 재료 2건 보관 / (계산실수 4점·아맞다 실수 댓글). / Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 
 ### 커밋 2026.08.28 00:05
 - 해시: `3bca837` (`3bca837ebd9faac1d8833a306870bfed130da628`)
