@@ -1043,6 +1043,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.29 11:25
+- 해시: `2ed520c` (`2ed520c3c595a2a1cc6f955ea4aee08afc48b84f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2ed520c3c595a2a1cc6f955ea4aee08afc48b84f
+- 작성자: 박기윤
+- 메시지: docs: 스토어 관문 셋을 찾아 닫았다 — 계약·연령등급·1.0.8 버전
+- 본문: 코드 0줄. App Store Connect·Play Console 안에서만 한 일이라 이 커밋 말고는 / 아무 데도 안 남는다. 그래서 PROGRESS.md 로그에 손으로 적는다. / 원래 오늘 할 일은 7번(두 스토어 개인정보 폼) 하나였다. 폼을 채우러 들어갔다가 / 배너를 보고 둘을 더 찾았고, 셋 다 09.09 제출을 막고 있었다. / - 애플 개발자 계약이 만료 상태였다. "regain access to ... Certificates, / Identifiers & Profiles, App Store Connect API" — 이미 잠겨 있었다는 뜻이다. / 그대로 뒀으면 1.0.8 iOS 빌드가 실패한다. Accepted August 29, 2026. / - 연령 등급 소셜 미디어 설문이 새로 필수. 애플 공지 원문이 / "beginning in September 2026, responses will be required when submitting / new apps or updates" — 1.0.8은 업데이트라 선택이 아니었다. / Social Media / Social Media Disabled for Users Under 13 둘 다 NO. / 근거는 코드에서 확인했다: 공유 기능 0건, WebView 0건, 광고 SDK 0건, / Firestore 경로가 전부 본인 데이터, Declared Age Range API 미사용. / 등급은 4+ 그대로다 — 학생한테 보이는 값은 안 바뀌었다. / - 그 설문이 읽기 전용으로만 열렸다(라디오 16개 disabled). 권한이 아니라 / 편집 가능한 버전이 없어서였다. 1.0.8 버전을 만들자 전부 풀렸다. / 같은 페이지의 Content Rights에 Edit이 살아 있던 게 그 증거였다. / 찾은 것 셋: / - 구글 데이터 보안 검토는 1~2일이 아니라 7일이다. 원래 자리(09.01)에 냈으면 / 09.08에 나온다 — 제출 하루 전. 사흘 앞당긴 게 그걸 살렸다. / - analytics-enabled.ts가 !__DEV__로 PostHog·GA4 발신을 막는다(08.27). / 그래서 계획표 11·12번의 "개발 빌드로 돌리고 PostHog에 뜨는 걸 본다"가 / 불가능해졌다. 확인 방법을 10번 할 때 다시 정해야 한다. / - firebase-auth-client.ts가 애플 로그인의 이름을 displayName으로 저장한다. / 개인정보처리방침 1항에 이름이 없다. 방침 다음에 열 때 PostHog·GA·푸시 / 토큰과 같이 고친다. / Play Console 폼에서 계정 생성 방법 오신고도 정정했다 — "사용자 이름 및 / 비밀번호"로 돼 있었는데 이 앱엔 이메일+비번 로그인이 없다. / 계획표: 15일 날짜표를 버리고 순서 의존성 + 여유 카운터로 바꿨다. / 끝난 5개 중 계획 날짜에 맞은 게 1개뿐이었다. / 남은 일 8개 · 남은 날 11일 · 여유 3일. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.28 21:56
 - 해시: `654b4d7` (`654b4d7b58d995b62e8ab28f757a795d7836cd0d`)
 - 브랜치: main
