@@ -301,6 +301,8 @@
       show('chat');
       routeFromAnalysis(result);
     } catch (error) {
+      // 실패도 센다 — 안 세면 photo_submit만 찍히고 사라져 "대기 중 이탈"과 안 갈림
+      logEvent('analysis_failed', { message: String(error?.message || error).slice(0, 90) });
       show('upload');
       cta.disabled = false;
       alert('분석에 실패했어요. 잠시 후 다시 시도해줘요. (' + error.message + ')');
@@ -322,6 +324,12 @@
   // ── 분석 결과 → 3갈래 라우팅 ──
   function routeFromAnalysis(result) {
     pocket = result;
+    // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
+    // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
+    logEvent('analysis_shown', {
+      has_work: result.hasSolvingWork ? 1 : 0,
+      error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN ? 1 : 0,
+    });
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     if (!result.hasSolvingWork) {
       offerRetake(); // 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 (Task 8)
@@ -352,8 +360,9 @@
     coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
-      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
-      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); showTopicMethods(undefined, [result.predictedMethodId]); } },
+      // method_confirm — AI 방법 단언의 적중/빗나감. mode로 단언(assert)과 추측 확인(soft)을 가른다.
+      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); logEvent('method_confirm', { answer: 'yes', mode: 'assert' }); confirmMethod(result.predictedMethodId); } },
+      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); logEvent('method_confirm', { answer: 'no', mode: 'assert' }); showTopicMethods(undefined, [result.predictedMethodId]); } },
     ]);
   }
   function firstSnippet(transcription) {
@@ -368,11 +377,12 @@
     const snippet = firstSnippet(result.transcription);
     coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${info.labelKo}(으)로 푼 것 같아. 맞아?`);
     setActions([
-      { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); confirmMethod(result.predictedMethodId); } },
+      { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); logEvent('method_confirm', { answer: 'yes', mode: 'soft' }); confirmMethod(result.predictedMethodId); } },
       {
         label: '아니야, 다른 방법이야', kind: 'ghost',
         onPress: () => {
           userSays('아니야');
+          logEvent('method_confirm', { answer: 'no', mode: 'soft' });
           // 거절된 1등은 후보에서 제외 — 거절한 게 또 뜨지 않게
           showCandidateCards(result.candidateMethodIds, undefined, [result.predictedMethodId]);
         },
@@ -579,10 +589,11 @@
       coachSays(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${cand.quote}" 쓴 줄. 여기 아니야?`);
     }
     setActions([
+      // error_point_confirm — AI가 짚은 오류 지점의 적중/빗나감. attempt = 사다리 몇 번째 후보였나.
       { label: idx === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야', kind: 'primary',
-        onPress: () => { userSays('맞아, 거기야'); showWhy(idx); } },
+        onPress: () => { userSays('맞아, 거기야'); logEvent('error_point_confirm', { answer: 'yes', attempt: idx + 1 }); showWhy(idx); } },
       { label: idx === 0 ? '아니야, 거기 아니야' : '아니야', kind: 'ghost',
-        onPress: () => { userSays('아니야'); startPointing(idx + 1); } },
+        onPress: () => { userSays('아니야'); logEvent('error_point_confirm', { answer: 'no', attempt: idx + 1 }); startPointing(idx + 1); } },
     ]);
   }
 
@@ -609,6 +620,7 @@
       onPress: () => {
         userSays(opt);
         const passed = i === cand.checkAnswerIndex;
+        logEvent('check_answer', { passed: passed ? 1 : 0 }); // 쪽지시험 — 설명이 실제로 먹혔나
         if (passed) {
           coachSays('그렇지. 이제 이 자리에서는 안 틀리겠네.');
         } else {
@@ -628,6 +640,9 @@
     const typeInfo = SURVEY.TYPES[mistakeType] || { label: '유형 미상', fix: '' };
     const title = `오늘 찾은 약점 — ${methodLabel} × ${typeInfo.label}`;
     cardEl(title, ['(네가 직접 짚어준 것)', typeInfo.fix].join('\n'), 'final');
+    // 깔때기 2' — 설문 결말 도달 수. note_shown과 합치면 결말 도달 전체,
+    // photo_submit에서 둘 다 빼면 중간 이탈이 나온다 (08.31: 21→1 갭이 이 이벤트 부재로 캄캄했음).
+    logEvent('weakness_card_shown', { method: methodId || 'unknown', mistake: mistakeType || 'unknown' });
     showForgettingCurve('survey', { methodId, mistakeType });
   }
 
@@ -802,6 +817,7 @@
       label: opt.text,
       onPress: () => {
         userSays(opt.text);
+        logEvent('survey_pick', { mistake: opt.type }); // 오류 못 찾은 날, 학생이 스스로 짚는 자리의 분포
         showWeaknessCard({ methodId, mistakeType: opt.type, aiConfirmed: false });
       },
     }));
@@ -809,6 +825,7 @@
       label: '잘 모르겠어', kind: 'ghost',
       onPress: () => {
         userSays('잘 모르겠어');
+        logEvent('survey_pick', { mistake: 'dont_know' });
         showWeaknessCard({ methodId, mistakeType: 'concept_gap', aiConfirmed: false });
       },
     });

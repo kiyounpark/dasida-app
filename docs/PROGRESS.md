@@ -130,6 +130,24 @@
 
 ## 로그
 
+### 2026.08.31
+
+**오르비 3편(11호) 첫 실측 — D+3, 판정 예정일(8/29)은 놓침**
+
+- 22:02 크롤 실측: 3편 조회 172 · 좋아요 1 · 댓글 0 · 팔로워 2 (증분 0). 악플 0, 제품 질문 댓글 0.
+- 2편(10호) D+14 동시 측정: 조회 297 · 좋아요 1 · 댓글 0.
+- 8/29 D+1 판정은 안 잼 — 2·3편 D+1 비교 데이터 영구 결손. D+10 판정(2편)도 같은 이유로 D+14 대체.
+- orbi11 GA 유입(22:15 실측): 5세션 / 참여 1 / 클릭률 약 2.9%. photo_submit은 22건 중 20건이 오르비 학생(orbi9 11·orbi10 8·orbi11 1) — 본인 트래픽 아님(08.13 qa 분리 장치 확인).
+- ⚠️ 깔때기 28일 photo_submit 21 → note_shown 1의 원인 조사(?qa=1 실기 3회): **제품 고장 아님** — 틀린 풀이 사진은 오답노트까지 정상 출력. 갭은 ②설문 결말(AI가 오류 못 찾음 → 노트 없음)에 **이벤트가 없어서** 못 보는 것. 예약급: ②결말 이벤트 추가 전엔 병목이 AI 감지율인지 이탈인지 못 가름. 상세는 `docs/drafts/2026-08-27-orbi-11ho-publish.md` 실측 기록 참조.
+
+**깔때기 도장 7개 심고 배포 — 이탈 지점이 보이기 시작한다 (08.31 밤)**
+
+- web-proto/app.js에 이벤트 7종 추가: analysis_shown(+has_work·error_found) / analysis_failed / method_confirm(방법 적중) / error_point_confirm(지점 적중) / check_answer / weakness_card_shown(캄캄했던 설문 결말) / survey_pick. 기존 3종 합쳐 도장 10개 — 마지막 도장 = 이탈 지점.
+- 기윤이 netlify deploy --prod로 배포(6a958f53). Claude가 ?qa=1 + track 스파이로 실기 2회:
+  - 틀린 풀이(부호 실수) → photo_submit → analysis_shown{error_found:1} → method_confirm{yes} → error_point_confirm{yes,attempt:1} → check_answer{passed:1} → note_shown{retry:pass} — 오답노트 화면 출력 ✓
+  - 맞는 풀이 → analysis_shown{error_found:0} → survey_pick{calc_slip} → weakness_card_shown ✓
+- qa=1이라 GA 오염 0. 내일부터 오는 학생은 세 갈래(노트/약점카드/이탈)로 갈려서 보인다.
+
 ### 2026.08.29
 
 **1.0.8 스토어 관문 — 계획에 없던 셋을 연달아 찾아 닫음**
