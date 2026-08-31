@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.08.31 23:34
+- 해시: `7ad4103` (`7ad41036788272f2d9e21f2b2d8827c893b675bb`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7ad41036788272f2d9e21f2b2d8827c893b675bb
+- 작성자: 박기윤
+- 메시지: feat: 웹 프로토 깔때기에 도장 7개 — 21명이 어디로 갔는지 이제 보인다
+- 본문: 발단: 3편 D+3 판정하다 GA에서 photo_submit 21 → note_shown 1을 봤다. / 유입원 쪼개보니 21건 중 20건이 오르비 학생(orbi9 11·orbi10 8·orbi11 1) — / 본인 트래픽 아님(08.13 qa 분리 장치가 로컬을 이미 막고 있었다). / ?qa=1 실기 3회로 원인을 갈랐다: 제품 고장이 아니다. 틀린 풀이 사진(판별식 / c 부호 실수)은 AI가 지점을 정확히 짚고 오답노트까지 나온다. 갭은 결말이 / 둘인데 한쪽(설문→약점 카드)에 이벤트가 없어서 생긴 "안 보임"이었다. / 참고: 기존 테스트 사진 2장은 풀이가 맞는 사진이라 오류 못 찾는 게 정상이었다. / 심은 것 (web-proto/app.js): / - analysis_shown {has_work, error_found} — 분석이 화면에 닿은 수. photo_submit과의 / 차 = 대기 중 이탈. error_found가 note/weakness 비율의 예고편 / - analysis_failed — 실패와 이탈이 안 섞이게 / - method_confirm {answer, mode} — AI 방법 단언(assert)·추측(soft) 적중률 / - error_point_confirm {answer, attempt} — AI 오류 지점 적중률 (제품 핵심 약속) / - check_answer {passed} — 쪽지시험 / - weakness_card_shown {method, mistake} — 캄캄했던 설문 결말 / - survey_pick {mistake} — 학생이 스스로 짚는 자리 분포 / 기존 3종(photo_submit·note_shown·want_photo_in_app) 합쳐 도장 10개. / 이탈은 별도 이벤트 없이 "마지막 도장 = 이탈 지점"으로 읽는다 — / beforeunload류는 폰에서 유실이 많아 안 쓴다. / 배포: 기윤이 netlify deploy --prod (6a958f53). 검증: ?qa=1 + window.track / 스파이로 두 경로 실기 — 틀린 풀이는 note_shown{retry:pass}까지 6개, / 맞는 풀이는 weakness_card_shown까지 5개 전부 발사. GA 오염 0. / docs: 3편 D+3 실측(조회 172·좋아요 1·댓글 0·팔로워 2, 8/29 D+1 결손 자인)과 / 깔때기 조사 전말을 publish 파일·PROGRESS에 기록. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.08.29 11:25
 - 해시: `2ed520c` (`2ed520c3c595a2a1cc6f955ea4aee08afc48b84f`)
 - 브랜치: main
