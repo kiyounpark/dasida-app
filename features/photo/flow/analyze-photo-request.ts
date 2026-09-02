@@ -115,6 +115,12 @@ export async function requestAnalyze(imageDataUrl: string): Promise<AnalyzePhoto
   }
 
   if (!response.ok) {
+    // 5xx·429는 우리 잘못이 아니라 "그때 늦었다"다. 09.02 로그 실측 —
+    // 같은 사진 세 번이 84초·99초·25초였다. 사진이 아니라 AI 쪽 편차라
+    // 다시 누르면 될 확률이 높다. 학생한테 숫자를 보여주는 대신 할 일을 준다.
+    if (response.status >= 500 || response.status === 429) {
+      throw new Error('잠깐 늦어졌어. 한 번만 다시 눌러줄래?');
+    }
     throw new Error(`분석 서버가 ${response.status}로 답했어`);
   }
   return (await response.json()) as AnalyzePhotoResult;
