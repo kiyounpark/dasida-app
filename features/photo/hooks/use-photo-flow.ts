@@ -138,7 +138,7 @@ export function usePhotoFlow(): PhotoFlow {
 
   /** 갈래 1: 단언 + 탈출구 */
   function assertMethod(methodId: SolveMethodId, label: string, snippet: string) {
-    say(`풀이 읽었어. ${snippet ? `${snippet} — ` : ''}${label}(으)로 접근했네.`);
+    say(`풀이 읽었어. ${snippet ? `${snippet} — ` : ''}${ro(label)} 접근했네.`);
     say('그럼 여기서부터 같이 보자.');
     ask([
       {
@@ -162,7 +162,7 @@ export function usePhotoFlow(): PhotoFlow {
 
   /** 갈래 2 중간 확신: 단정 대신 추측 확인 — "~같아. 맞아?" */
   function softAssertMethod(methodId: SolveMethodId, label: string, snippet: string) {
-    say(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${label}(으)로 푼 것 같아. 맞아?`);
+    say(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${ro(label)} 푼 것 같아. 맞아?`);
     ask([
       {
         label: '맞아',

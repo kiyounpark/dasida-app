@@ -95,7 +95,7 @@ describe('PhotoFlowScreen', () => {
 
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
 
-    await waitFor(() => expect(screen.getByText(/완전제곱식\(으\)로 접근했네/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/완전제곱식으로 접근했네/)).toBeTruthy());
     expect(screen.getByText('맞아, 시작하자')).toBeTruthy();
   });
 
