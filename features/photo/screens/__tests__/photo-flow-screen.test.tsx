@@ -198,7 +198,7 @@ describe('PhotoFlowScreen', () => {
     expect(screen.queryByText('25를 더하고 뺀다')).toBeNull();
   });
 
-  it('짚은 자리가 아니라고 하면 두 번째를 짚고, 그것도 아니면 느낌 설문으로 넘긴다', async () => {
+  it('짚은 자리가 아니라고 하면 두 번째를 짚고, 그것도 아니면 내가 틀렸다고 인정하고 끝낸다', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({
         errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4' })],
@@ -218,8 +218,10 @@ describe('PhotoFlowScreen', () => {
     await waitFor(() => expect(screen.getByText('맞아, 거기야')).toBeTruthy());
     fireEvent.press(screen.getByRole('button', { name: '아니야' }));
 
-    // 세 번째 시도는 없다
-    await waitFor(() => expect(screen.getByText(/느낌 설문/)).toBeTruthy());
+    // 세 번째 시도는 없다. 학생이 읽는 말에 개발 일지가 한 글자도 없어야 한다 (8·9번)
+    await waitFor(() => expect(screen.getByText(/내가 틀린 거야/)).toBeTruthy());
+    expect(screen.getByText('그게 오늘 네 오답노트야.')).toBeTruthy();
+    expect(screen.queryByText(/느낌 설문|오늘 만든 조각|망각곡선/)).toBeNull();
   });
 });
 

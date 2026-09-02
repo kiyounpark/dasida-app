@@ -5,6 +5,7 @@ import { logEvent } from '@/features/analytics/log-event';
 
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
 import { askPhotoSource } from '../flow/ask-photo-source';
+import { ro } from '../flow/korean-particle';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
 import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
 import { weaknessCandidatesFor } from '../flow/weakness-mistake-type-map';
@@ -272,27 +273,40 @@ export function usePhotoFlow(): PhotoFlow {
       return;
     }
     if (result && result.predictedMethodId === methodId && result.hasSolvingWork) {
-      // 방법은 맞는데 오류를 못 찾은 날 — 관찰을 솔직하게 보고한다
-      say('그런데 좀 신기해 — 풀이 과정에서는 틀린 데를 못 찾았어. 과정은 맞게 간 것 같거든.');
-      say('이러면 보통 마지막에 답을 옮겨 적을 때나 검산에서 새는 경우가 많아.');
-      stopHere('느낌 설문');
+      // 갈래 ① — 방법은 맞는데 오류를 못 찾은 날.
+      // 과정이 맞고 답이 틀렸으면 남는 자리는 마지막뿐이라, 그 논리를 그대로 학생한테 준다.
+      say(
+        '과정은 맞게 갔어. 틀린 줄이 안 나와. 과정이 맞는데 답이 틀렸으면 남는 자리는 마지막 하나야.',
+      );
+      // 노트 줄. 08.07 노트 실물이 전부 이 모양이다 — 화살표로 조건과 행동을 가르고, 한 줄로 짧게.
+      say(`"${methodLabel(methodId)} → 답 쓰기 전에, 문제가 구하라는 것과 내 답 맞추기"`);
+      say('그게 오늘 네 오답노트야.');
+      endHere();
       return;
     }
-    stopHere('느낌 설문');
+    // 갈래 ② — AI가 사진에서 방법을 못 읽은 날. 학생이 목록에서 직접 골라 우리를 고쳐준 자리다.
+    // 여기가 주는 건 노트 줄이 아니라 "네가 맞아"라는 확인이다 — 노트 줄 왼쪽에 와야 할
+    // "문제에서 보이는 조건"을 우리가 모르기 때문에 구조적으로 못 만든다 (09.02 검수).
+    say(`아, ${ro(methodLabel(methodId))} 풀었구나. 내가 사진에서 그걸 못 읽었어 — 네가 맞아.`);
+    say('안 읽혔다는 건 그 단계가 네 머릿속에만 있었다는 뜻이야. 거기가 제일 잘 새.');
+    endHere();
   }
 
   function candidateAt(index: number) {
     return resultRef.current?.errorCandidates?.[index];
   }
 
-  /** 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. 세 번째 시도는 없다. */
+  /** 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 여기까지. 세 번째 시도는 없다. */
   function startPointing(index: number) {
     const candidate = candidateAt(index);
     if (!candidate) {
-      say(
-        '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?',
-      );
-      stopHere('느낌 설문');
+      // 갈래 ③ — 두 번 다 빗나간 날. 학생 실력으로 덮지 말고 내가 틀렸다고 먼저 말한다.
+      // 노트 줄은 모양만 준다 — 빈칸은 학생이 머리로 채운다(적으라고 하지 않는다).
+      say('두 군데 다 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.');
+      say('네가 아는 그 자리, 노트에 올릴 땐 이 모양이면 돼.');
+      say(`"${methodLabel(methodIdRef.current ?? undefined)} → ○○ 나오면 △△부터"`);
+      say('그게 오늘 네 오답노트야.');
+      endHere();
       return;
     }
 
@@ -442,14 +456,13 @@ export function usePhotoFlow(): PhotoFlow {
       retryResult,
     });
 
-    // web-proto는 이 뒤에 개인화 망각곡선이 붙는다 — 다음 조각
-    say('여기까지가 오늘 만든 데야. 다음 조각은 이 노트 뒤에 붙는 망각곡선이고.');
-    ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
+    // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.
+    // 여기 있던 "다음 조각은 망각곡선이고"는 학생이 읽을 말이 아니라 개발 일지라 뺐다 (09.02).
+    endHere();
   }
 
-  /** 아직 안 만든 갈래로 갈 차례였을 때, 어디로 갈 차례였는지만 정직하게 말한다. */
-  function stopHere(nextPiece: string) {
-    say(`(여기까지가 오늘 만든 조각이야. 다음은 "${nextPiece}"로 이어져.)`);
+  /** 화면이 끝나는 자리의 공통 마무리. 할 말은 갈래마다 다르고, 버튼만 같다. */
+  function endHere() {
     ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
   }
 
