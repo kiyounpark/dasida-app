@@ -324,6 +324,86 @@ describe('사진 flow 계측', () => {
     expect(params.weakness_count).toBeGreaterThan(0);
   });
 
+  /**
+   * 오답노트를 못 받고 끝난 자리. 웹 28일 실측이 photo_submit 21 → note_shown 1이었고,
+   * 그 20명이 어디로 갔는지 한 건도 안 남아 병목이 AI 감지율인지 이탈인지 못 갈랐다.
+   * 이 세 도장이 빠지면 1.0.8은 분자만 있고 분모가 없다.
+   */
+  it('방법은 맞는데 틀린 데를 못 찾으면 no_error_found를 남긴다', async () => {
+    // 후보 0개 — canPointAtError가 막히고 예측 방법은 맞은 갈래
+    mockAnalyze.mockResolvedValue(makeResult());
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+
+    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
+    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
+      reason: 'no_error_found',
+      method_id: 'cps',
+    });
+  });
+
+  it('학생이 방법을 직접 고르면 method_mismatch를 남긴다 — 고른 방법을 실어서', async () => {
+    mockAnalyze.mockResolvedValue(makeResult());
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('아니야, 다른 방법으로 풀었어')).toBeTruthy());
+    fireEvent.press(screen.getByText('아니야, 다른 방법으로 풀었어'));
+
+    // 좁힌 목록에도 없다며 전체에서 AI 예측과 다른 방법을 고른다
+    await waitFor(() => expect(screen.getByText('여기에도 없어')).toBeTruthy());
+    fireEvent.press(screen.getByText('여기에도 없어'));
+    await waitFor(() => expect(screen.getByText('미분')).toBeTruthy());
+    fireEvent.press(screen.getByText('미분'));
+
+    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
+    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
+      reason: 'method_mismatch',
+      method_id: 'diff',
+    });
+  });
+
+  it('짚어준 자리를 다 아니라고 하면 pointing_rejected에 시도 횟수를 실어 남긴다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({
+        errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4' })],
+        errorConfidence: 0.9,
+      }),
+    );
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+
+    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
+    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
+
+    await waitFor(() => expect(screen.getByText('맞아, 거기야')).toBeTruthy());
+    fireEvent.press(screen.getByRole('button', { name: '아니야' }));
+
+    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
+    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
+      reason: 'pointing_rejected',
+      method_id: 'cps',
+      attempts: 2,
+    });
+  });
+
+  it('오답노트까지 가면 photo_dead_end를 안 남긴다 — 분자와 분모가 겹치면 안 된다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen />);
+    await walkToNote();
+
+    expect(eventNamed('photo_weakness_labeled')).toBeTruthy();
+    expect(eventNamed('photo_dead_end')).toBeFalsy();
+  });
+
   it('빈손 칸이면 labeled: false · weakness_count: 0으로 남는다 — 186칸 중 131칸이 이 경우다', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({

@@ -18,7 +18,8 @@ export type EventName =
   // 사진 오답노트 (1.0.8) — 이 셋이 "학생 사진에서 약점 이름이 몇 % 붙는가"의 분자와 분모다
   | 'photo_submit'
   | 'photo_analyzed'
-  | 'photo_weakness_labeled';
+  | 'photo_weakness_labeled'
+  | 'photo_dead_end';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -115,6 +116,24 @@ export type EventParams = {
     weakness_count: number;
     labeled: boolean;
   };
+  /**
+   * 오답노트를 못 받고 끝난 순간. photo_weakness_labeled가 분자라면 이쪽이 **분모의 나머지**다.
+   *
+   * 웹 28일 실측이 photo_submit 21 → note_shown 1이었다. 21명 중 20명이 여기로 빠지는데
+   * 지금까지 한 건도 안 남아서, 병목이 AI 감지율인지 학생 이탈인지 가를 수가 없었다.
+   *
+   * reason 셋이 그대로 AI 실패의 종류다:
+   * - no_error_found    방법은 맞혔는데 풀이에서 틀린 데를 못 찾음
+   * - method_mismatch   방법 자체를 못 읽음 (학생이 목록에서 직접 골라줌)
+   * - pointing_rejected 짚어준 자리를 학생이 전부 아니라고 함
+   */
+  photo_dead_end: {
+    reason: 'no_error_found' | 'method_mismatch' | 'pointing_rejected';
+    /** 확정된 풀이법. 어느 방법에서 많이 막히는지 봐야 다음에 뭘 고칠지 정해진다. */
+    method_id: string;
+    /** pointing_rejected에서만 — 짚기 사다리를 몇 개까지 보여주고 거절당했나 (0~2). */
+    attempts?: number;
+  };
 };
 
 export type ScreenName =
@@ -124,6 +143,7 @@ export type ScreenName =
   | 'review_session'
   | 'weakness_practice'
   | 'diagnostic_screen'
+  | 'photo_flow'
   | 'sign_in'
   | 'onboarding'
   | 'history'

@@ -23,6 +23,8 @@ function segmentsToScreenName(segments: readonly string[]): ScreenName {
       return 'history';
     case '(tabs)/profile':
       return 'profile';
+    case 'photo':
+      return 'photo_flow';
     case 'sign-in':
       return 'sign_in';
     case 'onboarding':

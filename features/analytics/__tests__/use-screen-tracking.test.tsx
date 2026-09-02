@@ -34,6 +34,16 @@ describe('useScreenTracking', () => {
     expect(logScreenView).toHaveBeenCalledWith('review_session');
   });
 
+  /**
+   * 12번의 나머지 절반. 여기가 비면 홈 버튼을 몇 명이 눌렀는지 영영 모르고,
+   * photo_submit(사진을 실제로 고른 수)과의 차이 = 사진 화면까지 왔다가 그냥 나간 수를 못 센다.
+   */
+  it('logs photo_flow for photo route', () => {
+    mockSegments.mockReturnValue(['photo']);
+    renderHook(() => useScreenTracking());
+    expect(logScreenView).toHaveBeenCalledWith('photo_flow');
+  });
+
   it('logs sign_in for sign-in route', () => {
     mockSegments.mockReturnValue(['sign-in']);
     renderHook(() => useScreenTracking());

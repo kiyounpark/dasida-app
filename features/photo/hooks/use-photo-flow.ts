@@ -275,6 +275,7 @@ export function usePhotoFlow(): PhotoFlow {
     if (result && result.predictedMethodId === methodId && result.hasSolvingWork) {
       // 갈래 ① — 방법은 맞는데 오류를 못 찾은 날.
       // 과정이 맞고 답이 틀렸으면 남는 자리는 마지막뿐이라, 그 논리를 그대로 학생한테 준다.
+      logEvent('photo_dead_end', { reason: 'no_error_found', method_id: methodId });
       say(
         '과정은 맞게 갔어. 틀린 줄이 안 나와. 과정이 맞는데 답이 틀렸으면 남는 자리는 마지막 하나야.',
       );
@@ -285,6 +286,7 @@ export function usePhotoFlow(): PhotoFlow {
       return;
     }
     // 갈래 ② — AI가 사진에서 방법을 못 읽은 날. 학생이 목록에서 직접 골라 우리를 고쳐준 자리다.
+    logEvent('photo_dead_end', { reason: 'method_mismatch', method_id: methodId });
     // 여기가 주는 건 노트 줄이 아니라 "네가 맞아"라는 확인이다 — 노트 줄 왼쪽에 와야 할
     // "문제에서 보이는 조건"을 우리가 모르기 때문에 구조적으로 못 만든다 (09.02 검수).
     say(`아, ${ro(methodLabel(methodId))} 풀었구나. 내가 사진에서 그걸 못 읽었어 — 네가 맞아.`);
@@ -301,6 +303,12 @@ export function usePhotoFlow(): PhotoFlow {
     const candidate = candidateAt(index);
     if (!candidate) {
       // 갈래 ③ — 두 번 다 빗나간 날. 학생 실력으로 덮지 말고 내가 틀렸다고 먼저 말한다.
+      // attempts = 사다리를 몇 개까지 보여주고 거절당했나. AI 짚기 정확도의 직접 지표다.
+      logEvent('photo_dead_end', {
+        reason: 'pointing_rejected',
+        method_id: methodIdRef.current ?? 'unknown',
+        attempts: index,
+      });
       // 노트 줄은 모양만 준다 — 빈칸은 학생이 머리로 채운다(적으라고 하지 않는다).
       say('두 군데 다 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.');
       say('네가 아는 그 자리, 노트에 올릴 땐 이 모양이면 돼.');
