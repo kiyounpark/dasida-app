@@ -309,8 +309,14 @@ export function usePhotoFlow(): PhotoFlow {
         method_id: methodIdRef.current ?? 'unknown',
         attempts: index,
       });
+      // 짚어준 개수만큼만 말한다. 후보가 1개뿐이면 한 번만 짚고 여기로 오는데,
+      // "두 군데"를 박아두면 그때 앱이 거짓말을 한다 (09.02 시뮬레이터에서 실제로 나왔다).
+      say(
+        index >= 2
+          ? '두 군데 다 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.'
+          : '거기 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.',
+      );
       // 노트 줄은 모양만 준다 — 빈칸은 학생이 머리로 채운다(적으라고 하지 않는다).
-      say('두 군데 다 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.');
       say('네가 아는 그 자리, 노트에 올릴 땐 이 모양이면 돼.');
       say(`"${methodLabel(methodIdRef.current ?? undefined)} → ○○ 나오면 △△부터"`);
       say('그게 오늘 네 오답노트야.');

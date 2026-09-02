@@ -164,6 +164,8 @@ export function setAnalyticsUserId(uid: string | null): void {
 }
 
 export function logScreenView(screen: ScreenName): void {
+  // logEvent와 같은 자리. 개발 빌드는 서버로 안 보내므로 화면 진입도 콘솔로만 보인다.
+  if (__DEV__) console.log('[analytics] screen_view', screen);
   void send('screen_view', {
     screen_name: screen,
     screen_class: screen,

@@ -393,6 +393,32 @@ describe('사진 flow 계측', () => {
     });
   });
 
+  /**
+   * 09.02 시뮬레이터에서 실제로 나온 것 — 후보가 1개뿐이면 한 번만 짚고 갈래 ③으로 오는데
+   * 화면은 "두 군데 다 아니라고 했지"라고 말했다. 앱이 거짓말을 한 자리다.
+   * 기존 테스트가 후보 2개짜리만 써서 안 잡혔다.
+   */
+  it('후보가 하나뿐이면 "두 군데"라고 말하지 않는다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+
+    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
+    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
+
+    await waitFor(() => expect(screen.getByText(/내가 틀린 거야/)).toBeTruthy());
+    expect(screen.queryByText(/두 군데/)).toBeNull();
+    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
+      reason: 'pointing_rejected',
+      attempts: 1,
+    });
+  });
+
   it('오답노트까지 가면 photo_dead_end를 안 남긴다 — 분자와 분모가 겹치면 안 된다', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
