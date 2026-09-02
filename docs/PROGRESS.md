@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.02 21:53
+- 해시: `5d647b8` (`5d647b8f1d915e1a54fd2144cad740c58428455b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5d647b8f1d915e1a54fd2144cad740c58428455b
+- 작성자: 박기윤
+- 메시지: feat: 쇼츠 낙서 밑그림 체계 — Claude가 기윤 그림체로 밑그림, 기윤이 따라 그린다
+- 본문: - docs/drafts/sketches/: ⑦ 밤 책상·④ 순환 화살표 SVG/PNG + README(그림체 규칙·만드는 법·전송 방식) / - scripts/sketch-recenter.swift: 아이패드 손그림을 잉크 범위만 잘라 정사각형 가운데로 (티끌 자동 무시) / - 09.02 실측: 나흘 막혔던 4호가 이 방식으로 하루에 낙서 2장 — 그림 앞의 '뭘 그리지' 결정을 밑그림이 치운다 / Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+
 ### 커밋 2026.08.31 23:34
 - 해시: `7ad4103` (`7ad41036788272f2d9e21f2b2d8827c893b675bb`)
 - 브랜치: main
