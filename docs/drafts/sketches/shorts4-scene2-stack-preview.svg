@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <rect width="1000" height="1000" fill="#ffffff"/>
+  <defs>
+    <!-- 바닥 장면: 책상 + 빈 노트 + 사람 (연필 없음) -->
+    <g id="base" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 사람 -->
+      <path d="M500 470 q-70 4 -74 70 q-4 70 68 74 q72 4 78 -66 q4 -74 -72 -78 z"/>
+      <path d="M474 530 l3 3 M526 530 l3 3"/>
+      <path d="M484 566 q16 0 32 0"/>
+      <path d="M400 660 q100 -40 200 0"/>
+      <!-- 책상 -->
+      <path d="M120 700 q190 -6 380 0 q190 -6 380 0"/>
+      <path d="M140 700 q0 80 0 160 M860 700 q0 80 0 160"/>
+      <!-- 빈 노트 (펼침) -->
+      <path d="M400 690 q50 -6 100 0 q50 -6 100 0 q4 40 0 80 q-50 -6 -100 0 q-50 -6 -100 0 q-4 -40 0 -80 z"/>
+      <path d="M500 690 q2 40 0 80"/>
+    </g>
+    <!-- 왼쪽 풍선: 화면 밖에서 → 노트 한 장 (네가 적어라) -->
+    <g id="bL" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M60 340 q90 -8 180 0 q10 40 0 80 q-90 4 -180 0 l-40 20 l14 -30 q-8 -30 26 -70 z"/>
+      <path d="M120 356 q30 -2 60 0 q4 24 0 48 q-30 -2 -60 0 q-4 -24 0 -48 z"/>
+      <path d="M130 370 q20 -2 40 0 M130 382 q20 -2 40 0 M130 394 q14 -2 28 0"/>
+    </g>
+    <!-- 위 풍선: 전구 (발상만 적어라) -->
+    <g id="bT" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M410 40 q90 -8 180 0 q10 40 0 80 q-90 4 -180 0 q-10 -40 0 -80 z M470 40 l30 -30 l30 30"/>
+      <path d="M500 54 q-22 2 -24 24 q2 14 12 22 l0 10 l24 0 l0 -10 q10 -8 12 -22 q-2 -22 -24 -24 z"/>
+      <path d="M492 118 l16 0"/>
+    </g>
+    <!-- 오른쪽 풍선: 줄 셋 → 한 줄 (한 줄로 줄여라) -->
+    <g id="bR" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M760 340 q90 -8 180 0 q34 40 26 70 l14 30 l-40 -20 q-90 4 -180 0 q-10 -40 0 -80 z"/>
+      <path d="M780 360 q26 -2 52 0 M780 374 q26 -2 52 0 M780 388 q26 -2 52 0"/>
+      <path d="M842 374 l16 0 M858 374 l-8 -6 M858 374 l-8 6"/>
+      <path d="M870 374 q14 -2 28 0"/>
+    </g>
+    <!-- 큰 손: 위에서 내려와 연필을 노트에 놓음 (네가 적으라는 거임) -->
+    <g id="hand" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 팔 (화면 위 밖에서) -->
+      <path d="M700 0 q-20 160 -90 290 M800 0 q-20 160 -70 310"/>
+      <!-- 주먹 -->
+      <path d="M640 290 q-50 6 -52 52 q6 46 54 50 q50 -6 54 -52 q-6 -48 -56 -50 z"/>
+      <path d="M604 320 q34 -4 68 0 M604 344 q34 -4 68 0"/>
+      <!-- 연필: 주먹에서 노트로 -->
+      <g transform="translate(640 400) rotate(14)">
+        <path d="M-18 -70 q18 -4 36 0 l0 18 l-36 0 z"/>
+        <path d="M-18 -52 l2 292 M18 -52 l-2 292"/>
+        <path d="M-16 240 l16 50 l16 -50"/>
+      </g>
+      <!-- 땀 -->
+      <path d="M588 470 q-12 16 0 30 q12 -12 0 -30 z"/>
+    </g>
+  </defs>
+
+  <!-- 4칸 미리보기 (각 칸 = 0.5배) -->
+  <g fill="none" stroke="#bbb" stroke-width="3">
+    <rect x="0" y="0" width="500" height="500"/>
+    <rect x="500" y="0" width="500" height="500"/>
+    <rect x="0" y="500" width="500" height="500"/>
+    <rect x="500" y="500" width="500" height="500"/>
+  </g>
+
+  <!-- 1칸: 0:05 바닥 -->
+  <g transform="translate(0 0) scale(0.5)"><use href="#base"/></g>
+  <!-- 2칸: 5.25→5.92 풍선 하나, 둘 -->
+  <g transform="translate(500 0) scale(0.5)"><use href="#base"/><use href="#bL"/><use href="#bT"/></g>
+  <!-- 3칸: 7.32 셋 다 · "다 맞는 말인데" -->
+  <g transform="translate(0 500) scale(0.5)"><use href="#base"/><use href="#bL"/><use href="#bT"/><use href="#bR"/></g>
+  <!-- 4칸: 10.47 풍선 사라지고 손+연필 -->
+  <g transform="translate(500 500) scale(0.5)"><use href="#base"/><use href="#hand"/></g>
+
+  <!-- 미리보기용 시각 표시 (실제 그림엔 안 들어감) -->
+  <g font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#888">
+    <text x="14" y="484">1  0:05  빈 노트</text>
+    <text x="514" y="484">2  0:05.3 → 0:05.9  풍선 하나, 둘</text>
+    <text x="14" y="984">3  0:07.3  셋 · "다 맞는 말인데"</text>
+    <text x="514" y="984">4  0:10.5  "네가 적으라는 거임"</text>
+  </g>
+</svg>
