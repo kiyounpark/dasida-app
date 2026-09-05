@@ -1,6 +1,7 @@
 // 아이패드 메모 스크린샷에서 같은 사각형을 잘라 정사각형 흰 캔버스에 놓는다.
 // 여러 컷을 같은 자리에 잘라야 캡컷에서 그림이 안 튄다 (recenter는 컷마다 자리가 달라져서 못 씀).
-// 사용: swift scripts/sketch-crop-fixed.swift 입력.png 출력.png x y w h
+// 사용: swift scripts/sketch-crop-fixed.swift 입력.png 출력.png x y w h [티끌기준=25]
+// 티끌기준: 21x21 안 잉크 픽셀이 이보다 적으면 점으로 보고 버린다. 말줄임표(…) 같은 작은 점을 살리려면 낮춘다.
 import Foundation
 import CoreGraphics
 import ImageIO
@@ -9,6 +10,7 @@ import UniformTypeIdentifiers
 let a = CommandLine.arguments
 let inPath = a[1], outPath = a[2]
 let cx = Int(a[3])!, cy = Int(a[4])!, cw = Int(a[5])!, ch = Int(a[6])!
+let minInk = a.count > 7 ? Int(a[7])! : 25
 
 guard let src = CGImageSourceCreateWithURL(URL(fileURLWithPath: inPath) as CFURL, nil),
       let img = CGImageSourceCreateImageAtIndex(src, 0, nil) else { fatalError("load fail") }
@@ -41,7 +43,7 @@ for y in 0..<ch { for x in 0..<cw {
       let px = sx + dx, py = sy + dy
       if px >= 0, py >= 0, px < w, py < h, lum(px, py) < 160 { n += 1 }
     }}
-    if n < 25 { continue }
+    if n < minInk { continue }
     let o = ((y + oy) * side + (x + ox)) * 4
     out[o] = 17; out[o+1] = 17; out[o+2] = 17; out[o+3] = 255
   }
