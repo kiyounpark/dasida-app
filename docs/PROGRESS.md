@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.08 01:14
+- 해시: `b7244a6` (`b7244a6817946b3c70eb7a56a5219754afbb2eb7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b7244a6817946b3c70eb7a56a5219754afbb2eb7
+- 작성자: 박기윤
+- 메시지: fix(web-proto): 학생 화면의 "근의 공식(으)로" 괄호 + 13일 밀린 번들
+- 본문: 유튜브에 링크가 나가 있는 화면인데 app.js 세 자리(360·378·531)가 / 조사를 템플릿에 박아두고 있었다. 앱은 09.02(23a119e)에 ro()로 닫은 자리다. / 웹에 ro()를 복사하지 않고 flow-entry.ts에서 export 해 번들로 내보냈다 — / diagnosisMap에 대해 그 파일이 이미 못 박아둔 방식이다("사본을 두면 갈라진다"). / 풀이 읽었어. … — 근의 공식으로 접근했네. / 풀이에 … 쓴 게 보이던데 — 인수분해로 푼 것 같아. 맞아? / 미분으로 풀었구나. / 번들은 88d7c1c(08.13) 이후 안 말아서 밀려 있던 걸 다시 말았다. / esbuild 0.27.3/0.27.7/0.28.2 셋 다 08.13 소스에서 기존 번들을 바이트 단위로 / 재현해서, 이번 diff에 포맷 노이즈는 없다. / 59번째 약점(g3_log_exp_base)은 재빌드해도 안 붙는다 — 293942e가 진단 갈래를 / g3_log_exp로 되돌렸고 weaknessCandidatesFor는 그 트리를 훑는다. 번들엔 이름만 / 들어오고 180개 조합 어디서도 안 나온다(브라우저 전수 확인). / 검증: 31개 라벨 전수 ro() 통과 · 로컬에서 3자리 전부 실제 코드 경로로 재현 · / 라이브에서 실사진 1장으로 analyzePhoto 실호출까지. 콘솔 에러 0, tsc 0. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.07 21:58
 - 해시: `e6301d9` (`e6301d9141e04d265ead83e18b46e2fba00d3c87`)
 - 브랜치: main
