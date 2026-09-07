@@ -21,6 +21,7 @@
     "ios:dev": "APP_VARIANT=dev expo run:ios",
     "ios:dev:device": "APP_VARIANT=dev expo run:ios --device",
     "web": "expo start --web",
+    "deploy:proto": "netlify deploy --dir=web-proto --prod --no-build --site ee644b12-b30c-44c3-91a6-efaa0f1afe9f",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "functions:install": "npm install --prefix functions",
