@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.07 21:58
+- 해시: `e6301d9` (`e6301d9141e04d265ead83e18b46e2fba00d3c87`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e6301d9141e04d265ead83e18b46e2fba00d3c87
+- 작성자: 박기윤
+- 메시지: docs: 1.0.8 두 스토어 심사 제출 — 아이폰은 What's New 빈칸에 한 번 막혔다
+- 본문: 계획표 마지막 칸(15번)이 닫혔다. 기한 09.09보다 이틀 빠르다. / - iOS: 빌드 18 바인딩 후 심사 제출 (17은 errored, 00b6092로 복구한 18이 finished) / - Android: internal 제출 후 Play Console에서 프로덕션 승격 — 1.0.6과 같은 경로 / - 다음 릴리스에도 걸릴 것: 업데이트 버전은 What's New가 필수인데 칸이 안 보인다 / - 판단 보류: 안드 405종 미지원 경고, 설치 0이라 영향 0이지만 원인은 안 팠다 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.02 21:53
 - 해시: `5d647b8` (`5d647b8f1d915e1a54fd2144cad740c58428455b`)
 - 브랜치: main
