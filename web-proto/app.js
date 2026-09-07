@@ -23,6 +23,7 @@
 
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
+  const ro = F.ro;
   const selectableMethods = F.methodOptions.filter((m) => m.id !== 'unknown');
 
   // 후보를 못 좁혔을 때 '전체 카탈로그'를 쏟지 않고 주제 기반 상위 N개만 보여준다
@@ -357,7 +358,7 @@
     }
     const label = info.labelKo;
     const snippet = firstSnippet(result.transcription);
-    coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${label}(으)로 접근했네.`);
+    coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${ro(label)} 접근했네.`);
     coachSays('그럼 여기서부터 같이 보자.');
     setActions([
       // method_confirm — AI 방법 단언의 적중/빗나감. mode로 단언(assert)과 추측 확인(soft)을 가른다.
@@ -375,7 +376,7 @@
   function softAssertMethod(result) {
     const info = catalog[result.predictedMethodId];
     const snippet = firstSnippet(result.transcription);
-    coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${info.labelKo}(으)로 푼 것 같아. 맞아?`);
+    coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${ro(info.labelKo)} 푼 것 같아. 맞아?`);
     setActions([
       { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); logEvent('method_confirm', { answer: 'yes', mode: 'soft' }); confirmMethod(result.predictedMethodId); } },
       {
@@ -528,7 +529,7 @@
     // AI가 확신하면 그 방법의 flow로 바로 연결
     if (result && !result.needsManualSelection && catalog[result.predictedMethodId]) {
       const label = catalog[result.predictedMethodId].labelKo;
-      coachSays(`${label}(으)로 풀었구나. 그럼 여기서부터 같이 보자.`);
+      coachSays(`${ro(label)} 풀었구나. 그럼 여기서부터 같이 보자.`);
       confirmMethod(result.predictedMethodId);
       return;
     }

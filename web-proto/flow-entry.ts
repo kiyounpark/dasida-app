@@ -6,6 +6,8 @@ export { diagnosisMethodRoutingCatalog } from '@/data/diagnosis-method-routing';
 // 웹에 사본을 두면 둘이 갈라지고, 갈라진 건 학생 화면에서만 드러난다.
 export { diagnosisMap } from '@/data/diagnosisMap';
 export { weaknessCandidatesFor } from '@/features/photo/flow/weakness-mistake-type-map';
+// 받침에 따라 '로/으로'를 고른다 — 여기도 사본 금지. 앱이 09.02에 고친 걸(23a119e) 그대로 쓴다.
+export { ro } from '@/features/photo/flow/korean-particle';
 export {
   advanceFromCheck,
   advanceFromChoice,

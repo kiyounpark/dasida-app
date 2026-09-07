@@ -30,6 +30,7 @@ var DasidaFlow = (() => {
     getDiagnosisFlow: () => getDiagnosisFlow,
     getNode: () => getNode,
     methodOptions: () => methodOptions,
+    ro: () => ro,
     weaknessCandidatesFor: () => weaknessCandidatesFor
   });
 
@@ -1157,6 +1158,7 @@ var DasidaFlow = (() => {
     "g3_diff",
     "g3_sequence",
     "g3_log_exp",
+    "g3_log_exp_base",
     "g3_integral",
     "g3_trig",
     "g3_limit",
@@ -1501,6 +1503,13 @@ var DasidaFlow = (() => {
       desc: "\uC9C0\uC218\uBC95\uCE59\uC774\uB098 \uB85C\uADF8 \uC131\uC9C8 \uC801\uC6A9 \uACFC\uC815\uC5D0\uC11C \uC624\uB958\uAC00 \uC788\uC5C8\uC2B5\uB2C8\uB2E4.",
       tip: "log\u2090b + log\u2090c = log\u2090(bc), a\u02E3\xB7a\u02B8 = a\u02E3\u207A\u02B8 \uB4F1 \uAE30\uBCF8 \uC131\uC9C8\uC744 \uC810\uAC80\uD558\uC138\uC694."
     },
+    g3_log_exp_base: {
+      id: "g3_log_exp_base",
+      labelKo: "\uC9C0\uC218\uBC95\uCE59\xB7\uBC11 \uD1B5\uC77C \uC624\uB958",
+      topicLabel: "\uC9C0\uC218\xB7\uB85C\uADF8",
+      desc: "\uC9C0\uC218 \uBC95\uCE59\uC73C\uB85C \uC2DD\uC744 \uBC14\uAFB8\uAC70\uB098 \uC11C\uB85C \uB2E4\uB978 \uBC11\uC744 \uD558\uB098\uB85C \uB9DE\uCD94\uB294 \uACFC\uC815\uC5D0\uC11C \uB9C9\uD614\uC2B5\uB2C8\uB2E4.",
+      tip: "a\u02E3\xB7a\u02B8 = a\u02E3\u207A\u02B8, (a\u02E3)\u02B8 = a\u02E3\u02B8\uB97C \uBA3C\uC800 \uC801\uC5B4 \uB450\uACE0, 8 = 2\xB3\uCC98\uB7FC \uBC11\uC744 \uAC19\uC740 \uC218\uB85C \uB9DE\uCD98 \uB4A4 \uC9C0\uC218\uB07C\uB9AC \uBE44\uAD50\uD558\uC138\uC694."
+    },
     g3_integral: {
       id: "g3_integral",
       labelKo: "\uC801\uBD84 \uACC4\uC0B0",
@@ -1692,6 +1701,8 @@ var DasidaFlow = (() => {
     // 수열 계산
     g3_log_exp: "formula_recall",
     // 지수·로그 계산
+    g3_log_exp_base: "formula_recall",
+    // 지수법칙·밑 통일 오류
     g3_integral: "concept_gap",
     // 적분 계산
     g3_trig: "formula_recall",
@@ -1728,6 +1739,14 @@ var DasidaFlow = (() => {
     }
     const specific = candidates.filter((id) => !VAGUE_WEAKNESSES.includes(id));
     return specific.length > 0 ? specific : candidates;
+  }
+
+  // features/photo/flow/korean-particle.ts
+  function ro(word) {
+    const last = word.charCodeAt(word.length - 1);
+    if (Number.isNaN(last) || last < 44032 || last > 55203) return `${word}\uB85C`;
+    const jongseong = (last - 44032) % 28;
+    return jongseong === 0 || jongseong === 8 ? `${word}\uB85C` : `${word}\uC73C\uB85C`;
   }
 
   // data/detailedDiagnosisFlows.ts
@@ -1818,7 +1837,7 @@ var DasidaFlow = (() => {
     },
     diff_judge: {
       title: "\uCD5C\uB313\uAC12\uACFC \uCD5C\uC19F\uAC12\uC740 \uADF8\uB798\uD504 \uBC29\uD5A5\uC744 \uBA3C\uC800 \uBCF4\uBA74 \uB3FC\uC694.",
-      body: "\uC774\uCC28\uD568\uC218\uC5D0\uC11C\uB294 a\uC758 \uBD80\uD638\uB97C \uBCF4\uBA74 \uC704\uB85C \uBCFC\uB85D\uC778\uC9C0 \uC544\uB798\uB85C \uBCFC\uB85D\uC778\uC9C0 \uC54C \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\n\uC704\uB85C \uBCFC\uB85D\uC774\uBA74 \uCD5C\uC19F\uAC12, \uC544\uB798\uB85C \uBCFC\uB85D\uC774\uBA74 \uCD5C\uB313\uAC12\uC774\uC5D0\uC694.",
+      body: "\uC774\uCC28\uD568\uC218\uC5D0\uC11C\uB294 a\uC758 \uBD80\uD638\uB97C \uBCF4\uBA74 \uC704\uB85C \uBCFC\uB85D\uC778\uC9C0 \uC544\uB798\uB85C \uBCFC\uB85D\uC778\uC9C0 \uC54C \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\n\uC544\uB798\uB85C \uBCFC\uB85D\uC774\uBA74 \uCD5C\uC19F\uAC12, \uC704\uB85C \uBCFC\uB85D\uC774\uBA74 \uCD5C\uB313\uAC12\uC774\uC5D0\uC694.",
       remedialTitle: "\uD310\uB2E8 \uAE30\uC900\uB9CC \uB2E4\uC2DC \uBCFC\uAC8C\uC694.",
       remedialBody: "a > 0\uC774\uBA74 \uCD5C\uC19F\uAC12, a < 0\uC774\uBA74 \uCD5C\uB313\uAC12\uC785\uB2C8\uB2E4.\n\uAC12\uC744 \uACC4\uC0B0\uD558\uAE30 \uC804\uC5D0 \uC774 \uD310\uB2E8\uBD80\uD130 \uBA3C\uC800 \uD558\uC138\uC694."
     },
@@ -2065,6 +2084,15 @@ var DasidaFlow = (() => {
         { id: "correct", text: "3", isCorrect: true },
         { id: "wrong1", text: "4", isCorrect: false },
         { id: "wrong2", text: "2", isCorrect: false }
+      ]
+    },
+    g3_log_exp_base: {
+      title: "\uBC11 \uD1B5\uC77C \uD655\uC778",
+      prompt: "4\u02E3 \uC744 \uBC11\uC774 2\uC778 \uAC70\uB4ED\uC81C\uACF1\uC73C\uB85C \uBC14\uAFB8\uBA74?",
+      options: [
+        { id: "correct", text: "2\xB2\u02E3", isCorrect: true },
+        { id: "wrong1", text: "2\u02E3\u207A\xB2", isCorrect: false },
+        { id: "wrong2", text: "2\u02E3", isCorrect: false }
       ]
     },
     g3_conic: {
