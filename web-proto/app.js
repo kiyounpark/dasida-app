@@ -286,7 +286,7 @@
     } catch {
       show('upload');
       cta.disabled = false;
-      alert('이 사진 형식을 못 읽었어요. jpg나 png 사진으로 다시 시도해줘요.');
+      alert('이 사진 형식을 못 읽었어. jpg나 png 사진으로 다시 시도해줘.');
       return;
     }
 
