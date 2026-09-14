@@ -11,6 +11,7 @@ import {
   type DiagnosisFlowDraft,
 } from '@/features/quiz/diagnosis-flow-engine';
 import type { DiagnosisRouterResult } from '@/features/quiz/diagnosis-router';
+import { ro } from '@/features/photo/flow/korean-particle';
 
 export type DiagnosisAiHelpNodeKind = 'explain' | 'check';
 
@@ -77,7 +78,7 @@ export function getMethodSelectionText(methodId: SolveMethodId, methodLabel: str
     return '잘 모르겠어요.';
   }
 
-  return `${methodLabel}으로 풀었어요.`;
+  return `${ro(methodLabel)} 풀었어요.`;
 }
 
 export function getDiagnosisStepLabel(index: number) {

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
+import { getKoreanTopicParticle } from '@/utils/korean';
 
 import { Paper } from './paper-tokens';
 
@@ -66,7 +67,7 @@ export function BridgeView({
   const buttonLabel = nextLabel ? `${nextLabel} 복습 이어서 →` : '복습 이어서 →';
   const scheduleText =
     prevLabel && nextStageDays != null
-      ? `${prevLabel}는 ${nextStageDays}일 뒤에 다시 만나요`
+      ? `${prevLabel}${getKoreanTopicParticle(prevLabel)} ${nextStageDays}일 뒤에 다시 만나요`
       : null;
 
   return (

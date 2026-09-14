@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FontFamilies } from '@/constants/typography';
 import type { ReviewTask } from '@/features/learning/types';
+import { getKoreanTopicParticle } from '@/utils/korean';
 
 import { Paper } from './paper-tokens';
 
@@ -45,7 +46,8 @@ export function DoneView({
         {isGraduated ? (
           <>
             한 달 동안 이 흐름을 네 번 다시 봤어요.{'\n'}
-            <Text style={styles.subStrong}>{weaknessLabel}</Text>은 더 이상 약점이 아닙니다.
+            <Text style={styles.subStrong}>{weaknessLabel}</Text>
+            {getKoreanTopicParticle(weaknessLabel)} 더 이상 약점이 아닙니다.
           </>
         ) : (
           <>
