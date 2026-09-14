@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.14 23:09
+- 해시: `eb5a7a4` (`eb5a7a4e2f37edb28828447334709af865dbc9db`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/eb5a7a4e2f37edb28828447334709af865dbc9db
+- 작성자: 박기윤
+- 메시지: fix(web-proto): 분석 실패 alert에서 HTTP 원문 제거 — 앱과 같은 문구로
+- 본문: app.js:309가 실패 원문을 그대로 학생한테 띄웠다("… (HTTP 500)"). / 앱은 09.02에 닫은 자리 — features/photo/flow/analyze-photo-request.ts가 / 5xx·429를 "잠깐 늦어졌어. 한 번만 다시 눌러줄래?"로 바꿨다. 새 문구를 / 만들지 않고 그 말을 그대로 가져왔다. 원문은 console.error로만 남긴다. / 검증: 로컬(fetch 500 스텁) + 라이브 dasida-proto.netlify.app 둘 다 / alert 문구 확인, 상태 코드 노출 0. 배포는 npm run deploy:proto. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.14 23:01
 - 해시: `e4cdbdb` (`e4cdbdb64897f8cf54b575acde1f2abe45383507`)
 - 브랜치: main
