@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.08 01:18
+- 해시: `d72eae1` (`d72eae15a5dff33e9891a41b17d9dbd9ffcd8316`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d72eae15a5dff33e9891a41b17d9dbd9ffcd8316
+- 작성자: 박기윤
+- 메시지: chore: web-proto 배포를 npm 스크립트로 박음 — .env 유출 경로 차단
+- 본문: 저장소 .netlify/state.json은 dasida-21(1eaa87cf…)에 링크돼 있는데 / 배포 대상은 dasida-proto(ee644b12…)라, --site 와 --dir 이 둘 다 필수다. / --dir 을 빼면 dasida-proto 의 build_settings 가 비어 있어서 publish 가 / 안 잡히고, 비대화형에서는 저장소 루트 전체가 올라간다 — .env·.env.local 포함, / 공개 URL로. 그런데 docs/PROGRESS.md 08.31 기록에 짧은 형태 / `netlify deploy --prod` 가 남아 있어서 따라 쓰기 쉬웠다. / 이제 플래그를 손으로 칠 일이 없다: / npm run deploy:proto / deploy:web 이 아닌 이유 — 기존 `web` 이 `expo start --web` 이라 / `deploy:web` 은 "엑스포 웹을 배포한다"로 정반대로 읽힌다. / 실행 확인: CDN requesting 0 files (지금 라이브와 동일 = 무동작 검증). / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.08 01:14
 - 해시: `b7244a6` (`b7244a6817946b3c70eb7a56a5219754afbb2eb7`)
 - 브랜치: main
