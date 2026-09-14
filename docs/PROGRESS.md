@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.14 23:19
+- 해시: `e77450a` (`e77450a9c255ff9ceadcd0f8030521462321e966`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e77450a9c255ff9ceadcd0f8030521462321e966
+- 작성자: 박기윤
+- 메시지: fix(web-proto): 사진 형식 오류 alert도 반말로 — 사진 흐름 말투 통일
+- 본문: app.js:289만 해요체였다("…못 읽었어요. …다시 시도해줘요"). 사진 흐름은 / 앱 features/photo 62줄·웹 83줄이 전부 반말인데 이 한 줄만 어긋나 있었다. / 어미만 바꿨다 — 문구는 그대로. / 기준: 사진 흐름(앱·웹)은 반말, 나머지 앱(진단·복습·홈·로그인)은 해요체. / 웹은 앱 사진 흐름의 예고편이라 목소리가 같아야 한다. / 검증: 로컬에서 두 갈래 다 확인 — createImageBitmap 깨서 형식 오류, / fetch 500으로 분석 실패. 배포 후 라이브 app.js가 로컬과 바이트 동일. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.14 23:09
 - 해시: `eb5a7a4` (`eb5a7a4e2f37edb28828447334709af865dbc9db`)
 - 브랜치: main
