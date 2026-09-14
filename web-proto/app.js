@@ -304,9 +304,12 @@
     } catch (error) {
       // 실패도 센다 — 안 세면 photo_submit만 찍히고 사라져 "대기 중 이탈"과 안 갈림
       logEvent('analysis_failed', { message: String(error?.message || error).slice(0, 90) });
+      console.error('analyzePhoto 실패', error); // 원문은 여기까지만 — 학생 화면엔 안 나간다
       show('upload');
       cta.disabled = false;
-      alert('분석에 실패했어요. 잠시 후 다시 시도해줘요. (' + error.message + ')');
+      // 앱과 같은 말. 09.02 features/photo/flow/analyze-photo-request.ts에서 정한 문구 —
+      // 5xx는 "우리 잘못"이 아니라 "그때 늦었다"라 다시 누르면 될 확률이 높다.
+      alert('잠깐 늦어졌어. 한 번만 다시 눌러줄래?');
     }
   });
 
