@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.14 23:01
+- 해시: `e4cdbdb` (`e4cdbdb64897f8cf54b575acde1f2abe45383507`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e4cdbdb64897f8cf54b575acde1f2abe45383507
+- 작성자: 박기윤
+- 메시지: fix(quiz): 조사 하드코딩 3곳 — 졸업·브리지 화면 은/는, 진단 선택 문구 으로/로
+- 본문: 09.08에 찾아둔 미해결 3곳. done-view "…은 더 이상 약점이 아닙니다"(받침 없는 라벨에서 깨짐), / bridge-view "…는 N일 뒤에 다시 만나요"(받침 있는 라벨에서 깨짐), diagnostic-screen-helpers / "…으로 풀었어요"(인수분해·나머지정리 등 받침 없는 16개에서 깨짐). / utils/korean.ts에 getKoreanTopicParticle(은/는 — ㄹ받침도 '은'이라 ro()와 규칙이 달라 별도) 추가 + 테스트 4건. / 으로/로는 photo/flow의 ro() 재사용(사본 금지). 31개 풀이법 라벨 전수 확인. quiz+korean 354 테스트 그린, tsc 0. / Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+
 ### 커밋 2026.09.14 22:00
 - 해시: `cbc61d3` (`cbc61d3dbbadd0066fe18060e8ca3bc5286aec6f`)
 - 브랜치: main
