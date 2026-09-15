@@ -23,9 +23,10 @@ export const weaknessMistakeType: Record<WeaknessId, MistakeTypeId> = {
   coefficient_sign_confusion: 'setup_error', // 계수 구분 혼동
   derivative_calculation: 'formula_recall', // 미분 계산 부족
   solving_order_confusion: 'procedure_miss', // 풀이 순서 혼동
-  // ⚠️ 아래 둘은 태그는 맞는데 diagnosisMap의 desc·tip이 딴 얘기를 한다 (문서 ②).
-  // max_min: 미분에서 막힌 학생에게 이차함수 처방 — diff+concept_gap의 유일 후보라 피할 길이 없다.
-  // basic_concept: 경우의 수에서 막힌 학생에게 완전제곱식 처방.
+  // ⚠️ 태그는 맞는데 diagnosisMap의 desc·tip이 딴 얘기를 하던 둘 (문서 ②) — 하나는 고쳤다.
+  // max_min: 미분에서 막힌 학생에게 이차함수 처방이 나가던 자리. 2026.09.15에 미분 문구로 갈았다
+  //   (a>0이면 최솟값은 삼차부터 거짓이다 — x³-3x는 [-3,2]에서 최댓값 2, 최솟값은 끝점 -18).
+  // basic_concept: 경우의 수에서 막힌 학생에게 완전제곱식 처방. 아직 안 고쳤다.
   // 고칠 자리는 이 표가 아니라 diagnosisMap의 문구다. 저장을 붙이기 전에 손봐야 한다.
   max_min_judgement_confusion: 'concept_gap', // 최댓값/최솟값 판단 혼동
   basic_concept_needed: 'concept_gap', // 기초 개념 학습 필요
