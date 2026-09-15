@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 22:45
+- 해시: `410253b` (`410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — "E는 C 뒤다"가 틀렸다는 정정 + 학생이 ②에서 멈춘다는 기록
+- 본문: 제일 중요한 건 E칸 정정이다. 이 파일은 오래 "E는 C가 먼저 풀려야 한다"고 / 적어 왔는데, PhotoNote에 primaryWeaknessId가 이미 붙어 있다. / 약점이 붙은 노트만이면 C 없이도 지금 된다 — 대략 3분의 1. / 안 고치면 다음 방이 제일 느린 칸(C)부터 붙잡고 한참 돌아간다. / - 한 줄: 홈은 세 화면을 다 갖췄는데 학생은 ②에서 멈춘다. / 고칠 자리가 홈이 아니라는 걸 도표로 박아둔다 / - D: "확인 안 됨" → "확인 불가". 과제가 0건이라 사라질 게 없다 / - E: "가장 급함". 순서 제안 E → D → C / - F: 4갈래로 갱신 (web-proto 소개 화면 추가) / - 배포 전: "E 없이 내면 복습 앱인데 복습이 없다" — 낼지 말지는 기윤이 정한다 / - 모르는 것: 긴 리스트 여백, ②의 어색함(중간 화면 안 만듦), E 규모 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 22:01
 - 해시: `9060b59` (`9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d`)
 - 브랜치: worktree-home-review-list
