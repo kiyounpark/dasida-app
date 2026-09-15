@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 18:26
+- 해시: `0b6c805` (`0b6c80541a32b4a08474a2b2ba70a2532dfc461f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0b6c80541a32b4a08474a2b2ba70a2532dfc461f
+- 작성자: 박기윤
+- 메시지: chore: 코덱스용 훅·에이전트 설정 추가 — .claude 사본
+- 본문: .claude/hooks의 스킬 라우팅 훅과 .claude/agents의 에이전트 셋을 / 코덱스에서도 쓰려고 .codex/ 아래 같은 모양으로 둔 것. 훅 스크립트는 바이트 동일. / ⚠️ .codex/hooks.json이 훅 경로를 절대경로(/Users/baggiyun/...)로 들고 있다. / 이 맥에서만 돈다 — 다른 환경에서 쓰려면 그 6줄을 고쳐야 한다. / 이 세션이 만든 파일은 아니고, 사진 저장 작업(①②④)과 섞이지 않게 따로 커밋했다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.14 23:19
 - 해시: `e77450a` (`e77450a9c255ff9ceadcd0f8030521462321e966`)
 - 브랜치: main
