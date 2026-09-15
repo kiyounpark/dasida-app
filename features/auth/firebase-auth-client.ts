@@ -28,6 +28,7 @@ import type {
 } from './auth-client';
 import { AuthFlowCancelledError } from './auth-client';
 import { clearLearningHistoryStorage } from '@/features/learning/local-learning-history-storage';
+import { clearPhotoNotes } from '@/features/photo/note-store';
 import { getFirebaseAuthInstance } from './firebase-app';
 import {
   getGoogleClientIdForCurrentPlatform,
@@ -402,7 +403,8 @@ export class FirebaseAuthClient implements AuthClient {
     }
 
     // Step 2: Clear local AsyncStorage cache
-    await clearLearningHistoryStorage(accountKey);
+    // 사진 오답노트도 같은 자리에서 지운다 — 여기 안 넣으면 탈퇴해도 기기에 노트가 남는다 (09.15)
+    await Promise.all([clearLearningHistoryStorage(accountKey), clearPhotoNotes(accountKey)]);
 
     // Step 3: Revoke OAuth token + delete Firebase Auth account
     // If Auth deletion fails after Firestore is already wiped, still clear local session

@@ -18,10 +18,12 @@ import {
   selectableMethodIds,
   type PhotoRoute,
 } from '../flow/route-from-analysis';
+import { savePhotoNote } from '../note-store';
 import type {
   AnalyzePhotoResult,
   MistakeTypeId,
   PhotoAction,
+  PhotoNote,
   RetryResult,
 } from '../types';
 import { usePhotoThread, type PhotoThread } from './use-photo-thread';
@@ -52,7 +54,12 @@ export type PhotoFlow = {
  *
  * 오늘 만든 조각은 **방법 확정까지**다. 짚어주는 대화·쪽지시험·재도전·오답노트는 다음 조각.
  */
-export function usePhotoFlow(): PhotoFlow {
+/**
+ * accountKey는 화면이 위에서 내려준다. 훅이 직접 useCurrentLearner를 부르지 않는 이유:
+ * 사진 화면 테스트 21개가 프로바이더 없이 화면을 그리는데, 훅 안에서 부르면 그게 전부 죽는다.
+ * 키가 없으면(테스트·아직 세션이 안 붙은 순간) 저장만 건너뛰고 흐름은 그대로 돈다.
+ */
+export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}): PhotoFlow {
   const thread = usePhotoThread();
   const [status, setStatus] = useState<PhotoFlowStatus>('upload');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -457,7 +464,7 @@ export function usePhotoFlow(): PhotoFlow {
 
     say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
     const createdAt = now.toISOString();
-    showNote({
+    const note: PhotoNote = {
       id: `photo-${createdAt}`,
       createdAt,
       schemaVersion: 1,
@@ -476,7 +483,14 @@ export function usePhotoFlow(): PhotoFlow {
       primaryWeaknessId: weaknessIds.length === 1 ? weaknessIds[0] : null,
       checkPassed: context.checkPassed,
       retryResult,
-    });
+    };
+
+    showNote(note);
+
+    // 저장은 카드를 띄운 뒤에, 기다리지 않고 건다 — 실패해도 학생이 보는 장면은 그대로다
+    if (accountKey) {
+      void savePhotoNote(accountKey, note);
+    }
 
     // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.
     // 여기 있던 "다음 조각은 망각곡선이고"는 학생이 읽을 말이 아니라 개발 일지라 뺐다 (09.02).

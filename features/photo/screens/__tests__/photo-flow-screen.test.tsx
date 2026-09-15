@@ -5,6 +5,7 @@ import { makeCandidate, makeResult } from '../../flow/__fixtures__/analysis';
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../../flow/analyze-photo-request';
 import { askPhotoSource } from '../../flow/ask-photo-source';
 import { logEvent } from '@/features/analytics/log-event';
+import { savePhotoNote } from '../../note-store';
 import { PhotoFlowScreen } from '../photo-flow-screen';
 
 // ScrollView 내부 의존성(NativeAnimatedModule)으로 인한 NativeEventEmitter 오류를 피하기 위해 단순 View 로 대체.
@@ -22,6 +23,12 @@ jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
   // react-native 인덱스가 .default로 꺼내 쓴다 — 컴포넌트를 그대로 돌려주면 undefined가 된다
   return { __esModule: true, default: MockScrollView };
 });
+
+// 저장이 실제로 되는지는 note-store.test.ts가 본다. 여기서 보는 건 "흐름이 그걸 부르는가" 하나다.
+jest.mock('../../note-store', () => ({
+  ...jest.requireActual('../../note-store'),
+  savePhotoNote: jest.fn(async () => []),
+}));
 
 // expo-image는 네이티브 뷰라 테스트에서 못 뜬다 — 사진 미리보기와 코치 아바타 둘 다 이걸 쓴다.
 jest.mock('expo-image', () => {
@@ -55,6 +62,7 @@ const mockAskSource = askPhotoSource as jest.Mock;
 const mockDownscale = downscaleToDataUrl as jest.Mock;
 const mockAnalyze = requestAnalyze as jest.Mock;
 const mockLog = logEvent as jest.Mock;
+const mockSaveNote = savePhotoNote as jest.Mock;
 
 /** 흐름을 오답노트 한 장까지 몬다. 쪽지시험·재도전은 첫 보기를 누른다. */
 async function walkToNote() {
@@ -84,6 +92,36 @@ beforeEach(() => {
 });
 
 describe('PhotoFlowScreen', () => {
+  it('계정 키가 있으면 오답노트를 그 계정으로 남긴다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToNote();
+
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    const [accountKey, note] = mockSaveNote.mock.calls[0];
+    expect(accountKey).toBe('user:abc');
+    expect(note.id).toMatch(/^photo-/);
+    expect(note.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(note.schemaVersion).toBe(1);
+    // 화면에 뜬 이름표가 아니라 원본 id가 실려야 나중에 셀 수 있다
+    expect(typeof note.methodId).toBe('string');
+    expect(typeof note.mistakeType).toBe('string');
+  });
+
+  it('계정 키가 없으면 저장하지 않는다 — 흐름은 그대로 돈다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen />);
+
+    await walkToNote();
+
+    expect(mockSaveNote).not.toHaveBeenCalled();
+  });
+
   it('업로드 화면부터 뜬다', () => {
     render(<PhotoFlowScreen />);
     expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy();

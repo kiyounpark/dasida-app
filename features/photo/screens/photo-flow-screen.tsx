@@ -10,9 +10,12 @@ import { PhotoUploadView } from '../components/photo-upload-view';
 import { usePhotoFlow } from '../hooks/use-photo-flow';
 import { PhotoTheme } from '../theme';
 
-/** 화면 셋(업로드 · 분석 중 · 대화)을 조합하기만 한다. 흐름은 use-photo-flow가 들고 있다. */
-export function PhotoFlowScreen() {
-  const { status, imageUri, error, thread, start } = usePhotoFlow();
+/**
+ * 화면 셋(업로드 · 분석 중 · 대화)을 조합하기만 한다. 흐름은 use-photo-flow가 들고 있다.
+ * accountKey는 주소 쪽(app/photo.tsx)에서 내려온다 — 없으면 노트를 안 남기고 흐름만 돈다.
+ */
+export function PhotoFlowScreen({ accountKey }: { accountKey?: string | null } = {}) {
+  const { status, imageUri, error, thread, start } = usePhotoFlow({ accountKey });
   const scrollRef = useRef<ScrollView>(null);
   const { bubbles, actions, press } = thread;
 

@@ -12,4 +12,5 @@ export const StorageKeys = {
   scratchpadPrefix: 'dasida/scratchpad/',
   scratchpadSplitRatioPrefix: 'dasida/scratchpad-split-ratio/',
   pendingAttemptsPrefix: 'dasida/pending-attempts/',
+  photoNotesPrefix: 'dasida/photo-notes/',
 } as const;
