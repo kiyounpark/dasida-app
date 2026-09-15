@@ -19,12 +19,23 @@ const RETRY_MARK: Record<RetryResult, string> = {
  * 오답노트 한 장 — 이 흐름의 결과물.
  * "진단 결과"가 아니라 학생이 아는 양식이 자기 손글씨 사진과 함께 채워져 나온다.
  * 정답 칸은 없다(갈라진 지점 노트). web-proto의 note-card와 같은 구성.
+ *
+ * 두 자리에서 쓴다 — 흐름 끝(방금 나온 한 장)과 지난 노트 목록.
+ * 목록에선 제목이 날짜가 되고, 맨 아래 안내 줄은 뺀다(거기선 이미 "다시 보고 있는" 상태다).
  */
-export function PhotoNoteCard({ note }: { note: PhotoNote }) {
+export function PhotoNoteCard({
+  note,
+  variant = 'flow',
+}: {
+  note: PhotoNote;
+  variant?: 'flow' | 'list';
+}) {
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Text style={styles.title}>오늘의 오답노트 · 1장</Text>
+        <Text style={styles.title}>
+          {variant === 'list' ? '오답노트' : '오늘의 오답노트 · 1장'}
+        </Text>
         <Text style={styles.date}>{note.dateLabel}</Text>
       </View>
 
@@ -59,7 +70,10 @@ export function PhotoNoteCard({ note }: { note: PhotoNote }) {
         </Text>
       )}
 
-      <Text style={styles.capture}>📸 아직 저장은 안 돼 — 캡처해서 가져가.</Text>
+      {/* 09.15에 저장이 붙었다 — "아직 저장은 안 돼"는 이제 거짓이라 걷었다 */}
+      {variant === 'flow' && (
+        <Text style={styles.capture}>📸 여기 남겨뒀어 — 지난 오답노트에서 다시 볼 수 있어.</Text>
+      )}
     </View>
   );
 }

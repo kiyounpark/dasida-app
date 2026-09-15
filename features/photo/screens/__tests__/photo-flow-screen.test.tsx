@@ -5,7 +5,7 @@ import { makeCandidate, makeResult } from '../../flow/__fixtures__/analysis';
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../../flow/analyze-photo-request';
 import { askPhotoSource } from '../../flow/ask-photo-source';
 import { logEvent } from '@/features/analytics/log-event';
-import { savePhotoNote } from '../../note-store';
+import { readPhotoNotes, savePhotoNote } from '../../note-store';
 import { PhotoFlowScreen } from '../photo-flow-screen';
 
 // ScrollView 내부 의존성(NativeAnimatedModule)으로 인한 NativeEventEmitter 오류를 피하기 위해 단순 View 로 대체.
@@ -28,6 +28,7 @@ jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
 jest.mock('../../note-store', () => ({
   ...jest.requireActual('../../note-store'),
   savePhotoNote: jest.fn(async () => []),
+  readPhotoNotes: jest.fn(async () => []),
 }));
 
 // expo-image는 네이티브 뷰라 테스트에서 못 뜬다 — 사진 미리보기와 코치 아바타 둘 다 이걸 쓴다.
@@ -63,6 +64,7 @@ const mockDownscale = downscaleToDataUrl as jest.Mock;
 const mockAnalyze = requestAnalyze as jest.Mock;
 const mockLog = logEvent as jest.Mock;
 const mockSaveNote = savePhotoNote as jest.Mock;
+const mockReadNotes = readPhotoNotes as jest.Mock;
 
 /** 흐름을 오답노트 한 장까지 몬다. 쪽지시험·재도전은 첫 보기를 누른다. */
 async function walkToNote() {
@@ -89,6 +91,7 @@ beforeEach(() => {
   mockAskSource.mockResolvedValue('library');
   mockPick.mockResolvedValue({ uri: 'file://photo.jpg', width: 3024, height: 4032 });
   mockDownscale.mockResolvedValue('data:image/jpeg;base64,AAAA');
+  mockReadNotes.mockResolvedValue([]);
 });
 
 describe('PhotoFlowScreen', () => {
@@ -120,6 +123,21 @@ describe('PhotoFlowScreen', () => {
     await walkToNote();
 
     expect(mockSaveNote).not.toHaveBeenCalled();
+  });
+
+  it('지난 노트가 없으면 첫 화면에 그 줄을 안 낸다 — 처음 온 학생 화면을 안 건드린다', async () => {
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await waitFor(() => expect(mockReadNotes).toHaveBeenCalledWith('user:abc'));
+    expect(screen.queryByText(/지난 오답노트/)).toBeNull();
+  });
+
+  it('지난 노트가 있으면 첫 화면에 몇 장인지 뜬다', async () => {
+    mockReadNotes.mockResolvedValue([{ id: 'a' }, { id: 'b' }, { id: 'c' }]);
+
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await waitFor(() => expect(screen.getByText('지난 오답노트 3장 보기')).toBeTruthy());
   });
 
   it('업로드 화면부터 뜬다', () => {

@@ -7,6 +7,9 @@ import { PhotoTheme } from '../theme';
 type PhotoUploadViewProps = {
   error: string | null;
   onPick: () => void;
+  /** 기기에 남아 있는 지난 노트 수. 0이면 줄 자체를 안 낸다 */
+  savedNoteCount?: number;
+  onOpenNotes?: () => void;
 };
 
 /** web-proto 화면 1(업로드). 문구·순서·굵기 모두 그쪽이 원본이다. */
@@ -16,7 +19,12 @@ const STEPS = [
   '질문 몇 개로 확정한다 — 오답노트 한 장이 나온다',
 ];
 
-export function PhotoUploadView({ error, onPick }: PhotoUploadViewProps) {
+export function PhotoUploadView({
+  error,
+  onPick,
+  savedNoteCount = 0,
+  onOpenNotes,
+}: PhotoUploadViewProps) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.brand}>다시다</Text>
@@ -37,6 +45,17 @@ export function PhotoUploadView({ error, onPick }: PhotoUploadViewProps) {
         <Text style={styles.dropBig}>틀린 문제 사진 올리기</Text>
         <Text style={styles.dropSmall}>풀이 쓴 부분까지 한 장에 나오게</Text>
       </Pressable>
+
+      {/* 처음 온 학생한테는 안 보인다 — 0장일 때 빈 줄을 세우면 첫 화면만 복잡해진다.
+          웹 실측으로 사진 21장 중 노트까지 간 건 1장이고, 이 줄은 그 1장한테 걸리는 문이다. */}
+      {savedNoteCount > 0 && onOpenNotes && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenNotes}
+          style={({ pressed }) => [styles.notesLink, pressed && styles.notesLinkPressed]}>
+          <Text style={styles.notesLinkText}>{`지난 오답노트 ${savedNoteCount}장 보기`}</Text>
+        </Pressable>
+      )}
 
       <View style={styles.steps}>
         {STEPS.map((step, index) => (
@@ -126,6 +145,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: PhotoTheme.muted,
     marginTop: 6,
+  },
+  notesLink: {
+    marginTop: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderCurve: 'continuous',
+    backgroundColor: PhotoTheme.cream2,
+    alignItems: 'center',
+  },
+  notesLinkPressed: {
+    backgroundColor: PhotoTheme.line,
+  },
+  notesLinkText: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 14,
+    color: PhotoTheme.green,
   },
   steps: {
     marginTop: 30,

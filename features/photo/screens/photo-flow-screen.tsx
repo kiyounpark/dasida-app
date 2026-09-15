@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { useEffect, useRef } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,6 +9,7 @@ import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
 import { PhotoChatThread } from '../components/photo-chat-thread';
 import { PhotoUploadView } from '../components/photo-upload-view';
 import { usePhotoFlow } from '../hooks/use-photo-flow';
+import { readPhotoNotes } from '../note-store';
 import { PhotoTheme } from '../theme';
 
 /**
@@ -18,6 +20,17 @@ export function PhotoFlowScreen({ accountKey }: { accountKey?: string | null } =
   const { status, imageUri, error, thread, start } = usePhotoFlow({ accountKey });
   const scrollRef = useRef<ScrollView>(null);
   const { bubbles, actions, press } = thread;
+  const [savedNoteCount, setSavedNoteCount] = useState(0);
+
+  // 업로드 화면으로 올 때마다 다시 센다 — 방금 만든 노트가 바로 반영돼야 한다
+  const countSavedNotes = useCallback(async () => {
+    setSavedNoteCount(accountKey ? (await readPhotoNotes(accountKey)).length : 0);
+  }, [accountKey]);
+
+  useEffect(() => {
+    if (status !== 'upload') return;
+    void countSavedNotes();
+  }, [status, countSavedNotes]);
 
   // 말풍선이 늘면 아래로 따라간다 (web-proto의 scrollIntoView 자리)
   useEffect(() => {
@@ -28,7 +41,14 @@ export function PhotoFlowScreen({ accountKey }: { accountKey?: string | null } =
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {status === 'upload' && <PhotoUploadView error={error} onPick={start} />}
+      {status === 'upload' && (
+        <PhotoUploadView
+          error={error}
+          onOpenNotes={() => router.push('/photo-notes')}
+          onPick={start}
+          savedNoteCount={savedNoteCount}
+        />
+      )}
       {status === 'analyzing' && <PhotoAnalyzingView />}
       {status === 'chat' && (
         <ScrollView

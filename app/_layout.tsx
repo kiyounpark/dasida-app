@@ -242,6 +242,11 @@ export default function RootLayout() {
               name="photo"
               options={{ title: '사진 오답노트', headerShown: true, headerBackTitle: '홈' }}
             />
+            {/* 지난 노트 목록 — 사진 화면 첫 칸에서 들어간다. 뒤로가기가 사진 화면으로 간다 */}
+            <Stack.Screen
+              name="photo-notes"
+              options={{ title: '지난 오답노트', headerShown: true, headerBackTitle: '뒤로' }}
+            />
             {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
           </Stack>
         </ExamSessionProvider>
