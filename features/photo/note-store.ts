@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { StorageKeys } from '@/constants/storage-keys';
 
+import { deleteNotePhotos } from './photo-file-store';
 import type { PhotoNote } from './types';
 
 /**
@@ -13,9 +14,9 @@ import type { PhotoNote } from './types';
  * ⚠️ 상한을 두지 않는다. 나중에 "최근 N장"으로 줄이는 건 언제 해도 값이 같지만,
  * 지금 잘라 버린 노트는 되살릴 수 없다. 노트 한 장은 텍스트 수 KB다.
  *
- * ⚠️ photoUri는 사진첩·카메라가 준 캐시 경로 그대로다. 기기 용량이 모자라면 시스템이 지운다.
- * 사진을 앱 문서 폴더로 복사하는 건 다음 칸(4칸 ③) 일이고, 그때까지 사진은 사라질 수 있다.
- * 사라져도 노트의 글(인용·왜·다음엔)은 남는다.
+ * photoUri는 앱 문서 폴더로 옮겨진 경로다 (4칸 ③, features/photo/photo-file-store.ts).
+ * 복사가 실패했으면 null이고, 그때는 사진 없이 글(인용·왜·다음엔)만 남는다.
+ * 캐시 경로는 저장하지 않는다 — 시스템이 지우면 며칠 뒤 깨진 사진 칸이 뜬다.
  */
 
 export function getPhotoNotesStorageKey(accountKey: string) {
@@ -60,9 +61,18 @@ export async function savePhotoNote(accountKey: string, note: PhotoNote): Promis
   return merged;
 }
 
-/** 탈퇴·로그아웃 정리용. features/learning/local-learning-history-storage.ts와 같은 자리에서 불린다 */
+/**
+ * 탈퇴·로그아웃 정리용. features/learning/local-learning-history-storage.ts와 같은 자리에서 불린다.
+ *
+ * 노트만 지우면 문서 폴더의 사진이 남는다 — 학생은 지웠다고 알고 기기엔 남아 있는 상태다.
+ * 그래서 목록을 먼저 읽어 사진부터 치우고 키를 지운다. 사진 삭제가 실패해도 키는 지운다.
+ */
 export async function clearPhotoNotes(accountKey: string): Promise<void> {
   if (!accountKey) return;
+
+  const notes = await readPhotoNotes(accountKey);
+  deleteNotePhotos(notes.map((note) => note.photoUri));
+
   await AsyncStorage.removeItem(getPhotoNotesStorageKey(accountKey));
 }
 
