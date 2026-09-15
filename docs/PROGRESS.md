@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 18:53
+- 해시: `e1f772f` (`e1f772fab8969147500c56feefa65d017eb40a45`)
+- 브랜치: photo-file-store
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e1f772fab8969147500c56feefa65d017eb40a45
+- 작성자: 박기윤
+- 메시지: feat(photo): 오답노트 사진을 앱 문서 폴더로 옮긴다 — 며칠 뒤 깨지던 사진 칸 (4칸 ③)
+- 본문: 지금까지 노트에 저장되던 photoUri는 사진첩·카메라가 준 캐시 경로였다. / expo-file-system의 Paths.cache 주석이 직접 적어놨듯, 기기 용량이 모자라면 / 시스템이 그 폴더를 비운다. 며칠 뒤 지난 오답노트를 열면 글은 남고 사진 칸만 / 깨진다. ④(목록 화면)가 먼저 나온 탓에 학생이 그 깨짐을 실제로 열어보게 된다. / 아직 저장된 노트가 0장이라(저장을 오늘 붙였고 배포 전이다) 마이그레이션은 / 필요 없다. 새로 찍는 것부터 문서 폴더에 남는다. / features/photo/photo-file-store.ts (새 파일) / - persistNotePhoto(noteId, sourceUri) — Paths.document/photo-notes/ 로 복사하고 / 새 경로를 돌려준다. 실패하면 던지지 않고 null (note-store의 저장과 같은 결이다). / - 파일명은 노트 id다 — 노트 한 장과 파일 한 장이 1대1로 붙고, 지울 때 어느 파일을 / 지울지가 바로 나온다. 다만 id가 photo-2026-09-15T12:34:56.789Z 꼴이라 콜론이 / 들어가서 안전한 글자만 남긴다. / - 확장자는 원본을 따라가고, 못 알아보면 .jpg. / - deleteNotePhoto는 문서 폴더 안의 것만 건드린다. 캐시 경로는 우리가 지울 게 아니다. / features/photo/hooks/use-photo-flow.ts / - 노트를 만들 때 복사하고, 저장본에는 옮겨진 경로만 남긴다. 복사가 실패하면 / 사진 없이 글만 저장된다 — 캐시 경로를 저장해 두면 며칠 뒤 깨진 칸을 보게 된다. / - 화면에 띄우는 노트는 복사본이 없으면 캐시본을 쓴다. 그 순간엔 아직 살아 있다. / features/photo/note-store.ts / - clearPhotoNotes가 키를 지우기 전에 사진 파일부터 치운다. 노트만 지우면 학생은 / 지웠다고 알고 기기엔 사진이 남는다. firebase-auth-client.ts는 안 건드렸다 — / 탈퇴 흐름이 이미 clearPhotoNotes를 부르고 있어서 그 안에 넣는 게 맞았다. / jest.setup.js / - expo-file-system 목 추가. 네이티브 모듈이라 없으면 사진 흐름 테스트 24개가 / 같이 터진다. 기본은 "아무 파일도 없다"로 둬서 다른 테스트가 파일을 안 건드린다. / 복사 동작 자체를 보는 photo-file-store.test.ts는 자기 목을 따로 건다. / 검증: tsc 에러 0, jest 95스위트 652테스트 전부 통과 (새 테스트 16개 포함), / 만진 소스 파일 eslint 에러 0. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 18:26
 - 해시: `0b6c805` (`0b6c80541a32b4a08474a2b2ba70a2532dfc461f`)
 - 브랜치: main

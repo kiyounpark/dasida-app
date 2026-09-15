@@ -129,6 +129,39 @@ jest.mock('expo-crypto', () => ({
   digestStringAsync: jest.fn(() => Promise.resolve('mock-hash')),
 }));
 
+// 네이티브 모듈이라 테스트에서 그냥 부르면 터진다.
+// 기본은 "아무 파일도 없다"로 둔다 — persistNotePhoto가 곧바로 null을 돌려주고,
+// 그게 사진 흐름 테스트가 기대하는 모양이다(사진은 못 옮겨도 노트의 글은 남는다).
+// 복사 동작 자체를 보는 features/photo/photo-file-store.test.ts는 자기 목을 따로 건다.
+jest.mock('expo-file-system', () => {
+  class FakeEntry {
+    constructor(...uris) {
+      this.uri = uris
+        .map((item) => (typeof item === 'string' ? item : item.uri))
+        .join('/')
+        .replace(/(?<!:)\/{2,}/g, '/');
+      this.exists = false;
+    }
+    create() {}
+    delete() {}
+    copy() {}
+    move() {}
+  }
+
+  return {
+    File: FakeEntry,
+    Directory: FakeEntry,
+    Paths: {
+      get document() {
+        return new FakeEntry('file:///document');
+      },
+      get cache() {
+        return new FakeEntry('file:///cache');
+      },
+    },
+  };
+});
+
 jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
   maybeCompleteAuthSession: jest.fn(),

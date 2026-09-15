@@ -19,6 +19,7 @@ import {
   type PhotoRoute,
 } from '../flow/route-from-analysis';
 import { savePhotoNote } from '../note-store';
+import { persistNotePhoto } from '../photo-file-store';
 import type {
   AnalyzePhotoResult,
   MistakeTypeId,
@@ -464,12 +465,19 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
 
     say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
     const createdAt = now.toISOString();
+    const noteId = `photo-${createdAt}`;
+    // 사진첩이 준 건 캐시 경로라 시스템이 언제든 지운다. 남길 거면 지금 문서 폴더로 옮긴다.
+    // 계정이 없으면 어차피 저장을 안 하므로 복사도 하지 않는다.
+    const storedPhotoUri =
+      accountKey && photoUriRef.current ? persistNotePhoto(noteId, photoUriRef.current) : null;
+
     const note: PhotoNote = {
-      id: `photo-${createdAt}`,
+      id: noteId,
       createdAt,
       schemaVersion: 1,
       dateLabel: `${now.getMonth() + 1}/${now.getDate()}`,
-      photoUri: photoUriRef.current,
+      // 화면엔 뭐라도 보여준다 — 복사가 실패해도 캐시본은 지금 이 순간엔 살아 있다.
+      photoUri: storedPhotoUri ?? photoUriRef.current,
       quote: candidate?.quote ?? '',
       why: candidate?.why ?? '',
       // 짚기가 성공한 경로에선 AI의 처방을, 비었으면 유형별 통조림을 쓴다
@@ -487,9 +495,11 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
 
     showNote(note);
 
-    // 저장은 카드를 띄운 뒤에, 기다리지 않고 건다 — 실패해도 학생이 보는 장면은 그대로다
+    // 저장은 카드를 띄운 뒤에, 기다리지 않고 건다 — 실패해도 학생이 보는 장면은 그대로다.
+    // 저장본에는 옮겨진 경로만 남긴다. 복사가 실패했으면 사진 없이 글만 남는다 —
+    // 캐시 경로를 저장해 두면 며칠 뒤 열었을 때 깨진 사진 칸을 보게 된다.
     if (accountKey) {
-      void savePhotoNote(accountKey, note);
+      void savePhotoNote(accountKey, { ...note, photoUri: storedPhotoUri });
     }
 
     // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.
