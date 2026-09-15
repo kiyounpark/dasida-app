@@ -92,17 +92,20 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return;
     }
     const isAuthenticated = session?.status === 'authenticated';
-    applyOverduePenalties(accountKey, hubReviewStore).then(() => {
-      if (isAuthenticated) {
-        // 인증 사용자는 서버가 발송 주도 — 로컬 재예약 금지, 기존 예약 취소.
-        void cancelAllReviewNotifications().catch(console.warn);
-      } else {
-        void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(
-          console.warn,
-        );
-      }
-      void refresh();
-    });
+    applyOverduePenalties(accountKey, hubReviewStore)
+      // 서버가 4xx로 거절하면 이제 throw된다 — 잡지 않으면 아래 refresh가 통째로 멈춘다.
+      .catch(console.warn)
+      .then(() => {
+        if (isAuthenticated) {
+          // 인증 사용자는 서버가 발송 주도 — 로컬 재예약 금지, 기존 예약 취소.
+          void cancelAllReviewNotifications().catch(console.warn);
+        } else {
+          void rescheduleAllReviewNotifications(accountKey, hubReviewStore).catch(
+            console.warn,
+          );
+        }
+        void refresh();
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.accountKey]);
 

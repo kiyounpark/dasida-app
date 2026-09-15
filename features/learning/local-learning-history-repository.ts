@@ -42,11 +42,14 @@ function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: stri
   return `${sourceId}__${weaknessId}__${stage}`;
 }
 
+// 서버 스키마(`z.string().datetime()`)가 받는 ISO datetime으로 만든다.
+// 로그인 시 이 값이 그대로 importLocalLearningHistory로 올라간다.
+// 날짜는 기기 시간대 기준이고, 뒤의 T00:00:00.000Z는 검사 통과용 고정값이다.
 function addDays(timestamp: string, days: number): string {
   const d = new Date(timestamp);
   const pad = (n: number) => String(n).padStart(2, '0');
   const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
-  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}T00:00:00.000Z`;
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
