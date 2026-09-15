@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 14:03
+- 해시: `678933a` (`678933a6c525e6f62061d132b4d66824427b83d3`)
+- 브랜치: worktree-remove-10q-diagnostic
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/678933a6c525e6f62061d132b4d66824427b83d3
+- 작성자: 박기윤
+- 메시지: refactor: 10문제 문제은행과 진단 리듀서를 걷어냈다 — 앱 번들에서 10문제가 사라졌다
+- 본문: 화면을 지운 뒤 도달 불가가 된 코드를 정리했다. 1391줄이 더 빠졌다. / data/problemData.ts (540줄) 삭제. 10문제 본문·정답이 들어 있던 파일이고, / 이제 앱 번들에 실리지 않는다. / features/quiz/session.tsx 377 → 120줄. 진단 전용 액션 7개(START· / GO_TO_PREVIOUS_QUESTION·SUBMIT_ANSWER·CONFIRM_DIAGNOSIS_METHOD· / SUBMIT_DIAGNOSIS_WEAKNESS·FINISH_DIAGNOSIS·RESUME_DIAGNOSIS)와 / finalizeQuiz·checkPhaseTransition 제거. 약점 연습이 쓰는 셋 / (ADVANCE_PRACTICE·SEED_PRACTICE_QUEUE·COMPLETE_CHALLENGE)은 그대로 두었고, / session.test.ts가 그 셋을 잠그고 있어 같이 남겼다. / 여기서 딸려 나온 것 — state.result를 세팅하던 곳이 FINISH_DIAGNOSIS 하나뿐이라, / 결과 화면의 "진단 결과 저장" 경로가 통째로 도달 불가가 됐다: / - use-result-screen.ts — persistResult·saveState·saveErrorMessage 제거. / liveSummary는 이제 실모에서만 온다(실모는 자기 훅에서 이미 저장한다). / - quiz-result-screen-view.tsx / quiz-result-report-view.tsx — 저장 중·저장 실패 / 카드 제거. 사진 저장이 붙으면 그 흐름에 맞는 걸 새로 만드는 게 맞다. / - build-finalized-attempt-input.ts — buildDiagnosticAttemptInput 제거. / buildWeaknessPracticeAttemptInput은 약점 연습이 쓰므로 남겼다. / - engine.ts — buildQuizResult·getTopWeaknesses·incrementWeaknessScore 제거. / createInitialWeaknessScores만 남았다(session 초기 상태가 쓴다). / - constants/env.ts — diagnosisExplainUrl·diagnosisExplainTimeoutMs 제거. / diagnosisRouterUrl은 실모 오답 분석이 쓰므로 남겼다. / 이미 끊겨 있던 진단 화면 부품 둘(diagnostic-choice-card·diagnostic-progress-ring)도 / 같이 지웠다. / 검증: tsc 에러 0, jest 90스위트 608테스트 전부 통과, 만진 파일 eslint 경고 0. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.14 23:19
 - 해시: `e77450a` (`e77450a9c255ff9ceadcd0f8030521462321e966`)
 - 브랜치: main
