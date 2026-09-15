@@ -5,13 +5,14 @@ import { useWindowDimensions } from 'react-native';
 
 import { logEvent } from '@/features/analytics/log-event';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
-import type { HomeJourneyState } from '@/features/learning/home-journey-state';
+import type { HomeTodayState } from '@/features/learning/home-today-state';
 import { applyOverduePenalties } from '@/features/learning/review-scheduler';
 import {
   cancelAllReviewNotifications,
   rescheduleAllReviewNotifications,
 } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { readPhotoNotes } from '@/features/photo/note-store';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
@@ -33,27 +34,20 @@ export type UseQuizHubScreenResult = {
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
-  journey: HomeJourneyState | null;
   onDismissAuthNotice: () => void;
-  onOpenPractice: () => void;
-  onOpenRecentResult: () => void;
   onPressExam: () => void;
-  onPressJourneyCta: () => void;
   onPressPhoto: () => void;
-  onPressReviewCard: () => void;
-  onRediagnose: () => void;
+  onPressReviewTask: (taskId: string) => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onResumeAnalysis: (attemptId: string) => void;
-  onStartDiagnostic: () => void;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
   showAnalysisResumeCard: boolean;
-  showBrandHeader: boolean;
-  showJourneyHero: boolean;
-  showJourneyBoard: boolean;
+  /** 사진 노트가 한 장도 없는 학생 — 복습 얘기 대신 web-proto의 소개 화면을 띄운다. */
+  showFirstRun: boolean;
   showNoReviewDayCard: boolean;
-  showReviewHomeCard: boolean;
   showWeaknessSection: boolean;
+  today: HomeTodayState | null;
 };
 
 export function useQuizHubScreen(): UseQuizHubScreenResult {
@@ -61,7 +55,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const {
     authNoticeMessage,
     dismissAuthNotice,
-    graduateToPractice,
     homeState,
     isReady,
     profile,
@@ -75,7 +68,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({
     isInProgress: false,
   });
-  const isGraduatingRef = useRef(false);
+  // null = 아직 안 읽음. 0인지 아닌지를 알기 전에는 홈을 그리지 않는다 —
+  // 모르는 채로 그리면 처음 온 학생이 "아직 복습할 게 없어요"를 한 번 깜빡이고 본다.
+  const [photoNoteCount, setPhotoNoteCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!authNoticeMessage) {
@@ -160,41 +155,27 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return () => {
         cancelled = true;
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountKey]),
   );
 
-  // 10문제 진단을 걷어낸 뒤, 여정 첫 CTA는 사진 오답노트로 간다.
-  const onStartDiagnostic = () => {
-    router.push('/photo');
-  };
+  // 사진을 한 장이라도 찍어봤나. 사진 흐름에서 돌아올 때마다 다시 센다.
+  useFocusEffect(
+    useCallback(() => {
+      const accountKey = session?.accountKey;
+      let cancelled = false;
+      void (async () => {
+        const notes = accountKey ? await readPhotoNotes(accountKey) : [];
+        if (!cancelled) {
+          setPhotoNoteCount(notes.length);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [session?.accountKey]),
+  );
 
-  const onOpenPractice = () => {
-    if (!homeState) {
-      return;
-    }
-
-    if (homeState.todayReviewCount > 0) {
-      router.push({ pathname: '/quiz/practice', params: { mode: 'review' } });
-      return;
-    }
-
-    router.push({ pathname: '/quiz/practice', params: { mode: 'weakness' } });
-  };
-
-  const onOpenRecentResult = () => {
-    if (!homeState?.recentResultCard.enabled) {
-      return;
-    }
-
-    router.push({
-      pathname: '/quiz/result',
-      params: { source: 'snapshot' },
-    });
-  };
-
-  const onPressReviewCard = () => {
-    const taskId = homeState?.nextReviewTask?.id;
+  const onPressReviewTask = useCallback((taskId: string) => {
     if (!taskId) {
       return;
     }
@@ -202,7 +183,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       pathname: '/quiz/review-session',
       params: { taskId },
     });
-  };
+  }, []);
 
   const onPressExam = () => {
     router.push('/(tabs)/exam');
@@ -210,11 +191,6 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
 
   // 사진 오답노트. 탭 밖 루트 라우트라 탭바가 안 보이고, 헤더 뒤로가기로 홈에 돌아온다.
   const onPressPhoto = () => {
-    router.push('/photo');
-  };
-
-  // 진단 분석을 이어하던 학생도 사진으로 보낸다 — 이어갈 진단 화면이 없다.
-  const onResumeDiagnosis = () => {
     router.push('/photo');
   };
 
@@ -249,52 +225,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     [latestAttempts, analysisState, hydrateResult],
   );
 
-  const onPressJourneyCta = () => {
-    const action = homeState?.journey.ctaAction;
+  const today = homeState?.today ?? null;
 
-    if (!action || action === 'none') {
-      return;
-    }
-
-    switch (action) {
-      case 'resume_diagnosis':
-        onResumeDiagnosis();
-        return;
-      case 'open_result':
-        onOpenRecentResult();
-        return;
-      case 'open_review':
-        onOpenPractice();
-        return;
-      case 'graduate_practice':
-        if (isGraduatingRef.current) return;
-        isGraduatingRef.current = true;
-        void graduateToPractice()
-          .then(() => {
-            isGraduatingRef.current = false;
-            // router.replace가 app/quiz/_layout.tsx 스택을 unmount하면서
-            // QuizSessionProvider도 소멸 → 세션 상태가 자연히 초기화됨
-            router.replace('/(tabs)/quiz');
-          })
-          .catch((err) => {
-            isGraduatingRef.current = false;
-            console.warn('[QuizHub] graduateToPractice failed', err);
-          });
-        return;
-      case 'start_diagnostic':
-        onStartDiagnostic();
-        return;
-      default: {
-        const exhaustiveCheck: never = action;
-        console.warn('[QuizHub] unknown ctaAction', exhaustiveCheck);
-      }
-    }
-  };
-
-  const journey = homeState?.journey ?? null;
-  const isGraduated = journey?.currentStateKey === 'journey_graduated';
-  const isJourneyActive = !isGraduated;
-
+  // 졸업은 홈의 분기에서 빠졌지만(🔒 결정 B "졸업은 없다"), 약점연습·step-complete 화면은
+  // 여전히 practiceGraduatedAt을 세운다. 그 순간을 한 번 기록하는 것만 남긴다.
+  const isGraduated = Boolean(profile?.practiceGraduatedAt);
   const graduationLoggedRef = useRef(false);
   useEffect(() => {
     if (!isGraduated) return;
@@ -311,27 +246,21 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       await AsyncStorage.setItem(key, new Date().toISOString());
       logEvent('graduation_reached', {});
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGraduated, session?.accountKey]);
+
   const isAnalysisInProgress = analysisState.isInProgress;
 
-  const showBrandHeader = isGraduated;
-  const showJourneyHero = isJourneyActive && !isAnalysisInProgress;
-  const showJourneyBoard = isJourneyActive && !isAnalysisInProgress;
-  // 여정 진행 중에는 NoReviewDayCard를 숨긴다. 졸업 후(isGraduated)에만 기존 조건을 평가.
+  // 재료는 있는데 오늘 차례가 아닌 날에만 뜬다.
   const showNoReviewDayCard =
-    isGraduated &&
-    !!homeState?.nextReviewTask &&
-    homeState.todayReviewCount === 0 &&
-    !isAnalysisInProgress;
+    today?.mode === 'resting' && !!today.nextTask && !isAnalysisInProgress;
 
   const noReviewDaysUntil = (() => {
-    const scheduledFor = homeState?.nextReviewTask?.scheduledFor;
+    const scheduledFor = today?.nextTask?.scheduledFor;
     if (!scheduledFor) return 1;
     const todayStr = new Date().toISOString().slice(0, 10);
-    const today = new Date(todayStr);
+    const todayDate = new Date(todayStr);
     const target = new Date(scheduledFor.slice(0, 10));
-    const diffMs = target.getTime() - today.getTime();
+    const diffMs = target.getTime() - todayDate.getTime();
     return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   })();
 
@@ -340,14 +269,15 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     daysUntil: noReviewDaysUntil,
     onPressExam,
   });
-  // 약점 섹션도 여정 완료 후에만 노출.
-  const showWeaknessSection = isGraduated;
-  // ReviewHomeCard도 여정 진행 중에는 숨긴다. 졸업 후에만 평가.
-  const showReviewHomeCard =
-    isGraduated &&
-    !!homeState?.nextReviewTask &&
-    homeState.todayReviewCount > 0;
+
+  // 졸업 게이트를 뺀 자리. 띄울 게 실제로 있을 때만 띄운다.
+  const showWeaknessSection =
+    (homeState?.weaknessProgressItems.length ?? 0) > 0 && !isAnalysisInProgress;
   const showAnalysisResumeCard = isAnalysisInProgress;
+
+  // 아직 아무것도 안 해본 학생. 복습이 0건인 이유가 "다 했다"가 아니라 "시작을 안 했다"다.
+  const showFirstRun =
+    photoNoteCount === 0 && today?.mode === 'empty' && !isAnalysisInProgress;
 
   return {
     analysisState,
@@ -355,29 +285,22 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     getExamTitle: (examId: string) => EXAM_CATALOG_BY_ID[examId]?.title ?? examId,
     homeState,
     isCompactLayout: width < 390 || height < 780,
-    isReady,
-    journey,
+    // 사진 노트를 세기 전에는 아직 준비가 안 된 것으로 본다 — 위 photoNoteCount 주석 참고.
+    isReady: isReady && photoNoteCount !== null,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
-    onOpenPractice,
-    onOpenRecentResult,
     onPressExam: onPressExamWithAnalytics,
-    onPressJourneyCta,
     onPressPhoto,
-    onPressReviewCard,
-    onRediagnose: onStartDiagnostic,
+    onPressReviewTask,
     onRefresh: refresh,
     onResumeAnalysis,
-    onStartDiagnostic,
     profile,
     session,
     showAnalysisResumeCard,
-    showBrandHeader,
-    showJourneyHero,
-    showJourneyBoard,
+    showFirstRun,
     showNoReviewDayCard,
-    showReviewHomeCard,
     showWeaknessSection,
+    today,
   };
 }
