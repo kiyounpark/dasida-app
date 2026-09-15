@@ -62,6 +62,10 @@
 - `pre-commit`은 사용하지 않음
 - 가능한 경우 `git commit -> git push origin <현재 브랜치> -> npm run log:commit`
 - 개발 기록은 `docs/PROGRESS.md` 기준으로 남김
+- **`docs/STATUS.md` 갱신 (필수)**: 이번 세션에서 건드린 칸의 상태와 한 줄, 맨 위 갱신
+  날짜·커밋을 고친다. 칸은 글자(A·B·C…)로 세고 숫자로 돌아가지 않는다. 막히면 🚧로
+  두고 **무엇이 막는지** 적는다. 모르는 건 "모르는 것"에 적는다.
+  기윤이 "지금 어디까지 왔나"를 확인하는 유일한 파일이다 — 여기가 틀리면 볼 데가 없다.
 - **Notion 업데이트 (필수)**: 이번 세션에서 기능을 구현 완료했다면, Notion "DASIDA 개발 기록"에서 해당 페이지를 업데이트한다:
   1. `notion-update-page`로 상태 → `구현완료`, 구현완료일 → 오늘 날짜
   2. Spec/Plan 필드를 GitHub permalink로 업데이트 (커밋 해시 포함 URL)
