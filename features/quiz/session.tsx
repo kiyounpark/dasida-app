@@ -1,29 +1,10 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
-import { getDiagnosticProblems, type Problem } from '@/data/problemData';
 import { createContext, type ReactNode, use, useMemo, useReducer } from 'react';
-import { useCurrentLearner } from '@/features/learner/provider';
-import type { PendingDiagnosisResumeState } from '@/features/learner/types';
-import {
-  buildQuizResult,
-  createInitialWeaknessScores,
-  incrementWeaknessScore,
-} from './engine';
-import type { DiagnosisDetailTrace, DiagnosisRoutingTrace, QuizSessionState } from './types';
+import { createInitialWeaknessScores } from './engine';
+import type { QuizSessionState } from './types';
 
 type QuizSessionContextValue = {
-  problems: Problem[];
   state: QuizSessionState;
-  startSession: () => void;
-  goToPreviousQuestion: () => void;
-  submitAnswer: (problemId: string, selectedIndex: number, isCorrect: boolean) => void;
-  confirmDiagnosisMethod: (answerIndex: number, trace: DiagnosisRoutingTrace) => void;
-  submitDiagnosisWeakness: (
-    answerIndex: number,
-    weaknessId: WeaknessId,
-    detailTrace?: DiagnosisDetailTrace,
-  ) => void;
-  finishDiagnosis: () => void;
-  resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => void;
   advancePractice: () => void;
   completeChallenge: () => void;
   resetSession: () => void;
@@ -32,38 +13,14 @@ type QuizSessionContextValue = {
 
 type Action =
   | { type: 'RESET' }
-  | { type: 'START'; payload: { totalQuestions: number } }
-  | { type: 'GO_TO_PREVIOUS_QUESTION' }
-  | { type: 'SUBMIT_ANSWER'; payload: { problemId: string; selectedIndex: number; isCorrect: boolean } }
-  | {
-      type: 'CONFIRM_DIAGNOSIS_METHOD';
-      payload: {
-        answerIndex: number;
-        trace: DiagnosisRoutingTrace;
-      };
-    }
-  | {
-      type: 'SUBMIT_DIAGNOSIS_WEAKNESS';
-      payload: {
-        answerIndex: number;
-        weaknessId: WeaknessId;
-        detailTrace?: DiagnosisDetailTrace;
-      };
-    }
-  | { type: 'FINISH_DIAGNOSIS' }
-  | { type: 'RESUME_DIAGNOSIS'; payload: PendingDiagnosisResumeState }
   | { type: 'ADVANCE_PRACTICE' }
   | { type: 'SEED_PRACTICE_QUEUE'; payload: { weaknesses: WeaknessId[] } }
   | { type: 'COMPLETE_CHALLENGE' };
 
-function createAttemptId() {
-  return `attempt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function createInitialState(): QuizSessionState {
   return {
     hasStarted: false,
-    totalQuestions: 10, // 실제값은 START 액션에서 주입됨
+    totalQuestions: 10,
     attemptId: undefined,
     startedAt: undefined,
     currentQuestionIndex: 0,
@@ -80,184 +37,10 @@ function createInitialState(): QuizSessionState {
   };
 }
 
-function finalizeQuiz(state: QuizSessionState): QuizSessionState {
-  const attemptId = state.attemptId ?? createAttemptId();
-  const startedAt = state.startedAt ?? new Date().toISOString();
-  const completedAt = new Date().toISOString();
-  const result = buildQuizResult(
-    attemptId,
-    startedAt,
-    completedAt,
-    state.answers,
-    state.weaknessScores,
-    state.totalQuestions,
-  );
-
-  return {
-    ...state,
-    attemptId,
-    startedAt,
-    currentQuestionIndex: state.totalQuestions,
-    isDiagnosing: false,
-    diagnosisQueue: [],
-    result,
-    practiceMode: result.allCorrect ? 'challenge' : 'weakness',
-    practiceQueue: result.allCorrect ? [] : result.topWeaknesses,
-    practiceIndex: 0,
-    practiceCompleted: false,
-    challengeCompleted: false,
-  };
-}
-
-function checkPhaseTransition(state: QuizSessionState): QuizSessionState {
-  if (state.currentQuestionIndex < state.totalQuestions) {
-    return state;
-  }
-
-  if (state.result) {
-    return state;
-  }
-
-  const wrongIndices = state.answers
-    .map((answer, index) => (answer.isCorrect ? -1 : index))
-    .filter((index) => index !== -1);
-
-  if (!state.isDiagnosing) {
-    if (wrongIndices.length > 0) {
-      return {
-        ...state,
-        currentQuestionIndex: state.totalQuestions,
-        isDiagnosing: true,
-        diagnosisQueue: wrongIndices,
-      };
-    }
-
-    return finalizeQuiz(state);
-  }
-
-  const isDiagnosisComplete = state.diagnosisQueue.every((answerIndex) => {
-    const answer = state.answers[answerIndex];
-    return Boolean(answer?.weaknessId);
-  });
-
-  if (!isDiagnosisComplete) {
-    return state;
-  }
-
-  return finalizeQuiz(state);
-}
-
 export function reducer(state: QuizSessionState, action: Action): QuizSessionState {
   switch (action.type) {
     case 'RESET': {
       return createInitialState();
-    }
-
-    case 'START': {
-      if (state.hasStarted) return state;
-      const startedAt = new Date().toISOString();
-      return {
-        ...state,
-        hasStarted: true,
-        totalQuestions: action.payload.totalQuestions,
-        attemptId: createAttemptId(),
-        startedAt,
-      };
-    }
-
-    case 'GO_TO_PREVIOUS_QUESTION': {
-      if (state.isDiagnosing || state.currentQuestionIndex <= 0) return state;
-
-      return {
-        ...state,
-        currentQuestionIndex: state.currentQuestionIndex - 1,
-      };
-    }
-
-    case 'SUBMIT_ANSWER': {
-      if (state.currentQuestionIndex >= state.totalQuestions) return state;
-
-      const answers = [...state.answers];
-      answers[state.currentQuestionIndex] = {
-        problemId: action.payload.problemId,
-        selectedIndex: action.payload.selectedIndex,
-        isCorrect: action.payload.isCorrect,
-      };
-
-      return checkPhaseTransition({
-        ...state,
-        currentQuestionIndex: state.currentQuestionIndex + 1,
-        answers,
-      });
-    }
-
-    case 'CONFIRM_DIAGNOSIS_METHOD': {
-      if (!state.isDiagnosing) return state;
-
-      const { answerIndex, trace } = action.payload;
-      if (state.answers[answerIndex]?.weaknessId) return state;
-      
-      const newAnswers = [...state.answers];
-      newAnswers[answerIndex] = {
-        ...newAnswers[answerIndex],
-        methodId: trace.finalMethodId,
-        diagnosisRouting: trace,
-      };
-
-      return {
-        ...state,
-        answers: newAnswers,
-      };
-    }
-
-    case 'SUBMIT_DIAGNOSIS_WEAKNESS': {
-      if (!state.isDiagnosing) return state;
-
-      const { answerIndex, weaknessId, detailTrace } = action.payload;
-      if (state.answers[answerIndex]?.weaknessId) return state;
-      
-      const newAnswers = [...state.answers];
-      newAnswers[answerIndex] = {
-        ...newAnswers[answerIndex],
-        weaknessId,
-        diagnosisDetailTrace: detailTrace,
-      };
-
-      const weaknessScores = incrementWeaknessScore(state.weaknessScores, weaknessId);
-
-      return checkPhaseTransition({
-        ...state,
-        answers: newAnswers,
-        weaknessScores,
-      });
-    }
-
-    case 'FINISH_DIAGNOSIS': {
-      if (!state.isDiagnosing) return state;
-      return finalizeQuiz(state);
-    }
-
-    case 'RESUME_DIAGNOSIS': {
-      const {
-        attemptId,
-        startedAt,
-        totalQuestions,
-        answers,
-        weaknessScores,
-        diagnosisQueue,
-      } = action.payload;
-      return {
-        ...createInitialState(),
-        hasStarted: true,
-        totalQuestions,
-        attemptId,
-        startedAt,
-        currentQuestionIndex: totalQuestions,
-        answers,
-        isDiagnosing: true,
-        diagnosisQueue,
-        weaknessScores,
-      };
     }
 
     case 'ADVANCE_PRACTICE': {
@@ -306,49 +89,11 @@ export function reducer(state: QuizSessionState, action: Action): QuizSessionSta
 const QuizSessionContext = createContext<QuizSessionContextValue | undefined>(undefined);
 
 export function QuizSessionProvider({ children }: { children: ReactNode }) {
-  const { profile } = useCurrentLearner();
-  const problems = useMemo(
-    () => getDiagnosticProblems(profile?.grade ?? 'unknown', profile?.track),
-    [profile?.grade, profile?.track],
-  );
-  const totalQuestions = problems.length;
-
   const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
 
   const value = useMemo<QuizSessionContextValue>(
     () => ({
-      problems,
       state,
-      startSession: () => {
-        dispatch({ type: 'START', payload: { totalQuestions } });
-      },
-      goToPreviousQuestion: () => {
-        dispatch({ type: 'GO_TO_PREVIOUS_QUESTION' });
-      },
-      submitAnswer: (problemId, selectedIndex, isCorrect) => {
-        dispatch({
-          type: 'SUBMIT_ANSWER',
-          payload: { problemId, selectedIndex, isCorrect },
-        });
-      },
-      confirmDiagnosisMethod: (answerIndex, trace) => {
-        dispatch({
-          type: 'CONFIRM_DIAGNOSIS_METHOD',
-          payload: { answerIndex, trace },
-        });
-      },
-      submitDiagnosisWeakness: (answerIndex, weaknessId, detailTrace) => {
-        dispatch({
-          type: 'SUBMIT_DIAGNOSIS_WEAKNESS',
-          payload: { answerIndex, weaknessId, detailTrace },
-        });
-      },
-      finishDiagnosis: () => {
-        dispatch({ type: 'FINISH_DIAGNOSIS' });
-      },
-      resumeDiagnosis: (resumeState: PendingDiagnosisResumeState) => {
-        dispatch({ type: 'RESUME_DIAGNOSIS', payload: resumeState });
-      },
       advancePractice: () => {
         dispatch({ type: 'ADVANCE_PRACTICE' });
       },
@@ -362,7 +107,7 @@ export function QuizSessionProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SEED_PRACTICE_QUEUE', payload: { weaknesses } });
       },
     }),
-    [problems, state, totalQuestions],
+    [state],
   );
 
   return <QuizSessionContext.Provider value={value}>{children}</QuizSessionContext.Provider>;

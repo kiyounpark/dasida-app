@@ -1,10 +1,9 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { diagnosisMap, resolveWeaknessId, resolveWeaknessLabel } from '@/data/diagnosisMap';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { useCurrentLearner } from '@/features/learner/provider';
-import { buildDiagnosticAttemptInput } from '@/features/quiz/build-finalized-attempt-input';
 import type { NotificationOptInCardState } from '@/features/quiz/components/notification-opt-in-card';
 import { useNotificationOptIn } from '@/features/quiz/hooks/use-notification-opt-in';
 import { useQuizSession } from '@/features/quiz/session';
@@ -23,16 +22,6 @@ export type QuizResultRouteParams = {
   examWrong?: string;
 };
 
-export type ResultSaveState = 'idle' | 'saving' | 'saved' | 'error';
-
-function getSaveErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-
-  return '결과를 저장하지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.';
-}
-
 export type UseResultScreenResult = {
   legacyNextStep?: string;
   legacyPracticeParams: { mode: 'weakness'; weaknessId?: string; weakTag?: string };
@@ -40,13 +29,10 @@ export type UseResultScreenResult = {
   liveSummary: QuizResultSummary | undefined;
   onOpenChallengePractice: () => void;
   onOpenLegacyPractice: () => void;
-  onOpenSnapshotDiagnostic: () => void;
+  onOpenPhotoFlow: () => void;
   onOpenSnapshotPractice: (weaknessId: string) => void;
   onOpenWeaknessPractice: (weaknessId: string) => void;
   onRestartQuiz: () => void;
-  persistResult: () => Promise<void>;
-  saveErrorMessage: string | null;
-  saveState: ResultSaveState;
   source?: 'exam' | 'diagnostic';
   snapshotSummary: ReturnType<typeof useCurrentLearner>['summary'] extends infer Summary
     ? Summary extends { latestDiagnosticSummary?: infer Snapshot }
@@ -73,19 +59,14 @@ export function useResultScreen({
   examTopWeaknesses,
   examWrong,
 }: QuizResultRouteParams): UseResultScreenResult {
-  const { state, resetSession } = useQuizSession();
+  const { resetSession } = useQuizSession();
   const {
     markDiagnosticResultViewed,
     profile,
-    recordAttempt,
     registerPushToken,
     session,
     summary: currentSummary,
   } = useCurrentLearner();
-  const [saveState, setSaveState] = useState<ResultSaveState>('idle');
-  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-
-  const liveSessionSummary = state.result;
 
   const examSummary = useMemo<QuizResultSummary | undefined>(() => {
     if (requestedSource !== 'exam') return undefined;
@@ -115,7 +96,8 @@ export function useResultScreen({
     };
   }, [requestedSource, examId, examTotal, examCorrect, examAccuracy, examTopWeaknesses, examWrong]);
 
-  const liveSummary = examSummary ?? liveSessionSummary;
+  // 10문제 진단을 걷어낸 뒤로 "방금 푼 결과"는 실모에서만 온다.
+  const liveSummary = examSummary;
 
   const optIn = useNotificationOptIn({
     accountKey: session?.accountKey,
@@ -143,64 +125,6 @@ export function useResultScreen({
     legacyPracticeParams.weaknessId = legacyWeaknessId;
     legacyPracticeParams.weakTag = resolveWeaknessLabel(legacyWeaknessId);
   }
-
-  const persistResult = useCallback(async () => {
-    if (requestedSource === 'exam') return; // exam result already saved by use-exam-result-screen
-    if (!liveSummary || !profile || !session || saveState === 'saving') {
-      return;
-    }
-
-    setSaveState('saving');
-    setSaveErrorMessage(null);
-
-    try {
-      await recordAttempt(
-        buildDiagnosticAttemptInput({
-          session,
-          profile,
-          answers: state.answers,
-          result: liveSummary,
-        }),
-      );
-      setSaveState('saved');
-    } catch (error) {
-      setSaveState('error');
-      setSaveErrorMessage(getSaveErrorMessage(error));
-    }
-  }, [liveSummary, profile, recordAttempt, requestedSource, saveState, session, state.answers]);
-
-  useEffect(() => {
-    if (!liveSummary) {
-      setSaveState('saved');
-      setSaveErrorMessage(null);
-      return;
-    }
-
-    if (storedSummary?.attemptId === liveSummary.attemptId) {
-      setSaveState('saved');
-      setSaveErrorMessage(null);
-      return;
-    }
-
-    setSaveState('idle');
-    setSaveErrorMessage(null);
-  }, [liveSummary, storedSummary?.attemptId]);
-
-  useEffect(() => {
-    if (!liveSummary || !profile || !session) {
-      return;
-    }
-
-    if (storedSummary?.attemptId === liveSummary.attemptId) {
-      return;
-    }
-
-    if (saveState !== 'idle') {
-      return;
-    }
-
-    void persistResult();
-  }, [liveSummary, persistResult, profile, saveState, session, storedSummary?.attemptId]);
 
   // 결과 화면 첫 진입 시 "결과 봄" 이정표를 기록한다.
   // 이미 값이 있으면 controller 측에서 no-op로 처리된다.
@@ -249,12 +173,8 @@ export function useResultScreen({
         params: legacyPracticeParams,
       });
     },
-    onOpenSnapshotDiagnostic: () => {
-      resetSession();
-      router.replace({
-        pathname: '/quiz/diagnostic',
-        params: { autostart: '1' },
-      });
+    onOpenPhotoFlow: () => {
+      router.push('/photo');
     },
     onOpenSnapshotPractice: (weaknessId: string) => {
       router.push({
@@ -278,9 +198,6 @@ export function useResultScreen({
       router.replace('/quiz');
       resetSession();
     },
-    persistResult,
-    saveErrorMessage,
-    saveState,
     snapshotSummary,
     snapshotSummaryTitle,
     optInCard: {

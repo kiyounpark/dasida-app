@@ -1070,6 +1070,25 @@
 - 작성자: 박기윤
 - 메시지: chore: 코덱스용 훅·에이전트 설정 추가 — .claude 사본
 - 본문: .claude/hooks의 스킬 라우팅 훅과 .claude/agents의 에이전트 셋을 / 코덱스에서도 쓰려고 .codex/ 아래 같은 모양으로 둔 것. 훅 스크립트는 바이트 동일. / ⚠️ .codex/hooks.json이 훅 경로를 절대경로(/Users/baggiyun/...)로 들고 있다. / 이 맥에서만 돈다 — 다른 환경에서 쓰려면 그 6줄을 고쳐야 한다. / 이 세션이 만든 파일은 아니고, 사진 저장 작업(①②④)과 섞이지 않게 따로 커밋했다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+### 커밋 2026.09.15 18:10
+- 해시: `e95417d` (`e95417df17f12ef0729eed85be625f05a4523695`)
+- 브랜치: worktree-remove-10q-diagnostic
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e95417df17f12ef0729eed85be625f05a4523695
+- 작성자: 박기윤
+- 메시지: fix(tabs): 신규 학생이 탭바 없는 홈에 갇히던 것 — 졸업 도장 게이트를 걷어냈다
+- 본문: 진단을 걷어낸 직후 생긴 회귀다. 홈·기출 탭이 profile.practiceGraduatedAt이 / 없으면 tabBarStyle을 display:'none'으로 두고 있었는데, 그 도장은 약점 연습을 / 완주해야 찍힌다. 약점 큐는 use-practice-screen.ts 208줄에서 / latestDiagnosticSummary.topWeaknesses로만 채워진다 — 10문제 진단이 사라지면 / 신규 학생은 약점이 0개라 연습에 들어갈 수 없고, 도장을 영영 못 받는다. / initialRouteName이 "quiz"라 신규 학생은 홈에서 시작하고, 홈에서 탭바가 숨겨져 / 있으니 다른 탭으로 갈 방법도 없다. 기존 학생은 이미 도장이 있어 멀쩡했다. / 신규만 깨졌다. / B(🔒 2026.09.15 — 홈을 복습 루프로)에서 졸업 개념 자체를 없애기로 했으므로, / 게이트를 조건부로 손보는 대신 걷어냈다. 탭바는 항상 보인다. / DEV_FORCE_GRADUATED는 지우지 않았다 — home-journey-state.ts가 여전히 쓴다. / 검증: tsc 에러 0, eslint 경고 0, jest 90스위트 608테스트 전부 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.09.15 14:03
+- 해시: `678933a` (`678933a6c525e6f62061d132b4d66824427b83d3`)
+- 브랜치: worktree-remove-10q-diagnostic
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/678933a6c525e6f62061d132b4d66824427b83d3
+- 작성자: 박기윤
+- 메시지: refactor: 10문제 문제은행과 진단 리듀서를 걷어냈다 — 앱 번들에서 10문제가 사라졌다
+- 본문: 화면을 지운 뒤 도달 불가가 된 코드를 정리했다. 1391줄이 더 빠졌다. / data/problemData.ts (540줄) 삭제. 10문제 본문·정답이 들어 있던 파일이고, / 이제 앱 번들에 실리지 않는다. / features/quiz/session.tsx 377 → 120줄. 진단 전용 액션 7개(START· / GO_TO_PREVIOUS_QUESTION·SUBMIT_ANSWER·CONFIRM_DIAGNOSIS_METHOD· / SUBMIT_DIAGNOSIS_WEAKNESS·FINISH_DIAGNOSIS·RESUME_DIAGNOSIS)와 / finalizeQuiz·checkPhaseTransition 제거. 약점 연습이 쓰는 셋 / (ADVANCE_PRACTICE·SEED_PRACTICE_QUEUE·COMPLETE_CHALLENGE)은 그대로 두었고, / session.test.ts가 그 셋을 잠그고 있어 같이 남겼다. / 여기서 딸려 나온 것 — state.result를 세팅하던 곳이 FINISH_DIAGNOSIS 하나뿐이라, / 결과 화면의 "진단 결과 저장" 경로가 통째로 도달 불가가 됐다: / - use-result-screen.ts — persistResult·saveState·saveErrorMessage 제거. / liveSummary는 이제 실모에서만 온다(실모는 자기 훅에서 이미 저장한다). / - quiz-result-screen-view.tsx / quiz-result-report-view.tsx — 저장 중·저장 실패 / 카드 제거. 사진 저장이 붙으면 그 흐름에 맞는 걸 새로 만드는 게 맞다. / - build-finalized-attempt-input.ts — buildDiagnosticAttemptInput 제거. / buildWeaknessPracticeAttemptInput은 약점 연습이 쓰므로 남겼다. / - engine.ts — buildQuizResult·getTopWeaknesses·incrementWeaknessScore 제거. / createInitialWeaknessScores만 남았다(session 초기 상태가 쓴다). / - constants/env.ts — diagnosisExplainUrl·diagnosisExplainTimeoutMs 제거. / diagnosisRouterUrl은 실모 오답 분석이 쓰므로 남겼다. / 이미 끊겨 있던 진단 화면 부품 둘(diagnostic-choice-card·diagnostic-progress-ring)도 / 같이 지웠다. / 검증: tsc 에러 0, jest 90스위트 608테스트 전부 통과, 만진 파일 eslint 경고 0. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 커밋 2026.09.14 23:19
 - 해시: `e77450a` (`e77450a9c255ff9ceadcd0f8030521462321e966`)

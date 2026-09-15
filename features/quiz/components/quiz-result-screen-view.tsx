@@ -14,14 +14,11 @@ export function QuizResultScreenView({
   liveSummary,
   onOpenChallengePractice,
   onOpenLegacyPractice,
-  onOpenSnapshotDiagnostic,
+  onOpenPhotoFlow,
   onOpenSnapshotPractice,
   onOpenWeaknessPractice,
   onRestartQuiz,
   optInCard,
-  persistResult,
-  saveErrorMessage,
-  saveState,
   snapshotSummary,
   snapshotSummaryTitle,
 }: UseResultScreenResult) {
@@ -79,10 +76,10 @@ export function QuizResultScreenView({
             <View style={styles.cardNeutral}>
               <Text style={styles.cardTitle}>아직 저장된 약점 요약이 없어요</Text>
               <Text style={styles.cardBody}>
-                진단을 마치면 최근 결과와 다시 볼 약점을 여기서 바로 확인할 수 있어요.
+                틀린 문제를 한 장 찍으면 최근 결과와 다시 볼 약점을 여기서 바로 확인할 수 있어요.
               </Text>
               <View style={styles.buttonGap}>
-                <BrandButton title="10문제 체험 시작" onPress={onOpenSnapshotDiagnostic} />
+                <BrandButton title="사진 찍어서 시작하기" onPress={onOpenPhotoFlow} />
               </View>
             </View>
           ) : (
@@ -123,9 +120,6 @@ export function QuizResultScreenView({
       <QuizResultReportView
         onOpenWeaknessPractice={onOpenWeaknessPractice}
         optInCard={optInCard}
-        persistResult={persistResult}
-        saveErrorMessage={saveErrorMessage}
-        saveState={saveState}
         summary={summary}
       />
     );
@@ -139,27 +133,6 @@ export function QuizResultScreenView({
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}>
         <PageContainer variant="reading" style={{ gap: BrandSpacing.md }}>
-        {saveState === 'saving' ? (
-          <View style={styles.saveInfoCard}>
-            <Text style={styles.saveInfoTitle}>학습 기록을 저장 중이에요</Text>
-            <Text style={styles.saveInfoBody}>
-              결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
-            </Text>
-          </View>
-        ) : null}
-
-        {saveState === 'error' ? (
-          <View style={styles.saveErrorCard}>
-            <Text style={styles.saveInfoTitle}>결과 저장이 완료되지 않았어요</Text>
-            <Text style={styles.saveInfoBody}>
-              {saveErrorMessage ?? '네트워크를 확인한 뒤 다시 시도해 주세요.'}
-            </Text>
-            <View style={styles.buttonGap}>
-              <BrandButton title="다시 저장하기" variant="danger" onPress={() => void persistResult()} />
-            </View>
-          </View>
-        ) : null}
-
         <View style={styles.summaryCard}>
           <Text style={styles.title}>분석 결과</Text>
           <Text style={styles.summaryText}>
@@ -261,32 +234,6 @@ const styles = StyleSheet.create({
     padding: BrandSpacing.lg,
     gap: BrandSpacing.xs,
     backgroundColor: '#fff',
-  },
-  saveInfoCard: {
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.md,
-    padding: BrandSpacing.md,
-    gap: BrandSpacing.xs,
-    backgroundColor: '#fff',
-  },
-  saveErrorCard: {
-    borderWidth: 1,
-    borderColor: '#D48B7A',
-    borderRadius: BrandRadius.md,
-    padding: BrandSpacing.md,
-    gap: BrandSpacing.xs,
-    backgroundColor: '#FFF7F4',
-  },
-  saveInfoTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: BrandColors.text,
-  },
-  saveInfoBody: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: '#4F5B52',
   },
   summaryText: {
     fontSize: 16,

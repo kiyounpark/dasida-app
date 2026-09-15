@@ -33,11 +33,6 @@ const SCREENS = [
       }),
   },
   {
-    title: '진단 퀴즈 스테이지',
-    desc: '문제 카드 · 선택지 · 하단 네비게이션',
-    onPress: () => router.push('/dev/quiz-stage'),
-  },
-  {
     title: '복습 세션',
     desc: '목업 태스크 · 복습 스텝 · 완료 플로우 (formula_understanding)',
     onPress: () =>

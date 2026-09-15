@@ -7,17 +7,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { FontFamilies } from '@/constants/typography';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCurrentLearner } from '@/features/learner/provider';
-import { DEV_FORCE_GRADUATED } from '@/features/learning/dev-force-graduated';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 66 + insets.bottom;
   const tabBarPaddingBottom = 9 + insets.bottom;
-  const { profile } = useCurrentLearner();
-  // DEV_FORCE_GRADUATED는 화면 미리보기용 강제 스위치(기본 false, DB에는 쓰지 않음).
-  const isGraduated = DEV_FORCE_GRADUATED || Boolean(profile?.practiceGraduatedAt);
 
   const defaultTabBarStyle = useMemo(() => ({
     backgroundColor: '#FFFEF8',
@@ -27,6 +22,9 @@ export default function TabLayout() {
     paddingTop: 8,
   }), [tabBarHeight, tabBarPaddingBottom]);
 
+  // 탭바는 항상 보인다. 예전엔 약점 연습을 완주해야(profile.practiceGraduatedAt)
+  // 홈·기출 탭이 열렸는데, 10문제 진단을 걷어내면서 신규 학생은 그 도장을 받을 길이
+  // 없어졌다 — 약점 큐가 진단 결과에서만 채워지기 때문이다 (09.15).
   return (
     <Tabs
       initialRouteName="quiz"
@@ -48,7 +46,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="doc.text.magnifyingglass" color={color} />
           ),
-          tabBarStyle: isGraduated ? defaultTabBarStyle : { display: 'none' },
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (event) => {
@@ -67,7 +64,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="pencil.and.list.clipboard" color={color} />
           ),
-          tabBarStyle: isGraduated ? defaultTabBarStyle : { display: 'none' },
         }}
       />
       <Tabs.Screen

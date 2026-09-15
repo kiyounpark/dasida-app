@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensio
 
 import { BrandButton } from '@/components/brand/BrandButton';
 import { PageContainer } from '@/components/layout/page-container';
-import { BrandColors, BrandRadius } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { diagnosisMap } from '@/data/diagnosisMap';
 import type { UseResultScreenResult } from '@/features/quiz/hooks/use-result-screen';
@@ -16,18 +15,12 @@ import { QuizResultReportHero } from './quiz-result-report-hero';
 type QuizResultReportViewProps = {
   onOpenWeaknessPractice: (weaknessId: string) => void;
   optInCard: UseResultScreenResult['optInCard'];
-  persistResult: () => Promise<void>;
-  saveErrorMessage: string | null;
-  saveState: UseResultScreenResult['saveState'];
   summary: NonNullable<UseResultScreenResult['liveSummary']>;
 };
 
 export function QuizResultReportView({
   onOpenWeaknessPractice,
   optInCard,
-  persistResult,
-  saveErrorMessage,
-  saveState,
   summary,
 }: QuizResultReportViewProps) {
   const router = useRouter();
@@ -57,31 +50,6 @@ export function QuizResultReportView({
           isCompactLayout && styles.containerCompact,
         ]}>
         <PageContainer variant="reading" style={{ gap: isCompactLayout ? 12 : 14 }}>
-        {saveState === 'saving' ? (
-          <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>학습 기록을 저장 중이에요</Text>
-            <Text style={styles.statusBody}>
-              결과, 반복 약점, 다음 복습 일정을 같이 정리하고 있습니다.
-            </Text>
-          </View>
-        ) : null}
-
-        {saveState === 'error' ? (
-          <View style={[styles.statusCard, styles.errorCard]}>
-            <Text style={styles.statusTitle}>결과 저장이 완료되지 않았어요</Text>
-            <Text style={styles.statusBody}>
-              {saveErrorMessage ?? '네트워크를 확인한 뒤 다시 시도해 주세요.'}
-            </Text>
-            <View style={styles.statusButtonWrap}>
-              <BrandButton
-                title="다시 저장하기"
-                variant="danger"
-                onPress={() => void persistResult()}
-              />
-            </View>
-          </View>
-        ) : null}
-
         {primaryWeaknessId ? (
           <>
             <QuizResultReportHero
@@ -185,35 +153,6 @@ const styles = StyleSheet.create({
   },
   containerCompact: {
     paddingHorizontal: 14,
-  },
-  statusCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(53, 72, 50, 0.16)',
-    borderRadius: BrandRadius.lg,
-    borderCurve: 'continuous',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    gap: 4,
-  },
-  errorCard: {
-    borderColor: '#D48B7A',
-    backgroundColor: '#FFF7F4',
-  },
-  statusTitle: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 15,
-    lineHeight: 22,
-    color: BrandColors.text,
-  },
-  statusBody: {
-    fontFamily: FontFamilies.medium,
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#4F5B52',
-  },
-  statusButtonWrap: {
-    marginTop: 10,
   },
   divider: {
     height: 1,
