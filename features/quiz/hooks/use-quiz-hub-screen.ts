@@ -164,11 +164,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     }, [session?.accountKey]),
   );
 
+  // 10문제 진단을 걷어낸 뒤, 여정 첫 CTA는 사진 오답노트로 간다.
   const onStartDiagnostic = () => {
-    router.push({
-      pathname: '/quiz/diagnostic',
-      params: { autostart: '1', reset: '1' },
-    });
+    router.push('/photo');
   };
 
   const onOpenPractice = () => {
@@ -215,8 +213,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     router.push('/photo');
   };
 
+  // 진단 분석을 이어하던 학생도 사진으로 보낸다 — 이어갈 진단 화면이 없다.
   const onResumeDiagnosis = () => {
-    router.push('/quiz/diagnostic');
+    router.push('/photo');
   };
 
   const onResumeAnalysis = useCallback(

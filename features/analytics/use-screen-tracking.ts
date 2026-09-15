@@ -17,8 +17,6 @@ function segmentsToScreenName(segments: readonly string[]): ScreenName {
       return 'review_session';
     case 'quiz/weakness-practice':
       return 'weakness_practice';
-    case 'quiz/diagnostic':
-      return 'diagnostic_screen';
     case '(tabs)/history':
       return 'history';
     case '(tabs)/profile':

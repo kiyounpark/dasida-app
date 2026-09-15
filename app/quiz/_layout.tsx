@@ -5,7 +5,6 @@ export default function QuizFlowLayout() {
   return (
     <QuizSessionProvider>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="diagnostic" options={{ title: '10문제 체험', gestureEnabled: false }} />
         <Stack.Screen name="result" options={{ title: '판정 결과', gestureEnabled: false }} />
         <Stack.Screen name="practice" options={{ title: '연습문제', gestureEnabled: false }} />
         <Stack.Screen name="feedback" options={{ title: '피드백' }} />

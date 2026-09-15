@@ -40,7 +40,7 @@ export type UseResultScreenResult = {
   liveSummary: QuizResultSummary | undefined;
   onOpenChallengePractice: () => void;
   onOpenLegacyPractice: () => void;
-  onOpenSnapshotDiagnostic: () => void;
+  onOpenPhotoFlow: () => void;
   onOpenSnapshotPractice: (weaknessId: string) => void;
   onOpenWeaknessPractice: (weaknessId: string) => void;
   onRestartQuiz: () => void;
@@ -249,12 +249,8 @@ export function useResultScreen({
         params: legacyPracticeParams,
       });
     },
-    onOpenSnapshotDiagnostic: () => {
-      resetSession();
-      router.replace({
-        pathname: '/quiz/diagnostic',
-        params: { autostart: '1' },
-      });
+    onOpenPhotoFlow: () => {
+      router.push('/photo');
     },
     onOpenSnapshotPractice: (weaknessId: string) => {
       router.push({

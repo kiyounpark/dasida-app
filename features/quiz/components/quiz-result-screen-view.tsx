@@ -14,7 +14,7 @@ export function QuizResultScreenView({
   liveSummary,
   onOpenChallengePractice,
   onOpenLegacyPractice,
-  onOpenSnapshotDiagnostic,
+  onOpenPhotoFlow,
   onOpenSnapshotPractice,
   onOpenWeaknessPractice,
   onRestartQuiz,
@@ -79,10 +79,10 @@ export function QuizResultScreenView({
             <View style={styles.cardNeutral}>
               <Text style={styles.cardTitle}>아직 저장된 약점 요약이 없어요</Text>
               <Text style={styles.cardBody}>
-                진단을 마치면 최근 결과와 다시 볼 약점을 여기서 바로 확인할 수 있어요.
+                틀린 문제를 한 장 찍으면 최근 결과와 다시 볼 약점을 여기서 바로 확인할 수 있어요.
               </Text>
               <View style={styles.buttonGap}>
-                <BrandButton title="10문제 체험 시작" onPress={onOpenSnapshotDiagnostic} />
+                <BrandButton title="사진 찍어서 시작하기" onPress={onOpenPhotoFlow} />
               </View>
             </View>
           ) : (
