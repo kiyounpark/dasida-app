@@ -456,7 +456,11 @@ export function usePhotoFlow(): PhotoFlow {
     });
 
     say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
+    const createdAt = now.toISOString();
     showNote({
+      id: `photo-${createdAt}`,
+      createdAt,
+      schemaVersion: 1,
       dateLabel: `${now.getMonth() + 1}/${now.getDate()}`,
       photoUri: photoUriRef.current,
       quote: candidate?.quote ?? '',
@@ -465,7 +469,11 @@ export function usePhotoFlow(): PhotoFlow {
       fix: candidate?.fix || mistakeTypeFix(context.mistakeType),
       methodLabel: methodLabel(context.methodId),
       typeLabel: mistakeTypeLabel(context.mistakeType),
+      methodId: context.methodId,
+      mistakeType: context.mistakeType,
       weaknessIds,
+      // 하나로 좁혀졌을 때만 박는다. 여럿이면 학생한테 물어보기 전까지 비워 둔다 (08.11 🔒)
+      primaryWeaknessId: weaknessIds.length === 1 ? weaknessIds[0] : null,
       checkPassed: context.checkPassed,
       retryResult,
     });

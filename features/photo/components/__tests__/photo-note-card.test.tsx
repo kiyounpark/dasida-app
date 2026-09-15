@@ -13,6 +13,9 @@ jest.mock('expo-image', () => {
 
 function noteWith(weaknessIds: PhotoNote['weaknessIds']): PhotoNote {
   return {
+    id: 'photo-2026-08-13T00:00:00.000Z',
+    createdAt: '2026-08-13T00:00:00.000Z',
+    schemaVersion: 1,
     dateLabel: '8/13',
     photoUri: null,
     quote: '2x² − 5x + 3',
@@ -20,13 +23,24 @@ function noteWith(weaknessIds: PhotoNote['weaknessIds']): PhotoNote {
     fix: '괄호 풀 때 앞의 −를 먼저 적고 시작하자.',
     methodLabel: '완전제곱식',
     typeLabel: '개념 구멍',
+    methodId: 'cps',
+    mistakeType: 'concept_gap',
     weaknessIds,
+    primaryWeaknessId: weaknessIds.length === 1 ? weaknessIds[0] : null,
     checkPassed: true,
     retryResult: 'pass',
   };
 }
 
 describe('PhotoNoteCard — 약점 이름표 줄', () => {
+  // 저장이 붙으면 옛 노트의 약점 id가 여기로 흘러온다. 목록에서 사라진 id를 만나도
+  // 카드가 죽는 대신 대체 문구가 나가야 한다 (data/weakness-removal-safety.test.ts와 같은 자리).
+  it('목록에 없는 약점 id가 와도 카드가 안 죽는다', () => {
+    render(<PhotoNoteCard note={noteWith(['사라진_약점' as PhotoNote['weaknessIds'][number]])} />);
+
+    expect(screen.getByText('🏷️ 알 수 없음')).toBeTruthy();
+  });
+
   it('약점을 찾았으면 이름으로 뜬다', () => {
     render(<PhotoNoteCard note={noteWith(['formula_understanding'])} />);
 

@@ -55,6 +55,15 @@ export type RetryResult = 'pass' | 'fail' | 'skip' | 'none';
  * 자기 손글씨 사진과 함께, 한 글자도 안 썼는데 채워져 나온다. 정답 칸은 없다.
  */
 export type PhotoNote = {
+  /**
+   * 노트 한 장의 번호. 만든 시각에서 뽑는다 — 저장·정렬·중복 판정이 전부 이 값에 붙는다.
+   * 저장을 붙이기 전에 넣어 두는 이유: 나중에 넣으면 이미 쌓인 노트에 번호를 소급해서 못 준다.
+   */
+  id: string;
+  /** 만든 시각 (ISO). dateLabel은 화면에 찍는 글자라 정렬·비교에 못 쓴다 */
+  createdAt: string;
+  /** 저장 모양의 판. 모양을 늘릴 때 올린다 — LearningAttempt와 같은 방식 */
+  schemaVersion: 1;
   /** 노트를 만든 날 (예: '8/1') — 만드는 시점에 찍어 둔다 */
   dateLabel: string;
   photoUri: string | null;
@@ -64,10 +73,22 @@ export type PhotoNote = {
   methodLabel: string;
   typeLabel: string;
   /**
+   * methodLabel·typeLabel의 원본 id. 이름표는 문구를 다듬으면 바뀌지만 이 값은 안 바뀐다.
+   * 쌓인 노트를 (풀이법 × 실수 유형)으로 세는 건 이름이 아니라 이 두 값으로 한다.
+   */
+  methodId: SolveMethodId;
+  mistakeType: MistakeTypeId;
+  /**
    * 통역표가 (풀이법, 실수 유형)으로 찾아준 약점들. 빈 배열이면 못 찾은 것 — 카드에 줄 자체가 안 뜬다.
    * 하나로 안 좁혀지는 5개 조합은 여럿이 그대로 담긴다 (고르는 건 저장 경로 붙일 때 학생한테 물어본다, 08.11 🔒).
    */
   weaknessIds: WeaknessId[];
+  /**
+   * 여럿 중 하나로 좁혀진 약점. 통역표가 하나만 찾아줬으면 그 값이고,
+   * 여럿이라 아직 학생한테 안 물어봤으면 null이다 (고르는 건 학생, 08.11 🔒).
+   * 서버의 recordLearningAttempt도 같은 모양(단수 nullable + 후보 배열)을 쓴다.
+   */
+  primaryWeaknessId: WeaknessId | null;
   checkPassed: boolean;
   retryResult: RetryResult;
 };

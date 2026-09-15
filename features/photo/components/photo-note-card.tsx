@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
 import { FontFamilies } from '@/constants/typography';
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 
 import { PhotoTheme } from '../theme';
 import type { PhotoNote, RetryResult } from '../types';
@@ -55,7 +55,7 @@ export function PhotoNoteCard({ note }: { note: PhotoNote }) {
       {note.weaknessIds.length > 0 && (
         <Text selectable style={styles.weakness}>
           {/* 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 실측으로 잡음 */}
-          {`🏷️ ${note.weaknessIds.map((id) => diagnosisMap[id].labelKo).join(' 또는 ')}`}
+          {`🏷️ ${note.weaknessIds.map((id) => resolveWeaknessLabel(id)).join(' 또는 ')}`}
         </Text>
       )}
 
