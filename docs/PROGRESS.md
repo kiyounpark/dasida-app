@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 22:01
+- 해시: `9060b59` (`9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — 시뮬레이터 확인 완료
+- 본문: - F칸에 empty 문구와 시뮬레이터 확인 기록 / - 배포 전 항목 체크. "켜보고 나서야 홈이 복습 얘기를 안 한다는 걸 알았다"를 남긴다 — / 테스트를 다 통과하고도 놓친 것이라 다음에 또 놓칠 수 있다 / - 모르는 것 갱신: empty 화면만 봤다. 리스트·D-N 카드는 눈으로 못 봤다 / - worktree 빌드에 .env 복사가 필요하다는 것 추가 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 21:44
 - 해시: `34b02ad` (`34b02ad7f4309e484d28d06e9ac5c4a836aeb691`)
 - 브랜치: worktree-home-review-list
