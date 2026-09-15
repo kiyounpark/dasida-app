@@ -84,12 +84,15 @@ describe('처음 온 학생의 홈', () => {
     expect(screen.getByText('질문 몇 개로 확정한다 — 오답노트 한 장이 나온다')).toBeTruthy();
   });
 
-  it('앱에서 거짓이 되는 줄은 빼고 온다', () => {
+  it('앱에서 거짓이 되거나 곧 거짓이 될 줄은 빼고 온다', () => {
     render(<QuizHubScreenView {...baseProps} />);
 
-    // 웹 프로토의 "설치·로그인 없음"은 앱에서 거짓말이다.
-    // 이미 설치했고, 로그인도 이 화면 앞에서 시켰다.
+    // "설치·로그인 없음" — 이미 거짓말이다. 설치했고, 로그인도 이 화면 앞에서 시켰다.
     expect(screen.queryByText(/설치·로그인 없음/)).toBeNull();
+    // "우리 서버에는 저장 안 함" — 지금은 참이지만 G칸(서버 저장)을 하는 순간 거짓이 된다.
+    expect(screen.queryByText(/서버에는 저장 안/)).toBeNull();
+    // "지금 무료" — 값을 받기 시작하면 거짓이 된다.
+    expect(screen.queryByText(/지금 무료/)).toBeNull();
   });
 
   it('누르면 사진 화면으로 보낸다', () => {

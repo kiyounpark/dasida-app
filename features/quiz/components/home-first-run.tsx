@@ -14,8 +14,11 @@ type Props = {
  * 웹에서 쓰던 문구를 그대로 쓴다 — 앱 홈의 "틀린 문제, 찍기만 하면 돼요"보다
  * 약속이 구체적이다("왜 틀렸는지 알려줄게"). 3단계는 찍기 전에 "뭐가 나오는지"를 알려준다.
  *
- * 웹에서 안 가져온 줄이 하나 있다 — "설치·로그인 없음".
- * 웹 프로토에서 제일 센 문구지만 앱에서는 거짓말이다: 이미 설치했고, 로그인도 이 화면 앞에서 시켰다.
+ * 웹에서 안 가져온 줄 셋 — 전부 앱에서 거짓이 되거나 곧 거짓이 될 말이다:
+ *  - "설치·로그인 없음"  이미 거짓말이다. 설치했고, 로그인도 이 화면 앞에서 시켰다
+ *  - "우리 서버에는 저장 안 함"  지금은 참이지만 G칸(서버 저장)을 하는 순간 거짓이 된다
+ *  - "지금 무료"  값을 받기 시작하면 거짓이 된다
+ * 셋 다 테스트로 박아뒀다 (home-first-run.test.tsx). 다시 넣으려면 그 테스트부터 지워야 한다.
  *
  * 말투는 웹 그대로 반말이다. 앱 기본은 해요체지만 사진 흐름은 반말이고(H칸),
  * 이 화면은 사진 흐름의 입구다.
@@ -66,13 +69,6 @@ export function HomeFirstRun({ onPressPhoto }: Props) {
           </View>
         ))}
       </View>
-
-      <View style={styles.footRow}>
-        <Text style={styles.tag}>지금 무료</Text>
-      </View>
-      <Text selectable style={styles.foot}>
-        사진은 AI 분석에만 써요. 우리 서버에는 저장 안 해요.
-      </Text>
     </View>
   );
 }
@@ -160,30 +156,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     color: BrandColors.text,
-  },
-  footRow: {
-    alignItems: 'center',
-    marginTop: BrandSpacing.lg,
-  },
-  tag: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 11,
-    lineHeight: 16,
-    color: BrandColors.primaryDark,
-    backgroundColor: 'rgba(41, 59, 39, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(41, 59, 39, 0.12)',
-    borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    overflow: 'hidden',
-  },
-  foot: {
-    fontFamily: FontFamilies.regular,
-    fontSize: 12,
-    lineHeight: 18,
-    color: BrandColors.mutedText,
-    textAlign: 'center',
-    marginTop: 8,
   },
 });

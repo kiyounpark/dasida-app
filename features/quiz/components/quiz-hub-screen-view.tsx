@@ -109,7 +109,9 @@ export function QuizHubScreenView({
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  const topPadding = isCompactLayout ? 14 : 24;
+  // web-proto의 .wrap(padding: 40px 22px 60px)에 맞춘다. 앱은 위에 BrandHeader가 더 있어서
+  // 24로는 제목이 헤더에 붙어 보인다.
+  const topPadding = isCompactLayout ? 28 : 40;
 
   if (!isReady) {
     return (
@@ -166,7 +168,9 @@ export function QuizHubScreenView({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
-          { paddingTop: topPadding, paddingBottom: bottomPadding },
+          // 아래를 더 비워 가운데 정렬을 위로 당긴다 — 정가운데는 너무 내려온 느낌이 난다.
+          // 화면 정중앙이 아니라 위에서 조금 높은 자리(optical center)에 놓는다.
+          { paddingTop: topPadding, paddingBottom: bottomPadding + 96 },
         ]}
         showsVerticalScrollIndicator={false}>
         <PageContainer
@@ -238,6 +242,9 @@ const styles = StyleSheet.create({
   posterScreenInner: {
     flexGrow: 1,
     alignItems: 'center',
+    // 세로 가운데로 모은다. 예전에는 하단 고정 CTA가 아래를 채웠는데 보드와 함께 걷혔고,
+    // 그대로 두면 콘텐츠가 위에 붙고 탭바 위가 텅 빈다. 넘치면 스크롤되므로 긴 리스트도 안전.
+    justifyContent: 'center',
     gap: 14,
     paddingHorizontal: 14,
   },
