@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
+import { HomeFirstRun } from '@/features/quiz/components/home-first-run';
 import { HomeReviewList } from '@/features/quiz/components/home-review-list';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { PhotoEntryCard } from './photo-entry-card';
@@ -100,6 +101,7 @@ export function QuizHubScreenView({
   profile,
   session,
   showAnalysisResumeCard,
+  showFirstRun,
   showNoReviewDayCard,
   showWeaknessSection,
   today,
@@ -181,6 +183,9 @@ export function QuizHubScreenView({
                 />
               ) : null}
             </>
+          ) : showFirstRun ? (
+            // 아직 사진 한 장도 안 찍어본 학생. 복습 얘기 대신 "찍으면 뭐가 나오는지"부터 말한다.
+            <HomeFirstRun onPressPhoto={onPressPhoto} />
           ) : today.mode === 'review' ? (
             <HomeReviewList
               title={today.title}

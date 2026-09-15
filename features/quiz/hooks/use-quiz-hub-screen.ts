@@ -12,6 +12,7 @@ import {
   rescheduleAllReviewNotifications,
 } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
+import { readPhotoNotes } from '@/features/photo/note-store';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
@@ -42,6 +43,8 @@ export type UseQuizHubScreenResult = {
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
   showAnalysisResumeCard: boolean;
+  /** 사진 노트가 한 장도 없는 학생 — 복습 얘기 대신 web-proto의 소개 화면을 띄운다. */
+  showFirstRun: boolean;
   showNoReviewDayCard: boolean;
   showWeaknessSection: boolean;
   today: HomeTodayState | null;
@@ -65,6 +68,9 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const [analysisState, setAnalysisState] = useState<AnalysisInProgressState>({
     isInProgress: false,
   });
+  // null = 아직 안 읽음. 0인지 아닌지를 알기 전에는 홈을 그리지 않는다 —
+  // 모르는 채로 그리면 처음 온 학생이 "아직 복습할 게 없어요"를 한 번 깜빡이고 본다.
+  const [photoNoteCount, setPhotoNoteCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!authNoticeMessage) {
@@ -145,6 +151,23 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
             diagnosedProblemsByAttempt,
           }),
         );
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [session?.accountKey]),
+  );
+
+  // 사진을 한 장이라도 찍어봤나. 사진 흐름에서 돌아올 때마다 다시 센다.
+  useFocusEffect(
+    useCallback(() => {
+      const accountKey = session?.accountKey;
+      let cancelled = false;
+      void (async () => {
+        const notes = accountKey ? await readPhotoNotes(accountKey) : [];
+        if (!cancelled) {
+          setPhotoNoteCount(notes.length);
+        }
       })();
       return () => {
         cancelled = true;
@@ -252,13 +275,18 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     (homeState?.weaknessProgressItems.length ?? 0) > 0 && !isAnalysisInProgress;
   const showAnalysisResumeCard = isAnalysisInProgress;
 
+  // 아직 아무것도 안 해본 학생. 복습이 0건인 이유가 "다 했다"가 아니라 "시작을 안 했다"다.
+  const showFirstRun =
+    photoNoteCount === 0 && today?.mode === 'empty' && !isAnalysisInProgress;
+
   return {
     analysisState,
     authNoticeMessage: localAuthNoticeMessage,
     getExamTitle: (examId: string) => EXAM_CATALOG_BY_ID[examId]?.title ?? examId,
     homeState,
     isCompactLayout: width < 390 || height < 780,
-    isReady,
+    // 사진 노트를 세기 전에는 아직 준비가 안 된 것으로 본다 — 위 photoNoteCount 주석 참고.
+    isReady: isReady && photoNoteCount !== null,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
@@ -270,6 +298,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     profile,
     session,
     showAnalysisResumeCard,
+    showFirstRun,
     showNoReviewDayCard,
     showWeaknessSection,
     today,
