@@ -1,5 +1,4 @@
 export const diagnosisRouterUrl = (process.env.EXPO_PUBLIC_DIAGNOSIS_ROUTER_URL ?? '').trim();
-export const diagnosisExplainUrl = (process.env.EXPO_PUBLIC_DIAGNOSIS_EXPLAIN_URL ?? '').trim();
 export const expoPublicFirebaseApiKey = (process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '').trim();
 export const expoPublicFirebaseAuthDomain = (process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '').trim();
 export const expoPublicFirebaseProjectId = (process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? '').trim();
@@ -44,7 +43,6 @@ export const registerPushTokenUrl = (
 ).trim();
 
 export const diagnosisRouterTimeoutMs = 8000;
-export const diagnosisExplainTimeoutMs = 12000;
 
 export const reviewFeedbackUrl = (process.env.EXPO_PUBLIC_REVIEW_FEEDBACK_URL ?? '').trim();
 export const reviewFeedbackTimeoutMs = 10000;

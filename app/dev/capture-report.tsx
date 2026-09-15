@@ -37,9 +37,6 @@ export default function CaptureReportScreen() {
   return (
     <QuizResultReportView
       summary={SUMMARY}
-      saveState="saved"
-      saveErrorMessage={null}
-      persistResult={async () => {}}
       onOpenWeaknessPractice={() => router.replace('/dev')}
       optInCard={{
         state: 'dismissed', // 망각 곡선 알림 카드는 숨겨 리포트 자체에 집중
