@@ -89,6 +89,14 @@ describe('홈 3갈래 (C안)', () => {
     expect(screen.queryByTestId('home-review-list')).toBeNull();
   });
 
+  it('재료가 없으면 홈이 그 사실을 말한다 — 사진 카드만으론 복습 얘기가 안 나온다', () => {
+    render(<QuizHubScreenView {...baseProps} />);
+
+    expect(screen.getByTestId('home-today-heading')).toBeTruthy();
+    expect(screen.getByText('아직 복습할 게 없어요')).toBeTruthy();
+    expect(screen.getByText('틀린 문제를 찍어서 올리면 여기에 쌓여요.')).toBeTruthy();
+  });
+
   it('오늘 차례가 아니면 복습 없는 날 카드와 사진 카드가 같이 뜬다', () => {
     render(
       <QuizHubScreenView
@@ -108,6 +116,9 @@ describe('홈 3갈래 (C안)', () => {
 
     expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
     expect(screen.queryByTestId('home-review-list')).toBeNull();
+    // 복습없는날 카드가 이미 "오늘은 복습 없는 날이에요 · 다음 복습 D-N"을 말한다.
+    // 같은 말을 두 번 하지 않는다.
+    expect(screen.queryByTestId('home-today-heading')).toBeNull();
   });
 
   it('오늘 복습이 있으면 리스트가 뜨고 사진은 작은 줄로 남는다', () => {
@@ -131,5 +142,7 @@ describe('홈 3갈래 (C안)', () => {
     // C안의 핵심 — 복습이 있는 날에도 사진 문은 남는다. 단 큰 카드가 아니라 한 줄로.
     expect(screen.getByLabelText('사진 추가하기')).toBeTruthy();
     expect(screen.queryByText('틀린 문제, 찍기만 하면 돼요')).toBeNull();
+    // 리스트가 자기 제목을 들고 있다. 위에 또 붙이지 않는다.
+    expect(screen.queryByTestId('home-today-heading')).toBeNull();
   });
 });

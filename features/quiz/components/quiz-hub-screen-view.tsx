@@ -192,8 +192,23 @@ export function QuizHubScreenView({
           ) : (
             <>
               {showNoReviewDayCard && today.nextTask ? (
+                // 이 카드가 이미 "오늘은 복습 없는 날이에요 · 다음 복습 D-N"을 말한다.
+                // 같은 말을 위에 또 얹지 않는다.
                 <NoReviewDayCard nextTask={today.nextTask} onPressExam={onPressExam} />
-              ) : null}
+              ) : (
+                // 사진 카드는 사진 얘기만 한다. 홈이 복습 앱의 홈이라는 걸
+                // 화면에서 말해주는 건 여기 한 줄뿐이다.
+                <View
+                  testID="home-today-heading"
+                  style={[styles.todayHeading, isTablet && { maxWidth: undefined }]}>
+                  <Text selectable style={styles.todayTitle}>
+                    {today.title}
+                  </Text>
+                  <Text selectable style={styles.todayBody}>
+                    {today.body}
+                  </Text>
+                </View>
+              )}
               <PhotoEntryCard onPress={onPressPhoto} />
             </>
           )}
@@ -308,6 +323,24 @@ const styles = StyleSheet.create({
   posterScreenTabletSpacing: {
     gap: 20,
     paddingHorizontal: 24,
+  },
+  // HomeReviewList의 제목/본문과 같은 크기를 쓴다 — 복습이 생기면 이 자리를 리스트가 물려받는다.
+  todayHeading: {
+    width: '100%',
+    maxWidth: 430,
+    gap: 2,
+  },
+  todayTitle: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 20,
+    lineHeight: 28,
+    color: BrandColors.text,
+  },
+  todayBody: {
+    fontFamily: FontFamilies.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: BrandColors.mutedText,
   },
   outerNotice: {
     width: '100%',
