@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 18:10
+- 해시: `e95417d` (`e95417df17f12ef0729eed85be625f05a4523695`)
+- 브랜치: worktree-remove-10q-diagnostic
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e95417df17f12ef0729eed85be625f05a4523695
+- 작성자: 박기윤
+- 메시지: fix(tabs): 신규 학생이 탭바 없는 홈에 갇히던 것 — 졸업 도장 게이트를 걷어냈다
+- 본문: 진단을 걷어낸 직후 생긴 회귀다. 홈·기출 탭이 profile.practiceGraduatedAt이 / 없으면 tabBarStyle을 display:'none'으로 두고 있었는데, 그 도장은 약점 연습을 / 완주해야 찍힌다. 약점 큐는 use-practice-screen.ts 208줄에서 / latestDiagnosticSummary.topWeaknesses로만 채워진다 — 10문제 진단이 사라지면 / 신규 학생은 약점이 0개라 연습에 들어갈 수 없고, 도장을 영영 못 받는다. / initialRouteName이 "quiz"라 신규 학생은 홈에서 시작하고, 홈에서 탭바가 숨겨져 / 있으니 다른 탭으로 갈 방법도 없다. 기존 학생은 이미 도장이 있어 멀쩡했다. / 신규만 깨졌다. / B(🔒 2026.09.15 — 홈을 복습 루프로)에서 졸업 개념 자체를 없애기로 했으므로, / 게이트를 조건부로 손보는 대신 걷어냈다. 탭바는 항상 보인다. / DEV_FORCE_GRADUATED는 지우지 않았다 — home-journey-state.ts가 여전히 쓴다. / 검증: tsc 에러 0, eslint 경고 0, jest 90스위트 608테스트 전부 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 14:03
 - 해시: `678933a` (`678933a6c525e6f62061d132b4d66824427b83d3`)
 - 브랜치: worktree-remove-10q-diagnostic
