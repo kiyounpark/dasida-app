@@ -1,0 +1,65 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/check-expo-skill-before-tools.mjs'",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/check-expo-skill-before-tools.mjs'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/notion-spec-reminder.mjs'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/clear-expo-skill-state.mjs'",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/notion-session-end-check.mjs'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/baggiyun/dev/dasida-app/.codex/hooks/select-expo-skill.mjs'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
