@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useIsTablet } from '@/hooks/use-is-tablet';
@@ -8,31 +7,15 @@ import { PageContainer } from '@/components/layout/page-container';
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
-import { JourneyBoard } from '@/features/quiz/components/journey-board';
-import { JourneyCtaButton } from '@/features/quiz/components/journey-cta-button';
+import { HomeReviewList } from '@/features/quiz/components/home-review-list';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { PhotoEntryCard } from './photo-entry-card';
-import { ReviewHomeCard } from '@/features/quiz/components/review-home-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
-import { PosterTitleBanner } from '@/features/quiz/components/poster-title-banner';
 import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-section';
 import {
   ExamAnalysisResumeCarousel,
   type ExamAnalysisResumeCarouselItem,
 } from '@/features/quiz/exam/components/exam-analysis-resume-carousel';
-import { JourneyHubRightPanel } from '@/features/quiz/components/journey-hub-right-panel';
-import { JourneyHubSplitLayout } from '@/features/quiz/components/journey-hub-split-layout';
-
-function JourneyScreenHero({
-  isCompactLayout,
-  isTablet,
-}: {
-  isCompactLayout: boolean;
-  isTablet: boolean;
-}) {
-  return <PosterTitleBanner isCompactLayout={isCompactLayout} isTablet={isTablet} title="학습 여정" />;
-}
-
 
 function FeedbackCard({
   actionLabel,
@@ -90,6 +73,17 @@ function AuthNotice({
   );
 }
 
+/**
+ * 홈. "오늘 복습할 것"이 주인공이다 (🔒 2026.09.15 결정 B).
+ *
+ * 골격 3개:
+ *  - 실모 분석 중  → 사진 카드 + 이어하기 캐러셀
+ *  - 오늘 복습 있음 → 복습 리스트(끝에 사진 한 줄)
+ *  - 그 외        → (오늘 차례 아니면 복습없는날 카드 +) 사진 카드
+ *
+ * 걷어낸 것: 여정보드 4노드 · 하단 CTA · "학습 여정" 포스터 배너 · 태블릿 split 레이아웃.
+ * 전부 10문제 진단을 출발칸으로 삼던 구조라 진단이 사라지면서 같이 뜻을 잃었다.
+ */
 export function QuizHubScreenView({
   analysisState,
   authNoticeMessage,
@@ -97,108 +91,43 @@ export function QuizHubScreenView({
   homeState,
   isCompactLayout,
   isReady,
-  journey,
   onDismissAuthNotice,
   onPressExam,
-  onPressJourneyCta,
   onPressPhoto,
-  onPressReviewCard,
+  onPressReviewTask,
   onRefresh,
   onResumeAnalysis,
   profile,
   session,
   showAnalysisResumeCard,
-  showBrandHeader,
-  showJourneyHero,
-  showJourneyBoard,
   showNoReviewDayCard,
-  showReviewHomeCard,
   showWeaknessSection,
+  today,
 }: UseQuizHubScreenResult) {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isTablet = useIsTablet();
   const insets = useSafeAreaInsets();
-  const [heroLayoutBottom, setHeroLayoutBottom] = useState(0);
   const bottomPadding = insets.bottom + (isCompactLayout ? 8 : 12);
-  // poster-title-banner.tsx heroFrameWrapRaised(d) translateY(-32/-24)에 맞춰야 함
-  const bannerRaise = isCompactLayout ? 24 : 32;
-  // BrandHeader가 SafeAreaView edges={['top']}으로 insets.top을 처리하므로
-  // 졸업 후 상태에서는 insets.top을 제외한 콘텐츠 간격만 적용
-  const posterTopPadding = showBrandHeader
-    ? (isCompactLayout ? 14 : 24)
-    : insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
-  // Hero가 ScrollView 밖에 있으므로 Hero 컨테이너가 insets + bannerRaise를 담당한다.
-  const heroContainerPaddingTop = insets.top + (isCompactLayout ? 14 : 24) + bannerRaise;
-  // ScrollView는 Hero 아래 gap(14)만 갖는다 (졸업 후는 기존 brandHeader 케이스 그대로).
-  const scrollTopPadding = showJourneyHero
-    ? 14
-    : (isCompactLayout ? 14 : 24);
-
-  // CTA 버튼은 SVG 이미지 비율(1497:373)을 따른다. 70% × screenWidth 또는 maxWidth(폰 340/태블릿 600) 중 작은 값.
-  // 보드의 가용 높이를 산출할 때 이 추정 높이만큼을 미리 빼둔다.
-  // 아래 maxWidth(340/600)는 styles.ctaFooterButton과 ctaFooter 인라인 maxWidth(600)에 맞춰져야 한다 — 한쪽만 바꾸면 STEP 4가 다시 잘릴 수 있음.
-  const ctaButtonAspectRatio = 1497 / 373;
-  const ctaButtonMaxWidth = isTablet ? 600 : 340;
-  const ctaButtonRenderedWidth = Math.min(screenWidth * 0.7, ctaButtonMaxWidth);
-  const ctaButtonEstimatedHeight = ctaButtonRenderedWidth / ctaButtonAspectRatio;
-  const ctaFooterHeight =
-    showJourneyBoard
-      ? 4 /* paddingTop */ + ctaButtonEstimatedHeight + insets.bottom + (isCompactLayout ? 24 : 28)
-      : 0;
-
-  // heroLayoutBottom이 0(첫 렌더, onLayout 전)이면 0을 전달해 JourneyBoard가 width-only로 동작하게 한다.
-  // onLayout 후 heroLayoutBottom이 채워지면 정상 height 제약이 적용된다.
-  const boardAvailableHeight =
-    heroLayoutBottom === 0
-      ? 0
-      : Math.max(
-          0,
-          screenHeight - heroLayoutBottom - ctaFooterHeight - scrollTopPadding - bottomPadding,
-        );
-
-  // early return보다 위에서 호출해야 렌더마다 훅 순서가 유지된다 (react-hooks/rules-of-hooks).
-  const renderTabletSplitBoard = useCallback(
-    (containerWidth: number) =>
-      journey ? (
-        <JourneyBoard
-          availableHeight={0}
-          containerWidth={containerWidth}
-          isCompactLayout={isCompactLayout}
-          onPressCurrentStep={onPressJourneyCta}
-          state={journey}
-        />
-      ) : null,
-    [isCompactLayout, journey, onPressJourneyCta],
-  );
-
-  const useTabletSplitLayout =
-    isTablet &&
-    isReady &&
-    !!profile &&
-    !!homeState &&
-    !!session &&
-    !!journey &&
-    showJourneyBoard;
+  const topPadding = isCompactLayout ? 14 : 24;
 
   if (!isReady) {
     return (
       <View style={styles.screen}>
-        <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
+        <BrandHeader compact />
+        <View style={[styles.feedbackScreen, { paddingBottom: bottomPadding }]}>
           <FeedbackCard
-            title="학습 여정을 준비 중이에요"
-            body="지금 할 일과 최근 흐름을 여정판으로 정리하고 있습니다."
+            title="오늘 복습할 것을 불러오는 중이에요"
+            body="지금 차례가 된 복습을 정리하고 있습니다."
           />
         </View>
       </View>
     );
   }
 
-  if (!profile || !homeState || !session || !journey) {
+  if (!profile || !homeState || !session || !today) {
     return (
       <View style={styles.screen}>
-        <View style={[styles.feedbackScreen, { paddingTop: posterTopPadding, paddingBottom: bottomPadding }]}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
+        <BrandHeader compact />
+        <View style={[styles.feedbackScreen, { paddingBottom: bottomPadding }]}>
           <FeedbackCard
             title="홈 상태를 다시 불러와야 해요"
             body="현재 학습자 상태를 완전히 복원하지 못했습니다. 한 번 더 불러오면 대부분 바로 해결됩니다."
@@ -210,70 +139,20 @@ export function QuizHubScreenView({
     );
   }
 
-  if (useTabletSplitLayout) {
-    const analysisResumeItems = analysisState.isInProgress
-      ? analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
-          attemptId: item.attemptId,
-          examTitle: getExamTitle(item.examId),
-          noteCount: item.noteCount,
-          totalNotes: item.totalNotes,
-        }))
-      : [];
-
-    return (
-      <View style={styles.screen}>
-        {showBrandHeader ? <BrandHeader compact /> : null}
-        <JourneyHubSplitLayout
-          posterBanner={
-            <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
-          }
-          authNotice={
-            authNoticeMessage ? (
-              <AuthNotice
-                isCompactLayout={isCompactLayout}
-                message={authNoticeMessage}
-                onDismiss={onDismissAuthNotice}
-              />
-            ) : null
-          }
-          leftBoard={renderTabletSplitBoard}
-          topCard={<PhotoEntryCard onPress={onPressPhoto} />}
-          rightPanel={
-            <JourneyHubRightPanel
-              analysisResumeItems={analysisResumeItems}
-              ctaLabel={journey!.ctaLabel}
-              isCompactLayout={isCompactLayout}
-              onPressCta={onPressJourneyCta}
-              onResumeAnalysis={onResumeAnalysis}
-              showAnalysisResume={showAnalysisResumeCard}
-              stepKey={journey!.currentStepKey}
-            />
-          }
-        />
-      </View>
-    );
-  }
+  const analysisResumeItems = analysisState.isInProgress
+    ? analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
+        attemptId: item.attemptId,
+        examTitle: getExamTitle(item.examId),
+        noteCount: item.noteCount,
+        totalNotes: item.totalNotes,
+      }))
+    : [];
 
   return (
     <View style={styles.screen}>
-      {showBrandHeader ? <BrandHeader compact /> : null}
-      {showJourneyHero ? (
-        <View
-          style={[styles.heroHeader, { paddingTop: heroContainerPaddingTop }]}
-          onLayout={(e) => {
-            const { y, height } = e.nativeEvent.layout;
-            setHeroLayoutBottom(y + height);
-          }}>
-          <JourneyScreenHero isCompactLayout={isCompactLayout} isTablet={isTablet} />
-        </View>
-      ) : null}
+      <BrandHeader compact />
       {authNoticeMessage ? (
-        <View
-          style={[
-            styles.outerNotice,
-            showJourneyHero && heroLayoutBottom > 0 && styles.outerNoticeOverlay,
-            showJourneyHero && heroLayoutBottom > 0 && { top: heroLayoutBottom + 14 },
-          ]}>
+        <View style={styles.outerNotice}>
           <AuthNotice
             isCompactLayout={isCompactLayout}
             message={authNoticeMessage}
@@ -285,76 +164,42 @@ export function QuizHubScreenView({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.posterScreen,
-          {
-            paddingTop: scrollTopPadding,
-            paddingBottom: bottomPadding,
-          },
+          { paddingTop: topPadding, paddingBottom: bottomPadding },
         ]}
         showsVerticalScrollIndicator={false}>
         <PageContainer
           variant="hub"
-          style={[
-            styles.posterScreenInner,
-            isTablet && styles.posterScreenTabletSpacing,
-          ]}>
-          {/* 삼항 바깥 — 홈 골격 3개(여정 중·분석 중·졸업)를 이 한 줄로 다 덮는다.
-              보드 위에 두는 이유: 폰에서 홈 콘텐츠가 이미 화면을 넘쳐서,
-              여기가 스크롤 없이 보이는 유일한 자리다. */}
-          <PhotoEntryCard onPress={onPressPhoto} />
-          {!showAnalysisResumeCard ? (
+          style={[styles.posterScreenInner, isTablet && styles.posterScreenTabletSpacing]}>
+          {showAnalysisResumeCard ? (
             <>
-              {showReviewHomeCard && homeState?.nextReviewTask ? (
-                <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
-              ) : null}
-              {showNoReviewDayCard ? (
-                <NoReviewDayCard nextTask={homeState.nextReviewTask!} onPressExam={onPressExam} />
-              ) : null}
-              {showJourneyBoard ? (
-                <JourneyBoard
-                  availableHeight={boardAvailableHeight}
-                  isCompactLayout={isCompactLayout}
-                  onPressCurrentStep={onPressJourneyCta}
-                  state={journey}
-                />
-              ) : null}
-              {showWeaknessSection && homeState ? (
-                <HomeWeaknessSection homeState={homeState} />
-              ) : null}
-            </>
-          ) : (
-            <>
-              {/* 분석 진행 중 모드: 복습이 있으면 최상단 */}
-              {showReviewHomeCard && homeState?.nextReviewTask ? (
-                <ReviewHomeCard task={homeState.nextReviewTask} onPress={onPressReviewCard} />
-              ) : null}
-              {showAnalysisResumeCard && analysisState.isInProgress ? (
+              {/* 분석 진행 중: 사진 문은 큰 카드로 남긴다 — 이어하기와 경쟁하지 않는다 */}
+              <PhotoEntryCard onPress={onPressPhoto} />
+              {analysisState.isInProgress ? (
                 <ExamAnalysisResumeCarousel
-                  items={analysisState.items.map<ExamAnalysisResumeCarouselItem>((item) => ({
-                    attemptId: item.attemptId,
-                    examTitle: getExamTitle(item.examId),
-                    noteCount: item.noteCount,
-                    totalNotes: item.totalNotes,
-                  }))}
+                  items={analysisResumeItems}
                   onPressItem={onResumeAnalysis}
                 />
               ) : null}
-              {showWeaknessSection && homeState ? (
-                <HomeWeaknessSection homeState={homeState} />
+            </>
+          ) : today.mode === 'review' ? (
+            <HomeReviewList
+              title={today.title}
+              body={today.body}
+              tasks={today.dueTasks}
+              onPressTask={onPressReviewTask}
+              onPressPhoto={onPressPhoto}
+            />
+          ) : (
+            <>
+              {showNoReviewDayCard && today.nextTask ? (
+                <NoReviewDayCard nextTask={today.nextTask} onPressExam={onPressExam} />
               ) : null}
+              <PhotoEntryCard onPress={onPressPhoto} />
             </>
           )}
+          {showWeaknessSection ? <HomeWeaknessSection homeState={homeState} /> : null}
         </PageContainer>
       </ScrollView>
-      {showJourneyBoard ? (
-        <View style={[styles.ctaFooter, { paddingBottom: insets.bottom + (isCompactLayout ? 24 : 28) }]}>
-          <JourneyCtaButton
-            compact={isCompactLayout}
-            label={journey.ctaLabel}
-            onPress={onPressJourneyCta}
-            style={[styles.ctaFooterButton, isTablet && { maxWidth: 600 }]}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -464,33 +309,11 @@ const styles = StyleSheet.create({
     gap: 20,
     paddingHorizontal: 24,
   },
-  ctaFooter: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingTop: 4,
-  },
-  ctaFooterButton: {
-    width: '70%',
-    maxWidth: 340,
-  },
-  heroHeader: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-  },
   outerNotice: {
     width: '100%',
     paddingHorizontal: 14,
     alignItems: 'center',
     marginTop: 14,
     zIndex: 10,
-  },
-  outerNoticeOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    marginTop: 0,
-    elevation: 10,
   },
 });

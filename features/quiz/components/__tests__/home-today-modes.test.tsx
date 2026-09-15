@@ -4,15 +4,12 @@ import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-
 
 import { QuizHubScreenView } from '../quiz-hub-screen-view';
 
-// 태블릿 경로. 예전에는 여기에 전용 split 레이아웃(좌: 여정보드 / 우: 패널)이 있었다.
-// 보드를 걷어내면서 split도 같이 걷혔고, 지금 태블릿은 폰과 같은 한 줄 배치를 쓴다.
-// 이 파일은 "태블릿에서도 홈이 그려진다"만 지킨다.
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+jest.mock('@/hooks/use-is-tablet', () => ({
+  useIsTablet: () => false,
 }));
 
-jest.mock('@/hooks/use-is-tablet', () => ({
-  useIsTablet: () => true,
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
 jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
@@ -28,6 +25,7 @@ jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
   return { __esModule: true, default: MockScrollView };
 });
 
+// 리스트 1번 칸은 기존 hero 카드를 그대로 쓴다. 내부(10초 타이머)는 이 테스트의 관심사가 아니다.
 jest.mock('@/features/quiz/components/review-home-card', () => ({
   ReviewHomeCard: () =>
     require('react').createElement(
@@ -45,6 +43,17 @@ jest.mock('@/components/brand/BrandHeader', () => ({
       'brand-header',
     ),
 }));
+
+function makeTask(id: string) {
+  return {
+    id,
+    weaknessId: 'discriminant_calculation',
+    stage: 'day1',
+    scheduledFor: '2026-09-15',
+    source: 'weakness-practice',
+    sourceId: `src-${id}`,
+  };
+}
 
 const baseProps = {
   analysisState: { isInProgress: false },
@@ -72,41 +81,55 @@ const baseProps = {
   },
 } as unknown as UseQuizHubScreenResult;
 
-describe('홈 (태블릿)', () => {
-  it('복습 재료가 없으면 사진 카드를 그린다', () => {
+describe('홈 3갈래 (C안)', () => {
+  it('재료가 없으면 사진 카드만 뜨고 복습 리스트는 없다', () => {
     render(<QuizHubScreenView {...baseProps} />);
+
     expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
+    expect(screen.queryByTestId('home-review-list')).toBeNull();
   });
 
-  it('오늘 복습이 있으면 복습 리스트를 그린다', () => {
+  it('오늘 차례가 아니면 복습 없는 날 카드와 사진 카드가 같이 뜬다', () => {
+    render(
+      <QuizHubScreenView
+        {...baseProps}
+        showNoReviewDayCard
+        today={
+          {
+            mode: 'resting',
+            dueTasks: [],
+            nextTask: makeTask('next'),
+            title: '오늘은 복습 없는 날이에요',
+            body: '새로 틀린 문제를 찍어두면 다음 복습이 늘어나요.',
+          } as unknown as UseQuizHubScreenResult['today']
+        }
+      />,
+    );
+
+    expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
+    expect(screen.queryByTestId('home-review-list')).toBeNull();
+  });
+
+  it('오늘 복습이 있으면 리스트가 뜨고 사진은 작은 줄로 남는다', () => {
     render(
       <QuizHubScreenView
         {...baseProps}
         today={
           {
             mode: 'review',
-            dueTasks: [
-              {
-                id: 'a',
-                weaknessId: 'discriminant_calculation',
-                stage: 'day1',
-                scheduledFor: '2026-09-15',
-                source: 'weakness-practice',
-                sourceId: 'src-a',
-              },
-            ],
-            title: '오늘 복습할 게 1개 있어요',
-            body: '하나만 짧게 다시 보면 돼요.',
+            dueTasks: [makeTask('a'), makeTask('b')],
+            nextTask: makeTask('a'),
+            title: '오늘 복습할 게 2개 있어요',
+            body: '위에서부터 차례로 보면 돼요.',
           } as unknown as UseQuizHubScreenResult['today']
         }
       />,
     );
 
     expect(screen.getByTestId('home-review-list')).toBeTruthy();
-  });
-
-  it('상태 복원에 실패하면 다시 불러오기를 제안한다', () => {
-    render(<QuizHubScreenView {...baseProps} today={null} />);
-    expect(screen.getByText('다시 불러오기')).toBeTruthy();
+    expect(screen.getByText('오늘 복습할 게 2개 있어요')).toBeTruthy();
+    // C안의 핵심 — 복습이 있는 날에도 사진 문은 남는다. 단 큰 카드가 아니라 한 줄로.
+    expect(screen.getByLabelText('사진 추가하기')).toBeTruthy();
+    expect(screen.queryByText('틀린 문제, 찍기만 하면 돼요')).toBeNull();
   });
 });

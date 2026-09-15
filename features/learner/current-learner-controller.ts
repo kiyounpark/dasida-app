@@ -278,7 +278,6 @@ export function createCurrentLearnerController({
       profile: params.profile,
       summary: params.summary,
       homeState: buildHomeLearningState(
-        params.profile,
         params.summary,
         peerPresence,
         reviewTasks,
