@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.15 21:44
+- 해시: `34b02ad` (`34b02ad7f4309e484d28d06e9ac5c4a836aeb691`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/34b02ad7f4309e484d28d06e9ac5c4a836aeb691
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — F칸 완료, 다음 벽은 C
+- 본문: - F ✅ · 열린 방에서 홈 빼기 · 배포 전 항목 체크 / - "제일 큰 건 F" → "제일 큰 건 C"로 정정. 홈은 준비됐는데 채울 복습이 0건이다 / - 규모 숫자 정정: "비테스트 12 + 테스트 4"는 잘못 센 숫자였다 / - worktree 안에서 jest가 테스트를 0개 보는 함정 기록 (jest.config가 자기를 걸러낸다) / - 모르는 것에 추가: 새 홈을 시뮬레이터로 안 켜봤다 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 18:53
 - 해시: `e1f772f` (`e1f772fab8969147500c56feefa65d017eb40a45`)
 - 브랜치: photo-file-store
