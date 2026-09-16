@@ -15,10 +15,23 @@ export class LearningHistoryApiError extends Error {
 }
 
 export function shouldUseLearningHistoryCacheFallback(error: unknown) {
-  return (
-    error instanceof LearningHistoryApiError &&
-    (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT' || error.code === 'HTTP_ERROR')
-  );
+  if (!(error instanceof LearningHistoryApiError)) {
+    return false;
+  }
+
+  if (error.code !== 'HTTP_ERROR') {
+    return error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT';
+  }
+
+  // 4xx는 보낸 데이터가 틀렸다는 뜻이라 재시도해도 같은 답이 온다.
+  // 캐시로 덮어 성공처럼 처리하면 변경이 조용히 유실된다(복습 과제 소실).
+  // 단 408·429는 일시적이라 폴백 대상으로 남긴다.
+  const isPermanentClientError =
+    error.status >= 400 &&
+    error.status < 500 &&
+    !NETWORK_RETRYABLE_STATUS_CODES.has(error.status);
+
+  return !isPermanentClientError;
 }
 
 function isRetryableError(error: unknown) {

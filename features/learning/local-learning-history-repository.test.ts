@@ -73,6 +73,17 @@ function makePendingTask(overrides: Partial<ReviewTask> = {}): ReviewTask {
 // ── Tests ──────────────────────────────────────────────────────────
 
 describe('buildReviewTasks', () => {
+  test('scheduledFor는 서버 스키마 z.string().datetime()가 받는 ISO datetime이다', () => {
+    // 로그인 시 이 task들이 importLocalLearningHistory로 올라간다.
+    // 날짜만 적히면 스냅샷 전체가 400으로 거절된다.
+    const result = buildReviewTasks(makeExamInput(), []);
+
+    expect(result.length).toBeGreaterThan(0);
+    for (const task of result) {
+      expect(task.scheduledFor).toMatch(/^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/);
+    }
+  });
+
   test('featured-exam attempt creates day1 ReviewTask', () => {
     const input = makeExamInput();
     const result = buildReviewTasks(input, []);

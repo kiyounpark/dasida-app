@@ -9,11 +9,16 @@ function toDateString(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/**
+ * days일 뒤를 서버 스키마(`z.string().datetime()`)가 받는 ISO datetime으로 만든다.
+ * 날짜는 기기 시간대 기준이고, due 판정·푸시 예약은 모두 앞 10글자만 읽는다.
+ * 뒤의 T00:00:00.000Z는 검사 통과용 고정값이며 시각으로 쓰이지 않는다.
+ */
 export function addDaysToToday(days: number): string {
   const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
   const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
-  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}T00:00:00.000Z`;
 }
 
 /**

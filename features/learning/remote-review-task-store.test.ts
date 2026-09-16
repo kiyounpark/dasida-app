@@ -109,6 +109,17 @@ test('saveAll 성공 → POST 바디 검증 + 미러 갱신', async () => {
   expect(AsyncStorage.setItem).toHaveBeenCalled();
 });
 
+test('saveAll 400(서버가 데이터 거절) → 삼키지 않고 던진다 + 미러에 쓰지 않는다', async () => {
+  // 조용히 미러에만 쓰면 화면엔 남았다가 다음 load()가 서버 값으로 덮어 사라진다.
+  mockedReadJson.mockRejectedValueOnce(
+    new LearningHistoryApiError('Invalid request body', 400, 'HTTP_ERROR'),
+  );
+  const { store } = makeStore();
+
+  await expect(store.saveAll(ACCOUNT, [makeTask()])).rejects.toThrow('Invalid request body');
+  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+});
+
 test('saveAll 네트워크 실패 → throw 안 함 + 미러 보존', async () => {
   mockedReadJson.mockRejectedValueOnce(
     new LearningHistoryApiError('net', 0, 'NETWORK_ERROR'),

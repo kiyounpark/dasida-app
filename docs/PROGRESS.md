@@ -1080,6 +1080,45 @@
 - 작성자: 박기윤
 - 메시지: docs: STATUS.md C칸 — 빈 칸 말고 틀린 칸이 따로 있다 + 미분 6칸 진척
 - 본문: Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+### 커밋 2026.09.16 10:01
+- 해시: `9ed1cea` (`9ed1cea3fa5559b3e519fd6a5b36500e3611599c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9ed1cea3fa5559b3e519fd6a5b36500e3611599c
+- 작성자: 박기윤
+- 메시지: Merge branch 'main' into worktree-review-date-verdict
+- 본문: main이 F칸(홈 여정보드 → 복습 리스트)을 먼저 머지해 있어서 당겨왔다. / 충돌은 docs/STATUS.md 한 파일. use-quiz-hub-screen.ts는 자동 병합됐고 / .catch 한 줄이 살아남은 것을 확인했다. / STATUS.md는 F방 기록을 기본으로 삼고 D 내용을 얹었다: / - F칸은 ✅ (F방), E칸은 "가장 급함" (F방의 정정 유지) / - D칸은 이쪽 것으로 — F방은 "과제 0건이라 재현 불가"로 적었지만 / 로그인한 계정엔 6월 진단이 남긴 과제가 있어 재현됐다 / - "모르는 것"에 두 줄 추가: 나머지 35명 데이터는 안 봤다, / users 컬렉션이 {uid}와 user:{uid}로 갈려 있다 / 병합 후 622개 테스트·tsc --noEmit 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.09.15 22:45
+- 해시: `410253b` (`410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — "E는 C 뒤다"가 틀렸다는 정정 + 학생이 ②에서 멈춘다는 기록
+- 본문: 제일 중요한 건 E칸 정정이다. 이 파일은 오래 "E는 C가 먼저 풀려야 한다"고 / 적어 왔는데, PhotoNote에 primaryWeaknessId가 이미 붙어 있다. / 약점이 붙은 노트만이면 C 없이도 지금 된다 — 대략 3분의 1. / 안 고치면 다음 방이 제일 느린 칸(C)부터 붙잡고 한참 돌아간다. / - 한 줄: 홈은 세 화면을 다 갖췄는데 학생은 ②에서 멈춘다. / 고칠 자리가 홈이 아니라는 걸 도표로 박아둔다 / - D: "확인 안 됨" → "확인 불가". 과제가 0건이라 사라질 게 없다 / - E: "가장 급함". 순서 제안 E → D → C / - F: 4갈래로 갱신 (web-proto 소개 화면 추가) / - 배포 전: "E 없이 내면 복습 앱인데 복습이 없다" — 낼지 말지는 기윤이 정한다 / - 모르는 것: 긴 리스트 여백, ②의 어색함(중간 화면 안 만듦), E 규모 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.09.15 22:01
+- 해시: `9060b59` (`9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — 시뮬레이터 확인 완료
+- 본문: - F칸에 empty 문구와 시뮬레이터 확인 기록 / - 배포 전 항목 체크. "켜보고 나서야 홈이 복습 얘기를 안 한다는 걸 알았다"를 남긴다 — / 테스트를 다 통과하고도 놓친 것이라 다음에 또 놓칠 수 있다 / - 모르는 것 갱신: empty 화면만 봤다. 리스트·D-N 카드는 눈으로 못 봤다 / - worktree 빌드에 .env 복사가 필요하다는 것 추가 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.09.15 21:44
+- 해시: `34b02ad` (`34b02ad7f4309e484d28d06e9ac5c4a836aeb691`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/34b02ad7f4309e484d28d06e9ac5c4a836aeb691
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — F칸 완료, 다음 벽은 C
+- 본문: - F ✅ · 열린 방에서 홈 빼기 · 배포 전 항목 체크 / - "제일 큰 건 F" → "제일 큰 건 C"로 정정. 홈은 준비됐는데 채울 복습이 0건이다 / - 규모 숫자 정정: "비테스트 12 + 테스트 4"는 잘못 센 숫자였다 / - worktree 안에서 jest가 테스트를 0개 보는 함정 기록 (jest.config가 자기를 걸러낸다) / - 모르는 것에 추가: 새 홈을 시뮬레이터로 안 켜봤다 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 커밋 2026.09.15 18:53
 - 해시: `e1f772f` (`e1f772fab8969147500c56feefa65d017eb40a45`)

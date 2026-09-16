@@ -1,4 +1,4 @@
-import { spawnMistakeReviewTasks } from './review-scheduler';
+import { addDaysToToday, spawnMistakeReviewTasks } from './review-scheduler';
 import type { ReviewTaskStore } from './review-task-store';
 import type { ReviewTask } from './types';
 
@@ -35,8 +35,24 @@ const TOMORROW = (() => {
   const d = new Date();
   const r = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${r.getFullYear()}-${pad(r.getMonth() + 1)}-${pad(r.getDate())}`;
+  return `${r.getFullYear()}-${pad(r.getMonth() + 1)}-${pad(r.getDate())}T00:00:00.000Z`;
 })();
+
+describe('addDaysToToday', () => {
+  it('서버 스키마 z.string().datetime()가 받는 ISO datetime을 만든다', () => {
+    expect(addDaysToToday(1)).toMatch(/^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/);
+  });
+
+  it('앞 10글자는 기기 시간대 기준 날짜다 — due 판정이 slice(0, 10)으로 읽는다', () => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const expected = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+    expect(addDaysToToday(1).slice(0, 10)).toBe(
+      `${expected.getFullYear()}-${pad(expected.getMonth() + 1)}-${pad(expected.getDate())}`,
+    );
+  });
+});
 
 describe('spawnMistakeReviewTasks', () => {
   it('약점 task 없으면 day1·내일로 신규 생성', async () => {
