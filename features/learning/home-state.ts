@@ -3,12 +3,11 @@ import { getReviewHeroPrompt } from '@/data/review-content-map';
 import type {
   ActiveReviewTaskSummary,
   DiagnosticSummarySnapshot,
-  LearnerProfile,
 } from '@/features/learner/types';
 import {
-  buildHomeJourneyState,
-  type HomeJourneyState,
-} from '@/features/learning/home-journey-state';
+  buildHomeTodayState,
+  type HomeTodayState,
+} from '@/features/learning/home-today-state';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
 import { buildWeaknessAppearances } from './weakness-appearances';
@@ -34,7 +33,7 @@ export type HomeLearningState = {
   heroBody: string;
   heroMeta: string;
   todayReviewCount: number;
-  journey: HomeJourneyState;
+  today: HomeTodayState;
   peerPresence: PeerPresenceState;
   latestDiagnosticSummary?: DiagnosticSummarySnapshot;
   nextReviewTask?: ActiveReviewTaskSummary;
@@ -288,7 +287,6 @@ function buildWeaknessProgressItems(
 }
 
 export function buildHomeLearningState(
-  profile: LearnerProfile,
   summary: LearnerSummaryCurrent,
   peerPresenceSnapshot: PeerPresenceSnapshot | null = null,
   allReviewTasks: ReviewTask[] = [],
@@ -308,7 +306,7 @@ export function buildHomeLearningState(
 
   return {
     ...heroContent,
-    journey: buildHomeJourneyState(summary, profile),
+    today: buildHomeTodayState(summary),
     peerPresence,
     latestDiagnosticSummary: summary.latestDiagnosticSummary,
     nextReviewTask,
