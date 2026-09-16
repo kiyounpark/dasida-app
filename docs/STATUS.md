@@ -53,10 +53,12 @@
 - [x] ~~사진이 임시 폴더에 저장되던 것~~ — 고침 (`e1f772f`). 안 고치고 냈으면 학생 사진이 며칠 뒤 사라졌다
 - [ ] **F를 안 하고 내면 안 된다** — 홈에 "10문제 빠른 진단"이라고 적힌 채 나간다
 - [x] ~~D를 실제 앱에서 확인하고 내야 한다~~ — **2026.09.15 확인 완료.** 방법과 증거는 위 D칸에 적었다
-- [ ] **메인·홈 방 `.env`의 두 값이 낡았다** — D를 확인하려다 발견했다. Claude 워크트리 `.env`에만 고쳐뒀고 **메인은 그대로다**
-  - `EXPO_PUBLIC_SAVE_REVIEW_TASKS_URL`이 **없다**. `LIST`만 있다. 둘 다 있어야 `create-learning-history-repository.ts:38`이 서버 저장을 켠다. 없으면 `review-task-store-router.ts:28`이 로그인 사용자한테 예외를 던져 **요청 자체가 안 나간다**
-  - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`가 EAS와 **다르다**(`pab7tmss…` vs `jc53em95…`). 그래서 로컬에서 구글 로그인이 `redirect_uri_mismatch`로 막힌다
-  - 둘 다 `eas env:list` 값이 맞다. 고칠지는 기윤이 정한다. 안 고치면 로컬에서 로그인 테스트가 계속 막힌다
+- [x] ~~메인 `.env`의 두 값이 낡았다~~ — **2026.09.16 고침.** D를 확인하려다 발견했다
+  - `EXPO_PUBLIC_SAVE_REVIEW_TASKS_URL` **추가**. 없으면 `create-learning-history-repository.ts:38`이 서버 저장을 못 켜고, `review-task-store-router.ts:28`이 로그인 사용자한테 예외를 던져 **요청 자체가 안 나간다**
+  - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`를 EAS 값으로 **교체**(`pab7tmss…` → `jc53em95…`). 옛 값이면 로컬 구글 로그인이 `redirect_uri_mismatch`로 막힌다
+  - 백업 `.env.backup-20260916-095308` (gitignore). 키 목록 대조 결과 **1개 추가·0개 제거·나머지 그대로**
+  - **안드로이드(`GOOGLE_ANDROID_CLIENT_ID`)는 일부러 안 고쳤다.** EAS와 다르지만(`t956itki…` vs `592ipb5d…`), 안드 클라이언트는 **앱 서명 키(SHA-1)에 묶여** 있어 로컬 개발 빌드와 EAS 빌드가 다른 키로 서명되면 클라이언트도 달라야 맞다. 로컬 안드에서 구글 로그인이 막히면 그때 이 줄을 의심할 것 — **검증 안 했다**
+  - 홈 방 워크트리는 2026.09.16 기준 사라져 있어 못 고쳤다. 새로 팔 때 `.env`를 메인에서 복사할 것 (gitignore라 워크트리에 안 따라온다)
 
 ## 모르는 것
 
