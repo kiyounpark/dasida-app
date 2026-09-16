@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.16 10:01
+- 해시: `9ed1cea` (`9ed1cea3fa5559b3e519fd6a5b36500e3611599c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9ed1cea3fa5559b3e519fd6a5b36500e3611599c
+- 작성자: 박기윤
+- 메시지: Merge branch 'main' into worktree-review-date-verdict
+- 본문: main이 F칸(홈 여정보드 → 복습 리스트)을 먼저 머지해 있어서 당겨왔다. / 충돌은 docs/STATUS.md 한 파일. use-quiz-hub-screen.ts는 자동 병합됐고 / .catch 한 줄이 살아남은 것을 확인했다. / STATUS.md는 F방 기록을 기본으로 삼고 D 내용을 얹었다: / - F칸은 ✅ (F방), E칸은 "가장 급함" (F방의 정정 유지) / - D칸은 이쪽 것으로 — F방은 "과제 0건이라 재현 불가"로 적었지만 / 로그인한 계정엔 6월 진단이 남긴 과제가 있어 재현됐다 / - "모르는 것"에 두 줄 추가: 나머지 35명 데이터는 안 봤다, / users 컬렉션이 {uid}와 user:{uid}로 갈려 있다 / 병합 후 622개 테스트·tsc --noEmit 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.15 22:45
 - 해시: `410253b` (`410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0`)
 - 브랜치: worktree-home-review-list
