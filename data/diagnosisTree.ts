@@ -457,8 +457,13 @@ export const diagnosisTree: Record<SolveMethodId, DiagnosisMethodStep> = {
       },
       {
         id: 'seq_sum',
-        text: '합 Sₙ 공식 적용 방법에서 막혔어요.',
+        text: '등차·등비 합 공식으로 Sₙ을 계산하는 데서 막혔어요.',
         weaknessId: 'g3_sequence',
+      },
+      {
+        id: 'seq_sum_term',
+        text: 'Sₙ으로 aₙ을 구했는데 n=1을 따로 봐야 하는 줄 몰랐어요.',
+        weaknessId: 'g3_seq_sum_term',
       },
       {
         id: 'seq_recurrence',

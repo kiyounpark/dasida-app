@@ -70,6 +70,7 @@ export const weaknessMistakeType: Record<WeaknessId, MistakeTypeId> = {
   g2_function_domain: 'concept_gap', // 정의역·치역 혼동
   g3_diff: 'formula_recall', // 미분 계산
   g3_sequence: 'formula_recall', // 수열 계산
+  g3_seq_sum_term: 'concept_gap', // Sₙ→aₙ 식의 적용 범위(n≥2) 혼동
   g3_log_exp: 'formula_recall', // 지수·로그 계산
   g3_log_exp_base: 'formula_recall', // 지수법칙·밑 통일 오류
   g3_integral: 'concept_gap', // 적분 계산

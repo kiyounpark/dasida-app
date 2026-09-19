@@ -4,11 +4,11 @@ import { diagnosisTree, type SolveMethodId } from '@/data/diagnosisTree';
 import { MISTAKE_TYPE_IDS } from '../types';
 import { weaknessCandidatesFor, weaknessMistakeType } from './weakness-mistake-type-map';
 
-describe('통역표 (약점 59 → 실수 유형 6)', () => {
-  it('약점 59개가 하나도 안 빠지고, 표에만 있는 유령 키도 없다', () => {
+describe('통역표 (약점 60 → 실수 유형 6)', () => {
+  it('약점 60개가 하나도 안 빠지고, 표에만 있는 유령 키도 없다', () => {
     const tagged = Object.keys(weaknessMistakeType).sort();
     expect(tagged).toEqual([...weaknessOrder].sort());
-    expect(weaknessOrder).toHaveLength(59);
+    expect(weaknessOrder).toHaveLength(60);
   });
 
   it('붙은 태그가 전부 실수 유형 6개 안에 있다', () => {
@@ -26,7 +26,7 @@ describe('통역표 (약점 59 → 실수 유형 6)', () => {
     );
 
     expect(distribution).toEqual({
-      concept_gap: 19,
+      concept_gap: 20,
       calc_slip: 11,
       formula_recall: 20,
       procedure_miss: 4,
@@ -102,7 +102,7 @@ describe('weaknessCandidatesFor', () => {
         if (weaknessCandidatesFor(methodId, type).length === 0) empty += 1;
       }
     }
-    expect(empty).toBe(131); // 31개 풀이법 × 6개 유형 = 186 중 131
+    expect(empty).toBe(130); // 31개 풀이법 × 6개 유형 = 186 중 130
   });
 
   it('돌려주는 약점은 전부 그 풀이법에 실제로 달린 것이고 태그도 맞다', () => {
@@ -138,7 +138,7 @@ describe('weaknessCandidatesFor', () => {
       }
     }
 
-    expect(single).toBe(50);
+    expect(single).toBe(51);
     expect(multiple).toBe(5);
     expect(widest['radical+calc_slip']).toHaveLength(3);
   });

@@ -25,6 +25,7 @@ export type WeaknessId =
   // 고3 공통 (미적분·확통·기하 모두)
   | 'g3_diff'
   | 'g3_sequence'
+  | 'g3_seq_sum_term'
   | 'g3_log_exp'
   | 'g3_log_exp_base'
   | 'g3_integral'
@@ -120,6 +121,7 @@ export const weaknessOrder: WeaknessId[] = [
   // 고3
   'g3_diff',
   'g3_sequence',
+  'g3_seq_sum_term',
   'g3_log_exp',
   'g3_log_exp_base',
   'g3_integral',
@@ -459,6 +461,13 @@ export const diagnosisMap: Record<WeaknessId, DiagnosisItem> = {
     topicLabel: '수열',
     desc: '등차·등비수열의 일반항이나 합 공식 적용에서 실수가 있었습니다.',
     tip: '등차수열 aₙ=a₁+(n-1)d, 등비수열 aₙ=a₁·rⁿ⁻¹ 공식을 먼저 확인하세요.',
+  },
+  g3_seq_sum_term: {
+    id: 'g3_seq_sum_term',
+    labelKo: 'a₁은 S₁로 따로 확인',
+    topicLabel: '수열',
+    desc: 'Sₙ에서 aₙ을 꺼내는 식은 n=1에는 못 씁니다. 그 자리엔 문제에 없는 S₀가 들어가서 첫째항이 상수항만큼 어긋납니다.',
+    tip: '그 식에 n=1을 넣은 값과 S₁을 나란히 적어 보세요. 두 값이 다르면 첫째항은 S₁ 쪽입니다.',
   },
   g3_log_exp: {
     id: 'g3_log_exp',

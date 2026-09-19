@@ -101,6 +101,7 @@ const weaknessOrder = [
   // 고3 공통
   'g3_diff',
   'g3_sequence',
+  'g3_seq_sum_term',
   'g3_log_exp',
   'g3_log_exp_base',
   'g3_integral',
@@ -167,6 +168,7 @@ const weaknessLabels: Record<(typeof weaknessOrder)[number], string> = {
   // 고3 공통
   g3_diff: '미분 계산',
   g3_sequence: '수열 계산',
+  g3_seq_sum_term: 'a₁은 S₁로 따로 확인',
   g3_log_exp: '지수·로그 계산',
   g3_log_exp_base: '지수법칙·밑 통일 오류',
   g3_integral: '적분 계산',
