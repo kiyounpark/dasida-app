@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.19 22:39
+- 해시: `95b3e52` (`95b3e5281b338925ded458670515f6c01bbef371`)
+- 브랜치: weakness-label
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/95b3e5281b338925ded458670515f6c01bbef371
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — 수열 ①이 코드에 들어갔다 (5de97b3)
+- 본문: C칸 상태·「한 줄」·수열 6칸 표를 실제 상태로 맞췄다. / 새로 적은 것 셋: / - 고칠 파일이 5개가 아니라 6개였다. functions/src/learning-history.ts의 / weaknessOrder가 zod 스키마라 여기 없는 id는 서버가 거부한다 / - 복습 콘텐츠(heroPrompt·thinkingSteps·remedial-flows)가 아직 없고, / weakness-removal-safety.test.ts가 이걸 못 잡는다 / - astra·Fable 두 모델에 물은 결과. 같은 말 넷, 갈린 것 하나(target-student를 / 앞에 둘 것인가 vs 거부권을 뺄 것인가) — 아직 안 정했다 / "공식 기억"은 새로 만들면 안 되는 칸이라고 표에 박았다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.16 00:22
 - 해시: `fb2d29e` (`fb2d29efb817de4e156a59cb754b5c681b0e4e01`)
 - 브랜치: weakness-label
@@ -1070,6 +1080,16 @@
 - 작성자: 박기윤
 - 메시지: docs: STATUS.md — C칸 목표를 빈 42칸으로 자르고, 수열 1차 결과와 내일 재개법 기록
 - 본문: 수열 6칸 1차: 6칸 전부 '그 실수는 실재한다'로 나왔는데 반박에서 5칸이 깨졌다. / 깨진 이유가 전부 '칸은 맞는데 써온 문장이 거짓'이었고, / '수열엔 그런 실수 없다'로 깨진 건 하나도 없었다. / 그래서 설계를 고쳤다 — 깨지면 버리지 말고 반박을 들고 다시 쓴다(최대 2회). / 2차는 고쳐쓰기 단계에 닿기 전에 죽어서 얻은 게 없다. runId로 이어간다. / 목표도 잘랐다: 131칸 전부가 아니라 빈 42칸(기출 상위 10개 = 88.5%). / 나머지 89칸은 기출에 거의 안 나온다. / 모르는 것에 둘 추가 — 학생 수를 안 쟀다는 것, '정답'이라 박힌 590개를 / 아무도 안 봤다는 것. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### 커밋 2026.09.15 22:45
+- 해시: `410253b` (`410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0`)
+- 브랜치: worktree-home-review-list
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — "E는 C 뒤다"가 틀렸다는 정정 + 학생이 ②에서 멈춘다는 기록
+- 본문: 제일 중요한 건 E칸 정정이다. 이 파일은 오래 "E는 C가 먼저 풀려야 한다"고 / 적어 왔는데, PhotoNote에 primaryWeaknessId가 이미 붙어 있다. / 약점이 붙은 노트만이면 C 없이도 지금 된다 — 대략 3분의 1. / 안 고치면 다음 방이 제일 느린 칸(C)부터 붙잡고 한참 돌아간다. / - 한 줄: 홈은 세 화면을 다 갖췄는데 학생은 ②에서 멈춘다. / 고칠 자리가 홈이 아니라는 걸 도표로 박아둔다 / - D: "확인 안 됨" → "확인 불가". 과제가 0건이라 사라질 게 없다 / - E: "가장 급함". 순서 제안 E → D → C / - F: 4갈래로 갱신 (web-proto 소개 화면 추가) / - 배포 전: "E 없이 내면 복습 앱인데 복습이 없다" — 낼지 말지는 기윤이 정한다 / - 모르는 것: 긴 리스트 여백, ②의 어색함(중간 화면 안 만듦), E 규모 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 커밋 2026.09.15 22:03
 - 해시: `81b751e` (`81b751e618c51a66ec89d19c6f61a3fb5aecb7ae`)
@@ -1089,16 +1109,6 @@
 - 작성자: 박기윤
 - 메시지: Merge branch 'main' into worktree-review-date-verdict
 - 본문: main이 F칸(홈 여정보드 → 복습 리스트)을 먼저 머지해 있어서 당겨왔다. / 충돌은 docs/STATUS.md 한 파일. use-quiz-hub-screen.ts는 자동 병합됐고 / .catch 한 줄이 살아남은 것을 확인했다. / STATUS.md는 F방 기록을 기본으로 삼고 D 내용을 얹었다: / - F칸은 ✅ (F방), E칸은 "가장 급함" (F방의 정정 유지) / - D칸은 이쪽 것으로 — F방은 "과제 0건이라 재현 불가"로 적었지만 / 로그인한 계정엔 6월 진단이 남긴 과제가 있어 재현됐다 / - "모르는 것"에 두 줄 추가: 나머지 35명 데이터는 안 봤다, / users 컬렉션이 {uid}와 user:{uid}로 갈려 있다 / 병합 후 622개 테스트·tsc --noEmit 통과. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
-
-### 커밋 2026.09.15 22:45
-- 해시: `410253b` (`410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0`)
-- 브랜치: worktree-home-review-list
-- 원격: origin
-- 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/410253b3b2c94f67fb1b7d2178ee1e0024ab2fc0
-- 작성자: 박기윤
-- 메시지: docs: STATUS.md — "E는 C 뒤다"가 틀렸다는 정정 + 학생이 ②에서 멈춘다는 기록
-- 본문: 제일 중요한 건 E칸 정정이다. 이 파일은 오래 "E는 C가 먼저 풀려야 한다"고 / 적어 왔는데, PhotoNote에 primaryWeaknessId가 이미 붙어 있다. / 약점이 붙은 노트만이면 C 없이도 지금 된다 — 대략 3분의 1. / 안 고치면 다음 방이 제일 느린 칸(C)부터 붙잡고 한참 돌아간다. / - 한 줄: 홈은 세 화면을 다 갖췄는데 학생은 ②에서 멈춘다. / 고칠 자리가 홈이 아니라는 걸 도표로 박아둔다 / - D: "확인 안 됨" → "확인 불가". 과제가 0건이라 사라질 게 없다 / - E: "가장 급함". 순서 제안 E → D → C / - F: 4갈래로 갱신 (web-proto 소개 화면 추가) / - 배포 전: "E 없이 내면 복습 앱인데 복습이 없다" — 낼지 말지는 기윤이 정한다 / - 모르는 것: 긴 리스트 여백, ②의 어색함(중간 화면 안 만듦), E 규모 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 커밋 2026.09.15 22:01
 - 해시: `9060b59` (`9060b597f06b1d7a1df26b8ca3fe3f44b3c4bb0d`)
