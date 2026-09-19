@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.19 22:25
+- 해시: `2e1263d` (`2e1263d67dfdfeef0b87539db4a11eff8ddf74c5`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2e1263d67dfdfeef0b87539db4a11eff8ddf74c5
+- 작성자: 박기윤
+- 메시지: docs: STATUS.md — 웹은 따로 돈다(09.19 실검증) + C칸 표본 1
+- 본문: 09.20 첫 학생 통화는 앱이 아니라 웹으로 한다. A~H 칸은 그날 학생 눈에 / 안 보이므로 「웹(dasida-proto)은 따로 돈다」 섹션을 새로 만들었다. / - 배포본 = 09.07 flow-bundle.js (배포본·로컬본 둘 다 134,659바이트). / 09.15 앱 수정은 웹에 안 들어갔고, 그 수정이 "학생 눈에 보이는 변화 0"이라 / 08.31에 검증한 상태 그대로다 / - 09.19에 실제 손글씨 사진으로 끝까지 돌렸다 — 오답노트 카드까지 정상 / - 안 고친 결함 4건을 적었다. 그중 ④ 첫 "분석 시작" 클릭이 예외로 죽고 / 두 번째에 도는 것은 통화 중에 바로 걸릴 수 있어 대응까지 같이 적었다 / - "모르는 것"의 C칸 줄에 표본 1 추가 — 실제 사진에서 약점 이름표가 붙은 / 첫 사례(수열 계산). 1장이라 비율은 아니다 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.16 10:01
 - 해시: `9ed1cea` (`9ed1cea3fa5559b3e519fd6a5b36500e3611599c`)
 - 브랜치: main
