@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.20 23:52
+- 해시: `92e18f0` (`92e18f03f01f2729ac45cb0954ea8d630f27f796`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/92e18f03f01f2729ac45cb0954ea8d630f27f796
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 복습 콘텐츠를 넣었다 (94d9d76), 범위 밖 줄 규칙을 박는다
+- 본문: STATUS / - C칸: 09.20 밤에 g3_seq_sum_term 복습 콘텐츠가 들어갔다. 아직_안_만든_것이 / 비었다 — 약점 60개 전부 복습 단계가 있다 / - 학생 화면 문구 셋을 고친 이유(정의역 구멍, 등비형 오류)를 남겼다 / - 다음 판 일감 셋: step3 선택지 짝 맞추기 · 범위 밖 줄 · explanation 지시어 / howto / - 🔒 만든 쪽이 지정 범위 밖 줄을 건드리면 그 줄만 버린다. 세트는 안 버린다. / (Fable 결정) 09.20에 두 번 나왔고, 「1회 고쳐서 깨지면 비운다」와 충돌하지 않는다 — / 비우는 건 세트가 깨졌을 때다 / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.20 20:00
 - 해시: `d846d45` (`d846d456f4f47a344f7133483c837c4ca4bc2d07`)
 - 브랜치: weakness-label
