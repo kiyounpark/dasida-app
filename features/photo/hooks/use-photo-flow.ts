@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 
+import { resolveWeaknessLabel, type WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 import { logEvent } from '@/features/analytics/log-event';
 
@@ -8,7 +9,7 @@ import { askPhotoSource } from '../flow/ask-photo-source';
 import { ro } from '../flow/korean-particle';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
 import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
-import { weaknessCandidatesFor } from '../flow/weakness-mistake-type-map';
+import { weaknessCandidatesFor, weaknessChoiceText } from '../flow/weakness-mistake-type-map';
 import {
   canPointAtError,
   filterCandidates,
@@ -448,20 +449,84 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
     ]);
   }
 
-  /** 흐름의 결과물. 학생이 한 글자도 안 썼는데 채워져 나오는 노트 한 장. */
+  /**
+   * 흐름의 결과물로 가는 갈림길.
+   *
+   * 후보가 **둘 이상이면 노트를 내기 전에 학생한테 묻는다** (08.11 🔒 · 09.20 구현).
+   * 남은 후보들은 "같은 풀이의 다른 순간"이라 기계가 못 가른다. 틀린 약점을 박으면
+   * 그 뒤 복습이 통째로 헛도는데, 말풍선 한 번이 그것보다 싸다.
+   * 55칸 중 5칸에서만 뜨니 귀찮음 축도 거의 안 건드린다.
+   */
   function showWrongNote(index: number, context: NoteContext, retryResult: RetryResult) {
-    const candidate = candidateAt(index);
-    const now = new Date();
-    // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (186칸 중 131칸).
+    // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (186칸 중 130칸).
     const weaknessIds = weaknessCandidatesFor(context.methodId, context.mistakeType);
 
     // 1.0.8이 재려는 숫자. 빈손(0개)도 반드시 남긴다 — 안 남기면 "몇 %"의 분모가 사라진다.
+    // ⚠️ 이 줄은 **질문 앞에** 있어야 한다. 그래야 말풍선에서 나간 학생이 분모에 남는다.
     logEvent('photo_weakness_labeled', {
       method_id: context.methodId,
       mistake_type: context.mistakeType,
       weakness_count: weaknessIds.length,
       labeled: weaknessIds.length > 0,
     });
+
+    // 하나거나 없으면 물어볼 게 없다 — 바로 노트로.
+    if (weaknessIds.length < 2) {
+      finishNote(index, context, retryResult, weaknessIds, weaknessIds[0] ?? null);
+      return;
+    }
+
+    say('어디서 실수한 것 같아? 잘 모르겠으면 넘어가도 돼.');
+    ask([
+      ...weaknessIds.map((id) => ({
+        // 버튼 문구는 그 약점이 달린 선택지 문장이다 — labelKo는 둘이 비슷해 학생이 못 가른다.
+        // 선택지가 없는 약점이 섞이면 이름표라도 보여준다(빈 버튼보다 낫다).
+        label: weaknessChoiceText(context.methodId, id) ?? resolveWeaknessLabel(id),
+        kind: 'primary' as const,
+        onPress: () => {
+          mySay(weaknessChoiceText(context.methodId, id) ?? resolveWeaknessLabel(id));
+          logEvent('photo_weakness_picked', {
+            method_id: context.methodId,
+            mistake_type: context.mistakeType,
+            candidate_count: weaknessIds.length,
+            picked: id,
+          });
+          finishNote(index, context, retryResult, weaknessIds, id);
+        },
+      })),
+      {
+        label: '잘 모르겠어',
+        kind: 'ghost' as const,
+        onPress: () => {
+          mySay('잘 모르겠어');
+          logEvent('photo_weakness_picked', {
+            method_id: context.methodId,
+            mistake_type: context.mistakeType,
+            candidate_count: weaknessIds.length,
+            picked: null,
+          });
+          // 후보는 그대로 두고 primary만 비운다 — 카드엔 "A 또는 B"로 뜬다.
+          finishNote(index, context, retryResult, weaknessIds, null);
+        },
+      },
+    ]);
+  }
+
+  /**
+   * 노트 한 장을 만들어 띄우고 저장한다. 학생이 한 글자도 안 썼는데 채워져 나온다.
+   *
+   * ⚠️ **답을 받은 뒤에만 부른다.** 묻기 전에 임시로 저장해 두고 덮어쓰면 안 된다 —
+   * `savePhotoNote`가 읽고-전체-쓰기라 두 번 저장이 서로를 덮을 수 있다 (`note-store.ts:47`).
+   */
+  function finishNote(
+    index: number,
+    context: NoteContext,
+    retryResult: RetryResult,
+    weaknessIds: WeaknessId[],
+    primaryWeaknessId: WeaknessId | null,
+  ) {
+    const candidate = candidateAt(index);
+    const now = new Date();
 
     say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
     const createdAt = now.toISOString();
@@ -486,9 +551,9 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
       typeLabel: mistakeTypeLabel(context.mistakeType),
       methodId: context.methodId,
       mistakeType: context.mistakeType,
+      // 후보는 안 줄인다. 고른 건 primary뿐이고, 나머지도 "그 칸에 있던 것"으로 남긴다.
       weaknessIds,
-      // 하나로 좁혀졌을 때만 박는다. 여럿이면 학생한테 물어보기 전까지 비워 둔다 (08.11 🔒)
-      primaryWeaknessId: weaknessIds.length === 1 ? weaknessIds[0] : null,
+      primaryWeaknessId,
       checkPassed: context.checkPassed,
       retryResult,
     };
@@ -504,6 +569,7 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
 
     // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.
     // 여기 있던 "다음 조각은 망각곡선이고"는 학생이 읽을 말이 아니라 개발 일지라 뺐다 (09.02).
+    // ⚠️ endHere는 버튼을 통째로 갈아끼운다. 말풍선이 떠 있는 동안 부르면 선택지가 사라진다.
     endHere();
   }
 

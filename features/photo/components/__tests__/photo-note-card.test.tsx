@@ -60,4 +60,27 @@ describe('PhotoNoteCard — 약점 이름표 줄', () => {
     // '역·이·대우 혼동'이 · 를 품고 있어서, ' · '로 이으면 점 4개 중 뭐가 구분자인지 안 보인다
     expect(screen.getByText('🏷️ 역·이·대우 혼동 또는 전칭·존재 명제 혼동')).toBeTruthy();
   });
+
+  // ── 말풍선에서 고른 값이 있으면 그것만 뜬다 (2026.09.20) ──
+
+  it('학생이 고른 약점이 있으면 그것만 뜬다 — 골라놓고 "또는"이 남으면 물어본 의미가 없다', () => {
+    const note = {
+      ...noteWith(['radical_simplification_error', 'rationalization_error']),
+      primaryWeaknessId: 'rationalization_error' as PhotoNote['primaryWeaknessId'],
+    };
+    render(<PhotoNoteCard note={note} />);
+
+    expect(screen.getByText(/분모 유리화 실수/)).toBeTruthy();
+    expect(screen.queryByText(/또는/)).toBeNull();
+  });
+
+  it('안 골랐으면(「잘 모르겠어」) 후보를 "또는"으로 잇는다', () => {
+    const note = {
+      ...noteWith(['radical_simplification_error', 'rationalization_error']),
+      primaryWeaknessId: null,
+    };
+    render(<PhotoNoteCard note={note} />);
+
+    expect(screen.getByText(/또는/)).toBeTruthy();
+  });
 });

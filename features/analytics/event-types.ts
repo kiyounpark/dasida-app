@@ -19,6 +19,7 @@ export type EventName =
   | 'photo_submit'
   | 'photo_analyzed'
   | 'photo_weakness_labeled'
+  | 'photo_weakness_picked'
   | 'photo_dead_end';
 
 export type ExamSource =
@@ -115,6 +116,21 @@ export type EventParams = {
     mistake_type: string;
     weakness_count: number;
     labeled: boolean;
+  };
+  /**
+   * 후보가 둘 이상이라 학생한테 물었고, 학생이 답한 순간 (2026.09.20 신설).
+   *
+   * `photo_weakness_labeled`는 **질문 앞에서** 찍힌다 — 그래야 질문에서 나간 학생이 분모에 남는다.
+   * **질문 이탈 = labeled(weakness_count ≥ 2) − picked.**
+   *
+   * `picked`가 null이면 학생이 「잘 모르겠어」를 고른 것이다. 안 물어본 것(후보 1개)과 다르다 —
+   * 그 경우엔 이 이벤트 자체가 안 찍힌다.
+   */
+  photo_weakness_picked: {
+    method_id: string;
+    mistake_type: string;
+    candidate_count: number;
+    picked: string | null;
   };
   /**
    * 오답노트를 못 받고 끝난 순간. photo_weakness_labeled가 분자라면 이쪽이 **분모의 나머지**다.

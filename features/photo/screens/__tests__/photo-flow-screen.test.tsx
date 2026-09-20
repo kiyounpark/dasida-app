@@ -82,6 +82,35 @@ async function walkToNote() {
   await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
 }
 
+/**
+ * 후보가 여럿인 칸으로 몬다 — 말풍선이 뜨는 자리까지만.
+ * `radical × calc_slip`은 후보 3개다 (weakness-mistake-type-map.test.ts:49).
+ */
+async function walkToPick() {
+  fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+  await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+  fireEvent.press(screen.getByText('맞아, 시작하자'));
+  await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
+  fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
+  await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
+  fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+  await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
+  fireEvent.press(screen.getByText('9를 더하고 뺀다'));
+  await waitFor(() => expect(screen.getByText('25를 더하고 뺀다')).toBeTruthy());
+  fireEvent.press(screen.getByText('25를 더하고 뺀다'));
+  await waitFor(() => expect(screen.getByText('잘 모르겠어')).toBeTruthy());
+}
+
+/** 후보 3개가 나오는 분석 결과 — 무리수 풀이 + 계산 손실수 */
+function radicalResult() {
+  return makeResult({
+    predictedMethodId: 'radical',
+    candidateMethodIds: ['radical'],
+    errorCandidates: [makeCandidate({ mistakeType: 'calc_slip' })],
+    errorConfidence: 0.9,
+  });
+}
+
 function eventNamed(name: string) {
   return mockLog.mock.calls.find(([n]) => n === name);
 }
@@ -502,5 +531,108 @@ describe('사진 flow 계측', () => {
       labeled: false,
       weakness_count: 0,
     });
+  });
+
+  // ── 말풍선 — 후보가 여럿일 때 학생에게 묻는다 (2026.08.11 🔒 · 09.20 구현) ──
+
+  it('후보가 여럿이면 노트를 내기 전에 묻고, 답하기 전에는 저장하지 않는다', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToPick();
+
+    // 질문이 떴고 노트는 아직 없다
+    expect(screen.queryByText('오늘의 오답노트 · 1장')).toBeNull();
+    expect(mockSaveNote).not.toHaveBeenCalled();
+
+    // 후보 3개 + 「잘 모르겠어」 = 버튼 4개. 문구는 diagnosisTree의 선택지를 쓴다
+    expect(screen.getByText('√를 간소화하거나 묶는 단계가 헷갈렸어요.')).toBeTruthy();
+    expect(screen.getByText('분모 유리화 과정에서 실수했어요.')).toBeTruthy();
+    expect(screen.getByText('켤레식으로 유리화하는 계산에서 실수했어요.')).toBeTruthy();
+    expect(screen.getByText('잘 모르겠어')).toBeTruthy();
+  });
+
+  it('고른 약점이 primaryWeaknessId에 박히고 후보 목록은 그대로 남는다', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToPick();
+    fireEvent.press(screen.getByText('분모 유리화 과정에서 실수했어요.'));
+
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note.primaryWeaknessId).toBe('rationalization_error');
+    // 후보는 안 줄인다 — 고른 건 primary뿐이다
+    expect(note.weaknessIds).toHaveLength(3);
+  });
+
+  it('「잘 모르겠어」를 누르면 primaryWeaknessId는 null이고 노트는 그대로 나온다', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToPick();
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note.primaryWeaknessId).toBeNull();
+    expect(note.weaknessIds).toHaveLength(3);
+  });
+
+  it('고른 결과가 photo_weakness_picked에 남는다 — 이탈을 세려면 분모가 따로 있어야 한다', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToPick();
+
+    // 질문이 뜬 시점에 labeled는 이미 찍혀 있다 (분모)
+    expect(eventNamed('photo_weakness_labeled')![1]).toMatchObject({
+      weakness_count: 3,
+      labeled: true,
+    });
+    expect(eventNamed('photo_weakness_picked')).toBeUndefined();
+
+    fireEvent.press(screen.getByText('켤레식으로 유리화하는 계산에서 실수했어요.'));
+
+    await waitFor(() => expect(eventNamed('photo_weakness_picked')).toBeTruthy());
+    expect(eventNamed('photo_weakness_picked')![1]).toMatchObject({
+      method_id: 'radical',
+      mistake_type: 'calc_slip',
+      candidate_count: 3,
+      picked: 'g2_radical_rationalize',
+    });
+  });
+
+  it('후보가 하나면 묻지 않고 바로 박는다', async () => {
+    // cps × concept_gap 은 후보 1개(max_min_judgement_confusion)
+    mockAnalyze.mockResolvedValue(
+      makeResult({
+        errorCandidates: [makeCandidate({ mistakeType: 'concept_gap' })],
+        errorConfidence: 0.9,
+      }),
+    );
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToNote();
+
+    expect(screen.queryByText('잘 모르겠어')).toBeNull();
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note.weaknessIds).toHaveLength(1);
+    expect(note.primaryWeaknessId).toBe(note.weaknessIds[0]);
+  });
+
+  it('후보가 없으면 묻지도 박지도 않는다 — 빈 칸 130개가 여기로 온다', async () => {
+    // cps × procedure_miss 는 빈 칸
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    await walkToNote();
+
+    expect(screen.queryByText('잘 모르겠어')).toBeNull();
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note.weaknessIds).toHaveLength(0);
+    expect(note.primaryWeaknessId).toBeNull();
   });
 });

@@ -63,10 +63,13 @@ export function PhotoNoteCard({
       </View>
 
       {/* 못 찾았으면 줄 자체를 안 낸다 — 빈 이름표는 학생한테 값이 0이다 (기윤 판정 2026.08.13) */}
-      {note.weaknessIds.length > 0 && (
+      {/* 학생이 골랐으면 그것만 — 골라놓고 '또는'이 그대로 뜨면 물어본 의미가 없다 (2026.09.20) */}
+      {shownWeaknessIds(note).length > 0 && (
         <Text selectable style={styles.weakness}>
           {/* 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 실측으로 잡음 */}
-          {`🏷️ ${note.weaknessIds.map((id) => resolveWeaknessLabel(id)).join(' 또는 ')}`}
+          {`🏷️ ${shownWeaknessIds(note)
+            .map((id) => resolveWeaknessLabel(id))
+            .join(' 또는 ')}`}
         </Text>
       )}
 
@@ -76,6 +79,17 @@ export function PhotoNoteCard({
       )}
     </View>
   );
+}
+
+/**
+ * 카드에 그릴 이름표.
+ *
+ * `primaryWeaknessId`가 있으면 그것만 — 학생이 말풍선에서 고른 값이거나, 후보가 하나뿐이었던 것이다.
+ * 없으면 후보를 「또는」으로 잇는다 — 안 물어봤거나 「잘 모르겠어」를 고른 노트다.
+ * 옛 노트는 이 필드가 아예 없을 수 있다(`note-store.ts`의 `isPhotoNoteLike`가 안 본다) — 그때도 후보 쪽.
+ */
+function shownWeaknessIds(note: PhotoNote) {
+  return note.primaryWeaknessId ? [note.primaryWeaknessId] : note.weaknessIds;
 }
 
 function NoteRow({ label, text }: { label: string; text: string }) {

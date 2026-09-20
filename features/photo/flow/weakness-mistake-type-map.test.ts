@@ -2,7 +2,11 @@ import { weaknessOrder, type WeaknessId } from '@/data/diagnosisMap';
 import { diagnosisTree, type SolveMethodId } from '@/data/diagnosisTree';
 
 import { MISTAKE_TYPE_IDS } from '../types';
-import { weaknessCandidatesFor, weaknessMistakeType } from './weakness-mistake-type-map';
+import {
+  weaknessCandidatesFor,
+  weaknessChoiceText,
+  weaknessMistakeType,
+} from './weakness-mistake-type-map';
 
 describe('통역표 (약점 60 → 실수 유형 6)', () => {
   it('약점 60개가 하나도 안 빠지고, 표에만 있는 유령 키도 없다', () => {
@@ -142,4 +146,25 @@ describe('weaknessCandidatesFor', () => {
     expect(multiple).toBe(5);
     expect(widest['radical+calc_slip']).toHaveLength(3);
   });
+
+describe('weaknessChoiceText — 말풍선 버튼 문구', () => {
+  it('그 약점이 달린 선택지 문장을 돌려준다', () => {
+    // labelKo는 「분모 유리화 실수」인데, 버튼엔 동작이 드러나는 문장이 떠야 한다
+    expect(weaknessChoiceText('radical', 'rationalization_error')).toBe(
+      '분모 유리화 과정에서 실수했어요.',
+    );
+  });
+
+  it('복수 후보 칸의 후보들이 서로 다른 문장을 받는다 — 같으면 학생이 못 고른다', () => {
+    const ids = weaknessCandidatesFor('radical', 'calc_slip');
+    const texts = ids.map((id) => weaknessChoiceText('radical', id));
+
+    expect(texts.every((t) => typeof t === 'string')).toBe(true);
+    expect(new Set(texts).size).toBe(ids.length);
+  });
+
+  it('그 풀이법에 안 달린 약점이면 undefined', () => {
+    expect(weaknessChoiceText('radical', 'g3_sequence')).toBeUndefined();
+  });
+});
 });

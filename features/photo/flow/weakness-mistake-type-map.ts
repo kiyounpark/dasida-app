@@ -116,6 +116,22 @@ const VAGUE_WEAKNESSES: readonly WeaknessId[] = ['calc_repeated_error', 'basic_c
  * 그래서 여기서는 고르지 않고 남은 후보를 그대로 돌려준다.
  * 물어보는 말풍선은 저장 경로를 붙일 때 만든다 — 지금은 부를 사람이 없다.
  */
+/**
+ * 말풍선 버튼에 쓸 문구 — 그 약점이 달린 선택지 문장을 그대로 가져온다.
+ *
+ * `labelKo`를 쓰면 안 된다. 무리수×계산 칸에 「분모 유리화 실수」와 「유리화 계산 오류」가
+ * 같이 뜨는데 학생이 둘을 못 가른다. 선택지 문장은 **어떤 동작에서 틀렸는지**로 갈려 있다.
+ *
+ * ⚠️ 이 문장들은 해요체다. 사진 흐름은 반말이지만 여기선 안 고친다 —
+ * 같은 문장을 기출 진단(`detailedDiagnosisFlows.ts`)이 아직 읽는다. 말투는 H칸(젓가락급)이다.
+ */
+export function weaknessChoiceText(
+  methodId: SolveMethodId,
+  weaknessId: WeaknessId,
+): string | undefined {
+  return diagnosisTree[methodId]?.choices.find((c) => c.weaknessId === weaknessId)?.text;
+}
+
 export function weaknessCandidatesFor(
   methodId: SolveMethodId,
   mistakeType: MistakeTypeId,
