@@ -9,6 +9,8 @@
 2. 기본 역할
 - Claude는 기본 구현 도구이며, Expo 스킬 기반으로 구현과 검증을 수행합니다. `Codex`는 필요시 보조 도구로 활용할 수 있습니다.
 - Expo 관련 리뷰 시 `.claude/skills/*` 링크 경로를 먼저 확인하고, 실제 스킬 소스는 `.agents/skills/*`를 기준으로 봅니다.
+- **중요한 결정은 Claude 혼자 내지 않는다.** astra와 Fable 둘에 걸고, 갈리면 Fable이 최종으로
+  정한다. 기윤에게 올리는 갈림길은 셋뿐이다. 부르는 법·토큰·역할 분담은 `docs/how-we-decide.md`.
 - 코드 구조/리팩터링/커스텀 훅 분리 작업은 `.claude/skills/dasida-code-structure/SKILL.md`와 `docs/ARCHITECTURE.md`를 먼저 확인합니다.
 - 이 저장소에는 `.claude/settings.json` 기반 Claude 훅이 포함되어 있으며, `UserPromptSubmit`가 관련 Expo 스킬을 자동 제안하고 `PreToolUse`가 첫 `Edit|Write|Bash` 전에 스킬 확인을 한 번 유도합니다.
 - 작은 문서 수정, 단순 텍스트 수정, 영향 범위가 좁은 단순 수정에는 Claude 검증을 생략할 수 있습니다.
