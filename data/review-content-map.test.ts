@@ -140,3 +140,29 @@ describe('formula_understanding has weaknessId labels (spec §6, migration)', ()
     expect(unlabeled).toEqual([]);
   });
 });
+
+/**
+ * 이 파일의 다른 검사들은 전부 `steps.length === 0`이면 `continue`로 넘어간다.
+ * 그래서 복습 단계가 통째로 없는 약점은 어느 검사에도 안 걸린다 —
+ * 2026.09.19에 `g3_seq_sum_term`이 실제로 그렇게 들어갔다.
+ *
+ * 단계가 0개면 복습 화면이 `step`을 영영 못 잡는다. 지금은 안내 화면으로 빠지지만
+ * (`review-session-screen-view.tsx`의 `totalSteps === 0` 가드) 그건 사고를 덜 아프게
+ * 만든 것이지 없앤 게 아니다. 학생은 그 약점 복습을 못 한다.
+ */
+describe('복습 단계가 없는 약점', () => {
+  // 아직 복습 콘텐츠를 안 만든 약점. **채우면 여기서 지운다.**
+  // 새 약점을 여기 추가하는 것으로 검사를 통과시키지 마라 — 콘텐츠를 만들어라.
+  const 아직_안_만든_것: readonly WeaknessId[] = ['g3_seq_sum_term'];
+
+  it('알려진 것 말고는 모든 약점에 thinkingSteps가 있다', () => {
+    const 빈_것 = weaknessOrder.filter((id) => getReviewThinkingSteps(id).length === 0);
+    expect(빈_것).toEqual([...아직_안_만든_것]);
+  });
+
+  it('목록에 적어 둔 약점은 실제로 존재한다', () => {
+    for (const id of 아직_안_만든_것) {
+      expect(weaknessOrder).toContain(id);
+    }
+  });
+});

@@ -23,6 +23,7 @@ import { BridgeView } from './review-session/bridge-view';
 import { DoneView } from './review-session/done-view';
 import { EntryRenderer } from './review-session/entry-renderer';
 import { LoadingView } from './review-session/loading-view';
+import { NoStepsView } from './review-session/no-steps-view';
 import { Paper } from './review-session/paper-tokens';
 import { ProgressDots } from './review-session/progress-dots';
 import type { ReviewEntry } from './review-session/review-entries';
@@ -171,6 +172,21 @@ export function ReviewSessionScreenView({
           weaknessLabel={weaknessLabel}
           paddingBottom={insets.bottom + 24}
           onComplete={onGraduationContinue}
+        />
+      </View>
+    );
+  }
+
+  // 이 약점에 복습 단계가 아예 없으면 step이 영영 안 생긴다 — 아래 스피너가 안 끝난다.
+  // (review-content-map에 thinkingSteps가 없으면 getReviewThinkingSteps가 []를 준다.)
+  if (totalSteps === 0) {
+    return (
+      <View style={styles.screen}>
+        {appBar}
+        <NoStepsView
+          weaknessLabel={weaknessLabel}
+          paddingBottom={insets.bottom + 24}
+          onHome={onHome}
         />
       </View>
     );
