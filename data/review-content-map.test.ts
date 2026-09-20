@@ -153,7 +153,7 @@ describe('formula_understanding has weaknessId labels (spec §6, migration)', ()
 describe('복습 단계가 없는 약점', () => {
   // 아직 복습 콘텐츠를 안 만든 약점. **채우면 여기서 지운다.**
   // 새 약점을 여기 추가하는 것으로 검사를 통과시키지 마라 — 콘텐츠를 만들어라.
-  const 아직_안_만든_것: readonly WeaknessId[] = ['g3_seq_sum_term'];
+  const 아직_안_만든_것: readonly WeaknessId[] = [];
 
   it('알려진 것 말고는 모든 약점에 thinkingSteps가 있다', () => {
     const 빈_것 = weaknessOrder.filter((id) => getReviewThinkingSteps(id).length === 0);

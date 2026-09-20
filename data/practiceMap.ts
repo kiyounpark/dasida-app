@@ -440,7 +440,7 @@ export const practiceMap: Record<WeaknessId, PracticeProblem> = {
       '수열 {a_n}의 첫째항부터 제n항까지의 합을 S_n이라 할 때 S_n = n^2 + 4n + 5 이다. a_1 + a_5 의 값은?',
     choices: ['13', '18', '20', '22', '23'],
     answerIndex: 4,
-    hint: 'a_n = S_n - S_{n-1} 은 n이 2 이상일 때만 쓸 수 있어요. 구한 식에 n=1을 넣은 값과 S_1의 값을 나란히 적어 두 값을 맞춰 보세요.',
+    hint: 'a_n = S_n - S_{n-1} 로 구한 식은 n이 2 이상일 때 나온 식이에요. 그 식에 n=1을 넣을 수 있으면 S_1과 맞춰 보세요.',
     explanation:
       'a_n = S_n - S_{n-1} = 2n+3 인데 이 식은 n≥2에서만 쓸 수 있습니다. n=1을 넣으면 5가 나오지만 첫째항은 S_1 = 10 입니다. a_5 = 2·5+3 = 13 이므로 10 + 13 = 23 입니다.',
   },

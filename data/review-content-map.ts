@@ -1900,6 +1900,44 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       },
     ],
   },
+  g3_seq_sum_term: {
+    heroPrompt: 'Sₙ에서 aₙ을 꺼낸 뒤 n=1만 따로 확인하는 흐름이 떠오르나요?',
+    thinkingSteps: [
+      {
+        id: 'g3_seq_sum_term.step1',
+        title: '정리한 식이 서는 범위',
+        body: '문제가 준 Sₙ 식은 n이 1 이상인 합만 나타낸다. aₙ=Sₙ−Sₙ₋₁을 식으로 정리할 때는 Sₙ₋₁ 자리에도 그 식을 넣어야 하는데, 그러려면 n−1이 1 이상이어야 한다. 그래서 정리해서 나온 식은 n≥2에서 쓴다. 교과서가 aₙ=Sₙ−Sₙ₋₁ (n≥2)와 a₁=S₁을 두 줄로 나눠 적는 이유다.',
+        example: '예) Sₙ=2n²+n+6 → aₙ=Sₙ−Sₙ₋₁=4n−1 (n≥2)',
+        choices: [
+          { text: 'Sₙ₋₁ 자리에도 그 식을 넣으니 n≥2에서 쓴다', correct: true, feedback: '맞아요! Sₙ₋₁ 자리에 넣을 식이 있으려면 n−1이 1 이상이어야 해요.' },
+          { text: '정리해서 나온 식이니 모든 자연수 n에서 쓴다', correct: false, feedback: '4n−1에 n=1을 넣으면 3인데 S₁은 9예요. 정리할 때 Sₙ₋₁ 자리에 넣은 식이 n=1을 맡지 않아서 그래요.', remedialFlowStartNodeId: 'g3sst_step1_A_explain', weaknessId: 'g3_seq_sum_term' },
+          { text: 'Sₙ 식에 n=0을 넣은 값을 S₀으로 쓰면 n=1에도 쓴다', correct: false, feedback: '2n²+n+6에 n=0을 넣으면 6이 나오는데, 그건 합이 아니라 식에 0을 넣은 값이에요. 그 6을 빼면 첫째항이 9 대신 3이 돼요.', remedialFlowStartNodeId: 'g3sst_step1_C_explain', weaknessId: 'g3_seq_sum_term' },
+        ],
+      },
+      {
+        id: 'g3_seq_sum_term.step2',
+        title: '첫째항은 S₁ 그대로',
+        body: 'S₁은 첫째항 하나만 더한 합이라 a₁과 같은 값이다. 그래서 a₁은 n≥2 식과 상관없이 Sₙ 식에 n=1을 넣어 바로 나온다.',
+        example: '예) Sₙ=2n²+n+6 → a₁=S₁=2+1+6=9',
+        choices: [
+          { text: 'a₁=S₁이다', correct: true, feedback: '맞아요! 첫째항까지의 합은 첫째항 자신이에요.' },
+          { text: 'a₁은 n≥2 식에 n=1을 넣어 구한다', correct: false, feedback: '4n−1에 n=1을 넣으면 3인데 S₁은 9예요. n≥2 식은 첫째항 자리를 맡지 않아요.', remedialFlowStartNodeId: 'g3sst_step2_A_explain', weaknessId: 'g3_seq_sum_term' },
+          { text: 'a₁은 S₂−S₁로 구한다', correct: false, feedback: 'S₂−S₁은 (a₁+a₂)−a₁이라 둘째항 a₂가 남아요. 번호가 한 칸 밀렸어요.', remedialFlowStartNodeId: 'g3sst_step2_C_explain', weaknessId: 'g3_seq_sum_term' },
+        ],
+      },
+      {
+        id: 'g3_seq_sum_term.step3',
+        title: '두 값을 나란히 적어 맞대기',
+        body: 'n≥2 식에 n=1을 넣을 수 있으면 그 값과 S₁을 나란히 적는다. 넣을 수 없거나 값이 다르면 a₁은 S₁로 적고 n≥2는 그 식을 그대로 쓴다. 같으면 그 식 하나가 n=1까지 덮는다. 이 대조는 첫째항 자리 하나만 정한다. n≥2 식 자체가 맞게 나왔는지는 이 대조로 알 수 없다.',
+        example: '예) 4n−1에 n=1 → 3, S₁=9 → 다르다 → a₁=9, aₙ=4n−1 (n≥2)',
+        choices: [
+          { text: '다르면 a₁=S₁로 적고, n≥2는 그 식을 그대로 쓴다', correct: true, feedback: '맞아요! 두 줄로 나눠 적으면 첫째항도 뒤쪽 항도 다 맞아요.' },
+          { text: '두 값이 달라도 aₙ 식 하나만 답으로 적는다', correct: false, feedback: '그러면 첫째항 자리에 9 대신 3이 들어가요. a₁이 답에 들어가는 문제에서 그만큼 어긋나요.', remedialFlowStartNodeId: 'g3sst_step3_A_explain', weaknessId: 'g3_seq_sum_term' },
+          { text: '두 값의 차이만큼 n≥2 식을 고쳐 한 식으로 합친다', correct: false, feedback: '4n−1을 4n+5로 올리면 n=1은 맞지만 n=2부터 전부 6씩 커져요. n≥2 식은 이미 맞는 식이에요.', remedialFlowStartNodeId: 'g3sst_step3_C_explain', weaknessId: 'g3_seq_sum_term' },
+        ],
+      },
+    ],
+  },
   g3_log_exp: {
     heroPrompt: '지수법칙부터 로그 성질, 밑 변환까지 차례로 정리해볼까요?',
     thinkingSteps: [
