@@ -47,7 +47,7 @@ Agent 툴, `subagent_type: weakness-author`, `model: opus`.
 
 역할·금지·답 형식은 **안 적는다.** 정의가 준다.
 
-### 2. 0단계 세트 검사
+### 2. 0단계 세트 검사 — C와 D만
 
 ```bash
 tsx scripts/weakness-stage0.ts --set <세트.json>
@@ -55,7 +55,10 @@ tsx scripts/weakness-stage0.ts --set <세트.json>
 
 세트 json: `weaknessId` · `methodId` · `labelKo` · `desc` · `tip` · `choiceText`
 
-C(문장 중복) · D(린트) · E(착지 완결성 11곳)를 본다. 빠진 곳이 있으면 종료코드 1.
+**이 단계에서 보는 건 C(문장 중복)와 D(린트)뿐이다.**
+
+⚠️ **E(착지 완결성)는 여기서 보는 게 아니다.** 아직 코드에 안 넣었으니 11곳이 전부 ❌로 나온다.
+E는 **6단계(코드에 넣은 뒤)**에서 본다. 2026.09.20에 이 자리에서 한 번 헛돌렸다.
 
 ### 3. 검산 — sol
 
