@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.20 20:00
+- 해시: `d846d45` (`d846d456f4f47a344f7133483c837c4ca4bc2d07`)
+- 브랜치: weakness-label
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d846d456f4f47a344f7133483c837c4ca4bc2d07
+- 작성자: 박기윤
+- 메시지: feat: 말풍선 — 약점 후보가 여럿이면 학생한테 묻는다
+- 본문: 2026.08.11 🔒 결정인데 "부를 사람이 없어서" 미뤄뒀던 것이다. 09.20에 부를 사람이 생겼다 — / 수열 × calc_slip 칸에 약점 둘을 넣으려다 하나가 깨졌고, 남은 하나를 혼자 넣으면 / 후보가 1개라 primaryWeaknessId에 박혀서 다른 실수를 한 학생도 그 이름표를 받게 된다. / "어디서 실수한 것 같아? 잘 모르겠으면 넘어가도 돼." / [ √를 간소화하거나 묶는 단계가 헷갈렸어요. ] / [ 분모 유리화 과정에서 실수했어요. ] / [ 켤레식으로 유리화하는 계산에서 실수했어요. ] / [ 잘 모르겠어 ] / 186칸 중 5칸에서만 뜬다. 08.11에 "귀찮음 축도 거의 안 건드린다"고 적은 그 숫자다. / ## 설계는 astra·Fable 둘에 걸고 Fable이 최종으로 정했다 / - **showWrongNote를 둘로 쪼갰다** — 후보 계산·로그·분기까지만 남기고, / 노트 생성·표시·저장·종료를 finishNote로 뺐다. 동기 그대로 가능하다 — / 쪽지시험·재도전 버튼도 같은 모양이다 / - **로그는 질문 앞에 그대로 둔다** (astra는 뒤로 옮기자고 했는데 Fable이 뒤집음). / photo_weakness_labeled가 질문 앞에서 찍혀야 **말풍선에서 나간 학생이 분모에 남는다.** / 대신 답한 순간에 photo_weakness_picked를 새로 찍는다. / 질문 이탈 = labeled(count≥2) − picked / - **답 받기 전엔 저장하지 않는다.** savePhotoNote가 읽고-전체-쓰기라 / 임시 저장 후 덮어쓰면 두 쓰기가 서로를 덮을 수 있다 (note-store.ts:47) / - **endHere는 finishNote 끝에서만.** 그건 종료가 아니라 버튼 교체다 — / 질문 직후 부르면 선택지가 "처음부터 다시"로 덮인다 / - **버튼 문구는 diagnosisTree의 선택지 문장**(weaknessChoiceText 신설). / labelKo를 쓰면 안 된다 — 무리수×계산 칸에 "분모 유리화 실수"와 "유리화 계산 오류"가 / 같이 떠서 학생이 못 가른다. 선택지 문장은 어떤 동작에서 틀렸는지로 갈려 있다. / ⚠️ 이 문장들은 해요체인데 안 고쳤다 — 기출 진단이 같은 문장을 읽는다. 말투는 H칸 / - **후보는 안 줄인다.** 고른 건 primaryWeaknessId뿐이고 weaknessIds는 그대로 남는다 / - **카드도 같이 고쳤다** — 지금은 primaryWeaknessId를 무시하고 후보 전부를 "또는"으로 / 그린다. 골라놓고 "또는"이 남으면 물어본 의미가 없다. / 쌓인 노트엔 영향 0 — 옛 규칙이 1개일 때만 primary를 박아서 표시가 같고, / primaryWeaknessId가 아예 없는 노트도 후보 표시로 떨어진다 / ## 안 건드린 것 / use-photo-thread.ts의 연타 잠금. press가 setActions([]) 뒤 콜백을 무조건 실행해서 / 동기 잠금이 없는데, 이건 이번 작업이 만든 위험이 아니다 — 재도전 버튼 4개가 이미 / 같은 모양으로 저장까지 간다. 별도 커밋으로 뺀다 (Fable 판정). / ## 검증 / tsc 통과 · 테스트 633개 통과 (622 → 633, 새로 11개). / 새 테스트: 답 전 저장 0회 · 버튼 4개 · 고른 값이 primary · 「잘 모르겠어」는 null · / picked 이벤트 · 후보 1개는 안 물음 · 후보 0개는 묻지도 박지도 않음 · / 헬퍼 3 · 카드 2. 기존 622개는 하나도 안 깨졌다. / 다음: 수열 곱셈/부호 데이터를 세 군데(diagnosisMap·weaknessMistakeType·diagnosisTree)에 / 넣는 건 별도 커밋이다. / Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.20 14:34
 - 해시: `c4ace51` (`c4ace518ce1baca8015a5afc08af5c74ca1b95b3`)
 - 브랜치: weakness-label
