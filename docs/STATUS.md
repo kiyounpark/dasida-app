@@ -24,6 +24,7 @@
 **1. 🚧 E칸 — 코드·서버 끝남(09.23 `9c4181a`, functions 배포함). 남은 것 셋, 이 순서로:**
 1. **09.24 아침 — 실제 계정으로 홈 "오늘 복습할 것" 확인 + 스크린샷** (기윤 A안). 기윤 구글 계정에 사진 과제가 09.24 day1로 잡혀 있다
    (`photo-2026-09-23T…__discriminant_calculation__day1`). 서버 아침 알림(`sendReviewRemindersMorning`)이 오는지도 같이 본다.
+   **이어서 그 과제를 눌러 복습 3단계(`discriminant_calculation`)를 끝까지 풀고, 홈에 "다음 복습 D-2"(day3, source `'photo'` 그대로)가 뜨는지까지** — 사진→노트→과제→복습→다음 복습 한 바퀴. 09.23엔 코드·테스트로만 확인했다(과제를 미리 풀면 09.24 확인할 게 사라져서 안 눌렀다)
    ⚠️ **맥 시계 옮기기는 로그인 계정 홈엔 안 먹힌다** — 홈 due 목록은 서버가 **서버 시계**로 계산한다(`learning-history.ts:531`, 앱은 받은 값 그대로 `firebase-learning-history-repository.ts:228`). D칸 때 시계가 통한 건 앱 안 코드(`applyOverduePenalties`)를 볼 때였다
 2. **1.0.9 빌드·제출** — E는 앱 코드라 스토어에 떠야 학생에게 닿는다. functions는 이미 올라가 있어 순서 문제 없음
 3. **1.0.9가 뜨면 웹 약속 두 줄 되돌려 배포** (`web-proto/app.js` ⏪ 주석) — 그래야 E ✅
