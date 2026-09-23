@@ -7,7 +7,13 @@ import {
   buildMethodContextText,
   buildPhotoRouterResult,
 } from './analyze-photo-core';
-import { requestPhotoAnalysisFromOpenAI } from './openai-client';
+import { requestPhotoAnalysisFromOpenAI, type PhotoAnalysisUsage } from './openai-client';
+import {
+  readRunRequestContext,
+  resolveRunAuth,
+  writePhotoAnalysisRun,
+  type RunResultSummary,
+} from './photo-analysis-run-log';
 
 const openAiApiKey = defineSecret('OPENAI_API_KEY');
 // 손글씨 시험지 실측(같은 사진 3회씩): 생각 끈 모델은 인수분해 오류를 못 잡는다.
@@ -69,34 +75,68 @@ export const analyzePhoto = onRequest(
       return;
     }
 
+    // 사용량 원장(photoAnalysisRuns) — 누가·몇 토큰·성공했나. 설계: docs/superpowers/specs/2026-09-23-photo-usage-log-design.md
+    // 앱(1.0.9~)은 계정 헤더를, 웹은 참여 코드를 body로 싣는다. 둘은 필드가 따로다(accountKey / participantId).
+    const receivedAt = new Date();
+    const imageDataUrl = parsedRequest.data.imageDataUrl;
+    const modelRequested = openAiVisionModel.value();
+    const reasoningEffort = openAiVisionReasoningEffort.value();
+    const runBase = {
+      context: readRunRequestContext(request.body),
+      auth: await resolveRunAuth(request.headers as Record<string, string | string[] | undefined>),
+      receivedAt,
+      imageDataUrl,
+      modelRequested,
+      reasoningEffort: reasoningEffort || null,
+    };
+    let openAi: { model: string; responseId: string; usage: PhotoAnalysisUsage | null } | null = null;
+    const startedAt = Date.now();
+
     try {
       const openAiResponse = await requestPhotoAnalysisFromOpenAI({
         apiKey: openAiApiKey.value(),
-        model: openAiVisionModel.value(),
-        reasoningEffort: openAiVisionReasoningEffort.value(),
-        imageDataUrl: parsedRequest.data.imageDataUrl,
+        model: modelRequested,
+        reasoningEffort,
+        imageDataUrl,
         methodContextText: METHOD_CONTEXT_TEXT,
       });
+      openAi = {
+        model: openAiResponse.model,
+        responseId: openAiResponse.responseId,
+        usage: openAiResponse.usage,
+      };
 
       const raw = VisionRawResultSchema.parse(openAiResponse.result);
       const result = buildPhotoRouterResult(raw);
-
-      // Firestore 런 로그(diagnoseMethod의 logDiagnosisMethodRun 상당)는 프로토타입 단계라 의도적으로 생략.
-      // 정확도 데이터가 필요해지면(검증 B 이후) 추가한다.
-      logger.info('analyzePhoto done', {
+      const durationMs = Date.now() - startedAt;
+      const summary: RunResultSummary = {
         predictedMethodId: result.predictedMethodId,
         confidence: result.confidence,
         hasSolvingWork: result.hasSolvingWork,
         needsManualSelection: result.needsManualSelection,
         errorCandidateCount: result.errorCandidates.length,
         errorConfidence: result.errorConfidence,
+      };
+
+      // 응답 전에 await — v2는 응답 뒤 작업이 잘릴 수 있다. writePhotoAnalysisRun은 안 던져서 응답을 막지 않는다
+      await writePhotoAnalysisRun({ ...runBase, durationMs, openAi, outcome: { ok: true, result: summary } });
+      logger.info('analyzePhoto done', {
+        ...summary,
         model: openAiResponse.model,
         responseId: openAiResponse.responseId,
+        usage: openAiResponse.usage,
+        durationMs,
+        channel: runBase.context.channel,
+        accountKey: runBase.auth.accountKey,
+        authVerified: runBase.auth.authVerified,
+        participantId: runBase.context.participantId,
+        qa: runBase.context.qa,
       });
 
       response.status(200).json(result);
     } catch (error) {
       logger.error('analyzePhoto failed', error);
+      await writePhotoAnalysisRun({ ...runBase, durationMs: Date.now() - startedAt, openAi, outcome: { ok: false, error } });
       response.status(500).json({ error: 'Failed to analyze photo' });
     }
   }

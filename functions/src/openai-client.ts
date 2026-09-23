@@ -498,6 +498,80 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '⭕ 조각을 물으면 보기도 조각: "÷2", "×n"',
 ].join('\n');
 
+export type PhotoAnalysisUsage = {
+  input: number;
+  cached: number;
+  output: number;
+  reasoning: number;
+  total: number;
+};
+
+type RawResponseUsage = {
+  input_tokens: number;
+  input_tokens_details?: { cached_tokens?: number } | null;
+  output_tokens: number;
+  output_tokens_details?: { reasoning_tokens?: number } | null;
+  total_tokens: number;
+};
+
+// 출력이 비었거나 JSON이 깨져도 토큰은 이미 청구됐다 → usage를 에러에 실어 사용량 로그가 비용을 놓치지 않게 한다.
+// 메시지에 출력 미리보기를 넣지 않는다 — 학생 글씨(transcription)가 로그로 새면 안 된다.
+export class PhotoAnalysisOutputError extends Error {
+  constructor(
+    public readonly kind: 'empty_output' | 'parse_failed',
+    public readonly responseId: string,
+    public readonly model: string,
+    public readonly usage: PhotoAnalysisUsage | null,
+  ) {
+    super(kind === 'empty_output' ? 'OpenAI photo analysis did not include output_text' : 'OpenAI photo analysis output was not valid JSON');
+    this.name = 'PhotoAnalysisOutputError';
+  }
+}
+
+function readPhotoAnalysisUsage(usage: RawResponseUsage | null | undefined): PhotoAnalysisUsage | null {
+  if (!usage) {
+    return null;
+  }
+
+  return {
+    input: usage.input_tokens,
+    cached: usage.input_tokens_details?.cached_tokens ?? 0,
+    output: usage.output_tokens,
+    reasoning: usage.output_tokens_details?.reasoning_tokens ?? 0,
+    total: usage.total_tokens,
+  };
+}
+
+// usage를 파싱보다 먼저 읽는다 — 순서가 반대면 파싱 실패 때 usage가 같이 사라진다.
+export function parsePhotoAnalysisResponse(response: {
+  id: string;
+  model: string;
+  output_text?: string;
+  usage?: RawResponseUsage | null;
+}): { result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null } {
+  const usage = readPhotoAnalysisUsage(response.usage);
+
+  const outputText = response.output_text?.trim();
+  if (!outputText) {
+    throw new PhotoAnalysisOutputError('empty_output', response.id, response.model, usage);
+  }
+
+  let result: unknown;
+  try {
+    result = JSON.parse(outputText);
+  } catch {
+    throw new PhotoAnalysisOutputError('parse_failed', response.id, response.model, usage);
+  }
+
+  return {
+    result,
+    responseId: response.id,
+    // 요청값이 아니라 응답이 준 실제 스냅샷 — 요청값은 부르는 쪽이 이미 안다
+    model: response.model,
+    usage,
+  };
+}
+
 export async function requestPhotoAnalysisFromOpenAI({
   apiKey,
   model,
@@ -510,7 +584,7 @@ export async function requestPhotoAnalysisFromOpenAI({
   reasoningEffort?: string;
   imageDataUrl: string;
   methodContextText: string;
-}): Promise<{ result: unknown; responseId: string; model: string }> {
+}): Promise<{ result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null }> {
   // SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 45초로 제한
   const client = new OpenAI({ apiKey, timeout: 45_000, maxRetries: 1 });
 
@@ -539,14 +613,5 @@ export async function requestPhotoAnalysisFromOpenAI({
     },
   });
 
-  const outputText = response.output_text?.trim();
-  if (!outputText) {
-    throw new Error('OpenAI photo analysis did not include output_text');
-  }
-
-  return {
-    result: JSON.parse(outputText),
-    responseId: response.id,
-    model,
-  };
+  return parsePhotoAnalysisResponse(response);
 }

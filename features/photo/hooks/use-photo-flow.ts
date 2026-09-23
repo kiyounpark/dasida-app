@@ -66,7 +66,13 @@ export type PhotoFlow = {
 export function usePhotoFlow({
   accountKey,
   reviewTaskStore,
-}: { accountKey?: string | null; reviewTaskStore?: ReviewTaskStore | null } = {}): PhotoFlow {
+  getRemoteAuthHeaders,
+}: {
+  accountKey?: string | null;
+  reviewTaskStore?: ReviewTaskStore | null;
+  /** 사진 분석 요청에 싣는 계정 헤더(사용량 원장). 안 던진다 — remote-auth-headers.ts */
+  getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
+} = {}): PhotoFlow {
   const thread = usePhotoThread();
   const [status, setStatus] = useState<PhotoFlowStatus>('upload');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -101,7 +107,9 @@ export function usePhotoFlow({
       setStatus('analyzing');
 
       const imageDataUrl = await downscaleToDataUrl(photo);
-      const result = await requestAnalyze(imageDataUrl);
+      const headers = accountKey && getRemoteAuthHeaders ? await getRemoteAuthHeaders(accountKey) : {};
+      // qa: 개발 빌드 사진은 서버 원장에서 빼고 센다. 스토어 빌드로 기윤이 돌린 건 집계 때 계정으로 뺀다
+      const result = await requestAnalyze(imageDataUrl, { headers, qa: __DEV__ });
       resultRef.current = result;
 
       logEvent('photo_analyzed', {

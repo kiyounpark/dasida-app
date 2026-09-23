@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -98,16 +99,28 @@ export async function downscaleToDataUrl(photo: PickedPhoto): Promise<string> {
 /**
  * analyzePhoto 호출.
  * AbortSignal.timeout은 브라우저에만 있다 (web-proto는 쓰지만 RN에는 없다) → 직접 만든다.
+ *
+ * 계정 헤더·출처(app)·앱 버전·qa는 서버 사용량 원장(photoAnalysisRuns)에 적힌다 — 1.0.9부터.
+ * 설계: docs/superpowers/specs/2026-09-23-photo-usage-log-design.md
  */
-export async function requestAnalyze(imageDataUrl: string): Promise<AnalyzePhotoResult> {
+export async function requestAnalyze(
+  imageDataUrl: string,
+  options: { headers?: Record<string, string>; qa?: boolean } = {},
+): Promise<AnalyzePhotoResult> {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(ANALYZE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageDataUrl }),
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      body: JSON.stringify({
+        imageDataUrl,
+        channel: 'app',
+        // app.config.js의 version — 프로필 화면이 보여주는 값과 같다
+        appVersion: Constants.expoConfig?.version,
+        qa: options.qa ?? false,
+      }),
       signal: abortController.signal,
     });
   } finally {

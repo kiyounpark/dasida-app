@@ -46,6 +46,7 @@ import { LocalLearningHistorySnapshotStore } from '@/features/learning/local-lea
 import { StaticPeerPresenceStore } from '@/features/learning/peer-presence-store';
 import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult } from '@/features/learning/types';
 import { createRegisterPushToken } from '@/features/learning/register-push-token-api';
+import { createGetRemoteAuthHeaders } from '@/features/learning/remote-auth-headers';
 import { LEARNER_BOOTSTRAP_TIMEOUT_MS } from '@/features/auth/bootstrap-timeouts';
 import { deleteAccountUrl, registerPushTokenUrl } from '@/constants/env';
 import { setAnalyticsUserId } from '@/features/analytics/log-event';
@@ -53,6 +54,7 @@ import { setAnalyticsUserId } from '@/features/analytics/log-event';
 const peerPresenceStore = new StaticPeerPresenceStore();
 const authClient = createAuthClient();
 const registerPushToken = createRegisterPushToken({ authClient, registerPushTokenUrl });
+const getRemoteAuthHeaders = createGetRemoteAuthHeaders(authClient);
 const localLearningHistoryRepository = new LocalLearningHistoryRepository();
 const localReviewTaskStore = new LocalReviewTaskStore();
 // 스케줄러 경로(복습 세션/허브)용 라우티드 store — authed→remote, guest→local.
@@ -130,6 +132,8 @@ export type CurrentLearnerContextValue = {
   recordAttempt(input: FinalizedAttemptInput): Promise<void>;
   reviewTaskStore: ReviewTaskStore;
   registerPushToken: (accountKey: string, token: string, platform: 'ios' | 'android') => Promise<void>;
+  /** 사진 분석 요청에 싣는 계정 헤더 (서버 사용량 원장). 실패해도 던지지 않는다 */
+  getRemoteAuthHeaders: (accountKey: string) => Promise<Record<string, string>>;
   saveFeaturedExamState(state: FeaturedExamState): Promise<void>;
   seedPreview(state: PreviewSeedState): Promise<void>;
   pullReviewDueDates(): Promise<void>;
@@ -346,6 +350,7 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
       },
       reviewTaskStore: routedReviewTaskStore,
       registerPushToken,
+      getRemoteAuthHeaders,
       saveFeaturedExamState: async (featuredExamState) => {
         const snapshot = await learnerController.saveFeaturedExamState(featuredExamState);
         setState(toLearnerState(snapshot));

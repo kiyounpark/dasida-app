@@ -18,12 +18,22 @@ import { PhotoTheme } from '../theme';
  * 화면 셋(업로드 · 분석 중 · 대화)을 조합하기만 한다. 흐름은 use-photo-flow가 들고 있다.
  * accountKey는 주소 쪽(app/photo.tsx)에서 내려온다 — 없으면 노트를 안 남기고 흐름만 돈다.
  * reviewTaskStore도 같은 자리에서 내려온다 — 없으면 노트는 남되 복습 과제는 안 생긴다(E칸).
+ * getRemoteAuthHeaders도 같은 자리 — 없으면 사진 분석이 계정 헤더 없이 가서 서버가 계정별로 못 센다.
  */
 export function PhotoFlowScreen({
   accountKey,
   reviewTaskStore,
-}: { accountKey?: string | null; reviewTaskStore?: ReviewTaskStore | null } = {}) {
-  const { status, imageUri, error, thread, start } = usePhotoFlow({ accountKey, reviewTaskStore });
+  getRemoteAuthHeaders,
+}: {
+  accountKey?: string | null;
+  reviewTaskStore?: ReviewTaskStore | null;
+  getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
+} = {}) {
+  const { status, imageUri, error, thread, start } = usePhotoFlow({
+    accountKey,
+    reviewTaskStore,
+    getRemoteAuthHeaders,
+  });
   const scrollRef = useRef<ScrollView>(null);
   const { bubbles, actions, press } = thread;
   const [savedNoteCount, setSavedNoteCount] = useState(0);

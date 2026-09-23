@@ -146,6 +146,32 @@ describe('PhotoFlowScreen', () => {
     expect(typeof note.mistakeType).toBe('string');
   });
 
+  it('계정 헤더 함수를 받으면 그 계정의 헤더를 사진 분석 요청에 싣는다 (사용량 원장)', async () => {
+    mockAnalyze.mockResolvedValue(makeResult());
+    const getRemoteAuthHeaders = jest.fn(async (key: string) => ({ 'x-dasida-account-key': key }));
+    render(<PhotoFlowScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(1));
+    expect(getRemoteAuthHeaders).toHaveBeenCalledWith('user:abc');
+    const [imageDataUrl, options] = mockAnalyze.mock.calls[0];
+    expect(imageDataUrl).toBe('data:image/jpeg;base64,AAAA');
+    expect(options.headers).toEqual({ 'x-dasida-account-key': 'user:abc' });
+  });
+
+  it('계정 키가 없으면 헤더 함수를 안 부르고 헤더 없이 보낸다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult());
+    const getRemoteAuthHeaders = jest.fn(async () => ({}));
+    render(<PhotoFlowScreen getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(1));
+    expect(getRemoteAuthHeaders).not.toHaveBeenCalled();
+    expect(mockAnalyze.mock.calls[0][1].headers).toEqual({});
+  });
+
   it('계정 키가 없으면 저장하지 않는다 — 흐름은 그대로 돈다', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),

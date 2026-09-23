@@ -4,6 +4,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 import { authenticateLearningHistoryRequest, LearningHistoryAuthError } from './learning-history-auth';
+import { deletePhotoAnalysisRunsForAccount } from './photo-analysis-run-log';
 
 const DeleteAccountBodySchema = z.object({
   accountKey: z.string().min(1).max(200),
@@ -42,12 +43,14 @@ export const deleteAccountHandler = onRequest(
       // accountKey형태: "user:{firebaseUid}" → 두 경로 모두 삭제
       // 1. 학습 기록: users/{accountKey} (user: prefix 포함) — Cloud Functions에서 이 경로 사용
       // 2. 프로필: users/{uid} (user: prefix 제거) — 클라이언트 JS SDK에서 이 경로 사용
+      // 3. 사진 분석 사용량 원장: photoAnalysisRuns의 이 계정 행 (users/ 밖에 있다 — 기윤 A안 09.23)
       const uid = accountKey.startsWith('user:') ? accountKey.slice(5) : accountKey;
       const learningHistoryRef = getFirestore().collection('users').doc(accountKey);
       const profileRef = getFirestore().collection('users').doc(uid);
       await Promise.all([
         getFirestore().recursiveDelete(learningHistoryRef),
         getFirestore().recursiveDelete(profileRef),
+        deletePhotoAnalysisRunsForAccount(getFirestore(), accountKey),
       ]);
 
       response.status(200).json({ success: true });

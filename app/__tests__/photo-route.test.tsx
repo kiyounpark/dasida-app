@@ -55,6 +55,15 @@ describe('학생용 사진 주소', () => {
     expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', reviewTaskStore });
   });
 
+  it('계정 헤더 만드는 함수도 내려준다 — 없으면 사진 분석 사용량을 계정별로 못 센다', () => {
+    const getRemoteAuthHeaders = jest.fn();
+    mockUseCurrentLearner.mockReturnValue({ session: { accountKey: 'user:abc' }, getRemoteAuthHeaders });
+
+    render(<PhotoRoute />);
+
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', getRemoteAuthHeaders });
+  });
+
   it('세션이 아직 없으면 키 없이 그린다 — 노트만 안 남고 흐름은 돈다', () => {
     mockUseCurrentLearner.mockReturnValue({ session: null });
 
