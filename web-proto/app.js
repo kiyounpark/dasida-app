@@ -579,37 +579,55 @@
 
   // ── 오류 짚기 · 쪽지시험 · 약점 카드 ──
 
-  // 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 느낌 설문. 세 번째 시도 없음.
+  // 짚기 (09.23 ⑤): 묻지 않고 말해준다. 09.20 통화에서 틀린 자리를 모르는 학생은
+  // "여기서 틀린 것 같아. 맞아?"에 [맞아]도 [아니야]도 못 눌렀다 — 둘 다 거짓말이 된다.
+  // 그래서 학생이 확실히 답할 수 있는 것만 묻는다: 알겠나 / 모르겠나 / 그 글자를 내가 썼나.
+  // 2번 후보로 넘어가는 사다리는 없앴다 — [안 썼는데]는 판독 실수라 같은 판독에서 나온 2번도 믿기 어렵다.
   function startPointing(idx) {
     const cand = pocket.errorCandidates[idx];
     if (!cand) {
       showFeelingSurvey(pocket.predictedMethodId, '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?');
       return;
     }
-    if (idx === 0) {
-      coachSays('그럼 풀이를 좀 더 보자.');
-      coachSays(`여기 — "${cand.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
-    } else {
-      coachSays(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${cand.quote}" 쓴 줄. 여기 아니야?`);
-    }
-    setActions([
-      // error_point_confirm — AI가 짚은 오류 지점의 적중/빗나감. attempt = 사다리 몇 번째 후보였나.
-      { label: idx === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야', kind: 'primary',
-        onPress: () => { userSays('맞아, 거기야'); logEvent('error_point_confirm', { answer: 'yes', attempt: idx + 1 }); showWhy(idx); } },
-      { label: idx === 0 ? '아니야, 거기 아니야' : '아니야', kind: 'ghost',
-        onPress: () => { userSays('아니야'); logEvent('error_point_confirm', { answer: 'no', attempt: idx + 1 }); startPointing(idx + 1); } },
-    ]);
-  }
-
-  function showWhy(idx) {
-    const cand = pocket.errorCandidates[idx];
+    coachSays('그럼 풀이를 좀 더 보자.');
+    coachSays(`여기 — "${cand.quote}" 쓴 부분, 여기가 틀린 자리야.`);
     coachSays(cand.why);
+    // error_point_react — 옛 error_point_confirm(yes/no)을 대신한다. 이제 안 물으니 got_it은 "수긍"이지
+    // 적중 증명이 아니다(모르는 학생은 뭐든 수긍한다). 확실한 빗나감은 not_mine뿐 — 적중률의 하한.
+    // 짚기가 먹혔나는 check_answer.passed를 react별로 갈라 본다.
+    const react = (kind) => logEvent('error_point_react', { react: kind });
     setActions([
-      { label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(idx) },
+      { label: '아, 이거였구나', kind: 'primary',
+        onPress: () => { userSays('아, 이거였구나'); react('got_it'); showCheck(idx, 'got_it'); } },
+      { label: '왜 틀린 건지 아직 모르겠어', kind: 'ghost',
+        onPress: () => { userSays('왜 틀린 건지 아직 모르겠어'); react('dont_get_why'); explainAgain(idx); } },
+      { label: '나 여기 이렇게 안 썼는데', kind: 'ghost',
+        onPress: () => { userSays('나 여기 이렇게 안 썼는데'); react('not_mine'); stopMisread(); } },
     ]);
   }
 
-  function showCheck(idx) {
+  // [모르겠어] — 같은 why를 또 읽히지 않는다. 서버 없이 새로 줄 수 있는 글자는 fix("~하면 → ~하자")뿐이라
+  // 그걸 먼저 꺼내고, 풀면서 깨닫게 쪽지로 넘긴다. AI를 한 번 더 부르는 설명은 학생 2명 본 뒤에 정한다(09.23 Fable).
+  function explainAgain(idx) {
+    const cand = pocket.errorCandidates[idx];
+    coachSays('괜찮아, 말로 들어선 원래 잘 안 잡혀.');
+    if (cand.fix) coachSays(`다르게 말하면 — "${cand.fix}"`);
+    showCheck(idx, 'dont_get_why');
+  }
+
+  // [안 썼는데] — AI가 글씨를 잘못 읽은 날. 노트·약점 이름표를 안 만든다: 설문으로 보내면 [잘 모르겠어]가
+  // concept_gap으로 굳어(showFeelingSurvey) 판독 실수가 학생 약점으로 둔갑한다(09.23 astra·Fable).
+  function stopMisread() {
+    coachSays('내가 네 글씨를 잘못 읽었나 봐. 미안 — 이 분석은 여기서 멈출게.');
+    coachSays('풀이가 선명하게 나오게 다시 찍어주면 처음부터 다시 볼게.');
+    setActions([
+      { label: '📷 풀이가 선명하게 다시 찍기', kind: 'primary', onPress: () => window.location.reload() },
+      { label: '오늘은 여기까지', kind: 'ghost',
+        onPress: () => { userSays('오늘은 여기까지'); coachSays('알겠어. 다른 문제 생기면 또 올려줘.'); } },
+    ]);
+  }
+
+  function showCheck(idx, react) {
     const cand = pocket.errorCandidates[idx];
     // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다 (차가운 방문자 '중' 위험 대응)
     // checkSetup(상황 칸)이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
@@ -624,7 +642,7 @@
       onPress: () => {
         userSays(opt);
         const passed = i === cand.checkAnswerIndex;
-        logEvent('check_answer', { passed: passed ? 1 : 0 }); // 쪽지시험 — 설명이 실제로 먹혔나
+        logEvent('check_answer', { passed: passed ? 1 : 0, react }); // 쪽지시험 — 설명이 실제로 먹혔나
         if (passed) {
           coachSays('그렇지. 이제 이 자리에서는 안 틀리겠네.');
         } else {
