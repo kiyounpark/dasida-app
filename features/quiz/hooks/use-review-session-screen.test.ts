@@ -1051,6 +1051,34 @@ describe('completionOutcome 분기 (스펙 §8)', () => {
     }
   }
 
+  it('E칸: 사진 과제에서 나온 오답 과제는 photo 줄기로 남는다 — 다른 출처는 예전 그대로', async () => {
+    (spawnMistakeReviewTasks as jest.Mock).mockClear();
+    const photoTask = { ...makeTask({ id: 'photo-2026-09-23T00:00:00.000Z__formula_understanding__day1' }), source: 'photo' as const };
+    mockStoreLoad.mockResolvedValue([{ ...photoTask, completed: true }]);
+    mockStoreLoad.mockResolvedValueOnce([photoTask]);
+    mockSearchParams.taskId = photoTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(spawnMistakeReviewTasks as jest.Mock).toHaveBeenCalledTimes(1));
+    expect((spawnMistakeReviewTasks as jest.Mock).mock.calls[0][4]).toBe('photo');
+  });
+
+  it('E칸: 사진이 아닌 과제(diagnostic)는 오답 과제를 weakness-practice로 만든다 — 동작 불변', async () => {
+    (spawnMistakeReviewTasks as jest.Mock).mockClear();
+    const diagTask = makeTask({ id: 'task-diag' });
+    mockStoreLoad.mockResolvedValue([{ ...diagTask, completed: true }]);
+    mockStoreLoad.mockResolvedValueOnce([diagTask]);
+    mockSearchParams.taskId = diagTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(spawnMistakeReviewTasks as jest.Mock).toHaveBeenCalledTimes(1));
+    expect((spawnMistakeReviewTasks as jest.Mock).mock.calls[0][4]).toBe('weakness-practice');
+  });
+
   it('졸업(day30) 분기: task.stage가 day30이면 completionOutcome.kind === "graduation"', async () => {
     const currentTask = makeTask({ id: 'task-day30', stage: 'day30' });
     // mount 시 store.load → [currentTask]; post-complete reload → [currentTask(completed)]

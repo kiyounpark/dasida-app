@@ -15,7 +15,7 @@ import {
 } from './timestamp-utils';
 
 const reviewStages = ['day1', 'day3', 'day7', 'day30'] as const;
-const learningSources = ['diagnostic', 'featured-exam', 'weakness-practice'] as const;
+const learningSources = ['diagnostic', 'featured-exam', 'weakness-practice', 'photo'] as const;
 const learnerGrades = ['g1', 'g2', 'g3', 'unknown'] as const;
 const solveMethodIds = [
   'complex_number',

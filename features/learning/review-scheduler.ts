@@ -1,7 +1,7 @@
 // features/learning/review-scheduler.ts
 import { REVIEW_STAGE_OFFSETS, REVIEW_STAGE_ORDER, getNextReviewStage } from './review-stage';
 import type { ReviewTaskStore } from './review-task-store';
-import type { ReviewStage } from './history-types';
+import type { LearningSource, ReviewStage } from './history-types';
 import type { WeaknessId } from '@/data/diagnosisMap';
 
 function toDateString(date: Date): string {
@@ -103,12 +103,16 @@ export async function applyOverduePenalties(
  * "오답 기반 복습 자동 생성" — 세션에서 틀린 실수가 데려간 약점들을
  * day1·내일로 생성/갱신한다. 중복키 = (sourceId, weaknessId), stage 무시.
  * 상위 단계 미완료 task는 id/stage 정합성을 위해 삭제 후 __day1 재생성한다.
+ *
+ * source는 Firestore 문서에 남는다 — 사진 노트가 만든 과제는 'photo' (E칸, 09.23 🔒).
+ * 나중에 바꾸면 서버 enum과 저장된 문서를 둘 다 고쳐야 하니 부르는 쪽이 정확히 넘긴다.
  */
 export async function spawnMistakeReviewTasks(
   accountKey: string,
   sourceId: string,
   mistakeWeaknessIds: WeaknessId[],
   store: ReviewTaskStore,
+  source: LearningSource = 'weakness-practice',
 ): Promise<void> {
   const unique = Array.from(new Set(mistakeWeaknessIds));
   if (unique.length === 0) return;
@@ -142,7 +146,7 @@ export async function spawnMistakeReviewTasks(
       id: day1Id,
       accountKey,
       weaknessId,
-      source: 'weakness-practice',
+      source,
       sourceId,
       scheduledFor: tomorrow,
       stage: 'day1',

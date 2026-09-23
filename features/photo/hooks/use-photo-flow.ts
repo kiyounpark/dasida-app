@@ -3,6 +3,8 @@ import { useRef, useState } from 'react';
 import { resolveWeaknessLabel, type WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 import { logEvent } from '@/features/analytics/log-event';
+import { spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
+import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
 import { askPhotoSource } from '../flow/ask-photo-source';
@@ -61,7 +63,10 @@ export type PhotoFlow = {
  * 사진 화면 테스트 21개가 프로바이더 없이 화면을 그리는데, 훅 안에서 부르면 그게 전부 죽는다.
  * 키가 없으면(테스트·아직 세션이 안 붙은 순간) 저장만 건너뛰고 흐름은 그대로 돈다.
  */
-export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}): PhotoFlow {
+export function usePhotoFlow({
+  accountKey,
+  reviewTaskStore,
+}: { accountKey?: string | null; reviewTaskStore?: ReviewTaskStore | null } = {}): PhotoFlow {
   const thread = usePhotoThread();
   const [status, setStatus] = useState<PhotoFlowStatus>('upload');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -565,6 +570,15 @@ export function usePhotoFlow({ accountKey }: { accountKey?: string | null } = {}
     // 캐시 경로를 저장해 두면 며칠 뒤 열었을 때 깨진 사진 칸을 보게 된다.
     if (accountKey) {
       void savePhotoNote(accountKey, { ...note, photoUri: storedPhotoUri });
+    }
+
+    // E칸 — 노트가 복습 과제가 된다. 약점이 하나로 정해진 노트만(후보 0개·"잘 모르겠어"는 과제 없음).
+    // source는 'photo' (09.23 🔒). 원격 store는 서버가 거절하면 던지므로(remote-review-task-store.ts:90)
+    // 여기서 받는다 — 과제가 실패해도 학생이 보는 노트 장면은 그대로다.
+    if (accountKey && reviewTaskStore && primaryWeaknessId) {
+      spawnMistakeReviewTasks(accountKey, noteId, [primaryWeaknessId], reviewTaskStore, 'photo').catch(
+        console.warn,
+      );
     }
 
     // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.

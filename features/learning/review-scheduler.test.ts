@@ -66,6 +66,19 @@ describe('spawnMistakeReviewTasks', () => {
     expect(t[0].completed).toBe(false);
   });
 
+  it('source를 안 넘기면 weakness-practice — 기존 호출부 동작 불변', async () => {
+    const store = memStore([]);
+    await spawnMistakeReviewTasks('acc', 'src1', ['discriminant_calculation'] as any, store);
+    expect(store.all()[0].source).toBe('weakness-practice');
+  });
+
+  it("source를 넘기면 그대로 박는다 — 사진 노트 과제는 'photo' (E칸)", async () => {
+    const store = memStore([]);
+    await spawnMistakeReviewTasks('acc', 'photo-x', ['discriminant_calculation'] as any, store, 'photo');
+    expect(store.all()[0].source).toBe('photo');
+    expect(store.all()[0].id).toBe('photo-x__discriminant_calculation__day1');
+  });
+
   it('상위 단계 미완료 task는 삭제 후 day1 재생성 (in-place 변경 금지)', async () => {
     const store = memStore([
       task({ sourceId: 'src1', weaknessId: 'discriminant_calculation' as any, stage: 'day7', scheduledFor: '2026-09-01' }),

@@ -5,6 +5,9 @@ import { makeCandidate, makeResult } from '../../flow/__fixtures__/analysis';
 import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../../flow/analyze-photo-request';
 import { askPhotoSource } from '../../flow/ask-photo-source';
 import { logEvent } from '@/features/analytics/log-event';
+import { addDaysToToday } from '@/features/learning/review-scheduler';
+import type { ReviewTaskStore } from '@/features/learning/review-task-store';
+import type { ReviewTask } from '@/features/learning/types';
 import { readPhotoNotes, savePhotoNote } from '../../note-store';
 import { PhotoFlowScreen } from '../photo-flow-screen';
 
@@ -634,5 +637,118 @@ describe('사진 flow 계측', () => {
     const [, note] = mockSaveNote.mock.calls[0];
     expect(note.weaknessIds).toHaveLength(0);
     expect(note.primaryWeaknessId).toBeNull();
+  });
+});
+
+// ── E칸 — 노트가 복습 과제가 된다 (09.23 🔒 source 'photo', AI 짚기 갈래만) ──
+
+function memStore(): ReviewTaskStore & { all: () => ReviewTask[] } {
+  let tasks: ReviewTask[] = [];
+  return {
+    load: async () => [...tasks],
+    saveAll: async (_k, next) => {
+      tasks = [...next];
+    },
+    reset: async () => {
+      tasks = [];
+    },
+    all: () => tasks,
+  };
+}
+
+/** cps × concept_gap 은 후보 1개 칸이다 (위 「후보가 하나면 묻지 않고 바로 박는다」와 같은 칸) */
+function oneCandidateResult() {
+  return makeResult({
+    errorCandidates: [makeCandidate({ mistakeType: 'concept_gap' })],
+    errorConfidence: 0.9,
+  });
+}
+
+describe('PhotoFlowScreen — 복습 과제 (E칸)', () => {
+  it("약점이 하나로 정해진 노트는 내일 day1 과제가 된다 — source 'photo', 노트 id로 묶인다", async () => {
+    mockAnalyze.mockResolvedValue(oneCandidateResult());
+    const store = memStore();
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    await walkToNote();
+
+    await waitFor(() => expect(store.all()).toHaveLength(1));
+    const [, note] = mockSaveNote.mock.calls[0];
+    const [task] = store.all();
+    expect(task).toMatchObject({
+      accountKey: 'user:abc',
+      source: 'photo',
+      sourceId: note.id,
+      weaknessId: note.primaryWeaknessId,
+      stage: 'day1',
+      completed: false,
+      scheduledFor: addDaysToToday(1),
+    });
+    expect(task.id).toBe(`${note.id}__${note.primaryWeaknessId}__day1`);
+  });
+
+  it('후보 중 학생이 고른 약점 하나만 과제가 된다', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    const store = memStore();
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    await walkToPick();
+    fireEvent.press(screen.getByText('분모 유리화 과정에서 실수했어요.'));
+
+    await waitFor(() => expect(store.all()).toHaveLength(1));
+    expect(store.all()[0].weaknessId).toBe('rationalization_error');
+  });
+
+  it('「잘 모르겠어」면 과제가 안 생긴다 — 노트는 그대로', async () => {
+    mockAnalyze.mockResolvedValue(radicalResult());
+    const store = memStore();
+    const saveAll = jest.spyOn(store, 'saveAll');
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    await walkToPick();
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    expect(saveAll).not.toHaveBeenCalled();
+  });
+
+  it('약점 이름표가 없는 칸(빈 칸)이면 과제가 안 생긴다', async () => {
+    // cps × procedure_miss 는 빈 칸
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
+    );
+    const store = memStore();
+    const saveAll = jest.spyOn(store, 'saveAll');
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    await walkToNote();
+
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    expect(saveAll).not.toHaveBeenCalled();
+  });
+
+  it('계정 키가 없으면 과제도 안 만든다', async () => {
+    mockAnalyze.mockResolvedValue(oneCandidateResult());
+    const store = memStore();
+    const saveAll = jest.spyOn(store, 'saveAll');
+    render(<PhotoFlowScreen reviewTaskStore={store} />);
+
+    await walkToNote();
+
+    expect(saveAll).not.toHaveBeenCalled();
+  });
+
+  it('과제 저장이 실패해도(서버 400 등) 노트 장면은 그대로 나온다', async () => {
+    mockAnalyze.mockResolvedValue(oneCandidateResult());
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const store = memStore();
+    store.saveAll = jest.fn().mockRejectedValue(new Error('HTTP 400'));
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    await walkToNote();
+
+    expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy();
+    await waitFor(() => expect(warn).toHaveBeenCalled());
+    warn.mockRestore();
   });
 });

@@ -639,6 +639,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         task.sourceId,
         mistakeWeaknessIds,
         store,
+        // 사진 과제에서 틀린 건 사진 줄기로 남긴다 — 안 그러면 한 번 틀리는 순간 'photo' 표시를 잃는다.
+        // 다른 출처는 예전 그대로 'weakness-practice'.
+        task.source === 'photo' ? 'photo' : 'weakness-practice',
       );
       void rescheduleAllReviewNotifications(accountKey, store).catch(console.warn);
       await refresh();

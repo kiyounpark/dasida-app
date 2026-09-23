@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import type { ReviewTaskStore } from '@/features/learning/review-task-store';
+
 import { PhotoActionButtons } from '../components/photo-action-buttons';
 import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
 import { PhotoChatThread } from '../components/photo-chat-thread';
@@ -15,9 +17,13 @@ import { PhotoTheme } from '../theme';
 /**
  * 화면 셋(업로드 · 분석 중 · 대화)을 조합하기만 한다. 흐름은 use-photo-flow가 들고 있다.
  * accountKey는 주소 쪽(app/photo.tsx)에서 내려온다 — 없으면 노트를 안 남기고 흐름만 돈다.
+ * reviewTaskStore도 같은 자리에서 내려온다 — 없으면 노트는 남되 복습 과제는 안 생긴다(E칸).
  */
-export function PhotoFlowScreen({ accountKey }: { accountKey?: string | null } = {}) {
-  const { status, imageUri, error, thread, start } = usePhotoFlow({ accountKey });
+export function PhotoFlowScreen({
+  accountKey,
+  reviewTaskStore,
+}: { accountKey?: string | null; reviewTaskStore?: ReviewTaskStore | null } = {}) {
+  const { status, imageUri, error, thread, start } = usePhotoFlow({ accountKey, reviewTaskStore });
   const scrollRef = useRef<ScrollView>(null);
   const { bubbles, actions, press } = thread;
   const [savedNoteCount, setSavedNoteCount] = useState(0);

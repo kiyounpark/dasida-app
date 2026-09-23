@@ -46,6 +46,15 @@ describe('학생용 사진 주소', () => {
     expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc' });
   });
 
+  it('복습 과제 저장소도 내려준다 — 없으면 사진 노트가 복습 과제가 못 된다 (E칸)', () => {
+    const reviewTaskStore = { load: jest.fn(), saveAll: jest.fn(), reset: jest.fn() };
+    mockUseCurrentLearner.mockReturnValue({ session: { accountKey: 'user:abc' }, reviewTaskStore });
+
+    render(<PhotoRoute />);
+
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', reviewTaskStore });
+  });
+
   it('세션이 아직 없으면 키 없이 그린다 — 노트만 안 남고 흐름은 돈다', () => {
     mockUseCurrentLearner.mockReturnValue({ session: null });
 

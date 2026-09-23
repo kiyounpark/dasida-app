@@ -117,7 +117,7 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
       {
         id: 'formula_understanding.step1',
         title: 'x 계수의 절반 추출',
-        body: 'ax²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.',
+        body: 'x²+bx+c에서 x 계수 b를 확인하고 b/2를 먼저 구한다.',
         example: '예) x²+6x+5 → b=6, b/2=3',
         choices: [
           { text: 'b를 그대로 쓰면 된다', correct: false, feedback: 'b를 그대로 쓰면 완전제곱 꼴이 만들어지지 않아요. (x+?)²을 만들려면 b/2가 필요하다는 점에 다시 주목해봐요.', remedialFlowStartNodeId: 'fu_step1_A_explain', weaknessId: 'basic_concept_needed' },
