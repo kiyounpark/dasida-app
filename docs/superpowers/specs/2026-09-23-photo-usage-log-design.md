@@ -205,10 +205,11 @@ astra의 "2~3일"은 계정 연결 모듈·집계 스크립트·웹·시작/종�
 - 계정 키 헤더가 200자를 넘으면 검증 없이 `accountKey:null` (`delete-account.ts:10` 스키마와 같은 상한)
 - `writePhotoAnalysisRun`은 문서 객체가 아니라 만들 재료를 받아 **만들기까지 try 안에서** 한다 — 만들기가 던지면 성공한 분석이 500으로 가지 않게 (Fable 권고)
 - `PhotoAnalysisOutputError`가 `model`도 싣는다 — `parse_failed`·`empty_output` 행에도 실제 스냅샷이 남는다 (Fable 권고)
+- 인증 검증(`resolveRunAuth`)을 AI 호출과 **동시에** 돌린다 — 응답을 늦추지 않게 (Fable 권고 2). 실패 경로는 소요 시간을 인증 대기 전에 잰다
 - 계정 삭제는 `bulkWriter.delete` 건별 promise를 `close()`와 같이 기다린다 — `close()`는 건별 실패에 reject하지 않아서, 안 기다리면 삭제 실패가 성공으로 보고된다
 
 ## 11. 알고 있는 빈틈
 
-- **타임아웃 + SDK 재시도면 행이 안 남는다.** SDK는 타임아웃도 재시도한다(`functions/node_modules/openai/client.js:309-317`, `maxRetries: 1`). 45초 + 재시도 > 함수 60초라 함수가 잘리고 학생은 504, 원장엔 행이 없다. §2의 "45초 < 60초라 한 줄 남는다"는 재시도가 없을 때만 참. 기존 동작이라 이번에 안 고쳤다 — 고치면(`maxRetries: 0` 또는 timeout 25초) 학생이 기다리는 시간이 바뀐다. 영향: 실패 수가 적게 잡힌다. (b)(c)는 `ok==true`만 세서 영향 없음
+- ~~타임아웃 + SDK 재시도면 행이 안 남는다~~ → **고침(09.23, Fable 권고 1).** SDK는 타임아웃도 재시도해서(`functions/node_modules/openai/client.js:309-317`) 45초 + 재시도가 함수 60초를 넘겼다. 호출 전체에 `AbortSignal.timeout(55초)`(`PHOTO_ANALYSIS_DEADLINE_MS`)를 걸어, 마감에 끊기면 재시도 없이 `APIUserAbortError`로 던지고 `openai_timeout` 행이 남는다. 학생은 60초 504 대신 55초에 같은 안내문. 45초 뒤 재시도는 원래 15초 안에 끝날 일이 거의 없어 성공률은 그대로, 빨리 실패한 요청(429·5xx)의 재시도는 산다
 - 로그인한 학생 클라이언트가 `photoAnalysisRuns`를 읽을 수 있는지는 확인 안 했다. **로그인 안 한 요청은 막혀 있다** — Firestore REST로 읽기를 시도하니 `diagnosisMethodRuns`·`photoAnalysisRuns` 둘 다 `403 PERMISSION_DENIED`(09.23 Claude 확인). 로그인 상태 확인엔 테스트 계정을 새로 만들어야 해서 멈췄다
 - 빌드 체크리스트: **`app.config.js:7` `version`을 1.0.9로 올려야** 원장 `appVersion`이 맞게 찍힌다 (Fable)

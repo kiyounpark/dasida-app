@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import * as logger from 'firebase-functions/logger';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-import { APIConnectionTimeoutError, APIError } from 'openai';
+import { APIConnectionTimeoutError, APIError, APIUserAbortError } from 'openai';
 import { ZodError } from 'zod';
 
 import {
@@ -130,8 +130,10 @@ export async function resolveRunAuth(
 export function classifyAnalyzeError(error: unknown): AnalyzeErrorKind {
   if (error instanceof PhotoAnalysisOutputError) return error.kind;
   if (error instanceof ZodError) return 'schema_failed';
-  // 타임아웃이 APIError의 자식이라 먼저 본다
-  if (error instanceof APIConnectionTimeoutError) return 'openai_timeout';
+  // 타임아웃이 APIError의 자식이라 먼저 본다. 55초 마감(PHOTO_ANALYSIS_DEADLINE_MS)에 끊긴 것도 타임아웃 —
+  // 요청 중이면 APIUserAbortError, 본문을 받는 중이면 AbortError로 온다
+  if (error instanceof APIConnectionTimeoutError || error instanceof APIUserAbortError) return 'openai_timeout';
+  if (error instanceof Error && error.name === 'AbortError') return 'openai_timeout';
   if (error instanceof APIError) return 'openai_error';
   return 'unknown';
 }

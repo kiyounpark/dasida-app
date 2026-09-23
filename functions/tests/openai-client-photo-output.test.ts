@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parsePhotoAnalysisResponse, PhotoAnalysisOutputError } from '../src/openai-client';
+import {
+  PHOTO_ANALYSIS_DEADLINE_MS,
+  PHOTO_ANALYSIS_TIMEOUT_MS,
+  parsePhotoAnalysisResponse,
+  PhotoAnalysisOutputError,
+} from '../src/openai-client';
 
 const USAGE = {
   input_tokens: 1200,
@@ -74,4 +79,10 @@ test('출력이 비어 있으면 empty_output으로 던지고 usage를 싣는다
       return true;
     },
   );
+});
+
+test('전체 마감은 첫 시도 타임아웃보다 길고 함수 한도(60초)보다 짧다 — 그래야 재시도 중에도 응답·원장 한 줄이 남는다', () => {
+  // 마감이 없으면 45초 타임아웃 + SDK 재시도가 60초 함수 한도를 넘어 학생은 504, 원장엔 행이 없다
+  assert.ok(PHOTO_ANALYSIS_DEADLINE_MS > PHOTO_ANALYSIS_TIMEOUT_MS);
+  assert.ok(PHOTO_ANALYSIS_DEADLINE_MS <= 55_000);
 });

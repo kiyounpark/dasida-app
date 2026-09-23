@@ -81,9 +81,10 @@ export const analyzePhoto = onRequest(
     const imageDataUrl = parsedRequest.data.imageDataUrl;
     const modelRequested = openAiVisionModel.value();
     const reasoningEffort = openAiVisionReasoningEffort.value();
+    // 인증 검증은 AI 호출과 동시에 돈다 — 학생 응답을 늦추지 않게. resolveRunAuth는 안 던진다
+    const authPromise = resolveRunAuth(request.headers as Record<string, string | string[] | undefined>);
     const runBase = {
       context: readRunRequestContext(request.body),
-      auth: await resolveRunAuth(request.headers as Record<string, string | string[] | undefined>),
       receivedAt,
       imageDataUrl,
       modelRequested,
@@ -119,7 +120,8 @@ export const analyzePhoto = onRequest(
       };
 
       // 응답 전에 await — v2는 응답 뒤 작업이 잘릴 수 있다. writePhotoAnalysisRun은 안 던져서 응답을 막지 않는다
-      await writePhotoAnalysisRun({ ...runBase, durationMs, openAi, outcome: { ok: true, result: summary } });
+      const auth = await authPromise;
+      await writePhotoAnalysisRun({ ...runBase, auth, durationMs, openAi, outcome: { ok: true, result: summary } });
       logger.info('analyzePhoto done', {
         ...summary,
         model: openAiResponse.model,
@@ -127,16 +129,23 @@ export const analyzePhoto = onRequest(
         usage: openAiResponse.usage,
         durationMs,
         channel: runBase.context.channel,
-        accountKey: runBase.auth.accountKey,
-        authVerified: runBase.auth.authVerified,
+        accountKey: auth.accountKey,
+        authVerified: auth.authVerified,
         participantId: runBase.context.participantId,
         qa: runBase.context.qa,
       });
 
       response.status(200).json(result);
     } catch (error) {
+      const durationMs = Date.now() - startedAt; // 인증 대기가 섞이지 않게 먼저 잰다
       logger.error('analyzePhoto failed', error);
-      await writePhotoAnalysisRun({ ...runBase, durationMs: Date.now() - startedAt, openAi, outcome: { ok: false, error } });
+      await writePhotoAnalysisRun({
+        ...runBase,
+        auth: await authPromise,
+        durationMs,
+        openAi,
+        outcome: { ok: false, error },
+      });
       response.status(500).json({ error: 'Failed to analyze photo' });
     }
   }

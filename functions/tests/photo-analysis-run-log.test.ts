@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import type { Firestore } from 'firebase-admin/firestore';
-import { APIConnectionTimeoutError, APIError } from 'openai';
+import { APIConnectionTimeoutError, APIError, APIUserAbortError } from 'openai';
 import { z } from 'zod';
 
 import { LearningHistoryAuthError } from '../src/learning-history-auth';
@@ -139,6 +139,11 @@ test('classifyAnalyzeError: 타임아웃·API 오류·출력 오류·스키마 �
   assert.equal(classifyAnalyzeError(new PhotoAnalysisOutputError('empty_output', 'r', 'm', null)), 'empty_output');
   assert.equal(classifyAnalyzeError(z.object({ a: z.string() }).safeParse({}).error), 'schema_failed');
   assert.equal(classifyAnalyzeError(new Error('?')), 'unknown');
+});
+
+test('classifyAnalyzeError: 55초 마감에 끊긴 호출도 타임아웃이다 (요청 중·본문 받는 중 둘 다)', () => {
+  assert.equal(classifyAnalyzeError(new APIUserAbortError()), 'openai_timeout');
+  assert.equal(classifyAnalyzeError(new DOMException('This operation was aborted', 'AbortError')), 'openai_timeout');
 });
 
 // ── 문서 ──

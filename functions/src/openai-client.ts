@@ -498,6 +498,13 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '⭕ 조각을 물으면 보기도 조각: "÷2", "×n"',
 ].join('\n');
 
+// SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 시도당 45초로 제한
+export const PHOTO_ANALYSIS_TIMEOUT_MS = 45_000;
+// SDK는 타임아웃도 재시도한다(maxRetries: 1). 45초 + 재시도는 함수 60초를 넘겨 학생은 504, 사용량 원장엔 행이 없다.
+// 호출 전체에 55초 마감을 건다 — 마감에 끊기면 재시도 없이 던져서 응답과 원장 한 줄이 남는다.
+// 45초 뒤 재시도는 어차피 15초 안에 끝날 일이 거의 없어 성공률은 그대로다. 빨리 실패한 요청(429·5xx)의 재시도는 산다.
+export const PHOTO_ANALYSIS_DEADLINE_MS = 55_000;
+
 export type PhotoAnalysisUsage = {
   input: number;
   cached: number;
@@ -585,8 +592,7 @@ export async function requestPhotoAnalysisFromOpenAI({
   imageDataUrl: string;
   methodContextText: string;
 }): Promise<{ result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null }> {
-  // SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 45초로 제한
-  const client = new OpenAI({ apiKey, timeout: 45_000, maxRetries: 1 });
+  const client = new OpenAI({ apiKey, timeout: PHOTO_ANALYSIS_TIMEOUT_MS, maxRetries: 1 });
 
   const response = await client.responses.create({
     model,
@@ -611,7 +617,7 @@ export async function requestPhotoAnalysisFromOpenAI({
         strict: true,
       },
     },
-  });
+  }, { signal: AbortSignal.timeout(PHOTO_ANALYSIS_DEADLINE_MS) });
 
   return parsePhotoAnalysisResponse(response);
 }
