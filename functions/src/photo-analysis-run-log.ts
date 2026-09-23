@@ -21,6 +21,9 @@ const APP_VERSION_MAX_LENGTH = 32;
 const ACCOUNT_KEY_MAX_LENGTH = 200;
 const ERROR_MESSAGE_MAX_LENGTH = 200;
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+// 대기 상한 — Firestore 쓰기·Firebase 인증은 걸리면 기본 60초라, 상한이 없으면 분석이 성공해도 학생은 504를 본다
+export const RUN_AUTH_WAIT_MS = 2_000;
+export const RUN_LOG_WRITE_TIMEOUT_MS = 3_000;
 
 type Headers = Record<string, string | string[] | undefined>;
 
@@ -103,14 +106,25 @@ export function readRunRequestContext(body: unknown): RunRequestContext {
   return { channel, appVersion, participantId, submissionId, qa: record.qa === true };
 }
 
+// 200자를 넘는 키는 실계정일 수 없다(delete-account.ts 스키마와 같은 상한) — 없는 것으로 본다
+function readClaimedAccountKey(headers: Headers): string | null {
+  const accountKey = getLearningHistoryRequestAccountKey(headers);
+  return accountKey && accountKey.length <= ACCOUNT_KEY_MAX_LENGTH ? accountKey : null;
+}
+
+// 검증을 못 기다렸거나 못 끝냈을 때 — 주장한 키만 남기고 authVerified false(집계에서 빠진다)
+export function unresolvedRunAuth(headers: Headers, reason: string): RunAuth {
+  return { accountKey: readClaimedAccountKey(headers), authVerified: false, authKind: null, authError: reason };
+}
+
 // 다른 함수와 같은 헤더 셋(x-dasida-account-key + Bearer/세션 시크릿)을 같은 함수로 검증한다.
 // 1.0.9 계측판은 실패해도 분석을 계속한다 — 과금을 켤 때 여기서 막으면 앱을 다시 안 내도 된다.
 export async function resolveRunAuth(
   headers: Headers,
   authenticate: typeof authenticateLearningHistoryRequest = authenticateLearningHistoryRequest,
 ): Promise<RunAuth> {
-  const accountKey = getLearningHistoryRequestAccountKey(headers);
-  if (!accountKey || accountKey.length > ACCOUNT_KEY_MAX_LENGTH) {
+  const accountKey = readClaimedAccountKey(headers);
+  if (!accountKey) {
     return { accountKey: null, authVerified: false, authKind: null, authError: null };
   }
 
@@ -125,6 +139,28 @@ export async function resolveRunAuth(
       authError: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+// 상한 안에 끝나면 그 값, 아니면 대체값. 절대 던지지 않고, 원본은 뒤에서 계속 돌게 둔다.
+// 원본에 거부 처리기를 바로 붙여서 늦은 실패가 unhandled rejection으로 인스턴스를 죽이지 않는다.
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  fallback: (reason: 'timeout' | 'rejected') => T,
+): Promise<T> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(fallback('timeout')), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(fallback('rejected'));
+      },
+    );
+  });
 }
 
 export function classifyAnalyzeError(error: unknown): AnalyzeErrorKind {
@@ -186,11 +222,28 @@ export function buildPhotoAnalysisRunDoc(input: {
 
 // 원장 기록은 절대 던지지 않는다 — 기록 실패가 학생 응답을 막으면 안 된다 (diagnosis-method.ts와 같은 규약).
 // 문서 만들기도 보호 안에 둔다 — 여기가 던지면 분석 성공이 학생에게 500으로 간다.
+// 쓰기는 3초까지만 기다리고 응답을 먼저 보낸다. 쓰기는 뒤에서 계속 돌아 늦게라도 한 줄 남는다(문서는 여전히 최대 1개).
 export async function writePhotoAnalysisRun(input: Parameters<typeof buildPhotoAnalysisRunDoc>[0]): Promise<void> {
+  let write: Promise<'written' | 'failed'>;
   try {
-    await getFirestore().collection(PHOTO_ANALYSIS_RUNS_COLLECTION).add(buildPhotoAnalysisRunDoc(input));
+    write = getFirestore()
+      .collection(PHOTO_ANALYSIS_RUNS_COLLECTION)
+      .add(buildPhotoAnalysisRunDoc(input))
+      .then(
+        () => 'written' as const,
+        (error) => {
+          logger.error('analyzePhoto run log write failed', error);
+          return 'failed' as const;
+        },
+      );
   } catch (error) {
     logger.error('analyzePhoto run log write failed', error);
+    return;
+  }
+
+  const outcome = await withTimeout(write, RUN_LOG_WRITE_TIMEOUT_MS, () => 'pending' as const);
+  if (outcome === 'pending') {
+    logger.warn('analyzePhoto run log write still pending — responding first');
   }
 }
 

@@ -1,5 +1,8 @@
 import { diagnosisMethodRoutingCatalog, type SolveMethodId } from './method-catalog';
 
+// analyzePhoto 함수 한도. AI 마감·인증 대기·원장 쓰기가 이 안에 들어야 한다 (예산 테스트가 묶는다)
+export const ANALYZE_PHOTO_TIMEOUT_SECONDS = 60;
+
 // 실수 유형 6종 — 문제 푸는 여정 순서. 스키마 enum과 웹 카드가 함께 쓰는 단일 원천.
 export const MISTAKE_TYPE_IDS = [
   'concept_gap',    // 개념 구멍

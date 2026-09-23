@@ -106,10 +106,11 @@ export function usePhotoFlow({
       setImageUri(photo.uri);
       setStatus('analyzing');
 
+      // 헤더는 사진 줄이는 동안 같이 받는다 — 토큰 갱신 시간이 축소 시간에 숨는다. getRemoteAuthHeaders는 안 던진다
+      const headersPromise = accountKey && getRemoteAuthHeaders ? getRemoteAuthHeaders(accountKey) : Promise.resolve({});
       const imageDataUrl = await downscaleToDataUrl(photo);
-      const headers = accountKey && getRemoteAuthHeaders ? await getRemoteAuthHeaders(accountKey) : {};
       // qa: 개발 빌드 사진은 서버 원장에서 빼고 센다. 스토어 빌드로 기윤이 돌린 건 집계 때 계정으로 뺀다
-      const result = await requestAnalyze(imageDataUrl, { headers, qa: __DEV__ });
+      const result = await requestAnalyze(imageDataUrl, { headers: await headersPromise, qa: __DEV__ });
       resultRef.current = result;
 
       logEvent('photo_analyzed', {

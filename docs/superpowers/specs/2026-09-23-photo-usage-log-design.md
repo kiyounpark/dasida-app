@@ -210,6 +210,9 @@ astra의 "2~3일"은 계정 연결 모듈·집계 스크립트·웹·시작/종�
 
 ## 11. 알고 있는 빈틈
 
-- ~~타임아웃 + SDK 재시도면 행이 안 남는다~~ → **고침(09.23, Fable 권고 1).** SDK는 타임아웃도 재시도해서(`functions/node_modules/openai/client.js:309-317`) 45초 + 재시도가 함수 60초를 넘겼다. 호출 전체에 `AbortSignal.timeout(55초)`(`PHOTO_ANALYSIS_DEADLINE_MS`)를 걸어, 마감에 끊기면 재시도 없이 `APIUserAbortError`로 던지고 `openai_timeout` 행이 남는다. 학생은 60초 504 대신 55초에 같은 안내문. 45초 뒤 재시도는 원래 15초 안에 끝날 일이 거의 없어 성공률은 그대로, 빨리 실패한 요청(429·5xx)의 재시도는 산다
-- 로그인한 학생 클라이언트가 `photoAnalysisRuns`를 읽을 수 있는지는 확인 안 했다. **로그인 안 한 요청은 막혀 있다** — Firestore REST로 읽기를 시도하니 `diagnosisMethodRuns`·`photoAnalysisRuns` 둘 다 `403 PERMISSION_DENIED`(09.23 Claude 확인). 로그인 상태 확인엔 테스트 계정을 새로 만들어야 해서 멈췄다
+- ~~타임아웃 + SDK 재시도면 행이 안 남는다~~ → **고침.** SDK는 타임아웃도 재시도해서(`functions/node_modules/openai/client.js:309-317`) 45초 + 재시도가 함수 60초를 넘겼다. 호출 전체에 `AbortSignal.timeout`(`PHOTO_ANALYSIS_DEADLINE_MS`)을 걸어 마감에 끊기면 재시도 없이 `APIUserAbortError`로 던지고 `openai_timeout` 행이 남는다
+- **60초 예산 (09.24, astra 코드리뷰 → Fable 최종 "고치고 배포")**: AI 마감 **52초** + 인증 대기 상한 **2초**(`RUN_AUTH_WAIT_MS`, 넘기면 `authError:'auth_timeout'`) + 원장 쓰기 상한 **3초**(`RUN_LOG_WRITE_TIMEOUT_MS`, 넘기면 응답 먼저·쓰기는 뒤에서 계속) + 파싱·응답 여유 3초 ≤ 60초. 근거: Firestore commit 기본 60초(`firestore_client_config.json:69`), firebase-admin 인증서 fetch엔 timeout 없음(Fable). 예산 합은 테스트가 `ANALYZE_PHOTO_TIMEOUT_SECONDS`에 묶는다. 학생은 60초 504 대신 52초에 같은 안내문. `authPromise`엔 만들 때 바로 `.catch`를 붙인다(처리기 없는 거부 = Node 22 인스턴스 종료)
+- **앱 헤더 대기 상한 5초** (astra P2): 모바일 Firebase 토큰 갱신은 망이 멈추면 60초(`@firebase/auth` `Delay(30000, 60000)`). 5초 넘으면 계정 키만 싣는다. 헤더는 사진 줄이는 동안 같이 받는다
+- **남은 빈틈 — 재시도 대기 (astra P1-b, Fable "뒤로")**: SDK는 `retry-after` 헤더만큼 신호를 안 보고 잔다(`client.js:437-464`, 상한 없음). 늦게 온 429가 길게 기다리라 하면 60초 504·행 없음. 47ddefc 전부터 있던 동작이고 OpenAI 429의 retry-after는 보통 ms~초라 드물다. 고치려면 SDK 재시도를 직접 짜야 한다 — 원장에서 보이면 그때
+- ✅ **클라이언트는 `photoAnalysisRuns`를 못 읽는다 (로그인해도).** 콘솔 규칙(09.24 Claude가 크롬으로 확인)은 `users/{uid}/profile/data`를 본인에게만 열고(`request.auth.uid == uid`) 나머지는 규칙이 없다 = 전부 거부. 로그인 안 한 요청은 Firestore REST로도 `403 PERMISSION_DENIED` 확인. 서버는 admin SDK라 규칙과 무관
 - 빌드 체크리스트: **`app.config.js:7` `version`을 1.0.9로 올려야** 원장 `appVersion`이 맞게 찍힌다 (Fable)

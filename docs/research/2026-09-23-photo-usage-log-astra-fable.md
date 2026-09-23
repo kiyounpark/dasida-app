@@ -106,3 +106,29 @@ anon→user: 운영 앱은 로그인 필수라(`auth-policy.ts:6-12` `canUseDevG
 7. 크기 — **중간**. 최소판(서버 4·앱 11 = 15파일) 8~10시간. astra 2~3일은 계정 연결 모듈·집계 스크립트·웹·시작/종료 2회 쓰기를 포함한 값이라 그 넷을 뺐다.
 
 참고: `firestore.rules`는 저장소에 없어(`firebase.json`엔 emulators만) 규칙 확인은 사람 몫으로 올렸다.
+
+---
+
+## 코드리뷰 판 (09.23 밤~09.24)
+
+1. **Fable 1차** (722f0cb 전체): "빌드·배포해도 된다, 반드시 고칠 것 없음" + 권고 6 → 전부 반영(722f0cb·47ddefc)
+2. **Fable 2차** (47ddefc만): "배포해도 된다" + 권고 4
+3. **astra** (두 커밋 전체, 기윤 요청): **"보류"** — P1 인증·원장 대기 상한 없음 / P1 재시도 sleep이 55초 신호를 안 봄 / P2 앱 헤더 대기 상한 없음
+4. **Fable 최종** (astra 답을 보고): **"고치고 배포."** *"astra의 P1-a·P2는 내가 '선택'으로 내린 게 틀렸다"* — Firestore commit 기본 60초, RN 토큰 갱신 60초라 상한 없이는 성공한 분석도 504. P1-a·P2 지금, P1-b(재시도 sleep)는 뒤로(회귀 아님·드묾·SDK 재시도를 다시 짜야 함). 예산 52+2+3초, 앱 5초. 기윤에게 올릴 것 없음
+
+Claude 확인: `client.js:437-464`(retry-after 상한 없음·sleep이 신호 안 봄), `firebase-auth-client.ts:554-556`(getIdToken), `firestore_client_config.json:69`(Commit 60000), `@firebase/auth/dist/rn` `Delay(30000, 60000)` — 전부 적힌 대로. Firestore 콘솔 규칙은 크롬으로 확인(`users/{uid}/profile/data`만 본인 허용, 나머지 거부).
+
+토큰: astra 코드리뷰 55,126 · Fable 1차 160,367 · 2차 197,795 · 최종 214,239.
+
+### astra 코드리뷰 원문 (gpt-6-astra)
+
+**배포·1.0.9 빌드는 보류.** 학생 응답을 지연시키는 경로와 55초 마감의 빈틈이 확인됐습니다.
+
+**반드시 고칠 것**
+- **P1 — 인증·원장 대기에 시간 제한이 없습니다.** `functions/src/analyze-photo.ts:123`, `:144`에서 인증을, `functions/src/photo-analysis-run-log.ts:191`에서 Firestore 쓰기를 기다립니다. 병렬 실행·예외 삼키기는 지연을 막지 못합니다. **장애 시 예상:** 분석이 끝나도 60초를 넘어 504가 나고 원장이 누락될 수 있습니다. 인증 fallback과 원장 대기에 남은 응답 예산을 적용해야 합니다. 현재 "항상 문서 정확히 1개"도 보장되지 않습니다.
+- **P1 — 55초 신호가 재시도 대기를 끊지 못합니다.** `functions/src/openai-client.ts:620`은 신호만 전달하지만, SDK `functions/node_modules/openai/client.js:439`는 서버의 재시도 대기 시간을 받아 `:463`에서 취소 불가능한 sleep을 합니다. **예상 재현:** 429와 `Retry-After: 120`이면 함수 한도를 넘깁니다.
+- **P2 — 앱도 인증 헤더를 기다리느라 분석 시작이 지연될 수 있습니다.** `features/photo/hooks/use-photo-flow.ts:110`에서 헤더를 먼저 기다리며, `features/learning/remote-auth-headers.ts:13`에는 대기 제한이 없습니다. 실제 토큰 취득은 `features/auth/firebase-auth-client.ts:555`입니다.
+
+**권고** — 마감 테스트는 숫자 비교뿐(`openai-client-photo-output.test.ts:84`). `app.config.js:7`은 1.0.8 — 1.0.9 빌드 전에 올려야 원장 버전이 맞다.
+
+**확인한 것** — 본문 중단은 `AbortError` 경로(`client.js:526`), `TimeoutError` 누락 지적은 근거 없어 제외. 실패 경로 메타데이터 보존 확인. 원장에 사진·학생 글씨·토큰 저장 필드 없음.

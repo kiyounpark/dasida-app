@@ -15,6 +15,8 @@ import {
   readRunRequestContext,
   resolveRunAuth,
   toKstDate,
+  unresolvedRunAuth,
+  withTimeout,
 } from '../src/photo-analysis-run-log';
 
 const IMAGE = 'data:image/jpeg;base64,AAAA';
@@ -128,6 +130,32 @@ test('resolveRunAuth: 검증이 실패해도 던지지 않고 주장한 키와 �
     authKind: null,
     authError: 'Invalid Firebase ID token',
   });
+});
+
+test('unresolvedRunAuth: 검증을 못 기다리면 주장한 키만 남기고 authVerified false (집계에서 빠진다)', () => {
+  assert.deepEqual(unresolvedRunAuth({ 'x-dasida-account-key': 'user:abc' }, 'auth_timeout'), {
+    accountKey: 'user:abc',
+    authVerified: false,
+    authKind: null,
+    authError: 'auth_timeout',
+  });
+  assert.equal(unresolvedRunAuth({ 'x-dasida-account-key': 'user:' + 'a'.repeat(200) }, 'auth_timeout').accountKey, null);
+  assert.equal(unresolvedRunAuth({}, 'auth_timeout').accountKey, null);
+});
+
+// ── 대기 상한 — 인증·원장 쓰기가 느려도 학생 응답은 60초 안에 나간다 ──
+
+test('withTimeout: 제때 끝나면 그 값', async () => {
+  assert.equal(await withTimeout(Promise.resolve('done'), 10, () => 'fallback'), 'done');
+});
+
+test('withTimeout: 안 끝나면 상한에서 대체값 — 원본은 계속 돌게 둔다', async () => {
+  const never = new Promise<string>(() => {});
+  assert.equal(await withTimeout(never, 10, (reason) => reason), 'timeout');
+});
+
+test('withTimeout: 실패해도 던지지 않고 대체값', async () => {
+  assert.equal(await withTimeout(Promise.reject(new Error('x')), 10, (reason) => reason), 'rejected');
 });
 
 // ── 실패 분류 ──

@@ -501,9 +501,11 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
 // SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 시도당 45초로 제한
 export const PHOTO_ANALYSIS_TIMEOUT_MS = 45_000;
 // SDK는 타임아웃도 재시도한다(maxRetries: 1). 45초 + 재시도는 함수 60초를 넘겨 학생은 504, 사용량 원장엔 행이 없다.
-// 호출 전체에 55초 마감을 건다 — 마감에 끊기면 재시도 없이 던져서 응답과 원장 한 줄이 남는다.
-// 45초 뒤 재시도는 어차피 15초 안에 끝날 일이 거의 없어 성공률은 그대로다. 빨리 실패한 요청(429·5xx)의 재시도는 산다.
-export const PHOTO_ANALYSIS_DEADLINE_MS = 55_000;
+// 호출 전체에 52초 마감을 건다 — 마감에 끊기면 재시도 없이 던져서 응답과 원장 한 줄이 남는다.
+// 60초 예산 = AI 52 + 인증 대기 2 + 원장 쓰기 3 + 파싱·응답 여유 (09.23 astra·Fable 코드리뷰).
+// 45초 뒤 재시도는 어차피 몇 초 안에 끝날 일이 거의 없어 성공률은 그대로다. 빨리 실패한 요청(429·5xx)의 재시도는 산다.
+// 남은 빈틈: SDK는 retry-after 헤더만큼 신호를 안 보고 잔다(client.js:437-464) — 늦게 온 429가 길게 기다리라 하면 60초까지 간다.
+export const PHOTO_ANALYSIS_DEADLINE_MS = 52_000;
 
 export type PhotoAnalysisUsage = {
   input: number;

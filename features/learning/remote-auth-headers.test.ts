@@ -41,6 +41,21 @@ describe('getRemoteAuthHeaders', () => {
     });
   });
 
+  it('토큰 갱신이 5초 넘게 안 끝나면 기다리지 않고 계정 키만 싣는다 — 분석 시작을 붙잡지 않는다', async () => {
+    jest.useFakeTimers();
+    try {
+      // 모바일 Firebase 토큰 갱신은 망이 멈추면 60초까지 간다 (@firebase/auth DEFAULT_API_TIMEOUT_MS)
+      const getHeaders = createGetRemoteAuthHeaders(makeAuthClient(() => new Promise(() => {})));
+
+      const pending = getHeaders('user:abc');
+      await jest.advanceTimersByTimeAsync(5_000);
+
+      await expect(pending).resolves.toEqual({ 'x-dasida-account-key': 'user:abc' });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('인증 정보를 못 받으면 던지지 않고 계정 키만 싣는다 — 사진 분석은 계속 돈다', async () => {
     const getHeaders = createGetRemoteAuthHeaders(
       makeAuthClient(async () => {

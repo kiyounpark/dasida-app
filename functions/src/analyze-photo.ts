@@ -4,6 +4,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { z } from 'zod';
 
 import {
+  ANALYZE_PHOTO_TIMEOUT_SECONDS,
   buildMethodContextText,
   buildPhotoRouterResult,
 } from './analyze-photo-core';
@@ -11,6 +12,9 @@ import { requestPhotoAnalysisFromOpenAI, type PhotoAnalysisUsage } from './opena
 import {
   readRunRequestContext,
   resolveRunAuth,
+  RUN_AUTH_WAIT_MS,
+  unresolvedRunAuth,
+  withTimeout,
   writePhotoAnalysisRun,
   type RunResultSummary,
 } from './photo-analysis-run-log';
@@ -52,7 +56,7 @@ const VisionRawResultSchema = z.object({
 export const analyzePhoto = onRequest(
   {
     region: 'asia-northeast3',
-    timeoutSeconds: 60,
+    timeoutSeconds: ANALYZE_PHOTO_TIMEOUT_SECONDS,
     cors: true,
     invoker: 'public',
     secrets: [openAiApiKey],
@@ -81,8 +85,12 @@ export const analyzePhoto = onRequest(
     const imageDataUrl = parsedRequest.data.imageDataUrl;
     const modelRequested = openAiVisionModel.value();
     const reasoningEffort = openAiVisionReasoningEffort.value();
-    // 인증 검증은 AI 호출과 동시에 돈다 — 학생 응답을 늦추지 않게. resolveRunAuth는 안 던진다
-    const authPromise = resolveRunAuth(request.headers as Record<string, string | string[] | undefined>);
+    // 인증 검증은 AI 호출과 동시에 돈다 — 학생 응답을 늦추지 않게.
+    // .catch를 바로 붙인다 — AI를 기다리는 50여 초 동안 처리기 없는 거부가 생기면 Node 22는 인스턴스를 죽인다
+    const headers = request.headers as Record<string, string | string[] | undefined>;
+    const authPromise = resolveRunAuth(headers).catch(() => unresolvedRunAuth(headers, 'auth_failed'));
+    // AI가 끝난 뒤 인증은 2초까지만 더 기다린다 (Firebase 인증서 fetch·Firestore는 걸리면 60초)
+    const settleAuth = () => withTimeout(authPromise, RUN_AUTH_WAIT_MS, () => unresolvedRunAuth(headers, 'auth_timeout'));
     const runBase = {
       context: readRunRequestContext(request.body),
       receivedAt,
@@ -120,7 +128,7 @@ export const analyzePhoto = onRequest(
       };
 
       // 응답 전에 await — v2는 응답 뒤 작업이 잘릴 수 있다. writePhotoAnalysisRun은 안 던져서 응답을 막지 않는다
-      const auth = await authPromise;
+      const auth = await settleAuth();
       await writePhotoAnalysisRun({ ...runBase, auth, durationMs, openAi, outcome: { ok: true, result: summary } });
       logger.info('analyzePhoto done', {
         ...summary,
@@ -141,7 +149,7 @@ export const analyzePhoto = onRequest(
       logger.error('analyzePhoto failed', error);
       await writePhotoAnalysisRun({
         ...runBase,
-        auth: await authPromise,
+        auth: await settleAuth(),
         durationMs,
         openAi,
         outcome: { ok: false, error },
