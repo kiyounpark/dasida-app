@@ -14,6 +14,7 @@ import {
   PHOTO_ANALYSIS_RUNS_COLLECTION,
   readRunRequestContext,
   resolveRunAuth,
+  runLogWriteWaitMs,
   toKstDate,
   unresolvedRunAuth,
   withTimeout,
@@ -156,6 +157,18 @@ test('withTimeout: 안 끝나면 상한에서 대체값 — 원본은 계속 돌
 
 test('withTimeout: 실패해도 던지지 않고 대체값', async () => {
   assert.equal(await withTimeout(Promise.reject(new Error('x')), 10, (reason) => reason), 'rejected');
+});
+
+test('runLogWriteWaitMs: 원장 쓰기는 응답 마감(57초)까지 남은 시간만큼 기다린다', () => {
+  const receivedAt = new Date('2026-09-24T00:00:00.000Z');
+  const at = (seconds: number) => receivedAt.getTime() + seconds * 1000;
+
+  // 보통 분석(18초) — 새 인스턴스의 첫 Firestore 연결이 느려도 39초를 줄 수 있다
+  assert.equal(runLogWriteWaitMs(receivedAt, at(18)), 39_000);
+  // AI가 마감(52초)과 인증 대기(2초)를 다 써도 3초는 남는다
+  assert.equal(runLogWriteWaitMs(receivedAt, at(54)), 3_000);
+  assert.equal(runLogWriteWaitMs(receivedAt, at(57)), 0);
+  assert.equal(runLogWriteWaitMs(receivedAt, at(59)), 0);
 });
 
 // ── 실패 분류 ──

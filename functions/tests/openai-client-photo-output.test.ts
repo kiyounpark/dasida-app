@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ANALYZE_PHOTO_TIMEOUT_SECONDS } from '../src/analyze-photo-core';
+import { ANALYZE_PHOTO_TIMEOUT_SECONDS, RESPONSE_DEADLINE_MS } from '../src/analyze-photo-core';
 import {
   PHOTO_ANALYSIS_DEADLINE_MS,
   PHOTO_ANALYSIS_TIMEOUT_MS,
   parsePhotoAnalysisResponse,
   PhotoAnalysisOutputError,
 } from '../src/openai-client';
-import { RUN_AUTH_WAIT_MS, RUN_LOG_WRITE_TIMEOUT_MS } from '../src/photo-analysis-run-log';
+import { RUN_AUTH_WAIT_MS, RUN_LOG_WRITE_MIN_MS } from '../src/photo-analysis-run-log';
 
 const USAGE = {
   input_tokens: 1200,
@@ -83,12 +83,12 @@ test('출력이 비어 있으면 empty_output으로 던지고 usage를 싣는다
   );
 });
 
-test('60초 예산: AI 마감 + 인증 대기 + 원장 쓰기 + 파싱·응답 여유가 함수 한도 안에 든다', () => {
-  // 넘치면 분석이 성공해도 학생은 504, 원장엔 행이 없다 (09.23 astra·Fable 코드리뷰)
-  const PARSE_AND_RESPOND_MS = 3_000;
+// 넘치면 분석이 성공해도 학생은 504, 원장엔 행이 없다 (09.23~24 astra·Fable 코드리뷰)
+test('예산 ①: AI 마감 + 인증 대기 뒤에도 원장 쓰기에 최소 3초가 남는다 (응답 마감 57초 안)', () => {
   assert.ok(PHOTO_ANALYSIS_DEADLINE_MS > PHOTO_ANALYSIS_TIMEOUT_MS);
-  assert.ok(
-    PHOTO_ANALYSIS_DEADLINE_MS + RUN_AUTH_WAIT_MS + RUN_LOG_WRITE_TIMEOUT_MS + PARSE_AND_RESPOND_MS <=
-      ANALYZE_PHOTO_TIMEOUT_SECONDS * 1000,
-  );
+  assert.ok(PHOTO_ANALYSIS_DEADLINE_MS + RUN_AUTH_WAIT_MS + RUN_LOG_WRITE_MIN_MS <= RESPONSE_DEADLINE_MS);
+});
+
+test('예산 ②: 응답 마감 + 파싱·응답 여유(3초)가 함수 한도(60초) 안에 든다', () => {
+  assert.ok(RESPONSE_DEADLINE_MS + 3_000 <= ANALYZE_PHOTO_TIMEOUT_SECONDS * 1000);
 });
