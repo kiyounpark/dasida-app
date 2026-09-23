@@ -42,7 +42,7 @@ b/2 한 줄(`review-content-map.ts:120`)은 "ax²+bx+c" → "x²+bx+c" — math-
 - 과제는 **AI 짚기 갈래 노트만**(`finishNote`) 만든다. 설문 갈래 노트가 생겨도 과제로 안 보낸다 —
   나중에 보낼 땐 `'photo-self'`처럼 값을 하나 더 얹는 추가형이라 마이그레이션이 안 붙는다
 
-**2. 사진 분석 사용량 로그** — 🚨 예약급: 로그 필드를 **둘로 따로** 고정한다. `accountKey`(앱, 있으면) + `participantId`(웹 링크 코드, 있으면).
+**2. 사진 분석 사용량 로그 — 1.0.9 빌드 전에 한다** (09.23 Claude 확인: 앱이 `analyzePhoto`에 누가 보냈는지를 안 싣는다 — 헤더가 `Content-Type` 하나뿐 `analyze-photo-request.ts:109`, 서버 로그도 계정 없음 `analyze-photo.ts:86`. **앱도 고쳐야 하니 1.0.9에 같이 태운다** — 먼저 내면 1.0.10이 또 필요하고 그 사이 기록은 영영 못 센다). 🚨 예약급: 로그 필드를 **둘로 따로** 고정한다. `accountKey`(앱, 있으면) + `participantId`(웹 링크 코드, 있으면).
 웹 코드를 앱 계정 헤더(`x-dasida-account-key`, `learning-history-auth.ts:6`)에 섞으면 인증을 붙이는 순간 웹 코드가 계정으로 둔갑한다
 (Fable이 "같은 헤더" 자기 안을 버리고 astra 안을 받았다).
 
