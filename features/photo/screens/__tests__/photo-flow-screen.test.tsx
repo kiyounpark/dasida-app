@@ -642,6 +642,8 @@ describe('사진 flow 계측', () => {
 
 // ── E칸 — 노트가 복습 과제가 된다 (09.23 🔒 source 'photo', AI 짚기 갈래만) ──
 
+// 부정 테스트는 load를 본다 — spawnMistakeReviewTasks는 load를 먼저 부르고 saveAll은 몇 틱 뒤라,
+// saveAll만 보면 잘못 불렸어도 단정 시점엔 아직 안 불려 통과할 수 있다 (Fable 09.23).
 function memStore(): ReviewTaskStore & { all: () => ReviewTask[] } {
   let tasks: ReviewTask[] = [];
   return {
@@ -702,14 +704,14 @@ describe('PhotoFlowScreen — 복습 과제 (E칸)', () => {
   it('「잘 모르겠어」면 과제가 안 생긴다 — 노트는 그대로', async () => {
     mockAnalyze.mockResolvedValue(radicalResult());
     const store = memStore();
-    const saveAll = jest.spyOn(store, 'saveAll');
+    const load = jest.spyOn(store, 'load');
     render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
 
     await walkToPick();
     fireEvent.press(screen.getByText('잘 모르겠어'));
 
     await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
-    expect(saveAll).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
   });
 
   it('약점 이름표가 없는 칸(빈 칸)이면 과제가 안 생긴다', async () => {
@@ -718,24 +720,24 @@ describe('PhotoFlowScreen — 복습 과제 (E칸)', () => {
       makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
     );
     const store = memStore();
-    const saveAll = jest.spyOn(store, 'saveAll');
+    const load = jest.spyOn(store, 'load');
     render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
 
     await walkToNote();
 
     await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
-    expect(saveAll).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
   });
 
   it('계정 키가 없으면 과제도 안 만든다', async () => {
     mockAnalyze.mockResolvedValue(oneCandidateResult());
     const store = memStore();
-    const saveAll = jest.spyOn(store, 'saveAll');
+    const load = jest.spyOn(store, 'load');
     render(<PhotoFlowScreen reviewTaskStore={store} />);
 
     await walkToNote();
 
-    expect(saveAll).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
   });
 
   it('과제 저장이 실패해도(서버 400 등) 노트 장면은 그대로 나온다', async () => {

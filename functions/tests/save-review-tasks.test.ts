@@ -64,6 +64,29 @@ test('스키마: 정상 바디 통과', () => {
   assert.equal(parsed.success, true);
 });
 
+test("스키마: 사진 노트 과제(source 'photo') 통과 — 없으면 로그인 학생 전원의 사진 과제가 400 (E칸)", () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [
+      makeTask({
+        id: 'photo-2026-09-23T13:34:00.000Z__discriminant_calculation__day1',
+        weaknessId: 'discriminant_calculation',
+        source: 'photo',
+        sourceId: 'photo-2026-09-23T13:34:00.000Z',
+      }),
+    ],
+  });
+  assert.equal(parsed.success, true);
+});
+
+test('스키마: 모르는 source는 reject — enum이 실제로 거르고 있다', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [{ ...makeTask(), source: 'photo-self' }],
+  });
+  assert.equal(parsed.success, false);
+});
+
 test('스키마: accountKey 누락 reject', () => {
   const parsed = SaveReviewTasksRequestSchema.safeParse({ reviewTasks: [] });
   assert.equal(parsed.success, false);
