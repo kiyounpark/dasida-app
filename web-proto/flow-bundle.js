@@ -441,8 +441,13 @@ var DasidaFlow = (() => {
         },
         {
           id: "seq_sum",
-          text: "\uD569 S\u2099 \uACF5\uC2DD \uC801\uC6A9 \uBC29\uBC95\uC5D0\uC11C \uB9C9\uD614\uC5B4\uC694.",
+          text: "\uB4F1\uCC28\xB7\uB4F1\uBE44 \uD569 \uACF5\uC2DD\uC73C\uB85C S\u2099\uC744 \uACC4\uC0B0\uD558\uB294 \uB370\uC11C \uB9C9\uD614\uC5B4\uC694.",
           weaknessId: "g3_sequence"
+        },
+        {
+          id: "seq_sum_term",
+          text: "S\u2099\uC73C\uB85C a\u2099\uC744 \uAD6C\uD588\uB294\uB370 n=1\uC744 \uB530\uB85C \uBD10\uC57C \uD558\uB294 \uC904 \uBAB0\uB790\uC5B4\uC694.",
+          weaknessId: "g3_seq_sum_term"
         },
         {
           id: "seq_recurrence",
@@ -1157,6 +1162,7 @@ var DasidaFlow = (() => {
     // 고3
     "g3_diff",
     "g3_sequence",
+    "g3_seq_sum_term",
     "g3_log_exp",
     "g3_log_exp_base",
     "g3_integral",
@@ -1211,22 +1217,22 @@ var DasidaFlow = (() => {
       id: "derivative_calculation",
       labelKo: "\uBBF8\uBD84 \uACC4\uC0B0 \uBD80\uC871",
       topicLabel: "\uBBF8\uBD84",
-      desc: "x^n \uBBF8\uBD84 \uADDC\uCE59 \uC801\uC6A9\uC774 \uD754\uB4E4\uB824 \uACC4\uC0B0 \uB2E8\uACC4\uC5D0\uC11C \uC624\uB2F5\uC774 \uB0AC\uC2B5\uB2C8\uB2E4.",
-      tip: "\uC9C0\uC218\uB294 \uC55E\uC73C\uB85C \uACF1\uD558\uACE0 \uC9C0\uC218\uB294 1 \uAC10\uC18C\uD55C\uB2E4\uB294 \uD328\uD134\uC744 \uD56D\uBCC4\uB85C \uBD84\uB9AC\uD574 \uC801\uC6A9\uD558\uC138\uC694."
+      desc: "\uBBF8\uBD84 \uADDC\uCE59 \uC801\uC6A9\uC774 \uD754\uB4E4\uB838\uC2B5\uB2C8\uB2E4. \uAD04\uD638\uB07C\uB9AC \uACF1\uD574\uC9C4 \uC2DD\uC744 \uD56D\uBCC4\uB85C \uB530\uB85C \uBBF8\uBD84\uD558\uBA74 \uB2E4\uB978 \uD568\uC218\uAC00 \uB429\uB2C8\uB2E4.",
+      tip: "\uAD04\uD638\uAC00 \uACF1\uD574\uC838 \uC788\uAC70\uB098 \uAD04\uD638\uC5D0 \uC9C0\uC218\uAC00 \uBD99\uC740 \uC2DD\uC740 \uAD04\uD638\uB97C \uD558\uB098\uC529 \uCC28\uB840\uB85C \uBBF8\uBD84\uD558\uACE0 \uB098\uBA38\uC9C0 \uAD04\uD638\uB294 \uADF8\uB300\uB85C \uB454 \uCC44, \uADF8\uB807\uAC8C \uB9CC\uB4E0 \uC904\uC744 \uC804\uBD80 \uB354\uD558\uC138\uC694."
     },
     solving_order_confusion: {
       id: "solving_order_confusion",
       labelKo: "\uD480\uC774 \uC21C\uC11C \uD63C\uB3D9",
       topicLabel: "\uBBF8\uBD84",
       desc: "f'(x)=0\uC73C\uB85C x\uB97C \uAD6C\uD55C \uB4A4 f(x)\uC5D0 \uB300\uC785\uD558\uB294 \uC21C\uC11C\uAC00 \uB204\uB77D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
-      tip: "x \uB3C4\uCD9C -> \uC6D0\uD568\uC218 \uB300\uC785 -> \uCD5C\uB313\uAC12/\uCD5C\uC19F\uAC12 \uD310\uC815\uC758 3\uB2E8\uACC4\uB97C \uCCB4\uD06C\uB9AC\uC2A4\uD2B8\uB85C \uC720\uC9C0\uD558\uC138\uC694."
+      tip: "f'(x)=0\uC5D0\uC11C \uAD6C\uD55C x\uC5D0 \uB3D9\uADF8\uB77C\uBBF8\uB97C \uCE58\uACE0 \uADF8 \uC606\uC5D0 f(x) \uAC12\uC744 \uACC4\uC0B0\uD574 \uC801\uC740 \uB4A4, \uBB38\uC81C\uAC00 \uBB3B\uB294 \uAC83\uC774 x\uC778\uC9C0 f(x)\uC778\uC9C0 \uBB38\uC81C \uBB38\uC7A5\uC5D0 \uBC11\uC904\uC744 \uAE0B\uACE0 \uADF8\uCABD\uC744 \uB2F5\uC73C\uB85C \uC62E\uACA8 \uC801\uC73C\uC138\uC694."
     },
     max_min_judgement_confusion: {
       id: "max_min_judgement_confusion",
-      labelKo: "\uCD5C\uB313\uAC12/\uCD5C\uC19F\uAC12 \uD310\uB2E8 \uD63C\uB3D9",
-      topicLabel: "\uC774\uCC28\uD568\uC218",
-      desc: "a\uC758 \uBD80\uD638\uB85C \uADF8\uB798\uD504 \uBCFC\uB85D \uBC29\uD5A5\uC744 \uD574\uC11D\uD558\uB294 \uB2E8\uACC4\uC5D0\uC11C \uC624\uD310\uC774 \uC788\uC5C8\uC2B5\uB2C8\uB2E4.",
-      tip: "a>0\uC740 \uCD5C\uC19F\uAC12, a<0\uC740 \uCD5C\uB313\uAC12\uC744 \uBA3C\uC800 \uD310\uB2E8\uD55C \uB4A4 \uAC12\uC744 \uACC4\uC0B0\uD558\uC138\uC694."
+      labelKo: "\uADF9\uAC12\xB7\uCD5C\uB313\uAC12 \uD310\uB2E8 \uD63C\uB3D9",
+      topicLabel: "\uBBF8\uBD84",
+      desc: "f'(x)=0\uC778 x\uAC00 \uD56D\uC0C1 \uADF9\uAC12\uC740 \uC544\uB2C8\uACE0, \uADF9\uB313\uAC12\uC774 \uD56D\uC0C1 \uCD5C\uB313\uAC12\uB3C4 \uC544\uB2CC\uB370 \uADF8 \uAD6C\uBD84\uC5D0\uC11C \uC624\uD310\uC774 \uC788\uC5C8\uC2B5\uB2C8\uB2E4.",
+      tip: "f'(x)=0\uC778 x\uB97C \uC791\uC740 \uAC83\uBD80\uD130 \uB298\uC5B4\uB193\uACE0, \uC774\uC6C3\uD55C \uB450 x \uC0AC\uC774\uC5D0\uC11C \uC218\uB97C \uD558\uB098\uC529 \uACE8\uB77C f'\uC5D0 \uB123\uC5B4 +\xB7-\uB97C \uC801\uC73C\uC138\uC694. \uBD80\uD638\uAC00 \uC548 \uBC14\uB010 x\uC5D0\uB294 \xD7\uD45C\uB97C \uCE58\uACE0, \uAD6C\uAC04\uC774 \uC8FC\uC5B4\uC84C\uC73C\uBA74 \uC591 \uB05D x\uC758 f\uAC12\uB3C4 \uAC19\uC740 \uC904\uC5D0 \uC801\uC5B4 \uBE44\uAD50\uD558\uC138\uC694."
     },
     basic_concept_needed: {
       id: "basic_concept_needed",
@@ -1496,6 +1502,13 @@ var DasidaFlow = (() => {
       desc: "\uB4F1\uCC28\xB7\uB4F1\uBE44\uC218\uC5F4\uC758 \uC77C\uBC18\uD56D\uC774\uB098 \uD569 \uACF5\uC2DD \uC801\uC6A9\uC5D0\uC11C \uC2E4\uC218\uAC00 \uC788\uC5C8\uC2B5\uB2C8\uB2E4.",
       tip: "\uB4F1\uCC28\uC218\uC5F4 a\u2099=a\u2081+(n-1)d, \uB4F1\uBE44\uC218\uC5F4 a\u2099=a\u2081\xB7r\u207F\u207B\xB9 \uACF5\uC2DD\uC744 \uBA3C\uC800 \uD655\uC778\uD558\uC138\uC694."
     },
+    g3_seq_sum_term: {
+      id: "g3_seq_sum_term",
+      labelKo: "a\u2081\uC740 S\u2081\uB85C \uB530\uB85C \uD655\uC778",
+      topicLabel: "\uC218\uC5F4",
+      desc: "n\u22652\uC5D0\uC11C S\u2099\u2212S\u2099\u208B\u2081\uB85C \uAD6C\uD55C \uC77C\uBC18\uD56D \uC2DD\uC774 n=1\uAE4C\uC9C0 \uB9DE\uB294\uB2E4\uB294 \uBCF4\uC7A5\uC740 \uC5C6\uC2B5\uB2C8\uB2E4.",
+      tip: "n\u22652\uC5D0\uC11C \uAD6C\uD55C \uC2DD\uC5D0 n=1\uC744 \uB123\uC5B4 S\u2081\uACFC \uB9DE\uCDB0 \uBCF4\uC138\uC694. \uB123\uC744 \uC218 \uC5C6\uAC70\uB098 \uB2E4\uB974\uBA74 a\u2081=S\u2081\uB85C \uB530\uB85C, \uAC19\uC73C\uBA74 \uADF8 \uC2DD \uD558\uB098\uB85C \uC501\uB2C8\uB2E4."
+    },
     g3_log_exp: {
       id: "g3_log_exp",
       labelKo: "\uC9C0\uC218\xB7\uB85C\uADF8 \uACC4\uC0B0",
@@ -1614,9 +1627,10 @@ var DasidaFlow = (() => {
     // 미분 계산 부족
     solving_order_confusion: "procedure_miss",
     // 풀이 순서 혼동
-    // ⚠️ 아래 둘은 태그는 맞는데 diagnosisMap의 desc·tip이 딴 얘기를 한다 (문서 ②).
-    // max_min: 미분에서 막힌 학생에게 이차함수 처방 — diff+concept_gap의 유일 후보라 피할 길이 없다.
-    // basic_concept: 경우의 수에서 막힌 학생에게 완전제곱식 처방.
+    // ⚠️ 태그는 맞는데 diagnosisMap의 desc·tip이 딴 얘기를 하던 둘 (문서 ②) — 하나는 고쳤다.
+    // max_min: 미분에서 막힌 학생에게 이차함수 처방이 나가던 자리. 2026.09.15에 미분 문구로 갈았다
+    //   (a>0이면 최솟값은 삼차부터 거짓이다 — x³-3x는 [-3,2]에서 최댓값 2, 최솟값은 끝점 -18).
+    // basic_concept: 경우의 수에서 막힌 학생에게 완전제곱식 처방. 아직 안 고쳤다.
     // 고칠 자리는 이 표가 아니라 diagnosisMap의 문구다. 저장을 붙이기 전에 손봐야 한다.
     max_min_judgement_confusion: "concept_gap",
     // 최댓값/최솟값 판단 혼동
@@ -1699,6 +1713,8 @@ var DasidaFlow = (() => {
     // 미분 계산
     g3_sequence: "formula_recall",
     // 수열 계산
+    g3_seq_sum_term: "concept_gap",
+    // Sₙ→aₙ 식의 적용 범위(n≥2) 혼동
     g3_log_exp: "formula_recall",
     // 지수·로그 계산
     g3_log_exp_base: "formula_recall",
