@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.24 10:47
+- 해시: `f707447` (`f707447e12702f5ea87f9b964f5b0744ae9a5879`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f707447e12702f5ea87f9b964f5b0744ae9a5879
+- 작성자: 박기윤
+- 메시지: docs: STATUS 순서·목표 목록에도 사용량 로그 ✅ 표시
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.24 09:41
 - 해시: `08d3eb8` (`08d3eb852da0abc242b3958a74df20a9d0b3a223`)
 - 브랜치: main
