@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.24 09:41
+- 해시: `08d3eb8` (`08d3eb852da0abc242b3958a74df20a9d0b3a223`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/08d3eb852da0abc242b3958a74df20a9d0b3a223
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 사용량 로그 배포 · E 09.24 실제 계정 한 바퀴 · 다음은 개념 설명
+- 본문: - E: 홈 "오늘 복습할 것"에 사진 과제, 아침 알림 폰 수신, 복습 3단계 → day3 source 'photo'(09.27, D-3 — "D-2" 기대가 틀렸다) / - 새로 찾은 것: 아침 알림(07:30)이 과제 due(09:00~)보다 먼저 온다 — 따로 작업으로 뺌 / - 사용량 로그 ✅ 서버 배포(d2a7506), curl·시뮬레이터 실측(authVerified true), 앱은 1.0.9에 / - 다음 할 일: 3번 개념 설명(🔒 상한 6시간) → 1.0.9 빌드(app.config.js version 올리기부터) / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.23 23:43
 - 해시: `e3f1413` (`e3f1413920970906d692fbd85d56397a283a97ba`)
 - 브랜치: main
