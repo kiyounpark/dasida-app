@@ -17,6 +17,8 @@
    고칠 자리(Fable·Claude 확인): ① due 판정 `functions/src/learning-history.ts:531-533`을 순간 비교 → KST 날짜 비교 ② 서버 `addDays` `:477-481`(`:860` 다음 단계, `:898` day1)을 앱 관례 `T00:00:00.000Z`로 정규화. 옛 데이터는 안 옮긴다(읽을 때 계산). 서버 테스트 `functions/tests/learning-history-weakness-practice.test.ts:119,291,354,415,442` 같이 손봄. 테스트 먼저. functions 배포는 기윤에게 묻고
    Claude 앱 칩: **"Fix review due time to match morning push (server)"** 로 시작하면 위 내용이 다 들어 있다. 옛 칩 "Align morning push time with review due time"은 닫는다. 칩이 없어도 이 줄만 보고 하면 된다
 4. **웹 참여 코드 `?p=`** — 서버는 이미 받는다. 웹 `web-proto/app.js` 10~15줄, 1시간. 설계 §4(`docs/superpowers/specs/2026-09-23-photo-usage-log-design.md`)
+5. **1.0.9가 양쪽 스토어에 뜬 날 — 웹 약속 두 줄 되돌려 배포 = E ✅** (🔒 E 끝나는 조건, 09.23 기윤). `web-proto/app.js`의 ⏪ 주석 자리. 뜬 건 애플 조회 API·플레이 스토어 페이지로 확인한 뒤에(1.0.8 때와 같은 방법). 10분짜리
+   E에서 코드로 할 건 이것 말고 없다 — 코드·서버·실제 계정 한 바퀴(09.24)는 끝났다. 순서 4와 5는 어느 쪽이 먼저여도 된다(5는 스토어 승인 날짜에 달렸다)
 
 **0. ✅ 끝남, 배포함 (09.23 `5bb5d7a`)** — 아래 목록대로 했다. 스토어 버튼은 1.0.8이 양쪽 스토어에 떠 있는 걸 확인하고 켰다
 (애플 조회 API `1.0.8 · 09.07 출시`, 플레이 스토어 페이지 `1.0.8`). 번들 재빌드함(`g3_seq_sum_term` 0건 → 5건). 배포본 `app.js`·`flow-bundle.js`가 로컬과 바이트까지 같다.
