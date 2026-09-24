@@ -160,6 +160,8 @@ writePhotoAnalysisRun(doc)            → Firestore add. 안에서 try/catch, �
 - (c) 다른 날 두 번째 = 한 `accountKey`의 `ok==true` 행 중 **kstDate가 다르고 imageHash도 다른** 두 행이 있는 학생 수. 웹은 `participantId`로 같은 규칙 — 단 사람 확정은 대장에서.
 - AI 실패 = `ok==false`를 `errorKind`별로. 제출 수(시도)와 따로 본다.
 - 1.0.8 앱 트래픽은 `channel:'unknown'`, 헤더 없음으로 구분된다.
+- **재촬영 (09.24 astra·Fable 둘 다)**: 같은 문제를 다음 날 다시 찍으면 해시가 달라 (c)에 "두 번째"로 세진다. 학생 글씨를 안 남겨서 원장만으론 못 가른다 → **칸을 더 저장하지 않고 사람이 확인한다**(3명 = 만나서 묻는 표본). 같은 문제라고 무조건 빼지 말고 새로 풀어 보낸 건지 본다. (c)는 원장으로 "후보"까지만 센다
+- **첫 집계 전에 정할 것**: ① "두 번째"의 정의 — 사진 올림(마케팅 문서 `:804`, 원장이 세는 것) vs 사진 노트 생성 완료(`:722`, 복습 과제 `source:'photo'`로 따로 셈) ② 제외할 기윤 계정 키
 
 ## 6. 테스트 — 무엇이 깨지면 잡히나
 
@@ -216,3 +218,5 @@ astra의 "2~3일"은 계정 연결 모듈·집계 스크립트·웹·시작/종�
 - **남은 빈틈 — 재시도 대기 (astra P1-b, Fable "뒤로")**: SDK는 `retry-after` 헤더만큼 신호를 안 보고 잔다(`client.js:437-464`, 상한 없음). 늦게 온 429가 길게 기다리라 하면 60초 504·행 없음. 47ddefc 전부터 있던 동작이고 OpenAI 429의 retry-after는 보통 ms~초라 드물다. 고치려면 SDK 재시도를 직접 짜야 한다 — 원장에서 보이면 그때
 - ✅ **클라이언트는 `photoAnalysisRuns`를 못 읽는다 (로그인해도).** 콘솔 규칙(09.24 Claude가 크롬으로 확인)은 `users/{uid}/profile/data`를 본인에게만 열고(`request.auth.uid == uid`) 나머지는 규칙이 없다 = 전부 거부. 로그인 안 한 요청은 Firestore REST로도 `403 PERMISSION_DENIED` 확인. 서버는 admin SDK라 규칙과 무관
 - 빌드 체크리스트: **`app.config.js:7` `version`을 1.0.9로 올려야** 원장 `appVersion`이 맞게 찍힌다 (Fable)
+- **1.0.9가 뜬 날 스토어 빌드로 1장** 보내 `qa:false`·`appVersion:"1.0.9"`·`authVerified:true`를 눈으로 본다 — 09.24 실측은 개발 빌드(`qa:true`)뿐 (Fable)
+- **"더 할 게 있나" (09.24 astra·Fable 둘 다)**: 코드로 더 할 건 없다. 1.0.9 전엔 버전 한 줄뿐
