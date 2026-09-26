@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.26 09:30
+- 해시: `cd59070` (`cd59070a2a429e5b8e09fdafb039f3491b858572`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/cd59070a2a429e5b8e09fdafb039f3491b858572
+- 작성자: 박기윤
+- 메시지: docs: STATUS 개념 설명 ✅ — 서버+웹 배포, 알고 내보낸 것·남은 것
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.24 10:47
 - 해시: `f707447` (`f707447e12702f5ea87f9b964f5b0744ae9a5879`)
 - 브랜치: main
