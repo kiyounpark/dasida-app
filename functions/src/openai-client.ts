@@ -361,6 +361,23 @@ export const PHOTO_ANALYSIS_SCHEMA = {
     hasSolvingWork: { type: 'boolean' },
     userAnswer: { type: ['string', 'null'] },
     transcription: { type: 'string', maxLength: 600 },
+    // 검산 칸(09.26) — 학생에겐 안 나간다(analyze-photo.ts의 zod가 버리고, buildPhotoRouterResult도 안 싣는다).
+    // strict 출력은 이 순서대로 생성되므로 errorCandidates보다 앞에 둬야 "검산 → 짚기"가 강제된다.
+    // 같은 사진 20회에서 놓친 12회는 전부 "11"을 제대로 읽고도 검산을 건너뛰었다 — "속으로 검산"은 말로는 안 움직였다.
+    lineChecks: {
+      type: 'array',
+      maxItems: 8,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          line: { type: 'string', maxLength: 120 },
+          recomputed: { type: 'string', maxLength: 120 },
+          ok: { type: 'boolean' },
+        },
+        required: ['line', 'recomputed', 'ok'],
+      },
+    },
     predictedMethodId: { type: 'string' },
     confidence: { type: 'number', minimum: 0, maximum: 1 },
     candidateMethodIds: {
@@ -416,6 +433,7 @@ export const PHOTO_ANALYSIS_SCHEMA = {
     'hasSolvingWork',
     'userAnswer',
     'transcription',
+    'lineChecks',
     'predictedMethodId',
     'confidence',
     'candidateMethodIds',
@@ -429,9 +447,13 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '당신은 한국 수능 수학 오답 사진 분석기입니다.',
   '사진에는 학생이 틀린 문제 하나와 학생의 손글씨 풀이가 담겨 있습니다.',
   '할 일: ① 학생이 적은 최종 답 읽기 ② 손글씨 풀이를 짧게 전사 ③ 어떤 풀이 방법을 시도했는지 분류 ④ 풀이에서 틀린 지점 찾기.',
-  '학생이 쓴 각 줄이 맞는지는 속으로 반드시 검산하세요. 검산하지 않으면 계산 실수를 찾을 수 없습니다.',
+  '학생이 쓴 각 줄이 맞는지는 반드시 검산하세요. 검산하지 않으면 계산 실수를 찾을 수 없습니다.',
+  'lineChecks는 학생에게 보이지 않는 검산표입니다. errorCandidates를 정하기 전에 먼저 채우세요.',
+  '  계산이 들어 있는 학생 줄(등호로 값이 바뀌는 줄)마다 한 칸: line = 학생이 쓴 그 줄 그대로, recomputed = 바로 앞 줄에서 당신이 직접 다시 계산한 식과 값, ok = 학생이 쓴 값과 같으면 true.',
+  '  학생이 쓴 값을 베끼지 말고 반드시 직접 계산하세요. 줄이 8개를 넘으면 계산이 들어 있는 줄을 앞에서부터 8개.',
+  '  ok가 false인 줄은 계산 실수 후보입니다 — 규칙 3의 순서대로 errorCandidates에 올리세요. 글씨가 애매해서 학생 값을 확신 못 하면 ok를 true로 두고 짚지 마세요.',
   '단, 당신이 푼 풀이나 답을 학생에게 말하지 마세요. 원문 문제의 풀이 해설·고친 식·정답은 어디에도 쓰지 마세요. 개념과 그 성립 조건 설명은 concept 필드에서만 허용합니다. 인용은 반드시 학생이 실제로 쓴 줄에서만 하세요.',
-  '손글씨 풀이 과정이 사진에 없으면 hasSolvingWork를 false로 하고 transcription은 빈 문자열, errorCandidates는 빈 배열로 두세요.',
+  '손글씨 풀이 과정이 사진에 없으면 hasSolvingWork를 false로 하고 transcription은 빈 문자열, lineChecks와 errorCandidates는 빈 배열로 두세요.',
   'userAnswer는 학생이 적은 최종 답(예: "3", "27"). 안 보이면 null.',
   'transcription은 학생 풀이의 핵심 단계를 한국어 1~3문장으로 요약 전사하세요.',
   '반드시 허용된 풀이법 id 중 하나를 predictedMethodId로 반환하세요. 근거가 약하면 unknown.',

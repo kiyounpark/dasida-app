@@ -408,3 +408,32 @@ test('PHOTO_ANALYSIS_SCHEMA: concept는 null 허용 객체이고 안쪽도 stric
   assert.deepEqual([...concept.required].sort(), Object.keys(concept.properties).sort());
   assert.deepEqual(Object.keys(concept.properties).sort(), ['rule', 'violation']);
 });
+
+// 검산 칸(09.26) — 같은 사진 20회에서 놓친 12회는 전부 "11"을 제대로 읽고도 검산을 건너뛰었다(reasoning 181~516 토큰).
+// strict 출력은 properties 순서대로 생성되므로 errorCandidates보다 앞에 있어야 "검산 → 짚기"가 강제된다.
+test('PHOTO_ANALYSIS_SCHEMA: lineChecks는 errorCandidates보다 앞에 있고 안쪽도 strict 규약을 지킨다', () => {
+  const keys = Object.keys(PHOTO_ANALYSIS_SCHEMA.properties);
+  assert.ok(keys.includes('lineChecks'));
+  assert.ok(keys.indexOf('lineChecks') < keys.indexOf('errorCandidates'));
+  const items = PHOTO_ANALYSIS_SCHEMA.properties.lineChecks.items;
+  assert.equal(items.additionalProperties, false);
+  assert.deepEqual([...items.required].sort(), Object.keys(items.properties).sort());
+});
+
+test('buildPhotoRouterResult: 검산 칸은 학생 응답에 안 나간다 (정답값이 들어 있다)', () => {
+  const raw = {
+    hasSolvingWork: true,
+    userAnswer: '3',
+    transcription: '판별식',
+    predictedMethodId: 'quadratic',
+    confidence: 0.9,
+    candidateMethodIds: ['quadratic'],
+    reason: 'x',
+    lineChecks: [{ line: '= 11', recomputed: '25 − 12 = 13', ok: false }],
+    errorCandidates: [],
+    errorConfidence: 0,
+  };
+  const result = buildPhotoRouterResult(raw as Parameters<typeof buildPhotoRouterResult>[0]);
+  assert.equal('lineChecks' in result, false);
+  assert.equal(JSON.stringify(result).includes('13'), false);
+});
