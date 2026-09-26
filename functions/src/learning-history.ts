@@ -474,8 +474,16 @@ function getImportWriteRef(targetAccountKey: string, operation: ImportWriteOpera
   }
 }
 
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+function toKstDateLabel(timestamp: string) {
+  return new Date(new Date(timestamp).getTime() + KST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+// 앱 관례(review-scheduler.ts addDaysToToday)와 같다: KST 날짜만 의미 있고 T00:00:00.000Z는 고정값.
+// 아침 알림(review-reminder-core)과 due 판정이 모두 앞 10글자만 읽는다.
 function addDays(timestamp: string, days: number) {
-  const nextDate = new Date(timestamp);
+  const nextDate = new Date(`${toKstDateLabel(timestamp)}T00:00:00.000Z`);
   nextDate.setUTCDate(nextDate.getUTCDate() + days);
   return nextDate.toISOString();
 }
@@ -528,9 +536,10 @@ function toReviewTaskSummary(task: ReviewTask) {
 function buildReviewTaskState(reviewTasks: ReviewTask[]) {
   const pendingReviewTasks = sortReviewTasks(reviewTasks.filter((task) => !task.completed));
   const nextReviewTask = pendingReviewTasks[0];
-  const now = new Date().toISOString();
+  // 옛 데이터(끝낸 시각 그대로)도 날짜만 읽는다 — 아침 알림이 고르는 규칙과 같다.
+  const today = toKstDateLabel(new Date().toISOString());
   const dueReviewTasks = pendingReviewTasks.filter((task) =>
-    isTimestampOnOrBefore(task.scheduledFor, now),
+    task.scheduledFor.slice(0, 10) <= today,
   );
 
   return {

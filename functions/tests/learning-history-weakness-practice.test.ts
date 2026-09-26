@@ -362,7 +362,7 @@ test('review completion advances to the next stage and stops after day30', () =>
     weaknessId: 'formula_understanding',
     source: 'diagnostic',
     sourceId: 'attempt-diagnostic-1',
-    scheduledFor: '2026-04-19T09:02:00.000Z',
+    scheduledFor: '2026-04-19T00:00:00.000Z',
     stage: 'day30',
     completed: false,
     createdAt: '2026-03-20T09:02:00.000Z',
