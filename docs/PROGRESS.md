@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.26 16:00
+- 해시: `90de015` (`90de015f12e0f261901b69f47a556de92a7c1702`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/90de015f12e0f261901b69f47a556de92a7c1702
+- 작성자: 박기윤
+- 메시지: docs: STATUS·PROGRESS — 아침 알림·홈 복습 날짜 맞춤 배포
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.26 11:18
 - 해시: `d058f01` (`d058f017ccfb228cda840f2388f4844ca1aa498a`)
 - 브랜치: main
