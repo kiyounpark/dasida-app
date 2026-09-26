@@ -342,3 +342,69 @@ test('sanitizeErrorCandidates: 정상 보기 안의 따옴표·쉼표는 오염�
   assert.equal(comma.length, 1);
   assert.equal(comma[0].retryPrompt, validRetry.retryPrompt);
 });
+
+// 개념 설명(09.24) — [모르겠어]를 누른 학생에게만 웹이 꺼낸다. 🔒 두 덩어리·합계 300자·calc_slip·answer_read 제외.
+const validConcept = {
+  rule: '넓이는 늘 0 이상이야. 그래프가 x축 아래 있는 구간은 적분값이 음수로 나오니 절댓값을 씌워야 넓이가 돼.',
+  violation: '네가 쓴 줄은 x축 아래 구간을 그대로 적분해서, 음수가 나온 값을 넓이로 적었어.',
+};
+const conceptCandidate = { ...validCandidate, mistakeType: 'concept_gap' };
+
+test('sanitizeErrorCandidates: concept 두 칸이 다 있으면 그대로 유지', () => {
+  const out = sanitizeErrorCandidates([{ ...conceptCandidate, concept: validConcept }], true);
+  assert.equal(out.length, 1);
+  assert.deepEqual(out[0].concept, validConcept);
+});
+
+test('sanitizeErrorCandidates: concept null·키 없음이면 필드만 생략 (기존 배포 형태)', () => {
+  const nullConcept = sanitizeErrorCandidates([{ ...conceptCandidate, concept: null }], true);
+  assert.equal(nullConcept.length, 1);
+  assert.equal('concept' in nullConcept[0], false);
+  const noKey = sanitizeErrorCandidates([conceptCandidate], true);
+  assert.equal('concept' in noKey[0], false);
+});
+
+test('sanitizeErrorCandidates: calc_slip·answer_read면 concept가 와도 버린다 — 후보는 산다', () => {
+  for (const mistakeType of ['calc_slip', 'answer_read']) {
+    const out = sanitizeErrorCandidates([{ ...validCandidate, mistakeType, concept: validConcept }], true);
+    assert.equal(out.length, 1, mistakeType);
+    assert.equal('concept' in out[0], false, mistakeType);
+  }
+});
+
+test('sanitizeErrorCandidates: concept 반쪽·빈칸·비문자열이면 통째로 버린다 — 후보는 산다', () => {
+  const broken = [
+    { rule: validConcept.rule },
+    { rule: '  ', violation: validConcept.violation },
+    { rule: validConcept.rule, violation: 3 },
+    '넓이는 늘 0 이상이야.',
+  ];
+  for (const concept of broken) {
+    const out = sanitizeErrorCandidates([{ ...conceptCandidate, concept }], true);
+    assert.equal(out.length, 1);
+    assert.equal('concept' in out[0], false, JSON.stringify(concept));
+  }
+});
+
+test('sanitizeErrorCandidates: concept 합계 300자까지 통과, 301자면 자르지 않고 버린다', () => {
+  const at300 = { rule: '가'.repeat(150), violation: '나'.repeat(150) };
+  const at301 = { rule: '가'.repeat(150), violation: '나'.repeat(151) };
+  assert.deepEqual(sanitizeErrorCandidates([{ ...conceptCandidate, concept: at300 }], true)[0].concept, at300);
+  const over = sanitizeErrorCandidates([{ ...conceptCandidate, concept: at301 }], true);
+  assert.equal(over.length, 1);
+  assert.equal('concept' in over[0], false);
+});
+
+test('sanitizeErrorCandidates: concept 앞뒤 공백은 다듬고 길이는 다듬은 뒤로 센다', () => {
+  const padded = { rule: `  ${'가'.repeat(150)}  `, violation: `\n${'나'.repeat(150)}\n` };
+  const out = sanitizeErrorCandidates([{ ...conceptCandidate, concept: padded }], true);
+  assert.deepEqual(out[0].concept, { rule: '가'.repeat(150), violation: '나'.repeat(150) });
+});
+
+test('PHOTO_ANALYSIS_SCHEMA: concept는 null 허용 객체이고 안쪽도 strict 규약을 지킨다', () => {
+  const concept = PHOTO_ANALYSIS_SCHEMA.properties.errorCandidates.items.properties.concept;
+  assert.deepEqual([...concept.type].sort(), ['null', 'object']);
+  assert.equal(concept.additionalProperties, false);
+  assert.deepEqual([...concept.required].sort(), Object.keys(concept.properties).sort());
+  assert.deepEqual(Object.keys(concept.properties).sort(), ['rule', 'violation']);
+});

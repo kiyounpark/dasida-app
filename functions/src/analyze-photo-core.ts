@@ -29,6 +29,9 @@ export type ErrorCandidate = {
   retryPrompt?: string;
   retryOptions?: string[];   // 정확히 3개
   retryAnswerIndex?: number; // 0~2
+  // 개념 설명(09.24) — 웹 [왜 틀린 건지 아직 모르겠어]에서만 꺼낸다. 필요한 개념·성립 조건 → 학생 식이 어긴 이유.
+  // 둘 다 있거나 통째로 없거나. calc_slip·answer_read엔 없다.
+  concept?: { rule: string; violation: string };
 };
 
 export type VisionRawResult = {
@@ -70,6 +73,26 @@ export const allowedMethodIds: SolveMethodId[] = (
 // 학생 화면엔 보기 하나가 두 개로 보인다. 프롬프트 규칙 12③으로도 막지만, 뚫렸을 때의 2겹.
 // 오염 보기는 제거가 아니라 무효 처리한다 — 빼면 checkAnswerIndex가 밀려 오답이 정답이 된다(빈 보기와 같은 이유).
 const OPTION_CONTAMINATION = /['"’”]\s*,\s*['"‘“]|」\s*「/;
+
+// 🔒 09.23 두 덩어리 합계 300자. 한글은 BMP라 .length가 글자 수다.
+const CONCEPT_MAX_CHARS = 300;
+// 손이 미끄러진 자리라 설명할 개념이 없다 — 프롬프트 13번으로도 막지만, 뚫렸을 때의 2겹.
+const CONCEPT_EXCLUDED_TYPES: readonly MistakeTypeId[] = ['calc_slip', 'answer_read'];
+
+// 불량이면 자르지 않고 통째로 버린다 — 중간에 끊긴 설명은 고장처럼 보이고, 버리면 웹이 fix로 조용히 떨어진다.
+function sanitizeConcept(
+  raw: unknown,
+  mistakeType: MistakeTypeId,
+): { rule: string; violation: string } | null {
+  if (CONCEPT_EXCLUDED_TYPES.includes(mistakeType)) return null;
+  if (!raw || typeof raw !== 'object') return null;
+  const c = raw as Record<string, unknown>;
+  const rule = typeof c.rule === 'string' ? c.rule.trim() : '';
+  const violation = typeof c.violation === 'string' ? c.violation.trim() : '';
+  if (!rule || !violation) return null;
+  if (rule.length + violation.length > CONCEPT_MAX_CHARS) return null;
+  return { rule, violation };
+}
 
 function isCleanOption(option: unknown): option is string {
   return typeof option === 'string' && option.trim() !== '' && !OPTION_CONTAMINATION.test(option);
@@ -117,10 +140,12 @@ export function sanitizeErrorCandidates(
     const retryValid =
       retrySetup !== '' && retryPrompt !== '' &&
       retryOptions.length === 3 && retryAnswerIndex >= 0 && retryAnswerIndex <= 2;
+    const concept = sanitizeConcept(c.concept, mistakeType);
     out.push({
       quote, why, mistakeType, fix, checkPrompt, checkOptions, checkAnswerIndex,
       ...(checkSetup ? { checkSetup } : {}),
       ...(retryValid ? { retrySetup, retryPrompt, retryOptions, retryAnswerIndex } : {}),
+      ...(concept ? { concept } : {}),
     });
   }
   return out;

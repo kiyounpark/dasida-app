@@ -605,11 +605,20 @@
     ]);
   }
 
-  // [모르겠어] — 같은 why를 또 읽히지 않는다. 서버 없이 새로 줄 수 있는 글자는 fix("~하면 → ~하자")뿐이라
-  // 그걸 먼저 꺼내고, 풀면서 깨닫게 쪽지로 넘긴다. AI를 한 번 더 부르는 설명은 학생 2명 본 뒤에 정한다(09.23 Fable).
+  // [모르겠어] — 같은 why를 또 읽히지 않는다. 개념 설명(concept: 필요한 개념·성립 조건 → 학생 식이 어긴 이유)이
+  // 있으면 그걸, 없으면(calc_slip·answer_read·불량) fix("~하면 → ~하자")를 꺼내고 쪽지로 넘긴다.
+  // concept는 같은 analyzePhoto 한 번에서 같이 온다 — AI를 다시 부르지 않는다(09.23 astra·Fable, 기윤 🔒).
+  // fix는 어차피 노트 "다음엔" 칸에 나가서 여기서 빼도 잃는 글자가 없다.
+  // react를 갈라 넘긴다 — 설명을 본 학생과 fix만 본 학생이 check_answer에서 섞이면 "설명이 먹혔나"를 못 센다(09.24 Fable).
   function explainAgain(idx) {
     const cand = pocket.errorCandidates[idx];
     coachSays('괜찮아, 말로 들어선 원래 잘 안 잡혀.');
+    if (cand.concept?.rule && cand.concept?.violation) {
+      coachSays(cand.concept.rule);
+      coachSays(cand.concept.violation);
+      showCheck(idx, 'dont_get_why_concept');
+      return;
+    }
     if (cand.fix) coachSays(`다르게 말하면 — "${cand.fix}"`);
     showCheck(idx, 'dont_get_why');
   }

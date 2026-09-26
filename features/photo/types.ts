@@ -27,6 +27,7 @@ export type ErrorCandidate = {
   retryPrompt?: string;
   retryOptions?: string[];
   retryAnswerIndex?: number;
+  concept?: { rule: string; violation: string }; // 개념 설명 — 웹 [모르겠어]만 쓴다. 앱 ⑤는 아직 안 쓴다
 };
 
 /**
