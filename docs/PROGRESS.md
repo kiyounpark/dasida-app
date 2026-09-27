@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.27 14:28
+- 해시: `67cc304` (`67cc304a8218f3c8846e988274286127075a1906`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/67cc304a8218f3c8846e988274286127075a1906
+- 작성자: 박기윤
+- 메시지: test(web): 저장소 흉내를 저장소로 — scripts/verify-web-proto-storage.mjs (12경우)
+- 본문: 웹은 자동 테스트가 없다. 실제 analytics.js → app.js 윗블록을 배포 주소 흉내로 같은 저장소에 돌린다. / 저장소 차단·쓰기만 막힘·용량 초과·정상 네 갈래. Fable 1차 권고(위치는 web-proto가 통째로 배포돼서 scripts/로). / 리뷰 수정 전 코드(083ed63)에선 astra ①② 두 경우만 깨지는 것 확인. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.27 14:22
 - 해시: `a5d110c` (`a5d110c1e78e97618945713139f3f1c7db195dd1`)
 - 브랜치: main
