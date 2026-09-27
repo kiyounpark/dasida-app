@@ -24,16 +24,33 @@
   // 참여 코드: 기윤이 학생마다 만들어 링크 `?p=코드`로 준다. 한 번 들어오면 링크 없이 다시 와도 이어진다.
   // 형식은 서버 PARTICIPANT_ID_PATTERN(functions/src/photo-analysis-run-log.ts)과 같게 — 틀리면 무시.
   const PARTICIPANT_ID_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
-  let participantId = null;
-  let isQa = false;
+  // 어느 링크로 왔나(yt_short6_pin·insta…) — 서버 UTM_SOURCE_PATTERN과 같게. 설계 docs/research/2026-09-27-utm-ledger-astra-fable.md
+  const UTM_SOURCE_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+  // 주소 값을 먼저 읽는다 — 저장이 막혀도(사파리 프라이빗) 이번 제출엔 싣는다. 안 그러면 QA 사진이 진짜 제출로 찍힌다
+  const params = new URLSearchParams(location.search);
+  const urlP = params.get('p');
+  const urlQa = params.get('qa');
+  const urlUtm = params.get('utm_source');
+  let participantId = urlP && PARTICIPANT_ID_PATTERN.test(urlP) ? urlP : null;
+  let isQa = urlQa !== null && urlQa !== '0' && urlQa !== 'off';
+  let utmSource = urlUtm && UTM_SOURCE_PATTERN.test(urlUtm) ? urlUtm : null;
+  let utmSeenAt = utmSource ? new Date().toISOString() : null;
   try {
-    const p = new URLSearchParams(location.search).get('p');
-    if (p && PARTICIPANT_ID_PATTERN.test(p)) localStorage.setItem('dasida_participant', p);
+    if (participantId) localStorage.setItem('dasida_participant', participantId);
     const stored = localStorage.getItem('dasida_participant');
     participantId = stored && PARTICIPANT_ID_PATTERN.test(stored) ? stored : null;
-    isQa = localStorage.getItem('dasida_qa') === '1'; // ?qa=1 저장은 analytics.js가 먼저 한다
+    // ?qa=1 저장은 analytics.js가 먼저 한다. 쓰기만 막혀 저장이 비었어도 주소의 qa=1은 안 지운다
+    if (localStorage.getItem('dasida_qa') === '1') isQa = true;
+    // 다른 이름표일 때만 덮고 시각을 새로 — reload()가 쿼리를 들고 다시 열 때마다 시각이 밀리면 안 된다
+    if (utmSource && localStorage.getItem('dasida_utm_source') !== utmSource) {
+      localStorage.setItem('dasida_utm_source', utmSource);
+      localStorage.setItem('dasida_utm_seen_at', utmSeenAt);
+    }
+    const storedUtm = localStorage.getItem('dasida_utm_source');
+    utmSource = storedUtm && UTM_SOURCE_PATTERN.test(storedUtm) ? storedUtm : null;
+    utmSeenAt = utmSource ? localStorage.getItem('dasida_utm_seen_at') : null;
   } catch {
-    // 사파리 프라이빗 등에서 막히면 코드 없는 방문으로 둔다
+    // 사파리 프라이빗 등에서 막히면 이번 주소의 값만 메모리에 두고 싣는다
   }
   const host = location.hostname;
   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
@@ -314,8 +331,8 @@
       const response = await fetch(ANALYZE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // participantId·submissionId가 null이면 JSON.stringify가 그대로 null을 싣고, 서버는 없는 것으로 본다
-        body: JSON.stringify({ imageDataUrl, channel: 'web', participantId, submissionId, qa: isQa || isLocal }),
+        // participantId·submissionId·utm 값이 null이면 JSON.stringify가 그대로 null을 싣고, 서버는 없는 것으로 본다
+        body: JSON.stringify({ imageDataUrl, channel: 'web', participantId, submissionId, qa: isQa || isLocal, utmSource, utmSeenAt }),
         signal: AbortSignal.timeout(75_000), // 함수 타임아웃(60s)보다 살짝 길게
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);

@@ -51,6 +51,8 @@ test('readRunRequestContext: 아무 필드도 없으면 channel unknown·qa fals
     participantId: null,
     submissionId: null,
     qa: false,
+    utmSource: null,
+    utmSeenAt: null,
   });
 });
 
@@ -69,6 +71,8 @@ test('readRunRequestContext: 웹 필드를 그대로 읽는다', () => {
       participantId: 'k7Q2mX9p',
       submissionId: '8f14e45f-ceea-467a-9575-1b2c3d4e5f60',
       qa: true,
+      utmSource: null,
+      utmSeenAt: null,
     },
   );
 });
@@ -84,6 +88,46 @@ test('readRunRequestContext: 형식 틀린 participantId·channel·qa는 버린�
   assert.equal(context.channel, 'unknown');
   assert.equal(context.participantId, null);
   assert.equal(context.qa, false);
+});
+
+// ── 어느 링크로 왔나(utm_source) — 설계 docs/research/2026-09-27-utm-ledger-astra-fable.md ──
+
+const RECEIVED_AT = new Date('2026-09-28T12:30:00.000Z');
+
+test('readRunRequestContext: utmSource·utmSeenAt을 그대로 싣는다 — 대소문자도 안 바꾼다', () => {
+  const context = readRunRequestContext(
+    { imageDataUrl: IMAGE, channel: 'web', utmSource: 'yt_Short6_PIN', utmSeenAt: '2026-09-28T12:00:00.000Z' },
+    RECEIVED_AT,
+  );
+
+  assert.equal(context.utmSource, 'yt_Short6_PIN');
+  assert.equal(context.utmSeenAt, '2026-09-28T12:00:00.000Z');
+});
+
+test('readRunRequestContext: 형식 틀린 utmSource는 버린다 (태그·65자·배열·빈 문자열)', () => {
+  for (const utmSource of ['<script>', 'a'.repeat(65), ['yt_short6_pin'], '', 'yt short6']) {
+    assert.equal(readRunRequestContext({ imageDataUrl: IMAGE, utmSource }, RECEIVED_AT).utmSource, null);
+  }
+  assert.equal(readRunRequestContext({ imageDataUrl: IMAGE, utmSource: 'a'.repeat(64) }, RECEIVED_AT).utmSource, 'a'.repeat(64));
+});
+
+test('readRunRequestContext: 서버 수신 +5분을 넘는 미래 utmSeenAt은 시각만 버리고 source는 살린다', () => {
+  const at = (ms: number) => new Date(RECEIVED_AT.getTime() + ms).toISOString();
+
+  const future = readRunRequestContext({ imageDataUrl: IMAGE, utmSource: 'insta', utmSeenAt: at(5 * 60_000 + 1) }, RECEIVED_AT);
+  assert.equal(future.utmSource, 'insta');
+  assert.equal(future.utmSeenAt, null);
+
+  // 폰 시계가 조금 빠른 건 받아준다 — 딱 +5분까지
+  assert.equal(readRunRequestContext({ imageDataUrl: IMAGE, utmSource: 'insta', utmSeenAt: at(5 * 60_000) }, RECEIVED_AT).utmSeenAt, at(5 * 60_000));
+});
+
+test('readRunRequestContext: utmSeenAt만 깨져도 utmSource는 살아 있다', () => {
+  for (const utmSeenAt of ['yesterday', 1790000000000, '2026-09-28T12:00:00Z', '2026-13-40T12:00:00.000Z', null]) {
+    const context = readRunRequestContext({ imageDataUrl: IMAGE, utmSource: 'orbi10', utmSeenAt }, RECEIVED_AT);
+    assert.equal(context.utmSource, 'orbi10');
+    assert.equal(context.utmSeenAt, null);
+  }
 });
 
 // ── 인증 — 검증은 하되 실패해도 분석은 계속 ──

@@ -92,7 +92,7 @@ export const analyzePhoto = onRequest(
     // AI가 끝난 뒤 인증은 2초까지만 더 기다린다 (Firebase 인증서 fetch·Firestore는 걸리면 60초)
     const settleAuth = () => withTimeout(authPromise, RUN_AUTH_WAIT_MS, () => unresolvedRunAuth(headers, 'auth_timeout'));
     const runBase = {
-      context: readRunRequestContext(request.body),
+      context: readRunRequestContext(request.body, receivedAt),
       receivedAt,
       imageDataUrl,
       modelRequested,
@@ -141,6 +141,7 @@ export const analyzePhoto = onRequest(
         authVerified: auth.authVerified,
         participantId: runBase.context.participantId,
         qa: runBase.context.qa,
+        utmSource: runBase.context.utmSource,
       });
 
       response.status(200).json(result);

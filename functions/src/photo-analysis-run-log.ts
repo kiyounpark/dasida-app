@@ -18,6 +18,12 @@ export const PHOTO_ANALYSIS_RUNS_COLLECTION = 'photoAnalysisRuns';
 
 const PARTICIPANT_ID_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
 const SUBMISSION_ID_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
+// 링크 이름표(yt_short6_pin·insta·orbi10…). 대소문자는 그대로 둔다 — 소문자화는 버린 안 (09.27 Fable)
+const UTM_SOURCE_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+// Date#toISOString() 꼴만 받는다
+const UTM_SEEN_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+// 폰 시계가 조금 빠른 건 받아준다. 그보다 먼 미래는 시각만 버린다
+const UTM_SEEN_AT_MAX_SKEW_MS = 5 * 60 * 1000;
 const APP_VERSION_MAX_LENGTH = 32;
 const ACCOUNT_KEY_MAX_LENGTH = 200;
 const ERROR_MESSAGE_MAX_LENGTH = 200;
@@ -35,6 +41,9 @@ export type RunRequestContext = {
   participantId: string | null;
   submissionId: string | null;
   qa: boolean;
+  // 어느 링크로 왔나 — 웹이 URL의 utm_source를 저장해 싣는다. 사람을 가리키지 않는다(accountKey·participantId와 따로)
+  utmSource: string | null;
+  utmSeenAt: string | null;
 };
 
 export type RunAuth = {
@@ -88,7 +97,7 @@ export function toKstDate(date: Date): string {
 }
 
 // 선택 필드는 형식이 틀리면 버린다 — zod로 400을 내면 필드 하나 때문에 학생 사진 분석이 막힌다.
-export function readRunRequestContext(body: unknown): RunRequestContext {
+export function readRunRequestContext(body: unknown, receivedAt: Date = new Date()): RunRequestContext {
   const record = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
 
   const channel = record.channel === 'app' || record.channel === 'web' ? record.channel : 'unknown';
@@ -104,8 +113,17 @@ export function readRunRequestContext(body: unknown): RunRequestContext {
     typeof record.submissionId === 'string' && SUBMISSION_ID_PATTERN.test(record.submissionId)
       ? record.submissionId
       : null;
+  const utmSource =
+    typeof record.utmSource === 'string' && UTM_SOURCE_PATTERN.test(record.utmSource) ? record.utmSource : null;
+  // 시각이 깨져도 source는 살린다. 오래된 시각은 안 지운다 — 창은 집계에서 건다
+  const utmSeenAt =
+    typeof record.utmSeenAt === 'string' &&
+    UTM_SEEN_AT_PATTERN.test(record.utmSeenAt) &&
+    Date.parse(record.utmSeenAt) <= receivedAt.getTime() + UTM_SEEN_AT_MAX_SKEW_MS
+      ? record.utmSeenAt
+      : null;
 
-  return { channel, appVersion, participantId, submissionId, qa: record.qa === true };
+  return { channel, appVersion, participantId, submissionId, qa: record.qa === true, utmSource, utmSeenAt };
 }
 
 // 200자를 넘는 키는 실계정일 수 없다(delete-account.ts 스키마와 같은 상한) — 없는 것으로 본다

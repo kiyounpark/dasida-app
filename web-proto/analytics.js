@@ -15,8 +15,8 @@
   var host = location.hostname;
   var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
   var isQa = false;
+  var qa = new URLSearchParams(location.search).get('qa'); // 저장이 막혀도 이번 주소의 ?qa=1은 본다
   try {
-    var qa = new URLSearchParams(location.search).get('qa');
     if (qa !== null) {
       // ?qa=0 · ?qa=off 는 해제. 나가는 길이 없으면 QA 링크가 한 번 새는 순간
       // 진짜 학생 하나가 영영 깔때기에서 빠진다 — 세션이 한 자릿수라 방향이 정반대다.
@@ -25,7 +25,8 @@
     }
     isQa = localStorage.getItem('dasida_qa') === '1';
   } catch (_e) {
-    isQa = false; // 사파리 프라이빗 등에서 막히면 그냥 일반 방문자로 둔다
+    // 사파리 프라이빗 등에서 막히면 일반 방문자로 두되, 이번 주소에 ?qa=1이 있으면 QA로 뺀다
+    isQa = qa !== null && qa !== '0' && qa !== 'off';
   }
 
   if (isLocal || isQa) {
