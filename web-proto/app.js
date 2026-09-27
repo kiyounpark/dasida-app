@@ -803,15 +803,15 @@
       </ul>`;
     const marks = el.querySelectorAll('.curve-marks .t');
     marks[0].textContent = `방금 잡은 자리 — ${methodLabel} × ${typeLabel} (지금 100%)`;
-    // ⏪ 1.0.9(E칸 — 사진 노트가 복습 과제가 된다)가 스토어에 뜨면 되돌린다 (09.23 기윤 A안):
-    //   marks[1] = '🔔 앱에서는 이 타이밍에 다시 물어봐', 아래 coachSays = 옛 두 문장(git 1e91a85 참고).
-    //   1.0.8 앱은 사진 노트로 복습을 안 만든다 — 스토어 버튼을 켠 채 "앱이 다시 물어봐"라고 하면 거짓 약속이다.
-    marks[1].textContent = '🔔 여기서 한 번 더 보면 안 까먹어';
+    // 09.27 되돌림 — 1.0.9가 두 스토어에 떴다(사진 노트가 복습 과제가 된다, E칸). 09.23~27엔 "여기서 한 번 더 보면"이었다.
+    marks[1].textContent = '🔔 앱에서는 이 타이밍에 다시 물어봐';
     marks[2].textContent = '내일이면 여기쯤 — 절반';
     thread.appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    coachSays('그래서 내일 한 번 더 보자.');
+    coachSays(variant === 'survey'
+      ? '앱에서는 네 약점을 문제로 만들어서, 타이밍 맞춰 다시 물어봐 줘.'
+      : '그래서 타이밍은 내가 챙길게. 앱에서는 이걸 알림으로 해줘.');
     // 옛 문장 "사진으로 노트 만드는 건 아직 앱엔 없어"는 1.0.8부터 틀린 말이라 뺐다 (09.23).
     // 링크 복사 버튼은 안 만든다 — 두 번째 풀이는 댓글로 받는다(손 대장으로 센다).
     coachSays('다음에 막힌 풀이도 보내줘.');
