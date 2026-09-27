@@ -82,6 +82,6 @@
 - Fable 1차 줄 번호(`app.js:43`·`:335`·`:613`·`:671`·`:862`, `analytics.js:23`, `analyze-photo.ts:84`·`:95`)는 Claude가 전부 맞는 것 확인
 
 **권고 (기록만)**
-- 웹 흉내 스크립트(`storage-blocked.mjs`)는 세션 스크래치라 사라진다 — 저장소로 옮기면 다음에 `app.js` 윗블록을 만질 때 다시 돌릴 수 있다 (Fable 1차). 옮길 때 `?qa=0/off` + 저장된 qa=1 경우도 넣는다 (astra) — 지금 통과함
+- ✅ 옮김 (09.27, 기윤 요청): 웹 흉내 스크립트를 저장소로 — **`node scripts/verify-web-proto-storage.mjs`** (12경우, `app.js` 윗블록·`analytics.js`를 만지면 다시 돌린다). 원래 권고는 `web-proto/tests/`였지만 `deploy:proto`가 `web-proto` 폴더를 통째로 올려서 `scripts/`에 뒀다 (Fable 1차). astra의 `?qa=0/off` + 저장된 qa=1 경우, astra ①② 경우도 넣었다 — 리뷰 수정 전 코드(`083ed63`)로 돌리면 ①②만 깨진다
 - **유튜브·인스타 앱 안 브라우저는 사파리와 저장소가 따로다.** 사파리에서 `?qa=1`을 찍어둬도 앱 안 브라우저엔 없어서, 기윤이 자기 고정댓글 링크를 앱에서 눌러 사진을 올리면 `qa=false`로 찍힌다 — 「판정 날 세는 법」의 "올렸으면 대장에 적고 뺀다"가 이 경우 (Fable 1차)
 - 리뷰 중 astra가 `npm run notify`(Slack)를 보내려 했다 — 읽기 전용 샌드박스라 `fetch failed`로 안 나갔다. 다음 리뷰 프롬프트엔 "알림·쓰기 명령 금지"를 넣는다
