@@ -36,13 +36,16 @@
   let utmSource = urlUtm && UTM_SOURCE_PATTERN.test(urlUtm) ? urlUtm : null;
   let utmSeenAt = utmSource ? new Date().toISOString() : null;
   try {
+    // ?qa=1 저장은 analytics.js가 먼저 한다. 쓰기만 막혀 저장이 비었어도 주소의 qa=1은 안 지운다.
+    // 쓰기보다 먼저 읽는다 — 아래 쓰기가 던져도 저장된 qa=1을 건너뛰지 않게 (09.27 astra·Fable)
+    if (localStorage.getItem('dasida_qa') === '1') isQa = true;
     if (participantId) localStorage.setItem('dasida_participant', participantId);
     const stored = localStorage.getItem('dasida_participant');
     participantId = stored && PARTICIPANT_ID_PATTERN.test(stored) ? stored : null;
-    // ?qa=1 저장은 analytics.js가 먼저 한다. 쓰기만 막혀 저장이 비었어도 주소의 qa=1은 안 지운다
-    if (localStorage.getItem('dasida_qa') === '1') isQa = true;
     // 다른 이름표일 때만 덮고 시각을 새로 — reload()가 쿼리를 들고 다시 열 때마다 시각이 밀리면 안 된다
     if (utmSource && localStorage.getItem('dasida_utm_source') !== utmSource) {
+      // 옛 시각부터 지운다 — 시각 쓰기만 실패해도 새 이름표에 옛 링크 시각이 붙지 않고 null로 읽힌다 (09.27 astra·Fable)
+      localStorage.removeItem('dasida_utm_seen_at');
       localStorage.setItem('dasida_utm_source', utmSource);
       localStorage.setItem('dasida_utm_seen_at', utmSeenAt);
     }

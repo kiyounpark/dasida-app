@@ -62,4 +62,26 @@
 
 - `readRunRequestContext(body, receivedAt = new Date())` — "+5분" 기준 시각을 받으려고 인자를 하나 더했다. `analyze-photo.ts`는 `receivedAt`을 넘긴다
 - `app.js`의 `isQa`: 저장소가 **읽기는 되고 쓰기만 막힐 때**(옛 사파리 프라이빗·용량 초과) `isQa = getItem('dasida_qa') === '1'`이 주소의 `qa=1`을 false로 덮었다. `if (getItem(...) === '1') isQa = true`로 바꿨다 — 저장소가 정상이면 동작이 같다
+- 코드리뷰 뒤 두 줄 더 (아래 「코드리뷰」 — Fable이 준 수정): `app.js`에서 `dasida_qa` 읽기를 try 첫 줄(쓰기보다 앞)로 올렸고, 이름표를 덮기 전에 `removeItem('dasida_utm_seen_at')`을 넣었다. 키 이름은 그대로
 - 로컬 확인: ①~⑤는 브라우저에서 분석 요청을 가로채 body를 봤다. ⑥은 localhost면 `isLocal`이 qa를 항상 true로 만들어 브라우저로 못 재서, 실제 `app.js` 윗블록과 `analytics.js` 전체를 Node `vm`에 비로컬 주소(저장소 완전 차단 / 쓰기만 막힘)로 돌렸다 — 11개 통과, 고치기 전 코드(HEAD)로 돌리면 `?qa=1` 경우가 깨지는 것까지 확인
+
+## 코드리뷰 (09.27, 커밋 `083ed63`만 · 멈춤 규칙)
+
+"반드시 고칠 것"은 (a) 학생 분석이 막히거나 깨짐 (b) 원장에 utmSource·utmSeenAt·qa·participantId가 틀리게 쌓임, 둘뿐. 나머지는 권고로 기록만.
+
+| | 판정 | 반드시 고칠 것 |
+|---|---|---|
+| astra 1차 (`gpt-6-astra`, stderr `model:` 확인 · 51,903 토큰) | 고치고 배포 | ① 저장된 `qa=1` + 쓰기만 막힘 + `?p=…` → 참여 코드 쓰기가 던져 qa 읽기를 건너뜀 → qa=false ② 이름표 쓰기 성공·시각 쓰기만 실패 → 다음 방문부터 새 이름표에 옛 링크 시각 |
+| Fable 1차 (141,052 토큰) | 배포 | 없음 |
+| Fable 2차 (astra 답을 통째로 받고, 알림 기준 151,557 토큰 — 1차와 누적인지는 알림만으론 모름) | **배포 (최종)** | 없음 — astra ①② 둘 다 권고로 내림 |
+
+- Claude가 astra ①②를 실제 코드로 재현했다 — 둘 다 그 조건에선 재현됨. ①의 순서는 HEAD^에도 있던 것
+- Fable 2차 근거: 두 건 다 "값이 이미 저장된 뒤 쓰기만 던지는 저장소"가 전제인데, 실제로 그런 길은 용량 초과뿐이고 이 origin은 키 4개·수십 바이트만 쓴다(Claude가 셈: `dasida_qa`·`dasida_participant`·`dasida_utm_source`·`dasida_utm_seen_at`, 다른 스크립트는 저장소 안 씀). ②는 틀리는 필드가 `utmSeenAt`인데 판정은 `kstDate`+`utmSource`로 센다
+- Fable이 준 한 줄 수정 둘(키 이름 안 건드림, "끼워도 되고 빼도 된다")은 Claude가 넣었다 — 위 「구현하며 바뀐 것」. 넣은 뒤 흉내 11개 통과, astra ①은 qa=true, ②(용량 초과 = 지우기는 됨)는 옛 시각 대신 null
+- Fable은 1차 권고 3("쓰기만 막힌 저장소는 어차피 비어 있다")이 용량 초과엔 안 맞는 말이었다고 2차에서 스스로 고쳤다
+- Fable 1차 줄 번호(`app.js:43`·`:335`·`:613`·`:671`·`:862`, `analytics.js:23`, `analyze-photo.ts:84`·`:95`)는 Claude가 전부 맞는 것 확인
+
+**권고 (기록만)**
+- 웹 흉내 스크립트(`storage-blocked.mjs`)는 세션 스크래치라 사라진다 — 저장소로 옮기면 다음에 `app.js` 윗블록을 만질 때 다시 돌릴 수 있다 (Fable 1차). 옮길 때 `?qa=0/off` + 저장된 qa=1 경우도 넣는다 (astra) — 지금 통과함
+- **유튜브·인스타 앱 안 브라우저는 사파리와 저장소가 따로다.** 사파리에서 `?qa=1`을 찍어둬도 앱 안 브라우저엔 없어서, 기윤이 자기 고정댓글 링크를 앱에서 눌러 사진을 올리면 `qa=false`로 찍힌다 — 「판정 날 세는 법」의 "올렸으면 대장에 적고 뺀다"가 이 경우 (Fable 1차)
+- 리뷰 중 astra가 `npm run notify`(Slack)를 보내려 했다 — 읽기 전용 샌드박스라 `fetch failed`로 안 나갔다. 다음 리뷰 프롬프트엔 "알림·쓰기 명령 금지"를 넣는다
