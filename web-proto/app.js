@@ -20,6 +20,24 @@
     if (typeof window.track === 'function') window.track(name, params);
   };
 
+  // 사용량 원장(photoAnalysisRuns)에 실을 값 — 설계 docs/superpowers/specs/2026-09-23-photo-usage-log-design.md §4.
+  // 참여 코드: 기윤이 학생마다 만들어 링크 `?p=코드`로 준다. 한 번 들어오면 링크 없이 다시 와도 이어진다.
+  // 형식은 서버 PARTICIPANT_ID_PATTERN(functions/src/photo-analysis-run-log.ts)과 같게 — 틀리면 무시.
+  const PARTICIPANT_ID_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
+  let participantId = null;
+  let isQa = false;
+  try {
+    const p = new URLSearchParams(location.search).get('p');
+    if (p && PARTICIPANT_ID_PATTERN.test(p)) localStorage.setItem('dasida_participant', p);
+    const stored = localStorage.getItem('dasida_participant');
+    participantId = stored && PARTICIPANT_ID_PATTERN.test(stored) ? stored : null;
+    isQa = localStorage.getItem('dasida_qa') === '1'; // ?qa=1 저장은 analytics.js가 먼저 한다
+  } catch {
+    // 사파리 프라이빗 등에서 막히면 코드 없는 방문으로 둔다
+  }
+  const host = location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
+
   const F = window.DasidaFlow;
   const catalog = F.diagnosisMethodRoutingCatalog;
   const ro = F.ro;
@@ -253,6 +271,8 @@
   const picked = document.getElementById('picked');
   const cta = document.getElementById('cta');
   let selectedFile = null;
+  // 사진을 고를 때마다 새로 — 같은 사진으로 다시 누르면 같은 값이 가서 원장이 재시도로 가른다 (설계 §4)
+  let submissionId = null;
   let uploadedImageDataUrl = null; // 오답노트 카드에 "내 풀이 사진"으로 다시 쓴다 (축소본 재사용 — 재인코딩 없음)
 
   drop.addEventListener('click', () => fileInput.click());
@@ -267,6 +287,7 @@
   function setFile(f) {
     if (!f) return;
     selectedFile = f;
+    submissionId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : null;
     picked.textContent = '✓ ' + f.name;
     picked.style.display = 'block';
     cta.classList.add('ready');
@@ -293,7 +314,8 @@
       const response = await fetch(ANALYZE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl }),
+        // participantId·submissionId가 null이면 JSON.stringify가 그대로 null을 싣고, 서버는 없는 것으로 본다
+        body: JSON.stringify({ imageDataUrl, channel: 'web', participantId, submissionId, qa: isQa || isLocal }),
         signal: AbortSignal.timeout(75_000), // 함수 타임아웃(60s)보다 살짝 길게
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
