@@ -294,6 +294,20 @@
   // 사진을 고를 때마다 새로 — 같은 사진으로 다시 누르면 같은 값이 가서 원장이 재시도로 가른다 (설계 §4)
   let submissionId = null;
   let uploadedImageDataUrl = null; // 오답노트 카드에 "내 풀이 사진"으로 다시 쓴다 (축소본 재사용 — 재인코딩 없음)
+  // 대기 재기(09.28, Fable 최종 — docs/research/2026-09-28-wait-time-tracking-astra-fable.md).
+  // 학생이 느낀 대기(축소+전송+분석)는 원장 durationMs(AI 호출만)와 달라 여기서 잰다. GA로만 보낸다.
+  let waitStartedAt = 0;
+  let attempt = 0; // 같은 사진(submissionId) 몇 번째 시도인가 — 원장은 재시도를 같은 submissionId로 본다
+  let waitHidden = false; // 대기 화면에서 한 번이라도 숨겨졌나 — 돌아왔는지는 뒤에 analysis_shown이 오나로 사후에 가른다
+  const waitParams = () => ({ wait_ms: Math.round(Date.now() - waitStartedAt), submission_id: submissionId, attempt });
+  function logLeaveWhileWaiting() {
+    if (screens.analyzing.hidden || waitHidden || !waitStartedAt) return; // 대기 화면에서만, 시도당 1회
+    waitHidden = true;
+    logEvent('analysis_hidden', waitParams());
+  }
+  // 폰 사파리·앱 안 브라우저는 닫을 때 pagehide가 안 올 수 있어 둘 다 건다(짐작, 폰 실측 전)
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') logLeaveWhileWaiting(); });
+  window.addEventListener('pagehide', logLeaveWhileWaiting);
 
   drop.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
@@ -308,6 +322,7 @@
     if (!f) return;
     selectedFile = f;
     submissionId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : null;
+    attempt = 0;
     picked.textContent = '✓ ' + f.name;
     picked.style.display = 'block';
     cta.classList.add('ready');
@@ -316,6 +331,9 @@
   cta.addEventListener('click', async () => {
     if (!selectedFile || cta.disabled) return;
     cta.disabled = true; // 더블클릭 → vision 이중 호출(이중 과금) 방지
+    waitStartedAt = Date.now();
+    attempt += 1;
+    waitHidden = false;
     show('analyzing');
     logEvent('photo_submit'); // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수
 
@@ -324,6 +342,7 @@
       imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
       uploadedImageDataUrl = imageDataUrl;
     } catch {
+      logEvent('analysis_failed', { ...waitParams(), stage: 'downscale' }); // 전엔 이 실패가 아무 데도 안 찍혔다
       show('upload');
       cta.disabled = false;
       alert('이 사진 형식을 못 읽었어. jpg나 png 사진으로 다시 시도해줘.');
@@ -344,7 +363,7 @@
       routeFromAnalysis(result);
     } catch (error) {
       // 실패도 센다 — 안 세면 photo_submit만 찍히고 사라져 "대기 중 이탈"과 안 갈림
-      logEvent('analysis_failed', { message: String(error?.message || error).slice(0, 90) });
+      logEvent('analysis_failed', { ...waitParams(), stage: 'request', message: String(error?.message || error).slice(0, 90) });
       console.error('analyzePhoto 실패', error); // 원문은 여기까지만 — 학생 화면엔 안 나간다
       show('upload');
       cta.disabled = false;
@@ -372,6 +391,8 @@
     // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
     // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
     logEvent('analysis_shown', {
+      ...waitParams(),
+      was_hidden: waitHidden ? 1 : 0,
       has_work: result.hasSolvingWork ? 1 : 0,
       error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN ? 1 : 0,
     });
