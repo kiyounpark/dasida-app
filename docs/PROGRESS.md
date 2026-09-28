@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.28 16:39
+- 해시: `98b69cd` (`98b69cdffce98bca42121bebaf91b9438e49e8b6`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/98b69cdffce98bca42121bebaf91b9438e49e8b6
+- 작성자: 박기윤
+- 메시지: docs: GA 조사 마무리 — 판정 숫자(원장)는 안 샌다, GA 사각 비율은 10.14에 원장↔GA 대조
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.28 16:31
 - 해시: `c339e93` (`c339e93641155dfbb0934e520689182e706e65ed`)
 - 브랜치: main
