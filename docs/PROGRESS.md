@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.28 16:31
+- 해시: `c339e93` (`c339e93641155dfbb0934e520689182e706e65ed`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c339e93641155dfbb0934e520689182e706e65ed
+- 작성자: 박기윤
+- 메시지: docs: GA 0건 조사 끝 — GA 멀쩡, 기윤 사파리 개인정보 보호 탭이 막았다
+- 본문: - 크롬 503은 실제론 들어감(실시간 숫자 대조), 12:06 방문자는 Netlify 배포 봇 / - 카톡 안 브라우저 16:26 실측으로 들어감, 5호 '웹 방문 0'은 맞는 쪽(iOS 27만 모름) / - 고칠 코드 없음. 원문 docs/research/2026-09-28-ga-browser-hits-investigation.md / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.28 12:42
 - 해시: `2d575f7` (`2d575f746e74213506910f979eac65389ceeec29`)
 - 브랜치: main
