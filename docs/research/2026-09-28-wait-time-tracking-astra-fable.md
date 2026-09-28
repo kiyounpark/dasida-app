@@ -2,7 +2,9 @@
 
 ## 결론 먼저
 
-> **🚧 09.28 12:40 — 배포는 됐지만 GA가 브라우저 기록을 못 받고 있다. 이 숫자들은 아직 안 쌓인다.** 기윤 폰 확인(아래 「폰 확인 결과」)에서 GA 0건. 원인 조사 전까지 이 설계로 판단하지 않는다. 5호 "웹 방문 0"(GA)도 의심 대상 — "사진 제출 0"(원장)은 맞다.
+> **✅ 09.28 오후 풀림 — GA는 받고 있었다. 이 숫자들은 지금부터 쌓인다.** 12:40의 "GA 0건"은 기윤 폰 사파리가 개인정보 보호 탭이었던 탓이다(사파리가 GA를 막음). 크롬 503은 실제론 들어갔다. 원문 `docs/research/2026-09-28-ga-browser-hits-investigation.md`.
+>
+> (옛 줄) **🚧 09.28 12:40 — 배포는 됐지만 GA가 브라우저 기록을 못 받고 있다. 이 숫자들은 아직 안 쌓인다.** 기윤 폰 확인(아래 「폰 확인 결과」)에서 GA 0건. 원인 조사 전까지 이 설계로 판단하지 않는다. 5호 "웹 방문 0"(GA)도 의심 대상 — "사진 제출 0"(원장)은 맞다.
 
 - **웹만, GA로만 잰다.** 서버·원장은 안 건드린다. `web-proto/app.js` 한 파일(+22줄), 앱은 1.0.10 때.
 - **남기는 것** — `analysis_shown`·`analysis_failed`에 `wait_ms`(사진 올리기 버튼부터 그 순간까지)·`submission_id`·`attempt`(같은 사진 몇 번째 시도). `analysis_shown`엔 `was_hidden`(대기 중 화면을 벗어났었나), `analysis_failed`엔 `stage`(`downscale`=사진 줄이기 실패 — 전엔 아무 데도 안 찍혔다 · `request`=서버). 새 이벤트 `analysis_hidden`(대기 화면에서 처음 숨겨질 때 1회).
@@ -28,6 +30,8 @@
 재료(질문·astra 원문): 저장소 밖 `~/dev/dasida-measure/2026-09-28-wait-time/`.
 
 ## 폰 확인 결과 — GA 0건 (09.28 12:20~12:40)
+
+> **오후 정정:** 원인은 사파리 개인정보 보호 탭, 크롬 503은 실제론 들어감, 아래 "curl 히트가 실시간에 뜸"은 잘못 읽은 것 — `docs/research/2026-09-28-ga-browser-hits-investigation.md`.
 
 - 기윤 폰, **모바일 데이터**(집 와이파이 아님), `?qa=0`. 사파리 × 3(그냥 기다리기/홈 갔다 오기/닫기) + 카톡 "나와의 채팅" 링크 안 브라우저 × 3. 사파리 설정 "고급 추적 및 지문 채취 보호" = 개인정보 보호 브라우징(기본값). 유튜브 6호 고정댓글은 `yt_short6_pin` 오염 때문에 안 씀.
 - **원장: 9행 다 옴**, 전부 `channel:web`·`qa:false`·`ok:true`·`utmSource:null` — `HWqm8yY0bEA710IECuu9` `3pqtbZV3utgykgXHNjxH` `dhhXou8vxJMAiKKrYwWb` `QiQKcNcNrF971DcAN4o2` `TLbJ0eOHlLOZlERaFD18` `MwKn1zhBMhpAxTOfQ1ns` `JVnwSTmuY5bXR4YWkTzN` `g2sW4qXqKLERuPSNm7eY` `OneFDYnGfUlDnqkh7WQh` (03:20:49Z~03:25:09Z). 한 `submissionId`(b1e8c236…)가 4행 — 같은 사진을 네 번 보낸 것(왜 그런지는 안 물었다). **집계에서 전부 뺀다.**
