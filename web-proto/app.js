@@ -110,7 +110,7 @@
     '해설이랑 한 줄씩 맞춰보는 중…',
     '처음 갈라진 데 찾는 중…',
   ];
-  const ANALYZING_OVERTIME = '거의 다 됐어. 조금만…';
+  const ANALYZING_OVERTIME = '꼼꼼히 보는 중이야. 조금만 기다려줘';
   let analyzingTimer = null;
   function startAnalyzingSteps() {
     const el = document.getElementById('analyzing-step');
