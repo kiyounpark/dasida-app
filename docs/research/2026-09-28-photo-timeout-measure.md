@@ -8,6 +8,7 @@
 - **바꾼 것은 웹 대기 문구 두 줄뿐** — "30초 안에 끝나" · "꼼꼼히 보는 중이야. 조금만 기다려줘"(기윤 결정, `80a4b5a`). 앱 문구는 1.0.10 때.
 - **다시 볼 때** — 10.14 판정 뒤, 사진 30장 중 30초 넘는 게 20% 넘으면. 진짜 학생 손글씨 킬러 사진으로는 아직 0장 쟀다.
 - 결정: astra·Fable 3판(1차·2차는 Fable 최종, 3차는 둘 다 같은 답). 토큰 astra 15만 · Fable 69.6만.
+- **다시 잴 재료(사진·스크립트·응답 원문)** — 기윤 맥 `~/dev/dasida-measure/2026-09-28-photo-timeout/` (README에 다시 재는 법). 저장소엔 안 넣음 — 사진에 평가원 문제 원문이 있다.
 
 아래는 시간 순서다 — 측정 → 1차 결정 → 좁힌 지시문 측정 → 2차 결정 → 미니게임 → 합격 테스트 → **3차 결정(맨 아래)**.
 
@@ -59,7 +60,7 @@
 
 ## 재현
 
-측정 스크립트는 저장소에 넣지 않았다(세션 스크래치). 요지: `functions`를 tsc로 컴파일해 `PHOTO_ANALYSIS_SYSTEM_PROMPT`를 노출하고,
+측정 스크립트·사진·응답 원문은 저장소 밖 `~/dev/dasida-measure/2026-09-28-photo-timeout/`에 있다(README). 요지: `functions`를 tsc로 컴파일해 `PHOTO_ANALYSIS_SYSTEM_PROMPT`를 노출하고,
 `client.responses.create({... stream: true})`로 `response.output_text.delta` 첫 도착 시각과 `response.completed`의 `usage`를 기록.
 키는 `firebase functions:secrets:access OPENAI_API_KEY --project dasida-app`(화면에 안 찍음).
 
