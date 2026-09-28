@@ -39,6 +39,6 @@
 - 기윤 **맥 사파리** `?qa=0`로 30초 열어 둠 → 역시 0.
 - Claude 크롬(확장 프로그램으로 조종하는 크롬)에서 배포본을 열면 gtag가 로드되고(`google_tag_manager` 있음, `dasida_qa` 없음) `g/collect` 요청이 나가는데 **응답이 HTTP 503**(page_view·scroll 전부).
 - 같은 파라미터를 하나씩 붙여 **터미널 curl로 보내면 전부 204**(Safari UA·Origin 헤더를 붙여도 204). **analytics.google.com 페이지 안에서 fetch(credentials omit)로 보내도 204** → 실시간에 뜬다.
-- 짐작(확인 안 함): gtag가 보내는 요청의 무엇(쿠키·keepalive/beacon·헤더·동의 신호)이 거절 조건이다. GA 속성의 데이터 필터는 "Internal Traffic — 테스트" 하나뿐(제외 안 함).
-- **GA 오염(뺄 것):** Claude 디버그 히트 `cid 1.1`(page_view 4, dl 일부 `example.invalid`) · `cid 9.9`(9) · `cid 9.8`(1), 전부 `_dbg=1`, 09.28 12:30~12:40 KST.
+- (→ 오후 정정: 원인은 기윤 폰 사파리의 개인정보 보호 탭이었다. 크롬 503도 실제론 들어갔다.) 옛 줄 — 짐작(확인 안 함): gtag가 보내는 요청의 무엇(쿠키·keepalive/beacon·헤더·동의 신호)이 거절 조건이다. GA 속성의 데이터 필터는 "Internal Traffic — 테스트" 하나뿐(제외 안 함).
+- (→ 오후 정정: 아래 "오염" 목록은 틀렸다. curl `_dbg=1` 히트는 안 들어간 것으로 보이고, 들어간 건 Claude 크롬 cid `1246322026.1790566186` — 정본은 STATUS ⏱ 줄과 `2026-09-28-ga-browser-hits-investigation.md`.) 옛 줄: **GA 오염(뺄 것):** Claude 디버그 히트 `cid 1.1`(page_view 4, dl 일부 `example.invalid`) · `cid 9.9`(9) · `cid 9.8`(1), 전부 `_dbg=1`, 09.28 12:30~12:40 KST.
 - 원장 읽기 스크립트: `~/dev/dasida-measure/2026-09-28-wait-time/ledger-read.cjs`.
