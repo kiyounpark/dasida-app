@@ -7,6 +7,7 @@ if (getApps().length === 0) {
 export { diagnoseMethod } from './diagnosis-method';
 export { analyzePhoto } from './analyze-photo';
 export { explainDiagnosisNode } from './explain-diagnosis-node';
+export { verifyQuiz } from './verify-quiz';
 export { getLearningAttemptResultsHandler as getLearningAttemptResults } from './get-learning-attempt-results';
 export { getLearnerSummaryHandler as getLearnerSummary } from './get-learner-summary';
 export { importLocalLearningHistoryHandler as importLocalLearningHistory } from './import-local-learning-history';
