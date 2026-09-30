@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 17:13
+- 해시: `e8b54e6` (`e8b54e6e4844872adf9bbaa16da3528d339480da`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e8b54e6e4844872adf9bbaa16da3528d339480da
+- 작성자: 박기윤
+- 메시지: docs: 09.30 밤 — 사람 확인 방식 반대, 10.01 질문은 '60초 안·틀린 카드 0·폰 안에서'
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 16:45
 - 해시: `311fd19` (`311fd19357ada4afbb194bfdf7c3983a0180eeec`)
 - 브랜치: main
