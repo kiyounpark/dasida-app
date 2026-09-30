@@ -3,8 +3,6 @@
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
   const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
-  // 쪽지·재도전 검산(요청 2, 09.30). 설계 docs/research/2026-09-30-quiz-verify-design.md
-  const VERIFY_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/verifyQuiz`;
   // 엔딩의 스토어 버튼이 쓴다. 1.0.8(사진 기능)이 양쪽 스토어에 떠 있는 걸 확인하고 되살렸다 (09.23).
   // 스토어 링크 출처: iOS는 eas.json의 ascAppId(6761792023), 안드로이드는 app.json의 android.package(com.dasida.app).
   const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
@@ -74,13 +72,6 @@
   const SURVEY = window.DasidaPhotoSurvey;
   // 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효.
   let pocket = null;
-  // 검산(요청 2) — 분석 결과가 닿을 때 뒤에서 출발, 쪽지·재도전 차례에 결과를 본다.
-  // verifySeq: 새 분석마다 올린다 — 늦게 온 옛 결과가 새 문제에 붙지 않게(stale).
-  let verifyRun = null;
-  let verifySeq = 0;
-  // 09.30 측정 low p90 5.4초. 학생이 방법 확인·짚기를 읽는 시간이 앞에 있어 실제 대기는 드물다.
-  const VERIFY_WAIT_MS = 5_000;
-  const VERIFY_FETCH_TIMEOUT_MS = 15_000; // 서버 함수 20초보다 짧게
   // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
   let lastAnalysisText = '';
   // 텍스트로 물어본 횟수 — 2번 물어봐도 못 좁히면 unknown flow로 진행해 막다른 길을 없앤다
@@ -332,8 +323,6 @@
     selectedFile = f;
     submissionId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : null;
     attempt = 0;
-    verifySeq += 1;
-    verifyRun = null;
     picked.textContent = '✓ ' + f.name;
     picked.style.display = 'block';
     cta.classList.add('ready');
@@ -409,7 +398,6 @@
       error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN ? 1 : 0,
     });
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
-    startQuizVerify(result);
     if (!result.hasSolvingWork) {
       offerRetake(); // 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 (Task 8)
       return;
@@ -711,95 +699,8 @@
     ]);
   }
 
-  // ── 쪽지·재도전 검산(요청 2, 09.30 · 설계 Fable · 검토 astra · 기준 90%/목표 98% 기윤) ──
-  // 요청 1이 만든 문제를 정답 번호 없이 다른 호출이 따로 푼다. 번호가 같을 때(match)만 학생에게 낸다.
-  // 불일치·없음·모호·에러·시간초과는 그 문제만 건너뛴다 — 정답을 바꿔 넣지 않는다. 09.30 측정: 잘못된 것 6/12 막음, 멀쩡한 것 0/54 막음.
-  function retryShape(cand) {
-    // 보기 개수를 상수로 박지 않고 실제 배열 길이에서 뽑는다 — 서버가 4지선다로 가도 웹이 조용히 죽지 않게.
-    // 범위 검사가 핵심: 정답 인덱스가 보기 밖이면 전부 오답 처리되고 '정답은 "undefined"'가 학생에게 노출된다.
-    const opts = cand?.retryOptions;
-    return Boolean(cand && cand.retrySetup && cand.retryPrompt &&
-      Array.isArray(opts) && opts.length >= 2 &&
-      Number.isInteger(cand.retryAnswerIndex) &&
-      cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length);
-  }
-
-  // 절대 안 던진다 — 결과는 { verdict: 'match'|'skip', reason, ms }
-  async function verifyQuizFetch(body) {
-    const t0 = Date.now();
-    try {
-      const response = await fetch(VERIFY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(VERIFY_FETCH_TIMEOUT_MS),
-      });
-      if (!response.ok) return { verdict: 'skip', reason: 'error', ms: Date.now() - t0 };
-      const data = await response.json();
-      if (data?.verdict === 'match') return { verdict: 'match', reason: 'match', ms: Date.now() - t0 };
-      return { verdict: 'skip', reason: String(data?.verdict || 'invalid').slice(0, 20), ms: Date.now() - t0 };
-    } catch (error) {
-      return { verdict: 'skip', reason: error?.name === 'TimeoutError' ? 'timeout' : 'error', ms: Date.now() - t0 };
-    }
-  }
-
-  // 짚기로 가는 조건과 같을 때만, 후보 0번만 — startPointing(0)밖에 안 부른다
-  function startQuizVerify(result) {
-    verifySeq += 1;
-    verifyRun = null;
-    const cand = result.errorCandidates?.[0];
-    if (!result.hasSolvingWork || !cand || !(result.errorConfidence >= ERROR_CONFIDENCE_MIN)) return;
-    const base = { submissionId, qa: isQa || isLocal };
-    const hasCheck = cand.checkPrompt && Array.isArray(cand.checkOptions) && cand.checkOptions.length === 3 &&
-      Number.isInteger(cand.checkAnswerIndex);
-    verifyRun = {
-      seq: verifySeq,
-      idx: 0,
-      waitedOnce: false,
-      check: hasCheck
-        ? verifyQuizFetch({ kind: 'check', setup: cand.checkSetup || undefined, prompt: cand.checkPrompt,
-          options: cand.checkOptions, marked: cand.checkAnswerIndex, ...base })
-        : null,
-      retry: retryShape(cand) && cand.retryOptions.length === 3
-        ? verifyQuizFetch({ kind: 'retry', setup: cand.retrySetup, prompt: cand.retryPrompt,
-          options: cand.retryOptions, marked: cand.retryAnswerIndex, ...base })
-        : null,
-    };
-  }
-
-  // 절대 안 던진다. 이미 와 있으면 0초. 아니면 최대 5초 — 한 번 5초를 태웠으면(쪽지 wait_timeout) 재도전은 안 기다린다(빈 화면 10초 방지).
-  // 기다리는 동안 버튼은 없다 — setActions 클릭 핸들러가 onPress 전에 버튼을 지운다.
-  async function awaitVerdict(kind, idx) {
-    const run = verifyRun;
-    const t0 = Date.now();
-    if (!run || run.idx !== idx || !run[kind]) {
-      return { verdict: 'skip', reason: 'not_started', ms: null, waitedMs: 0, stale: false };
-    }
-    const cap = run.waitedOnce ? 0 : VERIFY_WAIT_MS;
-    let result = await Promise.race([run[kind], new Promise((resolve) => setTimeout(() => resolve(null), cap))]);
-    if (!result) {
-      run.waitedOnce = true;
-      result = { verdict: 'skip', reason: 'wait_timeout', ms: null };
-    }
-    return { ...result, waitedMs: Date.now() - t0, stale: run.seq !== verifySeq };
-  }
-
-  // 10.14 판정·98% 추적용 — 문항 차례에 한 번. 98% 자체는 GA로 못 잰다(정답표가 필요).
-  function logQuizVerify(kind, v, extra = {}) {
-    logEvent('quiz_verify', { kind, result: v.verdict, reason: v.reason, verify_ms: v.ms, waited_ms: v.waitedMs,
-      submission_id: submissionId, attempt, ...extra });
-  }
-
-  async function showCheck(idx, react) {
+  function showCheck(idx, react) {
     const cand = pocket.errorCandidates[idx];
-    const v = await awaitVerdict('check', idx);
-    if (v.stale) return; // 흐름이 바뀐 뒤 깨어났으면 화면을 덮지 않는다
-    logQuizVerify('check', v, { react });
-    if (v.verdict !== 'match') {
-      // 건너뜀은 실패가 아니다 — 노트 ✗·"괜찮아" 톤·fail 곡선 어디로도 안 가게 'skip'으로 넘긴다
-      startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkResult: 'skip' });
-      return;
-    }
     // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다 (차가운 방문자 '중' 위험 대응)
     // checkSetup(상황 칸)이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
     if (cand.checkSetup) {
@@ -821,7 +722,7 @@
           coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
         }
         // A안(07.31): 쪽지 → 재도전 → 오답노트 완성 → 곡선. 노트가 마지막 결과물로 나온다.
-        startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkResult: passed ? 'pass' : 'fail' });
+        startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkPassed: passed });
       },
     })));
   }
@@ -840,18 +741,20 @@
   }
 
   // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
-  // ctx.checkResult: 'pass' | 'fail' | 'skip'(검산에서 빠져 쪽지를 안 봄)
-  async function startRetry(idx, ctx) {
+  function startRetry(idx, ctx) {
     const cand = pocket?.errorCandidates?.[idx];
-    if (!retryShape(cand)) { showWrongNote(idx, ctx, 'none'); return; } // if 관문: 조용히 건너뜀 — 노트는 그래도 나온다
-    const v = await awaitVerdict('retry', idx);
-    if (v.stale) return;
-    logQuizVerify('retry', v);
-    if (v.verdict !== 'match') { showWrongNote(idx, ctx, 'unverified'); return; } // 검산 통과 못 함 — 노트는 나온다
-    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축). 쪽지를 건너뛴 학생도 빠른 쪽.
-    coachSays(ctx.checkResult === 'fail'
-      ? '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.'
-      : '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
+    // 보기 개수를 상수로 박지 않고 실제 배열 길이에서 뽑는다 — 서버가 4지선다로 가도 웹이 조용히 죽지 않게.
+    // 범위 검사가 핵심: 정답 인덱스가 보기 밖이면 전부 오답 처리되고 '정답은 "undefined"'가 학생에게 노출된다.
+    const opts = cand?.retryOptions;
+    const hasRetry = cand && cand.retrySetup && cand.retryPrompt &&
+      Array.isArray(opts) && opts.length >= 2 &&
+      Number.isInteger(cand.retryAnswerIndex) &&
+      cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length;
+    if (!hasRetry) { showWrongNote(idx, ctx, 'none'); return; } // if 관문: 조용히 건너뜀 — 노트는 그래도 나온다
+    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축)
+    coachSays(ctx.checkPassed
+      ? '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.'
+      : '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.');
     coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
     const buttons = cand.retryOptions.map((opt, i) => ({
       label: opt,
@@ -903,12 +806,8 @@
     else el.querySelector('.note-quote').textContent = '(없음)';
     setMath(el.querySelector('.note-why'), cand?.why || '');
     setMath(el.querySelector('.note-fix'), cand?.fix || SURVEY.TYPES[ctx.mistakeType]?.fix || '');
-    // 안 본 문제는 줄에 안 적는다 — 검산에서 빠진 쪽지(skip)·재도전(unverified)이 ✗로 둔갑하지 않게
-    const marks = [
-      { pass: '쪽지시험 ✔', fail: '쪽지시험 ✗' }[ctx.checkResult],
-      { pass: '재도전 ✔', fail: '재도전 ✗' }[retryResult],
-    ].filter(Boolean);
-    el.querySelector('.note-checks').textContent = marks.length > 0 ? `오늘 확인: ${marks.join(' · ')}` : '';
+    const retryMark = { pass: ' · 재도전 ✔', fail: ' · 재도전 ✗', skip: '', none: '' }[retryResult] || '';
+    el.querySelector('.note-checks').textContent = `오늘 확인: 쪽지시험 ${ctx.checkPassed ? '✔' : '✗'}${retryMark}`;
     el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
     // 통역표 첫 호출 — (풀이법, 실수 유형)으로 약점 이름을 찾는다. 앱(features/photo)과 같은 표를 쓴다.
     // 못 찾으면 줄 자체를 안 낸다(기윤 판정 2026.08.13) — 빈 이름표는 학생한테 값이 0이다.
@@ -924,10 +823,8 @@
     logEvent('note_shown', { retry: retryResult }); // 깔때기 2 — 끝까지 걸어서 노트를 받은 수
 
     // 쪽지 ✗인데 재도전으로 만회 못 했으면(실패·스킵·없음) 성공 톤 금지 — 노트의 ✗와 곡선 문구가 모순되지 않게
-    // 쪽지를 건너뛴 건(skip) 실패가 아니다 — 실패는 재도전 ✗이거나, 쪽지 ✗를 재도전으로 못 만회했을 때만
     const recovered = retryResult === 'pass';
-    const curveFail = retryResult === 'fail' || (ctx.checkResult === 'fail' && !recovered);
-    showForgettingCurve(curveFail ? 'fail' : 'success', ctx);
+    showForgettingCurve(ctx.checkPassed || recovered ? (retryResult === 'fail' ? 'fail' : 'success') : 'fail', ctx);
 
     // 곡선·버튼이 각자 스크롤을 가져가면 캡처하라는 노트가 화면 밖으로 밀린다 — 마지막 스크롤은 노트 머리로
     requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
