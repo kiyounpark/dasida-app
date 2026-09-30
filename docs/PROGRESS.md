@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 22:35
+- 해시: `8da9382` (`8da938241ecd45a42138f4114198792fcdaafdad`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8da938241ecd45a42138f4114198792fcdaafdad
+- 작성자: 박기윤
+- 메시지: docs: 확인 문제 검산기 좁혀서 라이브 합격(나간 카드 정답 91.0%·p=2 5/5 막힘·건너뜀 18.8%) — 웹은 기윤 결정
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 20:59
 - 해시: `78e166b` (`78e166bcede897e4918fb5f907c6f9d60ef5f482`)
 - 브랜치: main
