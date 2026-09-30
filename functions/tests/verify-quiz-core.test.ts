@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildQuizVerifyInput,
+  gateQuizVerdict,
   judgeQuizVerify,
   QUIZ_VERIFY_INSTRUCTIONS,
   QUIZ_VERIFY_SCHEMA,
@@ -34,13 +35,15 @@ test('setup이 비면 [상황] 블록을 뺀다', () => {
   assert.equal(buildQuizVerifyInput({ prompt: 'p', options: ['a', 'b', 'c'] }).startsWith('[질문]'), true);
 });
 
-test('지시문은 측정 원문 그대로다 — 바꾸면 09.30 측정이 무효', () => {
+test('지시문은 10.01 측정(verify-tight.cjs) 원문 그대로다 — 바꾸면 측정이 무효', () => {
   assert.equal(
     QUIZ_VERIFY_INSTRUCTIONS,
     '너는 고등학교 수학 문제 검산기다. 아래 [상황]과 [질문]을 직접 풀어라.\n' +
       '보기 중 정답인 보기의 번호(0, 1, 2)를 고른다.\n' +
       '정답이 보기에 없으면 -1, 정답이 둘 이상이면 -2, 상황만으로 답이 정해지지 않으면 -3.\n' +
-      '보기를 먼저 보지 말고 스스로 답을 구한 뒤 보기와 맞춰라. solved에는 네가 구한 답을 짧게 적는다.'
+      '보기를 먼저 보지 말고 스스로 답을 구한 뒤 보기와 맞춰라. solved에는 네가 구한 답을 짧게 적는다.\n' +
+      '카드에 적힌 식·조건만 써라. 답을 정하는 데 필요한 식이나 조건이 카드에 없으면 -3.\n' +
+      '네가 구한 값이 둘 이상(예: ±)이고 카드 조건으로 하나를 못 고르면, 보기에 그중 하나만 있어도 -2.'
   );
 });
 
@@ -59,6 +62,15 @@ test('judgeQuizVerify — 번호가 같을 때만 match', () => {
   assert.equal(judgeQuizVerify(-4, 0), 'invalid');
   assert.equal(judgeQuizVerify(1.5, 1), 'invalid');
   assert.equal(judgeQuizVerify('1', 1), 'invalid');
+});
+
+test('gateQuizVerdict — 음수 답(없음·복수·모호)·invalid만 막고 번호 다름은 통과', () => {
+  assert.equal(gateQuizVerdict('match'), 'match');
+  assert.equal(gateQuizVerdict('mismatch'), 'match');
+  assert.equal(gateQuizVerdict('none'), 'none');
+  assert.equal(gateQuizVerdict('multiple'), 'multiple');
+  assert.equal(gateQuizVerdict('ambiguous'), 'ambiguous');
+  assert.equal(gateQuizVerdict('invalid'), 'invalid');
 });
 
 test('요청 검사 — 보기 3개·번호 0~2만 받는다', () => {

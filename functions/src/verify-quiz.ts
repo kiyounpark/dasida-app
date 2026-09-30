@@ -5,6 +5,7 @@ import OpenAI from 'openai';
 
 import {
   buildQuizVerifyInput,
+  gateQuizVerdict,
   judgeQuizVerify,
   QUIZ_VERIFY_INSTRUCTIONS,
   QUIZ_VERIFY_SCHEMA,
@@ -74,13 +75,15 @@ export const verifyQuiz = onRequest(
       const outputText = openAiResponse.output_text?.trim();
       if (!outputText) throw new Error('OpenAI response did not include output_text');
       const result = VerifyQuizModelResultSchema.parse(JSON.parse(outputText));
-      const verdict = judgeQuizVerify(result.answerIndex, marked);
+      const rawVerdict = judgeQuizVerify(result.answerIndex, marked);
+      const verdict = gateQuizVerdict(rawVerdict);
       const durationMs = Date.now() - startedAt;
 
       // 문항 본문·solved는 안 남긴다 — 판정과 비용만
       logger.info('verifyQuiz done', {
         kind,
         verdict,
+        rawVerdict,
         answerIndex: result.answerIndex,
         marked,
         durationMs,

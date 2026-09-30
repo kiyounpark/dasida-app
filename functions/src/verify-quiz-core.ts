@@ -3,12 +3,14 @@
 // 정답 번호(marked)는 프롬프트에 절대 넣지 않는다 — 번호를 보면 "맞네" 하고 따라간다. 비교는 서버가 한다.
 import { z } from 'zod';
 
-// verify.cjs INSTR 글자 그대로. 이 문구가 바뀌면 09.30 측정(오탐 0/54·막음 6/12)이 무효다 — 테스트가 먼저 깨진다.
+// verify-tight.cjs INSTR 글자 그대로(10.01 Fable 최종: 09.30 원문 + 뒤 두 줄). 이 문구가 바뀌면 측정이 무효다 — 테스트가 먼저 깨진다.
 export const QUIZ_VERIFY_INSTRUCTIONS = [
   '너는 고등학교 수학 문제 검산기다. 아래 [상황]과 [질문]을 직접 풀어라.',
   '보기 중 정답인 보기의 번호(0, 1, 2)를 고른다.',
   '정답이 보기에 없으면 -1, 정답이 둘 이상이면 -2, 상황만으로 답이 정해지지 않으면 -3.',
   '보기를 먼저 보지 말고 스스로 답을 구한 뒤 보기와 맞춰라. solved에는 네가 구한 답을 짧게 적는다.',
+  '카드에 적힌 식·조건만 써라. 답을 정하는 데 필요한 식이나 조건이 카드에 없으면 -3.',
+  '네가 구한 값이 둘 이상(예: ±)이고 카드 조건으로 하나를 못 고르면, 보기에 그중 하나만 있어도 -2.',
 ].join('\n');
 
 export const QUIZ_VERIFY_SCHEMA = {
@@ -65,4 +67,10 @@ export function judgeQuizVerify(answerIndex: unknown, marked: number): QuizVerdi
   if (answerIndex === -3) return 'ambiguous';
   if (answerIndex < 0 || answerIndex > 2) return 'invalid';
   return answerIndex === marked ? 'match' : 'mismatch';
+}
+
+// 웹이 받는 verdict. mismatch(번호는 골랐는데 다른 번호)는 통과시킨다 — 09.30 측정·라이브에서
+// 틀린 카드를 잡은 게 0번이고 오탐만 냈다(2/54). 막는 건 음수 답(none·multiple·ambiguous)과 invalid뿐.
+export function gateQuizVerdict(verdict: QuizVerdict): QuizVerdict {
+  return verdict === 'mismatch' ? 'match' : verdict;
 }
