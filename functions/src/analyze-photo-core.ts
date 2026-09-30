@@ -1,9 +1,22 @@
 import { diagnosisMethodRoutingCatalog, type SolveMethodId } from './method-catalog';
 
-// analyzePhoto 함수 한도. AI 마감·인증 대기·원장 쓰기가 이 안에 들어야 한다 (예산 테스트가 묶는다)
-export const ANALYZE_PHOTO_TIMEOUT_SECONDS = 60;
-// 응답 마감 — 요청 도착 기준. 한도에서 파싱·응답 여유 3초를 뺀 값. 원장 쓰기는 여기까지만 기다린다
+// analyzePhoto 함수 한도. 게이트·AI 마감·인증 대기·원장 쓰기가 이 안에 들어야 한다 (예산 테스트가 묶는다)
+// 마감 사슬: AI 150초 → 함수 180초 → 클라이언트 195초 (10.01 Fable 최종)
+export const ANALYZE_PHOTO_TIMEOUT_SECONDS = 180;
+// 응답 마감 상한 — 요청 도착 기준. 한도에서 파싱·응답 여유 3초를 뺀 값
 export const RESPONSE_DEADLINE_MS = ANALYZE_PHOTO_TIMEOUT_SECONDS * 1000 - 3_000;
+// 표식(clientDeadlineMs) 없는 요청 = 1.0.9 앱·옛 웹 탭(75초에 끊는다). 예전 응답 마감 57초를 그대로 준다 (astra ①⑤)
+export const LEGACY_RESPONSE_DEADLINE_MS = 57_000;
+// 클라이언트가 끊기 전에 응답이 닿아야 한다 — 축소·전송·응답 여유
+export const CLIENT_DEADLINE_MARGIN_MS = 15_000;
+
+// 이 요청의 응답 예산. 게이트·AI·인증·원장이 이 하나에서 나눠 쓴다.
+// clientDeadlineMs는 readRunRequestContext가 30~300초 정수만 받아 둔 값(아니면 null)
+export function responseBudgetMs(clientDeadlineMs: number | null): number {
+  return clientDeadlineMs === null
+    ? LEGACY_RESPONSE_DEADLINE_MS
+    : Math.min(clientDeadlineMs - CLIENT_DEADLINE_MARGIN_MS, RESPONSE_DEADLINE_MS);
+}
 
 // 실수 유형 6종 — 문제 푸는 여정 순서. 스키마 enum과 웹 카드가 함께 쓰는 단일 원천.
 export const MISTAKE_TYPE_IDS = [

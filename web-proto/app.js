@@ -111,15 +111,17 @@
 
   // ── 분석 중 문구 ──
   // 실제로는 vision 호출 한 번이라 진행률이 없다. 가짜 퍼센트 막대는 정직 라벨에 어긋나므로,
-  // AI가 실제로 하는 일들을 4초씩 돌려 보여준다. 16초를 넘기면 더 걸린다고 인정한다 —
-  // "15초"라고 해놓고 계속 우기면 그때부터 화면 전체가 안 믿긴다.
+  // AI가 실제로 하는 일들을 20초씩 돌려 보여준다(통과 사진 65~110초, 10.01 설계). 80초를 넘기면 더 걸린다고 인정한다 —
+  // "30초"라고 해놓고 계속 우기면 그때부터 화면 전체가 안 믿긴다. 마지막 문구에 숫자 상한을 안 쓴다 —
+  // fetch 195초에 축소·전송이 더해져 "3분"은 거짓이 된다 (10.01 Fable 정정).
   const ANALYZING_STEPS = [
     '사진에서 네 손글씨 읽는 중…',
     '어떤 방법으로 풀었는지 보는 중…',
     '해설이랑 한 줄씩 맞춰보는 중…',
     '처음 갈라진 데 찾는 중…',
   ];
-  const ANALYZING_OVERTIME = '꼼꼼히 보는 중이야. 조금만 기다려줘';
+  const ANALYZING_OVERTIME = '아직 보는 중이야. 너무 오래 걸리면 내가 멈추고 알려줄게';
+  const ANALYZING_STEP_MS = 20_000;
   let analyzingTimer = null;
   function startAnalyzingSteps() {
     const el = document.getElementById('analyzing-step');
@@ -133,7 +135,7 @@
       el.style.opacity = '0';
       setTimeout(() => { el.textContent = next; el.style.opacity = '1'; }, 250);
       if (i >= ANALYZING_STEPS.length) stopAnalyzingSteps(); // 마지막 문구에서 멈춘다
-    }, 4000);
+    }, ANALYZING_STEP_MS);
   }
   function stopAnalyzingSteps() {
     if (analyzingTimer) { clearInterval(analyzingTimer); analyzingTimer = null; }
@@ -302,6 +304,9 @@
   let selectedFile = null;
   // 사진을 고를 때마다 새로 — 같은 사진으로 다시 누르면 같은 값이 가서 원장이 재시도로 가른다 (설계 §4)
   let submissionId = null;
+  // 게이트 화면(사진 거르기)에서 [다시 찍기]로 왔으면 직전 submissionId — resetUpload가 옮겨 담는다.
+  // 새로고침(restart)은 안 잇는다 (10.01 설계 §3 submissionId 규칙)
+  let retakeOf = null;
   let uploadedImageDataUrl = null; // 오답노트 카드에 "내 풀이 사진"으로 다시 쓴다 (축소본 재사용 — 재인코딩 없음)
   // 대기 재기(09.28, Fable 최종 — docs/research/2026-09-28-wait-time-tracking-astra-fable.md).
   // 학생이 느낀 대기(축소+전송+분석)는 원장 durationMs(AI 호출만)와 달라 여기서 잰다. GA로만 보낸다.
@@ -339,14 +344,34 @@
     cta.classList.add('ready');
   }
 
+  // 사진 거르기에 걸린 뒤 [다시 찍기] — 새로고침 대신 업로드 화면으로 되돌린다(새로고침하면 retakeOf가 사라진다).
+  // 제출 때 막은 버튼(아래 cta 클릭의 cta.disabled = true)은 show('upload')도 setFile도 안 되살린다 — 여기서 푼다 (astra ②)
+  function resetUpload() {
+    retakeOf = submissionId; // setFile이 새 id를 만들기 전에 옮겨 담는다
+    selectedFile = null;
+    fileInput.value = '';
+    picked.textContent = '';
+    picked.style.display = 'none';
+    cta.classList.remove('ready');
+    cta.disabled = false;
+    // 게이트 말풍선이 다음 분석 대화 위에 남지 않게
+    thread.textContent = '';
+    actionsBox.textContent = '';
+    show('upload');
+  }
+
+  // 마감 사슬 AI 150초 → 서버 함수 180초 → 여기 195초. 서버는 이 값 − 15초(최대 177초)를 응답 예산으로 쓴다.
+  // 사진 크기·회전은 서버가 받은 축소본으로 서버 한 곳에서 거른다 — 클라이언트 선검사는 없다(원장 행이 사라진다)
+  const ANALYZE_CLIENT_DEADLINE_MS = 195_000;
+
   cta.addEventListener('click', async () => {
     if (!selectedFile || cta.disabled) return;
-    cta.disabled = true; // 더블클릭 → vision 이중 호출(이중 과금) 방지
+    cta.disabled = true; // 더블클릭 → vision 이중 호출(이중 과금) 방지. 게이트 [다시 찍기]는 resetUpload가 푼다
     waitStartedAt = Date.now();
     attempt += 1;
     waitHidden = false;
     show('analyzing');
-    logEvent('photo_submit'); // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수
+    logEvent('photo_submit', retakeOf ? { retake_of: retakeOf } : {}); // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수
 
     let imageDataUrl;
     try {
@@ -364,9 +389,13 @@
       const response = await fetch(ANALYZE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // participantId·submissionId·utm 값이 null이면 JSON.stringify가 그대로 null을 싣고, 서버는 없는 것으로 본다
-        body: JSON.stringify({ imageDataUrl, channel: 'web', participantId, submissionId, qa: isQa || isLocal, utmSource, utmSeenAt }),
-        signal: AbortSignal.timeout(75_000), // 함수 타임아웃(60s)보다 살짝 길게
+        // participantId·submissionId·utm·retakeOf 값이 null이면 JSON.stringify가 그대로 null을 싣고, 서버는 없는 것으로 본다.
+        // clientDeadlineMs는 "긴 마감을 아는 클라이언트" 표식 — 없으면 서버는 옛 57초 예산으로 돈다
+        body: JSON.stringify({
+          imageDataUrl, channel: 'web', participantId, submissionId, qa: isQa || isLocal, utmSource, utmSeenAt,
+          retakeOf, clientDeadlineMs: ANALYZE_CLIENT_DEADLINE_MS,
+        }),
+        signal: AbortSignal.timeout(ANALYZE_CLIENT_DEADLINE_MS),
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const result = await response.json();
@@ -399,6 +428,13 @@
 
   // ── 분석 결과 → 3갈래 라우팅 ──
   function routeFromAnalysis(result) {
+    // 사진 거르기에 걸림(서버 gate) — 분석 결과가 아니므로 analysis_shown 대신 analysis_gate로 센다
+    const gateDecision = result.gate?.decision;
+    if (typeof gateDecision === 'string' && gateDecision.startsWith('blocked')) {
+      logEvent('analysis_gate', { ...waitParams(), was_hidden: waitHidden ? 1 : 0, decision: gateDecision });
+      offerRetakeForGate(gateDecision);
+      return;
+    }
     pocket = result;
     // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
     // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
@@ -649,6 +685,29 @@
     setActions([
       { label: '📷 풀이까지 나오게 다시 찍기', kind: 'primary', onPress: () => window.location.reload() },
       { label: '✏️ 직접 알려줄게', kind: 'ghost', onPress: () => askMethodByText('어떤 방법으로 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼.') },
+    ]);
+  }
+
+  // 사진 거르기에 걸린 사진 — 왜 막혔는지 말하고 그 자리에서 다시 고르게 한다(새로고침 안 함 → retakeOf가 이어진다).
+  // 문구는 10.01 설계 초안. "카톡"은 짐작 — 2주 뒤 원장 gate.width 분포 보고 고친다
+  const GATE_COPY = {
+    blocked_rotation: {
+      text: '사진이 옆으로 누워 있어. 글씨가 바로 서게 세로로 다시 찍어줘 — 누운 채로는 네 풀이를 잘못 읽어.',
+      retake: '📷 세로로 다시 찍기',
+    },
+    blocked_small: {
+      text: '사진이 너무 작아서 글씨를 못 읽어. 카톡이나 메신저로 받은 사진은 줄어들어 있을 때가 많아 — 폰 카메라로 바로 찍어서 올려줘.',
+      retake: '📷 카메라로 다시 찍기',
+    },
+  };
+  function offerRetakeForGate(reason) {
+    const copy = GATE_COPY[reason];
+    if (!copy) { offerRetake(); return; } // 서버가 새 걸림 이유를 먼저 내보낸 경우
+    coachSays(copy.text);
+    setActions([
+      { label: copy.retake, kind: 'primary', onPress: resetUpload },
+      { label: '오늘은 여기까지', kind: 'ghost',
+        onPress: () => { userSays('오늘은 여기까지'); coachSays('알겠어. 다른 문제 생기면 또 올려줘.'); } },
     ]);
   }
 

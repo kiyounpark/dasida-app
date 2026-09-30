@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI, { type ClientOptions } from 'openai';
 
 import type {
   DiagnosisExplainRequest,
@@ -541,14 +541,14 @@ const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '⭕ 조각을 물으면 보기도 조각: "÷2", "×n"',
 ].join('\n');
 
-// SDK 기본 타임아웃(10분)이 함수 타임아웃(60초)보다 길어 hang 시 60초 전체를 태움 → 시도당 45초로 제한
-export const PHOTO_ANALYSIS_TIMEOUT_MS = 45_000;
-// SDK는 타임아웃도 재시도한다(maxRetries: 1). 45초 + 재시도는 함수 60초를 넘겨 학생은 504, 사용량 원장엔 행이 없다.
-// 호출 전체에 52초 마감을 건다 — 마감에 끊기면 재시도 없이 던져서 응답과 원장 한 줄이 남는다.
-// 60초 예산 = AI 52 + 인증 대기 2 + 원장 쓰기 3 + 파싱·응답 여유 (09.23 astra·Fable 코드리뷰).
-// 45초 뒤 재시도는 어차피 몇 초 안에 끝날 일이 거의 없어 성공률은 그대로다. 빨리 실패한 요청(429·5xx)의 재시도는 산다.
-// 남은 빈틈: SDK는 retry-after 헤더만큼 신호를 안 보고 잔다(client.js:437-464) — 늦게 온 429가 길게 기다리라 하면 60초까지 간다.
-export const PHOTO_ANALYSIS_DEADLINE_MS = 52_000;
+// SDK 기본 타임아웃(10분)이 함수 한도보다 길어 hang 시 한도 전체를 태움 → 시도당 150초로 제한.
+// 150초 = 09.30 18회 상한 130초 + 여유 20초. 통과 사진(08 세운 것) 본 호출은 59.9~92.6초였다 (10.01 Fable 최종)
+export const PHOTO_ANALYSIS_TIMEOUT_MS = 150_000;
+// SDK 타임아웃은 헤더가 오면 풀린다 — 본문 받는 시간까지 묶는 건 이 마감(AbortSignal)뿐이다.
+// 실제 마감은 요청마다 photoAiDeadlineMs(예산 − 지난 시간 − 인증 − 원장)로 줄어든다. 이 값은 그 상한.
+// 재시도는 끈다(maxRetries 0, astra ④) — SDK는 retry-after 헤더만큼 신호를 안 보고 자서(client.mjs:460)
+// 늦게 온 429가 길게 기다리라 하면 함수 한도까지 가 응답·원장이 같이 사라진다. openai_error가 늘면 그때 손으로 재시도(대기 상한 3초).
+export const PHOTO_ANALYSIS_DEADLINE_MS = 165_000;
 
 export type PhotoAnalysisUsage = {
   input: number;
@@ -630,14 +630,20 @@ export async function requestPhotoAnalysisFromOpenAI({
   reasoningEffort,
   imageDataUrl,
   methodContextText,
+  deadlineMs = PHOTO_ANALYSIS_DEADLINE_MS,
+  fetch,
 }: {
   apiKey: string;
   model: string;
   reasoningEffort?: string;
   imageDataUrl: string;
   methodContextText: string;
+  // 이 호출에 남은 시간 — 부르는 쪽이 예산에서 게이트가 쓴 시간을 빼서 준다
+  deadlineMs?: number;
+  // 테스트가 가짜 응답(429 등)을 꽂는 자리. 운영은 비운다
+  fetch?: ClientOptions['fetch'];
 }): Promise<{ result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null }> {
-  const client = new OpenAI({ apiKey, timeout: PHOTO_ANALYSIS_TIMEOUT_MS, maxRetries: 1 });
+  const client = new OpenAI({ apiKey, timeout: PHOTO_ANALYSIS_TIMEOUT_MS, maxRetries: 0, ...(fetch ? { fetch } : {}) });
 
   const response = await client.responses.create({
     model,
@@ -662,7 +668,93 @@ export async function requestPhotoAnalysisFromOpenAI({
         strict: true,
       },
     },
-  }, { signal: AbortSignal.timeout(PHOTO_ANALYSIS_DEADLINE_MS) });
+  }, { signal: AbortSignal.timeout(deadlineMs) });
 
   return parsePhotoAnalysisResponse(response);
+}
+
+// ── 사진 거르기용 회전 판독 (photo-gate.ts가 부른다) ──
+// 지시문·스키마는 10.01 실측(scripts-1001/prompts/read.txt · step12/gate-verify.cjs READ_SCHEMA)을 그대로 옮긴다 —
+// "rotation만 묻는" 더 가벼운 스키마는 측정 0회라 안 쓴다. lines는 받되 버린다.
+// 실측: 회전 11/11·29/29, 3.6~10.9초, 출력 533~1,307토큰 — 사진 3장의 반복이지 독립 표본이 아니다.
+export const PHOTO_ROTATIONS = ['upright', 'rotated_left', 'rotated_right', 'upside_down'] as const;
+export type PhotoRotation = (typeof PHOTO_ROTATIONS)[number];
+// 판독 한 번의 상한. 넘기면 게이트는 rotation null로 열어 둔다(skipped_timeout) — 재시도 없음
+export const PHOTO_ROTATION_TIMEOUT_MS = 20_000;
+
+const PHOTO_ROTATION_SYSTEM_PROMPT = [
+  '당신은 수학 손글씨 판독기입니다. 사진 속 학생의 손글씨 풀이를 줄 단위로 옮겨 적기만 하세요.',
+  '- 판정 금지: 맞는지 틀린지 보지 마세요. 검산·고쳐 쓰기·요약·설명 모두 하지 마세요. 틀려 보이는 식도 학생이 쓴 그대로 적습니다.',
+  '- 사진이 옆으로 누워 있거나 거꾸로면 머릿속으로 돌려서 바르게 읽으세요. rotation에 사진이 어떻게 놓여 있었는지 적으세요.',
+  '- 인쇄된 문제 본문과 보기는 옮기지 마세요. 학생이 손으로 쓴 식·값·메모만 옮깁니다. 그래프 그림은 "(그래프)"처럼 한 줄로만.',
+  '- 줄 순서는 풀이 순서로 보이는 대로(대체로 위에서 아래, 왼쪽에서 오른쪽). 등호로 이어진 긴 식은 한 줄로 둡니다.',
+  '- 지운 줄(두 줄 그음·덧씀)은 고쳐 쓴 최종 글자를 적고, 지운 흔적이 있으면 unsure를 true로.',
+  '- 글씨가 애매하면 가장 그럴듯한 읽기를 적고 unsure를 true로 하세요. 지어내지 마세요.',
+  '- 수식은 x^2, ∫, √, 1/4 같은 일반 표기로. LaTeX 금지.',
+  '- 손글씨 풀이가 없으면 hasSolvingWork를 false, lines는 빈 배열.',
+  '', // read.txt 끝 줄바꿈까지 그대로
+].join('\n');
+
+const PHOTO_ROTATION_SCHEMA = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    rotation: { type: 'string', enum: [...PHOTO_ROTATIONS] },
+    hasSolvingWork: { type: 'boolean' },
+    lines: {
+      type: 'array', maxItems: 40,
+      items: {
+        type: 'object', additionalProperties: false,
+        properties: { n: { type: 'integer' }, text: { type: 'string', maxLength: 200 }, unsure: { type: 'boolean' } },
+        required: ['n', 'text', 'unsure'],
+      },
+    },
+  },
+  required: ['rotation', 'hasSolvingWork', 'lines'],
+};
+
+export type PhotoRotationRead = {
+  rotation: PhotoRotation;
+  usage: PhotoAnalysisUsage | null;
+  ms: number;
+  model: string;
+  responseId: string;
+};
+
+export async function requestPhotoRotationFromOpenAI({
+  apiKey,
+  model,
+  imageDataUrl,
+  fetch,
+}: {
+  apiKey: string;
+  model: string;
+  imageDataUrl: string;
+  fetch?: ClientOptions['fetch'];
+}): Promise<PhotoRotationRead> {
+  const client = new OpenAI({ apiKey, timeout: PHOTO_ROTATION_TIMEOUT_MS, maxRetries: 0, ...(fetch ? { fetch } : {}) });
+  const startedAt = Date.now();
+
+  const response = await client.responses.create({
+    model,
+    reasoning: { effort: 'low' },
+    instructions: PHOTO_ROTATION_SYSTEM_PROMPT,
+    input: [{ role: 'user', content: [{ type: 'input_image', image_url: imageDataUrl, detail: 'high' }] }],
+    text: {
+      format: { type: 'json_schema', name: 'handwriting_lines', schema: PHOTO_ROTATION_SCHEMA, strict: true },
+    },
+  }, { signal: AbortSignal.timeout(PHOTO_ROTATION_TIMEOUT_MS) });
+
+  const parsed = parsePhotoAnalysisResponse(response);
+  const rotation = (parsed.result as { rotation?: unknown } | null)?.rotation;
+  if (!PHOTO_ROTATIONS.includes(rotation as PhotoRotation)) {
+    throw new PhotoAnalysisOutputError('parse_failed', parsed.responseId, parsed.model, parsed.usage);
+  }
+
+  return {
+    rotation: rotation as PhotoRotation,
+    usage: parsed.usage,
+    ms: Date.now() - startedAt,
+    model: parsed.model,
+    responseId: parsed.responseId,
+  };
 }

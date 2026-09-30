@@ -32,6 +32,7 @@ function baseInput() {
     modelRequested: 'gpt-5.4-mini',
     reasoningEffort: 'medium',
     durationMs: 18000,
+    gate: null,
   };
 }
 
@@ -53,6 +54,8 @@ test('readRunRequestContext: 아무 필드도 없으면 channel unknown·qa fals
     qa: false,
     utmSource: null,
     utmSeenAt: null,
+    retakeOf: null,
+    clientDeadlineMs: null,
   });
 });
 
@@ -73,6 +76,8 @@ test('readRunRequestContext: 웹 필드를 그대로 읽는다', () => {
       qa: true,
       utmSource: null,
       utmSeenAt: null,
+      retakeOf: null,
+      clientDeadlineMs: null,
     },
   );
 });
@@ -203,16 +208,19 @@ test('withTimeout: 실패해도 던지지 않고 대체값', async () => {
   assert.equal(await withTimeout(Promise.reject(new Error('x')), 10, (reason) => reason), 'rejected');
 });
 
-test('runLogWriteWaitMs: 원장 쓰기는 응답 마감(57초)까지 남은 시간만큼 기다린다', () => {
+test('runLogWriteWaitMs: 원장 쓰기는 응답 예산까지 남은 시간만큼, 10초 상한으로 기다린다', () => {
   const receivedAt = new Date('2026-09-24T00:00:00.000Z');
   const at = (seconds: number) => receivedAt.getTime() + seconds * 1000;
 
-  // 보통 분석(18초) — 새 인스턴스의 첫 Firestore 연결이 느려도 39초를 줄 수 있다
-  assert.equal(runLogWriteWaitMs(receivedAt, at(18)), 39_000);
-  // AI가 마감(52초)과 인증 대기(2초)를 다 써도 3초는 남는다
-  assert.equal(runLogWriteWaitMs(receivedAt, at(54)), 3_000);
-  assert.equal(runLogWriteWaitMs(receivedAt, at(57)), 0);
-  assert.equal(runLogWriteWaitMs(receivedAt, at(59)), 0);
+  // 표식 없는 요청(57초 예산) — 보통 분석(18초)이면 39초가 남지만 10초까지만 준다
+  assert.equal(runLogWriteWaitMs(receivedAt, 57_000, at(18)), 10_000);
+  // AI가 마감과 인증 대기(2초)를 다 써도 3초는 남는다
+  assert.equal(runLogWriteWaitMs(receivedAt, 57_000, at(54)), 3_000);
+  assert.equal(runLogWriteWaitMs(receivedAt, 57_000, at(57)), 0);
+  assert.equal(runLogWriteWaitMs(receivedAt, 57_000, at(59)), 0);
+  // 웹(177초 예산)
+  assert.equal(runLogWriteWaitMs(receivedAt, 177_000, at(172)), 5_000);
+  assert.equal(runLogWriteWaitMs(receivedAt, 177_000, at(177)), 0);
 });
 
 // ── 실패 분류 ──
@@ -250,7 +258,7 @@ test('buildPhotoAnalysisRunDoc: 성공 — 결과 요약·usage·KST 날짜·사
     },
   });
 
-  assert.equal(doc.schemaVersion, 1);
+  assert.equal(doc.schemaVersion, 2);
   assert.equal(doc.ok, true);
   assert.equal(doc.httpStatus, 200);
   assert.equal(doc.errorKind, null);

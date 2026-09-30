@@ -83,12 +83,15 @@ test('출력이 비어 있으면 empty_output으로 던지고 usage를 싣는다
   );
 });
 
-// 넘치면 분석이 성공해도 학생은 504, 원장엔 행이 없다 (09.23~24 astra·Fable 코드리뷰)
-test('예산 ①: AI 마감 + 인증 대기 뒤에도 원장 쓰기에 최소 3초가 남는다 (응답 마감 57초 안)', () => {
+// 넘치면 분석이 성공해도 학생은 504, 원장엔 행이 없다 (09.23~24 astra·Fable 코드리뷰 · 10.01 마감 사슬 150→180→195)
+test('예산 ①: AI 마감 상한 + 인증 대기 뒤에도 원장 쓰기에 최소 3초가 남는다 (응답 마감 177초 안)', () => {
+  assert.equal(PHOTO_ANALYSIS_TIMEOUT_MS, 150_000);
+  assert.equal(PHOTO_ANALYSIS_DEADLINE_MS, 165_000);
   assert.ok(PHOTO_ANALYSIS_DEADLINE_MS > PHOTO_ANALYSIS_TIMEOUT_MS);
   assert.ok(PHOTO_ANALYSIS_DEADLINE_MS + RUN_AUTH_WAIT_MS + RUN_LOG_WRITE_MIN_MS <= RESPONSE_DEADLINE_MS);
 });
 
-test('예산 ②: 응답 마감 + 파싱·응답 여유(3초)가 함수 한도(60초) 안에 든다', () => {
+test('예산 ②: 응답 마감 + 파싱·응답 여유(3초)가 함수 한도(180초) 안에 든다', () => {
+  assert.equal(ANALYZE_PHOTO_TIMEOUT_SECONDS, 180);
   assert.ok(RESPONSE_DEADLINE_MS + 3_000 <= ANALYZE_PHOTO_TIMEOUT_SECONDS * 1000);
 });
