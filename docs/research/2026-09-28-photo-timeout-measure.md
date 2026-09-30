@@ -1,6 +1,6 @@
 # 긴 풀이 사진 시간 초과 — 측정 (2026-09-28)
 
-> 🚨 **09.29 — 아래 결론의 전제 "실제 피해자 0"이 깨졌다.** 09.20 통화 학생이 09.28 저녁 수2 풀이를 웹으로 올렸고 원장 5건 전부 `openai_timeout`·52초(사진 3장, 문서 `mstTtTZKTWsN1UwHp2Ls`·`qB3XbAW6hP06tbRUVio3`·`FyNm9JDYHpsnbSr1Z5JZ`·`DoJhOm5ILGoPrC3HD1v7`·`7LAMp6EpFkB7S0oUtUwi`). 킬러가 아니라 수2 문제였다. "안 고친다"는 아직 안 뒤집었다 — 학생 사진이 오면 그걸로 재고 astra·Fable에 다시 건다. 자세한 건 `docs/STATUS.md` 「👉 다음 세션 첫 일」 🚨 09.29 줄.
+> 🚨 **09.29 — 아래 결론의 전제 "실제 피해자 0"이 깨졌다.** 09.20 통화 학생이 09.28 저녁 수2 풀이를 웹으로 올렸고 원장 5건 전부 `openai_timeout`·52초(사진 3장, 문서 `mstTtTZKTWsN1UwHp2Ls`·`qB3XbAW6hP06tbRUVio3`·`FyNm9JDYHpsnbSr1Z5JZ`·`DoJhOm5ILGoPrC3HD1v7`·`7LAMp6EpFkB7S0oUtUwi`). 킬러가 아니라 수2 문제였다. "안 고친다"는 아직 안 뒤집었다 — 학생 사진이 오면 그걸로 재고 astra·Fable에 다시 건다. 자세한 건 `docs/STATUS.md` 「👉 다음 세션 첫 일」 🚨 09.29 줄 · 재료 `~/dev/dasida-measure/2026-09-29-real-student-timeout/`.
 
 ## 결론 먼저 (09.28 끝)
 
