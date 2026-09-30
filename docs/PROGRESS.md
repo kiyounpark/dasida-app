@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 22:40
+- 해시: `e67ed40` (`e67ed40878d7577baddf52592a6a45f20c5af3b4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e67ed40878d7577baddf52592a6a45f20c5af3b4
+- 작성자: 박기윤
+- 메시지: docs: 확인 문제 검산 웹도 배포 — 로컬 4경우·배포 사이트 CORS 확인
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 22:35
 - 해시: `8da9382` (`8da938241ecd45a42138f4114198792fcdaafdad`)
 - 브랜치: main
