@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 20:59
+- 해시: `78e166b` (`78e166bcede897e4918fb5f907c6f9d60ef5f482`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/78e166bcede897e4918fb5f907c6f9d60ef5f482
+- 작성자: 박기윤
+- 메시지: docs: 검산에 원 문제 본문 줘도 불합격(p=2 카드 0/5·오탐 8/135) — 원 문제 값 카드 뺄지 기윤 결정으로
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 20:46
 - 해시: `343ef38` (`343ef3840f72a5d85f859e87b5ae7c085f545788`)
 - 브랜치: main
