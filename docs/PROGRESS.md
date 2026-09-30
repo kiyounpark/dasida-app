@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 20:46
+- 해시: `343ef38` (`343ef3840f72a5d85f859e87b5ae7c085f545788`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/343ef3840f72a5d85f859e87b5ae7c085f545788
+- 작성자: 박기윤
+- 메시지: docs: STATUS 맨 위 — 7호 예약·검산기 보류·확인 문제 기준 90/98, 노션·아티팩트 가리킴
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 17:43
 - 해시: `49e9e65` (`49e9e65ba8f978c3ef73b18f13416e03b77512a0`)
 - 브랜치: main
