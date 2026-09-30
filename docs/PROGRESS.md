@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.09.30 13:11
+- 해시: `4342d2a` (`4342d2ab60fa264f820b17121f733f046d45c3ef`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4342d2ab60fa264f820b17121f733f046d45c3ef
+- 작성자: 박기윤
+- 메시지: docs: 09.29 재료 경로 달기 + 오르비 재셈 요일 정정(09.21은 월요일, 평일 최대 1편)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.29 12:10
 - 해시: `9b7dbad` (`9b7dbad97894f4f8ce126dfd3ac31095364363f8`)
 - 브랜치: main
