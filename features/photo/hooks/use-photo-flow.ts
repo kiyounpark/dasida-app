@@ -6,14 +6,21 @@ import { logEvent } from '@/features/analytics/log-event';
 import { spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
-import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../flow/analyze-photo-request';
+import {
+  downscaleToDataUrl,
+  newSubmissionId,
+  pickPhoto,
+  requestAnalyze,
+} from '../flow/analyze-photo-request';
 import { askPhotoSource } from '../flow/ask-photo-source';
 import { ro } from '../flow/korean-particle';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
 import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
+import { requestQuizVerify, type QuizVerdict } from '../flow/verify-quiz-request';
 import { weaknessCandidatesFor, weaknessChoiceText } from '../flow/weakness-mistake-type-map';
 import {
   canPointAtError,
+  ERROR_CONFIDENCE_MIN,
   filterCandidates,
   matchMethodsByKeywords,
   methodLabel,
@@ -37,6 +44,37 @@ type NoteContext = {
   methodId: SolveMethodId;
   mistakeType: MistakeTypeId;
   checkPassed: boolean;
+  /** 쪽지를 학생이 안 봤다(검산에서 빠짐·문제가 깨져 옴). 실패가 아니다 — 노트 ✗·"괜찮아" 톤으로 안 간다 */
+  checkSkipped: boolean;
+};
+
+/**
+ * 짚은 후보 하나의 검산. 분석 결과가 닿는 순간(0번) 또는 사다리가 그 후보에 닿는 순간 뒤에서 출발하고,
+ * 쪽지·재도전 차례에 결과를 본다. 웹은 사다리가 없어 0번만 — 앱은 옛 ⑤라 2번 후보가 있어 그때 출발한다.
+ */
+type QuizVerifyRun = {
+  check: Promise<QuizVerdict> | null;
+  retry: Promise<QuizVerdict> | null;
+  /** 한 번 5초를 태웠으면(쪽지 wait_timeout) 재도전은 안 기다린다 — 빈 화면 10초 방지 */
+  waitedOnce: boolean;
+};
+
+/** 라이브 p90 4.9초(09.30 밤). 학생이 방법 확인·짚기를 읽는 시간이 앞에 있어 실제 대기는 드물다 (web-proto와 같은 값) */
+const VERIFY_WAIT_MS = 5_000;
+
+/**
+ * 사진 거르기에 걸린 사진 — 왜 막혔는지 말하고 다시 고르게 한다. 문구는 웹과 똑같이 (10.01 저녁 기윤 🔒, web-proto GATE_COPY).
+ * blocked_small: "너무 작아서"는 학생 폰 화면에선 멀쩡해 보여 "내 눈엔 안 작은데?"가 된다 — 반문을 첫마디로 막는다.
+ */
+const GATE_COPY: Record<string, { text: string; retake: string }> = {
+  blocked_rotation: {
+    text: '사진이 옆으로 누워 있어. 글씨가 바로 서게 세로로 다시 찍어줘 — 누운 채로는 네 풀이를 잘못 읽어.',
+    retake: '📷 세로로 다시 찍기',
+  },
+  blocked_small: {
+    text: '화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어. 캡처나 잘라낸 사진 말고, 찍은 원본을 올려줘.',
+    retake: '다른 사진 올리기',
+  },
 };
 
 export type PhotoFlowStatus = 'upload' | 'analyzing' | 'chat';
@@ -84,6 +122,13 @@ export function usePhotoFlow({
   const photoUriRef = useRef<string | null>(null);
   const methodIdRef = useRef<SolveMethodId | null>(null);
   const busyRef = useRef(false);
+  /** 지금 사진의 번호 — 사진을 고를 때마다 새로. 원장과 검산 로그가 이 값으로 잇는다 */
+  const submissionIdRef = useRef<string | null>(null);
+  /** 거르기에 걸려 [다시 찍기]로 왔으면 직전 번호. 처음부터 다시(restart)는 안 잇는다 (web-proto와 같은 규칙) */
+  const retakeOfRef = useRef<string | null>(null);
+  /** 검산 — 후보 번호별. seq는 새 분석·처음부터 다시마다 올린다: 늦게 깬 옛 대기가 새 대화를 덮지 않게 */
+  const verifyRunsRef = useRef(new Map<number, QuizVerifyRun>());
+  const verifySeqRef = useRef(0);
 
   const { say, mySay, showNote, ask } = thread;
 
@@ -103,6 +148,7 @@ export function usePhotoFlow({
       submitted = true;
       logEvent('photo_submit', { source });
       photoUriRef.current = photo.uri;
+      submissionIdRef.current = newSubmissionId();
       setImageUri(photo.uri);
       setStatus('analyzing');
 
@@ -110,8 +156,14 @@ export function usePhotoFlow({
       const headersPromise = accountKey && getRemoteAuthHeaders ? getRemoteAuthHeaders(accountKey) : Promise.resolve({});
       const imageDataUrl = await downscaleToDataUrl(photo);
       // qa: 개발 빌드 사진은 서버 원장에서 빼고 센다. 스토어 빌드로 기윤이 돌린 건 집계 때 계정으로 뺀다
-      const result = await requestAnalyze(imageDataUrl, { headers: await headersPromise, qa: __DEV__ });
+      const result = await requestAnalyze(imageDataUrl, {
+        headers: await headersPromise,
+        qa: __DEV__,
+        submissionId: submissionIdRef.current,
+        retakeOf: retakeOfRef.current,
+      });
       resultRef.current = result;
+      const route = routeFromAnalysis(result);
 
       logEvent('photo_analyzed', {
         success: true,
@@ -119,10 +171,14 @@ export function usePhotoFlow({
         has_solving_work: result.hasSolvingWork,
         needs_manual_selection: result.needsManualSelection,
         error_candidate_count: result.errorCandidates.length,
+        gate_decision: result.gate?.decision ?? 'none',
       });
 
       setStatus('chat');
-      runRoute(routeFromAnalysis(result));
+      resetQuizVerify();
+      // 거르기에 걸린 응답은 분석 결과가 아니다 — 검산할 문제도 없다
+      if (route.kind !== 'gate') startQuizVerify(0);
+      runRoute(route);
     } catch (caught) {
       if (submitted) logEvent('photo_analyzed', { success: false });
       setStatus('upload');
@@ -133,17 +189,130 @@ export function usePhotoFlow({
   }
 
   function restart() {
+    retakeOfRef.current = null;
+    resetToUpload();
+  }
+
+  /**
+   * 거르기 화면의 [다시 찍기]. 처음부터 다시와 같지만 직전 번호를 retakeOf로 넘긴다 —
+   * 원장이 "걸린 학생이 다시 찍어 왔나"를 이 값으로 센다 (web-proto resetUpload).
+   */
+  function retakeFromGate() {
+    retakeOfRef.current = submissionIdRef.current;
+    resetToUpload();
+  }
+
+  function resetToUpload() {
     resultRef.current = null;
     photoUriRef.current = null;
     methodIdRef.current = null;
+    submissionIdRef.current = null;
+    resetQuizVerify();
     thread.clear();
     setImageUri(null);
     setError(null);
     setStatus('upload');
   }
 
+  function resetQuizVerify() {
+    verifySeqRef.current += 1;
+    verifyRunsRef.current = new Map();
+  }
+
+  /**
+   * 후보 하나의 쪽지·재도전 검산을 뒤에서 출발시킨다. 이미 출발했으면 그대로 둔다.
+   * 짚기로 가는 조건(풀이 있음·후보 있음·자신감 문턱)일 때만 — 아니면 쪽지 차례가 안 온다.
+   * 서버가 보기 3개만 받으므로(VerifyQuizRequestSchema) 3개가 아닌 문제는 출발하지 않고, 차례가 오면 건너뛴다.
+   */
+  function startQuizVerify(index: number) {
+    const result = resultRef.current;
+    const candidate = result?.errorCandidates?.[index];
+    if (!result?.hasSolvingWork || !candidate || !(result.errorConfidence >= ERROR_CONFIDENCE_MIN)) return;
+    if (verifyRunsRef.current.has(index)) return;
+
+    const base = { submissionId: submissionIdRef.current, qa: __DEV__ };
+    const check = readCheckQuiz(candidate);
+    const retry = readRetryQuiz(candidate);
+    verifyRunsRef.current.set(index, {
+      check:
+        check && check.options.length === 3
+          ? requestQuizVerify({
+              kind: 'check',
+              setup: check.setup || undefined,
+              prompt: check.prompt,
+              options: check.options,
+              marked: check.answerIndex,
+              ...base,
+            })
+          : null,
+      retry:
+        retry && retry.options.length === 3
+          ? requestQuizVerify({
+              kind: 'retry',
+              setup: retry.setup,
+              prompt: retry.prompt,
+              options: retry.options,
+              marked: retry.answerIndex,
+              ...base,
+            })
+          : null,
+      waitedOnce: false,
+    });
+  }
+
+  /**
+   * 절대 안 던진다. 이미 와 있으면 0초, 아니면 최대 5초. stale이면 그사이 처음부터 다시를 눌렀다 —
+   * 호출부는 화면을 덮지 않고 그냥 빠진다. 기다리는 동안 버튼은 없다(press가 onPress 전에 비운다).
+   */
+  async function awaitQuizVerdict(
+    kind: 'check' | 'retry',
+    index: number,
+  ): Promise<{ verdict: QuizVerdict; waitedMs: number; stale: boolean }> {
+    const seq = verifySeqRef.current;
+    const startedAt = Date.now();
+    const run = verifyRunsRef.current.get(index);
+    const pending = run?.[kind];
+    if (!run || !pending) {
+      return { verdict: { verdict: 'skip', reason: 'not_started', ms: 0 }, waitedMs: 0, stale: false };
+    }
+    const cap = run.waitedOnce ? 0 : VERIFY_WAIT_MS;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arrived = await Promise.race([
+      pending,
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), cap);
+      }),
+    ]);
+    clearTimeout(timer);
+    let verdict: QuizVerdict;
+    if (arrived) {
+      verdict = arrived;
+    } else {
+      run.waitedOnce = true;
+      verdict = { verdict: 'skip', reason: 'wait_timeout', ms: 0 };
+    }
+    return { verdict, waitedMs: Date.now() - startedAt, stale: seq !== verifySeqRef.current };
+  }
+
+  function logQuizVerify(
+    kind: 'check' | 'retry',
+    { verdict, waitedMs }: { verdict: QuizVerdict; waitedMs: number },
+  ) {
+    const notTimed = verdict.reason === 'not_started' || verdict.reason === 'wait_timeout';
+    logEvent('photo_quiz_verify', {
+      kind,
+      result: verdict.verdict,
+      reason: verdict.reason,
+      verify_ms: notTimed ? null : verdict.ms,
+      waited_ms: waitedMs,
+    });
+  }
+
   function runRoute(route: PhotoRoute) {
     switch (route.kind) {
+      case 'gate':
+        offerRetakeForGate(route.decision);
+        return;
       case 'retake':
         offerRetake();
         return;
@@ -287,6 +456,28 @@ export function usePhotoFlow({
     ]);
   }
 
+  /** 사진 거르기에 걸림 — 분석은 안 돌았다. 왜 막혔는지 말하고 그 자리에서 다시 고르게 한다 */
+  function offerRetakeForGate(decision: string) {
+    const copy = GATE_COPY[decision];
+    if (!copy) {
+      offerRetake(); // 서버가 새 걸림 이유를 먼저 내보낸 경우
+      return;
+    }
+    say(copy.text);
+    ask([
+      { label: copy.retake, kind: 'primary', onPress: retakeFromGate },
+      {
+        label: '오늘은 여기까지',
+        kind: 'ghost',
+        onPress: () => {
+          mySay('오늘은 여기까지');
+          say('알겠어. 다른 문제 생기면 또 올려줘.');
+          endHere();
+        },
+      },
+    ]);
+  }
+
   /** 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문. */
   function confirmMethod(methodId: SolveMethodId) {
     const result = resultRef.current;
@@ -347,6 +538,9 @@ export function usePhotoFlow({
       return;
     }
 
+    // 0번은 분석 결과가 닿을 때 이미 출발했다. 2번 후보는 사다리가 여기 닿은 지금 출발 — 학생이 짚기·이유를 읽는 동안 돈다
+    startQuizVerify(index);
+
     if (index === 0) {
       say('그럼 풀이를 좀 더 보자.');
       say(`여기 — "${candidate.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
@@ -381,19 +575,24 @@ export function usePhotoFlow({
     ask([{ label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(index) }]);
   }
 
-  function showCheck(index: number) {
+  async function showCheck(index: number) {
     const candidate = candidateAt(index);
     if (!candidate) return;
-    const context = (passed: boolean): NoteContext => ({
+    const context = (passed: boolean, skipped = false): NoteContext => ({
       methodId: (methodIdRef.current ?? resultRef.current?.predictedMethodId) as SolveMethodId,
       mistakeType: candidate.mistakeType,
       checkPassed: passed,
+      checkSkipped: skipped,
     });
 
     const quiz = readCheckQuiz(candidate);
-    if (!quiz) {
-      // 보기·정답이 깨져 온 날은 쪽지시험을 조용히 건너뛴다 — 노트는 그래도 나온다
-      startRetry(index, context(false));
+    const verified = await awaitQuizVerdict('check', index);
+    if (verified.stale) return; // 기다리는 사이 처음부터 다시를 눌렀다 — 새 대화를 덮지 않는다
+    logQuizVerify('check', verified);
+    if (!quiz || verified.verdict.verdict !== 'match') {
+      // 보기·정답이 깨져 왔거나 검산을 통과 못 한 쪽지는 조용히 건너뛴다 — 노트는 그래도 나온다.
+      // 건너뜀은 실패가 아니다: 노트 ✗·"괜찮아" 톤 어디로도 안 간다
+      startRetry(index, context(false, true));
       return;
     }
 
@@ -423,18 +622,28 @@ export function usePhotoFlow({
     );
   }
 
-  function startRetry(index: number, context: NoteContext) {
+  async function startRetry(index: number, context: NoteContext) {
     const quiz = readRetryQuiz(candidateAt(index));
     if (!quiz) {
       showWrongNote(index, context, 'none');
       return;
     }
+    const verified = await awaitQuizVerdict('retry', index);
+    if (verified.stale) return;
+    logQuizVerify('retry', verified);
+    if (verified.verdict.verdict !== 'match') {
+      // 검산을 통과 못 한 재도전은 안 낸다 — 노트는 나오고, 재도전 칸은 비운다(웹 'unverified'와 같은 표시)
+      showWrongNote(index, context, 'none');
+      return;
+    }
 
-    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축)
+    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축).
+    // 쪽지를 건너뛴 학생도 빠른 쪽이다 — 틀린 적이 없다
+    const failedCheck = !context.checkPassed && !context.checkSkipped;
     say(
-      context.checkPassed
-        ? '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.'
-        : '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.',
+      failedCheck
+        ? '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.'
+        : '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.',
     );
     say(`${quiz.setup}\n${quiz.prompt}`);
 
@@ -569,6 +778,7 @@ export function usePhotoFlow({
       weaknessIds,
       primaryWeaknessId,
       checkPassed: context.checkPassed,
+      checkSkipped: context.checkSkipped,
       retryResult,
     };
 

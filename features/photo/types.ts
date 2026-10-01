@@ -46,6 +46,19 @@ export type AnalyzePhotoResult = {
   needsManualSelection: boolean;
   errorCandidates: ErrorCandidate[];
   errorConfidence: number;
+  /**
+   * 사진 거르기(09.30 서버). 걸리면 HTTP 200 + hasSolvingWork:false + decision 'blocked_*'.
+   * 원본은 functions/src/photo-gate.ts의 PhotoGateView. 옛 서버 응답엔 없다.
+   */
+  gate?: PhotoGate;
+};
+
+export type PhotoGate = {
+  /** 'pass' | 'blocked_small' | 'blocked_rotation' — 서버가 새 이유를 먼저 낼 수 있어 string으로 받는다 */
+  decision: string;
+  rotation?: string | null;
+  width?: number;
+  height?: number;
 };
 
 /** 재도전까지 마친 결과 — 오답노트의 '오늘 확인' 칸에 들어간다 */
@@ -91,6 +104,12 @@ export type PhotoNote = {
    */
   primaryWeaknessId: WeaknessId | null;
   checkPassed: boolean;
+  /**
+   * 쪽지시험을 학생이 안 봤다 — 검산에서 빠졌거나 문제가 깨져 왔다(1.0.10).
+   * true면 checkPassed는 의미가 없고 카드에 쪽지 표시를 안 낸다 — 안 본 문제가 ✗로 둔갑하지 않게.
+   * 1.0.9까지 저장된 노트엔 이 칸이 없다(= 학생이 본 쪽지).
+   */
+  checkSkipped?: boolean;
   retryResult: RetryResult;
 };
 

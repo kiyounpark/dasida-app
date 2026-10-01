@@ -39,6 +39,40 @@ describe('routeFromAnalysis — 네 갈래', () => {
   });
 });
 
+/**
+ * 사진 거르기(서버 09.30). 걸린 응답도 hasSolvingWork:false라, gate를 먼저 안 보면
+ * 1.0.9처럼 "풀이 과정을 못 찾았어"로 잘못 말한다.
+ */
+describe('routeFromAnalysis — 사진 거르기', () => {
+  // functions/src/photo-gate.ts buildGateBlockedResult와 같은 모양
+  function blocked(decision: string) {
+    return makeResult({
+      hasSolvingWork: false,
+      predictedMethodId: 'unknown',
+      confidence: 0,
+      candidateMethodIds: ['unknown'],
+      reason: 'gate',
+      needsManualSelection: true,
+      gate: { decision, rotation: null, width: 524, height: 813 },
+    });
+  }
+
+  it.each(['blocked_small', 'blocked_rotation'])('%s면 다시 찍기가 아니라 거르기 갈래로 간다', (decision) => {
+    expect(routeFromAnalysis(blocked(decision))).toEqual({ kind: 'gate', decision });
+  });
+
+  it('서버가 새 걸림 이유를 먼저 내도 거르기 갈래로 받는다', () => {
+    expect(routeFromAnalysis(blocked('blocked_blur'))).toEqual({ kind: 'gate', decision: 'blocked_blur' });
+  });
+
+  it('통과(pass)는 평소 갈래 그대로다', () => {
+    const route = routeFromAnalysis(
+      makeResult({ gate: { decision: 'pass', rotation: 'upright', width: 1176, height: 1568 } }),
+    );
+    expect(route.kind).toBe('assert');
+  });
+});
+
 describe('firstSnippet', () => {
   it('첫 문장만 잘라낸다', () => {
     expect(firstSnippet('완전제곱식으로 묶었다. 그다음 대입했다')).toBe('완전제곱식으로 묶었다');

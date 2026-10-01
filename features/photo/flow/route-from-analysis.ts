@@ -21,16 +21,24 @@ export function methodLabel(id: SolveMethodId | undefined): string {
 }
 
 /**
- * 분석 결과가 가는 네 갈래. 어느 갈래인지만 정하고 말은 안 만든다 —
+ * 분석 결과가 가는 다섯 갈래. 어느 갈래인지만 정하고 말은 안 만든다 —
  * 말풍선으로 바꾸는 건 use-photo-flow가 한다.
  */
 export type PhotoRoute =
+  | { kind: 'gate'; decision: string }
   | { kind: 'retake' }
   | { kind: 'assert'; methodId: SolveMethodId; label: string; snippet: string }
   | { kind: 'soft-assert'; methodId: SolveMethodId; label: string; snippet: string }
   | { kind: 'candidates'; methodIds: SolveMethodId[] };
 
 export function routeFromAnalysis(result: AnalyzePhotoResult): PhotoRoute {
+  // 사진 거르기에 걸림 — 분석 결과가 아니다. 걸린 응답도 hasSolvingWork:false라 이 검사가 먼저여야
+  // "풀이 과정을 못 찾았어"(갈래 3)로 잘못 말하지 않는다. 1.0.9가 그렇게 말했다 (web-proto와 같은 판정)
+  const gateDecision = result.gate?.decision;
+  if (typeof gateDecision === 'string' && gateDecision.startsWith('blocked')) {
+    return { kind: 'gate', decision: gateDecision };
+  }
+
   // 갈래 3: 풀이 흔적이 없으면 짚어줄 게 없다 → 다시 찍기
   if (!result.hasSolvingWork) {
     return { kind: 'retake' };

@@ -1,9 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 // jest.mock은 babel이 import 위로 끌어올리므로 아래 import들이 목을 먼저 받는다
 import { makeCandidate, makeResult } from '../../flow/__fixtures__/analysis';
-import { downscaleToDataUrl, pickPhoto, requestAnalyze } from '../../flow/analyze-photo-request';
+import {
+  downscaleToDataUrl,
+  newSubmissionId,
+  pickPhoto,
+  requestAnalyze,
+} from '../../flow/analyze-photo-request';
 import { askPhotoSource } from '../../flow/ask-photo-source';
+import { requestQuizVerify } from '../../flow/verify-quiz-request';
 import { logEvent } from '@/features/analytics/log-event';
 import { addDaysToToday } from '@/features/learning/review-scheduler';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
@@ -48,6 +54,13 @@ jest.mock('../../flow/analyze-photo-request', () => ({
   pickPhoto: jest.fn(),
   downscaleToDataUrl: jest.fn(),
   requestAnalyze: jest.fn(),
+  newSubmissionId: jest.fn(),
+}));
+
+// 쪽지·재도전 검산(1.0.10). 기본은 match — 아래 흐름 테스트들은 문제가 나가는 길을 잰다.
+// 건너뜀 길은 「1.0.10 — 웹과 같게」 묶음이 따로 잰다.
+jest.mock('../../flow/verify-quiz-request', () => ({
+  requestQuizVerify: jest.fn(),
 }));
 
 // 찍을지 고를지 묻는 창. 실물은 ActionSheetIOS라 테스트 환경에 네이티브가 없다
@@ -68,6 +81,8 @@ const mockAnalyze = requestAnalyze as jest.Mock;
 const mockLog = logEvent as jest.Mock;
 const mockSaveNote = savePhotoNote as jest.Mock;
 const mockReadNotes = readPhotoNotes as jest.Mock;
+const mockNewSubmissionId = newSubmissionId as jest.Mock;
+const mockVerify = requestQuizVerify as jest.Mock;
 
 /** 흐름을 오답노트 한 장까지 몬다. 쪽지시험·재도전은 첫 보기를 누른다. */
 async function walkToNote() {
@@ -124,6 +139,9 @@ beforeEach(() => {
   mockPick.mockResolvedValue({ uri: 'file://photo.jpg', width: 3024, height: 4032 });
   mockDownscale.mockResolvedValue('data:image/jpeg;base64,AAAA');
   mockReadNotes.mockResolvedValue([]);
+  let submissionCount = 0;
+  mockNewSubmissionId.mockImplementation(() => `sub-${(submissionCount += 1)}`);
+  mockVerify.mockResolvedValue({ verdict: 'match', reason: 'match', ms: 10 });
 });
 
 describe('PhotoFlowScreen', () => {
@@ -336,6 +354,232 @@ describe('PhotoFlowScreen', () => {
     await waitFor(() => expect(screen.getByText(/내가 틀린 거야/)).toBeTruthy());
     expect(screen.getByText('그게 오늘 네 오답노트야.')).toBeTruthy();
     expect(screen.queryByText(/느낌 설문|오늘 만든 조각|망각곡선/)).toBeNull();
+  });
+});
+
+/**
+ * 1.0.10 — 웹에서 먼저 바뀐 것들을 앱에 똑같이 (10.01 기윤 🔒).
+ * 사진 거르기 문구 · 다시 찍기 번호 · 쪽지·재도전 검산.
+ */
+describe('1.0.10 — 웹과 같게', () => {
+  // functions/src/photo-gate.ts buildGateBlockedResult와 같은 모양
+  function gated(decision: string) {
+    return makeResult({
+      hasSolvingWork: false,
+      predictedMethodId: 'unknown',
+      confidence: 0,
+      candidateMethodIds: ['unknown'],
+      reason: 'gate',
+      needsManualSelection: true,
+      gate: { decision, rotation: null, width: 524, height: 813 },
+    });
+  }
+
+  it('사진마다 번호를 붙여 보내고, 처음엔 retakeOf가 없다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult());
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(1));
+    expect(mockAnalyze.mock.calls[0][1]).toMatchObject({ submissionId: 'sub-1', retakeOf: null });
+  });
+
+  it('작아서 걸리면 "풀이 과정을 못 찾았어"가 아니라 웹과 같은 말을 한다', async () => {
+    mockAnalyze.mockResolvedValue(gated('blocked_small'));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(screen.getByText('다른 사진 올리기')).toBeTruthy());
+    expect(
+      screen.getByText(
+        '화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어. 캡처나 잘라낸 사진 말고, 찍은 원본을 올려줘.',
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/풀이 과정을 못 찾았어/)).toBeNull();
+    expect(eventNamed('photo_analyzed')![1]).toMatchObject({ gate_decision: 'blocked_small' });
+  });
+
+  it('누워서 걸리면 세로로 다시 찍어달라고 한다', async () => {
+    mockAnalyze.mockResolvedValue(gated('blocked_rotation'));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(screen.getByText('📷 세로로 다시 찍기')).toBeTruthy());
+    expect(screen.getByText(/사진이 옆으로 누워 있어/)).toBeTruthy();
+  });
+
+  it('걸린 뒤 다시 올리면 직전 번호를 retakeOf로 싣는다 — 원장이 "다시 찍어 왔나"를 센다', async () => {
+    mockAnalyze.mockResolvedValueOnce(gated('blocked_small')).mockResolvedValueOnce(makeResult());
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('다른 사진 올리기')).toBeTruthy());
+    fireEvent.press(screen.getByText('다른 사진 올리기'));
+
+    await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(2));
+    expect(mockAnalyze.mock.calls[1][1]).toMatchObject({ submissionId: 'sub-2', retakeOf: 'sub-1' });
+  });
+
+  it('처음부터 다시는 retakeOf를 잇지 않는다', async () => {
+    mockAnalyze.mockResolvedValueOnce(gated('blocked_small')).mockResolvedValue(makeResult({ hasSolvingWork: false }));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('오늘은 여기까지')).toBeTruthy());
+    fireEvent.press(screen.getByText('오늘은 여기까지'));
+    await waitFor(() => expect(screen.getByText('알겠어. 다른 문제 생기면 또 올려줘.')).toBeTruthy());
+    fireEvent.press(screen.getByText('처음부터 다시'));
+
+    await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockAnalyze).toHaveBeenCalledTimes(2));
+    expect(mockAnalyze.mock.calls[1][1]).toMatchObject({ retakeOf: null });
+  });
+
+  it('분석 결과가 닿자마자 0번 후보의 쪽지·재도전을 정답 번호와 함께 검산에 보낸다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(mockVerify).toHaveBeenCalledTimes(2));
+    expect(mockVerify.mock.calls.map(([body]) => [body.kind, body.marked, body.submissionId])).toEqual([
+      ['check', 1, 'sub-1'],
+      ['retry', 0, 'sub-1'],
+    ]);
+  });
+
+  it('오류를 짚을 수 없는 결과면 검산을 안 보낸다 — 쪽지 차례가 안 온다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.2 }));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    expect(mockVerify).not.toHaveBeenCalled();
+  });
+
+  it('쪽지가 검산을 통과 못 하면 안 내고, 노트에 ✗ 대신 쪽지 칸을 비운다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    mockVerify.mockImplementation(async (body: { kind: string }) =>
+      body.kind === 'check'
+        ? { verdict: 'skip', reason: 'none', ms: 10 }
+        : { verdict: 'match', reason: 'match', ms: 10 },
+    );
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
+    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
+    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+
+    // 쪽지 없이 재도전으로 — 틀린 적이 없으니 "괜찮아" 톤이 아니다
+    await waitFor(() => expect(screen.getByText('25를 더하고 뺀다')).toBeTruthy());
+    expect(screen.queryByText('9를 더하고 뺀다')).toBeNull();
+    expect(screen.getByText(/그럼 진짜 마지막/)).toBeTruthy();
+    expect(screen.queryByText(/괜찮아, 헷갈리라고/)).toBeNull();
+    fireEvent.press(screen.getByText('25를 더하고 뺀다'));
+
+    await waitFor(() => expect(screen.getByText('오늘 확인: 재도전 ✔')).toBeTruthy());
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    expect(mockSaveNote.mock.calls[0][1]).toMatchObject({ checkSkipped: true });
+    expect(eventNamed('photo_quiz_verify')![1]).toMatchObject({ kind: 'check', result: 'skip', reason: 'none' });
+  });
+
+  it('재도전이 검산을 통과 못 하면 안 내고 노트로 간다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    mockVerify.mockImplementation(async (body: { kind: string }) =>
+      body.kind === 'retry'
+        ? { verdict: 'skip', reason: 'ambiguous', ms: 10 }
+        : { verdict: 'match', reason: 'match', ms: 10 },
+    );
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
+    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
+    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
+    fireEvent.press(screen.getByText('9를 더하고 뺀다'));
+
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
+    expect(screen.getByText('오늘 확인: 쪽지시험 ✔')).toBeTruthy();
+    expect(screen.queryByText('25를 더하고 뺀다')).toBeNull();
+  });
+
+  it('검산이 5초 안에 안 오면 쪽지를 건너뛰고, 재도전은 더 안 기다린다 — 빈 화면 10초 방지', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    mockVerify.mockImplementation(() => new Promise(() => {})); // 끝내 안 온다
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
+    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
+
+    jest.useFakeTimers();
+    try {
+      fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+      await act(async () => {
+        jest.advanceTimersByTime(4_999);
+      });
+      expect(screen.queryByText('오늘의 오답노트 · 1장')).toBeNull(); // 아직 기다리는 중
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+      });
+      // 재도전의 0초 대기도 타이머라 한 번 더 돌린다
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+
+    // 쪽지 5초를 태웠으니 재도전은 0초 — 둘 다 건너뛰고 바로 노트
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
+    expect(screen.queryByText('9를 더하고 뺀다')).toBeNull();
+    expect(screen.queryByText('25를 더하고 뺀다')).toBeNull();
+    expect(screen.queryByText(/오늘 확인/)).toBeNull();
+    const verifyEvents = mockLog.mock.calls.filter(([name]) => name === 'photo_quiz_verify').map(([, p]) => p);
+    expect(verifyEvents).toEqual([
+      expect.objectContaining({ kind: 'check', result: 'skip', reason: 'wait_timeout' }),
+      expect.objectContaining({ kind: 'retry', result: 'skip', reason: 'wait_timeout' }),
+    ]);
+  });
+
+  it('2번 후보는 사다리가 닿을 때 검산을 출발시킨다', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({
+        errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4', checkAnswerIndex: 2 })],
+        errorConfidence: 0.9,
+      }),
+    );
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    expect(mockVerify).toHaveBeenCalledTimes(2); // 0번 쪽지·재도전만
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
+    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
+
+    await waitFor(() => expect(mockVerify).toHaveBeenCalledTimes(4));
+    expect(mockVerify.mock.calls[2][0]).toMatchObject({ kind: 'check', marked: 2 });
   });
 });
 

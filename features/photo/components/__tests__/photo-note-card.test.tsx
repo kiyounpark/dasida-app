@@ -84,3 +84,42 @@ describe('PhotoNoteCard — 약점 이름표 줄', () => {
     expect(screen.getByText(/또는/)).toBeTruthy();
   });
 });
+
+/**
+ * 1.0.10 — 검산에서 빠진 쪽지는 학생이 안 본 문제다. ✗로 적으면 안 본 걸 틀렸다고 적는 셈이다 (web-proto와 같은 규칙).
+ */
+describe('PhotoNoteCard — 오늘 확인 줄', () => {
+  it('쪽지·재도전을 둘 다 봤으면 둘 다 적는다', () => {
+    render(<PhotoNoteCard note={noteWith([])} />);
+
+    expect(screen.getByText('오늘 확인: 쪽지시험 ✔ · 재도전 ✔')).toBeTruthy();
+  });
+
+  it('쪽지를 틀렸으면 ✗', () => {
+    render(<PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, retryResult: 'fail' }} />);
+
+    expect(screen.getByText('오늘 확인: 쪽지시험 ✗ · 재도전 ✗')).toBeTruthy();
+  });
+
+  it('쪽지를 건너뛰었으면 쪽지 칸을 안 적는다 — ✗로 둔갑하지 않는다', () => {
+    render(<PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, checkSkipped: true }} />);
+
+    expect(screen.getByText('오늘 확인: 재도전 ✔')).toBeTruthy();
+    expect(screen.queryByText(/쪽지시험/)).toBeNull();
+  });
+
+  it('둘 다 안 봤으면 줄이 빈다', () => {
+    render(
+      <PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, checkSkipped: true, retryResult: 'none' }} />,
+    );
+
+    expect(screen.queryByText(/오늘 확인/)).toBeNull();
+  });
+
+  it('1.0.9까지 저장된 노트(checkSkipped 칸 없음)는 전처럼 쪽지를 적는다', () => {
+    // noteWith는 checkSkipped 칸을 안 만든다 — 1.0.9 저장본과 같은 모양
+    render(<PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, retryResult: 'none' }} />);
+
+    expect(screen.getByText('오늘 확인: 쪽지시험 ✗')).toBeTruthy();
+  });
+});

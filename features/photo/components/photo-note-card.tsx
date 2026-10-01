@@ -9,11 +9,23 @@ import { PhotoTheme } from '../theme';
 import type { PhotoNote, RetryResult } from '../types';
 
 const RETRY_MARK: Record<RetryResult, string> = {
-  pass: ' · 재도전 ✔',
-  fail: ' · 재도전 ✗',
+  pass: '재도전 ✔',
+  fail: '재도전 ✗',
   skip: '',
   none: '',
 };
+
+/**
+ * 안 본 문제는 줄에 안 적는다 — 검산에서 빠진 쪽지·재도전이 ✗로 둔갑하지 않게 (web-proto와 같은 규칙).
+ * 둘 다 안 봤으면 줄 자체가 빈다.
+ */
+function checksLine(note: PhotoNote): string {
+  const marks = [
+    note.checkSkipped ? '' : `쪽지시험 ${note.checkPassed ? '✔' : '✗'}`,
+    RETRY_MARK[note.retryResult],
+  ].filter(Boolean);
+  return marks.length > 0 ? `오늘 확인: ${marks.join(' · ')}` : '';
+}
 
 /**
  * 오답노트 한 장 — 이 흐름의 결과물.
@@ -55,7 +67,7 @@ export function PhotoNoteCard({
 
       <View style={styles.foot}>
         <Text selectable style={styles.checks}>
-          {`오늘 확인: 쪽지시험 ${note.checkPassed ? '✔' : '✗'}${RETRY_MARK[note.retryResult]}`}
+          {checksLine(note)}
         </Text>
         <Text selectable style={styles.tags}>
           {`#${note.methodLabel} #${note.typeLabel}`}

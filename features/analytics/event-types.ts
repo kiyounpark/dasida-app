@@ -20,7 +20,8 @@ export type EventName =
   | 'photo_analyzed'
   | 'photo_weakness_labeled'
   | 'photo_weakness_picked'
-  | 'photo_dead_end';
+  | 'photo_dead_end'
+  | 'photo_quiz_verify';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -105,6 +106,20 @@ export type EventParams = {
     has_solving_work?: boolean;
     needs_manual_selection?: boolean;
     error_candidate_count?: number;
+    /** 사진 거르기(1.0.10). 'blocked_*'면 분석 대신 "다시 찍어줘"로 갔다. 옛 서버면 'none' */
+    gate_decision?: string;
+  };
+  /**
+   * 쪽지·재도전 검산 결과, 문항 차례에 한 번 (1.0.10 — 웹 quiz_verify와 같은 칸).
+   * result가 skip이면 그 문제를 학생에게 안 냈다. 98% 자체는 여기로 못 잰다(정답표가 필요).
+   */
+  photo_quiz_verify: {
+    kind: 'check' | 'retry';
+    result: 'match' | 'skip';
+    /** match · none/multiple/ambiguous(서버 판정) · error · timeout · wait_timeout · not_started */
+    reason: string;
+    verify_ms: number | null;
+    waited_ms: number;
   };
   /**
    * 오답노트가 나온 순간의 (풀이법 × 실수유형) 칸과 그 칸에서 약점 이름이 붙었는지.
