@@ -14,7 +14,7 @@
   - 돌아와서 결과 봄 = [`analysis_shown(was_hidden=1, visible=1)` + `analysis_returned(return_screen=result)`] ÷ `analysis_hidden`
   - 돌아왔는데 볼 게 없음 = `analysis_returned(return_screen=failed|gate)` ÷ `analysis_hidden`
   - `away_ms`가 몇 초면 잠금·알림이지 쇼츠가 아니다 — 구간으로 나눠 본다. 숨김은 이유를 모른다(쇼츠·잠금·다른 탭 다 같다).
-  - GA 등록 필요(✋ 기윤, 소급 안 됨): 측정기준 `return_screen`·`visible`(+ 10.01 `card_index`), 측정항목 `away_ms`. 로컬 흉내 5경우(숨김→복귀→결과 / 숨김→결과→복귀 / 숨김→복귀→숨김→결과 / 숨김→실패→복귀 / 안 숨김) 전부 설계대로 찍힘(10.01).
+  - GA 등록 끝(10.01 Claude가 기윤 크롬으로, 그 전 데이터는 소급 안 됨): 측정기준 `return_screen`·`visible`(+ 10.01 `card_index`), 측정항목 `away_ms`. 로컬 흉내 5경우(숨김→복귀→결과 / 숨김→결과→복귀 / 숨김→복귀→숨김→결과 / 숨김→실패→복귀 / 안 숨김) 전부 설계대로 찍힘(10.01).
   폰에서 닫을 때 이벤트가 안 갈 수 있다(짐작 — 폰 실측 전).
 - **GA 등록 끝(09.28, Claude가 기윤 크롬으로)** — 속성 "다시다 웹 프로토(사진)"(`G-4HW2VRNME0`): 맞춤 측정기준 `was_hidden`·`stage`·`attempt`·`has_work`·`error_found`, 맞춤 측정항목 `wait_ms`(밀리초). `submission_id`는 고유값이 많아 등록 안 함 — 원장과 잇는 건 시각으로 손으로. 등록 전 데이터는 소급 안 된다.
 - **남은 확인** — 기윤 폰: 사파리·유튜브 앱 안 각 1회 × (그냥 기다리기 / 기다리다 홈 갔다 오기 / 기다리다 닫기 / 뒤로 갔다 앞으로) → GA 실시간. `?qa=1`이면 GA가 꺼지니 qa 없이. 그 제출은 원장에 `qa:false`로 찍히니 시각을 대장에 적고 뺀다.
