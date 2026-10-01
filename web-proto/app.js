@@ -199,73 +199,22 @@
   });
 
   // ── 수식 표기 (원희 피드백 규칙 1호: 지수는 위첨자로 — a^2 ✗ → a² ○) ──
-  // 앱 components/math/MathText.tsx의 formatMathText를 웹용으로 이식.
+  // 글자 규칙은 앱과 같은 함수 하나(components/math/format-math-text.ts, 번들로 온다).
   // 손으로 쓴 시험지 모양과 같아야 학생이 안 튕긴다. AI가 읽어준 풀이 인용·확인 문제·
   // 번들 데이터의 ^ 표기를 화면에 닿기 직전(채팅 프리미티브)에 전부 변환한다.
-  const SUPERSCRIPT_MAP = {
-    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-    '+': '⁺', '-': '⁻', '(': '⁽', ')': '⁾',
-    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ', l: 'ˡ',
-    m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
-  };
-  function toSuperscript(value) {
-    let converted = '';
-    for (const char of value) {
-      const mapped = SUPERSCRIPT_MAP[char];
-      if (!mapped) return null; // 못 바꾸는 글자(대문자·q 등)면 원문 유지 — 반쪽 변환 금지
-      converted += mapped;
-    }
-    return converted;
-  }
-  function fmtMath(input) {
-    return String(input ?? '')
-      .replace(/<=/g, '≤')
-      .replace(/>=/g, '≥')
-      .replace(/!=/g, '≠')
-      // 뒤 피연산자는 lookahead로 둔다 — 소비하면 4*1*2에서 1이 먹혀
-      // 두 번째 *가 앞 문자를 못 찾아 4×1*2로 반만 변환된다.
-      .replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, '$1×')
-      .replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, '$1⁄')
-      .replace(/sqrt\s*\(/gi, '√(')
-      .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
-      // x^{n-1} — AI 응답의 LaTeX 습관 방어. 중괄호는 수학 표기가 아니라 묶음이라 벗긴다.
-      .replace(/(\)|\d|[A-Za-z])\^\{\s*([A-Za-z0-9+-]+)\s*\}/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      // ar^(n-1) → ar⁽ⁿ⁻¹⁾ — 괄호째 위첨자 (앱 MathText와 같은 규칙)
-      .replace(/(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g, (match, base, exponent) => {
-        const superscript = toSuperscript(`(${exponent})`);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      .replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      .replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      });
-  }
+  function fmtMath(input) { return F.formatMathText(input); }
 
   // 수식은 문장과 다른 서체로 읽힌다 — fmtMath가 만든 문자열에서 수식 구간만 공라내 <span class="m">으로 감싼다.
   // innerHTML을 쓰지 않는다 — AI 응답이 그대로 들어오므로 노드로만 쌓는다.
-  const SUP = '\\u00b2\\u00b3\\u00b9\\u2070-\\u209f\\u1d43-\\u1dbf';
+  const SUP = '\\u00b2\\u00b3\\u00b9\\u2070-\\u209f\\u1d43-\\u1dbf\\u2c7c'; // 2c7c = ⱼ
   const MATH_TRIGGER = new RegExp('[=×⁄√≤≥≠_' + SUP + ']');
   const MATH_RUN = new RegExp('[A-Za-z0-9_(√][A-Za-z0-9_^(){}\\[\\]+\\-−×÷⁄√≤≥≠=.,:\\s' + SUP + ']*', 'g');
   function mathSpan(token, source, start) {
     const el = document.createElement('span');
     // 앞글자가 따옴표면 "네가 쓴 그 줄"을 인용한 것 — 칩으로 한 번 더 세게 잡는다.
     el.className = source[start - 1] === '"' ? 'm q' : 'm';
-    // a_n — 아래첨자는 유니코드 맵이 없어 밑줄로 남았던 자리. <sub>로 살린다.
-    token.split(/_(\(?[A-Za-z0-9+-]+\)?)/).forEach((part, i) => {
-      if (!part) return;
-      if (i % 2) {
-        const sub = document.createElement('sub');
-        sub.textContent = part.replace(/^\(|\)$/g, '');
-        el.appendChild(sub);
-      } else el.appendChild(document.createTextNode(part));
-    });
+    // a_n은 fmtMath가 이미 aₙ 글자로 바꿔 온다 — 앱 Text엔 <sub>가 없어 둘 다 유니코드로 맞췄다.
+    el.textContent = token;
     return el;
   }
   function mathFrag(text) {

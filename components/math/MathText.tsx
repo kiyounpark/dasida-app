@@ -1,5 +1,10 @@
 import { Text, type StyleProp, type TextProps, type TextStyle } from 'react-native';
 
+import { formatMathText } from './format-math-text';
+
+// 수식 글자 규칙은 웹과 같은 함수 하나 — 여기서 다시 내보내 기존 import를 살린다.
+export { formatMathText };
+
 type MathTextProps = Omit<TextProps, 'children'> & {
   highlightMath?: boolean;
   mathSegmentStyle?: StyleProp<TextStyle>;
@@ -17,9 +22,9 @@ export type QuestionDisplaySegment =
     };
 
 const MATH_MARKER_PATTERN =
-  /sqrt\s*\(|\^|<=|>=|!=|=|<|>|√|×|⁄|[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ]+|(?:\d+[A-Za-z])|(?:[A-Za-z]\d)|(?:[A-Za-z0-9)\]√⁄⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ']\s*[+\-*/×⁄]\s*[A-Za-z0-9([√⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'])/i;
+  /sqrt\s*\(|\^|<=|>=|!=|=|<|>|√|×|⁄|[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ]+|(?:\d+[A-Za-z])|(?:[A-Za-z]\d)|(?:[A-Za-z0-9)\]√⁄⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ']\s*[+\-*/×⁄]\s*[A-Za-z0-9([√⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ'])/i;
 const MATH_CHUNK_PATTERN =
-  /[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'](?:[\sA-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ']*[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'])?/g;
+  /[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ'](?:[\sA-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ']*[A-Za-z0-9√⁄≤≥≠()+\-×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ'])?/g;
 
 export type MathDisplaySegment =
   | {
@@ -32,67 +37,11 @@ export type MathDisplaySegment =
     };
 
 const DISPLAY_TOKEN_PATTERN =
-  /[A-Za-z0-9√⁄≤≥≠()+\-−×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ',.]+/g;
+  /[A-Za-z0-9√⁄≤≥≠()+\-−×=<>⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ',.]+/g;
 const FUNCTION_TOKEN_PATTERN = /^[A-Za-z]\([A-Za-z0-9]+\)$/;
 const SIMPLE_TOKEN_PATTERN = /^[A-Za-z0-9]+$/;
 const GROUPED_TOKEN_PATTERN = /^[([]?[A-Za-z0-9]+[)\]]?$/;
 const MATH_JOINER_PATTERN = /^[\s,.:;=+\-−×⁄<>≤≥≠]*$/;
-
-const SUPERSCRIPT_MAP: Record<string, string> = {
-  '0': '⁰',
-  '1': '¹',
-  '2': '²',
-  '3': '³',
-  '4': '⁴',
-  '5': '⁵',
-  '6': '⁶',
-  '7': '⁷',
-  '8': '⁸',
-  '9': '⁹',
-  '+': '⁺',
-  '-': '⁻',
-  '(': '⁽',
-  ')': '⁾',
-  a: 'ᵃ',
-  b: 'ᵇ',
-  c: 'ᶜ',
-  d: 'ᵈ',
-  e: 'ᵉ',
-  f: 'ᶠ',
-  g: 'ᵍ',
-  h: 'ʰ',
-  i: 'ⁱ',
-  j: 'ʲ',
-  k: 'ᵏ',
-  l: 'ˡ',
-  m: 'ᵐ',
-  n: 'ⁿ',
-  o: 'ᵒ',
-  p: 'ᵖ',
-  r: 'ʳ',
-  s: 'ˢ',
-  t: 'ᵗ',
-  u: 'ᵘ',
-  v: 'ᵛ',
-  w: 'ʷ',
-  x: 'ˣ',
-  y: 'ʸ',
-  z: 'ᶻ',
-};
-
-function toSuperscript(value: string): string | null {
-  let converted = '';
-
-  for (const char of value) {
-    const mapped = SUPERSCRIPT_MAP[char];
-    if (!mapped) {
-      return null;
-    }
-    converted += mapped;
-  }
-
-  return converted;
-}
 
 export function containsMathNotation(input: string): boolean {
   return MATH_MARKER_PATTERN.test(input);
@@ -257,31 +206,6 @@ export function splitMathDisplaySegments(input: string): MathDisplaySegment[] {
   }
 
   return segments.filter((segment) => segment.text.length > 0);
-}
-
-export function formatMathText(input: string): string {
-  return input
-    .replace(/<=/g, '≤')
-    .replace(/>=/g, '≥')
-    .replace(/!=/g, '≠')
-    // 뒤 피연산자는 lookahead로 둔다 — 소비하면 4*1*2에서 1이 먹혀
-    // 두 번째 *가 앞 문자를 못 찾아 4×1*2로 반만 변환된다.
-    .replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, '$1×')
-    .replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, '$1⁄')
-    .replace(/sqrt\s*\(/gi, '√(')
-    .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
-    .replace(/(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g, (match, base: string, exponent: string) => {
-      const superscript = toSuperscript(`(${exponent})`);
-      return superscript ? `${base}${superscript}` : match;
-    })
-    .replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, (match, base: string, exponent: string) => {
-      const superscript = toSuperscript(exponent);
-      return superscript ? `${base}${superscript}` : match;
-    })
-    .replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, (match, base: string, exponent: string) => {
-      const superscript = toSuperscript(exponent);
-      return superscript ? `${base}${superscript}` : match;
-    });
 }
 
 export function MathText({

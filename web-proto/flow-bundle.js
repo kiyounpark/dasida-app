@@ -27,6 +27,7 @@ var DasidaFlow = (() => {
     createDiagnosisFlowDraft: () => createDiagnosisFlowDraft,
     diagnosisMap: () => diagnosisMap,
     diagnosisMethodRoutingCatalog: () => diagnosisMethodRoutingCatalog,
+    formatMathText: () => formatMathText,
     getDiagnosisFlow: () => getDiagnosisFlow,
     getNode: () => getNode,
     methodOptions: () => methodOptions,
@@ -1763,6 +1764,108 @@ var DasidaFlow = (() => {
     if (Number.isNaN(last) || last < 44032 || last > 55203) return `${word}\uB85C`;
     const jongseong = (last - 44032) % 28;
     return jongseong === 0 || jongseong === 8 ? `${word}\uB85C` : `${word}\uC73C\uB85C`;
+  }
+
+  // components/math/format-math-text.ts
+  var SUPERSCRIPT_MAP = {
+    "0": "\u2070",
+    "1": "\xB9",
+    "2": "\xB2",
+    "3": "\xB3",
+    "4": "\u2074",
+    "5": "\u2075",
+    "6": "\u2076",
+    "7": "\u2077",
+    "8": "\u2078",
+    "9": "\u2079",
+    "+": "\u207A",
+    "-": "\u207B",
+    "(": "\u207D",
+    ")": "\u207E",
+    a: "\u1D43",
+    b: "\u1D47",
+    c: "\u1D9C",
+    d: "\u1D48",
+    e: "\u1D49",
+    f: "\u1DA0",
+    g: "\u1D4D",
+    h: "\u02B0",
+    i: "\u2071",
+    j: "\u02B2",
+    k: "\u1D4F",
+    l: "\u02E1",
+    m: "\u1D50",
+    n: "\u207F",
+    o: "\u1D52",
+    p: "\u1D56",
+    r: "\u02B3",
+    s: "\u02E2",
+    t: "\u1D57",
+    u: "\u1D58",
+    v: "\u1D5B",
+    w: "\u02B7",
+    x: "\u02E3",
+    y: "\u02B8",
+    z: "\u1DBB"
+  };
+  var SUBSCRIPT_MAP = {
+    "0": "\u2080",
+    "1": "\u2081",
+    "2": "\u2082",
+    "3": "\u2083",
+    "4": "\u2084",
+    "5": "\u2085",
+    "6": "\u2086",
+    "7": "\u2087",
+    "8": "\u2088",
+    "9": "\u2089",
+    "+": "\u208A",
+    "-": "\u208B",
+    "=": "\u208C",
+    "(": "\u208D",
+    ")": "\u208E",
+    a: "\u2090",
+    e: "\u2091",
+    h: "\u2095",
+    i: "\u1D62",
+    j: "\u2C7C",
+    k: "\u2096",
+    l: "\u2097",
+    m: "\u2098",
+    n: "\u2099",
+    o: "\u2092",
+    p: "\u209A",
+    r: "\u1D63",
+    s: "\u209B",
+    t: "\u209C",
+    u: "\u1D64",
+    v: "\u1D65",
+    x: "\u2093"
+  };
+  function mapAll(value, map) {
+    let converted = "";
+    for (const char of value) {
+      const mapped = map[char];
+      if (!mapped) {
+        return null;
+      }
+      converted += mapped;
+    }
+    return converted;
+  }
+  function formatMathText(input) {
+    const sup = (match, base, value) => {
+      const converted = mapAll(value, SUPERSCRIPT_MAP);
+      return converted ? `${base}${converted}` : match;
+    };
+    const sub = (match, base, value) => {
+      const converted = mapAll(value, SUBSCRIPT_MAP);
+      return converted ? `${base}${converted}` : match;
+    };
+    return String(input ?? "").replace(/<=/g, "\u2264").replace(/>=/g, "\u2265").replace(/!=/g, "\u2260").replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, "$1\xD7").replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, "$1\u2044").replace(/sqrt\s*\(/gi, "\u221A(").replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, "\u221A$1").replace(/(\)|\d|[A-Za-z])\^\{\s*([A-Za-z0-9+-]+)\s*\}/g, sup).replace(
+      /(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g,
+      (match, base, value) => sup(match, base, `(${value})`)
+    ).replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, sup).replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, sup).replace(/(\)|\d|[A-Za-z])_\{\s*([A-Za-z0-9+=-]+)\s*\}/g, sub).replace(/(\)|\d|[A-Za-z])_\(\s*([A-Za-z0-9+=-]+)\s*\)/g, sub).replace(/(\)|\d|[A-Za-z])_(\d+|[A-Za-z](?![A-Za-z]))/g, sub);
   }
 
   // data/detailedDiagnosisFlows.ts
