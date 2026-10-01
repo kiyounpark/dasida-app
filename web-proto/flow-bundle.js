@@ -22,6 +22,7 @@ var DasidaFlow = (() => {
   var flow_entry_exports = {};
   __export(flow_entry_exports, {
     ERROR_CONFIDENCE_MIN: () => ERROR_CONFIDENCE_MIN,
+    NOTE_ASK_LINE: () => NOTE_ASK_LINE,
     advanceFromCheck: () => advanceFromCheck,
     advanceFromChoice: () => advanceFromChoice,
     advanceFromExplain: () => advanceFromExplain,
@@ -2685,6 +2686,7 @@ ${quiz.prompt}`);
   }
 
   // features/photo/script/note-card-lines.ts
+  var NOTE_ASK_LINE = `\u{1F4CC} "\uC218\uB2A5\uC7A5\uC5D0\uC11C \uC774 \uD480\uC774\uB97C \uC0DD\uAC01\uD574 \uB0BC \uC218 \uC788\uB294\uAC00" \u2014 \uB2F5\uC774 '\uB2F9\uC5F0\uD558\uC9C0'\uAC00 \uC544\uB2C8\uBA74, \uC774 \uBB38\uC81C \uD398\uC774\uC9C0\uB97C \uC811\uC5B4 \uB46C.`;
   var CHECK_MARK = { pass: "\uCABD\uC9C0\uC2DC\uD5D8 \u2714", fail: "\uCABD\uC9C0\uC2DC\uD5D8 \u2717" };
   var RETRY_MARK = { pass: "\uC7AC\uB3C4\uC804 \u2714", fail: "\uC7AC\uB3C4\uC804 \u2717" };
   function noteCardLines(note) {
@@ -2694,7 +2696,7 @@ ${quiz.prompt}`);
       quote: note.quote ? `"${note.quote}"` : "(\uC5C6\uC74C)",
       checks: marks.length > 0 ? `\uC624\uB298 \uD655\uC778: ${marks.join(" \xB7 ")}` : "",
       tags: `#${note.methodLabel} #${note.typeLabel}`,
-      weaknessLabels: shown.map((id) => diagnosisMap[id]?.labelKo).filter((label) => Boolean(label))
+      weaknessLabels: shown.map((id) => resolveWeaknessLabel(id))
     };
   }
 

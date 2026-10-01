@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { resolveWeaknessLabel, type WeaknessId } from '@/data/diagnosisMap';
-import type { SolveMethodId } from '@/data/diagnosisTree';
+import type { EventName } from '@/features/analytics/event-types';
 import { logEvent } from '@/features/analytics/log-event';
 import { spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
@@ -13,69 +12,33 @@ import {
   requestAnalyze,
 } from '../flow/analyze-photo-request';
 import { askPhotoSource } from '../flow/ask-photo-source';
-import { ro } from '../flow/korean-particle';
-import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
-import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
-import { requestQuizVerify, type QuizVerdict } from '../flow/verify-quiz-request';
-import { weaknessCandidatesFor, weaknessChoiceText } from '../flow/weakness-mistake-type-map';
-import {
-  canPointAtError,
-  ERROR_CONFIDENCE_MIN,
-  filterCandidates,
-  matchMethodsByKeywords,
-  methodLabel,
-  routeFromAnalysis,
-  selectableMethodIds,
-  type PhotoRoute,
-} from '../flow/route-from-analysis';
+import { requestDiagnoseMethod } from '../flow/diagnose-method-request';
+import { requestQuizVerify } from '../flow/verify-quiz-request';
 import { savePhotoNote } from '../note-store';
 import { persistNotePhoto } from '../photo-file-store';
-import type {
-  AnalyzePhotoResult,
-  MistakeTypeId,
-  PhotoAction,
-  PhotoNote,
-  RetryResult,
-} from '../types';
+import { createPhotoScript } from '../script/photo-script';
+import type { ScriptEvent } from '../script/script-events';
+import type { NoteView, PhotoScript, ScriptIO } from '../script/script-io';
+import type { PhotoNote } from '../types';
 import { usePhotoThread, type PhotoThread } from './use-photo-thread';
 
-/** 오답노트를 채우는 데 필요한, 대화가 진행되며 쌓인 것 */
-type NoteContext = {
-  methodId: SolveMethodId;
-  mistakeType: MistakeTypeId;
-  checkPassed: boolean;
-  /** 쪽지를 학생이 안 봤다(검산에서 빠짐·문제가 깨져 옴). 실패가 아니다 — 노트 ✗·"괜찮아" 톤으로 안 간다 */
-  checkSkipped: boolean;
-};
+/** 대본 이벤트 → 앱 GA 이름. 의미는 공용, 이름은 앱 것(photo_*) — 웹은 같은 이벤트를 원래 이름으로 보낸다 */
+const APP_EVENT_NAME = {
+  method_confirm: 'photo_method_confirm',
+  error_point_react: 'photo_error_point_react',
+  quiz_verify: 'photo_quiz_verify',
+  check_answer: 'photo_check_answer',
+  survey_pick: 'photo_survey_pick',
+  weakness_card_shown: 'photo_weakness_card_shown',
+  note_shown: 'photo_note_shown',
+  weakness_labeled: 'photo_weakness_labeled',
+  weakness_picked: 'photo_weakness_picked',
+} as const satisfies Record<ScriptEvent['name'], EventName>;
 
-/**
- * 짚은 후보 하나의 검산. 분석 결과가 닿는 순간(0번) 또는 사다리가 그 후보에 닿는 순간 뒤에서 출발하고,
- * 쪽지·재도전 차례에 결과를 본다. 웹은 사다리가 없어 0번만 — 앱은 옛 ⑤라 2번 후보가 있어 그때 출발한다.
- */
-type QuizVerifyRun = {
-  check: Promise<QuizVerdict> | null;
-  retry: Promise<QuizVerdict> | null;
-  /** 한 번 5초를 태웠으면(쪽지 wait_timeout) 재도전은 안 기다린다 — 빈 화면 10초 방지 */
-  waitedOnce: boolean;
-};
-
-/** 라이브 p90 4.9초(09.30 밤). 학생이 방법 확인·짚기를 읽는 시간이 앞에 있어 실제 대기는 드물다 (web-proto와 같은 값) */
-const VERIFY_WAIT_MS = 5_000;
-
-/**
- * 사진 거르기에 걸린 사진 — 왜 막혔는지 말하고 다시 고르게 한다. 문구는 웹과 똑같이 (10.01 저녁 기윤 🔒, web-proto GATE_COPY).
- * blocked_small: "너무 작아서"는 학생 폰 화면에선 멀쩡해 보여 "내 눈엔 안 작은데?"가 된다 — 반문을 첫마디로 막는다.
- */
-const GATE_COPY: Record<string, { text: string; retake: string }> = {
-  blocked_rotation: {
-    text: '사진이 옆으로 누워 있어. 글씨가 바로 서게 세로로 다시 찍어줘 — 누운 채로는 네 풀이를 잘못 읽어.',
-    retake: '📷 세로로 다시 찍기',
-  },
-  blocked_small: {
-    text: '화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어. 캡처나 잘라낸 사진 말고, 찍은 원본을 올려줘.',
-    retake: '다른 사진 올리기',
-  },
-};
+function logScriptEvent({ name, ...params }: ScriptEvent) {
+  // 칸 모양은 script-events.ts와 event-types.ts에 같게 적혀 있다 — 이름만 바꿔 보낸다
+  logEvent(APP_EVENT_NAME[name], params as never);
+}
 
 export type PhotoFlowStatus = 'upload' | 'analyzing' | 'chat';
 
@@ -91,14 +54,11 @@ export type PhotoFlow = {
 };
 
 /**
- * 사진 흐름 전체. web-proto app.js의 흐름 함수들을 그대로 옮긴 자리 —
- * 문구·분기·순서는 그쪽이 원본이고 여기서 새로 정하지 않는다.
+ * 사진 흐름 — 업로드·분석·저장·복습 과제만 여기 있다. 대화(무슨 말 · 어떤 버튼 · 누르면 어디로)는
+ * 웹과 같은 대본 모듈(features/photo/script)이 정하고, 이 훅은 그걸 화면·저장에 잇는 어댑터다 (B, 10.01).
  *
- * 오늘 만든 조각은 **방법 확정까지**다. 짚어주는 대화·쪽지시험·재도전·오답노트는 다음 조각.
- */
-/**
  * accountKey는 화면이 위에서 내려준다. 훅이 직접 useCurrentLearner를 부르지 않는 이유:
- * 사진 화면 테스트 21개가 프로바이더 없이 화면을 그리는데, 훅 안에서 부르면 그게 전부 죽는다.
+ * 사진 화면 테스트가 프로바이더 없이 화면을 그리는데, 훅 안에서 부르면 그게 전부 죽는다.
  * 키가 없으면(테스트·아직 세션이 안 붙은 순간) 저장만 건너뛰고 흐름은 그대로 돈다.
  */
 export function usePhotoFlow({
@@ -115,22 +75,24 @@ export function usePhotoFlow({
   const [status, setStatus] = useState<PhotoFlowStatus>('upload');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효가 된다. */
-  const resultRef = useRef<AnalyzePhotoResult | null>(null);
-  // 아래 둘은 state가 아니라 ref다 — 흐름 함수들의 클로저는 최초 렌더에서 만들어져
-  // 나중에 바뀐 state를 못 본다. 노트의 사진이 비는 게 그 증상이었다.
+  // state가 아니라 ref다 — 대본의 클로저는 대화를 시작한 렌더에서 만들어져 나중에 바뀐 state를 못 본다
   const photoUriRef = useRef<string | null>(null);
-  const methodIdRef = useRef<SolveMethodId | null>(null);
   const busyRef = useRef(false);
   /** 지금 사진의 번호 — 사진을 고를 때마다 새로. 원장과 검산 로그가 이 값으로 잇는다 */
   const submissionIdRef = useRef<string | null>(null);
   /** 거르기에 걸려 [다시 찍기]로 왔으면 직전 번호. 처음부터 다시(restart)는 안 잇는다 (web-proto와 같은 규칙) */
   const retakeOfRef = useRef<string | null>(null);
-  /** 검산 — 후보 번호별. seq는 새 분석·처음부터 다시마다 올린다: 늦게 깬 옛 대기가 새 대화를 덮지 않게 */
-  const verifyRunsRef = useRef(new Map<number, QuizVerifyRun>());
-  const verifySeqRef = useRef(0);
+  const scriptRef = useRef<PhotoScript | null>(null);
 
-  const { say, mySay, showNote, ask } = thread;
+  // 헤더 뒤로가기(app/_layout.tsx)로 떠나면 언마운트된다 — 깨어난 검산 대기가 노트를 저장하고
+  // 복습 과제를 만들지 않게 대본을 끊는다 (astra 4 — 1.0.10까지 있던 구멍)
+  useEffect(
+    () => () => {
+      scriptRef.current?.dispose();
+      scriptRef.current = null;
+    },
+    [],
+  );
 
   async function start() {
     if (busyRef.current) return; // 두 번 눌러 vision이 두 번 도는 것(이중 과금) 방지
@@ -162,8 +124,6 @@ export function usePhotoFlow({
         submissionId: submissionIdRef.current,
         retakeOf: retakeOfRef.current,
       });
-      resultRef.current = result;
-      const route = routeFromAnalysis(result);
 
       logEvent('photo_analyzed', {
         success: true,
@@ -175,10 +135,17 @@ export function usePhotoFlow({
       });
 
       setStatus('chat');
-      resetQuizVerify();
-      // 거르기에 걸린 응답은 분석 결과가 아니다 — 검산할 문제도 없다
-      if (route.kind !== 'gate') startQuizVerify(0);
-      runRoute(route);
+      scriptRef.current?.dispose();
+      scriptRef.current = createPhotoScript(makeAppIO(), {
+        verifyQuiz: requestQuizVerify,
+        diagnoseMethod: (text) => requestDiagnoseMethod(text, { problemId: 'photo-flow-app' }),
+        submissionId: submissionIdRef.current,
+        qa: __DEV__,
+        photoUri: photoUriRef.current,
+        // 약점 후보가 둘 이상이면 노트 전에 묻는다 — 앱만(🔒 08.11·09.20). 입력칸은 ④(커밋 6)부터
+        profile: { picksWeakness: true, textInput: false },
+      });
+      scriptRef.current.start(result);
     } catch (caught) {
       if (submitted) logEvent('photo_analyzed', { success: false });
       setStatus('upload');
@@ -203,612 +170,85 @@ export function usePhotoFlow({
   }
 
   function resetToUpload() {
-    resultRef.current = null;
+    scriptRef.current?.dispose(); // 기다리던 검산·diagnose가 새 대화를 덮지 않게
+    scriptRef.current = null;
     photoUriRef.current = null;
-    methodIdRef.current = null;
     submissionIdRef.current = null;
-    resetQuizVerify();
     thread.clear();
     setImageUri(null);
     setError(null);
     setStatus('upload');
   }
 
-  function resetQuizVerify() {
-    verifySeqRef.current += 1;
-    verifyRunsRef.current = new Map();
+  /** 화면이 끝나는 자리의 공통 마무리 — 노트·약점 카드·"오늘은 여기까지" 모두 */
+  function endHere() {
+    thread.ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
   }
 
   /**
-   * 후보 하나의 쪽지·재도전 검산을 뒤에서 출발시킨다. 이미 출발했으면 그대로 둔다.
-   * 짚기로 가는 조건(풀이 있음·후보 있음·자신감 문턱)일 때만 — 아니면 쪽지 차례가 안 온다.
-   * 서버가 보기 3개만 받으므로(VerifyQuizRequestSchema) 3개가 아닌 문제는 출발하지 않고, 차례가 오면 건너뛴다.
+   * 노트 한 장을 띄우고 저장한다. 학생이 한 글자도 안 썼는데 채워져 나온다.
+   * 대본은 답(약점 고르기)을 받은 뒤에만 부른다 — savePhotoNote가 읽고-전체-쓰기라 두 번 저장이 서로를 덮는다.
    */
-  function startQuizVerify(index: number) {
-    const result = resultRef.current;
-    const candidate = result?.errorCandidates?.[index];
-    if (!result?.hasSolvingWork || !candidate || !(result.errorConfidence >= ERROR_CONFIDENCE_MIN)) return;
-    if (verifyRunsRef.current.has(index)) return;
-
-    const base = { submissionId: submissionIdRef.current, qa: __DEV__ };
-    const check = readCheckQuiz(candidate);
-    const retry = readRetryQuiz(candidate);
-    verifyRunsRef.current.set(index, {
-      check:
-        check && check.options.length === 3
-          ? requestQuizVerify({
-              kind: 'check',
-              setup: check.setup || undefined,
-              prompt: check.prompt,
-              options: check.options,
-              marked: check.answerIndex,
-              ...base,
-            })
-          : null,
-      retry:
-        retry && retry.options.length === 3
-          ? requestQuizVerify({
-              kind: 'retry',
-              setup: retry.setup,
-              prompt: retry.prompt,
-              options: retry.options,
-              marked: retry.answerIndex,
-              ...base,
-            })
-          : null,
-      waitedOnce: false,
-    });
-  }
-
-  /**
-   * 절대 안 던진다. 이미 와 있으면 0초, 아니면 최대 5초. stale이면 그사이 처음부터 다시를 눌렀다 —
-   * 호출부는 화면을 덮지 않고 그냥 빠진다. 기다리는 동안 버튼은 없다(press가 onPress 전에 비운다).
-   */
-  async function awaitQuizVerdict(
-    kind: 'check' | 'retry',
-    index: number,
-  ): Promise<{ verdict: QuizVerdict; waitedMs: number; stale: boolean }> {
-    const seq = verifySeqRef.current;
-    const startedAt = Date.now();
-    const run = verifyRunsRef.current.get(index);
-    const pending = run?.[kind];
-    if (!run || !pending) {
-      return { verdict: { verdict: 'skip', reason: 'not_started', ms: 0 }, waitedMs: 0, stale: false };
-    }
-    const cap = run.waitedOnce ? 0 : VERIFY_WAIT_MS;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const arrived = await Promise.race([
-      pending,
-      new Promise<null>((resolve) => {
-        timer = setTimeout(() => resolve(null), cap);
-      }),
-    ]);
-    clearTimeout(timer);
-    let verdict: QuizVerdict;
-    if (arrived) {
-      verdict = arrived;
-    } else {
-      run.waitedOnce = true;
-      verdict = { verdict: 'skip', reason: 'wait_timeout', ms: 0 };
-    }
-    return { verdict, waitedMs: Date.now() - startedAt, stale: seq !== verifySeqRef.current };
-  }
-
-  function logQuizVerify(
-    kind: 'check' | 'retry',
-    { verdict, waitedMs }: { verdict: QuizVerdict; waitedMs: number },
-  ) {
-    const notTimed = verdict.reason === 'not_started' || verdict.reason === 'wait_timeout';
-    logEvent('photo_quiz_verify', {
-      kind,
-      result: verdict.verdict,
-      reason: verdict.reason,
-      verify_ms: notTimed ? null : verdict.ms,
-      waited_ms: waitedMs,
-    });
-  }
-
-  function runRoute(route: PhotoRoute) {
-    switch (route.kind) {
-      case 'gate':
-        offerRetakeForGate(route.decision);
-        return;
-      case 'retake':
-        offerRetake();
-        return;
-      case 'assert':
-        assertMethod(route.methodId, route.label, route.snippet);
-        return;
-      case 'soft-assert':
-        softAssertMethod(route.methodId, route.label, route.snippet);
-        return;
-      case 'candidates':
-        showCandidates(route.methodIds);
-        return;
-    }
-  }
-
-  /** 갈래 1: 단언 + 탈출구 */
-  function assertMethod(methodId: SolveMethodId, label: string, snippet: string) {
-    say(`풀이 읽었어. ${snippet ? `${snippet} — ` : ''}${ro(label)} 접근했네.`);
-    say('그럼 여기서부터 같이 보자.');
-    ask([
-      {
-        label: '맞아, 시작하자',
-        kind: 'primary',
-        onPress: () => {
-          mySay('맞아');
-          confirmMethod(methodId);
-        },
-      },
-      {
-        label: '아니야, 다른 방법으로 풀었어',
-        kind: 'ghost',
-        onPress: () => {
-          mySay('아니야');
-          showTopicMethods(undefined, [methodId]);
-        },
-      },
-    ]);
-  }
-
-  /** 갈래 2 중간 확신: 단정 대신 추측 확인 — "~같아. 맞아?" */
-  function softAssertMethod(methodId: SolveMethodId, label: string, snippet: string) {
-    say(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${ro(label)} 푼 것 같아. 맞아?`);
-    ask([
-      {
-        label: '맞아',
-        kind: 'primary',
-        onPress: () => {
-          mySay('맞아');
-          confirmMethod(methodId);
-        },
-      },
-      {
-        label: '아니야, 다른 방법이야',
-        kind: 'ghost',
-        onPress: () => {
-          mySay('아니야');
-          // 거절된 1등은 후보에서 뺀다 — 거절한 게 또 뜨지 않게
-          showCandidates(resultRef.current?.candidateMethodIds ?? [], undefined, [methodId]);
-        },
-      },
-    ]);
-  }
-
-  /** 갈래 2: AI 후보 (최대 4개). 후보가 비면 전체를 쏟지 않고 주제로 좁힌다. */
-  function showCandidates(
-    candidateIds: SolveMethodId[],
-    promptText?: string,
-    excludeIds: SolveMethodId[] = [],
-  ) {
-    const candidates = filterCandidates(candidateIds, excludeIds);
-    if (candidates.length === 0) {
-      showTopicMethods(promptText, excludeIds);
-      return;
-    }
-    say(promptText ?? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?');
-    ask([
-      ...candidates.map(methodButton),
-      {
-        label: '이 중엔 없어',
-        kind: 'ghost',
-        onPress: () => showTopicMethods(undefined, [...excludeIds, ...candidates]),
-      },
-    ]);
-  }
-
-  /** 후보를 못 좁혔을 때: 읽은 풀이 내용의 주제로 상위 5개만 */
-  function showTopicMethods(promptText?: string, excludeIds: SolveMethodId[] = []) {
-    const source = [resultRef.current?.transcription, resultRef.current?.reason]
-      .filter(Boolean)
-      .join(' ');
-    const matched = matchMethodsByKeywords(source).filter((id) => !excludeIds.includes(id));
-    if (matched.length === 0) {
-      showAllMethods(excludeIds);
-      return;
-    }
-    say(promptText ?? '네가 푼 방식이랑 비슷해 보이는 방법들이야. 이 중에 있어?');
-    ask([
-      ...matched.map(methodButton),
-      {
-        label: '여기에도 없어',
-        kind: 'ghost',
-        onPress: () => showAllMethods([...excludeIds, ...matched]),
-      },
-    ]);
-  }
-
-  /**
-   * 마지막 폴백.
-   * web-proto는 여기서 학생이 자기 말로 적으면 diagnoseMethod(AI)가 방법을 찾아준다 —
-   * 그 경로는 서버 호출이 하나 더 붙어서 다음 조각으로 미뤘다. 지금은 막다른 길만 없앤다.
-   */
-  function showAllMethods(excludeIds: SolveMethodId[] = []) {
-    const rest = selectableMethodIds.filter((id) => !excludeIds.includes(id));
-    say('그럼 전체에서 골라볼래?');
-    ask(rest.map(methodButton));
-  }
-
-  function methodButton(id: SolveMethodId): PhotoAction {
-    return {
-      label: methodLabel(id),
-      onPress: () => {
-        mySay(methodLabel(id));
-        confirmMethod(id);
-      },
-    };
-  }
-
-  /** 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 */
-  function offerRetake() {
-    say(
-      '사진에서 풀이 과정을 못 찾았어. 혹시 종이에 풀었으면, 풀이까지 나오게 다시 찍어줄래? 그러면 어디서 틀렸는지 내가 직접 짚어줄 수 있어.',
-    );
-    say('머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지만 알려줘.');
-    ask([
-      { label: '📷 풀이까지 나오게 다시 찍기', kind: 'primary', onPress: restart },
-      {
-        label: '✏️ 내가 방법 고를게',
-        kind: 'ghost',
-        onPress: () => showTopicMethods('어떤 방법으로 풀었는지 골라줄래?'),
-      },
-    ]);
-  }
-
-  /** 사진 거르기에 걸림 — 분석은 안 돌았다. 왜 막혔는지 말하고 그 자리에서 다시 고르게 한다 */
-  function offerRetakeForGate(decision: string) {
-    const copy = GATE_COPY[decision];
-    if (!copy) {
-      offerRetake(); // 서버가 새 걸림 이유를 먼저 내보낸 경우
-      return;
-    }
-    say(copy.text);
-    ask([
-      { label: copy.retake, kind: 'primary', onPress: retakeFromGate },
-      {
-        label: '오늘은 여기까지',
-        kind: 'ghost',
-        onPress: () => {
-          mySay('오늘은 여기까지');
-          say('알겠어. 다른 문제 생기면 또 올려줘.');
-          endHere();
-        },
-      },
-    ]);
-  }
-
-  /** 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문. */
-  function confirmMethod(methodId: SolveMethodId) {
-    const result = resultRef.current;
-    methodIdRef.current = methodId;
-    if (canPointAtError(result, methodId)) {
-      startPointing(0);
-      return;
-    }
-    if (result && result.predictedMethodId === methodId && result.hasSolvingWork) {
-      // 갈래 ① — 방법은 맞는데 오류를 못 찾은 날.
-      // 과정이 맞고 답이 틀렸으면 남는 자리는 마지막뿐이라, 그 논리를 그대로 학생한테 준다.
-      logEvent('photo_dead_end', { reason: 'no_error_found', method_id: methodId });
-      say(
-        '과정은 맞게 갔어. 틀린 줄이 안 나와. 과정이 맞는데 답이 틀렸으면 남는 자리는 마지막 하나야.',
-      );
-      // 노트 줄. 08.07 노트 실물이 전부 이 모양이다 — 화살표로 조건과 행동을 가르고, 한 줄로 짧게.
-      say(`"${methodLabel(methodId)} → 답 쓰기 전에, 문제가 구하라는 것과 내 답 맞추기"`);
-      say('그게 오늘 네 오답노트야.');
-      endHere();
-      return;
-    }
-    // 갈래 ② — AI가 사진에서 방법을 못 읽은 날. 학생이 목록에서 직접 골라 우리를 고쳐준 자리다.
-    logEvent('photo_dead_end', { reason: 'method_mismatch', method_id: methodId });
-    // 여기가 주는 건 노트 줄이 아니라 "네가 맞아"라는 확인이다 — 노트 줄 왼쪽에 와야 할
-    // "문제에서 보이는 조건"을 우리가 모르기 때문에 구조적으로 못 만든다 (09.02 검수).
-    say(`아, ${ro(methodLabel(methodId))} 풀었구나. 내가 사진에서 그걸 못 읽었어 — 네가 맞아.`);
-    say('안 읽혔다는 건 그 단계가 네 머릿속에만 있었다는 뜻이야. 거기가 제일 잘 새.');
-    endHere();
-  }
-
-  function candidateAt(index: number) {
-    return resultRef.current?.errorCandidates?.[index];
-  }
-
-  /** 짚기 사다리: 1번 → 2번("하나 더 걸리는 데 있었는데") → 여기까지. 세 번째 시도는 없다. */
-  function startPointing(index: number) {
-    const candidate = candidateAt(index);
-    if (!candidate) {
-      // 갈래 ③ — 두 번 다 빗나간 날. 학생 실력으로 덮지 말고 내가 틀렸다고 먼저 말한다.
-      // attempts = 사다리를 몇 개까지 보여주고 거절당했나. AI 짚기 정확도의 직접 지표다.
-      logEvent('photo_dead_end', {
-        reason: 'pointing_rejected',
-        method_id: methodIdRef.current ?? 'unknown',
-        attempts: index,
-      });
-      // 짚어준 개수만큼만 말한다. 후보가 1개뿐이면 한 번만 짚고 여기로 오는데,
-      // "두 군데"를 박아두면 그때 앱이 거짓말을 한다 (09.02 시뮬레이터에서 실제로 나왔다).
-      say(
-        index >= 2
-          ? '두 군데 다 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.'
-          : '거기 아니라고 했지. 그럼 내가 틀린 거야 — 네 눈이 맞았고.',
-      );
-      // 노트 줄은 모양만 준다 — 빈칸은 학생이 머리로 채운다(적으라고 하지 않는다).
-      say('네가 아는 그 자리, 노트에 올릴 땐 이 모양이면 돼.');
-      say(`"${methodLabel(methodIdRef.current ?? undefined)} → ○○ 나오면 △△부터"`);
-      say('그게 오늘 네 오답노트야.');
-      endHere();
-      return;
-    }
-
-    // 0번은 분석 결과가 닿을 때 이미 출발했다. 2번 후보는 사다리가 여기 닿은 지금 출발 — 학생이 짚기·이유를 읽는 동안 돈다
-    startQuizVerify(index);
-
-    if (index === 0) {
-      say('그럼 풀이를 좀 더 보자.');
-      say(`여기 — "${candidate.quote}" 쓴 부분. 여기서 틀린 것 같아. 맞아?`);
-    } else {
-      say(`그래? 그럼 하나 더 걸리는 데가 있었는데 — "${candidate.quote}" 쓴 줄. 여기 아니야?`);
-    }
-
-    ask([
-      {
-        label: index === 0 ? '맞아, 거기서 틀렸어' : '맞아, 거기야',
-        kind: 'primary',
-        onPress: () => {
-          mySay('맞아, 거기야');
-          showWhy(index);
-        },
-      },
-      {
-        label: index === 0 ? '아니야, 거기 아니야' : '아니야',
-        kind: 'ghost',
-        onPress: () => {
-          mySay('아니야');
-          startPointing(index + 1);
-        },
-      },
-    ]);
-  }
-
-  function showWhy(index: number) {
-    const candidate = candidateAt(index);
-    if (!candidate) return;
-    say(candidate.why);
-    ask([{ label: '그렇구나, 확인해볼래', kind: 'primary', onPress: () => showCheck(index) }]);
-  }
-
-  async function showCheck(index: number) {
-    const candidate = candidateAt(index);
-    if (!candidate) return;
-    const context = (passed: boolean, skipped = false): NoteContext => ({
-      methodId: (methodIdRef.current ?? resultRef.current?.predictedMethodId) as SolveMethodId,
-      mistakeType: candidate.mistakeType,
-      checkPassed: passed,
-      checkSkipped: skipped,
-    });
-
-    const quiz = readCheckQuiz(candidate);
-    const verified = await awaitQuizVerdict('check', index);
-    if (verified.stale) return; // 기다리는 사이 처음부터 다시를 눌렀다 — 새 대화를 덮지 않는다
-    logQuizVerify('check', verified);
-    if (!quiz || verified.verdict.verdict !== 'match') {
-      // 보기·정답이 깨져 왔거나 검산을 통과 못 한 쪽지는 조용히 건너뛴다 — 노트는 그래도 나온다.
-      // 건너뜀은 실패가 아니다: 노트 ✗·"괜찮아" 톤 어디로도 안 간다
-      startRetry(index, context(false, true));
-      return;
-    }
-
-    // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다
-    if (quiz.setup) {
-      say(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${quiz.setup}`);
-      say(quiz.prompt);
-    } else {
-      say(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${quiz.prompt}`);
-    }
-
-    ask(
-      quiz.options.map((option, i) => ({
-        label: option,
-        onPress: () => {
-          mySay(option);
-          const passed = i === quiz.answerIndex;
-          if (passed) {
-            say('그렇지. 이제 이 자리에서는 안 틀리겠네.');
-          } else {
-            // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
-            say(`아직 헷갈리는구나. 정답은 "${quiz.options[quiz.answerIndex]}" — 아까랑 같은 원리야.`);
-          }
-          startRetry(index, context(passed));
-        },
-      })),
-    );
-  }
-
-  async function startRetry(index: number, context: NoteContext) {
-    const quiz = readRetryQuiz(candidateAt(index));
-    if (!quiz) {
-      showWrongNote(index, context, 'none');
-      return;
-    }
-    const verified = await awaitQuizVerdict('retry', index);
-    if (verified.stale) return;
-    logQuizVerify('retry', verified);
-    if (verified.verdict.verdict !== 'match') {
-      // 검산을 통과 못 한 재도전은 안 낸다 — 노트는 나오고, 재도전 칸은 비운다(웹 'unverified'와 같은 표시)
-      showWrongNote(index, context, 'none');
-      return;
-    }
-
-    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축).
-    // 쪽지를 건너뛴 학생도 빠른 쪽이다 — 틀린 적이 없다
-    const failedCheck = !context.checkPassed && !context.checkSkipped;
-    say(
-      failedCheck
-        ? '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.'
-        : '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.',
-    );
-    say(`${quiz.setup}\n${quiz.prompt}`);
-
-    ask([
-      ...quiz.options.map((option, i) => ({
-        label: option,
-        onPress: () => {
-          mySay(option);
-          if (i === quiz.answerIndex) {
-            say('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
-            showWrongNote(index, context, 'pass');
-          } else {
-            say(`아깝다 — 정답은 "${quiz.options[quiz.answerIndex]}". 아까랑 같은 원리야.`);
-            showWrongNote(index, context, 'fail'); // 재시도 없음
-          }
-        },
-      })),
-      {
-        label: '지금은 넘어갈래',
-        kind: 'ghost' as const,
-        onPress: () => {
-          mySay('지금은 넘어갈래');
-          showWrongNote(index, context, 'skip');
-        },
-      },
-    ]);
-  }
-
-  /**
-   * 흐름의 결과물로 가는 갈림길.
-   *
-   * 후보가 **둘 이상이면 노트를 내기 전에 학생한테 묻는다** (08.11 🔒 · 09.20 구현).
-   * 남은 후보들은 "같은 풀이의 다른 순간"이라 기계가 못 가른다. 틀린 약점을 박으면
-   * 그 뒤 복습이 통째로 헛도는데, 말풍선 한 번이 그것보다 싸다.
-   * 55칸 중 5칸에서만 뜨니 귀찮음 축도 거의 안 건드린다.
-   */
-  function showWrongNote(index: number, context: NoteContext, retryResult: RetryResult) {
-    // 통역표 첫 호출부. 못 찾으면 빈 배열이고, 그게 진단 트리가 얕은 자리다 (186칸 중 130칸).
-    const weaknessIds = weaknessCandidatesFor(context.methodId, context.mistakeType);
-
-    // 1.0.8이 재려는 숫자. 빈손(0개)도 반드시 남긴다 — 안 남기면 "몇 %"의 분모가 사라진다.
-    // ⚠️ 이 줄은 **질문 앞에** 있어야 한다. 그래야 말풍선에서 나간 학생이 분모에 남는다.
-    logEvent('photo_weakness_labeled', {
-      method_id: context.methodId,
-      mistake_type: context.mistakeType,
-      weakness_count: weaknessIds.length,
-      labeled: weaknessIds.length > 0,
-    });
-
-    // 하나거나 없으면 물어볼 게 없다 — 바로 노트로.
-    if (weaknessIds.length < 2) {
-      finishNote(index, context, retryResult, weaknessIds, weaknessIds[0] ?? null);
-      return;
-    }
-
-    say('어디서 실수한 것 같아? 잘 모르겠으면 넘어가도 돼.');
-    ask([
-      ...weaknessIds.map((id) => ({
-        // 버튼 문구는 그 약점이 달린 선택지 문장이다 — labelKo는 둘이 비슷해 학생이 못 가른다.
-        // 선택지가 없는 약점이 섞이면 이름표라도 보여준다(빈 버튼보다 낫다).
-        label: weaknessChoiceText(context.methodId, id) ?? resolveWeaknessLabel(id),
-        kind: 'primary' as const,
-        onPress: () => {
-          mySay(weaknessChoiceText(context.methodId, id) ?? resolveWeaknessLabel(id));
-          logEvent('photo_weakness_picked', {
-            method_id: context.methodId,
-            mistake_type: context.mistakeType,
-            candidate_count: weaknessIds.length,
-            picked: id,
-          });
-          finishNote(index, context, retryResult, weaknessIds, id);
-        },
-      })),
-      {
-        label: '잘 모르겠어',
-        kind: 'ghost' as const,
-        onPress: () => {
-          mySay('잘 모르겠어');
-          logEvent('photo_weakness_picked', {
-            method_id: context.methodId,
-            mistake_type: context.mistakeType,
-            candidate_count: weaknessIds.length,
-            picked: null,
-          });
-          // 후보는 그대로 두고 primary만 비운다 — 카드엔 "A 또는 B"로 뜬다.
-          finishNote(index, context, retryResult, weaknessIds, null);
-        },
-      },
-    ]);
-  }
-
-  /**
-   * 노트 한 장을 만들어 띄우고 저장한다. 학생이 한 글자도 안 썼는데 채워져 나온다.
-   *
-   * ⚠️ **답을 받은 뒤에만 부른다.** 묻기 전에 임시로 저장해 두고 덮어쓰면 안 된다 —
-   * `savePhotoNote`가 읽고-전체-쓰기라 두 번 저장이 서로를 덮을 수 있다 (`note-store.ts:47`).
-   */
-  function finishNote(
-    index: number,
-    context: NoteContext,
-    retryResult: RetryResult,
-    weaknessIds: WeaknessId[],
-    primaryWeaknessId: WeaknessId | null,
-  ) {
-    const candidate = candidateAt(index);
-    const now = new Date();
-
-    say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
-    const createdAt = now.toISOString();
+  function showNote(view: NoteView) {
+    const createdAt = new Date().toISOString();
     const noteId = `photo-${createdAt}`;
     // 사진첩이 준 건 캐시 경로라 시스템이 언제든 지운다. 남길 거면 지금 문서 폴더로 옮긴다.
     // 계정이 없으면 어차피 저장을 안 하므로 복사도 하지 않는다.
-    const storedPhotoUri =
-      accountKey && photoUriRef.current ? persistNotePhoto(noteId, photoUriRef.current) : null;
+    const storedPhotoUri = accountKey && photoUriRef.current ? persistNotePhoto(noteId, photoUriRef.current) : null;
 
     const note: PhotoNote = {
       id: noteId,
       createdAt,
       schemaVersion: 1,
-      dateLabel: `${now.getMonth() + 1}/${now.getDate()}`,
+      dateLabel: view.dateLabel,
       // 화면엔 뭐라도 보여준다 — 복사가 실패해도 캐시본은 지금 이 순간엔 살아 있다.
       photoUri: storedPhotoUri ?? photoUriRef.current,
-      quote: candidate?.quote ?? '',
-      why: candidate?.why ?? '',
-      // 짚기가 성공한 경로에선 AI의 처방을, 비었으면 유형별 통조림을 쓴다
-      fix: candidate?.fix || mistakeTypeFix(context.mistakeType),
-      methodLabel: methodLabel(context.methodId),
-      typeLabel: mistakeTypeLabel(context.mistakeType),
-      methodId: context.methodId,
-      mistakeType: context.mistakeType,
+      quote: view.quote,
+      why: view.why,
+      fix: view.fix,
+      methodLabel: view.methodLabel,
+      typeLabel: view.typeLabel,
+      methodId: view.methodId,
+      mistakeType: view.mistakeType,
       // 후보는 안 줄인다. 고른 건 primary뿐이고, 나머지도 "그 칸에 있던 것"으로 남긴다.
-      weaknessIds,
-      primaryWeaknessId,
-      checkPassed: context.checkPassed,
-      checkSkipped: context.checkSkipped,
-      retryResult,
+      weaknessIds: view.weaknessIds,
+      primaryWeaknessId: view.primaryWeaknessId,
+      checkPassed: view.checkResult === 'pass',
+      checkSkipped: view.checkResult === 'skip',
+      // 검산을 통과 못 해 안 낸 재도전은 저장 모양에 없다 — 1.0.10과 같이 'none'(카드엔 재도전 칸이 빈다)
+      retryResult: view.retryResult === 'unverified' ? 'none' : view.retryResult,
     };
-
-    showNote(note);
+    thread.showNote(note);
 
     // 저장은 카드를 띄운 뒤에, 기다리지 않고 건다 — 실패해도 학생이 보는 장면은 그대로다.
-    // 저장본에는 옮겨진 경로만 남긴다. 복사가 실패했으면 사진 없이 글만 남는다 —
-    // 캐시 경로를 저장해 두면 며칠 뒤 열었을 때 깨진 사진 칸을 보게 된다.
+    // 저장본에는 옮겨진 경로만 남긴다 — 캐시 경로를 저장해 두면 며칠 뒤 깨진 사진 칸을 본다.
     if (accountKey) {
       void savePhotoNote(accountKey, { ...note, photoUri: storedPhotoUri });
     }
 
     // E칸 — 노트가 복습 과제가 된다. 약점이 하나로 정해진 노트만(후보 0개·"잘 모르겠어"는 과제 없음).
-    // source는 'photo' (09.23 🔒). 원격 store는 서버가 거절하면 던지므로(remote-review-task-store.ts:90)
-    // 여기서 받는다 — 과제가 실패해도 학생이 보는 노트 장면은 그대로다.
-    if (accountKey && reviewTaskStore && primaryWeaknessId) {
-      spawnMistakeReviewTasks(accountKey, noteId, [primaryWeaknessId], reviewTaskStore, 'photo').catch(
+    // 원격 store는 서버가 거절하면 던지므로 여기서 받는다 — 과제가 실패해도 노트 장면은 그대로다.
+    if (accountKey && reviewTaskStore && note.primaryWeaknessId) {
+      spawnMistakeReviewTasks(accountKey, noteId, [note.primaryWeaknessId], reviewTaskStore, 'photo').catch(
         console.warn,
       );
     }
-
-    // 노트 카드 위에서 이미 "이게 오늘 네 오답노트야"라고 말했다.
-    // 여기 있던 "다음 조각은 망각곡선이고"는 학생이 읽을 말이 아니라 개발 일지라 뺐다 (09.02).
-    // ⚠️ endHere는 버튼을 통째로 갈아끼운다. 말풍선이 떠 있는 동안 부르면 선택지가 사라진다.
-    endHere();
   }
 
-  /** 화면이 끝나는 자리의 공통 마무리. 할 말은 갈래마다 다르고, 버튼만 같다. */
-  function endHere() {
-    ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
+  function makeAppIO(): ScriptIO {
+    return {
+      say: thread.say,
+      mySay: thread.mySay,
+      ask: thread.ask,
+      askText: thread.askText,
+      showNote,
+      showWeaknessCard: thread.showWeaknessCard,
+      // 노트·약점 카드·"오늘은 여기까지" 전부 [처음부터 다시]로 끝난다. 웹의 망각곡선은 앱엔 없다 —
+      // 곡선의 "앱에서는 이걸 알림으로 해줘"가 앱 안에선 거짓이고, 그 약속의 실물이 복습 과제(E칸)다
+      end: endHere,
+      run: (effect) => (effect === 'restart' ? restart() : retakeFromGate()),
+      log: logScriptEvent,
+    };
   }
 
   return { status, imageUri, error, thread, start, restart };

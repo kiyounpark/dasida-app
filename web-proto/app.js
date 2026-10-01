@@ -523,10 +523,12 @@
       <div class="note-row"><span class="note-label">다음엔</span><span class="note-fix"></span></div>
       <div class="note-foot"><span class="note-checks"></span><span class="note-tags"></span></div>
       <div class="note-weakness"></div>
-      ${view.askLine ? `<div class="note-ask">📌 "수능장에서 이 풀이를 생각해 낼 수 있는가" — 답이 '당연하지'가 아니면, 이 문제 페이지를 접어 둬.</div>` : ''}
+      <div class="note-ask"></div>
       <div class="note-capture">📸 이 카드, 여기선 저장 안 돼 — 캡처해서 가져가.</div>`;
     // 학생 데이터(인용·설명)는 전부 textContent로 — HTML 해석 금지
     el.querySelector('.note-date').textContent = view.dateLabel;
+    // 📌 접는 기준 — 앱 카드와 같은 문장(F.NOTE_ASK_LINE)
+    if (view.askLine) el.querySelector('.note-ask').textContent = F.NOTE_ASK_LINE; else el.querySelector('.note-ask').remove();
     const photo = el.querySelector('.note-photo');
     if (view.photoUri) photo.src = view.photoUri; else photo.remove();
     // 규칙 1호: 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 채팅 프리미티브와 같이 fmtMath를 거친다

@@ -89,10 +89,8 @@ async function walkToNote() {
   fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
   await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
   fireEvent.press(screen.getByText('맞아, 시작하자'));
-  await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-  fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-  await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-  fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+  await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+  fireEvent.press(screen.getByText('아, 이거였구나'));
   await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
   fireEvent.press(screen.getByText('9를 더하고 뺀다'));
   await waitFor(() => expect(screen.getByText('25를 더하고 뺀다')).toBeTruthy());
@@ -108,10 +106,8 @@ async function walkToPick() {
   fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
   await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
   fireEvent.press(screen.getByText('맞아, 시작하자'));
-  await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-  fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-  await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-  fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+  await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+  fireEvent.press(screen.getByText('아, 이거였구나'));
   await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
   fireEvent.press(screen.getByText('9를 더하고 뺀다'));
   await waitFor(() => expect(screen.getByText('25를 더하고 뺀다')).toBeTruthy());
@@ -261,14 +257,8 @@ describe('PhotoFlowScreen', () => {
 
     // 방법 확정 → 짚기
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-
-    // 짚은 자리 인정 → 왜
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-
-    // 쪽지시험 → 정답
-    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나'));
     await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
     fireEvent.press(screen.getByText('9를 더하고 뺀다'));
 
@@ -291,10 +281,8 @@ describe('PhotoFlowScreen', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나'));
 
     await waitFor(() => expect(screen.getByText('3을 더하고 뺀다')).toBeTruthy());
     fireEvent.press(screen.getByText('3을 더하고 뺀다')); // 오답
@@ -317,10 +305,8 @@ describe('PhotoFlowScreen', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나'));
     await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
     fireEvent.press(screen.getByText('9를 더하고 뺀다'));
 
@@ -330,10 +316,32 @@ describe('PhotoFlowScreen', () => {
     expect(screen.queryByText('25를 더하고 뺀다')).toBeNull();
   });
 
-  it('짚은 자리가 아니라고 하면 두 번째를 짚고, 그것도 아니면 내가 틀렸다고 인정하고 끝낸다', async () => {
+  it('[나 여기 이렇게 안 썼는데]면 멈춘다 — 노트·저장·복습 과제 없이 다시 찍기로', async () => {
+    mockAnalyze.mockResolvedValue(
+      makeResult({ errorCandidates: [makeCandidate({ mistakeType: 'concept_gap' })], errorConfidence: 0.9 }),
+    );
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    // 묻지 않고 말해준다 — 틀린 자리를 모르는 학생에게 "맞아?"는 거짓말을 시킨다(09.23 ⑤)
+    await waitFor(() => expect(screen.getByText(/여기가 틀린 자리야/)).toBeTruthy());
+    fireEvent.press(screen.getByText('나 여기 이렇게 안 썼는데'));
+
+    await waitFor(() => expect(screen.getByText('📷 풀이가 선명하게 다시 찍기')).toBeTruthy());
+    expect(screen.getByText(/내가 네 글씨를 잘못 읽었나 봐/)).toBeTruthy();
+    expect(screen.queryByText('오늘의 오답노트 · 1장')).toBeNull();
+    expect(mockSaveNote).not.toHaveBeenCalled();
+    expect(eventNamed('photo_error_point_react')![1]).toEqual({ react: 'not_mine' });
+  });
+
+  it('[왜 틀린 건지 아직 모르겠어]면 개념 설명을 꺼내고 쪽지로 간다', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({
-        errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4' })],
+        errorCandidates: [
+          makeCandidate({ concept: { rule: '완전제곱식은 반의 제곱을 더하고 뺀다.', violation: '더하기만 하고 안 뺐어.' } }),
+        ],
         errorConfidence: 0.9,
       }),
     );
@@ -342,18 +350,64 @@ describe('PhotoFlowScreen', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('왜 틀린 건지 아직 모르겠어')).toBeTruthy());
+    fireEvent.press(screen.getByText('왜 틀린 건지 아직 모르겠어'));
 
-    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
-    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
+    await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
+    expect(screen.getByText('완전제곱식은 반의 제곱을 더하고 뺀다.')).toBeTruthy();
+    expect(screen.getByText('더하기만 하고 안 뺐어.')).toBeTruthy();
+  });
 
-    // 사다리 2번 — '아니야'는 앞서 내가 말한 말풍선에도 있어서 버튼으로 집는다
-    await waitFor(() => expect(screen.getByText('맞아, 거기야')).toBeTruthy());
-    fireEvent.press(screen.getByRole('button', { name: '아니야' }));
+  it('오늘은 여기까지·노트·약점 카드 뒤엔 [처음부터 다시]', async () => {
+    // 방법은 맞는데 오류 후보가 없다 → 설문 → 약점 카드 (1.0.9는 여기서 노트 없이 끝났다)
+    mockAnalyze.mockResolvedValue(makeResult());
+    render(<PhotoFlowScreen />);
 
-    // 세 번째 시도는 없다. 학생이 읽는 말에 개발 일지가 한 글자도 없어야 한다 (8·9번)
-    await waitFor(() => expect(screen.getByText(/내가 틀린 거야/)).toBeTruthy());
-    expect(screen.getByText('그게 오늘 네 오답노트야.')).toBeTruthy();
-    expect(screen.queryByText(/느낌 설문|오늘 만든 조각|망각곡선/)).toBeNull();
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('마지막에 답 쓸 때 실수한 것 같아')).toBeTruthy());
+    fireEvent.press(screen.getByText('마지막에 답 쓸 때 실수한 것 같아'));
+
+    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 마무리 해석')).toBeTruthy());
+    expect(screen.getByText('처음부터 다시')).toBeTruthy();
+    fireEvent.press(screen.getByText('처음부터 다시'));
+    await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
+  });
+
+  it('오답노트 카드에 📌 접는 기준이 뜬다 — 웹 카드와 같은 문장 (🔒 10.01)', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    render(<PhotoFlowScreen />);
+
+    await walkToNote();
+
+    expect(screen.getByText(/📌 "수능장에서 이 풀이를 생각해 낼 수 있는가"/)).toBeTruthy();
+  });
+
+  it('화면을 떠난 뒤 늦게 온 검산은 노트도 저장도 복습 과제도 안 만든다 (astra 4)', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    const resolvers: ((v: unknown) => void)[] = [];
+    mockVerify.mockImplementation(() => new Promise((resolve) => resolvers.push(resolve)));
+    const store = memStore();
+    const load = jest.spyOn(store, 'load');
+    const { unmount } = render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나')); // 쪽지 검산을 기다린다
+
+    unmount(); // 헤더 뒤로가기
+    // 끊기지 않았다면 쪽지 건너뜀 → 재도전 건너뜀 → 노트 저장까지 간다
+    await act(async () => {
+      resolvers.forEach((resolve) => resolve({ verdict: 'skip', reason: 'none', ms: 10 }));
+    });
+    await act(async () => {});
+
+    expect(mockSaveNote).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
+    expect(eventNamed('photo_note_shown')).toBeUndefined();
   });
 });
 
@@ -478,10 +532,8 @@ describe('1.0.10 — 웹과 같게', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나'));
 
     // 쪽지 없이 재도전으로 — 틀린 적이 없으니 "괜찮아" 톤이 아니다
     await waitFor(() => expect(screen.getByText('25를 더하고 뺀다')).toBeTruthy());
@@ -508,10 +560,8 @@ describe('1.0.10 — 웹과 같게', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
-    fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
+    fireEvent.press(screen.getByText('아, 이거였구나'));
     await waitFor(() => expect(screen.getByText('9를 더하고 뺀다')).toBeTruthy());
     fireEvent.press(screen.getByText('9를 더하고 뺀다'));
 
@@ -528,13 +578,11 @@ describe('1.0.10 — 웹과 같게', () => {
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('맞아, 거기서 틀렸어')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 거기서 틀렸어'));
-    await waitFor(() => expect(screen.getByText('그렇구나, 확인해볼래')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
 
     jest.useFakeTimers();
     try {
-      fireEvent.press(screen.getByText('그렇구나, 확인해볼래'));
+      fireEvent.press(screen.getByText('아, 이거였구나'));
       await act(async () => {
         jest.advanceTimersByTime(4_999);
       });
@@ -562,7 +610,7 @@ describe('1.0.10 — 웹과 같게', () => {
     ]);
   });
 
-  it('2번 후보는 사다리가 닿을 때 검산을 출발시킨다', async () => {
+  it('후보가 둘이어도 검산은 0번만 — 2번 후보로 넘어가는 사다리는 없다(웹과 같게)', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({
         errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4', checkAnswerIndex: 2 })],
@@ -573,13 +621,12 @@ describe('1.0.10 — 웹과 같게', () => {
 
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
-    expect(mockVerify).toHaveBeenCalledTimes(2); // 0번 쪽지·재도전만
     fireEvent.press(screen.getByText('맞아, 시작하자'));
-    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
-    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
+    await waitFor(() => expect(screen.getByText('아, 이거였구나')).toBeTruthy());
 
-    await waitFor(() => expect(mockVerify).toHaveBeenCalledTimes(4));
-    expect(mockVerify.mock.calls[2][0]).toMatchObject({ kind: 'check', marked: 2 });
+    expect(mockVerify).toHaveBeenCalledTimes(2);
+    expect(mockVerify.mock.calls.map(([body]) => body.marked)).toEqual([1, 0]);
+    expect(screen.queryByText(/"4x \+ 4"/)).toBeNull(); // 2번 후보 인용은 안 나온다
   });
 });
 
@@ -683,12 +730,12 @@ describe('사진 flow 계측', () => {
   });
 
   /**
-   * 오답노트를 못 받고 끝난 자리. 웹 28일 실측이 photo_submit 21 → note_shown 1이었고,
-   * 그 20명이 어디로 갔는지 한 건도 안 남아 병목이 AI 감지율인지 이탈인지 못 갈랐다.
-   * 이 세 도장이 빠지면 1.0.8은 분자만 있고 분모가 없다.
+   * 노트 없이 끝나던 세 갈래(1.0.9 photo_dead_end)는 1.0.10(B)부터 웹처럼 설문 → 약점 카드로 간다.
+   * 짚기 사다리(pointing_rejected)는 없어졌고 그 자리는 [나 여기 이렇게 안 썼는데]다.
+   * 카드로 끝난 수 : 노트로 끝난 수 — 카드 쪽이 많아지면 카드 저장을 붙인다(🔒 10.01).
    */
-  it('방법은 맞는데 틀린 데를 못 찾으면 no_error_found를 남긴다', async () => {
-    // 후보 0개 — canPointAtError가 막히고 예측 방법은 맞은 갈래
+  it('방법은 맞는데 틀린 데를 못 찾으면 설문 → 약점 카드 — photo_weakness_card_shown', async () => {
+    // 후보 0개 — 짚기로 못 가고 예측 방법은 맞은 갈래
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -696,14 +743,17 @@ describe('사진 flow 계측', () => {
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
 
-    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
-    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
-      reason: 'no_error_found',
-      method_id: 'cps',
-    });
+    await waitFor(() => expect(screen.getByText(/그런데 좀 신기해/)).toBeTruthy());
+    fireEvent.press(screen.getByText('마지막에 답 쓸 때 실수한 것 같아'));
+
+    await waitFor(() => expect(eventNamed('photo_weakness_card_shown')).toBeTruthy());
+    expect(eventNamed('photo_method_confirm')![1]).toEqual({ answer: 'yes', mode: 'assert' });
+    expect(eventNamed('photo_survey_pick')![1]).toEqual({ mistake: 'answer_read' });
+    expect(eventNamed('photo_weakness_card_shown')![1]).toEqual({ method: 'cps', mistake: 'answer_read' });
+    expect(eventNamed('photo_dead_end')).toBeUndefined();
   });
 
-  it('학생이 방법을 직접 고르면 method_mismatch를 남긴다 — 고른 방법을 실어서', async () => {
+  it('학생이 방법을 직접 고르면 그 방법으로 설문 → 약점 카드', async () => {
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -712,69 +762,16 @@ describe('사진 flow 계측', () => {
     fireEvent.press(screen.getByText('아니야, 다른 방법으로 풀었어'));
 
     // 좁힌 목록에도 없다며 전체에서 AI 예측과 다른 방법을 고른다
-    await waitFor(() => expect(screen.getByText('여기에도 없어')).toBeTruthy());
-    fireEvent.press(screen.getByText('여기에도 없어'));
+    await waitFor(() => expect(screen.getByText('여기에도 없어, 직접 쓸게')).toBeTruthy());
+    fireEvent.press(screen.getByText('여기에도 없어, 직접 쓸게'));
     await waitFor(() => expect(screen.getByText('미분')).toBeTruthy());
     fireEvent.press(screen.getByText('미분'));
+    await waitFor(() => expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy());
+    fireEvent.press(screen.getByText('식은 세웠는데 계산에서 미끄러졌어'));
 
-    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
-    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
-      reason: 'method_mismatch',
-      method_id: 'diff',
-    });
-  });
-
-  it('짚어준 자리를 다 아니라고 하면 pointing_rejected에 시도 횟수를 실어 남긴다', async () => {
-    mockAnalyze.mockResolvedValue(
-      makeResult({
-        errorCandidates: [makeCandidate(), makeCandidate({ quote: '4x + 4' })],
-        errorConfidence: 0.9,
-      }),
-    );
-    render(<PhotoFlowScreen />);
-
-    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
-    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 시작하자'));
-
-    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
-    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
-
-    await waitFor(() => expect(screen.getByText('맞아, 거기야')).toBeTruthy());
-    fireEvent.press(screen.getByRole('button', { name: '아니야' }));
-
-    await waitFor(() => expect(eventNamed('photo_dead_end')).toBeTruthy());
-    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
-      reason: 'pointing_rejected',
-      method_id: 'cps',
-      attempts: 2,
-    });
-  });
-
-  /**
-   * 09.02 시뮬레이터에서 실제로 나온 것 — 후보가 1개뿐이면 한 번만 짚고 갈래 ③으로 오는데
-   * 화면은 "두 군데 다 아니라고 했지"라고 말했다. 앱이 거짓말을 한 자리다.
-   * 기존 테스트가 후보 2개짜리만 써서 안 잡혔다.
-   */
-  it('후보가 하나뿐이면 "두 군데"라고 말하지 않는다', async () => {
-    mockAnalyze.mockResolvedValue(
-      makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }),
-    );
-    render(<PhotoFlowScreen />);
-
-    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
-    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
-    fireEvent.press(screen.getByText('맞아, 시작하자'));
-
-    await waitFor(() => expect(screen.getByText('아니야, 거기 아니야')).toBeTruthy());
-    fireEvent.press(screen.getByText('아니야, 거기 아니야'));
-
-    await waitFor(() => expect(screen.getByText(/내가 틀린 거야/)).toBeTruthy());
-    expect(screen.queryByText(/두 군데/)).toBeNull();
-    expect(eventNamed('photo_dead_end')![1]).toMatchObject({
-      reason: 'pointing_rejected',
-      attempts: 1,
-    });
+    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 미분 × 계산 손실수')).toBeTruthy());
+    expect(eventNamed('photo_weakness_card_shown')![1]).toEqual({ method: 'diff', mistake: 'calc_slip' });
+    expect(eventNamed('photo_dead_end')).toBeUndefined();
   });
 
   it('오답노트까지 가면 photo_dead_end를 안 남긴다 — 분자와 분모가 겹치면 안 된다', async () => {
