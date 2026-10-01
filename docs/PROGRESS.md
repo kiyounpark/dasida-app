@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 15:58
+- 해시: `374a28e` (`374a28e86670f32605b8f48bc6798daf87c8b2b3`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/374a28e86670f32605b8f48bc6798daf87c8b2b3
+- 작성자: 박기윤
+- 메시지: fix(web): 작은 사진 거르기 문구 — "너무 작아서" 대신 "화면에선 괜찮아 보여도" (10.01 기윤)
+- 본문: - 학생 폰 화면에선 사진이 멀쩡해 보여 "내 눈엔 안 작은데?"가 된다 — 반문을 첫마디로 막는다 / - 버튼 "카메라로 다시 찍기" → "다른 사진 올리기"(실제로 카메라가 아니라 업로드로 간다) / - 점검 스크립트 기대값 같이 고침, 8/8 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 14:57
 - 해시: `9268bd4` (`9268bd4fe442465ec080fec7f02c6a4c1d24f677`)
 - 브랜치: main
