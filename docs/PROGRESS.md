@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 21:58
+- 해시: `03d3b49` (`03d3b49e673c4870b5fed7f4b8d326a7634ab787`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/03d3b49e673c4870b5fed7f4b8d326a7634ab787
+- 작성자: 박기윤
+- 메시지: merge: B(웹·앱 대본 하나로) — 가지 b-shared-script
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 16:30
 - 해시: `3ffd3d8` (`3ffd3d82ea7ff3c39b1ea90de189c0219d1ccd52`)
 - 브랜치: (브랜치 정보 없음)
