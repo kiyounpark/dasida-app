@@ -106,7 +106,7 @@
   function show(name) {
     Object.entries(screens).forEach(([key, el]) => { el.hidden = key !== name; });
     window.scrollTo(0, 0);
-    if (name === 'analyzing') startAnalyzingSteps(); else stopAnalyzingSteps();
+    if (name === 'analyzing') { startAnalyzingSteps(); startWaitCards(); } else stopAnalyzingSteps();
   }
 
   // ── 분석 중 문구 ──
@@ -140,6 +140,63 @@
   function stopAnalyzingSteps() {
     if (analyzingTimer) { clearInterval(analyzingTimer); analyzingTimer = null; }
   }
+
+  // ── 대기 중 예시 오답노트 (10.01 astra·Fable 둘 다 A안, 기윤 OK) ──
+  // 학생이 탭을 떠나지 않게 읽을거리를 준다. 입력·채점이 없어 결과가 언제 와도(즉시 chat 전환) 잃는 게 없다.
+  // 학생 사진과 무관한 예시라 "네 사진 아님"을 늘 붙인다. 시작 카드는 매번 무작위 — 다시 온 학생도 첫 장이 바뀐다.
+  // 카드를 늘릴 땐 이 목록에만 넣는다. 수학은 math-checker, 문구는 target-student를 먼저 거친다.
+  const WAIT_CARDS = [
+    {
+      problem: 'f(x) = x³ − 3x² + 3x 의 극값을 구하시오.',
+      lines: ["f'(x) = 3x² − 6x + 3 = 0", 'x = 1', '극값 f(1) = 1'],
+      bad: 2,
+      why: "f'(x)=3(x−1)²≥0이라 x=1 앞뒤로 부호가 안 바뀌어. 극값은 없어",
+      fix: "f'=0 찾으면 앞뒤 부호부터 보기",
+    },
+    {
+      problem: '곡선 y = x² − 1 과 x축, x=0, x=2 로 둘러싸인 넓이는?',
+      lines: ['∫<span class="lim"><span>2</span><span>0</span></span> (x² − 1) dx', '= 8/3 − 2', '= 2/3'],
+      bad: 0,
+      why: '0~1에서 그래프가 x축 아래라, 더해야 할 넓이를 뺐어. 넓이는 2',
+      fix: 'x축 아래로 내려가는 구간부터 찾기',
+    },
+    {
+      problem: 'log₂(x−1) + log₂(x−3) = 3 을 풀어라.',
+      lines: ['(x−1)(x−3) = 8', 'x² − 4x − 5 = 0', '답: x = 5 또는 x = −1'],
+      bad: 2,
+      why: '진수 조건 x>3을 안 봐서 x=−1을 남겼어',
+      fix: '로그 풀면 진수 조건부터 대보기',
+    },
+  ];
+  let waitCardIndex = 0;
+  function renderWaitCard() {
+    const card = WAIT_CARDS[waitCardIndex];
+    document.getElementById('wait-count').textContent = `${waitCardIndex + 1}/${WAIT_CARDS.length} · 네 사진 아님`;
+    document.getElementById('wait-problem').textContent = card.problem;
+    const solution = document.getElementById('wait-solution');
+    solution.textContent = '';
+    card.lines.forEach((line, i) => {
+      const row = document.createElement('div');
+      if (i === card.bad) row.className = 'bad';
+      row.innerHTML = line; // 위 상수만 들어온다(학생 데이터 아님) — 적분 위끝·아래끝 표기 때문에 HTML
+
+      solution.appendChild(row);
+    });
+    document.getElementById('wait-why').textContent = card.why;
+    document.getElementById('wait-fix').textContent = card.fix;
+  }
+  // 옛 index.html이 캐시에 남은 채 새 app.js가 오면 카드 자리가 없다 — 그때 대기·분석 흐름까지 죽지 않게 조용히 건너뛴다
+  function startWaitCards() {
+    if (!document.getElementById('wait-problem')) return;
+    waitCardIndex = Math.floor(Math.random() * WAIT_CARDS.length);
+    renderWaitCard();
+  }
+  document.getElementById('wait-next')?.addEventListener('click', () => {
+    waitCardIndex = (waitCardIndex + 1) % WAIT_CARDS.length;
+    renderWaitCard();
+    // 읽을거리가 붙잡는지 — 넘김 수 × analysis_hidden으로 본다. card_index는 GA 맞춤 측정기준 등록 뒤부터 보인다
+    logEvent('wait_card_next', { ...waitParams(), card_index: waitCardIndex });
+  });
 
   // ── 수식 표기 (원희 피드백 규칙 1호: 지수는 위첨자로 — a^2 ✗ → a² ○) ──
   // 앱 components/math/MathText.tsx의 formatMathText를 웹용으로 이식.

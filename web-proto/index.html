@@ -8,7 +8,7 @@
 <meta name="naver-site-verification" content="b97f00dbc0e519dc6ac96b2156f45fdc0b11fd64" />
 <title>다시다 — 틀린 문제, 왜 틀렸는지 알려줌</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --cream: #FBF7EF;
@@ -148,6 +148,27 @@
   /* 문구가 바뀔 때 글자가 튀지 않게 — 두 줄짜리가 와도 자리를 미리 잡아둔다 */
   .spinner-step { min-height: 44px; transition: opacity .25s; }
   .spinner-note { margin-top: 10px; font-size: 13px; opacity: .7; }
+  /* 대기 화면 — 움직이는 게 0이면 20초 동안 멈춘 화면으로 보인다(10.01 astra·Fable). 진행률이 아니라 "살아 있다"만 말한다 */
+  #screen-analyzing .spinner { padding: 26px 0 16px; }
+  #screen-analyzing .spinner-step { min-height: 0; }
+  .wait-dots { margin-bottom: 12px; }
+  .wait-dots span { display: inline-block; width: 7px; height: 7px; margin: 0 3px; border-radius: 50%; background: var(--green-soft); animation: wait-dot 1.2s infinite ease-in-out; }
+  .wait-dots span:nth-child(2) { animation-delay: .15s; }
+  .wait-dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes wait-dot { 0%, 80%, 100% { transform: scale(.6); opacity: .35; } 40% { transform: scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .wait-dots span { animation: none; opacity: .6; } }
+  /* 예시 오답노트 — 결과 카드(.note-card)와 같은 모양이라 "곧 이게 온다"를 미리 보여준다 */
+  .wait-hint { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 8px; }
+  .wait-card .note-head { margin-bottom: 8px; }
+  .wait-label { font-size: 12px; font-weight: 800; color: var(--green-soft); margin-bottom: 2px; }
+  .wait-problem { font-size: 14.5px; font-weight: 700; line-height: 1.5; margin-bottom: 10px; }
+  .wait-solution { background: var(--cream-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; margin-bottom: 6px; }
+  .wait-solution div { font-family: "Nanum Pen Script", cursive; font-size: 23px; line-height: 1.35; padding: 2px 6px; border-radius: 6px; }
+  .wait-solution .lim { display: inline-flex; flex-direction: column; font-size: .55em; line-height: 1; vertical-align: middle; margin: 0 2px 0 1px; }
+  .wait-solution div.bad { background: #FCEBEB; box-shadow: inset 0 -2px 0 #E24B4A; }
+  .wait-mark { font-size: 12px; color: #A32D2D; font-weight: 700; margin: 0 0 6px 4px; }
+  .wait-card .note-label { flex-basis: 52px; }
+  .wait-next { width: 100%; margin-top: 12px; border: 1.5px solid var(--line); background: #fff; color: var(--green); border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .fallback-input { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px; font-size: 15px; font-family: inherit; }
 </style>
 </head>
@@ -178,9 +199,21 @@
     <!-- 화면 2: 분석 중 -->
     <section class="screen" id="screen-analyzing" hidden>
       <div class="spinner">
+        <div class="wait-dots" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="spinner-step" id="analyzing-step">사진에서 네 손글씨 읽는 중…</div>
         <div class="spinner-note">보통 1~2분 걸려. 길면 더 걸리기도 해</div>
       </div>
+      <div class="wait-hint">기다리는 동안, 결과가 이렇게 나와</div>
+      <div class="card note-card wait-card">
+        <div class="note-head"><span class="note-title">예시 오답노트</span><span class="note-date" id="wait-count"></span></div>
+        <div class="wait-label">문제</div>
+        <div class="wait-problem" id="wait-problem"></div>
+        <div class="wait-solution" id="wait-solution"></div>
+        <div class="wait-mark">↑ 여기서 갈라졌어</div>
+        <div class="note-row"><span class="note-label">왜</span><span id="wait-why"></span></div>
+        <div class="note-row"><span class="note-label">다음엔</span><span id="wait-fix"></span></div>
+      </div>
+      <button class="wait-next" id="wait-next" type="button">다음 예시 보기</button>
     </section>
 
     <!-- 화면 3: 진단 대화 -->
