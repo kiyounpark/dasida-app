@@ -9,6 +9,7 @@ import {
   requestAnalyze,
 } from '../../flow/analyze-photo-request';
 import { askPhotoSource } from '../../flow/ask-photo-source';
+import { requestDiagnoseMethod } from '../../flow/diagnose-method-request';
 import { requestQuizVerify } from '../../flow/verify-quiz-request';
 import { logEvent } from '@/features/analytics/log-event';
 import { addDaysToToday } from '@/features/learning/review-scheduler';
@@ -31,6 +32,15 @@ jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
   MockScrollView.displayName = 'ScrollView';
   // react-native 인덱스가 .default로 꺼내 쓴다 — 컴포넌트를 그대로 돌려주면 undefined가 된다
   return { __esModule: true, default: MockScrollView };
+});
+
+// 입력칸이 키보드에 안 가리게 감싼 KeyboardAvoidingView — 같은 이유(Keyboard의 NativeEventEmitter)로 단순 View
+jest.mock('react-native/Libraries/Components/Keyboard/KeyboardAvoidingView', () => {
+  const React = require('react');
+  const RN = jest.requireActual('react-native');
+  const MockKeyboardAvoidingView = ({ children, behavior: _b, enabled: _e, ...props }: any) =>
+    React.createElement(RN.View, props, children);
+  return { __esModule: true, default: MockKeyboardAvoidingView };
 });
 
 // 저장이 실제로 되는지는 note-store.test.ts가 본다. 여기서 보는 건 "흐름이 그걸 부르는가" 하나다.
@@ -63,6 +73,11 @@ jest.mock('../../flow/verify-quiz-request', () => ({
   requestQuizVerify: jest.fn(),
 }));
 
+// 방법을 학생 말로 받으면 부르는 AI(diagnoseMethod). 기본은 실패(null) — 키워드로 좁히는 길
+jest.mock('../../flow/diagnose-method-request', () => ({
+  requestDiagnoseMethod: jest.fn(),
+}));
+
 // 찍을지 고를지 묻는 창. 실물은 ActionSheetIOS라 테스트 환경에 네이티브가 없다
 // ("ActionSheetManager doesn't exist"). 아래 테스트들은 그 뒤의 흐름을 재는 것이라
 // 기본값으로 앨범을 골라 통과시킨다 — 창 자체는 ask-photo-source.test.ts가 잰다.
@@ -83,6 +98,8 @@ const mockSaveNote = savePhotoNote as jest.Mock;
 const mockReadNotes = readPhotoNotes as jest.Mock;
 const mockNewSubmissionId = newSubmissionId as jest.Mock;
 const mockVerify = requestQuizVerify as jest.Mock;
+const mockDiagnose = requestDiagnoseMethod as jest.Mock;
+const INPUT_PLACEHOLDER = '예: 근의 공식에 바로 대입했어';
 
 /** 흐름을 오답노트 한 장까지 몬다. 쪽지시험·재도전은 첫 보기를 누른다. */
 async function walkToNote() {
@@ -138,6 +155,7 @@ beforeEach(() => {
   let submissionCount = 0;
   mockNewSubmissionId.mockImplementation(() => `sub-${(submissionCount += 1)}`);
   mockVerify.mockResolvedValue({ verdict: 'match', reason: 'match', ms: 10 });
+  mockDiagnose.mockResolvedValue(null);
 });
 
 describe('PhotoFlowScreen', () => {
@@ -610,6 +628,58 @@ describe('1.0.10 — 웹과 같게', () => {
     ]);
   });
 
+  it('풀이가 없으면 학생 말로 받고, AI가 확신하면 그 방법으로 바로 잇는다 (④ 입력칸)', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ hasSolvingWork: false }));
+    mockDiagnose.mockResolvedValue({
+      predictedMethodId: 'diff',
+      confidence: 0.9,
+      candidateMethodIds: ['diff'],
+      needsManualSelection: false,
+      reason: '',
+    });
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('✏️ 직접 알려줄게')).toBeTruthy());
+    fireEvent.press(screen.getByText('✏️ 직접 알려줄게'));
+
+    const input = await screen.findByPlaceholderText(INPUT_PLACEHOLDER);
+    // 빈 글자는 안 보낸다
+    fireEvent.changeText(input, '   ');
+    fireEvent.press(screen.getByText('보내기'));
+    expect(mockDiagnose).not.toHaveBeenCalled();
+
+    fireEvent.changeText(input, '도함수 구해서 0 되는 데 찾았어');
+    fireEvent(input, 'submitEditing'); // 키보드의 보내기
+    await waitFor(() => expect(screen.getByText(/미분으로 풀었구나/)).toBeTruthy());
+    expect(screen.getByText('도함수 구해서 0 되는 데 찾았어')).toBeTruthy(); // 내 말풍선
+    expect(screen.queryByPlaceholderText(INPUT_PLACEHOLDER)).toBeNull(); // 보내면 입력칸이 닫힌다
+    expect(mockDiagnose).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy(); // 미분 설문
+  });
+
+  it('두 번 못 알아들으면 전체 목록 — [잘 모르겠어]면 방법 없이 약점 카드', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ hasSolvingWork: false }));
+    render(<PhotoFlowScreen />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('✏️ 직접 알려줄게')).toBeTruthy());
+    fireEvent.press(screen.getByText('✏️ 직접 알려줄게'));
+    fireEvent.changeText(await screen.findByPlaceholderText(INPUT_PLACEHOLDER), 'ㅁㄴㅇㄹ');
+    fireEvent.press(screen.getByText('보내기'));
+    await waitFor(() => expect(screen.getByText(/잘 못 알아들었어/)).toBeTruthy());
+    fireEvent.changeText(await screen.findByPlaceholderText(INPUT_PLACEHOLDER), '그냥 했어');
+    fireEvent.press(screen.getByText('보내기'));
+
+    await waitFor(() => expect(screen.getByText('그럼 전체 목록에서 직접 골라볼래?')).toBeTruthy());
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+    await waitFor(() => expect(screen.getByText('이 방법의 원리 자체가 잘 안 잡혔어')).toBeTruthy());
+    // 방금 내 말풍선에도 '잘 모르겠어'가 있어서 버튼으로 집는다
+    fireEvent.press(screen.getByRole('button', { name: '잘 모르겠어' }));
+
+    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 방법 미상 × 개념 구멍')).toBeTruthy());
+  });
+
   it('후보가 둘이어도 검산은 0번만 — 2번 후보로 넘어가는 사다리는 없다(웹과 같게)', async () => {
     mockAnalyze.mockResolvedValue(
       makeResult({
@@ -753,7 +823,7 @@ describe('사진 flow 계측', () => {
     expect(eventNamed('photo_dead_end')).toBeUndefined();
   });
 
-  it('학생이 방법을 직접 고르면 그 방법으로 설문 → 약점 카드', async () => {
+  it('학생이 방법을 직접 쓰면 그 방법으로 설문 → 약점 카드 (AI가 못 알아들어 키워드로 좁힘)', async () => {
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -761,10 +831,14 @@ describe('사진 flow 계측', () => {
     await waitFor(() => expect(screen.getByText('아니야, 다른 방법으로 풀었어')).toBeTruthy());
     fireEvent.press(screen.getByText('아니야, 다른 방법으로 풀었어'));
 
-    // 좁힌 목록에도 없다며 전체에서 AI 예측과 다른 방법을 고른다
+    // 좁힌 목록에도 없다며 학생 말로 쓴다 → AI 실패(null) → 키워드로 후보
     await waitFor(() => expect(screen.getByText('여기에도 없어, 직접 쓸게')).toBeTruthy());
     fireEvent.press(screen.getByText('여기에도 없어, 직접 쓸게'));
+    await waitFor(() => expect(screen.getByPlaceholderText(INPUT_PLACEHOLDER)).toBeTruthy());
+    fireEvent.changeText(screen.getByPlaceholderText(INPUT_PLACEHOLDER), '미분해서 접선 기울기 구했어');
+    fireEvent.press(screen.getByText('보내기'));
     await waitFor(() => expect(screen.getByText('미분')).toBeTruthy());
+    expect(mockDiagnose).toHaveBeenCalledWith('미분해서 접선 기울기 구했어', { problemId: 'photo-flow-app' });
     fireEvent.press(screen.getByText('미분'));
     await waitFor(() => expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy());
     fireEvent.press(screen.getByText('식은 세웠는데 계산에서 미끄러졌어'));

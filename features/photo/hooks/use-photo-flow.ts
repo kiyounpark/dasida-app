@@ -142,8 +142,8 @@ export function usePhotoFlow({
         submissionId: submissionIdRef.current,
         qa: __DEV__,
         photoUri: photoUriRef.current,
-        // 약점 후보가 둘 이상이면 노트 전에 묻는다 — 앱만(🔒 08.11·09.20). 입력칸은 ④(커밋 6)부터
-        profile: { picksWeakness: true, textInput: false },
+        // 약점 후보가 둘 이상이면 노트 전에 묻는다 — 앱만(🔒 08.11·09.20, 웹엔 고른 값을 둘 곳이 없다)
+        profile: { picksWeakness: true, textInput: true },
       });
       scriptRef.current.start(result);
     } catch (caught) {

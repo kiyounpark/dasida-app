@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
@@ -9,6 +9,7 @@ import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 import { PhotoActionButtons } from '../components/photo-action-buttons';
 import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
 import { PhotoChatThread } from '../components/photo-chat-thread';
+import { PhotoTextInput } from '../components/photo-text-input';
 import { PhotoUploadView } from '../components/photo-upload-view';
 import { usePhotoFlow } from '../hooks/use-photo-flow';
 import { readPhotoNotes } from '../note-store';
@@ -35,7 +36,7 @@ export function PhotoFlowScreen({
     getRemoteAuthHeaders,
   });
   const scrollRef = useRef<ScrollView>(null);
-  const { bubbles, actions, press } = thread;
+  const { bubbles, actions, press, textPrompt, submitText } = thread;
   const [savedNoteCount, setSavedNoteCount] = useState(0);
 
   // 업로드 화면으로 올 때마다 다시 센다 — 방금 만든 노트가 바로 반영돼야 한다
@@ -53,7 +54,7 @@ export function PhotoFlowScreen({
     if (status !== 'chat') return;
     const timer = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
     return () => clearTimeout(timer);
-  }, [status, bubbles, actions]);
+  }, [status, bubbles, actions, textPrompt]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -67,19 +68,28 @@ export function PhotoFlowScreen({
       )}
       {status === 'analyzing' && <PhotoAnalyzingView />}
       {status === 'chat' && (
-        <ScrollView
-          contentContainerStyle={styles.list}
-          contentInsetAdjustmentBehavior="automatic"
-          ref={scrollRef}>
-          {imageUri && (
-            <View style={styles.previewFrame}>
-              {/* contain: 세로로 긴 시험지도 통째로 — cover는 인용한 그 손글씨 줄을 잘라먹는다 */}
-              <Image contentFit="contain" source={{ uri: imageUri }} style={styles.preview} />
-            </View>
-          )}
-          <PhotoChatThread bubbles={bubbles} />
-          <PhotoActionButtons actions={actions} onPress={press} />
-        </ScrollView>
+        // 입력칸(방법을 학생 말로)이 키보드에 안 가리게 — 복습 화면과 같은 방식(iOS는 inset 자동, 안드는 padding)
+        <KeyboardAvoidingView behavior="padding" enabled={process.env.EXPO_OS !== 'ios'} style={styles.flex}>
+          <ScrollView
+            automaticallyAdjustKeyboardInsets={process.env.EXPO_OS === 'ios'}
+            contentContainerStyle={styles.list}
+            contentInsetAdjustmentBehavior="automatic"
+            keyboardShouldPersistTaps="handled"
+            ref={scrollRef}>
+            {imageUri && (
+              <View style={styles.previewFrame}>
+                {/* contain: 세로로 긴 시험지도 통째로 — cover는 인용한 그 손글씨 줄을 잘라먹는다 */}
+                <Image contentFit="contain" source={{ uri: imageUri }} style={styles.preview} />
+              </View>
+            )}
+            <PhotoChatThread bubbles={bubbles} />
+            {textPrompt ? (
+              <PhotoTextInput onSubmit={submitText} prompt={textPrompt} />
+            ) : (
+              <PhotoActionButtons actions={actions} onPress={press} />
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       )}
     </SafeAreaView>
   );
@@ -90,6 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: PhotoTheme.cream,
   },
+  flex: { flex: 1 },
   // web-proto .wrap(가로 22) · .thread(위 8 아래 24) · .actions(아래 30)와 같은 여백
   list: {
     paddingHorizontal: 22,
