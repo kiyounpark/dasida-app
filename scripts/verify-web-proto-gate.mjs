@@ -216,12 +216,12 @@ await check('누운 사진 → 게이트 문구·버튼, analysis_gate만 찍히
   assert.equal(typeof gateEvent.wait_ms, 'number');
 });
 
-await check('작은 사진 → "너무 작아서" 문구와 카메라 버튼', async () => {
+await check('작은 사진 → "화면에선 괜찮아 보여도" 문구와 다른 사진 버튼 (10.01)', async () => {
   const page = makePage({ fetchReplies: [blocked('blocked_small')] });
   page.pick();
   await page.submit();
-  assert.match(page.byId.thread.textContent, /너무 작아서/);
-  assert.deepEqual(page.buttons(), ['📷 카메라로 다시 찍기', '오늘은 여기까지']);
+  assert.match(page.byId.thread.textContent, /화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어/);
+  assert.deepEqual(page.buttons(), ['다른 사진 올리기', '오늘은 여기까지']);
 });
 
 await check('축소: 픽셀 총량 1176×1568 + 긴 변 2048 — 세로 긴 스크린샷이 짧은 변 800 밑으로 안 눌린다 (10.01)', async () => {
