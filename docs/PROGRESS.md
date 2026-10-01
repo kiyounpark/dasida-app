@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 22:51
+- 해시: `8d12756` (`8d12756f5318c7506f14e0c5d49308be06fc6e48`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8d12756f5318c7506f14e0c5d49308be06fc6e48
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 8호 — 10.02(금) 21:00 예약 K_HVLhTXmb8, 12~15초 자막 +24 (10.01 밤)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 22:09
 - 해시: `5daf3b6` (`5daf3b6d1bb746710627a2fd510f27509d010722`)
 - 브랜치: main
