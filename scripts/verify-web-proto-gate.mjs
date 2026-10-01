@@ -203,7 +203,11 @@ await check('누운 사진 → 게이트 문구·버튼, analysis_gate만 찍히
 
   const names = page.tracked.map((e) => e.name);
   assert.deepEqual(names, ['photo_submit', 'analysis_gate']);
-  assert.deepEqual(page.tracked[0].params, {}); // 첫 제출엔 retake_of 없음
+  // 첫 제출엔 retake_of 없음. 10.01부터 attempt·wait_ms·submission_id를 싣는다(재시도 뺀 분모 attempt=1)
+  const submitEvent = page.tracked[0].params;
+  assert.equal('retake_of' in submitEvent, false);
+  assert.equal(submitEvent.attempt, 1);
+  assert.equal(submitEvent.submission_id, req.body.submissionId);
   const gateEvent = page.tracked[1].params;
   assert.equal(gateEvent.decision, 'blocked_rotation');
   assert.equal(gateEvent.submission_id, req.body.submissionId);
