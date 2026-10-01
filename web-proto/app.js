@@ -369,15 +369,30 @@
   // 학생이 느낀 대기(축소+전송+분석)는 원장 durationMs(AI 호출만)와 달라 여기서 잰다. GA로만 보낸다.
   let waitStartedAt = 0;
   let attempt = 0; // 같은 사진(submissionId) 몇 번째 시도인가 — 원장은 재시도를 같은 submissionId로 본다
-  let waitHidden = false; // 대기 화면에서 한 번이라도 숨겨졌나 — 돌아왔는지는 뒤에 analysis_shown이 오나로 사후에 가른다
+  let waitHidden = false; // 대기 화면에서 한 번이라도 숨겨졌나 — 돌아왔는지는 analysis_returned로 본다(analysis_shown은 안 봐도 찍힌다)
+  // 돌아옴 재기(10.01, Fable 설계 · astra 안). shown 자리는 09.28 결정대로 안 옮긴다 — 복귀는 별도 이벤트로.
+  let waitHiddenAt = 0;
+  let waitReturned = false;
+  let waitOutcome = null; // 'result' | 'gate' | 'failed' — 돌아온 순간 어느 화면이었나
   const waitParams = () => ({ wait_ms: Math.round(Date.now() - waitStartedAt), submission_id: submissionId, attempt });
   function logLeaveWhileWaiting() {
     if (screens.analyzing.hidden || waitHidden || !waitStartedAt) return; // 대기 화면에서만, 시도당 1회
     waitHidden = true;
+    waitHiddenAt = Date.now();
     logEvent('analysis_hidden', waitParams());
   }
+  // 대기 중 숨겨졌던 시도의 첫 복귀, 시도당 1회. 결과·거르기·실패 이벤트 직전에도 부른다 —
+  // visible 이벤트를 안 주는 브라우저(앱 안 브라우저)와 사파리의 콜백 순서를 "returned → shown"으로 고정한다
+  function logReturnWhileWaiting() {
+    if (!waitHidden || waitReturned || document.visibilityState !== 'visible') return;
+    waitReturned = true;
+    logEvent('analysis_returned', { ...waitParams(), away_ms: Math.round(Date.now() - waitHiddenAt), return_screen: waitOutcome || 'waiting' });
+  }
+  const visibleNow = () => (document.visibilityState === 'visible' ? 1 : 0);
   // 폰 사파리·앱 안 브라우저는 닫을 때 pagehide가 안 올 수 있어 둘 다 건다(짐작, 폰 실측 전)
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') logLeaveWhileWaiting(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') logLeaveWhileWaiting(); else logReturnWhileWaiting();
+  });
   window.addEventListener('pagehide', logLeaveWhileWaiting);
 
   drop.addEventListener('click', () => fileInput.click());
@@ -427,15 +442,21 @@
     waitStartedAt = Date.now();
     attempt += 1;
     waitHidden = false;
+    waitHiddenAt = 0;
+    waitReturned = false;
+    waitOutcome = null;
     show('analyzing');
-    logEvent('photo_submit', retakeOf ? { retake_of: retakeOf } : {}); // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수
+    // 깔때기 1 — 방문이 아니라 "실제로 사진을 올린" 수. attempt를 실어 재시도 뺀 분모(attempt=1)를 바로 본다
+    logEvent('photo_submit', { ...waitParams(), ...(retakeOf ? { retake_of: retakeOf } : {}) });
 
     let imageDataUrl;
     try {
       imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
       uploadedImageDataUrl = imageDataUrl;
     } catch {
-      logEvent('analysis_failed', { ...waitParams(), stage: 'downscale' }); // 전엔 이 실패가 아무 데도 안 찍혔다
+      logReturnWhileWaiting();
+      logEvent('analysis_failed', { ...waitParams(), stage: 'downscale', was_hidden: waitHidden ? 1 : 0 }); // 전엔 이 실패가 아무 데도 안 찍혔다
+      waitOutcome = 'failed';
       show('upload');
       cta.disabled = false;
       alert('이 사진 형식을 못 읽었어. jpg나 png 사진으로 다시 시도해줘.');
@@ -460,7 +481,9 @@
       routeFromAnalysis(result);
     } catch (error) {
       // 실패도 센다 — 안 세면 photo_submit만 찍히고 사라져 "대기 중 이탈"과 안 갈림
-      logEvent('analysis_failed', { ...waitParams(), stage: 'request', message: String(error?.message || error).slice(0, 90) });
+      logReturnWhileWaiting();
+      logEvent('analysis_failed', { ...waitParams(), stage: 'request', was_hidden: waitHidden ? 1 : 0, message: String(error?.message || error).slice(0, 90) });
+      waitOutcome = 'failed';
       console.error('analyzePhoto 실패', error); // 원문은 여기까지만 — 학생 화면엔 안 나간다
       show('upload');
       cta.disabled = false;
@@ -488,19 +511,25 @@
     // 사진 거르기에 걸림(서버 gate) — 분석 결과가 아니므로 analysis_shown 대신 analysis_gate로 센다
     const gateDecision = result.gate?.decision;
     if (typeof gateDecision === 'string' && gateDecision.startsWith('blocked')) {
-      logEvent('analysis_gate', { ...waitParams(), was_hidden: waitHidden ? 1 : 0, decision: gateDecision });
+      logReturnWhileWaiting();
+      logEvent('analysis_gate', { ...waitParams(), was_hidden: waitHidden ? 1 : 0, visible: visibleNow(), decision: gateDecision });
+      waitOutcome = 'gate';
       offerRetakeForGate(gateDecision);
       return;
     }
     pocket = result;
     // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
     // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
+    logReturnWhileWaiting();
+    // visible: 도착 순간 화면이 보였나 — 숨긴 채 도착하면 "봤다"로 안 센다(돌아오면 analysis_returned가 result로 찍힌다)
     logEvent('analysis_shown', {
       ...waitParams(),
       was_hidden: waitHidden ? 1 : 0,
+      visible: visibleNow(),
       has_work: result.hasSolvingWork ? 1 : 0,
       error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN ? 1 : 0,
     });
+    waitOutcome = 'result';
     lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
     startQuizVerify(result);
     if (!result.hasSolvingWork) {

@@ -8,9 +8,16 @@
 
 - **웹만, GA로만 잰다.** 서버·원장은 안 건드린다. `web-proto/app.js` 한 파일(+22줄), 앱은 1.0.10 때.
 - **남기는 것** — `analysis_shown`·`analysis_failed`에 `wait_ms`(사진 올리기 버튼부터 그 순간까지)·`submission_id`·`attempt`(같은 사진 몇 번째 시도). `analysis_shown`엔 `was_hidden`(대기 중 화면을 벗어났었나), `analysis_failed`엔 `stage`(`downscale`=사진 줄이기 실패 — 전엔 아무 데도 안 찍혔다 · `request`=서버). 새 이벤트 `analysis_hidden`(대기 화면에서 처음 숨겨질 때 1회).
-- **"나감" 읽는 법** — 실시간으로 안 가른다. `analysis_hidden` 뒤에 같은 `submission_id`의 `analysis_shown`이 오면 "갔다 돌아옴", 안 오면 "나감". 폰에서 닫을 때 이벤트가 안 갈 수 있다(짐작 — 폰 실측 전).
+- **"나감" 읽는 법 — 10.01 바뀜(Fable 설계 · astra 안).** ~~`analysis_hidden` 뒤에 `analysis_shown`이 오면 "갔다 돌아옴"~~ → 틀렸다: `analysis_shown`은 안 봐도 결과 도착 즉시 찍힌다. 새 이벤트 **`analysis_returned`**(대기 중 숨겨졌던 시도의 첫 복귀, 시도당 1회 · `away_ms` · `return_screen`=waiting/result/gate/failed)와 `analysis_shown`·`analysis_gate`의 **`visible`**(도착 순간 보였나), `analysis_failed`의 `was_hidden`, `photo_submit`의 `attempt`를 더했다. shown 자리는 위 결정대로 안 옮김. 식(이벤트 수 = 시도 수, QA 뺀 뒤):
+  - 숨김률 = `analysis_hidden` ÷ `photo_submit`
+  - 안 돌아옴(상한) = (`analysis_hidden` − `analysis_returned`) ÷ `analysis_hidden`
+  - 돌아와서 결과 봄 = [`analysis_shown(was_hidden=1, visible=1)` + `analysis_returned(return_screen=result)`] ÷ `analysis_hidden`
+  - 돌아왔는데 볼 게 없음 = `analysis_returned(return_screen=failed|gate)` ÷ `analysis_hidden`
+  - `away_ms`가 몇 초면 잠금·알림이지 쇼츠가 아니다 — 구간으로 나눠 본다. 숨김은 이유를 모른다(쇼츠·잠금·다른 탭 다 같다).
+  - GA 등록 필요(✋ 기윤, 소급 안 됨): 측정기준 `return_screen`·`visible`(+ 10.01 `card_index`), 측정항목 `away_ms`. 로컬 흉내 5경우(숨김→복귀→결과 / 숨김→결과→복귀 / 숨김→복귀→숨김→결과 / 숨김→실패→복귀 / 안 숨김) 전부 설계대로 찍힘(10.01).
+  폰에서 닫을 때 이벤트가 안 갈 수 있다(짐작 — 폰 실측 전).
 - **GA 등록 끝(09.28, Claude가 기윤 크롬으로)** — 속성 "다시다 웹 프로토(사진)"(`G-4HW2VRNME0`): 맞춤 측정기준 `was_hidden`·`stage`·`attempt`·`has_work`·`error_found`, 맞춤 측정항목 `wait_ms`(밀리초). `submission_id`는 고유값이 많아 등록 안 함 — 원장과 잇는 건 시각으로 손으로. 등록 전 데이터는 소급 안 된다.
-- **남은 확인** — 기윤 폰: 사파리·유튜브 앱 안 각 1회 × (그냥 기다리기 / 기다리다 홈 갔다 오기 / 기다리다 닫기) → GA 실시간. `?qa=1`이면 GA가 꺼지니 qa 없이. 그 제출은 원장에 `qa:false`로 찍히니 시각을 대장에 적고 뺀다.
+- **남은 확인** — 기윤 폰: 사파리·유튜브 앱 안 각 1회 × (그냥 기다리기 / 기다리다 홈 갔다 오기 / 기다리다 닫기 / 뒤로 갔다 앞으로) → GA 실시간. `?qa=1`이면 GA가 꺼지니 qa 없이. 그 제출은 원장에 `qa:false`로 찍히니 시각을 대장에 적고 뺀다.
 - 결정: astra·Fable → 갈려서 Fable 최종. 토큰 astra 3.2만 · Fable 21.3만(2회).
 
 ## 갈린 자리와 최종 (Fable)
