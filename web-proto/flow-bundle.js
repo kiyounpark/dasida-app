@@ -21,15 +21,22 @@ var DasidaFlow = (() => {
   // web-proto/flow-entry.ts
   var flow_entry_exports = {};
   __export(flow_entry_exports, {
+    ERROR_CONFIDENCE_MIN: () => ERROR_CONFIDENCE_MIN,
+    NOTE_ASK_LINE: () => NOTE_ASK_LINE,
     advanceFromCheck: () => advanceFromCheck,
     advanceFromChoice: () => advanceFromChoice,
     advanceFromExplain: () => advanceFromExplain,
     createDiagnosisFlowDraft: () => createDiagnosisFlowDraft,
+    createPhotoScript: () => createPhotoScript,
     diagnosisMap: () => diagnosisMap,
     diagnosisMethodRoutingCatalog: () => diagnosisMethodRoutingCatalog,
+    formatMathText: () => formatMathText,
     getDiagnosisFlow: () => getDiagnosisFlow,
     getNode: () => getNode,
     methodOptions: () => methodOptions,
+    noteCardLines: () => noteCardLines,
+    requestDiagnoseMethod: () => requestDiagnoseMethod,
+    requestQuizVerify: () => requestQuizVerify,
     ro: () => ro,
     weaknessCandidatesFor: () => weaknessCandidatesFor
   });
@@ -1610,6 +1617,10 @@ var DasidaFlow = (() => {
     },
     {}
   );
+  function resolveWeaknessLabel(value) {
+    if (!value) return "\uC54C \uC218 \uC5C6\uC74C";
+    return diagnosisMap[value]?.labelKo ?? "\uC54C \uC218 \uC5C6\uC74C";
+  }
 
   // features/photo/flow/weakness-mistake-type-map.ts
   var weaknessMistakeType = {
@@ -1743,6 +1754,9 @@ var DasidaFlow = (() => {
     // 함수 분석
   };
   var VAGUE_WEAKNESSES = ["calc_repeated_error", "basic_concept_needed"];
+  function weaknessChoiceText(methodId, weaknessId) {
+    return diagnosisTree[methodId]?.choices.find((c) => c.weaknessId === weaknessId)?.text;
+  }
   function weaknessCandidatesFor(methodId, mistakeType) {
     const choices = diagnosisTree[methodId]?.choices ?? [];
     const seen = /* @__PURE__ */ new Set();
@@ -1763,6 +1777,927 @@ var DasidaFlow = (() => {
     if (Number.isNaN(last) || last < 44032 || last > 55203) return `${word}\uB85C`;
     const jongseong = (last - 44032) % 28;
     return jongseong === 0 || jongseong === 8 ? `${word}\uB85C` : `${word}\uC73C\uB85C`;
+  }
+
+  // components/math/format-math-text.ts
+  var SUPERSCRIPT_MAP = {
+    "0": "\u2070",
+    "1": "\xB9",
+    "2": "\xB2",
+    "3": "\xB3",
+    "4": "\u2074",
+    "5": "\u2075",
+    "6": "\u2076",
+    "7": "\u2077",
+    "8": "\u2078",
+    "9": "\u2079",
+    "+": "\u207A",
+    "-": "\u207B",
+    "(": "\u207D",
+    ")": "\u207E",
+    a: "\u1D43",
+    b: "\u1D47",
+    c: "\u1D9C",
+    d: "\u1D48",
+    e: "\u1D49",
+    f: "\u1DA0",
+    g: "\u1D4D",
+    h: "\u02B0",
+    i: "\u2071",
+    j: "\u02B2",
+    k: "\u1D4F",
+    l: "\u02E1",
+    m: "\u1D50",
+    n: "\u207F",
+    o: "\u1D52",
+    p: "\u1D56",
+    r: "\u02B3",
+    s: "\u02E2",
+    t: "\u1D57",
+    u: "\u1D58",
+    v: "\u1D5B",
+    w: "\u02B7",
+    x: "\u02E3",
+    y: "\u02B8",
+    z: "\u1DBB"
+  };
+  var SUBSCRIPT_MAP = {
+    "0": "\u2080",
+    "1": "\u2081",
+    "2": "\u2082",
+    "3": "\u2083",
+    "4": "\u2084",
+    "5": "\u2085",
+    "6": "\u2086",
+    "7": "\u2087",
+    "8": "\u2088",
+    "9": "\u2089",
+    "+": "\u208A",
+    "-": "\u208B",
+    "=": "\u208C",
+    "(": "\u208D",
+    ")": "\u208E",
+    a: "\u2090",
+    e: "\u2091",
+    h: "\u2095",
+    i: "\u1D62",
+    j: "\u2C7C",
+    k: "\u2096",
+    l: "\u2097",
+    m: "\u2098",
+    n: "\u2099",
+    o: "\u2092",
+    p: "\u209A",
+    r: "\u1D63",
+    s: "\u209B",
+    t: "\u209C",
+    u: "\u1D64",
+    v: "\u1D65",
+    x: "\u2093"
+  };
+  function mapAll(value, map) {
+    let converted = "";
+    for (const char of value) {
+      const mapped = map[char];
+      if (!mapped) {
+        return null;
+      }
+      converted += mapped;
+    }
+    return converted;
+  }
+  function formatMathText(input) {
+    const sup = (match, base, value) => {
+      const converted = mapAll(value, SUPERSCRIPT_MAP);
+      return converted ? `${base}${converted}` : match;
+    };
+    const sub = (match, base, value) => {
+      const converted = mapAll(value, SUBSCRIPT_MAP);
+      return converted ? `${base}${converted}` : match;
+    };
+    return String(input ?? "").replace(/<=/g, "\u2264").replace(/>=/g, "\u2265").replace(/!=/g, "\u2260").replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, "$1\xD7").replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, "$1\u2044").replace(/sqrt\s*\(/gi, "\u221A(").replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, "\u221A$1").replace(/(\)|\d|[A-Za-z])\^\{\s*([A-Za-z0-9+-]+)\s*\}/g, sup).replace(
+      /(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g,
+      (match, base, value) => sup(match, base, `(${value})`)
+    ).replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, sup).replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, sup).replace(/(\)|\d|[A-Za-z])_\{\s*([A-Za-z0-9+=-]+)\s*\}/g, sub).replace(/(\)|\d|[A-Za-z])_\(\s*([A-Za-z0-9+=-]+)\s*\)/g, sub).replace(/(\)|\d|[A-Za-z])_(\d+|[A-Za-z](?![A-Za-z]))/g, sub);
+  }
+
+  // features/photo/flow/mistake-types.ts
+  var MISTAKE_TYPES = {
+    concept_gap: {
+      label: "\uAC1C\uB150 \uAD6C\uBA4D",
+      fix: "\uBB38\uC81C \uB354 \uD480\uAE30 \uC804\uC5D0 \uC774 \uBC29\uBC95\uC774 \uC65C \uB418\uB294\uC9C0 \uC124\uBA85\uC744 \uD55C \uBC88\uB9CC \uB2E4\uC2DC \uBCF4\uC790. \uC6D0\uB9AC\uAC00 \uC7A1\uD788\uBA74 \uB098\uBA38\uC9C0\uB294 \uB530\uB77C\uC640."
+    },
+    formula_recall: {
+      label: "\uACF5\uC2DD \uAE30\uC5B5",
+      fix: "\uC2DC\uC791 \uC804\uC5D0 \uACF5\uC2DD\uC744 \uC190\uC73C\uB85C \uC138 \uBC88 \uC368\uBCF4\uC790. \uC678\uC6B4 \uAC8C \uC544\uB2C8\uB77C \uC190\uC5D0 \uBD99\uC5B4\uC57C \uC2E4\uC804\uC5D0\uC11C \uC548 \uD754\uB4E4\uB824."
+    },
+    setup_error: {
+      label: "\uC2DD \uC138\uC6B0\uAE30",
+      fix: "\uC2DD\uC744 \uC138\uC6B0\uBA74 \uB300\uC785\uD558\uAE30 \uC804\uC5D0 \uBB38\uC81C \uB9D0\uACFC \uB9DE\uB294\uC9C0 \uD55C \uBC88 \uC18C\uB9AC \uB0B4\uC11C \uD655\uC778\uD558\uC790."
+    },
+    calc_slip: {
+      label: "\uACC4\uC0B0 \uC190\uC2E4\uC218",
+      fix: "\uACC4\uC0B0\uC744 \uD55C \uC904\uC5D0 \uBAB0\uC544 \uC4F0\uC9C0 \uB9D0\uACE0 \uD55C \uB2E8\uACC4 \uD55C \uC904\uB85C \uB04A\uC5B4 \uC4F0\uC790. \uC190\uC2E4\uC218\uB294 \uC904 \uAC04\uACA9\uC5D0\uC11C \uC7A1\uD78C\uB2E4."
+    },
+    procedure_miss: {
+      label: "\uC808\uCC28 \uB204\uB77D",
+      fix: "\uC774 \uBC29\uBC95\uC758 \uB2E8\uACC4\uB97C \uBC88\uD638\uB85C \uC801\uC5B4\uB450\uACE0 \uD480 \uB54C\uB9C8\uB2E4 \uC9C0\uC6CC\uAC00\uBA70 \uAC00\uC790. \uBE7C\uBA39\uB294 \uC790\uB9AC\uAC00 \uBCF4\uC774\uAC8C."
+    },
+    answer_read: {
+      label: "\uB9C8\uBB34\uB9AC \uD574\uC11D",
+      fix: '\uB2F5 \uC4F0\uAE30 \uC804\uC5D0 "\uBB38\uC81C\uAC00 \uBB58 \uBB3C\uC5C8\uC9C0?"\uB97C \uD55C \uBC88 \uB2E4\uC2DC \uC77D\uC790. \uB2E4 \uD480\uACE0 \uB118\uC5B4\uC9C0\uB294 \uAC8C \uC81C\uC77C \uC544\uAE5D\uC796\uC544.'
+    }
+  };
+  function mistakeTypeLabel(id) {
+    return id && MISTAKE_TYPES[id]?.label || "\uC720\uD615 \uBBF8\uC0C1";
+  }
+  function mistakeTypeFix(id) {
+    return id && MISTAKE_TYPES[id]?.fix || "";
+  }
+
+  // features/photo/flow/quiz-guard.ts
+  function isAnswerable(options, answerIndex) {
+    return Array.isArray(options) && options.length >= 2 && options.every((option) => typeof option === "string") && Number.isInteger(answerIndex) && answerIndex >= 0 && answerIndex < options.length;
+  }
+  function readCheckQuiz(candidate) {
+    if (!candidate?.checkPrompt) return null;
+    if (!isAnswerable(candidate.checkOptions, candidate.checkAnswerIndex)) return null;
+    return {
+      setup: candidate.checkSetup,
+      prompt: candidate.checkPrompt,
+      options: candidate.checkOptions,
+      answerIndex: candidate.checkAnswerIndex
+    };
+  }
+  function readRetryQuiz(candidate) {
+    if (!candidate?.retrySetup || !candidate.retryPrompt) return null;
+    if (!isAnswerable(candidate.retryOptions, candidate.retryAnswerIndex)) return null;
+    return {
+      setup: candidate.retrySetup,
+      prompt: candidate.retryPrompt,
+      options: candidate.retryOptions,
+      answerIndex: candidate.retryAnswerIndex
+    };
+  }
+
+  // features/photo/flow/route-from-analysis.ts
+  var ERROR_CONFIDENCE_MIN = 0.5;
+  var SOFT_ASSERT_MIN = 0.45;
+  var TOPIC_TOP_N = 5;
+  var selectableMethodIds = methodOptions.map((option) => option.id).filter((id) => id !== "unknown");
+  function methodLabel(id) {
+    return id && diagnosisMethodRoutingCatalog[id]?.labelKo || "\uBC29\uBC95 \uBBF8\uC0C1";
+  }
+  function routeFromAnalysis(result) {
+    const gateDecision = result.gate?.decision;
+    if (typeof gateDecision === "string" && gateDecision.startsWith("blocked")) {
+      return { kind: "gate", decision: gateDecision };
+    }
+    if (!result.hasSolvingWork) {
+      return { kind: "retake" };
+    }
+    const snippet = firstSnippet(result.transcription);
+    const known = isKnownMethod(result.predictedMethodId);
+    if (result.needsManualSelection) {
+      if (known && result.confidence >= SOFT_ASSERT_MIN) {
+        return {
+          kind: "soft-assert",
+          methodId: result.predictedMethodId,
+          label: methodLabel(result.predictedMethodId),
+          snippet
+        };
+      }
+      return { kind: "candidates", methodIds: filterCandidates(result.candidateMethodIds) };
+    }
+    if (!known) {
+      return { kind: "candidates", methodIds: filterCandidates(result.candidateMethodIds) };
+    }
+    return {
+      kind: "assert",
+      methodId: result.predictedMethodId,
+      label: methodLabel(result.predictedMethodId),
+      snippet
+    };
+  }
+  function canPointAtError(result, methodId) {
+    if (!result || result.predictedMethodId !== methodId) return false;
+    return result.errorCandidates.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN;
+  }
+  function firstSnippet(transcription) {
+    if (!transcription) return "";
+    const cut = transcription.split(/[.。\n]/)[0].trim();
+    return cut.length > 40 ? `${cut.slice(0, 40)}\u2026` : cut;
+  }
+  function filterCandidates(candidateIds, excludeIds = []) {
+    return candidateIds.filter((id) => isKnownMethod(id) && !excludeIds.includes(id));
+  }
+  function matchMethodsByKeywords(rawText, limit = TOPIC_TOP_N) {
+    const text = (rawText || "").toLowerCase();
+    if (!text) return [];
+    return selectableMethodIds.map((id) => {
+      const info = diagnosisMethodRoutingCatalog[id];
+      const hits = [...info.keywords, info.labelKo].reduce(
+        (count, keyword) => count + (text.includes(keyword.toLowerCase()) ? 1 : 0),
+        0
+      );
+      return { id, hits };
+    }).filter((scored) => scored.hits > 0).sort((a, b) => b.hits - a.hits).slice(0, limit).map((scored) => scored.id);
+  }
+  function isKnownMethod(id) {
+    return id !== "unknown" && Boolean(diagnosisMethodRoutingCatalog[id]);
+  }
+
+  // features/photo/flow/survey-options.ts
+  var DEFAULT_OPTIONS = [
+    { type: "concept_gap", text: "\uC774 \uBC29\uBC95\uC758 \uC6D0\uB9AC \uC790\uCCB4\uAC00 \uC798 \uC548 \uC7A1\uD614\uC5B4" },
+    { type: "calc_slip", text: "\uC2DD\uC740 \uC138\uC6E0\uB294\uB370 \uACC4\uC0B0\uC5D0\uC11C \uBBF8\uB044\uB7EC\uC84C\uC5B4" },
+    { type: "answer_read", text: "\uB2E4 \uD480\uC5B4\uB193\uACE0 \uB9C8\uC9C0\uB9C9\uC5D0 \uB2F5\uC744 \uC798\uBABB \uC4F4 \uAC83 \uAC19\uC544" }
+  ];
+  var BY_METHOD = {
+    cps: [
+      { type: "concept_gap", text: "(x\u2212a)\xB2 \uAF34\uB85C \uB9CC\uB4DC\uB294 \uC6D0\uB9AC\uAC00 \uD5F7\uAC08\uB838\uC5B4" },
+      { type: "calc_slip", text: "\uC2DD \uBCC0\uD615\uD558\uB2E4\uAC00 \uACC4\uC0B0\uC5D0\uC11C \uBBF8\uB044\uB7EC\uC84C\uC5B4" },
+      { type: "procedure_miss", text: "(x\u2212a)\xB2=k\uAE4C\uC9C0 \uAC14\uB294\uB370 \uADF8\uB2E4\uC74C \uBB58 \uD560\uC9C0 \uBAB0\uB790\uC5B4" }
+    ],
+    vertex: [
+      { type: "formula_recall", text: "-b/2a \uACF5\uC2DD\uC774 \uAC00\uBB3C\uAC00\uBB3C\uD588\uC5B4" },
+      { type: "calc_slip", text: "x \uAD6C\uD558\uACE0 \uB300\uC785\uD558\uB2E4\uAC00 \uACC4\uC0B0\uC774 \uC5C9\uCF30\uC5B4" },
+      { type: "answer_read", text: "\uAD6C\uD55C \uAC12\uC5D0\uC11C \uBB58 \uB2F5\uC73C\uB85C \uC4F8\uC9C0 \uD5F7\uAC08\uB838\uC5B4" }
+    ],
+    limit: [
+      { type: "concept_gap", text: "\uADF9\uD55C\uC744 \uC5B4\uB5BB\uAC8C \uCABC\uAC1C\uB294\uC9C0 \uAC1C\uB150\uC774 \uC548 \uC7A1\uD614\uC5B4" },
+      { type: "calc_slip", text: "\uC2DD \uC815\uB9AC\uD558\uB2E4\uAC00 \uACC4\uC0B0\uC774 \uC5C9\uCF30\uC5B4" },
+      { type: "answer_read", text: "\uC218\uB834\uC778\uC9C0 \uBC1C\uC0B0\uC778\uC9C0 \uB9C8\uC9C0\uB9C9 \uD310\uB2E8\uC774 \uD5F7\uAC08\uB838\uC5B4" }
+    ]
+  };
+  var ANSWER_READ_HINT = { type: "answer_read", text: "\uB9C8\uC9C0\uB9C9\uC5D0 \uB2F5 \uC4F8 \uB54C \uC2E4\uC218\uD55C \uAC83 \uAC19\uC544" };
+  function surveyOptionsFor(methodId) {
+    const custom = methodId ? BY_METHOD[methodId] : void 0;
+    return (custom ?? DEFAULT_OPTIONS).slice();
+  }
+
+  // features/photo/script/quiz-verify-runner.ts
+  var VERIFY_WAIT_MS = 5e3;
+  function createQuizVerifyRunner(verifyQuiz, base) {
+    let run = null;
+    return {
+      start(result) {
+        const candidate = result.errorCandidates?.[0];
+        if (!result.hasSolvingWork || !candidate || !(result.errorConfidence >= ERROR_CONFIDENCE_MIN)) return;
+        const check = readCheckQuiz(candidate);
+        const retry = readRetryQuiz(candidate);
+        run = {
+          check: check && check.options.length === 3 ? verifyQuiz({
+            kind: "check",
+            setup: check.setup || void 0,
+            prompt: check.prompt,
+            options: check.options,
+            marked: check.answerIndex,
+            ...base
+          }) : null,
+          retry: retry && retry.options.length === 3 ? verifyQuiz({
+            kind: "retry",
+            setup: retry.setup,
+            prompt: retry.prompt,
+            options: retry.options,
+            marked: retry.answerIndex,
+            ...base
+          }) : null,
+          waitedOnce: false
+        };
+      },
+      async verdict(kind) {
+        const startedAt = Date.now();
+        const current = run;
+        const pending = current?.[kind];
+        if (!current || !pending) return { verdict: "skip", reason: "not_started", ms: null, waitedMs: 0 };
+        const cap = current.waitedOnce ? 0 : VERIFY_WAIT_MS;
+        let timer;
+        const arrived = await Promise.race([
+          pending,
+          new Promise((resolve) => {
+            timer = setTimeout(() => resolve(null), cap);
+          })
+        ]);
+        clearTimeout(timer);
+        const waitedMs = Date.now() - startedAt;
+        if (!arrived) {
+          current.waitedOnce = true;
+          return { verdict: "skip", reason: "wait_timeout", ms: null, waitedMs };
+        }
+        return { verdict: arrived.verdict, reason: arrived.reason, ms: arrived.ms, waitedMs };
+      },
+      dispose() {
+        run = null;
+      }
+    };
+  }
+
+  // features/photo/script/photo-script.ts
+  var GATE_COPY = {
+    blocked_rotation: {
+      text: "\uC0AC\uC9C4\uC774 \uC606\uC73C\uB85C \uB204\uC6CC \uC788\uC5B4. \uAE00\uC528\uAC00 \uBC14\uB85C \uC11C\uAC8C \uC138\uB85C\uB85C \uB2E4\uC2DC \uCC0D\uC5B4\uC918 \u2014 \uB204\uC6B4 \uCC44\uB85C\uB294 \uB124 \uD480\uC774\uB97C \uC798\uBABB \uC77D\uC5B4.",
+      retake: "\u{1F4F7} \uC138\uB85C\uB85C \uB2E4\uC2DC \uCC0D\uAE30"
+    },
+    blocked_small: {
+      text: "\uD654\uBA74\uC5D0\uC120 \uAD1C\uCC2E\uC544 \uBCF4\uC5EC\uB3C4, \uC774 \uC0AC\uC9C4\uC740 \uB0B4\uAC00 \uAE00\uC528\uB97C \uB610\uB837\uD558\uAC8C \uBABB \uC77D\uC5B4. \uCEA1\uCC98\uB098 \uC798\uB77C\uB0B8 \uC0AC\uC9C4 \uB9D0\uACE0, \uCC0D\uC740 \uC6D0\uBCF8\uC744 \uC62C\uB824\uC918.",
+      retake: "\uB2E4\uB978 \uC0AC\uC9C4 \uC62C\uB9AC\uAE30"
+    }
+  };
+  var CLOSED_LINE = "\uC54C\uACA0\uC5B4. \uB2E4\uB978 \uBB38\uC81C \uC0DD\uAE30\uBA74 \uB610 \uC62C\uB824\uC918.";
+  function createPhotoScript(rawIO, deps) {
+    let alive = true;
+    const guard = (fn) => (...args) => {
+      if (alive) fn(...args);
+    };
+    const io = {
+      say: guard(rawIO.say),
+      mySay: guard(rawIO.mySay),
+      ask: guard(rawIO.ask),
+      askText: guard(rawIO.askText),
+      showNote: guard(rawIO.showNote),
+      showWeaknessCard: guard(rawIO.showWeaknessCard),
+      end: guard(rawIO.end),
+      run: guard(rawIO.run),
+      log: guard(rawIO.log)
+    };
+    const runner = createQuizVerifyRunner(deps.verifyQuiz, { submissionId: deps.submissionId, qa: deps.qa });
+    const now = deps.now ?? (() => /* @__PURE__ */ new Date());
+    let pocket = null;
+    let lastAnalysisText = "";
+    let textAskCount = 0;
+    function start(result) {
+      const route = routeFromAnalysis(result);
+      if (route.kind === "gate") {
+        offerRetakeForGate(route.decision);
+        return;
+      }
+      pocket = result;
+      lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(" ");
+      runner.start(result);
+      switch (route.kind) {
+        case "retake":
+          offerRetake();
+          return;
+        case "soft-assert":
+          softAssertMethod(route.methodId, route.label, route.snippet);
+          return;
+        case "candidates":
+          showCandidateCards(route.methodIds);
+          return;
+        case "assert":
+          assertMethod(route.methodId, route.label, route.snippet);
+          return;
+      }
+    }
+    function assertMethod(methodId, label, snippet) {
+      io.say(`\uD480\uC774 \uC77D\uC5C8\uC5B4. ${snippet ? `${snippet} \u2014 ` : ""}${ro(label)} \uC811\uADFC\uD588\uB124.`);
+      io.say("\uADF8\uB7FC \uC5EC\uAE30\uC11C\uBD80\uD130 \uAC19\uC774 \uBCF4\uC790.");
+      io.ask([
+        {
+          label: "\uB9DE\uC544, \uC2DC\uC791\uD558\uC790",
+          kind: "primary",
+          onPress: () => {
+            io.mySay("\uB9DE\uC544");
+            io.log({ name: "method_confirm", answer: "yes", mode: "assert" });
+            confirmMethod(methodId);
+          }
+        },
+        {
+          label: "\uC544\uB2C8\uC57C, \uB2E4\uB978 \uBC29\uBC95\uC73C\uB85C \uD480\uC5C8\uC5B4",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC544\uB2C8\uC57C");
+            io.log({ name: "method_confirm", answer: "no", mode: "assert" });
+            showTopicMethods(void 0, [methodId]);
+          }
+        }
+      ]);
+    }
+    function softAssertMethod(methodId, label, snippet) {
+      io.say(`\uD480\uC774\uC5D0 ${snippet ? `"${snippet}" ` : ""}\uC4F4 \uAC8C \uBCF4\uC774\uB358\uB370 \u2014 ${ro(label)} \uD47C \uAC83 \uAC19\uC544. \uB9DE\uC544?`);
+      io.ask([
+        {
+          label: "\uB9DE\uC544",
+          kind: "primary",
+          onPress: () => {
+            io.mySay("\uB9DE\uC544");
+            io.log({ name: "method_confirm", answer: "yes", mode: "soft" });
+            confirmMethod(methodId);
+          }
+        },
+        {
+          label: "\uC544\uB2C8\uC57C, \uB2E4\uB978 \uBC29\uBC95\uC774\uC57C",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC544\uB2C8\uC57C");
+            io.log({ name: "method_confirm", answer: "no", mode: "soft" });
+            showCandidateCards(pocket?.candidateMethodIds ?? [], void 0, [methodId]);
+          }
+        }
+      ]);
+    }
+    function confirmMethod(methodId) {
+      if (canPointAtError(pocket, methodId)) {
+        startPointing(0);
+        return;
+      }
+      if (pocket && pocket.predictedMethodId === methodId && pocket.hasSolvingWork) {
+        io.say("\uADF8\uB7F0\uB370 \uC880 \uC2E0\uAE30\uD574 \u2014 \uD480\uC774 \uACFC\uC815\uC5D0\uC11C\uB294 \uD2C0\uB9B0 \uB370\uB97C \uBABB \uCC3E\uC558\uC5B4. \uACFC\uC815\uC740 \uB9DE\uAC8C \uAC04 \uAC83 \uAC19\uAC70\uB4E0.");
+        io.say("\uC774\uB7EC\uBA74 \uBCF4\uD1B5 \uB9C8\uC9C0\uB9C9\uC5D0 \uB2F5\uC744 \uC62E\uACA8 \uC801\uC744 \uB54C\uB098 \uAC80\uC0B0\uC5D0\uC11C \uC0C8\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC544.");
+        showFeelingSurvey(methodId, "\uD480\uBA74\uC11C \uB290\uB08C\uC0C1 \uBB50\uAC00 \uAC78\uB838\uC5B4?", true);
+        return;
+      }
+      showFeelingSurvey(methodId);
+    }
+    function methodButton(id) {
+      return {
+        label: methodLabel(id),
+        onPress: () => {
+          io.mySay(methodLabel(id));
+          confirmMethod(id);
+        }
+      };
+    }
+    function showCandidateCards(candidateIds, promptText, excludeIds = []) {
+      const candidates = filterCandidates(candidateIds, excludeIds);
+      if (candidates.length === 0) {
+        showTopicMethods(promptText, excludeIds);
+        return;
+      }
+      io.say(promptText ?? "\uD480\uC774\uB97C \uBD24\uB294\uB370 \uD655\uC2E4\uD558\uC9C0 \uC54A\uC544. \uC774 \uC911\uC5D0 \uC5B4\uB5A4 \uBC29\uBC95\uC774\uC5C8\uC5B4?");
+      io.ask([
+        ...candidates.map(methodButton),
+        {
+          label: "\uC774 \uC911\uC5D4 \uC5C6\uC5B4",
+          kind: "ghost",
+          // 방금 보여준 후보는 다음 목록에서 뺀다 — 거절한 게 또 뜨지 않게
+          onPress: () => showTopicMethods(void 0, [...excludeIds, ...candidates])
+        }
+      ]);
+    }
+    function showTopicMethods(promptText, excludeIds = []) {
+      const matched = matchMethodsByKeywords(lastAnalysisText, TOPIC_TOP_N).filter((id) => !excludeIds.includes(id));
+      if (matched.length === 0) {
+        askMethodByText();
+        return;
+      }
+      io.say(promptText ?? "\uB124\uAC00 \uD47C \uBC29\uC2DD\uC774\uB791 \uBE44\uC2B7\uD574 \uBCF4\uC774\uB294 \uBC29\uBC95\uB4E4\uC774\uC57C. \uC774 \uC911\uC5D0 \uC788\uC5B4?");
+      io.ask([
+        ...matched.map(methodButton),
+        { label: "\uC5EC\uAE30\uC5D0\uB3C4 \uC5C6\uC5B4, \uC9C1\uC811 \uC4F8\uAC8C", kind: "ghost", onPress: () => askMethodByText() }
+      ]);
+    }
+    function askMethodByText(promptText) {
+      if (!deps.profile.textInput) {
+        showAllMethods();
+        return;
+      }
+      io.say(promptText ?? "\uC5B4\uB5BB\uAC8C \uD480\uC5C8\uB294\uC9C0 \uC9E7\uAC8C \uC54C\uB824\uC904\uB798? \uB124 \uB9D0 \uADF8\uB300\uB85C \uC368\uB3C4 \uB3FC.");
+      io.askText({
+        placeholder: "\uC608: \uADFC\uC758 \uACF5\uC2DD\uC5D0 \uBC14\uB85C \uB300\uC785\uD588\uC5B4",
+        maxLength: 200,
+        submitLabel: "\uBCF4\uB0B4\uAE30",
+        onSubmit: (rawText) => {
+          io.mySay(rawText);
+          lastAnalysisText = rawText;
+          void routeFromText(rawText);
+        }
+      });
+    }
+    async function routeFromText(rawText) {
+      textAskCount += 1;
+      io.say("\uC7A0\uAE50\uB9CC, \uC77D\uC5B4\uBCFC\uAC8C\u2026");
+      const result = await deps.diagnoseMethod(rawText);
+      if (!alive) return;
+      if (result && !result.needsManualSelection && diagnosisMethodRoutingCatalog[result.predictedMethodId]) {
+        io.say(`${ro(methodLabel(result.predictedMethodId))} \uD480\uC5C8\uAD6C\uB098. \uADF8\uB7FC \uC5EC\uAE30\uC11C\uBD80\uD130 \uAC19\uC774 \uBCF4\uC790.`);
+        confirmMethod(result.predictedMethodId);
+        return;
+      }
+      const candidates = filterCandidates(
+        result ? result.candidateMethodIds : matchMethodsByKeywords(rawText, TOPIC_TOP_N)
+      );
+      if (candidates.length > 0) {
+        showCandidateCards(candidates, "\uC774 \uC911\uC5D0 \uC788\uC5B4?");
+        return;
+      }
+      if (textAskCount < 2) {
+        askMethodByText("\uC74C\u2026 \uC798 \uBABB \uC54C\uC544\uB4E4\uC5C8\uC5B4. \uC5B4\uB5A4 \uACF5\uC2DD\uC774\uB098 \uBC29\uBC95\uC744 \uC37C\uB294\uC9C0 \uC870\uAE08\uB9CC \uB354 \uC790\uC138\uD788 \uC54C\uB824\uC904\uB798?");
+        return;
+      }
+      showAllMethods();
+    }
+    function showAllMethods() {
+      io.say("\uADF8\uB7FC \uC804\uCCB4 \uBAA9\uB85D\uC5D0\uC11C \uC9C1\uC811 \uACE8\uB77C\uBCFC\uB798?");
+      io.ask([
+        ...selectableMethodIds.map(methodButton),
+        {
+          label: "\uC798 \uBAA8\uB974\uACA0\uC5B4",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC798 \uBAA8\uB974\uACA0\uC5B4");
+            showFeelingSurvey(null);
+          }
+        }
+      ]);
+    }
+    function offerRetake() {
+      io.say(
+        "\uC0AC\uC9C4\uC5D0\uC11C \uD480\uC774 \uACFC\uC815\uC744 \uBABB \uCC3E\uC558\uC5B4. \uD639\uC2DC \uC885\uC774\uC5D0 \uD480\uC5C8\uC73C\uBA74, \uD480\uC774\uAE4C\uC9C0 \uB098\uC624\uAC8C \uB2E4\uC2DC \uCC0D\uC5B4\uC904\uB798? \uADF8\uB7EC\uBA74 \uC5B4\uB514\uC11C \uD2C0\uB838\uB294\uC9C0 \uB0B4\uAC00 \uC9C1\uC811 \uC9DA\uC5B4\uC904 \uC218 \uC788\uC5B4."
+      );
+      io.say("\uBA38\uB9AC\uB85C \uD47C \uAC70\uBA74 \uAD1C\uCC2E\uC544 \u2014 \uC5B4\uB5A4 \uBC29\uBC95\uC73C\uB85C \uD480\uC5C8\uB294\uC9C0 \uC9E7\uAC8C\uB9CC \uC54C\uB824\uC918.");
+      io.ask([
+        { label: "\u{1F4F7} \uD480\uC774\uAE4C\uC9C0 \uB098\uC624\uAC8C \uB2E4\uC2DC \uCC0D\uAE30", kind: "primary", onPress: () => io.run("restart") },
+        {
+          label: "\u270F\uFE0F \uC9C1\uC811 \uC54C\uB824\uC904\uAC8C",
+          kind: "ghost",
+          onPress: () => askMethodByText("\uC5B4\uB5A4 \uBC29\uBC95\uC73C\uB85C \uD480\uC5C8\uB294\uC9C0 \uC9E7\uAC8C \uC54C\uB824\uC904\uB798? \uB124 \uB9D0 \uADF8\uB300\uB85C \uC368\uB3C4 \uB3FC.")
+        }
+      ]);
+    }
+    function offerRetakeForGate(decision) {
+      const copy = GATE_COPY[decision];
+      if (!copy) {
+        offerRetake();
+        return;
+      }
+      io.say(copy.text);
+      io.ask([
+        { label: copy.retake, kind: "primary", onPress: () => io.run("retake_from_gate") },
+        { label: "\uC624\uB298\uC740 \uC5EC\uAE30\uAE4C\uC9C0", kind: "ghost", onPress: closeHere }
+      ]);
+    }
+    function closeHere() {
+      io.mySay("\uC624\uB298\uC740 \uC5EC\uAE30\uAE4C\uC9C0");
+      io.say(CLOSED_LINE);
+      io.end({ kind: "closed" });
+    }
+    function startPointing(idx) {
+      const cand = pocket?.errorCandidates[idx];
+      if (!pocket || !cand) {
+        showFeelingSurvey(
+          pocket?.predictedMethodId ?? null,
+          "\uC74C, \uADF8\uB7FC \uB0B4 \uB208\uC5D0 \uBCF4\uC774\uB294 \uB370\uB294 \uC544\uB2C8\uC5C8\uB098 \uBCF4\uB124. \uAC01\uB3C4\uB97C \uBC14\uAFD4\uBCF4\uC790 \u2014 \uD480\uBA74\uC11C \uB290\uB08C\uC0C1 \uBB50\uAC00 \uC81C\uC77C \uAC78\uB838\uC5B4?"
+        );
+        return;
+      }
+      io.say("\uADF8\uB7FC \uD480\uC774\uB97C \uC880 \uB354 \uBCF4\uC790.");
+      io.say(`\uC5EC\uAE30 \u2014 "${cand.quote}" \uC4F4 \uBD80\uBD84, \uC5EC\uAE30\uAC00 \uD2C0\uB9B0 \uC790\uB9AC\uC57C.`);
+      io.say(cand.why);
+      io.ask([
+        {
+          label: "\uC544, \uC774\uAC70\uC600\uAD6C\uB098",
+          kind: "primary",
+          onPress: () => {
+            io.mySay("\uC544, \uC774\uAC70\uC600\uAD6C\uB098");
+            io.log({ name: "error_point_react", react: "got_it" });
+            void showCheck(idx, "got_it");
+          }
+        },
+        {
+          label: "\uC65C \uD2C0\uB9B0 \uAC74\uC9C0 \uC544\uC9C1 \uBAA8\uB974\uACA0\uC5B4",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC65C \uD2C0\uB9B0 \uAC74\uC9C0 \uC544\uC9C1 \uBAA8\uB974\uACA0\uC5B4");
+            io.log({ name: "error_point_react", react: "dont_get_why" });
+            explainAgain(idx);
+          }
+        },
+        {
+          label: "\uB098 \uC5EC\uAE30 \uC774\uB807\uAC8C \uC548 \uC37C\uB294\uB370",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uB098 \uC5EC\uAE30 \uC774\uB807\uAC8C \uC548 \uC37C\uB294\uB370");
+            io.log({ name: "error_point_react", react: "not_mine" });
+            stopMisread();
+          }
+        }
+      ]);
+    }
+    function explainAgain(idx) {
+      const cand = pocket?.errorCandidates[idx];
+      io.say("\uAD1C\uCC2E\uC544, \uB9D0\uB85C \uB4E4\uC5B4\uC120 \uC6D0\uB798 \uC798 \uC548 \uC7A1\uD600.");
+      if (cand?.concept?.rule && cand.concept.violation) {
+        io.say(cand.concept.rule);
+        io.say(cand.concept.violation);
+        void showCheck(idx, "dont_get_why_concept");
+        return;
+      }
+      if (cand?.fix) io.say(`\uB2E4\uB974\uAC8C \uB9D0\uD558\uBA74 \u2014 "${cand.fix}"`);
+      void showCheck(idx, "dont_get_why");
+    }
+    function stopMisread() {
+      io.say("\uB0B4\uAC00 \uB124 \uAE00\uC528\uB97C \uC798\uBABB \uC77D\uC5C8\uB098 \uBD10. \uBBF8\uC548 \u2014 \uC774 \uBD84\uC11D\uC740 \uC5EC\uAE30\uC11C \uBA48\uCD9C\uAC8C.");
+      io.say("\uD480\uC774\uAC00 \uC120\uBA85\uD558\uAC8C \uB098\uC624\uAC8C \uB2E4\uC2DC \uCC0D\uC5B4\uC8FC\uBA74 \uCC98\uC74C\uBD80\uD130 \uB2E4\uC2DC \uBCFC\uAC8C.");
+      io.ask([
+        { label: "\u{1F4F7} \uD480\uC774\uAC00 \uC120\uBA85\uD558\uAC8C \uB2E4\uC2DC \uCC0D\uAE30", kind: "primary", onPress: () => io.run("restart") },
+        { label: "\uC624\uB298\uC740 \uC5EC\uAE30\uAE4C\uC9C0", kind: "ghost", onPress: closeHere }
+      ]);
+    }
+    function logQuizVerify(kind, v, react) {
+      io.log({
+        name: "quiz_verify",
+        kind,
+        result: v.verdict,
+        reason: v.reason,
+        verify_ms: v.ms,
+        waited_ms: v.waitedMs,
+        ...react ? { react } : {}
+      });
+    }
+    async function showCheck(idx, react) {
+      const cand = pocket?.errorCandidates[idx];
+      if (!pocket || !cand) return;
+      const methodId = pocket.predictedMethodId;
+      const ctx = (checkResult) => ({ methodId, mistakeType: cand.mistakeType, checkResult });
+      const v = await runner.verdict("check");
+      if (!alive) return;
+      logQuizVerify("check", v, react);
+      const quiz = readCheckQuiz(cand);
+      if (!quiz || v.verdict !== "match") {
+        void startRetry(idx, ctx("skip"));
+        return;
+      }
+      if (quiz.setup) {
+        io.say(`\uADF8\uB7FC \uC9C4\uC9DC \uC544\uB294\uC9C0 \uBCF4\uC790 \u2014 \uC774\uAC70 \uD1B5\uACFC\uD558\uBA74 \uC624\uB298 \uC624\uB2F5\uB178\uD2B8 \uC644\uC131\uC774\uC57C. ${quiz.setup}`);
+        io.say(quiz.prompt);
+      } else {
+        io.say(`\uADF8\uB7FC \uC9C4\uC9DC \uC544\uB294\uC9C0 \uBCF4\uC790 \u2014 \uC774\uAC70 \uD1B5\uACFC\uD558\uBA74 \uC624\uB298 \uC624\uB2F5\uB178\uD2B8 \uC644\uC131\uC774\uC57C. ${quiz.prompt}`);
+      }
+      io.ask(
+        quiz.options.map((option, i) => ({
+          label: option,
+          onPress: () => {
+            io.mySay(option);
+            const passed = i === quiz.answerIndex;
+            io.log({ name: "check_answer", passed: passed ? 1 : 0, react });
+            if (passed) {
+              io.say("\uADF8\uB807\uC9C0. \uC774\uC81C \uC774 \uC790\uB9AC\uC5D0\uC11C\uB294 \uC548 \uD2C0\uB9AC\uACA0\uB124.");
+            } else {
+              io.say(`\uC544\uC9C1 \uD5F7\uAC08\uB9AC\uB294\uAD6C\uB098. \uC815\uB2F5\uC740 "${quiz.options[quiz.answerIndex]}" \u2014 \uC544\uAE4C\uB791 \uAC19\uC740 \uC6D0\uB9AC\uC57C.`);
+            }
+            void startRetry(idx, ctx(passed ? "pass" : "fail"));
+          }
+        }))
+      );
+    }
+    async function startRetry(idx, ctx) {
+      const quiz = readRetryQuiz(pocket?.errorCandidates[idx]);
+      if (!quiz) {
+        showWrongNote(idx, ctx, "none");
+        return;
+      }
+      const v = await runner.verdict("retry");
+      if (!alive) return;
+      logQuizVerify("retry", v);
+      if (v.verdict !== "match") {
+        showWrongNote(idx, ctx, "unverified");
+        return;
+      }
+      io.say(
+        ctx.checkResult === "fail" ? "\uAD1C\uCC2E\uC544, \uD5F7\uAC08\uB9AC\uB77C\uACE0 \uC788\uB294 \uC790\uB9AC\uC57C. \uB9C8\uC9C0\uB9C9\uC73C\uB85C \uB531 \uD55C \uBC88\uB9CC \u2014 \uC0C8 \uC22B\uC790\uB85C \uAC00\uBCF4\uC790." : "\uADF8\uB7FC \uC9C4\uC9DC \uB9C8\uC9C0\uB9C9 \u2014 \uC544\uAE4C \uADF8 \uC790\uB9AC, \uC0C8 \uC22B\uC790\uB85C \uD55C \uBC88\uB9CC \uB2E4\uC2DC \uBC1F\uC544\uBCF4\uC790."
+      );
+      io.say(`${quiz.setup}
+${quiz.prompt}`);
+      io.ask([
+        ...quiz.options.map((option, i) => ({
+          label: option,
+          onPress: () => {
+            io.mySay(option);
+            if (i === quiz.answerIndex) {
+              io.say("\uADF8\uB807\uC9C0! \uC544\uAE4C \uBB34\uB108\uC9C4 \uADF8 \uC790\uB9AC, \uC774\uBC88\uC5D4 \uD1B5\uACFC\uD588\uC5B4.");
+              showWrongNote(idx, ctx, "pass");
+            } else {
+              io.say(`\uC544\uAE5D\uB2E4 \u2014 \uC815\uB2F5\uC740 "${quiz.options[quiz.answerIndex]}". \uC544\uAE4C\uB791 \uAC19\uC740 \uC6D0\uB9AC\uC57C.`);
+              showWrongNote(idx, ctx, "fail");
+            }
+          }
+        })),
+        {
+          label: "\uC9C0\uAE08\uC740 \uB118\uC5B4\uAC08\uB798",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC9C0\uAE08\uC740 \uB118\uC5B4\uAC08\uB798");
+            showWrongNote(idx, ctx, "skip");
+          }
+        }
+      ]);
+    }
+    function showWrongNote(idx, ctx, retryResult) {
+      const weaknessIds = weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
+      io.log({
+        name: "weakness_labeled",
+        method_id: ctx.methodId,
+        mistake_type: ctx.mistakeType,
+        weakness_count: weaknessIds.length,
+        labeled: weaknessIds.length > 0
+      });
+      if (!deps.profile.picksWeakness || weaknessIds.length < 2) {
+        finishNote(idx, ctx, retryResult, weaknessIds, weaknessIds.length === 1 ? weaknessIds[0] : null);
+        return;
+      }
+      const choiceText = (id) => weaknessChoiceText(ctx.methodId, id) ?? resolveWeaknessLabel(id);
+      const picked = (id) => io.log({
+        name: "weakness_picked",
+        method_id: ctx.methodId,
+        mistake_type: ctx.mistakeType,
+        candidate_count: weaknessIds.length,
+        picked: id
+      });
+      io.say("\uC5B4\uB514\uC11C \uC2E4\uC218\uD55C \uAC83 \uAC19\uC544? \uC798 \uBAA8\uB974\uACA0\uC73C\uBA74 \uB118\uC5B4\uAC00\uB3C4 \uB3FC.");
+      io.ask([
+        // 버튼 문구는 그 약점이 달린 선택지 문장 — labelKo는 둘이 비슷해 학생이 못 가른다
+        ...weaknessIds.map((id) => ({
+          label: choiceText(id),
+          kind: "primary",
+          onPress: () => {
+            io.mySay(choiceText(id));
+            picked(id);
+            finishNote(idx, ctx, retryResult, weaknessIds, id);
+          }
+        })),
+        {
+          label: "\uC798 \uBAA8\uB974\uACA0\uC5B4",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC798 \uBAA8\uB974\uACA0\uC5B4");
+            picked(null);
+            finishNote(idx, ctx, retryResult, weaknessIds, null);
+          }
+        }
+      ]);
+    }
+    function finishNote(idx, ctx, retryResult, weaknessIds, primaryWeaknessId) {
+      const cand = pocket?.errorCandidates[idx];
+      const today = now();
+      io.say("\uC790, \uC774\uAC8C \uC624\uB298 \uB124 \uC624\uB2F5\uB178\uD2B8\uC57C \u2014 \uB124 \uC190\uC73C\uB85C \uC801\uC740 \uAC74 \uD55C \uC904\uB3C4 \uC5C6\uC9C0.");
+      const note = {
+        dateLabel: `${today.getMonth() + 1}/${today.getDate()}`,
+        photoUri: deps.photoUri,
+        quote: cand?.quote ?? "",
+        why: cand?.why ?? "",
+        // 짚기가 성공한 경로에선 AI 처방, 비었으면 유형별 통조림
+        fix: cand?.fix || mistakeTypeFix(ctx.mistakeType),
+        methodId: ctx.methodId,
+        mistakeType: ctx.mistakeType,
+        methodLabel: methodLabel(ctx.methodId),
+        typeLabel: mistakeTypeLabel(ctx.mistakeType),
+        weaknessIds,
+        primaryWeaknessId,
+        checkResult: ctx.checkResult,
+        retryResult,
+        askLine: true
+      };
+      io.showNote(note);
+      io.log({ name: "note_shown", retry: retryResult });
+      const failed = retryResult === "fail" || ctx.checkResult === "fail" && retryResult !== "pass";
+      io.end({ kind: "note", variant: failed ? "fail" : "success", note });
+    }
+    function showWeaknessCard(methodId, mistakeType) {
+      const label = methodLabel(methodId ?? void 0);
+      const typeLabel = mistakeTypeLabel(mistakeType);
+      const card = {
+        methodId,
+        mistakeType,
+        methodLabel: label,
+        typeLabel,
+        title: `\uC624\uB298 \uCC3E\uC740 \uC57D\uC810 \u2014 ${label} \xD7 ${typeLabel}`,
+        body: ["(\uB124\uAC00 \uC9C1\uC811 \uC9DA\uC5B4\uC900 \uAC83)", mistakeTypeFix(mistakeType)].join("\n")
+      };
+      io.showWeaknessCard(card);
+      io.log({ name: "weakness_card_shown", method: methodId || "unknown", mistake: mistakeType || "unknown" });
+      io.end({ kind: "weakness", card });
+    }
+    function showFeelingSurvey(methodId, promptText, withAnswerReadHint = false) {
+      const options = surveyOptionsFor(methodId);
+      if (withAnswerReadHint) {
+        const i = options.findIndex((option) => option.type === "answer_read");
+        if (i >= 0) options[i] = ANSWER_READ_HINT;
+        else options.push(ANSWER_READ_HINT);
+      }
+      io.say(promptText || "\uADF8\uB7FC \u2014 \uD480\uBA74\uC11C \uB290\uB08C\uC0C1 \uBB50\uAC00 \uC81C\uC77C \uAC78\uB838\uC5B4?");
+      io.ask([
+        ...options.map((option) => ({
+          label: option.text,
+          onPress: () => {
+            io.mySay(option.text);
+            io.log({ name: "survey_pick", mistake: option.type });
+            showWeaknessCard(methodId, option.type);
+          }
+        })),
+        {
+          label: "\uC798 \uBAA8\uB974\uACA0\uC5B4",
+          kind: "ghost",
+          onPress: () => {
+            io.mySay("\uC798 \uBAA8\uB974\uACA0\uC5B4");
+            io.log({ name: "survey_pick", mistake: "dont_know" });
+            showWeaknessCard(methodId, "concept_gap");
+          }
+        }
+      ]);
+    }
+    return {
+      start,
+      dispose() {
+        alive = false;
+        runner.dispose();
+      }
+    };
+  }
+
+  // features/photo/flow/verify-quiz-request.ts
+  var VERIFY_URL = "https://asia-northeast3-dasida-app.cloudfunctions.net/verifyQuiz";
+  var VERIFY_FETCH_TIMEOUT_MS = 15e3;
+  async function requestQuizVerify(body) {
+    const startedAt = Date.now();
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), VERIFY_FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(VERIFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: abortController.signal
+      });
+      if (!response.ok) return { verdict: "skip", reason: "error", ms: Date.now() - startedAt };
+      const data = await response.json();
+      if (data?.verdict === "match") return { verdict: "match", reason: "match", ms: Date.now() - startedAt };
+      return {
+        verdict: "skip",
+        reason: String(data?.verdict || "invalid").slice(0, 20),
+        ms: Date.now() - startedAt
+      };
+    } catch {
+      return {
+        verdict: "skip",
+        reason: abortController.signal.aborted ? "timeout" : "error",
+        ms: Date.now() - startedAt
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  // features/photo/flow/diagnose-method-request.ts
+  var DIAGNOSE_URL = "https://asia-northeast3-dasida-app.cloudfunctions.net/diagnoseMethod";
+  var DIAGNOSE_TIMEOUT_MS = 3e4;
+  var methodDescriptors = selectableMethodIds.map((id) => {
+    const info = diagnosisMethodRoutingCatalog[id];
+    return {
+      id: info.id,
+      labelKo: info.labelKo,
+      summary: info.summary,
+      exampleUtterances: info.exampleUtterances.slice(0, 5)
+    };
+  });
+  async function requestDiagnoseMethod(rawText, { problemId }) {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), DIAGNOSE_TIMEOUT_MS);
+    try {
+      const response = await fetch(DIAGNOSE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          problemId,
+          rawText,
+          allowedMethodIds: selectableMethodIds,
+          allowedMethods: methodDescriptors
+        }),
+        signal: abortController.signal
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (!data || typeof data.predictedMethodId !== "string" || typeof data.needsManualSelection !== "boolean" || !Array.isArray(data.candidateMethodIds)) {
+        return null;
+      }
+      return {
+        predictedMethodId: data.predictedMethodId,
+        confidence: typeof data.confidence === "number" ? data.confidence : 0,
+        candidateMethodIds: data.candidateMethodIds,
+        needsManualSelection: data.needsManualSelection,
+        reason: typeof data.reason === "string" ? data.reason : ""
+      };
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  // features/photo/script/note-card-lines.ts
+  var NOTE_ASK_LINE = `\u{1F4CC} "\uC218\uB2A5\uC7A5\uC5D0\uC11C \uC774 \uD480\uC774\uB97C \uC0DD\uAC01\uD574 \uB0BC \uC218 \uC788\uB294\uAC00" \u2014 \uB2F5\uC774 '\uB2F9\uC5F0\uD558\uC9C0'\uAC00 \uC544\uB2C8\uBA74, \uC774 \uBB38\uC81C \uD398\uC774\uC9C0\uB97C \uC811\uC5B4 \uB46C.`;
+  var CHECK_MARK = { pass: "\uCABD\uC9C0\uC2DC\uD5D8 \u2714", fail: "\uCABD\uC9C0\uC2DC\uD5D8 \u2717" };
+  var RETRY_MARK = { pass: "\uC7AC\uB3C4\uC804 \u2714", fail: "\uC7AC\uB3C4\uC804 \u2717" };
+  function noteCardLines(note) {
+    const marks = [CHECK_MARK[note.checkResult], RETRY_MARK[note.retryResult]].filter(Boolean);
+    const shown = note.primaryWeaknessId ? [note.primaryWeaknessId] : note.weaknessIds;
+    return {
+      quote: note.quote ? `"${note.quote}"` : "(\uC5C6\uC74C)",
+      checks: marks.length > 0 ? `\uC624\uB298 \uD655\uC778: ${marks.join(" \xB7 ")}` : "",
+      tags: `#${note.methodLabel} #${note.typeLabel}`,
+      weaknessLabels: shown.map((id) => resolveWeaknessLabel(id))
+    };
   }
 
   // data/detailedDiagnosisFlows.ts
@@ -2240,14 +3175,14 @@ var DasidaFlow = (() => {
       return custom;
     }
     const weakness = diagnosisMap[weaknessId];
-    const methodLabel = getMethodLabel(methodId);
+    const methodLabel2 = getMethodLabel(methodId);
     return {
-      title: `${methodLabel} \uD480\uC774\uB97C \uB354 \uC9E7\uAC8C \uC815\uB9AC\uD574\uBCFC\uAC8C\uC694.`,
+      title: `${methodLabel2} \uD480\uC774\uB97C \uB354 \uC9E7\uAC8C \uC815\uB9AC\uD574\uBCFC\uAC8C\uC694.`,
       body: `${weakness.desc}
 
 \uD575\uC2EC \uD301: ${weakness.tip}`,
       remedialTitle: "\uB354 \uC26C\uC6B4 \uC124\uBA85\uC73C\uB85C \uB2E4\uC2DC \uBCFC\uAC8C\uC694.",
-      remedialBody: `${methodLabel} \uD480\uC774\uC5D0\uC11C\uB294 \uC774 \uC9C0\uC810\uC744 \uBA3C\uC800 \uC548\uC815\uC2DC\uD0A4\uB294 \uAC83\uC774 \uC911\uC694\uD574\uC694.
+      remedialBody: `${methodLabel2} \uD480\uC774\uC5D0\uC11C\uB294 \uC774 \uC9C0\uC810\uC744 \uBA3C\uC800 \uC548\uC815\uC2DC\uD0A4\uB294 \uAC83\uC774 \uC911\uC694\uD574\uC694.
 
 ${weakness.tip}`
     };
@@ -2282,14 +3217,14 @@ ${weakness.tip}`
   }
   function createMethodFlow(methodId) {
     const definition = diagnosisTree[methodId];
-    const methodLabel = getMethodLabel(methodId);
+    const methodLabel2 = getMethodLabel(methodId);
     const fallbackWeaknessId = methodFallbackWeakness[methodId];
     const nodes = {};
     nodes.root = {
       id: "root",
       kind: "choice",
       title: definition.prompt,
-      body: methodId === "unknown" ? "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC0C1\uD0DC\uB97C \uACE0\uB974\uBA74, \uADF8\uB2E4\uC74C \uC9C8\uBB38\uC744 \uB354 \uAD6C\uCCB4\uC801\uC73C\uB85C \uC881\uD600\uBCFC\uAC8C\uC694." : `\uB9C9\uD78C \uC9C0\uC810\uC744 \uD558\uB098 \uACE0\uB974\uBA74 ${methodLabel} \uD480\uC774\uB97C \uB354 \uC790\uC138\uD788 \uC9DA\uC5B4\uBCFC\uAC8C\uC694.`,
+      body: methodId === "unknown" ? "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC0C1\uD0DC\uB97C \uACE0\uB974\uBA74, \uADF8\uB2E4\uC74C \uC9C8\uBB38\uC744 \uB354 \uAD6C\uCCB4\uC801\uC73C\uB85C \uC881\uD600\uBCFC\uAC8C\uC694." : `\uB9C9\uD78C \uC9C0\uC810\uC744 \uD558\uB098 \uACE0\uB974\uBA74 ${methodLabel2} \uD480\uC774\uB97C \uB354 \uC790\uC138\uD788 \uC9DA\uC5B4\uBCFC\uAC8C\uC694.`,
       options: definition.choices.map((choice) => ({
         id: choice.id,
         text: choice.text,
@@ -2340,7 +3275,7 @@ ${weakness.tip}`
       nodes[fallbackFinalNodeId] = buildFinalNode(
         fallbackFinalNodeId,
         fallbackWeaknessId,
-        `${methodLabel} \uD480\uC774\uC758 \uAE30\uCD08\uB97C \uBA3C\uC800 \uB2E4\uC9C0\uB294 \uAC83\uC774 \uC88B\uC544 \uBCF4\uC5EC\uC694.`
+        `${methodLabel2} \uD480\uC774\uC758 \uAE30\uCD08\uB97C \uBA3C\uC800 \uB2E4\uC9C0\uB294 \uAC83\uC774 \uC88B\uC544 \uBCF4\uC5EC\uC694.`
       );
     });
     return {

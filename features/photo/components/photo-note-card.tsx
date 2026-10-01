@@ -3,28 +3,22 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
 import { FontFamilies } from '@/constants/typography';
-import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 
+import { NOTE_ASK_LINE, noteCardLines } from '../script/note-card-lines';
 import { PhotoTheme } from '../theme';
-import type { PhotoNote, RetryResult } from '../types';
-
-const RETRY_MARK: Record<RetryResult, string> = {
-  pass: '재도전 ✔',
-  fail: '재도전 ✗',
-  skip: '',
-  none: '',
-};
+import type { PhotoNote } from '../types';
 
 /**
- * 안 본 문제는 줄에 안 적는다 — 검산에서 빠진 쪽지·재도전이 ✗로 둔갑하지 않게 (web-proto와 같은 규칙).
- * 둘 다 안 봤으면 줄 자체가 빈다.
+ * 카드 글자 줄은 웹 카드와 같은 함수(noteCardLines) — 저장된 노트 모양을 그쪽 입력으로 바꾼다.
+ * 1.0.9까지 저장된 노트엔 checkSkipped 칸이 없다(= 학생이 본 쪽지).
  */
-function checksLine(note: PhotoNote): string {
-  const marks = [
-    note.checkSkipped ? '' : `쪽지시험 ${note.checkPassed ? '✔' : '✗'}`,
-    RETRY_MARK[note.retryResult],
-  ].filter(Boolean);
-  return marks.length > 0 ? `오늘 확인: ${marks.join(' · ')}` : '';
+function linesOf(note: PhotoNote) {
+  return noteCardLines({
+    ...note,
+    checkResult: note.checkSkipped ? 'skip' : note.checkPassed ? 'pass' : 'fail',
+    // 옛 노트는 이 필드가 아예 없을 수 있다(`note-store.ts`의 `isPhotoNoteLike`가 안 본다) — 그때도 후보 쪽
+    primaryWeaknessId: note.primaryWeaknessId ?? null,
+  });
 }
 
 /**
@@ -42,6 +36,7 @@ export function PhotoNoteCard({
   note: PhotoNote;
   variant?: 'flow' | 'list';
 }) {
+  const lines = linesOf(note);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -61,29 +56,30 @@ export function PhotoNoteCard({
         />
       )}
 
-      <NoteRow label="✂️ 갈라진 지점" text={note.quote ? `"${note.quote}"` : '(없음)'} />
+      <NoteRow label="✂️ 갈라진 지점" text={lines.quote} />
       <NoteRow label="왜" text={note.why} />
       <NoteRow label="다음엔" text={note.fix} />
 
       <View style={styles.foot}>
         <Text selectable style={styles.checks}>
-          {checksLine(note)}
+          {lines.checks}
         </Text>
         <Text selectable style={styles.tags}>
-          {`#${note.methodLabel} #${note.typeLabel}`}
+          {lines.tags}
         </Text>
       </View>
 
       {/* 못 찾았으면 줄 자체를 안 낸다 — 빈 이름표는 학생한테 값이 0이다 (기윤 판정 2026.08.13) */}
       {/* 학생이 골랐으면 그것만 — 골라놓고 '또는'이 그대로 뜨면 물어본 의미가 없다 (2026.09.20) */}
-      {shownWeaknessIds(note).length > 0 && (
+      {lines.weaknessLabels.length > 0 && (
         <Text selectable style={styles.weakness}>
           {/* 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 실측으로 잡음 */}
-          {`🏷️ ${shownWeaknessIds(note)
-            .map((id) => resolveWeaknessLabel(id))
-            .join(' 또는 ')}`}
+          {`🏷️ ${lines.weaknessLabels.join(' 또는 ')}`}
         </Text>
       )}
+
+      {/* 접는 기준 — 웹 카드와 같은 문장 (🔒 10.01 갈림길 ①). 노트가 뜨는 순간의 질문이라 목록에선 뺀다 */}
+      {variant === 'flow' && <Text style={styles.ask}>{NOTE_ASK_LINE}</Text>}
 
       {/* 09.15에 저장이 붙었다 — "아직 저장은 안 돼"는 이제 거짓이라 걷었다 */}
       {variant === 'flow' && (
@@ -91,17 +87,6 @@ export function PhotoNoteCard({
       )}
     </View>
   );
-}
-
-/**
- * 카드에 그릴 이름표.
- *
- * `primaryWeaknessId`가 있으면 그것만 — 학생이 말풍선에서 고른 값이거나, 후보가 하나뿐이었던 것이다.
- * 없으면 후보를 「또는」으로 잇는다 — 안 물어봤거나 「잘 모르겠어」를 고른 노트다.
- * 옛 노트는 이 필드가 아예 없을 수 있다(`note-store.ts`의 `isPhotoNoteLike`가 안 본다) — 그때도 후보 쪽.
- */
-function shownWeaknessIds(note: PhotoNote) {
-  return note.primaryWeaknessId ? [note.primaryWeaknessId] : note.weaknessIds;
 }
 
 function NoteRow({ label, text }: { label: string; text: string }) {
@@ -208,6 +193,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12.5,
     color: PhotoTheme.green,
+  },
+  // web-proto `.note-ask` — 크림 바탕 칸, 13px 굵게
+  ask: {
+    fontFamily: FontFamilies.bold,
+    marginTop: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    backgroundColor: PhotoTheme.cream2,
+    borderRadius: 8,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+    fontSize: 13,
+    lineHeight: 19.5,
+    color: PhotoTheme.ink,
   },
   capture: {
     fontFamily: FontFamilies.regular,

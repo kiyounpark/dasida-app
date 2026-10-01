@@ -1,0 +1,64 @@
+{
+  "result": {
+    "hasSolvingWork": false,
+    "userAnswer": null,
+    "transcription": "",
+    "predictedMethodId": "unknown",
+    "confidence": 0,
+    "candidateMethodIds": [
+      "unknown"
+    ],
+    "reason": "gate",
+    "needsManualSelection": true,
+    "errorCandidates": [],
+    "errorConfidence": 0,
+    "gate": {
+      "decision": "blocked_blurry",
+      "rotation": null,
+      "width": 1568,
+      "height": 1074
+    }
+  },
+  "verdicts": {},
+  "diagnose": [],
+  "steps": [
+    "✏️ 직접 알려줄게"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "사진에서 풀이 과정을 못 찾았어. 혹시 종이에 풀었으면, 풀이까지 나오게 다시 찍어줄래? 그러면 어디서 틀렸는지 내가 직접 짚어줄 수 있어.",
+        "머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게만 알려줘."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "📷 풀이까지 나오게 다시 찍기",
+          "primary"
+        ],
+        [
+          "✏️ 직접 알려줄게",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "✏️ 직접 알려줄게"
+    },
+    {
+      "coach": [
+        "어떤 방법으로 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼."
+      ],
+      "ask": true
+    },
+    {
+      "input": {
+        "placeholder": "예: 근의 공식에 바로 대입했어",
+        "maxLength": 200,
+        "submit": "보내기"
+      }
+    }
+  ]
+}

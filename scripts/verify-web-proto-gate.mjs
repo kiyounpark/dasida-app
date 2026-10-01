@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 웹(web-proto) 사진 거르기 흉내: 실제 flow-bundle.js·survey-data.js·app.js 전체를 가짜 DOM 위에서 돌린다.
+// 웹(web-proto) 사진 거르기 흉내: 실제 flow-bundle.js·app.js 전체를 가짜 DOM 위에서 돌린다.
 // 네트워크 없음(fetch 가짜) · GA 없음(window.track 스파이 — 운영 히트 0) · analytics.js는 안 싣는다.
 // 사용: node scripts/verify-web-proto-gate.mjs   (app.js 업로드·게이트·대기 문구를 만지면 다시 돌린다)
 // 설계: dasida-measure/2026-09-29-real-student-timeout/astra-fable-1001/q8-gate-design-final.md (astra ② resetUpload)
@@ -10,7 +10,7 @@ import vm from 'node:vm';
 
 const ROOT = new URL('../web-proto/', import.meta.url);
 const read = (name) => readFileSync(new URL(name, ROOT), 'utf8');
-const SOURCES = ['flow-bundle.js', 'survey-data.js', 'app.js'].map((name) => [name, read(name)]);
+const SOURCES = ['flow-bundle.js', 'app.js'].map((name) => [name, read(name)]);
 const indexHtml = read('index.html');
 
 // ── 가짜 DOM — app.js가 쓰는 만큼만 ──

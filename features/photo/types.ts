@@ -1,6 +1,8 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+import type { WeaknessCardView } from './script/script-io';
+
 /** functions/src/analyze-photo-core.ts의 MISTAKE_TYPE_IDS와 같은 순서·같은 값 */
 export const MISTAKE_TYPE_IDS = [
   'concept_gap',
@@ -121,7 +123,9 @@ export type PhotoNote = {
 export type PhotoBubble =
   | { id: number; kind: 'coach'; paras: string[]; ask: boolean }
   | { id: number; kind: 'me'; paras: string[] }
-  | { id: number; kind: 'note'; note: PhotoNote };
+  | { id: number; kind: 'note'; note: PhotoNote }
+  /** 설문 결말 카드 — 사진 인용·쪽지 기록이 없는 길의 결과물. 저장 안 함(🔒 10.01) */
+  | { id: number; kind: 'weakness'; card: WeaknessCardView };
 
 /** 하단 버튼. 하나를 누르면 통째로 갈아끼운다. */
 export type PhotoAction = {

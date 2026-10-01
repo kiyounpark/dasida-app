@@ -32,6 +32,13 @@ describe('PhotoChatThread — 수식이 문장에서 떨어져 나오는가', ()
     });
   });
 
+  it('웹과 같은 글자 — x^{2}는 x², a_n은 aₙ으로 뜬다', () => {
+    render(<PhotoChatThread bubbles={[{ id: 1, kind: 'me', paras: ['x^{2} 그리고 a_n'] }]} />);
+
+    expect(screen.getByText('x²')).toBeTruthy();
+    expect(screen.getByText('aₙ')).toBeTruthy();
+  });
+
   it('인용부호 안의 수식 = "네가 쓴 그 줄"만 바탕을 깐다', () => {
     render(
       <PhotoChatThread

@@ -2,9 +2,6 @@
   // ── 설정 ──
   const PROJECT_ID = 'dasida-app';
   const ANALYZE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/analyzePhoto`;
-  const DIAGNOSE_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/diagnoseMethod`;
-  // 쪽지·재도전 검산(요청 2, 09.30). 설계 docs/research/2026-09-30-quiz-verify-design.md
-  const VERIFY_URL = `https://asia-northeast3-${PROJECT_ID}.cloudfunctions.net/verifyQuiz`;
   // 엔딩의 스토어 버튼이 쓴다. 1.0.8(사진 기능)이 양쪽 스토어에 떠 있는 걸 확인하고 되살렸다 (09.23).
   // 스토어 링크 출처: iOS는 eas.json의 ascAppId(6761792023), 안드로이드는 app.json의 android.package(com.dasida.app).
   const STORE_URL_IOS = 'https://apps.apple.com/kr/app/id6761792023';
@@ -61,41 +58,10 @@
   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
 
   const F = window.DasidaFlow;
-  const catalog = F.diagnosisMethodRoutingCatalog;
-  const ro = F.ro;
-  const selectableMethods = F.methodOptions.filter((m) => m.id !== 'unknown');
-
-  // 후보를 못 좁혔을 때 '전체 카탈로그'를 쏟지 않고 주제 기반 상위 N개만 보여준다
-  const TOPIC_TOP_N = 5;
-  // 오류 짚기 검문소 문턱 — 낮게 시작해 채점표 데이터로 조인다 (spec §2)
-  const ERROR_CONFIDENCE_MIN = 0.5;
-  // 추측 확인(경우 2 중간 확신) 하한 — 이 미만이면 바로 후보 카드
-  const SOFT_ASSERT_MIN = 0.45;
-  const SURVEY = window.DasidaPhotoSurvey;
-  // 주머니: analyzePhoto 원샷 결과 전체. 방법이 뒤집히면 오류 진단은 무효.
-  let pocket = null;
-  // 검산(요청 2) — 분석 결과가 닿을 때 뒤에서 출발, 쪽지·재도전 차례에 결과를 본다.
-  // verifySeq: 새 분석마다 올린다 — 늦게 온 옛 결과가 새 문제에 붙지 않게(stale).
-  let verifyRun = null;
-  let verifySeq = 0;
-  // 라이브 p90 4.9초(09.30 밤). 학생이 방법 확인·짚기를 읽는 시간이 앞에 있어 실제 대기는 드물다.
-  const VERIFY_WAIT_MS = 5_000;
-  const VERIFY_FETCH_TIMEOUT_MS = 15_000; // 서버 함수 20초보다 짧게
-  // 사진/텍스트에서 읽은 풀이 내용 — 후보가 비었을 때 주제 좁히기의 재료
-  let lastAnalysisText = '';
-  // 텍스트로 물어본 횟수 — 2번 물어봐도 못 좁히면 unknown flow로 진행해 막다른 길을 없앤다
-  let textAskCount = 0;
-
-  // diagnoseMethod에 보낼 '보기 목록' (전체 카탈로그, unknown 제외)
-  const methodDescriptors = selectableMethods.map((m) => {
-    const c = catalog[m.id];
-    return {
-      id: c.id,
-      labelKo: c.labelKo,
-      summary: c.summary,
-      exampleUtterances: c.exampleUtterances.slice(0, 5),
-    };
-  });
+  // 대본(무슨 말 · 어떤 버튼 · 누르면 어디로)은 번들의 공용 모듈이다 — 앱 훅과 같은 글자(B, 10.01).
+  // 여기는 화면·업로드·대기·GA·곡선만. 대본 글자를 바꾸려면 features/photo/script/photo-script.ts를 고친다.
+  // 설계 docs/research/2026-10-01-b-shared-script-design.md
+  let script = null;
 
   // ── 화면 전환 ──
   const screens = {
@@ -199,73 +165,22 @@
   });
 
   // ── 수식 표기 (원희 피드백 규칙 1호: 지수는 위첨자로 — a^2 ✗ → a² ○) ──
-  // 앱 components/math/MathText.tsx의 formatMathText를 웹용으로 이식.
+  // 글자 규칙은 앱과 같은 함수 하나(components/math/format-math-text.ts, 번들로 온다).
   // 손으로 쓴 시험지 모양과 같아야 학생이 안 튕긴다. AI가 읽어준 풀이 인용·확인 문제·
   // 번들 데이터의 ^ 표기를 화면에 닿기 직전(채팅 프리미티브)에 전부 변환한다.
-  const SUPERSCRIPT_MAP = {
-    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-    '+': '⁺', '-': '⁻', '(': '⁽', ')': '⁾',
-    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ', l: 'ˡ',
-    m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
-  };
-  function toSuperscript(value) {
-    let converted = '';
-    for (const char of value) {
-      const mapped = SUPERSCRIPT_MAP[char];
-      if (!mapped) return null; // 못 바꾸는 글자(대문자·q 등)면 원문 유지 — 반쪽 변환 금지
-      converted += mapped;
-    }
-    return converted;
-  }
-  function fmtMath(input) {
-    return String(input ?? '')
-      .replace(/<=/g, '≤')
-      .replace(/>=/g, '≥')
-      .replace(/!=/g, '≠')
-      // 뒤 피연산자는 lookahead로 둔다 — 소비하면 4*1*2에서 1이 먹혀
-      // 두 번째 *가 앞 문자를 못 찾아 4×1*2로 반만 변환된다.
-      .replace(/(\d|[A-Za-z)\]])\s*\*\s*(?=\d|[A-Za-z([])/g, '$1×')
-      .replace(/(\d|[A-Za-z)\]])\s*\/\s*(?=\d|[A-Za-z(])/g, '$1⁄')
-      .replace(/sqrt\s*\(/gi, '√(')
-      .replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1')
-      // x^{n-1} — AI 응답의 LaTeX 습관 방어. 중괄호는 수학 표기가 아니라 묶음이라 벗긴다.
-      .replace(/(\)|\d|[A-Za-z])\^\{\s*([A-Za-z0-9+-]+)\s*\}/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      // ar^(n-1) → ar⁽ⁿ⁻¹⁾ — 괄호째 위첨자 (앱 MathText와 같은 규칙)
-      .replace(/(\)|\d|[A-Za-z])\^\(\s*([A-Za-z0-9+-]+)\s*\)/g, (match, base, exponent) => {
-        const superscript = toSuperscript(`(${exponent})`);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      .replace(/(\)|\d|[A-Za-z])\^([A-Za-z])/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      })
-      .replace(/(\)|\d|[A-Za-z])\^(-?\d+)/g, (match, base, exponent) => {
-        const superscript = toSuperscript(exponent);
-        return superscript ? `${base}${superscript}` : match;
-      });
-  }
+  function fmtMath(input) { return F.formatMathText(input); }
 
   // 수식은 문장과 다른 서체로 읽힌다 — fmtMath가 만든 문자열에서 수식 구간만 공라내 <span class="m">으로 감싼다.
   // innerHTML을 쓰지 않는다 — AI 응답이 그대로 들어오므로 노드로만 쌓는다.
-  const SUP = '\\u00b2\\u00b3\\u00b9\\u2070-\\u209f\\u1d43-\\u1dbf';
+  const SUP = '\\u00b2\\u00b3\\u00b9\\u2070-\\u209f\\u1d43-\\u1dbf\\u2c7c'; // 2c7c = ⱼ
   const MATH_TRIGGER = new RegExp('[=×⁄√≤≥≠_' + SUP + ']');
   const MATH_RUN = new RegExp('[A-Za-z0-9_(√][A-Za-z0-9_^(){}\\[\\]+\\-−×÷⁄√≤≥≠=.,:\\s' + SUP + ']*', 'g');
   function mathSpan(token, source, start) {
     const el = document.createElement('span');
     // 앞글자가 따옴표면 "네가 쓴 그 줄"을 인용한 것 — 칩으로 한 번 더 세게 잡는다.
     el.className = source[start - 1] === '"' ? 'm q' : 'm';
-    // a_n — 아래첨자는 유니코드 맵이 없어 밑줄로 남았던 자리. <sub>로 살린다.
-    token.split(/_(\(?[A-Za-z0-9+-]+\)?)/).forEach((part, i) => {
-      if (!part) return;
-      if (i % 2) {
-        const sub = document.createElement('sub');
-        sub.textContent = part.replace(/^\(|\)$/g, '');
-        el.appendChild(sub);
-      } else el.appendChild(document.createTextNode(part));
-    });
+    // a_n은 fmtMath가 이미 aₙ 글자로 바꿔 온다 — 앱 Text엔 <sub>가 없어 둘 다 유니코드로 맞췄다.
+    el.textContent = token;
     return el;
   }
   function mathFrag(text) {
@@ -409,8 +324,8 @@
     selectedFile = f;
     submissionId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : null;
     attempt = 0;
-    verifySeq += 1;
-    verifyRun = null;
+    script?.dispose(); // 옛 대화에서 늦게 깬 검산·diagnose가 아무것도 안 하게
+    script = null;
     picked.textContent = '✓ ' + f.name;
     picked.style.display = 'block';
     cta.classList.add('ready');
@@ -420,6 +335,8 @@
   // 제출 때 막은 버튼(아래 cta 클릭의 cta.disabled = true)은 show('upload')도 setFile도 안 되살린다 — 여기서 푼다 (astra ②)
   function resetUpload() {
     retakeOf = submissionId; // setFile이 새 id를 만들기 전에 옮겨 담는다
+    script?.dispose();
+    script = null;
     selectedFile = null;
     fileInput.value = '';
     picked.textContent = '';
@@ -478,7 +395,7 @@
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const result = await response.json();
       show('chat');
-      routeFromAnalysis(result);
+      onAnalysisResult(result);
     } catch (error) {
       // 실패도 센다 — 안 세면 photo_submit만 찍히고 사라져 "대기 중 이탈"과 안 갈림
       logReturnWhileWaiting();
@@ -514,530 +431,88 @@
     return canvas.toDataURL('image/jpeg', quality);
   }
 
-  // ── 분석 결과 → 3갈래 라우팅 ──
-  function routeFromAnalysis(result) {
+  // ── 분석 결과 → 대본 ──
+  function onAnalysisResult(result) {
     // 사진 거르기에 걸림(서버 gate) — 분석 결과가 아니므로 analysis_shown 대신 analysis_gate로 센다
     const gateDecision = result.gate?.decision;
     if (typeof gateDecision === 'string' && gateDecision.startsWith('blocked')) {
       logReturnWhileWaiting();
       logEvent('analysis_gate', { ...waitParams(), was_hidden: waitHidden ? 1 : 0, visible: visibleNow(), decision: gateDecision });
       waitOutcome = 'gate';
-      offerRetakeForGate(gateDecision);
-      return;
+    } else {
+      // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
+      // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
+      logReturnWhileWaiting();
+      // visible: 도착 순간 화면이 보였나 — 숨긴 채 도착하면 "봤다"로 안 센다(돌아오면 analysis_returned가 result로 찍힌다)
+      logEvent('analysis_shown', {
+        ...waitParams(),
+        was_hidden: waitHidden ? 1 : 0,
+        visible: visibleNow(),
+        has_work: result.hasSolvingWork ? 1 : 0,
+        error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= F.ERROR_CONFIDENCE_MIN ? 1 : 0,
+      });
+      waitOutcome = 'result';
     }
-    pocket = result;
-    // 깔때기 1.5 — 분석 결과가 화면에 닿은 수. photo_submit과의 차 = 대기 중 이탈(+실패).
-    // error_found: AI가 오류 후보를 확신 있게 찾았나 — note_shown/weakness_card_shown 비율의 예고편.
-    logReturnWhileWaiting();
-    // visible: 도착 순간 화면이 보였나 — 숨긴 채 도착하면 "봤다"로 안 센다(돌아오면 analysis_returned가 result로 찍힌다)
-    logEvent('analysis_shown', {
-      ...waitParams(),
-      was_hidden: waitHidden ? 1 : 0,
-      visible: visibleNow(),
-      has_work: result.hasSolvingWork ? 1 : 0,
-      error_found: result.errorCandidates?.length > 0 && result.errorConfidence >= ERROR_CONFIDENCE_MIN ? 1 : 0,
+    script?.dispose();
+    script = F.createPhotoScript(webIO, {
+      verifyQuiz: F.requestQuizVerify,
+      diagnoseMethod: (text) => F.requestDiagnoseMethod(text, { problemId: 'photo-flow-web' }), // 사진 flow는 문제를 미리 모른다 → 로그 구분용 고정 id
+      submissionId,
+      qa: isQa || isLocal,
+      photoUri: uploadedImageDataUrl,
+      // 약점 고르기는 앱만 — 웹엔 고른 값을 둘 곳(저장·복습)이 없다(08.11 🔒). 웹 노트는 "A 또는 B"
+      profile: { picksWeakness: false, textInput: true },
     });
-    waitOutcome = 'result';
-    lastAnalysisText = [result.transcription, result.reason].filter(Boolean).join(' ');
-    startQuizVerify(result);
-    if (!result.hasSolvingWork) {
-      offerRetake(); // 갈래 3: 풀이 흔적 없음 → 다시 찍기 유도 (Task 8)
-      return;
-    }
-    if (result.needsManualSelection) {
-      // 경우 2: 1등 추측이 살아 있고 확신이 중간이면 추측 확인부터
-      if (result.predictedMethodId !== 'unknown' && result.confidence >= SOFT_ASSERT_MIN && catalog[result.predictedMethodId]) {
-        softAssertMethod(result);
-        return;
-      }
-      showCandidateCards(result.candidateMethodIds); // 확신 낮음: 바로 보기 제시
-      return;
-    }
-    assertMethod(result); // 경우 1: 단언
+    script.start(result);
   }
 
-  // 갈래 1: 단언 + 탈출구
-  function assertMethod(result) {
-    const info = catalog[result.predictedMethodId];
-    if (!info) {
-      // 서버·웹 카탈로그가 어긋난 경우(사본 드리프트) — 죽지 말고 후보 카드로
-      showCandidateCards(result.candidateMethodIds);
-      return;
-    }
-    const label = info.labelKo;
-    const snippet = firstSnippet(result.transcription);
-    coachSays(`풀이 읽었어. ${snippet ? snippet + ' — ' : ''}${ro(label)} 접근했네.`);
-    coachSays('그럼 여기서부터 같이 보자.');
-    setActions([
-      // method_confirm — AI 방법 단언의 적중/빗나감. mode로 단언(assert)과 추측 확인(soft)을 가른다.
-      { label: '맞아, 시작하자', kind: 'primary', onPress: () => { userSays('맞아'); logEvent('method_confirm', { answer: 'yes', mode: 'assert' }); confirmMethod(result.predictedMethodId); } },
-      { label: '아니야, 다른 방법으로 풀었어', kind: 'ghost', onPress: () => { userSays('아니야'); logEvent('method_confirm', { answer: 'no', mode: 'assert' }); showTopicMethods(undefined, [result.predictedMethodId]); } },
-    ]);
-  }
-  function firstSnippet(transcription) {
-    if (!transcription) return '';
-    const cut = transcription.split(/[.。\n]/)[0].trim();
-    return cut.length > 40 ? cut.slice(0, 40) + '…' : cut;
-  }
+  // 대본이 부르는 자리. 이름(GA)은 대본 이벤트 그대로 — 웹이 원래 쓰던 이름이다
+  const webIO = {
+    say: (text) => { coachSays(text); },
+    mySay: (text) => { userSays(text); },
+    ask: setActions,
+    askText: askTextInput,
+    showNote: renderNoteCard,
+    showWeaknessCard: (card) => cardEl(card.title, card.body, 'final'),
+    end: (ending) => {
+      if (ending.kind === 'note') showForgettingCurve(ending.variant, ending.note);
+      else if (ending.kind === 'weakness') showForgettingCurve('survey', ending.card);
+      // closed("오늘은 여기까지"): 웹은 버튼 없이 끝난다
+    },
+    run: (effect) => (effect === 'restart' ? window.location.reload() : resetUpload()),
+    log: ({ name, ...params }) =>
+      logEvent(name, name === 'quiz_verify' ? { ...params, submission_id: submissionId, attempt } : params),
+  };
 
-  // 경우 2 중간 확신: 단정 대신 추측 확인 — "~같아. 맞아?"
-  function softAssertMethod(result) {
-    const info = catalog[result.predictedMethodId];
-    const snippet = firstSnippet(result.transcription);
-    coachSays(`풀이에 ${snippet ? `"${snippet}" ` : ''}쓴 게 보이던데 — ${ro(info.labelKo)} 푼 것 같아. 맞아?`);
-    setActions([
-      { label: '맞아', kind: 'primary', onPress: () => { userSays('맞아'); logEvent('method_confirm', { answer: 'yes', mode: 'soft' }); confirmMethod(result.predictedMethodId); } },
-      {
-        label: '아니야, 다른 방법이야', kind: 'ghost',
-        onPress: () => {
-          userSays('아니야');
-          logEvent('method_confirm', { answer: 'no', mode: 'soft' });
-          // 거절된 1등은 후보에서 제외 — 거절한 게 또 뜨지 않게
-          showCandidateCards(result.candidateMethodIds, undefined, [result.predictedMethodId]);
-        },
-      },
-    ]);
-  }
-
-  // 방법 확정의 단일 관문. 주머니 일치 + 자신감 통과 → 짚기, 아니면 설문.
-  function confirmMethod(methodId) {
-    const pocketAlive = pocket && methodId === pocket.predictedMethodId;
-    if (pocketAlive && pocket.errorCandidates?.length > 0 && pocket.errorConfidence >= ERROR_CONFIDENCE_MIN) {
-      startPointing(0);
-      return;
-    }
-    if (pocketAlive && pocket.hasSolvingWork) {
-      // 가지 6 = B안: 방법은 맞는데 오류를 못 찾은 날 — 관찰을 솔직하게 보고
-      coachSays('그런데 좀 신기해 — 풀이 과정에서는 틀린 데를 못 찾았어. 과정은 맞게 간 것 같거든.');
-      coachSays('이러면 보통 마지막에 답을 옮겨 적을 때나 검산에서 새는 경우가 많아.');
-      showFeelingSurvey(methodId, '풀면서 느낌상 뭐가 걸렸어?', true);
-      return;
-    }
-    showFeelingSurvey(methodId); // 방법 뒤집힘·풀이 없음: 주머니 무효
-  }
-
-  function methodButton(id) {
-    return {
-      label: catalog[id].labelKo,
-      onPress: () => { userSays(catalog[id].labelKo); confirmMethod(id); },
-    };
-  }
-
-  // 갈래 2: AI 후보 카드 (최대 4개). 후보가 비면 전체를 쏟지 않고 주제 기반으로 좁힌다.
-  function showCandidateCards(candidateIds, promptText, excludeIds = []) {
-    // unknown·웹 카탈로그에 없는 id(사본 드리프트)·이미 아니라고 한 방법 방어
-    const candidates = candidateIds.filter(
-      (id) => id !== 'unknown' && catalog[id] && !excludeIds.includes(id),
-    );
-    if (candidates.length === 0) {
-      // 후보가 없으면 전체 목록 대신 주제 기반 상위 N개로 안내
-      showTopicMethods(promptText, excludeIds);
-      return;
-    }
-    coachSays(promptText ?? '풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?');
-    const buttons = candidates.map(methodButton);
-    buttons.push({
-      label: '이 중엔 없어',
-      kind: 'ghost',
-      // 방금 보여준 후보는 다음 목록에서 제외 — 거절한 게 또 뜨지 않게
-      onPress: () => showTopicMethods(undefined, [...excludeIds, ...candidates]),
-    });
-    setActions(buttons);
-  }
-
-  // 후보를 못 좁혔을 때: 읽은 풀이 내용의 주제로 상위 N개만 추리고,
-  // 그래도 못 맞추면 학생이 직접 입력하도록 한다 (전체 31개를 쏟지 않는다).
-  function showTopicMethods(promptText, excludeIds = []) {
-    const matched = matchMethodsByKeywords(lastAnalysisText, TOPIC_TOP_N).filter(
-      (id) => !excludeIds.includes(id),
-    );
-    if (matched.length === 0) {
-      // 주제조차 못 좁힘 → 직접 물어보기
-      askMethodByText();
-      return;
-    }
-    coachSays(promptText ?? '네가 푼 방식이랑 비슷해 보이는 방법들이야. 이 중에 있어?');
-    const buttons = matched.map(methodButton);
-    buttons.push({
-      label: '여기에도 없어, 직접 쓸게',
-      kind: 'ghost',
-      onPress: () => askMethodByText(),
-    });
-    setActions(buttons);
-  }
-
-  // 카탈로그 keywords 로컬 매칭 — diagnoseMethod 호출 실패 시(오프라인·구버전 배포)의 폴백
-  function matchMethodsByKeywords(rawText, limit = 3) {
-    const text = (rawText || '').toLowerCase();
-    if (!text) return [];
-    return selectableMethods
-      .map((m) => {
-        const c = catalog[m.id];
-        const hits = [...c.keywords, c.labelKo].reduce(
-          (n, kw) => n + (text.includes(kw.toLowerCase()) ? 1 : 0), 0);
-        return { id: m.id, hits };
-      })
-      .filter((s) => s.hits > 0)
-      .sort((a, b) => b.hits - a.hits)
-      .slice(0, limit)
-      .map((s) => s.id);
-  }
-
-  // 직접 물어보기: 학생이 자기 말로 적으면 diagnoseMethod(AI)가 방법을 찾아 flow에 자동 연결
-  function askMethodByText(promptText) {
-    coachSays(promptText ?? '어떻게 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼.');
+  // 방법을 학생 말로 받는 입력칸 — 보내면 diagnoseMethod(AI)가 방법을 찾는다(대본 routeFromText)
+  function askTextInput(prompt) {
     const input = document.createElement('input');
     input.className = 'fallback-input';
-    input.placeholder = '예: 근의 공식에 바로 대입했어';
-    input.maxLength = 200;
+    input.placeholder = prompt.placeholder;
+    input.maxLength = prompt.maxLength;
     markAsk();
     actionsBox.innerHTML = '';
     actionsBox.appendChild(input);
     const submit = document.createElement('button');
     submit.className = 'primary';
-    submit.textContent = '보내기';
+    submit.textContent = prompt.submitLabel;
     submit.addEventListener('click', () => {
       const rawText = input.value.trim();
       if (!rawText) return;
       submit.disabled = true; // 응답 대기 중 중복 전송 방지
-      userSays(rawText);
       actionsBox.innerHTML = '';
-      lastAnalysisText = rawText; // 이후 좁히기는 학생이 쓴 말을 재료로
-      routeFromText(rawText);
+      prompt.onSubmit(rawText);
     });
     actionsBox.appendChild(submit);
     input.focus();
   }
 
-  // 학생이 쓴 글 → AI 판별 → flow 자동 연결. AI 실패 시 키워드 매칭 폴백,
-  // 2번 물어봐도 못 좁히면 '잘 모르겠어' 진단 flow로 진행 (막다른 길 없음)
-  async function routeFromText(rawText) {
-    textAskCount += 1;
-    coachSays('잠깐만, 읽어볼게…');
-
-    let result = null;
-    try {
-      const response = await fetch(DIAGNOSE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemId: 'photo-flow-web', // 사진 flow는 문제를 미리 모른다 → 로그 구분용 고정 id
-          rawText,
-          allowedMethodIds: selectableMethods.map((m) => m.id),
-          allowedMethods: methodDescriptors,
-        }),
-        signal: AbortSignal.timeout(30_000),
-      });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      result = await response.json();
-    } catch {
-      // 오프라인·구버전 배포(12개 제한) 등 — 아래에서 키워드 매칭으로 폴백
-    }
-
-    // AI가 확신하면 그 방법의 flow로 바로 연결
-    if (result && !result.needsManualSelection && catalog[result.predictedMethodId]) {
-      const label = catalog[result.predictedMethodId].labelKo;
-      coachSays(`${ro(label)} 풀었구나. 그럼 여기서부터 같이 보자.`);
-      confirmMethod(result.predictedMethodId);
-      return;
-    }
-
-    // 애매하면 AI 후보로, AI 실패면 키워드 매칭으로 후보 카드
-    const candidateIds = result ? result.candidateMethodIds : matchMethodsByKeywords(rawText, TOPIC_TOP_N);
-    const candidates = candidateIds.filter((id) => id !== 'unknown' && catalog[id]);
-    if (candidates.length > 0) {
-      showCandidateCards(candidates, '이 중에 있어?');
-      return;
-    }
-
-    if (textAskCount < 2) {
-      askMethodByText('음… 잘 못 알아들었어. 어떤 공식이나 방법을 썼는지 조금만 더 자세히 알려줄래?');
-      return;
-    }
-
-    // 2번 물어봐도 못 좁힘 → 마지막 수단으로 전체 목록에서 직접 고르게
-    showAllMethods();
-  }
-
-  // 마지막 수단: 전체 카탈로그를 보여주고 직접 고르게 한다.
-  // 목록에도 없으면 '잘 모르겠어'로 방법 특정 없이 진행 가능한 진단 flow로.
-  function showAllMethods() {
-    coachSays('그럼 전체 목록에서 직접 골라볼래?');
-    const buttons = selectableMethods.map((m) => methodButton(m.id));
-    buttons.push({
-      label: '잘 모르겠어',
-      kind: 'ghost',
-      onPress: () => { userSays('잘 모르겠어'); showFeelingSurvey(null); },
-    });
-    setActions(buttons);
-  }
-
-  // 갈래 3: 풀이 흔적 없음. (b)문제만 찍은 학생을 경우 1로 승격시키는 사다리.
-  function offerRetake() {
-    coachSays('사진에서 풀이 과정을 못 찾았어. 혹시 종이에 풀었으면, 풀이까지 나오게 다시 찍어줄래? 그러면 어디서 틀렸는지 내가 직접 짚어줄 수 있어.');
-    coachSays('머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게만 알려줘.');
-    setActions([
-      { label: '📷 풀이까지 나오게 다시 찍기', kind: 'primary', onPress: () => window.location.reload() },
-      { label: '✏️ 직접 알려줄게', kind: 'ghost', onPress: () => askMethodByText('어떤 방법으로 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼.') },
-    ]);
-  }
-
-  // 사진 거르기에 걸린 사진 — 왜 막혔는지 말하고 그 자리에서 다시 고르게 한다(새로고침 안 함 → retakeOf가 이어진다).
-  // 문구는 10.01 설계 초안. "카톡"은 짐작 — 2주 뒤 원장 gate.width 분포 보고 고친다
-  const GATE_COPY = {
-    blocked_rotation: {
-      text: '사진이 옆으로 누워 있어. 글씨가 바로 서게 세로로 다시 찍어줘 — 누운 채로는 네 풀이를 잘못 읽어.',
-      retake: '📷 세로로 다시 찍기',
-    },
-    blocked_small: {
-      // 10.01 바꿈(기윤): "너무 작아서"는 학생 폰 화면에선 멀쩡해 보여 "내 눈엔 안 작은데?"가 된다 — 반문을 첫마디로 막는다.
-      // 버튼은 카메라를 안 열고 업로드로 간다(resetUpload) — 이름도 그대로. target-student는 원문 없이 읽기만(판정 아님)
-      text: '화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어. 캡처나 잘라낸 사진 말고, 찍은 원본을 올려줘.',
-      retake: '다른 사진 올리기',
-    },
-  };
-  function offerRetakeForGate(reason) {
-    const copy = GATE_COPY[reason];
-    if (!copy) { offerRetake(); return; } // 서버가 새 걸림 이유를 먼저 내보낸 경우
-    coachSays(copy.text);
-    setActions([
-      { label: copy.retake, kind: 'primary', onPress: resetUpload },
-      { label: '오늘은 여기까지', kind: 'ghost',
-        onPress: () => { userSays('오늘은 여기까지'); coachSays('알겠어. 다른 문제 생기면 또 올려줘.'); } },
-    ]);
-  }
-
-  // ── 오류 짚기 · 쪽지시험 · 약점 카드 ──
-
-  // 짚기 (09.23 ⑤): 묻지 않고 말해준다. 09.20 통화에서 틀린 자리를 모르는 학생은
-  // "여기서 틀린 것 같아. 맞아?"에 [맞아]도 [아니야]도 못 눌렀다 — 둘 다 거짓말이 된다.
-  // 그래서 학생이 확실히 답할 수 있는 것만 묻는다: 알겠나 / 모르겠나 / 그 글자를 내가 썼나.
-  // 2번 후보로 넘어가는 사다리는 없앴다 — [안 썼는데]는 판독 실수라 같은 판독에서 나온 2번도 믿기 어렵다.
-  function startPointing(idx) {
-    const cand = pocket.errorCandidates[idx];
-    if (!cand) {
-      showFeelingSurvey(pocket.predictedMethodId, '음, 그럼 내 눈에 보이는 데는 아니었나 보네. 각도를 바꿔보자 — 풀면서 느낌상 뭐가 제일 걸렸어?');
-      return;
-    }
-    coachSays('그럼 풀이를 좀 더 보자.');
-    coachSays(`여기 — "${cand.quote}" 쓴 부분, 여기가 틀린 자리야.`);
-    coachSays(cand.why);
-    // error_point_react — 옛 error_point_confirm(yes/no)을 대신한다. 이제 안 물으니 got_it은 "수긍"이지
-    // 적중 증명이 아니다(모르는 학생은 뭐든 수긍한다). 확실한 빗나감은 not_mine뿐 — 적중률의 하한.
-    // 짚기가 먹혔나는 check_answer.passed를 react별로 갈라 본다.
-    const react = (kind) => logEvent('error_point_react', { react: kind });
-    setActions([
-      { label: '아, 이거였구나', kind: 'primary',
-        onPress: () => { userSays('아, 이거였구나'); react('got_it'); showCheck(idx, 'got_it'); } },
-      { label: '왜 틀린 건지 아직 모르겠어', kind: 'ghost',
-        onPress: () => { userSays('왜 틀린 건지 아직 모르겠어'); react('dont_get_why'); explainAgain(idx); } },
-      { label: '나 여기 이렇게 안 썼는데', kind: 'ghost',
-        onPress: () => { userSays('나 여기 이렇게 안 썼는데'); react('not_mine'); stopMisread(); } },
-    ]);
-  }
-
-  // [모르겠어] — 같은 why를 또 읽히지 않는다. 개념 설명(concept: 필요한 개념·성립 조건 → 학생 식이 어긴 이유)이
-  // 있으면 그걸, 없으면(calc_slip·answer_read·불량) fix("~하면 → ~하자")를 꺼내고 쪽지로 넘긴다.
-  // concept는 같은 analyzePhoto 한 번에서 같이 온다 — AI를 다시 부르지 않는다(09.23 astra·Fable, 기윤 🔒).
-  // fix는 어차피 노트 "다음엔" 칸에 나가서 여기서 빼도 잃는 글자가 없다.
-  // react를 갈라 넘긴다 — 설명을 본 학생과 fix만 본 학생이 check_answer에서 섞이면 "설명이 먹혔나"를 못 센다(09.24 Fable).
-  function explainAgain(idx) {
-    const cand = pocket.errorCandidates[idx];
-    coachSays('괜찮아, 말로 들어선 원래 잘 안 잡혀.');
-    if (cand.concept?.rule && cand.concept?.violation) {
-      coachSays(cand.concept.rule);
-      coachSays(cand.concept.violation);
-      showCheck(idx, 'dont_get_why_concept');
-      return;
-    }
-    if (cand.fix) coachSays(`다르게 말하면 — "${cand.fix}"`);
-    showCheck(idx, 'dont_get_why');
-  }
-
-  // [안 썼는데] — AI가 글씨를 잘못 읽은 날. 노트·약점 이름표를 안 만든다: 설문으로 보내면 [잘 모르겠어]가
-  // concept_gap으로 굳어(showFeelingSurvey) 판독 실수가 학생 약점으로 둔갑한다(09.23 astra·Fable).
-  function stopMisread() {
-    coachSays('내가 네 글씨를 잘못 읽었나 봐. 미안 — 이 분석은 여기서 멈출게.');
-    coachSays('풀이가 선명하게 나오게 다시 찍어주면 처음부터 다시 볼게.');
-    setActions([
-      { label: '📷 풀이가 선명하게 다시 찍기', kind: 'primary', onPress: () => window.location.reload() },
-      { label: '오늘은 여기까지', kind: 'ghost',
-        onPress: () => { userSays('오늘은 여기까지'); coachSays('알겠어. 다른 문제 생기면 또 올려줘.'); } },
-    ]);
-  }
-
-  // ── 쪽지·재도전 검산(요청 2, 09.30 · 설계 Fable · 검토 astra · 기준 90%/목표 98% 기윤) ──
-  // 요청 1이 만든 문제를 정답 번호 없이 다른 호출이 따로 푼다. 서버가 match를 줄 때만 학생에게 낸다
-  // (09.30 밤 Fable 최종: 서버는 번호만 다름도 match로 준다 — 막는 건 없음·복수·모호뿐, functions/src/verify-quiz-core.ts gateQuizVerdict).
-  // 없음·모호·에러·시간초과는 그 문제만 건너뛴다 — 정답을 바꿔 넣지 않는다. 라이브 33문항×5회: 나간 카드 정답 91.0%, 건너뜀 18.8%.
-  function retryShape(cand) {
-    // 보기 개수를 상수로 박지 않고 실제 배열 길이에서 뽑는다 — 서버가 4지선다로 가도 웹이 조용히 죽지 않게.
-    // 범위 검사가 핵심: 정답 인덱스가 보기 밖이면 전부 오답 처리되고 '정답은 "undefined"'가 학생에게 노출된다.
-    const opts = cand?.retryOptions;
-    return Boolean(cand && cand.retrySetup && cand.retryPrompt &&
-      Array.isArray(opts) && opts.length >= 2 &&
-      Number.isInteger(cand.retryAnswerIndex) &&
-      cand.retryAnswerIndex >= 0 && cand.retryAnswerIndex < opts.length);
-  }
-
-  // 절대 안 던진다 — 결과는 { verdict: 'match'|'skip', reason, ms }
-  async function verifyQuizFetch(body) {
-    const t0 = Date.now();
-    try {
-      const response = await fetch(VERIFY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(VERIFY_FETCH_TIMEOUT_MS),
-      });
-      if (!response.ok) return { verdict: 'skip', reason: 'error', ms: Date.now() - t0 };
-      const data = await response.json();
-      if (data?.verdict === 'match') return { verdict: 'match', reason: 'match', ms: Date.now() - t0 };
-      return { verdict: 'skip', reason: String(data?.verdict || 'invalid').slice(0, 20), ms: Date.now() - t0 };
-    } catch (error) {
-      return { verdict: 'skip', reason: error?.name === 'TimeoutError' ? 'timeout' : 'error', ms: Date.now() - t0 };
-    }
-  }
-
-  // 짚기로 가는 조건과 같을 때만, 후보 0번만 — startPointing(0)밖에 안 부른다
-  function startQuizVerify(result) {
-    verifySeq += 1;
-    verifyRun = null;
-    const cand = result.errorCandidates?.[0];
-    if (!result.hasSolvingWork || !cand || !(result.errorConfidence >= ERROR_CONFIDENCE_MIN)) return;
-    const base = { submissionId, qa: isQa || isLocal };
-    const hasCheck = cand.checkPrompt && Array.isArray(cand.checkOptions) && cand.checkOptions.length === 3 &&
-      Number.isInteger(cand.checkAnswerIndex);
-    verifyRun = {
-      seq: verifySeq,
-      idx: 0,
-      waitedOnce: false,
-      check: hasCheck
-        ? verifyQuizFetch({ kind: 'check', setup: cand.checkSetup || undefined, prompt: cand.checkPrompt,
-          options: cand.checkOptions, marked: cand.checkAnswerIndex, ...base })
-        : null,
-      retry: retryShape(cand) && cand.retryOptions.length === 3
-        ? verifyQuizFetch({ kind: 'retry', setup: cand.retrySetup, prompt: cand.retryPrompt,
-          options: cand.retryOptions, marked: cand.retryAnswerIndex, ...base })
-        : null,
-    };
-  }
-
-  // 절대 안 던진다. 이미 와 있으면 0초. 아니면 최대 5초 — 한 번 5초를 태웠으면(쪽지 wait_timeout) 재도전은 안 기다린다(빈 화면 10초 방지).
-  // 기다리는 동안 버튼은 없다 — setActions 클릭 핸들러가 onPress 전에 버튼을 지운다.
-  async function awaitVerdict(kind, idx) {
-    const run = verifyRun;
-    const t0 = Date.now();
-    if (!run || run.idx !== idx || !run[kind]) {
-      return { verdict: 'skip', reason: 'not_started', ms: null, waitedMs: 0, stale: false };
-    }
-    const cap = run.waitedOnce ? 0 : VERIFY_WAIT_MS;
-    let result = await Promise.race([run[kind], new Promise((resolve) => setTimeout(() => resolve(null), cap))]);
-    if (!result) {
-      run.waitedOnce = true;
-      result = { verdict: 'skip', reason: 'wait_timeout', ms: null };
-    }
-    return { ...result, waitedMs: Date.now() - t0, stale: run.seq !== verifySeq };
-  }
-
-  // 10.14 판정·98% 추적용 — 문항 차례에 한 번. 98% 자체는 GA로 못 잰다(정답표가 필요).
-  function logQuizVerify(kind, v, extra = {}) {
-    logEvent('quiz_verify', { kind, result: v.verdict, reason: v.reason, verify_ms: v.ms, waited_ms: v.waitedMs,
-      submission_id: submissionId, attempt, ...extra });
-  }
-
-  async function showCheck(idx, react) {
-    const cand = pocket.errorCandidates[idx];
-    const v = await awaitVerdict('check', idx);
-    if (v.stale) return; // 흐름이 바뀐 뒤 깨어났으면 화면을 덮지 않는다
-    logQuizVerify('check', v, { react });
-    if (v.verdict !== 'match') {
-      // 건너뜀은 실패가 아니다 — 노트 ✗·"괜찮아" 톤·fail 곡선 어디로도 안 가게 'skip'으로 넘긴다
-      startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkResult: 'skip' });
-      return;
-    }
-    // "노트 완성" 예고 — 문답이 노동이 아니라 결과물을 만드는 과정임을 먼저 말한다 (차가운 방문자 '중' 위험 대응)
-    // checkSetup(상황 칸)이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
-    if (cand.checkSetup) {
-      coachSays(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${cand.checkSetup}`);
-      coachSays(cand.checkPrompt);
-    } else {
-      coachSays(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${cand.checkPrompt}`);
-    }
-    setActions(cand.checkOptions.map((opt, i) => ({
-      label: opt,
-      onPress: () => {
-        userSays(opt);
-        const passed = i === cand.checkAnswerIndex;
-        logEvent('check_answer', { passed: passed ? 1 : 0, react }); // 쪽지시험 — 설명이 실제로 먹혔나
-        if (passed) {
-          coachSays('그렇지. 이제 이 자리에서는 안 틀리겠네.');
-        } else {
-          // 재시험 없음 — 한 번만 더 짚고 넘어간다 (늘어지면 귀찮음 축 침범)
-          coachSays(`아직 헷갈리는구나. 정답은 "${cand.checkOptions[cand.checkAnswerIndex]}" — 아까랑 같은 원리야.`);
-        }
-        // A안(07.31): 쪽지 → 재도전 → 오답노트 완성 → 곡선. 노트가 마지막 결과물로 나온다.
-        startRetry(idx, { methodId: pocket.predictedMethodId, mistakeType: cand.mistakeType, checkResult: passed ? 'pass' : 'fail' });
-      },
-    })));
-  }
-
-  // 약점 카드 = 설문 경로 전용 (07.31부터). AI 경로는 showWrongNote(오답노트)가 결과물을 맡는다.
-  // 설문 경로는 사진 인용·쪽지 기록이 없어 노트를 채울 재료가 부족 — 기존 카드 톤 유지.
-  function showWeaknessCard({ methodId, mistakeType }) {
-    const methodLabel = methodId && catalog[methodId] ? catalog[methodId].labelKo : '방법 미상';
-    const typeInfo = SURVEY.TYPES[mistakeType] || { label: '유형 미상', fix: '' };
-    const title = `오늘 찾은 약점 — ${methodLabel} × ${typeInfo.label}`;
-    cardEl(title, ['(네가 직접 짚어준 것)', typeInfo.fix].join('\n'), 'final');
-    // 깔때기 2' — 설문 결말 도달 수. note_shown과 합치면 결말 도달 전체,
-    // photo_submit에서 둘 다 빼면 중간 이탈이 나온다 (08.31: 21→1 갭이 이 이벤트 부재로 캄캄했음).
-    logEvent('weakness_card_shown', { method: methodId || 'unknown', mistake: mistakeType || 'unknown' });
-    showForgettingCurve('survey', { methodId, mistakeType });
-  }
-
-  // ── 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 곡선으로. ──
-  // ctx.checkResult: 'pass' | 'fail' | 'skip'(검산에서 빠져 쪽지를 안 봄)
-  async function startRetry(idx, ctx) {
-    const cand = pocket?.errorCandidates?.[idx];
-    if (!retryShape(cand)) { showWrongNote(idx, ctx, 'none'); return; } // if 관문: 조용히 건너뜀 — 노트는 그래도 나온다
-    const v = await awaitVerdict('retry', idx);
-    if (v.stale) return;
-    logQuizVerify('retry', v);
-    if (v.verdict !== 'match') { showWrongNote(idx, ctx, 'unverified'); return; } // 검산 통과 못 함 — 노트는 나온다
-    // 쪽지를 틀린 학생에게만 한 템포 — 오답 직후 연타 방지. 맞힌 학생은 빠르게 (귀찮음 축). 쪽지를 건너뛴 학생도 빠른 쪽.
-    coachSays(ctx.checkResult === 'fail'
-      ? '괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.'
-      : '그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.');
-    coachSays(`${cand.retrySetup}\n${cand.retryPrompt}`);
-    const buttons = cand.retryOptions.map((opt, i) => ({
-      label: opt,
-      onPress: () => {
-        userSays(opt);
-        if (i === cand.retryAnswerIndex) {
-          coachSays('그렇지! 아까 무너진 그 자리, 이번엔 통과했어.');
-          showWrongNote(idx, ctx, 'pass');
-        } else {
-          coachSays(`아깝다 — 정답은 "${cand.retryOptions[cand.retryAnswerIndex]}". 아까랑 같은 원리야.`);
-          showWrongNote(idx, ctx, 'fail'); // 재시도 없음
-        }
-      },
-    }));
-    buttons.push({ label: '지금은 넘어갈래', kind: 'ghost',
-      onPress: () => { userSays('지금은 넘어갈래'); showWrongNote(idx, ctx, 'skip'); } });
-    setActions(buttons);
-  }
-
   // ── 오답노트 카드: 흐름의 결과물 (07.31 스케치 · A안) ──
   // "진단 결과"가 아니라 "완성된 노트 한 장"으로 — 학생이 아는 양식(내 풀이/갈라진 지점/왜/다음엔)이
   // 자기 손글씨 사진과 함께, 자기가 한 글자도 안 썼는데 채워져 나온다. 정답 칸은 없다(갈라진 지점 노트).
-  function showWrongNote(idx, ctx, retryResult) {
-    const cand = pocket?.errorCandidates?.[idx];
-    const methodLabel = ctx.methodId && catalog[ctx.methodId] ? catalog[ctx.methodId].labelKo : '방법 미상';
-    const typeLabel = SURVEY.TYPES[ctx.mistakeType]?.label || '유형 미상';
-
-    coachSays('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
-
-    const today = new Date();
+  // 글자 줄(인용·확인·태그·이름표)은 앱 카드와 같은 함수(F.noteCardLines)
+  function renderNoteCard(view) {
+    const lines = F.noteCardLines(view);
     const el = document.createElement('div');
     el.className = 'card note-card';
     el.innerHTML = `
@@ -1048,43 +523,27 @@
       <div class="note-row"><span class="note-label">다음엔</span><span class="note-fix"></span></div>
       <div class="note-foot"><span class="note-checks"></span><span class="note-tags"></span></div>
       <div class="note-weakness"></div>
-      <div class="note-ask">📌 "수능장에서 이 풀이를 생각해 낼 수 있는가" — 답이 '당연하지'가 아니면, 이 문제 페이지를 접어 둬.</div>
+      <div class="note-ask"></div>
       <div class="note-capture">📸 이 카드, 여기선 저장 안 돼 — 캡처해서 가져가.</div>`;
     // 학생 데이터(인용·설명)는 전부 textContent로 — HTML 해석 금지
-    el.querySelector('.note-date').textContent = `${today.getMonth() + 1}/${today.getDate()}`;
+    el.querySelector('.note-date').textContent = view.dateLabel;
+    // 📌 접는 기준 — 앱 카드와 같은 문장(F.NOTE_ASK_LINE)
+    if (view.askLine) el.querySelector('.note-ask').textContent = F.NOTE_ASK_LINE; else el.querySelector('.note-ask').remove();
     const photo = el.querySelector('.note-photo');
-    if (uploadedImageDataUrl) photo.src = uploadedImageDataUrl; else photo.remove();
+    if (view.photoUri) photo.src = view.photoUri; else photo.remove();
     // 규칙 1호: 캡처해 갈 카드가 제일 시험지처럼 보여야 한다 — 채팅 프리미티브와 같이 fmtMath를 거친다
-    if (cand?.quote) setMath(el.querySelector('.note-quote'), `"${cand.quote}"`);
-    else el.querySelector('.note-quote').textContent = '(없음)';
-    setMath(el.querySelector('.note-why'), cand?.why || '');
-    setMath(el.querySelector('.note-fix'), cand?.fix || SURVEY.TYPES[ctx.mistakeType]?.fix || '');
-    // 안 본 문제는 줄에 안 적는다 — 검산에서 빠진 쪽지(skip)·재도전(unverified)이 ✗로 둔갑하지 않게
-    const marks = [
-      { pass: '쪽지시험 ✔', fail: '쪽지시험 ✗' }[ctx.checkResult],
-      { pass: '재도전 ✔', fail: '재도전 ✗' }[retryResult],
-    ].filter(Boolean);
-    el.querySelector('.note-checks').textContent = marks.length > 0 ? `오늘 확인: ${marks.join(' · ')}` : '';
-    el.querySelector('.note-tags').textContent = `#${methodLabel} #${typeLabel}`;
-    // 통역표 첫 호출 — (풀이법, 실수 유형)으로 약점 이름을 찾는다. 앱(features/photo)과 같은 표를 쓴다.
+    if (view.quote) setMath(el.querySelector('.note-quote'), lines.quote);
+    else el.querySelector('.note-quote').textContent = lines.quote;
+    setMath(el.querySelector('.note-why'), view.why);
+    setMath(el.querySelector('.note-fix'), view.fix);
+    el.querySelector('.note-checks').textContent = lines.checks;
+    el.querySelector('.note-tags').textContent = lines.tags;
     // 못 찾으면 줄 자체를 안 낸다(기윤 판정 2026.08.13) — 빈 이름표는 학생한테 값이 0이다.
-    // 여럿이면 다 나열한다. 하나로 고르는 건 저장 경로를 붙일 때 학생한테 물어본다(08.11 🔒).
-    const weaknessEl = el.querySelector('.note-weakness');
-    const weaknessIds =
-      ctx.methodId && ctx.mistakeType ? F.weaknessCandidatesFor(ctx.methodId, ctx.mistakeType) : [];
-    const weaknessLabels = weaknessIds.map((id) => F.diagnosisMap[id]?.labelKo).filter(Boolean);
     // 구분자가 ' · '면 '역·이·대우 혼동'처럼 이름 안에 든 ·와 안 갈린다 — 브라우저 실측으로 잡음
-    if (weaknessLabels.length > 0) weaknessEl.textContent = `🏷️ ${weaknessLabels.join(' 또는 ')}`;
+    const weaknessEl = el.querySelector('.note-weakness');
+    if (lines.weaknessLabels.length > 0) weaknessEl.textContent = `🏷️ ${lines.weaknessLabels.join(' 또는 ')}`;
     else weaknessEl.remove();
     thread.appendChild(el);
-    logEvent('note_shown', { retry: retryResult }); // 깔때기 2 — 끝까지 걸어서 노트를 받은 수
-
-    // 쪽지 ✗인데 재도전으로 만회 못 했으면(실패·스킵·없음) 성공 톤 금지 — 노트의 ✗와 곡선 문구가 모순되지 않게
-    // 쪽지를 건너뛴 건(skip) 실패가 아니다 — 실패는 재도전 ✗이거나, 쪽지 ✗를 재도전으로 못 만회했을 때만
-    const recovered = retryResult === 'pass';
-    const curveFail = retryResult === 'fail' || (ctx.checkResult === 'fail' && !recovered);
-    showForgettingCurve(curveFail ? 'fail' : 'success', ctx);
-
     // 곡선·버튼이 각자 스크롤을 가져가면 캡처하라는 노트가 화면 밖으로 밀린다 — 마지막 스크롤은 노트 머리로
     requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
@@ -1098,10 +557,7 @@
   };
 
   // 곡선·점은 SVG, 라벨 3개는 HTML — 방법명 길이가 제각각이라 SVG text로는 줄바꿈을 보장할 수 없다.
-  function showForgettingCurve(variant, ctx = {}) {
-    const methodLabel = ctx.methodId && catalog[ctx.methodId] ? catalog[ctx.methodId].labelKo : '방법 미상';
-    // 설문·건너뛰기 경로에선 유형이 없을 수 있다 — 마지막 화면이 죽으면 안 되니 폴백.
-    const typeLabel = SURVEY.TYPES[ctx.mistakeType]?.label || '유형 미상';
+  function showForgettingCurve(variant, { methodLabel, typeLabel }) {
 
     coachSays(CURVE_LINES[variant] || CURVE_LINES.fail);
 
@@ -1146,33 +602,5 @@
       { label: '다른 문제도 올려보기', kind: 'ghost', onPress: () => window.location.reload() },
     ]);
     endingActions();
-  }
-
-  // 느낌 설문: "어디서 틀렸어?"(분석 숙제)가 아니라 "뭐가 걸렸어?"(경험 증언)만 묻는다.
-  function showFeelingSurvey(methodId, promptText, withAnswerReadHint) {
-    const options = SURVEY.optionsFor(methodId);
-    if (withAnswerReadHint) {
-      // B안: 마지막 보기를 힌트 버전으로 교체 (없으면 추가)
-      const i = options.findIndex((o) => o.type === 'answer_read');
-      if (i >= 0) options[i] = SURVEY.ANSWER_READ_HINT; else options.push(SURVEY.ANSWER_READ_HINT);
-    }
-    coachSays(promptText || '그럼 — 풀면서 느낌상 뭐가 제일 걸렸어?');
-    const buttons = options.map((opt) => ({
-      label: opt.text,
-      onPress: () => {
-        userSays(opt.text);
-        logEvent('survey_pick', { mistake: opt.type }); // 오류 못 찾은 날, 학생이 스스로 짚는 자리의 분포
-        showWeaknessCard({ methodId, mistakeType: opt.type, aiConfirmed: false });
-      },
-    }));
-    buttons.push({
-      label: '잘 모르겠어', kind: 'ghost',
-      onPress: () => {
-        userSays('잘 모르겠어');
-        logEvent('survey_pick', { mistake: 'dont_know' });
-        showWeaknessCard({ methodId, mistakeType: 'concept_gap', aiConfirmed: false });
-      },
-    });
-    setActions(buttons);
   }
 })();

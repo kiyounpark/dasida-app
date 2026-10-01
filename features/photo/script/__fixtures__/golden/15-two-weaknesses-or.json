@@ -1,0 +1,243 @@
+{
+  "result": {
+    "hasSolvingWork": true,
+    "userAnswer": null,
+    "transcription": "f'(x)=3x^2-6x=0, x=0 또는 x=2. 극댓값 f(0)",
+    "predictedMethodId": "diff",
+    "confidence": 0.9,
+    "candidateMethodIds": [
+      "diff"
+    ],
+    "reason": "",
+    "needsManualSelection": false,
+    "errorCandidates": [
+      {
+        "quote": "f'(x)=3x^2-6x=0 → x=0, x=2",
+        "why": "f'(x)=0인 x를 찾은 뒤 앞뒤로 f'(x) 부호가 바뀌는지 안 봤어. 부호표 없이 극댓값을 정했어.",
+        "mistakeType": "procedure_miss",
+        "fix": "f'(x)=0 찾으면 바로 부호표 그리기",
+        "checkSetup": "f(x)=x^3-3x 에서 f'(x)=3x^2-3=0 이면 x=±1이야.",
+        "checkPrompt": "x=-1에서 극댓값인지 알려면 뭘 봐야 할까?",
+        "checkOptions": [
+          "x=-1 앞뒤 f'(x) 부호",
+          "f(-1)의 부호",
+          "f''(x)=0 인 x"
+        ],
+        "checkAnswerIndex": 0,
+        "retrySetup": "f(x)=x^3-12x 에서 f'(x)=3x^2-12 야.",
+        "retryPrompt": "x=2 앞뒤 f'(x) 부호는?",
+        "retryOptions": [
+          "- 에서 +",
+          "+ 에서 -",
+          "안 바뀐다"
+        ],
+        "retryAnswerIndex": 0
+      }
+    ],
+    "errorConfidence": 0.8
+  },
+  "verdicts": {
+    "check": "match",
+    "retry": "match"
+  },
+  "diagnose": [],
+  "steps": [
+    "맞아, 시작하자",
+    "아, 이거였구나",
+    "x=-1 앞뒤 f'(x) 부호",
+    "- 에서 +"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "풀이 읽었어. f'(x)=3x²-6x=0, x=0 또는 x=2 — 미분으로 접근했네.",
+        "그럼 여기서부터 같이 보자."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "맞아, 시작하자",
+          "primary"
+        ],
+        [
+          "아니야, 다른 방법으로 풀었어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "맞아, 시작하자"
+    },
+    {
+      "me": "맞아"
+    },
+    {
+      "coach": [
+        "그럼 풀이를 좀 더 보자.",
+        "여기 — \"f'(x)=3x²-6x=0 → x=0, x=2\" 쓴 부분, 여기가 틀린 자리야.",
+        "f'(x)=0인 x를 찾은 뒤 앞뒤로 f'(x) 부호가 바뀌는지 안 봤어. 부호표 없이 극댓값을 정했어."
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "method_confirm",
+        "answer": "yes",
+        "mode": "assert"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "아, 이거였구나",
+          "primary"
+        ],
+        [
+          "왜 틀린 건지 아직 모르겠어",
+          "ghost"
+        ],
+        [
+          "나 여기 이렇게 안 썼는데",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "아, 이거였구나"
+    },
+    {
+      "me": "아, 이거였구나"
+    },
+    {
+      "coach": [
+        "그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. f(x)=x³-3x 에서 f'(x)=3x²-3=0 이면 x=±1이야.",
+        "x=-1에서 극댓값인지 알려면 뭘 봐야 할까?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "error_point_react",
+        "react": "got_it"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "check",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0,
+        "react": "got_it"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "x=-1 앞뒤 f'(x) 부호",
+          null
+        ],
+        [
+          "f(-1)의 부호",
+          null
+        ],
+        [
+          "f''(x)=0 인 x",
+          null
+        ]
+      ]
+    },
+    {
+      "press": "x=-1 앞뒤 f'(x) 부호"
+    },
+    {
+      "me": "x=-1 앞뒤 f'(x) 부호"
+    },
+    {
+      "coach": [
+        "그렇지. 이제 이 자리에서는 안 틀리겠네.",
+        "그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.",
+        "f(x)=x³-12x 에서 f'(x)=3x²-12 야.\nx=2 앞뒤 f'(x) 부호는?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "check_answer",
+        "passed": 1,
+        "react": "got_it"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "retry",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0
+      }
+    },
+    {
+      "buttons": [
+        [
+          "- 에서 +",
+          null
+        ],
+        [
+          "+ 에서 -",
+          null
+        ],
+        [
+          "안 바뀐다",
+          null
+        ],
+        [
+          "지금은 넘어갈래",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "- 에서 +"
+    },
+    {
+      "me": "- 에서 +"
+    },
+    {
+      "coach": [
+        "그렇지! 아까 무너진 그 자리, 이번엔 통과했어.",
+        "자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "\"f'(x)=3x²-6x=0 → x=0, x=2\"",
+        "why": "f'(x)=0인 x를 찾은 뒤 앞뒤로 f'(x) 부호가 바뀌는지 안 봤어. 부호표 없이 극댓값을 정했어.",
+        "fix": "f'(x)=0 찾으면 바로 부호표 그리기",
+        "checks": "오늘 확인: 쪽지시험 ✔ · 재도전 ✔",
+        "tags": "#미분 #절차 누락",
+        "weakness": [
+          "풀이 순서 혼동",
+          "미분 활용 오류"
+        ],
+        "askLine": true
+      }
+    },
+    {
+      "event": {
+        "name": "note_shown",
+        "retry": "pass"
+      }
+    },
+    {
+      "ending": "note:success"
+    }
+  ]
+}

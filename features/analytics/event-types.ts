@@ -21,7 +21,14 @@ export type EventName =
   | 'photo_weakness_labeled'
   | 'photo_weakness_picked'
   | 'photo_dead_end'
-  | 'photo_quiz_verify';
+  | 'photo_quiz_verify'
+  // 1.0.10(B) — 웹과 같은 대본(features/photo/script)이 내는 이벤트. 웹 GA 이름 앞에 photo_만 붙였다
+  | 'photo_method_confirm'
+  | 'photo_error_point_react'
+  | 'photo_check_answer'
+  | 'photo_survey_pick'
+  | 'photo_weakness_card_shown'
+  | 'photo_note_shown';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -120,6 +127,8 @@ export type EventParams = {
     reason: string;
     verify_ms: number | null;
     waited_ms: number;
+    /** 쪽지(check)에만 — 짚기에 어떻게 반응한 뒤였나 (웹 quiz_verify와 같은 칸) */
+    react?: string;
   };
   /**
    * 오답노트가 나온 순간의 (풀이법 × 실수유형) 칸과 그 칸에서 약점 이름이 붙었는지.
@@ -148,6 +157,9 @@ export type EventParams = {
     picked: string | null;
   };
   /**
+   * ⚠️ 1.0.9까지 찍힌 이름 — 1.0.10(B)부터는 안 찍힌다. 노트 없이 끝나던 세 갈래가 웹처럼
+   * 설문 → 약점 카드(photo_weakness_card_shown)로 가고, 짚기 사다리는 없어졌다.
+   *
    * 오답노트를 못 받고 끝난 순간. photo_weakness_labeled가 분자라면 이쪽이 **분모의 나머지**다.
    *
    * 웹 28일 실측이 photo_submit 21 → note_shown 1이었다. 21명 중 20명이 여기로 빠지는데
@@ -165,6 +177,24 @@ export type EventParams = {
     /** pointing_rejected에서만 — 짚기 사다리를 몇 개까지 보여주고 거절당했나 (0~2). */
     attempts?: number;
   };
+  /** AI가 읽은 방법을 학생이 맞다/아니다 한 순간. mode: 단언(assert)·추측 확인(soft) — 웹 method_confirm */
+  photo_method_confirm: { answer: 'yes' | 'no'; mode: 'assert' | 'soft' };
+  /**
+   * 짚어준 자리에 대한 반응 — 웹 error_point_react. got_it은 "수긍"이지 적중 증명이 아니다.
+   * 확실한 빗나감은 not_mine(내가 이렇게 안 썼는데)뿐 — 짚기 적중률의 하한.
+   */
+  photo_error_point_react: { react: 'got_it' | 'dont_get_why' | 'not_mine' };
+  /** 쪽지시험 답 — 설명이 먹혔나를 react별로 가른다 (웹 check_answer) */
+  photo_check_answer: { passed: 0 | 1; react: string };
+  /** 오류를 못 짚은 날 학생이 고른 느낌 — dont_know는 「잘 모르겠어」 (웹 survey_pick) */
+  photo_survey_pick: { mistake: string };
+  /**
+   * 설문 결말 카드에 닿은 수(저장 안 함). photo_note_shown과 합치면 결말 도달 전체.
+   * 🔒 10.01 — 카드로 끝난 수가 노트로 끝난 수보다 많아지면 카드 저장을 붙인다.
+   */
+  photo_weakness_card_shown: { method: string; mistake: string };
+  /** 오답노트까지 걸어간 수 — retry는 재도전 결과(unverified = 검산 통과 못 해 안 냄) (웹 note_shown) */
+  photo_note_shown: { retry: string };
 };
 
 export type ScreenName =

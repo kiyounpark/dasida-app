@@ -18,7 +18,7 @@ import type { PhotoBubble } from '../types';
  * 2. 문단 전체가 수식이면 제 줄에 크게 떨어뜨린다(칠판 줄).
  * 3. 인용부호 안의 수식 = "네가 쓴 그 줄"만 바탕을 깔아 한 번 더 잡는다.
  */
-export function PhotoChatBubble({ bubble }: { bubble: Exclude<PhotoBubble, { kind: 'note' }> }) {
+export function PhotoChatBubble({ bubble }: { bubble: Extract<PhotoBubble, { kind: 'coach' | 'me' }> }) {
   const isMe = bubble.kind === 'me';
   const isAsk = bubble.kind === 'coach' && bubble.ask;
 
