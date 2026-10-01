@@ -49,13 +49,6 @@ export function PhotoFlowScreen({
     void countSavedNotes();
   }, [status, countSavedNotes]);
 
-  // 말풍선이 늘면 아래로 따라간다 (web-proto의 scrollIntoView 자리)
-  useEffect(() => {
-    if (status !== 'chat') return;
-    const timer = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
-    return () => clearTimeout(timer);
-  }, [status, bubbles, actions, textPrompt]);
-
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       {status === 'upload' && (
@@ -75,6 +68,10 @@ export function PhotoFlowScreen({
             contentContainerStyle={styles.list}
             contentInsetAdjustmentBehavior="automatic"
             keyboardShouldPersistTaps="handled"
+            // 말풍선·버튼·입력칸이 붙으면 아래로 따라간다 (web-proto의 scrollIntoView 자리).
+            // 상태가 바뀐 뒤 타이머로 내리면 늦게 그려진 입력칸을 못 따라간다 — 다시 묻는 입력칸이
+            // 화면 밖에 남았다(10.01 시뮬레이터). 크기가 바뀐 뒤에 내린다 (복습 화면과 같은 방식)
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
             ref={scrollRef}>
             {imageUri && (
               <View style={styles.previewFrame}>
