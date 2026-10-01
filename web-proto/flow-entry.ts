@@ -16,6 +16,8 @@ export { createPhotoScript } from '@/features/photo/script/photo-script';
 export { requestQuizVerify } from '@/features/photo/flow/verify-quiz-request';
 export { requestDiagnoseMethod } from '@/features/photo/flow/diagnose-method-request';
 export { ERROR_CONFIDENCE_MIN } from '@/features/photo/flow/route-from-analysis';
+// 노트 카드 글자 줄 — 앱 카드와 같은 함수
+export { noteCardLines } from '@/features/photo/script/note-card-lines';
 export {
   advanceFromCheck,
   advanceFromChoice,

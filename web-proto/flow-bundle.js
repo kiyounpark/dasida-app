@@ -33,6 +33,7 @@ var DasidaFlow = (() => {
     getDiagnosisFlow: () => getDiagnosisFlow,
     getNode: () => getNode,
     methodOptions: () => methodOptions,
+    noteCardLines: () => noteCardLines,
     requestDiagnoseMethod: () => requestDiagnoseMethod,
     requestQuizVerify: () => requestQuizVerify,
     ro: () => ro,
@@ -2681,6 +2682,20 @@ ${quiz.prompt}`);
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  // features/photo/script/note-card-lines.ts
+  var CHECK_MARK = { pass: "\uCABD\uC9C0\uC2DC\uD5D8 \u2714", fail: "\uCABD\uC9C0\uC2DC\uD5D8 \u2717" };
+  var RETRY_MARK = { pass: "\uC7AC\uB3C4\uC804 \u2714", fail: "\uC7AC\uB3C4\uC804 \u2717" };
+  function noteCardLines(note) {
+    const marks = [CHECK_MARK[note.checkResult], RETRY_MARK[note.retryResult]].filter(Boolean);
+    const shown = note.primaryWeaknessId ? [note.primaryWeaknessId] : note.weaknessIds;
+    return {
+      quote: note.quote ? `"${note.quote}"` : "(\uC5C6\uC74C)",
+      checks: marks.length > 0 ? `\uC624\uB298 \uD655\uC778: ${marks.join(" \xB7 ")}` : "",
+      tags: `#${note.methodLabel} #${note.typeLabel}`,
+      weaknessLabels: shown.map((id) => diagnosisMap[id]?.labelKo).filter((label) => Boolean(label))
+    };
   }
 
   // data/detailedDiagnosisFlows.ts
