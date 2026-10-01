@@ -1,0 +1,62 @@
+{
+  "result": {
+    "hasSolvingWork": false,
+    "userAnswer": null,
+    "transcription": "",
+    "predictedMethodId": "unknown",
+    "confidence": 0,
+    "candidateMethodIds": [
+      "unknown"
+    ],
+    "reason": "gate",
+    "needsManualSelection": true,
+    "errorCandidates": [],
+    "errorConfidence": 0,
+    "gate": {
+      "decision": "blocked_small",
+      "rotation": null,
+      "width": 1568,
+      "height": 1074
+    }
+  },
+  "verdicts": {},
+  "diagnose": [],
+  "steps": [
+    "오늘은 여기까지"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "화면에선 괜찮아 보여도, 이 사진은 내가 글씨를 또렷하게 못 읽어. 캡처나 잘라낸 사진 말고, 찍은 원본을 올려줘."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "다른 사진 올리기",
+          "primary"
+        ],
+        [
+          "오늘은 여기까지",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "오늘은 여기까지"
+    },
+    {
+      "me": "오늘은 여기까지"
+    },
+    {
+      "coach": [
+        "알겠어. 다른 문제 생기면 또 올려줘."
+      ],
+      "ask": false
+    },
+    {
+      "ending": "closed"
+    }
+  ]
+}

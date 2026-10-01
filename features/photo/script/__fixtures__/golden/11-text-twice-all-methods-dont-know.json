@@ -1,0 +1,304 @@
+{
+  "result": {
+    "hasSolvingWork": false,
+    "userAnswer": null,
+    "transcription": "",
+    "predictedMethodId": "unknown",
+    "confidence": 0,
+    "candidateMethodIds": [
+      "unknown"
+    ],
+    "reason": "",
+    "needsManualSelection": true,
+    "errorCandidates": [],
+    "errorConfidence": 0,
+    "gate": {
+      "decision": "pass",
+      "rotation": "upright",
+      "width": 1176,
+      "height": 1568
+    }
+  },
+  "verdicts": {},
+  "diagnose": [
+    {
+      "predictedMethodId": "unknown",
+      "confidence": 0.1,
+      "candidateMethodIds": [
+        "unknown"
+      ],
+      "needsManualSelection": true,
+      "reason": ""
+    },
+    null
+  ],
+  "steps": [
+    "✏️ 직접 알려줄게",
+    {
+      "text": "ㅁㄴㅇㄹ"
+    },
+    {
+      "text": "그냥 했어"
+    },
+    "잘 모르겠어",
+    "잘 모르겠어"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "사진에서 풀이 과정을 못 찾았어. 혹시 종이에 풀었으면, 풀이까지 나오게 다시 찍어줄래? 그러면 어디서 틀렸는지 내가 직접 짚어줄 수 있어.",
+        "머리로 푼 거면 괜찮아 — 어떤 방법으로 풀었는지 짧게만 알려줘."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "📷 풀이까지 나오게 다시 찍기",
+          "primary"
+        ],
+        [
+          "✏️ 직접 알려줄게",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "✏️ 직접 알려줄게"
+    },
+    {
+      "coach": [
+        "어떤 방법으로 풀었는지 짧게 알려줄래? 네 말 그대로 써도 돼."
+      ],
+      "ask": true
+    },
+    {
+      "input": {
+        "placeholder": "예: 근의 공식에 바로 대입했어",
+        "maxLength": 200,
+        "submit": "보내기"
+      }
+    },
+    {
+      "type": "ㅁㄴㅇㄹ"
+    },
+    {
+      "me": "ㅁㄴㅇㄹ"
+    },
+    {
+      "coach": [
+        "잠깐만, 읽어볼게…",
+        "음… 잘 못 알아들었어. 어떤 공식이나 방법을 썼는지 조금만 더 자세히 알려줄래?"
+      ],
+      "ask": true
+    },
+    {
+      "input": {
+        "placeholder": "예: 근의 공식에 바로 대입했어",
+        "maxLength": 200,
+        "submit": "보내기"
+      }
+    },
+    {
+      "type": "그냥 했어"
+    },
+    {
+      "me": "그냥 했어"
+    },
+    {
+      "coach": [
+        "잠깐만, 읽어볼게…",
+        "그럼 전체 목록에서 직접 골라볼래?"
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "완전제곱식",
+          null
+        ],
+        [
+          "꼭짓점 공식",
+          null
+        ],
+        [
+          "미분",
+          null
+        ],
+        [
+          "인수분해",
+          null
+        ],
+        [
+          "근의 공식",
+          null
+        ],
+        [
+          "무리수 계산",
+          null
+        ],
+        [
+          "다항식 전개",
+          null
+        ],
+        [
+          "복소수 계산",
+          null
+        ],
+        [
+          "나머지정리",
+          null
+        ],
+        [
+          "경우의 수",
+          null
+        ],
+        [
+          "집합 연산",
+          null
+        ],
+        [
+          "명제 판별",
+          null
+        ],
+        [
+          "삼각함수",
+          null
+        ],
+        [
+          "적분",
+          null
+        ],
+        [
+          "부등식·함수",
+          null
+        ],
+        [
+          "수열",
+          null
+        ],
+        [
+          "지수·로그",
+          null
+        ],
+        [
+          "이차곡선",
+          null
+        ],
+        [
+          "극한",
+          null
+        ],
+        [
+          "벡터",
+          null
+        ],
+        [
+          "확률",
+          null
+        ],
+        [
+          "공간기하",
+          null
+        ],
+        [
+          "함수",
+          null
+        ],
+        [
+          "통계",
+          null
+        ],
+        [
+          "도형",
+          null
+        ],
+        [
+          "순열·조합",
+          null
+        ],
+        [
+          "수열의 극한",
+          null
+        ],
+        [
+          "심화 적분",
+          null
+        ],
+        [
+          "심화 미분",
+          null
+        ],
+        [
+          "심화 삼각함수",
+          null
+        ],
+        [
+          "잘 모르겠어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "잘 모르겠어"
+    },
+    {
+      "me": "잘 모르겠어"
+    },
+    {
+      "coach": [
+        "그럼 — 풀면서 느낌상 뭐가 제일 걸렸어?"
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "이 방법의 원리 자체가 잘 안 잡혔어",
+          null
+        ],
+        [
+          "식은 세웠는데 계산에서 미끄러졌어",
+          null
+        ],
+        [
+          "다 풀어놓고 마지막에 답을 잘못 쓴 것 같아",
+          null
+        ],
+        [
+          "잘 모르겠어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "잘 모르겠어"
+    },
+    {
+      "me": "잘 모르겠어"
+    },
+    {
+      "card": {
+        "title": "오늘 찾은 약점 — 방법 미상 × 개념 구멍",
+        "body": "(네가 직접 짚어준 것)\n문제 더 풀기 전에 이 방법이 왜 되는지 설명을 한 번만 다시 보자. 원리가 잡히면 나머지는 따라와."
+      }
+    },
+    {
+      "event": {
+        "name": "survey_pick",
+        "mistake": "dont_know"
+      }
+    },
+    {
+      "event": {
+        "name": "weakness_card_shown",
+        "method": "unknown",
+        "mistake": "concept_gap"
+      }
+    },
+    {
+      "ending": "weakness"
+    }
+  ]
+}

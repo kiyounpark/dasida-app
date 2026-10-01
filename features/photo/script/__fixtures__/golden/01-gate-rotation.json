@@ -1,0 +1,53 @@
+{
+  "result": {
+    "hasSolvingWork": false,
+    "userAnswer": null,
+    "transcription": "",
+    "predictedMethodId": "unknown",
+    "confidence": 0,
+    "candidateMethodIds": [
+      "unknown"
+    ],
+    "reason": "gate",
+    "needsManualSelection": true,
+    "errorCandidates": [],
+    "errorConfidence": 0,
+    "gate": {
+      "decision": "blocked_rotation",
+      "rotation": "rotated_left",
+      "width": 1568,
+      "height": 1074
+    }
+  },
+  "verdicts": {},
+  "diagnose": [],
+  "steps": [
+    "📷 세로로 다시 찍기"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "사진이 옆으로 누워 있어. 글씨가 바로 서게 세로로 다시 찍어줘 — 누운 채로는 네 풀이를 잘못 읽어."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "📷 세로로 다시 찍기",
+          "primary"
+        ],
+        [
+          "오늘은 여기까지",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "📷 세로로 다시 찍기"
+    },
+    {
+      "effect": "retake_from_gate"
+    }
+  ]
+}

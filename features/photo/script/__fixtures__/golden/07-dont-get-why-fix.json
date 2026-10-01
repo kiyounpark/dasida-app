@@ -1,0 +1,245 @@
+{
+  "result": {
+    "hasSolvingWork": true,
+    "userAnswer": null,
+    "transcription": "x^{2}+4x+4=5. (x+2)^2=5",
+    "predictedMethodId": "cps",
+    "confidence": 0.9,
+    "candidateMethodIds": [
+      "cps",
+      "vertex"
+    ],
+    "reason": "",
+    "needsManualSelection": false,
+    "errorCandidates": [
+      {
+        "quote": "x^{2}+4x+4=5",
+        "why": "왼쪽에 4를 더했으면 오른쪽에도 4를 더해야 해. x^2+4x=1에서 시작하면 (x+2)^2=5야.",
+        "mistakeType": "calc_slip",
+        "fix": "양변에 같은 수를 더했는지 한 줄씩 짝 맞춰 보기",
+        "checkSetup": "x^2 + 6x = 2 를 완전제곱식으로 바꾼다고 하자.",
+        "checkPrompt": "양변에 뭘 더해야 할까?",
+        "checkOptions": [
+          "3을 더한다",
+          "9를 더한다",
+          "6을 더한다"
+        ],
+        "checkAnswerIndex": 1,
+        "retrySetup": "이번엔 x^2 + 10x = 1 이야.",
+        "retryPrompt": "양변에 뭘 더해야 할까?",
+        "retryOptions": [
+          "25를 더한다",
+          "10을 더한다",
+          "5를 더한다"
+        ],
+        "retryAnswerIndex": 0
+      }
+    ],
+    "errorConfidence": 0.8
+  },
+  "verdicts": {
+    "check": "match",
+    "retry": "match"
+  },
+  "diagnose": [],
+  "steps": [
+    "맞아, 시작하자",
+    "왜 틀린 건지 아직 모르겠어",
+    "6을 더한다",
+    "25를 더한다"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "풀이 읽었어. x²+4x+4=5 — 완전제곱식으로 접근했네.",
+        "그럼 여기서부터 같이 보자."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "맞아, 시작하자",
+          "primary"
+        ],
+        [
+          "아니야, 다른 방법으로 풀었어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "맞아, 시작하자"
+    },
+    {
+      "me": "맞아"
+    },
+    {
+      "coach": [
+        "그럼 풀이를 좀 더 보자.",
+        "여기 — \"x²+4x+4=5\" 쓴 부분, 여기가 틀린 자리야.",
+        "왼쪽에 4를 더했으면 오른쪽에도 4를 더해야 해. x²+4x=1에서 시작하면 (x+2)²=5야."
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "method_confirm",
+        "answer": "yes",
+        "mode": "assert"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "아, 이거였구나",
+          "primary"
+        ],
+        [
+          "왜 틀린 건지 아직 모르겠어",
+          "ghost"
+        ],
+        [
+          "나 여기 이렇게 안 썼는데",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "왜 틀린 건지 아직 모르겠어"
+    },
+    {
+      "me": "왜 틀린 건지 아직 모르겠어"
+    },
+    {
+      "coach": [
+        "괜찮아, 말로 들어선 원래 잘 안 잡혀.",
+        "다르게 말하면 — \"양변에 같은 수를 더했는지 한 줄씩 짝 맞춰 보기\"",
+        "그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. x² + 6x = 2 를 완전제곱식으로 바꾼다고 하자.",
+        "양변에 뭘 더해야 할까?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "error_point_react",
+        "react": "dont_get_why"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "check",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0,
+        "react": "dont_get_why"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "3을 더한다",
+          null
+        ],
+        [
+          "9를 더한다",
+          null
+        ],
+        [
+          "6을 더한다",
+          null
+        ]
+      ]
+    },
+    {
+      "press": "6을 더한다"
+    },
+    {
+      "me": "6을 더한다"
+    },
+    {
+      "coach": [
+        "아직 헷갈리는구나. 정답은 \"9를 더한다\" — 아까랑 같은 원리야.",
+        "괜찮아, 헷갈리라고 있는 자리야. 마지막으로 딱 한 번만 — 새 숫자로 가보자.",
+        "이번엔 x² + 10x = 1 이야.\n양변에 뭘 더해야 할까?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "check_answer",
+        "passed": 0,
+        "react": "dont_get_why"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "retry",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0
+      }
+    },
+    {
+      "buttons": [
+        [
+          "25를 더한다",
+          null
+        ],
+        [
+          "10을 더한다",
+          null
+        ],
+        [
+          "5를 더한다",
+          null
+        ],
+        [
+          "지금은 넘어갈래",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "25를 더한다"
+    },
+    {
+      "me": "25를 더한다"
+    },
+    {
+      "coach": [
+        "그렇지! 아까 무너진 그 자리, 이번엔 통과했어.",
+        "자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "\"x²+4x+4=5\"",
+        "why": "왼쪽에 4를 더했으면 오른쪽에도 4를 더해야 해. x²+4x=1에서 시작하면 (x+2)²=5야.",
+        "fix": "양변에 같은 수를 더했는지 한 줄씩 짝 맞춰 보기",
+        "checks": "오늘 확인: 쪽지시험 ✗ · 재도전 ✔",
+        "tags": "#완전제곱식 #계산 손실수",
+        "weakness": [
+          "계산 실수 반복"
+        ],
+        "askLine": true
+      }
+    },
+    {
+      "event": {
+        "name": "note_shown",
+        "retry": "pass"
+      }
+    },
+    {
+      "ending": "note:success"
+    }
+  ]
+}
