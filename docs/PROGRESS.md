@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 22:09
+- 해시: `5daf3b6` (`5daf3b6d1bb746710627a2fd510f27509d010722`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5daf3b6d1bb746710627a2fd510f27509d010722
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 — 6~10호 A/B 중단·미판정, 8호부터 발전 사다리 (🔒 10.01 밤 기윤, astra·Fable 네 판)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 21:58
 - 해시: `03d3b49` (`03d3b49e673c4870b5fed7f4b8d326a7634ab787`)
 - 브랜치: main
