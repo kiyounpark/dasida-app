@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 13:26
+- 해시: `e9cbbf7` (`e9cbbf76de17db434d0a0076cc697cd894cc3944`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e9cbbf76de17db434d0a0076cc697cd894cc3944
+- 작성자: 박기윤
+- 메시지: feat(web): 대기 화면에 예시 오답노트 카드 3장 + 점 세 개 — 기다리는 65~110초 동안 탭을 안 떠나게 (10.01 astra·Fable 둘 다 A안)
+- 본문: - 결과 오답노트와 같은 모양: 문제·손글씨 풀이(틀린 줄 밑줄)·왜·다음엔, 시작 카드 무작위, "네 사진 아님" / - 가짜 진행률은 안 넣음(두 모델 최하위) · 입력·채점 없음이라 결과가 언제 와도 잃는 게 없다 / - 수학 math-checker 반영 · 넘김은 GA wait_card_next · 옛 HTML 캐시여도 분석 흐름은 안 죽게 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.09.30 22:40
 - 해시: `e67ed40` (`e67ed40878d7577baddf52592a6a45f20c5af3b4`)
 - 브랜치: main
