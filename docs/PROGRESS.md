@@ -1061,6 +1061,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 16:30
+- 해시: `3ffd3d8` (`3ffd3d82ea7ff3c39b1ea90de189c0219d1ccd52`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3ffd3d82ea7ff3c39b1ea90de189c0219d1ccd52
+- 작성자: 박기윤
+- 메시지: docs: STATUS·PROGRESS — 앱 1.0.10 코드 끝 (웹과 같게, astra 반드시 고칠 것 없음)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.01 16:27
+- 해시: `96f59a1` (`96f59a178b860ae372e45d683926183cd9046728`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/96f59a178b860ae372e45d683926183cd9046728
+- 작성자: 박기윤
+- 메시지: feat(app): 1.0.10 — 웹과 같게: 축소 규칙·긴 마감·거르기 문구·쪽지 검산
+- 본문: 10.01 기윤 🔒 1.0.10 범위를 앱에 옮긴다 (원본 web-proto app.js). / - 사진 축소: 긴 변 1568 → 픽셀 총량 1176×1568 + 긴 변 2048 (스크린샷이 거르기에 걸리던 구멍) / - 긴 마감: clientDeadlineMs 195000 + 요청 195초 + submissionId·retakeOf (원장 v2) / - 실패 문구: "잠깐 늦어졌어…" → "분석을 끝내지 못했어…" (09.30 웹과 같게), 시간 초과도 같은 말 / - 거르기 갈래: gate blocked_* → 웹 GATE_COPY 그대로 + [다른 사진 올리기]는 retakeOf를 잇는다 / - 쪽지·재도전 검산 verifyQuiz: match일 때만 낸다, 5초 대기, 건너뛴 쪽지는 노트에 ✗ 대신 빈칸(checkSkipped) / - 대기 문구: 20초 간격 · "보통 1~2분 걸려. 길면 더 걸리기도 해" (웹과 같게) / - 버전 1.0.9 → 1.0.10 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 15:58
 - 해시: `374a28e` (`374a28e86670f32605b8f48bc6798daf87c8b2b3`)
 - 브랜치: main
