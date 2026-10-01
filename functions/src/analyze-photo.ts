@@ -37,7 +37,7 @@ const openAiVisionReasoningEffort = defineString('OPENAI_VISION_REASONING_EFFORT
 // 사진 거르기 회전 판독 모델 — 10.01 실측(회전 11/11·29/29)과 같은 모델. effort는 low 고정(openai-client.ts)
 const openAiRotationModel = defineString('OPENAI_ROTATION_MODEL', { default: 'gpt-5.4-mini' });
 
-// base64 +33% 감안 원본 약 6MB 상한 — 요청 크기·비용 가드 (웹은 1568px로 축소해 보냄)
+// base64 +33% 감안 원본 약 6MB 상한 — 요청 크기·비용 가드 (웹은 픽셀 총량 1176×1568로 축소해 보냄)
 const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
 
 const AnalyzePhotoRequestSchema = z.object({

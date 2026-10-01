@@ -451,7 +451,7 @@
 
     let imageDataUrl;
     try {
-      imageDataUrl = await downscaleToDataUrl(selectedFile, 1568, 0.82);
+      imageDataUrl = await downscaleToDataUrl(selectedFile, 0.82);
       uploadedImageDataUrl = imageDataUrl;
     } catch {
       logReturnWhileWaiting();
@@ -494,10 +494,18 @@
     }
   });
 
-  // 사진 축소 — 전송량·비용 절감 (긴 변 1568px, JPEG 0.82)
-  async function downscaleToDataUrl(file, maxDim, quality) {
+  // 사진 축소 — 전송량·비용 절감 (JPEG 0.82). 10.01 바꿈(Fable 최종 · astra 긴 변 상한): 긴 변 1568 → 픽셀 총량 1176×1568 + 긴 변 2048.
+  // 긴 변 기준은 세로 긴 사진(스크린샷·세로로 자른 사진)의 짧은 변을 800 밑으로 눌러, 원본이 커도 서버 거르기에 걸렸다.
+  // 카메라 3:4 사진은 지금과 같은 1176×1568. 서버 800 기준은 이 값을 모른다 — 800을 옮겨도 여기는 안 바꾼다.
+  const DOWNSCALE_MAX_PIXELS = 1176 * 1568;
+  const DOWNSCALE_MAX_LONG_SIDE = 2048; // 모델이 이보다 긴 변을 다시 줄이면 "거르기 통과, 모델은 더 작게"가 된다(astra 인용, 확인 안 함)
+  async function downscaleToDataUrl(file, quality) {
     const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(
+      1,
+      Math.sqrt(DOWNSCALE_MAX_PIXELS / (bitmap.width * bitmap.height)),
+      DOWNSCALE_MAX_LONG_SIDE / Math.max(bitmap.width, bitmap.height),
+    );
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);

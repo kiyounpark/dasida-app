@@ -86,7 +86,7 @@ class FakeElement {
   toDataURL() { return 'data:image/jpeg;base64,/9j/AAAA'; }
 }
 
-function makePage({ fetchReplies }) {
+function makePage({ fetchReplies, bitmap = { width: 1618, height: 1109 } }) {
   const ids = ['screen-upload', 'screen-analyzing', 'screen-chat', 'analyzing-step', 'thread', 'actions', 'drop', 'file', 'picked', 'cta'];
   const byId = Object.fromEntries(ids.map((id) => [id, new FakeElement('div', id)]));
   byId['screen-analyzing'].hidden = true;
@@ -97,6 +97,7 @@ function makePage({ fetchReplies }) {
   const alerts = [];
   const abortTimeouts = [];
   const intervals = [];
+  const canvases = [];
   const replies = [...fetchReplies];
 
   const ctx = {
@@ -112,7 +113,7 @@ function makePage({ fetchReplies }) {
     crypto: { randomUUID },
     document: {
       getElementById: (id) => byId[id] ?? null,
-      createElement: (tag) => new FakeElement(tag),
+      createElement: (tag) => { const el = new FakeElement(tag); if (tag === 'canvas') canvases.push(el); return el; },
       createTextNode: (text) => new FakeText(text),
       createDocumentFragment: () => Object.assign(new FakeElement('#fragment'), { isFragment: true }),
       addEventListener() {},
@@ -127,7 +128,7 @@ function makePage({ fetchReplies }) {
     clearTimeout() {},
     setInterval: (fn, ms) => { intervals.push({ fn, ms, cleared: false }); return intervals.length; },
     clearInterval: (handle) => { if (intervals[handle - 1]) intervals[handle - 1].cleared = true; },
-    createImageBitmap: async () => ({ width: 1618, height: 1109, close() {} }),
+    createImageBitmap: async () => ({ ...bitmap, close() {} }),
     AbortSignal: { timeout: (ms) => { abortTimeouts.push(ms); return { aborted: false }; } },
     fetch: async (url, init) => {
       requests.push({ url, body: JSON.parse(init.body), signal: init.signal });
@@ -145,7 +146,7 @@ function makePage({ fetchReplies }) {
 
   const flush = () => new Promise((resolve) => setImmediate(resolve));
   return {
-    byId, tracked, requests, alerts, abortTimeouts, intervals, flush,
+    byId, tracked, requests, alerts, abortTimeouts, intervals, canvases, flush,
     pick(name = 'IMG_0001.jpg') {
       byId.file.files = [{ name }];
       byId.file.dispatch('change');
@@ -221,6 +222,21 @@ await check('작은 사진 → "너무 작아서" 문구와 카메라 버튼', a
   await page.submit();
   assert.match(page.byId.thread.textContent, /너무 작아서/);
   assert.deepEqual(page.buttons(), ['📷 카메라로 다시 찍기', '오늘은 여기까지']);
+});
+
+await check('축소: 픽셀 총량 1176×1568 + 긴 변 2048 — 세로 긴 스크린샷이 짧은 변 800 밑으로 안 눌린다 (10.01)', async () => {
+  const sizes = [
+    [{ width: 3024, height: 4032 }, [1176, 1568]], // 카메라 3:4 — 옛 규칙과 같다
+    [{ width: 1179, height: 2556 }, [922, 1999]], // 아이폰 스크린샷 — 옛 규칙은 723×1568(거르기에 걸림)
+    [{ width: 524, height: 813 }, [524, 813]], // 원본이 작은 사진 — 키우지 않는다
+    [{ width: 1000, height: 4000 }, [512, 2048]], // 아주 긴 자른 사진 — 긴 변 2048에서 멈춘다
+  ];
+  for (const [bitmap, [w, h]] of sizes) {
+    const page = makePage({ fetchReplies: [blocked('blocked_small')], bitmap });
+    page.pick();
+    await page.submit();
+    assert.deepEqual([page.canvases[0].width, page.canvases[0].height], [w, h], `${bitmap.width}×${bitmap.height}`);
+  }
 });
 
 await check('다시 찍기 → resetUpload: 버튼 풀림·선택 비움·대화 비움, 새 사진 제출이 되고 retakeOf가 이어진다 (astra ②)', async () => {
