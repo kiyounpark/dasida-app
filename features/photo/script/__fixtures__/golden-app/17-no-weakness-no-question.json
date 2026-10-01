@@ -1,0 +1,246 @@
+{
+  "result": {
+    "hasSolvingWork": true,
+    "userAnswer": null,
+    "transcription": "등차수열 a_n에서 a_{n+1}=a_n+2",
+    "predictedMethodId": "sequence",
+    "confidence": 0.3,
+    "candidateMethodIds": [
+      "sequence",
+      "limit"
+    ],
+    "reason": "",
+    "needsManualSelection": true,
+    "errorCandidates": [
+      {
+        "quote": "a_{n+1}-a_n=2*1",
+        "why": "공차는 a_{n+1}-a_n 이라 2야. 2*1로 쓴 건 맞는데 a_1을 빼먹고 일반항을 세웠어.",
+        "mistakeType": "setup_error",
+        "fix": "일반항은 a_n=a_1+(n-1)d 꼴에 a_1부터 넣기",
+        "checkSetup": "등차수열 a_n에서 a_1=3, 공차가 2야.",
+        "checkPrompt": "a_{n+1}-a_n 은?",
+        "checkOptions": [
+          "2",
+          "sqrt(4)+1",
+          "2*3"
+        ],
+        "checkAnswerIndex": 0,
+        "retrySetup": "a_1=5, a_{n+1}=a_n+3 이야.",
+        "retryPrompt": "a_3 은?",
+        "retryOptions": [
+          "11",
+          "8",
+          "14"
+        ],
+        "retryAnswerIndex": 0
+      }
+    ],
+    "errorConfidence": 0.8
+  },
+  "verdicts": {
+    "check": "match",
+    "retry": "match"
+  },
+  "diagnose": [],
+  "steps": [
+    "수열",
+    "아, 이거였구나",
+    "2",
+    "11"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "풀이를 봤는데 확실하지 않아. 이 중에 어떤 방법이었어?"
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "수열",
+          null
+        ],
+        [
+          "극한",
+          null
+        ],
+        [
+          "이 중엔 없어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "수열"
+    },
+    {
+      "me": "수열"
+    },
+    {
+      "coach": [
+        "그럼 풀이를 좀 더 보자.",
+        "여기 — \"aₙ₊₁-aₙ=2×1\" 쓴 부분, 여기가 틀린 자리야.",
+        "공차는 aₙ₊₁-aₙ 이라 2야. 2×1로 쓴 건 맞는데 a₁을 빼먹고 일반항을 세웠어."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "아, 이거였구나",
+          "primary"
+        ],
+        [
+          "왜 틀린 건지 아직 모르겠어",
+          "ghost"
+        ],
+        [
+          "나 여기 이렇게 안 썼는데",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "아, 이거였구나"
+    },
+    {
+      "me": "아, 이거였구나"
+    },
+    {
+      "coach": [
+        "그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. 등차수열 aₙ에서 a₁=3, 공차가 2야.",
+        "aₙ₊₁-aₙ 은?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "error_point_react",
+        "react": "got_it"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "check",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0,
+        "react": "got_it"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "2",
+          null
+        ],
+        [
+          "√4+1",
+          null
+        ],
+        [
+          "2×3",
+          null
+        ]
+      ]
+    },
+    {
+      "press": "2"
+    },
+    {
+      "me": "2"
+    },
+    {
+      "coach": [
+        "그렇지. 이제 이 자리에서는 안 틀리겠네.",
+        "그럼 진짜 마지막 — 아까 그 자리, 새 숫자로 한 번만 다시 밟아보자.",
+        "a₁=5, aₙ₊₁=aₙ+3 이야.\na₃ 은?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "check_answer",
+        "passed": 1,
+        "react": "got_it"
+      }
+    },
+    {
+      "event": {
+        "name": "quiz_verify",
+        "kind": "retry",
+        "result": "match",
+        "reason": "match",
+        "verify_ms": 0,
+        "waited_ms": 0
+      }
+    },
+    {
+      "buttons": [
+        [
+          "11",
+          null
+        ],
+        [
+          "8",
+          null
+        ],
+        [
+          "14",
+          null
+        ],
+        [
+          "지금은 넘어갈래",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "11"
+    },
+    {
+      "me": "11"
+    },
+    {
+      "coach": [
+        "그렇지! 아까 무너진 그 자리, 이번엔 통과했어.",
+        "자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "\"aₙ₊₁-aₙ=2×1\"",
+        "why": "공차는 aₙ₊₁-aₙ 이라 2야. 2×1로 쓴 건 맞는데 a₁을 빼먹고 일반항을 세웠어.",
+        "fix": "일반항은 aₙ=a₁+(n-1)d 꼴에 a₁부터 넣기",
+        "checks": "오늘 확인: 쪽지시험 ✔ · 재도전 ✔",
+        "tags": "#수열 #식 세우기",
+        "weakness": [],
+        "askLine": true
+      }
+    },
+    {
+      "event": {
+        "name": "weakness_labeled",
+        "method_id": "sequence",
+        "mistake_type": "setup_error",
+        "weakness_count": 0,
+        "labeled": false
+      }
+    },
+    {
+      "event": {
+        "name": "note_shown",
+        "retry": "pass"
+      }
+    },
+    {
+      "ending": "note:success"
+    }
+  ]
+}

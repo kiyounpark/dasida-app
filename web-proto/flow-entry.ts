@@ -10,6 +10,12 @@ export { weaknessCandidatesFor } from '@/features/photo/flow/weakness-mistake-ty
 export { ro } from '@/features/photo/flow/korean-particle';
 // 수식 글자(위·아래첨자·× 등) — 앱 MathText와 같은 함수. 웹 fmtMath가 이걸 부른다.
 export { formatMathText } from '@/components/math/format-math-text';
+// 사진 → 오답노트 대본 — 앱 훅과 같은 모듈(features/photo/script). 웹은 app.js가 화면·GA만 붙인다.
+// 이 아래가 react-native·expo를 끌고 오면 번들 빌드나 gate 점검(vm 실행)이 터진다 — 그게 "대본은 중립" 검사다.
+export { createPhotoScript } from '@/features/photo/script/photo-script';
+export { requestQuizVerify } from '@/features/photo/flow/verify-quiz-request';
+export { requestDiagnoseMethod } from '@/features/photo/flow/diagnose-method-request';
+export { ERROR_CONFIDENCE_MIN } from '@/features/photo/flow/route-from-analysis';
 export {
   advanceFromCheck,
   advanceFromChoice,

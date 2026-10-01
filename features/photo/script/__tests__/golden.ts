@@ -7,6 +7,8 @@ import path from 'node:path';
 import type { AnalyzePhotoResult } from '../../types';
 
 export const GOLDEN_DIR = path.join(__dirname, '../__fixtures__/golden');
+/** 앱만의 갈래(약점 고르기 말풍선) — 웹에 없어 대본 모듈로 녹음했다 */
+export const APP_GOLDEN_DIR = path.join(__dirname, '../__fixtures__/golden-app');
 export const RECORD = process.env.GOLDEN_RECORD === '1';
 
 /** 버튼은 화면에 뜬 글자(포매터 뒤)로 누른다 · 입력칸은 글자를 넣고 보낸다 · 가짜 시계를 민다 */
@@ -62,14 +64,20 @@ const SCRIPT_EVENTS = new Set([
   'weakness_card_shown',
   'note_shown',
 ]);
+/** 앱 골든(약점 고르기를 켠 대본)만 적는 이벤트 — 옮기기 전 웹엔 없던 것 */
+const APP_EVENTS = new Set(['weakness_labeled', 'weakness_picked']);
 /** 웹 어댑터가 덧붙이는 칸 — 대본 밖 */
 const ADAPTER_PARAMS = ['submission_id', 'attempt'];
 
 /** 검산 대기 ms는 100ms 단위로 적는다 — 골든이 묶는 건 "기다렸나(5초)·안 기다렸나(0)"이고, 정확한 ms는 러너 테스트가 잰다 */
 const coarse = (value: unknown) => (typeof value === 'number' ? Math.round(value / 100) * 100 : value);
 
-export function goldenEvent(name: string, params: Record<string, unknown>): GoldenEntry | null {
-  if (!SCRIPT_EVENTS.has(name)) return null;
+export function goldenEvent(
+  name: string,
+  params: Record<string, unknown>,
+  { appEvents = false } = {},
+): GoldenEntry | null {
+  if (!SCRIPT_EVENTS.has(name) && !(appEvents && APP_EVENTS.has(name))) return null;
   const rest = { ...params };
   for (const key of ADAPTER_PARAMS) delete rest[key];
   if (name === 'quiz_verify') {
@@ -79,17 +87,17 @@ export function goldenEvent(name: string, params: Record<string, unknown>): Gold
   return { event: { name, ...rest } };
 }
 
-export function loadGoldens(): [string, GoldenDoc][] {
+export function loadGoldens(dir = GOLDEN_DIR): [string, GoldenDoc][] {
   return fs
-    .readdirSync(GOLDEN_DIR)
+    .readdirSync(dir)
     .filter((file) => file.endsWith('.json'))
     .sort()
     .map((file) => [
       file.replace(/\.json$/, ''),
-      JSON.parse(fs.readFileSync(path.join(GOLDEN_DIR, file), 'utf8')) as GoldenDoc,
+      JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')) as GoldenDoc,
     ]);
 }
 
-export function saveGolden(id: string, doc: GoldenDoc) {
-  fs.writeFileSync(path.join(GOLDEN_DIR, `${id}.json`), JSON.stringify(doc, null, 2) + '\n');
+export function saveGolden(id: string, doc: GoldenDoc, dir = GOLDEN_DIR) {
+  fs.writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(doc, null, 2) + '\n');
 }
