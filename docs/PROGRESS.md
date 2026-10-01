@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 13:53
+- 해시: `846a273` (`846a273b7d6ce50e96152240e50adb22fe524216`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/846a273b7d6ce50e96152240e50adb22fe524216
+- 작성자: 박기윤
+- 메시지: feat(web): 대기 중 나갔다 돌아왔는지 잰다 — analysis_returned + visible (10.01 Fable 설계 · astra 안)
+- 본문: - analysis_returned: 대기 중 숨겼던 시도의 첫 복귀, 시도당 1회, away_ms · return_screen(waiting/result/gate/failed) / - analysis_shown·gate에 visible(도착 순간 보였나), analysis_failed에 was_hidden, photo_submit에 attempt / - shown 자리는 09.28 결정대로 그대로 · 결과 이벤트 직전에도 복귀를 확인해 순서를 고정 / - 로컬 흉내 5경우 확인 · 09.28 연구 문서의 "나감 읽는 법"을 새 식으로 교체 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 13:26
 - 해시: `e9cbbf7` (`e9cbbf76de17db434d0a0076cc697cd894cc3944`)
 - 브랜치: main
