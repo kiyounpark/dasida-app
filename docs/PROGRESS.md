@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.01 14:57
+- 해시: `9268bd4` (`9268bd4fe442465ec080fec7f02c6a4c1d24f677`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9268bd4fe442465ec080fec7f02c6a4c1d24f677
+- 작성자: 박기윤
+- 메시지: fix(web): 사진 축소를 픽셀 총량 기준으로 — 세로 긴 사진(스크린샷)이 우리 축소 때문에 "작다"로 걸리던 구멍 (10.01 Fable 최종 · astra 긴 변 상한)
+- 본문: - 긴 변 1568 → 픽셀 총량 1176×1568 + 긴 변 2048. 카메라 3:4는 그대로, 아이폰 스크린샷 723→922폭으로 거르기 통과 / - 서버 800 기준·문구는 그대로(주석만 정정) · 앱 1.0.9는 아직 옛 축소 / - 점검 스크립트에 축소 크기 4케이스(8/8) · 측정: 스크린샷 922폭 3회 적중 2·거짓 1(같은 거짓은 원본에서도) / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 13:53
 - 해시: `846a273` (`846a273b7d6ce50e96152240e50adb22fe524216`)
 - 브랜치: main
