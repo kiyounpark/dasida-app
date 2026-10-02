@@ -31,6 +31,8 @@ export type EventName =
   | 'photo_survey_pick'
   | 'photo_weakness_card_shown'
   | 'photo_note_shown'
+  // 1.0.11 대기 화면 예시 카드 넘김 — 웹 wait_card_next 앞에 photo_만 붙였다
+  | 'photo_wait_card_next'
   // 1.0.11 사진 동의 화면 — 이름은 약속 파일 CONSENT_GA_EVENTS와 같다
   | 'consent_view'
   | 'consent_submit';
@@ -125,6 +127,13 @@ export type EventParams = {
    * 쪽지·재도전 검산 결과, 문항 차례에 한 번 (1.0.10 — 웹 quiz_verify와 같은 칸).
    * result가 skip이면 그 문제를 학생에게 안 냈다. 98% 자체는 여기로 못 잰다(정답표가 필요).
    */
+  /** 대기 화면에서 [다음 예시 보기]를 누름 (웹 wait_card_next와 같은 칸). 읽을거리가 붙잡는지 본다 */
+  photo_wait_card_next: {
+    /** 넘긴 뒤 보이는 카드 순번(0부터) */
+    card_index: number;
+    /** 대기 화면이 뜬 뒤 지난 시간 */
+    wait_ms: number;
+  };
   photo_quiz_verify: {
     kind: 'check' | 'retry';
     result: 'match' | 'skip';

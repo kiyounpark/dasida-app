@@ -6,6 +6,8 @@ export const FontFamilies = {
   extrabold: 'SUIT-ExtraBold',
   serifRegular: 'GowunBatang-Regular',
   serifBold: 'GowunBatang-Bold',
+  /** 대기 화면 예시 오답노트의 손글씨 풀이 — web-proto와 같은 Nanum Pen Script(OFL) */
+  handwriting: 'NanumPenScript-Regular',
 } as const;
 
 export const BrandTypography = {

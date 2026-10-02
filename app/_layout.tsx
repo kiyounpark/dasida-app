@@ -68,6 +68,7 @@ function SplashGate() {
     'SUIT-ExtraBold': require('../assets/fonts/SUIT-ExtraBold.ttf'),
     'GowunBatang-Regular': require('../assets/fonts/GowunBatang-Regular.ttf'),
     'GowunBatang-Bold': require('../assets/fonts/GowunBatang-Bold.ttf'),
+    'NanumPenScript-Regular': require('../assets/fonts/NanumPenScript-Regular.ttf'),
   });
 
   const hideSplash = useCallback(() => {
