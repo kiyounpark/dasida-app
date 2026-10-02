@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { loadRemotePhotoNotes } from '../cloud/remote-note-store';
 import { PhotoNoteCard } from '../components/photo-note-card';
-import { readPhotoNotes } from '../note-store';
+import { usePhotoNotesScreen } from '../hooks/use-photo-notes-screen';
 import { PhotoTheme } from '../theme';
-import type { PhotoNote } from '../types';
 
 import { FontFamilies } from '@/constants/typography';
+
+/** 「서버에 없는 노트 올리기」(1.0.11 4번) 문구 — 동의 화면 「내 노트, 계정에 저장」과 같은 말을 쓴다 */
+export function uploadMissingLabel(count: number) {
+  return `이 기기에만 있는 노트 ${count}장, 계정에 저장하기`;
+}
+export function uploadProgressLabel(done: number, total: number) {
+  return `계정에 저장하는 중… ${done}/${total}`;
+}
 
 /**
  * 지난 오답노트 목록. 저장은 09.15에 붙었는데 꺼내 볼 자리가 없어서 만든 화면이다.
@@ -21,6 +26,7 @@ import { FontFamilies } from '@/constants/typography';
  *
  * 1.0.11 다른 기기 보기: 기기 노트를 먼저 그리고, 서버에만 있는 노트를 뒤에 더한다(같은 id면 기기 것).
  * 서버를 못 읽으면 기기 노트만 — 오류 띠는 없다. 헤더 함수가 없으면 서버를 안 부른다.
+ * 4번: 서버 목록을 읽었고 기기에만 있는 노트가 있으면 「계정에 저장하기」 한 줄. 상태는 use-photo-notes-screen.
  */
 export function PhotoNotesScreen({
   accountKey,
@@ -29,33 +35,10 @@ export function PhotoNotesScreen({
   accountKey?: string | null;
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
 } = {}) {
-  const [notes, setNotes] = useState<PhotoNote[] | null>(null);
-  const [remotePending, setRemotePending] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      const local = accountKey ? await readPhotoNotes(accountKey) : [];
-      if (cancelled) return;
-
-      setRemotePending(!!accountKey && !!getRemoteAuthHeaders);
-      setNotes(local);
-      if (!accountKey || !getRemoteAuthHeaders) return;
-
-      await loadRemotePhotoNotes(accountKey, local, getRemoteAuthHeaders, {
-        isCancelled: () => cancelled,
-        onUpdate: (merged) => {
-          if (!cancelled) setNotes(merged);
-        },
-      });
-      if (!cancelled) setRemotePending(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [accountKey, getRemoteAuthHeaders]);
+  const { notes, remotePending, cloudOf, missingCount, upload, uploadMissing } = usePhotoNotesScreen({
+    accountKey,
+    getRemoteAuthHeaders,
+  });
 
   // 읽는 중엔 아무 말도 안 한다 — 기기에서 읽는 거라 한 프레임이고, "없어요"가 깜빡이면 더 나쁘다
   if (notes === null) {
@@ -90,8 +73,19 @@ export function PhotoNotesScreen({
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.list} contentInsetAdjustmentBehavior="automatic">
         <Text style={styles.count}>{`노트 ${notes.length}장`}</Text>
+        {(missingCount > 0 || upload) && (
+          <Pressable
+            accessibilityRole="button"
+            disabled={!!upload}
+            onPress={() => void uploadMissing()}
+            style={({ pressed }) => [styles.upload, (pressed || upload) && styles.uploadBusy]}>
+            <Text style={styles.uploadLabel}>
+              {upload ? uploadProgressLabel(upload.done, upload.total) : uploadMissingLabel(missingCount)}
+            </Text>
+          </Pressable>
+        )}
         {notes.map((note) => (
-          <PhotoNoteCard key={note.id} note={note} variant="list" />
+          <PhotoNoteCard key={note.id} note={note} variant="list" cloud={cloudOf(note)} />
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -111,6 +105,25 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontSize: 13,
     color: PhotoTheme.muted,
+  },
+  // photo-action-buttons의 기본 버튼과 같은 모양 — 흐름에서 보던 버튼이라 눌러도 되는 줄로 읽힌다
+  upload: {
+    borderWidth: 1.5,
+    borderColor: PhotoTheme.greenSoft,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderCurve: 'continuous',
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+  },
+  uploadBusy: {
+    opacity: 0.72,
+  },
+  uploadLabel: {
+    fontFamily: FontFamilies.bold,
+    fontSize: 15,
+    lineHeight: 21,
+    color: PhotoTheme.green,
   },
   empty: {
     flex: 1,

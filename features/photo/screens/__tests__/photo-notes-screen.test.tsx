@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import {
   LearningHistoryApiError,
@@ -6,13 +6,14 @@ import {
 } from '@/features/learning/firebase-learning-history-api';
 import { buildPhotoNoteDoc, type PhotoNoteDoc } from '@/functions/src/photo-store-contract';
 
-import { readPhotoNotes, savePhotoNote } from '../../note-store';
+import { readPhotoNotes, savePhotoNote, setPhotoNoteCloudStoredAt } from '../../note-store';
 import type { PhotoNote } from '../../types';
-import { PhotoNotesScreen } from '../photo-notes-screen';
+import { PhotoNotesScreen, uploadMissingLabel } from '../photo-notes-screen';
 
 jest.mock('../../note-store', () => ({
   readPhotoNotes: jest.fn(async () => []),
   savePhotoNote: jest.fn(async () => []),
+  setPhotoNoteCloudStoredAt: jest.fn(async () => true),
 }));
 
 // 서버는 망 한 칸만 목으로 — 합치기(remote-note-store)는 진짜로 돈다
@@ -252,5 +253,102 @@ describe('다른 기기 보기 (1.0.11)', () => {
 
     await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
     expect(screen.queryByLabelText('노트 불러오는 중')).toBeNull();
+  });
+});
+
+describe('서버에 없는 노트 올리기 (1.0.11 4번)', () => {
+  const fetchMock = jest.fn();
+  const realFetch = global.fetch;
+
+  beforeEach(() => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    global.fetch = fetchMock as unknown as typeof fetch;
+    fetchMock.mockReset();
+  });
+
+  afterEach(() => {
+    (console.warn as jest.Mock).mockRestore();
+    global.fetch = realFetch;
+  });
+
+  it('서버 목록에 없는 기기 노트가 있으면 「계정에 저장하기」를 낸다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [serverDoc()], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText(uploadMissingLabel(1))).toBeTruthy());
+  });
+
+  it('서버를 못 읽었으면 안 낸다 — 무엇이 없는지 모르고, 올려도 실패한다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockRejectedValueOnce(
+      new LearningHistoryApiError('네트워크 연결을 확인한 뒤 다시 시도해 주세요.', 0, 'NETWORK_ERROR'),
+    );
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(mockServer).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+    expect(screen.queryByText(/계정에 저장하기/)).toBeNull();
+  });
+
+  it('서버에 이미 있으면 안 낸다 — 카드는 서버가 말한 대로 ☁ 줄', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [serverDoc({ id: 'photo-1' })], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진 없음')).toBeTruthy());
+    expect(screen.queryByText(/계정에 저장하기/)).toBeNull();
+  });
+
+  it('누르면 savePhotoNote로 올리고, 서버가 저장됐다고 답하면 버튼이 사라지고 ☁ 줄이 뜬다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [], nextBefore: null });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        noteId: 'photo-1',
+        storedAt: '2026-10-02T07:00:00.000Z',
+        photoPath: null,
+        alreadyStored: false,
+      }),
+    });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+    await waitFor(() => expect(screen.getByText(uploadMissingLabel(1))).toBeTruthy());
+
+    fireEvent.press(screen.getByText(uploadMissingLabel(1)));
+
+    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진 없음')).toBeTruthy());
+    expect(screen.queryByText(/계정에 저장하기/)).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('savePhotoNote');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(
+      expect.objectContaining({ accountKey: 'user:abc', imageDataUrl: null, note: expect.objectContaining({ id: 'photo-1' }) }),
+    );
+    expect(setPhotoNoteCloudStoredAt).toHaveBeenCalledWith('user:abc', 'photo-1', '2026-10-02T07:00:00.000Z');
+  });
+
+  it('올리기가 실패하면 버튼이 남는다(다시 누를 수 있다) — 카드엔 「저장 못 함」', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [], nextBefore: null });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'consent', code: 'CONSENT_REQUIRED', retryable: false }),
+    });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+    await waitFor(() => expect(screen.getByText(uploadMissingLabel(1))).toBeTruthy());
+
+    fireEvent.press(screen.getByText(uploadMissingLabel(1)));
+
+    await waitFor(() => expect(screen.getByText('☁ 저장 못 함')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(uploadMissingLabel(1))).toBeTruthy());
+    expect(fetchMock).toHaveBeenCalledTimes(1); // 403 CONSENT_REQUIRED는 재전송 안 함
+    expect(setPhotoNoteCloudStoredAt).not.toHaveBeenCalled();
   });
 });

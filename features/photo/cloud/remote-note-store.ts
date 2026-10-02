@@ -141,14 +141,20 @@ export async function loadRemotePhotoNotes(
   accountKey: string,
   local: PhotoNote[],
   getRemoteAuthHeaders: GetRemoteAuthHeaders,
-  options: { isCancelled: () => boolean; onUpdate: (notes: PhotoNote[]) => void },
+  options: {
+    isCancelled: () => boolean;
+    onUpdate: (notes: PhotoNote[]) => void;
+    /** 서버 목록을 읽었을 때 한 번(지운 것 포함) — 「서버에 없는 노트 올리기」(4)가 이걸로 고른다. 못 읽으면 안 부른다 */
+    onRemoteDocs?: (docs: PhotoNoteDoc[]) => void;
+  },
 ): Promise<void> {
-  const { isCancelled, onUpdate } = options;
+  const { isCancelled, onUpdate, onRemoteDocs } = options;
 
   try {
     const headers = await getRemoteAuthHeaders(accountKey);
     const docs = await listRemotePhotoNotes(accountKey, headers);
     if (isCancelled()) return;
+    onRemoteDocs?.(docs);
 
     const localIds = new Set(local.map((note) => note.id));
     const pending = docs.filter((doc) => !doc.deletedAt && !localIds.has(doc.id));
