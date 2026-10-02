@@ -27,6 +27,7 @@ import type {
   SignInResult,
 } from './auth-client';
 import { AuthFlowCancelledError } from './auth-client';
+import { clearLocalConsent } from '@/features/consent/consent-store';
 import { clearLearningHistoryStorage } from '@/features/learning/local-learning-history-storage';
 import { clearPhotoNotes } from '@/features/photo/note-store';
 import { getFirebaseAuthInstance } from './firebase-app';
@@ -364,11 +365,17 @@ export class FirebaseAuthClient implements AuthClient {
   }
 
   async signOut(): Promise<null> {
+    // 세션을 지우기 전에 계정 키를 잡아 둔다 — 동의 사본을 이 계정 것만 지운다 (1.0.11)
+    const storedSession = await loadStoredAuthSession().catch(() => null);
+
     await firebaseSignOut(getFirebaseAuthInstance()).catch(() => {
       return undefined;
     });
 
     await clearStoredAuthSession();
+    if (storedSession) {
+      await clearLocalConsent(storedSession.accountKey);
+    }
     return null;
   }
 
@@ -404,7 +411,12 @@ export class FirebaseAuthClient implements AuthClient {
 
     // Step 2: Clear local AsyncStorage cache
     // 사진 오답노트도 같은 자리에서 지운다 — 여기 안 넣으면 탈퇴해도 기기에 노트가 남는다 (09.15)
-    await Promise.all([clearLearningHistoryStorage(accountKey), clearPhotoNotes(accountKey)]);
+    // 사진 동의 사본도 (1.0.11) — 서버 문서는 위 deleteAccount가 users/{accountKey}째 지운다
+    await Promise.all([
+      clearLearningHistoryStorage(accountKey),
+      clearPhotoNotes(accountKey),
+      clearLocalConsent(accountKey),
+    ]);
 
     // Step 3: Revoke OAuth token + delete Firebase Auth account
     // If Auth deletion fails after Firestore is already wiped, still clear local session

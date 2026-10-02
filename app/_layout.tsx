@@ -10,6 +10,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PostHogProvider } from 'posthog-react-native';
 import 'react-native-reanimated';
 
+import { ConsentProvider, useConsentGate } from '@/features/consent/consent-provider';
+import { resolveEntryRoute, shouldRedirectToConsent } from '@/features/consent/consent-route';
 import { CurrentLearnerProvider, useCurrentLearner } from '@/features/learner/provider';
 import { ExamSessionProvider } from '@/features/quiz/exam/exam-session';
 import { Dimensions, Platform } from 'react-native';
@@ -168,11 +170,13 @@ function SplashGate() {
 
 function AuthGateRedirector() {
   const { authGateState, isReady, profile } = useCurrentLearner();
+  const { status: consentStatus } = useConsentGate();
   const segments = useSegments();
   const rootSegment = segments[0];
   const isSignInRoute = rootSegment === 'sign-in';
   const isTabsRoute = rootSegment === '(tabs)';
   const isOnboardingRoute = rootSegment === 'onboarding';
+  const isConsentRoute = rootSegment === 'consent';
 
   useEffect(() => {
     if (!isReady || authGateState === 'loading') {
@@ -180,20 +184,37 @@ function AuthGateRedirector() {
     }
 
     if (authGateState === 'required') {
-      if (isTabsRoute || isOnboardingRoute) {
+      // 동의 화면의 「계정 관리 > 로그아웃」도 여기로 로그인 화면에 간다
+      if (isTabsRoute || isOnboardingRoute || isConsentRoute) {
         router.replace('/sign-in');
       }
       return;
     }
 
     if (isSignInRoute) {
-      if (profile?.grade === 'unknown' || !profile?.nickname) {
-        router.replace('/onboarding');
-      } else {
-        router.replace('/(tabs)/quiz');
+      // 프로필 → 사진 동의 → 홈. 동의를 아직 모르면(서버 확인 중) 기다린다
+      const target = resolveEntryRoute({ isReady, authGateState, profile, consentStatus });
+      if (target) {
+        router.replace(target);
       }
+      return;
     }
-  }, [authGateState, isReady, isOnboardingRoute, isSignInRoute, isTabsRoute, profile]);
+
+    // 1.0.11 — 기존 가입자·온보딩 직후·알림으로 연 화면도 동의가 필요하면 동의 화면으로
+    if (shouldRedirectToConsent({ authGateState, profile, consentStatus, rootSegment })) {
+      router.replace('/consent');
+    }
+  }, [
+    authGateState,
+    consentStatus,
+    isConsentRoute,
+    isReady,
+    isOnboardingRoute,
+    isSignInRoute,
+    isTabsRoute,
+    profile,
+    rootSegment,
+  ]);
 
   return null;
 }
@@ -226,30 +247,34 @@ export default function RootLayout() {
   const themedTree = (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <CurrentLearnerProvider>
-        <ExamSessionProvider>
-          <SplashGate />
-          <AuthGateRedirector />
-          <ScreenTracker />
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
-            {/* 헤더를 켜는 유일한 화면 — 뒤로가기가 없으면 학생이 사진 화면에 갇힌다.
-                PhotoFlowScreen이 SafeAreaView edges={['bottom']}이라 위 여백은 헤더가 맡는다. */}
-            <Stack.Screen
-              name="photo"
-              options={{ title: '사진 오답노트', headerShown: true, headerBackTitle: '홈' }}
-            />
-            {/* 지난 노트 목록 — 사진 화면 첫 칸에서 들어간다. 뒤로가기가 사진 화면으로 간다 */}
-            <Stack.Screen
-              name="photo-notes"
-              options={{ title: '지난 오답노트', headerShown: true, headerBackTitle: '뒤로' }}
-            />
-            {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
-          </Stack>
-        </ExamSessionProvider>
+        <ConsentProvider>
+          <ExamSessionProvider>
+            <SplashGate />
+            <AuthGateRedirector />
+            <ScreenTracker />
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+              {/* 사진 동의(1.0.11) — 필수 둘 없이는 못 나간다. 뒤로 밀기도 막는다 */}
+              <Stack.Screen name="consent" options={{ headerShown: false, gestureEnabled: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
+              {/* 헤더를 켜는 유일한 화면 — 뒤로가기가 없으면 학생이 사진 화면에 갇힌다.
+                  PhotoFlowScreen이 SafeAreaView edges={['bottom']}이라 위 여백은 헤더가 맡는다. */}
+              <Stack.Screen
+                name="photo"
+                options={{ title: '사진 오답노트', headerShown: true, headerBackTitle: '홈' }}
+              />
+              {/* 지난 노트 목록 — 사진 화면 첫 칸에서 들어간다. 뒤로가기가 사진 화면으로 간다 */}
+              <Stack.Screen
+                name="photo-notes"
+                options={{ title: '지난 오답노트', headerShown: true, headerBackTitle: '뒤로' }}
+              />
+              {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
+            </Stack>
+          </ExamSessionProvider>
+        </ConsentProvider>
       </CurrentLearnerProvider>
       <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
     </ThemeProvider>
