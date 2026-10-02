@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import {
   CONSENT_REQUIRED,
   canonicalNoteJson,
@@ -60,6 +63,12 @@ function consentDoc(overrides: Partial<ConsentDoc> = {}): ConsentDoc {
 }
 
 describe('photo-store-contract', () => {
+  it('약속 파일은 아무것도 import하지 않는다 — 서버 의존이 앱 번들에 섞이지 않게', () => {
+    const source = readFileSync(join(__dirname, '../../functions/src/photo-store-contract.ts'), 'utf8');
+    const importLines = source.split('\n').filter((line) => /^\s*import\s/.test(line) || /\brequire\(/.test(line));
+    expect(importLines).toEqual([]);
+  });
+
   it('앱 노트와 서버 노트의 칸이 같다', () => {
     expect(sameKeys).toBe(true);
     expect(toWire(NOTE).id).toBe(NOTE.id);

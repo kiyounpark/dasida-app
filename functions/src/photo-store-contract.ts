@@ -9,7 +9,8 @@
  * functions(tsc NodeNext) 양쪽에서 그대로 돈다. 앱은 `@/functions/src/photo-store-contract`로 읽는다
  * (앞선 예: features/learning/review-chain.ts:1의 `@/functions/shared/…`).
  * 서버 zod는 각 handler 파일에서 `satisfies z.ZodType<…>`로 이 타입에 묶는다.
- * 앱 PhotoNote와 칸이 같은지는 features/photo/__tests__/photo-store-contract.test.ts가 tsc로 잡는다.
+ * 앱 PhotoNote와 칸이 같은지는 features/photo/photo-store-contract.test.ts가 tsc로 잡는다.
+ * 같은 테스트가 이 파일에 import·require가 0줄인지도 본다 — 서버 의존이 앱 번들에 조용히 섞이지 않게.
  */
 
 // ── 1. 동의 ──────────────────────────────────────────────────────────────────
@@ -116,7 +117,8 @@ export const DOMAIN_ID_PATTERN = /^[a-z0-9_]{1,64}$/;
 
 /**
  * 폰 PhotoNote(features/photo/types.ts)에서 폰 전용 칸 셋(photoUri · submissionId · cloudStoredAt)을 뺀 것.
- * id 칸들은 string — 앱이 내려받을 때 note-store의 isPhotoNoteLike로 거른다.
+ * id 칸들은 string. note-store의 isPhotoNoteLike는 export가 아니고 id·createdAt·weaknessIds 모양만 본다 —
+ * 3줄은 toLocalNote 결과를 PhotoNote로 캐스트한다(서버 문서는 strict zod를 통과한 것뿐이라 데이터는 안 틀린다).
  */
 export type PhotoNoteWire = {
   id: string;
@@ -151,9 +153,12 @@ export type PhotoNoteDoc = PhotoNoteWire & {
   deletedAt: string | null;
 };
 
-/** 「저장됨」 — 서버가 사진 실패 때 문서를 안 쓰므로 "문서가 있고 안 지워짐" = 사진·글 둘 다 남음 */
+/**
+ * 「저장됨」 — 서버가 사진 실패 때 문서를 안 쓰므로 "문서가 있고 안 지워짐" = 사진·글 둘 다 남음.
+ * `== null`인 이유: 콘솔에서 손으로 넣은 문서처럼 deletedAt 칸이 아예 없어도 저장됨으로 본다.
+ */
 export function isNoteStored(doc: PhotoNoteDoc | null | undefined): boolean {
-  return !!doc && doc.deletedAt === null;
+  return !!doc && doc.deletedAt == null;
 }
 
 /** 노트 카드 ☁ 줄의 입력. 2줄이 그리고, 3줄·올리기가 같은 값을 넣는다. store 필수라 '꺼짐'은 없다 */
@@ -273,20 +278,39 @@ export function photoStoreUrl(name: keyof typeof PHOTO_STORE_ENDPOINTS): string 
  */
 
 /** 오류 응답 — 기존 {error} 위에 code·retryable을 더한다(앱의 옛 읽기는 error만 보니 안 깨진다) */
-export type ApiErrorCode =
-  | 'INVALID_REQUEST' // 400
-  | 'UNAUTHORIZED' // 401·403 인증
-  | 'CONSENT_REQUIRED' // 403 동의 꺼짐·판 낮음
-  | 'NOTE_CONFLICT' // 409 같은 id·다른 내용
-  | 'PATH_CONFLICT' // 409 같은 파일명·다른 id
-  | 'NOTE_DELETED' // 410 deletedAt 있음
-  | 'PHOTO_MISSING' // 404 문서는 있는데 사진 없음
-  | 'TOO_LARGE' // 413
-  | 'TEMPORARY_FAILURE'; // 500·503 — 재시도
+export const API_ERROR_CODES = [
+  'INVALID_REQUEST', // 400
+  'UNAUTHORIZED', // 401·403 인증
+  'CONSENT_REQUIRED', // 403 동의 꺼짐·판 낮음
+  'NOTE_CONFLICT', // 409 같은 id·다른 내용
+  'PATH_CONFLICT', // 409 같은 파일명·다른 id
+  'NOTE_DELETED', // 410 deletedAt 있음
+  'PHOTO_MISSING', // 404 문서는 있는데 사진 없음
+  'TOO_LARGE', // 413
+  'TEMPORARY_FAILURE', // 500·503 — 재시도
+] as const;
+export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
 
 export type ApiErrorResponse = { error: string; code: ApiErrorCode; retryable: boolean };
 
 export const RETRYABLE_CODES: ReadonlySet<ApiErrorCode> = new Set<ApiErrorCode>(['TEMPORARY_FAILURE']);
+
+/**
+ * 앱이 오류 응답을 읽는 한 자리(2줄·3줄 공용). code가 없거나 모르는 값이면 null.
+ * ⚠️ 기존 learning-history 읽기는 401·403을 전부 "인증 실패 → 토큰 갱신 → 재전송"으로 본다 —
+ * 403 CONSENT_REQUIRED를 그 길로 보내지 말 것. code로 먼저 가른다.
+ */
+export function readApiErrorBody(body: unknown): ApiErrorResponse | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const value = body as Partial<Record<keyof ApiErrorResponse, unknown>>;
+  const code = value.code;
+  if (typeof code !== 'string' || !(API_ERROR_CODES as readonly string[]).includes(code)) return null;
+  return {
+    error: typeof value.error === 'string' ? value.error : '',
+    code: code as ApiErrorCode,
+    retryable: typeof value.retryable === 'boolean' ? value.retryable : RETRYABLE_CODES.has(code as ApiErrorCode),
+  };
+}
 
 /** functions/src/analyze-photo.ts와 같은 상한 */
 export const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
@@ -316,9 +340,14 @@ export type SavePhotoNoteResponse = {
  *     (탈퇴가 consent를 먼저 지우니 늦게 온 저장도 여기서 막힌다)
  *  ② 문서 읽기 — deletedAt 있음 → 410 NOTE_DELETED · canonicalNoteJson 같음 → 200 alreadyStored
  *     · 다름 → 409 NOTE_CONFLICT
- *  ③ imageDataUrl 있으면: 같은 경로 객체의 메타 noteId가 다르면 409 PATH_CONFLICT,
- *     아니면 업로드(메타 noteId·submissionId). 실패 → 500, 문서 안 씀
+ *  ③ imageDataUrl 있으면: 조건부 생성 하나로 올린다 — 덮어쓰기 금지
+ *     `file.save(bytes, { metadata: { metadata: {메타 noteId·submissionId} }, preconditionOpts: { ifGenerationMatch: 0 } })`.
+ *     412(이미 있음)일 때만 객체 메타를 읽는다: noteId 다름 → 409 PATH_CONFLICT ·
+ *     noteId 같고 md5가 이번 바이트와 다름 → 409 NOTE_CONFLICT · 둘 다 같음 → 재시도로 보고 업로드 생략.
+ *     (검사→업로드 사이에 다른 요청이 끼어 "A의 글 + B의 사진"이 남는 경합을 막는다 — 10.02 줄 0 리뷰 astra·Fable)
+ *     업로드 실패(412 말고) → 500, 문서 안 씀. base64 길이 > 0이고 JPEG 머리(FF D8)인지도 본다.
  *  ④ 문서 create(stripUndefined). ALREADY_EXISTS면 ②로 돌아가 판정
+ *     alreadyStored일 때 응답 storedAt은 원래 문서의 값.
  *  타임아웃은 성공도 실패도 아니다 — 같은 요청을 다시 보낸다.
  *  로컬 저장의 반환값은 ☁ 「저장됨」의 증거가 아니다 — 서버 응답으로만 판정한다.
  */
@@ -354,7 +383,11 @@ export type PhotoRunConsentFields = {
 
 // ── 6. 탈퇴(2줄, functions/src/delete-account.ts에 더한다) ──────────────────────
 /*
- * 순서: ① private/consent 삭제(새 저장 차단) ② 원장에서 이 계정의 review.photoPath 모으기(원장 지우기 전에)
- *       ③ Firestore recursiveDelete + 원장 삭제(지금 코드) ④ Storage — accountNotePhotoPrefix 전부 + ②의 경로들.
- * ④ 일부 실패 = 500(탈퇴 성공 아님). 지금 코드는 ③을 Promise.all로 동시에 지우니 순서를 세워야 한다.
+ * 순서(10.02 줄 0 리뷰로 고침 — 원장을 먼저 지우면 재시도가 검토본 경로를 못 찾는다):
+ *   ① private/consent 삭제(새 저장·새 검토본 차단)
+ *   ② 원장에서 이 계정의 review.photoPath 모으기
+ *   ③ Storage 삭제 — accountNotePhotoPrefix 전부 + ②의 경로들(이미 없는 파일은 성공으로 친다).
+ *      일부 실패 → 500, 원장·Firestore는 그대로 둔다 → 재시도의 ②가 원장을 다시 읽는다
+ *   ④ ③이 전부 끝난 뒤에만 Firestore recursiveDelete 둘 + 원장 삭제
+ * 지금 코드는 Firestore·원장을 Promise.all로 동시에 지운다 — 2줄이 위 순서로 세운다.
  */
