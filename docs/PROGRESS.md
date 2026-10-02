@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 18:53
+- 해시: `5e47d25` (`5e47d25853d1a0b6048b0dc13cd7e4633559134a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5e47d25853d1a0b6048b0dc13cd7e4633559134a
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 대기 화면 예시 카드 앱에 들어감 · 🚨 OpenAI 크레딧 0(18:51 실측)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 18:40
 - 해시: `4b60e42` (`4b60e42b2545b55b7e1f631d2a38ff1470e1876c`)
 - 브랜치: main
