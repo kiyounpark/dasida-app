@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { StorageKeys } from '@/constants/storage-keys';
 
-import { deleteNotePhotos } from './photo-file-store';
+import { deleteNotePhotos, resolveNotePhotoUri } from './photo-file-store';
 import type { PhotoNote } from './types';
 
 /**
@@ -34,7 +34,11 @@ export async function readPhotoNotes(accountKey: string): Promise<PhotoNote[]> {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
 
-    return parsed.filter(isPhotoNoteLike);
+    // 사진 경로는 읽을 때 지금 앱 폴더로 다시 잇는다(photo-file-store resolveNotePhotoUri) —
+    // 카드·올리기·탈퇴 정리가 전부 여기서 읽으니 한 자리에서 고친다. 다음 쓰기 때 고친 경로가 저장된다
+    return parsed
+      .filter(isPhotoNoteLike)
+      .map((note) => (note.photoUri ? { ...note, photoUri: resolveNotePhotoUri(note.photoUri) } : note));
   } catch {
     return [];
   }

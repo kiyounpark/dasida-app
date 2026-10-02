@@ -168,3 +168,24 @@ describe('서버 저장 표시', () => {
     expect(stored.find((n) => n.id === 'a')?.cloudStoredAt).toBe('2026-10-10T00:00:00.000Z');
   });
 });
+
+describe('사진 경로 다시 잇기 (10.02 — 앱 폴더 UUID가 바뀐 뒤)', () => {
+  it('읽을 때 사진 경로를 resolveNotePhotoUri로 지금 폴더에 잇는다 — 카드·올리기·탈퇴 정리가 다 여기서 읽는다', async () => {
+    const photoFileStore = jest.requireActual('./photo-file-store') as typeof import('./photo-file-store');
+    const spy = jest
+      .spyOn(photoFileStore, 'resolveNotePhotoUri')
+      .mockImplementation((uri: string) => uri.replace('/OLD-UUID/', '/NEW-UUID/'));
+    await AsyncStorage.setItem(
+      getPhotoNotesStorageKey(ACCOUNT),
+      JSON.stringify([note({ photoUri: 'file:///Application/OLD-UUID/Documents/photo-notes/a.png' }), note({ id: 'b', photoUri: null })]),
+    );
+
+    const stored = await readPhotoNotes(ACCOUNT);
+
+    expect(stored.map((item) => item.photoUri)).toEqual([
+      'file:///Application/NEW-UUID/Documents/photo-notes/a.png',
+      null,
+    ]);
+    spy.mockRestore();
+  });
+});

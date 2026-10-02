@@ -72,6 +72,32 @@ export function persistNotePhoto(noteId: string, sourceUri: string): string | nu
   }
 }
 
+const NOTE_PHOTO_SEGMENT = `/${NOTE_PHOTO_DIR}/`;
+
+/**
+ * 저장된 사진 경로를 지금 앱 문서 폴더에 다시 잇는다.
+ *
+ * 왜: 노트엔 절대 경로(…/Application/{UUID}/Documents/photo-notes/…)가 저장되는데,
+ * iOS는 앱을 다시 깔거나 업데이트하면 그 UUID를 바꿀 수 있다. 10.02 시뮬레이터 실측 —
+ * 노트엔 옛 UUID 경로, 파일은 새 폴더에 같은 이름으로 있었다. 옛 경로로는 "파일 없음"이라
+ * 올리기(1.0.11 4번)가 사진 없이 올라갔고, 탈퇴 정리(deleteNotePhoto)도 우리 폴더가 아니라고 건너뛴다.
+ * 그래서 파일 이름으로 지금 폴더에서 다시 찾는다. 우리 폴더 경로가 아니거나 지금 폴더에 없으면 받은 값 그대로.
+ */
+export function resolveNotePhotoUri(photoUri: string): string {
+  const index = photoUri.lastIndexOf(NOTE_PHOTO_SEGMENT);
+  if (index < 0) return photoUri;
+
+  const name = photoUri.slice(index + NOTE_PHOTO_SEGMENT.length);
+  if (!name || name.includes('/')) return photoUri;
+
+  try {
+    const current = new File(noteDirectory(), name);
+    return current.exists ? current.uri : photoUri;
+  } catch {
+    return photoUri;
+  }
+}
+
 /**
  * 노트 한 장의 사진을 지운다. 문서 폴더 안의 것만 건드린다 —
  * 캐시 경로가 들어오면 시스템이 알아서 할 일이고, 우리가 지울 대상이 아니다.

@@ -56,7 +56,7 @@ jest.mock('expo-file-system', () => {
   };
 });
 
-import { deleteNotePhoto, deleteNotePhotos, persistNotePhoto } from './photo-file-store';
+import { deleteNotePhoto, deleteNotePhotos, persistNotePhoto, resolveNotePhotoUri } from './photo-file-store';
 
 const DIR = 'file:///document/photo-notes';
 const CACHE_PHOTO = 'file:///cache/ImagePicker/abc.jpg';
@@ -181,5 +181,36 @@ describe('deleteNotePhotos', () => {
     deleteNotePhotos([a, null, CACHE_PHOTO, c]);
 
     expect(mockFs.deleted).toEqual([a, c]);
+  });
+});
+
+describe('resolveNotePhotoUri — 앱 폴더가 바뀐 뒤 (10.02 시뮬레이터 실측)', () => {
+  const OLD = 'file:///Containers/Data/Application/C9112B79/Documents/photo-notes/photo-2026-10-01T09-36-44-040Z.png';
+  const NOW = `${DIR}/photo-2026-10-01T09-36-44-040Z.png`;
+
+  it('옛 앱 폴더 경로라도 지금 폴더에 같은 이름의 파일이 있으면 그 경로로 잇는다', () => {
+    mockFs.existing.add(NOW);
+
+    expect(resolveNotePhotoUri(OLD)).toBe(NOW);
+  });
+
+  it('지금 폴더에도 없으면 받은 값 그대로 — 지어내지 않는다', () => {
+    expect(resolveNotePhotoUri(OLD)).toBe(OLD);
+  });
+
+  it('우리 폴더(photo-notes)가 아닌 경로는 건드리지 않는다', () => {
+    mockFs.existing.add(`${DIR}/abc.jpg`);
+
+    expect(resolveNotePhotoUri(CACHE_PHOTO)).toBe(CACHE_PHOTO);
+  });
+
+  it('이은 경로라야 탈퇴 정리가 지운다 — 옛 경로 그대로면 우리 폴더가 아니라고 건너뛴다', () => {
+    mockFs.existing.add(NOW);
+
+    deleteNotePhoto(OLD);
+    expect(mockFs.deleted).toEqual([]);
+
+    deleteNotePhoto(resolveNotePhotoUri(OLD));
+    expect(mockFs.deleted).toEqual([NOW]);
   });
 });
