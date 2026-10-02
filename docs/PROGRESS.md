@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 19:32
+- 해시: `5076a27` (`5076a275afcd14a901077bef66edfca4176fe529`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5076a275afcd14a901077bef66edfca4176fe529
+- 작성자: 박기윤
+- 메시지: feat(ipad): 1.0.11 아이패드 세로 허용 — 방향 목록에 Portrait 한 줄 (requireFullScreen 유지)
+- 본문: 실기기에서 세로로 들면 위아래 검은 띠(iPadOS 26). astra·Fable → Fable 최종: 한 줄만, / useIsTablet 가로 조건은 기출 진단 대화가 회전 때 초기화돼 버림. 세로 배치·requireFullScreen 해제는 1.0.12. / STATUS: 🔒 결정과 TestFlight 아이패드 확인 셋 기록. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 19:25
 - 해시: `72aceb9` (`72aceb96bbe0f9bb89b5fa8223f6bd347e9965cf`)
 - 브랜치: main
