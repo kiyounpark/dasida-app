@@ -1,5 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
+import { safeNoteFileStem } from '@/functions/src/photo-store-contract';
+
 /**
  * 오답노트 사진을 앱 문서 폴더에 남긴다 (4칸 ③).
  *
@@ -27,10 +29,10 @@ function noteDirectory(): Directory {
  *
  * 다만 id가 `photo-2026-09-15T12:34:56.789Z` 꼴이라 콜론이 들어간다.
  * 파일명에 그대로 쓰면 곤란하므로 안전한 글자만 남긴다.
+ * 이 규칙은 서버 사진 경로(photo-notes/{accountKey}/{stem}.jpg)와 같아야 해서 약속 파일에 둔다.
  */
 function fileNameFor(noteId: string, sourceUri: string): string {
-  const safeId = noteId.replace(/[^A-Za-z0-9_-]/g, '-');
-  return `${safeId}${extensionOf(sourceUri)}`;
+  return `${safeNoteFileStem(noteId)}${extensionOf(sourceUri)}`;
 }
 
 /** 원본 확장자를 따라간다. 못 알아보면 jpg — 사진첩·카메라가 주는 건 대부분 jpeg다. */

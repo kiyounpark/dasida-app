@@ -19,6 +19,12 @@ export { deleteAccountHandler as deleteAccount } from './delete-account';
 export { listReviewTasksHandler as listReviewTasks } from './list-review-tasks';
 export { saveReviewTasksHandler as saveReviewTasks } from './save-review-tasks';
 export { registerPushTokenHandler as registerPushToken } from './register-push-token';
+// 1.0.11 사진 저장 (줄 0 껍데기 — 약속 파일 functions/src/photo-store-contract.ts)
+export { saveConsentHandler as saveConsent } from './save-consent';
+export { getConsentHandler as getConsent } from './get-consent';
+export { savePhotoNoteHandler as savePhotoNote } from './save-photo-note';
+export { listPhotoNotesHandler as listPhotoNotes } from './list-photo-notes';
+export { getPhotoNoteImageHandler as getPhotoNoteImage } from './get-photo-note-image';
 export {
   sendReviewRemindersMorning,
   sendReviewRemindersEvening,

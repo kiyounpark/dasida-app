@@ -113,6 +113,16 @@ export type PhotoNote = {
    */
   checkSkipped?: boolean;
   retryResult: RetryResult;
+  /**
+   * 이 노트를 만든 사진의 분석 제출 번호(1.0.11~). 검토본·원장과 노트를 잇는다.
+   * 1.0.10까지 저장된 노트엔 없다 — 지어내지 않는다.
+   */
+  submissionId?: string | null;
+  /**
+   * 서버에 저장된 시각(savePhotoNote 응답의 storedAt, 1.0.11~). 없으면 아직 안 올라간 노트 —
+   * 「서버에 없는 노트 올리기」가 이 칸으로 거른다. 모양은 functions/src/photo-store-contract.ts.
+   */
+  cloudStoredAt?: string | null;
 };
 
 /**
