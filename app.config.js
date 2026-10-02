@@ -81,8 +81,9 @@ module.exports = {
       [
         'expo-image-picker',
         {
-          photosPermission: '틀린 문제 사진을 골라 분석하는 데만 사용해요.',
-          cameraPermission: '틀린 문제를 바로 찍어 분석하는 데만 사용해요.',
+          // 1.0.11 — 사진이 계정에 저장되면서 "분석하는 데만"은 사실이 아니게 됐다(10.02 astra·Fable, 애플 5.1.1(ii) 목적 설명)
+          photosPermission: '틀린 문제 사진을 골라 분석하고, 만든 오답노트와 함께 내 계정에 저장해요.',
+          cameraPermission: '틀린 문제를 바로 찍어 분석하고, 만든 오답노트와 함께 내 계정에 저장해요.',
           microphonePermission: false,
         },
       ],
