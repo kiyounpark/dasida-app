@@ -73,6 +73,22 @@ it('계정이 바뀐 첫 렌더는 옛 계정의 ok를 쓰지 않고 checking', 
   expect(result.current.status).toBe('checking');
 });
 
+it('[다음]이 서버에서 실패하면 던지고 상태는 needed 그대로', async () => {
+  mockLearner.current = signedIn('user:abc');
+  (decideConsentGate as jest.Mock).mockResolvedValue('needed');
+  (submitConsent as jest.Mock).mockRejectedValue(new Error('Network request failed'));
+  const { result } = renderHook(() => useConsentGate(), { wrapper });
+  await waitFor(() => expect(result.current.status).toBe('needed'));
+
+  await act(async () => {
+    await expect(
+      result.current.submit({ analysis: true, store: true, review: false }, 'individual'),
+    ).rejects.toThrow('Network request failed');
+  });
+
+  expect(result.current.status).toBe('needed');
+});
+
 it('[다음] 뒤엔 넘긴 문서로 상태를 바꾼다(필수 둘 켜짐 → ok)', async () => {
   mockLearner.current = signedIn('user:abc');
   (decideConsentGate as jest.Mock).mockResolvedValue('needed');

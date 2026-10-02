@@ -75,6 +75,13 @@ it('오류 응답은 상태·code를 실어 던진다', async () => {
   expect(error).toMatchObject({ status: 503, code: 'TEMPORARY_FAILURE' });
 });
 
+it('code가 없거나 모르는 값인 오류 응답은 code=null — 약속 파일 readApiErrorBody로 읽는다', async () => {
+  fetchMock.mockResolvedValue(respond(401, { error: 'Missing account key' }));
+
+  const error = await remote.fetch('user:abc').catch((caught: unknown) => caught);
+  expect(error).toMatchObject({ status: 401, code: null, message: 'Request failed (401)' });
+});
+
 it('모양이 깨진 응답은 "문서 없음"으로 읽지 않고 던진다 — 동의를 지우거나 지어내지 않는다', async () => {
   fetchMock.mockResolvedValue(respond(200, { consent: { schemaVersion: 2 } }));
   await expect(remote.fetch('user:abc')).rejects.toBeInstanceOf(ConsentApiError);

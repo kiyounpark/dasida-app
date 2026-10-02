@@ -1,6 +1,7 @@
 import {
   photoStoreUrl,
-  type ApiErrorResponse,
+  readApiErrorBody,
+  type ApiErrorCode,
   type ConsentDoc,
   type GetConsentResponse,
   type SaveConsentRequest,
@@ -27,7 +28,7 @@ export class ConsentApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly code: ApiErrorResponse['code'] | null,
+    public readonly code: ApiErrorCode | null,
   ) {
     super(message);
     this.name = 'ConsentApiError';
@@ -40,13 +41,15 @@ async function requestJson(url: string, init: RequestInit): Promise<unknown> {
 
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
-    const payload = (await response.json().catch(() => null)) as Partial<ApiErrorResponse> | null;
+    const payload: unknown = await response.json().catch(() => null);
 
     if (!response.ok) {
+      // 오류 응답은 약속 파일의 한 자리로 읽는다(10.02 줄 0 리뷰)
+      const apiError = readApiErrorBody(payload);
       throw new ConsentApiError(
-        payload?.error ?? `Request failed (${response.status})`,
+        apiError?.error || `Request failed (${response.status})`,
         response.status,
-        payload?.code ?? null,
+        apiError?.code ?? null,
       );
     }
     return payload;

@@ -8,20 +8,14 @@ import {
 } from '@/functions/src/photo-store-contract';
 
 import type { ConsentRemote } from '../consent-api';
-import {
-  clearLocalConsent,
-  getConsentStorageKey,
-  getPendingConsentStorageKey,
-  readLocalConsent,
-  readPendingConsent,
-  writeLocalConsent,
-} from '../consent-store';
+import { clearLocalConsent, getConsentStorageKey, readLocalConsent, writeLocalConsent } from '../consent-store';
 import { decideConsentGate, submitConsent, syncConsent } from '../consent-sync';
 
 /**
  * 동의를 켤 때 정하고, 넘길 때 저장한다 (1.0.11 1줄).
  * lanes 끝 확인 중 시뮬레이터 없이 덮는 것: 다시 켜면 안 뜸 · 기존 가입자도 뜸 ·
  * 오프라인이면 기기 사본으로 판단 · 서버 저장 실패는 다음 실행에 다시.
+ * 🔒 10.02 줄 0 리뷰: 기기 사본은 서버 응답으로만 쓴다 — 실패 때 앱이 먼저 "동의됨"을 박지 않는다.
  */
 
 const ACCOUNT = 'user:abc';
@@ -31,7 +25,6 @@ const memory = new Map<string, string>();
 
 beforeEach(() => {
   memory.clear();
-  jest.spyOn(console, 'warn').mockImplementation(() => {});
   (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) => memory.get(key) ?? null);
   (AsyncStorage.setItem as jest.Mock).mockImplementation(async (key: string, value: string) => {
     memory.set(key, value);
@@ -39,10 +32,6 @@ beforeEach(() => {
   (AsyncStorage.removeItem as jest.Mock).mockImplementation(async (key: string) => {
     memory.delete(key);
   });
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
 });
 
 function serverDoc(overrides: Partial<ConsentDoc> = {}): ConsentDoc {
@@ -69,6 +58,13 @@ function makeRemote(overrides: Partial<ConsentRemote> = {}) {
 
 const offline = () => Promise.reject(new TypeError('Network request failed'));
 const never = () => new Promise<never>(() => {});
+
+const SUBMIT = {
+  accountKey: ACCOUNT,
+  decisions: { analysis: true, store: true, review: false },
+  via: 'individual' as const,
+  appVersion: '1.0.11',
+};
 
 describe('켤 때 — 동의 화면을 띄울지', () => {
   it('기존 가입자: 기기 사본도 서버 문서도 없으면 화면을 띄운다', async () => {
@@ -118,18 +114,24 @@ describe('켤 때 — 동의 화면을 띄울지', () => {
 
     await expect(decideConsentGate(ACCOUNT, remote)).resolves.toBe('needed');
   });
+
+  it('서버에 문서가 없다고 하면(서버 응답) 기기 사본을 지운다', async () => {
+    await writeLocalConsent(ACCOUNT, serverDoc());
+
+    await expect(syncConsent(ACCOUNT, makeRemote({ fetch: jest.fn(async () => null) }))).resolves.toBeNull();
+    await expect(readLocalConsent(ACCOUNT)).resolves.toBeNull();
+  });
 });
 
 describe('넘길 때 — [다음]', () => {
-  it('서버 저장 성공: 기기 사본 = 서버 문서, 다시 켜면 안 뜬다(오프라인이어도)', async () => {
+  it('서버 저장 성공: 사본 = 서버 문서, 다시 켜면 안 뜬다(오프라인이어도)', async () => {
     const saved = serverDoc({ via: 'all', review: { version: 1, agreedAt: T1, revokedAt: null } });
     const remote = makeRemote({ save: jest.fn(async () => saved) });
 
     const doc = await submitConsent({
-      accountKey: ACCOUNT,
+      ...SUBMIT,
       decisions: { analysis: true, store: true, review: true },
       via: 'all',
-      appVersion: '1.0.11',
       remote,
     });
 
@@ -141,59 +143,37 @@ describe('넘길 때 — [다음]', () => {
       via: 'all',
       appVersion: '1.0.11',
     });
-    await expect(readPendingConsent(ACCOUNT)).resolves.toBeNull();
+    await expect(readLocalConsent(ACCOUNT)).resolves.toEqual(saved);
 
     // 다음 실행 — 서버가 안 닿아도 안 뜬다
     await expect(decideConsentGate(ACCOUNT, makeRemote({ fetch: jest.fn(offline) }))).resolves.toBe('ok');
   });
 
-  it('서버 저장 실패: 임시 사본으로 들어가고(세 칸·via), 밀린 저장을 남긴다', async () => {
-    const remote = makeRemote({ save: jest.fn(offline) });
+  it('앱 버전을 모르면 appVersion: null로 보낸다(키가 빠지면 서버가 400)', async () => {
+    const save = jest.fn<Promise<ConsentDoc>, [SaveConsentRequest]>(async () => serverDoc());
 
-    const doc = await submitConsent({
-      accountKey: ACCOUNT,
-      decisions: { analysis: true, store: true, review: false },
-      via: 'individual',
-      appVersion: '1.0.11',
-      remote,
-      now: () => new Date(T1),
-    });
+    await submitConsent({ ...SUBMIT, appVersion: null, remote: makeRemote({ save }) });
 
-    expect(needsConsentScreen(doc)).toBe(false);
-    expect(doc).toEqual({
-      schemaVersion: 1,
-      accountKey: ACCOUNT,
-      analysis: { version: 1, agreedAt: T1, revokedAt: null },
-      store: { version: 1, agreedAt: T1, revokedAt: null },
-      review: { version: 1, agreedAt: null, revokedAt: null },
-      via: 'individual',
-      updatedAt: T1,
-      appVersion: '1.0.11',
-    });
-    await expect(readPendingConsent(ACCOUNT)).resolves.toMatchObject({ via: 'individual' });
+    const sent = save.mock.calls[0][0];
+    expect('appVersion' in sent).toBe(true);
+    expect(sent.appVersion).toBeNull();
   });
 
-  it('밀린 저장은 다음 실행에 다시 보내고, 성공하면 지운다', async () => {
-    await submitConsent({
-      accountKey: ACCOUNT,
-      decisions: { analysis: true, store: true, review: false },
-      via: 'individual',
-      appVersion: '1.0.11',
-      remote: makeRemote({ save: jest.fn(offline) }),
-    });
+  it('서버 저장 실패: 던지고, 기기 사본에 아무것도 안 쓴다 — 다음 실행에 화면이 다시 뜬다', async () => {
+    const remote = makeRemote({ save: jest.fn(offline) });
 
-    // 다음 실행 — 아직 오프라인: 기기 사본으로 통과, 밀린 저장은 남는다
-    const stillOffline = makeRemote({ save: jest.fn(offline), fetch: jest.fn(offline) });
-    await expect(decideConsentGate(ACCOUNT, stillOffline)).resolves.toBe('ok');
-    await expect(readPendingConsent(ACCOUNT)).resolves.not.toBeNull();
+    await expect(submitConsent({ ...SUBMIT, remote })).rejects.toThrow();
+    expect(memory.size).toBe(0);
 
-    // 그다음 실행 — 망이 돌아옴: 밀린 요청을 그대로 보내고 서버 문서로 덮는다
-    const back = makeRemote({ save: jest.fn(async () => serverDoc()) });
-    await expect(syncConsent(ACCOUNT, back)).resolves.toEqual(serverDoc());
-    expect(back.save).toHaveBeenCalledWith(expect.objectContaining({ accountKey: ACCOUNT, via: 'individual' }));
-    expect(back.fetch).not.toHaveBeenCalled();
-    await expect(readPendingConsent(ACCOUNT)).resolves.toBeNull();
-    await expect(readLocalConsent(ACCOUNT)).resolves.toEqual(serverDoc());
+    // 다음 실행 — 아직 오프라인: 사본이 없으니 다시 묻는다
+    await expect(decideConsentGate(ACCOUNT, makeRemote({ fetch: jest.fn(offline) }))).resolves.toBe('needed');
+  });
+
+  it('서버가 늦으면 상한에서 실패로 보고 사본을 안 쓴다', async () => {
+    const remote = makeRemote({ save: jest.fn(never) });
+
+    await expect(submitConsent({ ...SUBMIT, remote, timeoutMs: 10 })).rejects.toThrow();
+    await expect(readLocalConsent(ACCOUNT)).resolves.toBeNull();
   });
 
   it('서버 응답을 기다리는 사이 넘겼으면, 늦게 온 "문서 없음"이 기기 사본을 지우지 않는다', async () => {
@@ -205,13 +185,7 @@ describe('넘길 때 — [다음]', () => {
     const sync = syncConsent(ACCOUNT, slow);
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(slow.fetch).toHaveBeenCalled();
-    await submitConsent({
-      accountKey: ACCOUNT,
-      decisions: { analysis: true, store: true, review: false },
-      via: 'individual',
-      appVersion: '1.0.11',
-      remote: makeRemote({ save: jest.fn(async () => serverDoc({ updatedAt: '2026-10-10T00:00:05.000Z' })) }),
-    });
+    await submitConsent({ ...SUBMIT, remote: makeRemote({ save: jest.fn(async () => serverDoc()) }) });
     answer(null);
     await sync;
 
@@ -221,9 +195,8 @@ describe('넘길 때 — [다음]', () => {
 });
 
 describe('로그아웃·탈퇴 때 지우기', () => {
-  it('clearLocalConsent는 사본과 밀린 저장을 같이 지운다', async () => {
+  it('clearLocalConsent는 이 계정의 사본을 지운다', async () => {
     memory.set(getConsentStorageKey(ACCOUNT), JSON.stringify(serverDoc()));
-    memory.set(getPendingConsentStorageKey(ACCOUNT), JSON.stringify({ accountKey: ACCOUNT, decisions: {} }));
 
     await clearLocalConsent(ACCOUNT);
 

@@ -122,6 +122,23 @@ it('전체 동의 뒤 선택을 끄고 넘기면 via=individual', async () => {
   expect(mockSubmit).toHaveBeenCalledWith({ analysis: true, store: true, review: false }, 'individual');
 });
 
+it('서버 저장이 실패하면 넘어가지 않고 오류 줄을 띄운다 — consent_submit도 안 남긴다', async () => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  mockSubmit.mockRejectedValue(new Error('Network request failed'));
+  render(<ConsentScreen />);
+
+  fireEvent.press(screen.getByLabelText('전체 동의'));
+  await act(async () => {
+    fireEvent.press(nextButton());
+  });
+
+  expect(screen.getByText('저장 못 했어. 인터넷 연결 확인하고 다시 눌러줘')).toBeTruthy();
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(mockLogEvent).not.toHaveBeenCalledWith('consent_submit', expect.anything());
+  // 다시 누를 수 있다
+  expect(nextButton()).toBeEnabled();
+});
+
 describe('계정 관리 >', () => {
   type AlertButton = { text: string; onPress?: () => void };
 

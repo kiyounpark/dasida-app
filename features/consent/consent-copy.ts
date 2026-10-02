@@ -21,6 +21,8 @@ export const CONSENT_COPY = {
   } satisfies Record<ConsentKind, string>,
   next: '다음',
   accountManage: '계정 관리 >',
+  // 초안에 없던 줄(10.02 줄 0 리뷰로 생김) — 서버 저장이 실패하면 넘어가지 않고 이 줄을 띄운다. target-student 검토 전
+  saveFailed: '저장 못 했어. 인터넷 연결 확인하고 다시 눌러줘',
 
   // 계정 관리 > 를 눌렀을 때 — 프로필의 로그아웃·탈퇴와 같은 말
   accountManageTitle: '계정 관리',

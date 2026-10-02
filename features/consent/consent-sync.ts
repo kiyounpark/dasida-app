@@ -8,26 +8,22 @@ import {
 } from '@/functions/src/photo-store-contract';
 
 import type { ConsentRemote } from './consent-api';
-import {
-  clearLocalConsent,
-  clearPendingConsent,
-  readLocalConsent,
-  readPendingConsent,
-  writeLocalConsent,
-  writePendingConsent,
-} from './consent-store';
+import { clearLocalConsent, readLocalConsent, writeLocalConsent } from './consent-store';
 
 /**
  * 동의 문서를 서버·기기 사본과 맞춘다 (1.0.11 1줄).
  *
+ * 기기 사본은 서버 응답으로만 쓴다(🔒 10.02 줄 0 리뷰 — consent-store.ts 머리 주석).
  * - 켤 때: 기기 사본이 "됐음"이면 바로 통과하고 서버 확인은 뒤에서 한다(첫 화면을 안 붙잡는다).
  *   사본이 없거나 "다시 물어야 함"이면 서버를 기다린다 — 늦거나 끊기면 사본으로 정한다(오프라인).
- * - 넘길 때: 서버 저장이 실패해도 학생은 들어간다. 기기에 임시 사본 + 밀린 저장을 두고 다음 실행에 다시 보낸다.
+ *   사본이 없으면 화면이 뜬다 — 동의를 지어내지 않는다.
+ * - 넘길 때: 서버가 저장했다고 답해야만 사본을 쓰고 들어간다. 실패하면 던진다 — 화면에 머물러
+ *   다시 누르게 한다. 앱을 끄면 다음 실행에 사본이 없으니 화면이 다시 뜬다("다음 실행에 다시").
  */
 
 /** 켤 때 서버를 기다리는 상한. 헤더(최대 5초) + 요청을 한 번에 묶는다 */
 export const CONSENT_CHECK_TIMEOUT_MS = 6_000;
-/** [다음]을 누른 뒤 서버를 기다리는 상한 — 넘으면 임시 사본으로 들어간다 */
+/** [다음]을 누른 뒤 서버를 기다리는 상한 — 넘으면 실패로 보고 다시 누르게 한다 */
 export const CONSENT_SUBMIT_TIMEOUT_MS = 10_000;
 
 export type ConsentGateDecision = 'needed' | 'ok';
@@ -56,51 +52,13 @@ export function buildSaveConsentRequest(input: {
 }
 
 /**
- * 서버에 못 올렸을 때 기기에 두는 임시 사본. 켜짐/꺼짐만 맞으면 된다 —
- * 이 사본을 보는 건 needsConsentScreen과 2줄의 store 확인뿐이다.
- * 시각의 정본은 서버가 찍고, 밀린 저장이 올라가면 서버 문서로 덮인다.
- */
-export function buildProvisionalConsentDoc(request: SaveConsentRequest, nowIso: string): ConsentDoc {
-  const entry = (on: boolean, version: number) => ({
-    version,
-    agreedAt: on ? nowIso : null,
-    revokedAt: null,
-  });
-
-  return {
-    schemaVersion: 1,
-    accountKey: request.accountKey,
-    analysis: entry(request.decisions.analysis, request.copyVersion.analysis),
-    store: entry(request.decisions.store, request.copyVersion.store),
-    review: entry(request.decisions.review, request.copyVersion.review),
-    via: request.via,
-    updatedAt: nowIso,
-    appVersion: request.appVersion,
-  };
-}
-
-/**
- * 밀린 저장을 먼저 올리고, 서버 원본으로 기기 사본을 맞춘다. 가장 믿을 만한 문서를 돌려준다.
- * 서버를 못 읽으면 던진다 — 부르는 쪽이 기기 사본으로 정한다.
+ * 서버 원본으로 기기 사본을 맞추고 그 문서를 돌려준다. 서버를 못 읽으면 던진다 — 부르는 쪽이 사본으로 정한다.
  */
 export async function syncConsent(accountKey: string, remote: ConsentRemote): Promise<ConsentDoc | null> {
-  const pending = await readPendingConsent(accountKey);
-  if (pending) {
-    try {
-      const saved = await remote.save(pending);
-      await writeLocalConsent(accountKey, saved);
-      await clearPendingConsent(accountKey);
-      return saved;
-    } catch {
-      // 아직 못 올림 — 기기의 임시 사본이 서버보다 새것이다
-      return readLocalConsent(accountKey);
-    }
-  }
-
   const before = await readLocalConsent(accountKey);
   const serverDoc = await remote.fetch(accountKey);
 
-  // 서버를 기다리는 사이 화면에서 넘겼으면(사본이 바뀌었으면) 그쪽이 새것이다 — 덮지 않는다
+  // 서버를 기다리는 사이 화면에서 넘겨 사본이 바뀌었으면(그것도 서버 응답이다) 그쪽이 새것이다 — 덮지 않는다
   const current = await readLocalConsent(accountKey);
   if ((current?.updatedAt ?? null) !== (before?.updatedAt ?? null)) return current;
 
@@ -136,9 +94,7 @@ export async function decideConsentGate(
   return needsConsentScreen(decided) ? 'needed' : 'ok';
 }
 
-/**
- * [다음]. 서버에 저장되면 서버 문서를, 실패하면 임시 사본을 돌려준다 — 어느 쪽이든 학생은 들어간다.
- */
+/** [다음]. 서버가 저장한 문서를 사본에 쓰고 돌려준다. 실패·타임아웃이면 던진다(사본은 안 건드린다) */
 export async function submitConsent(input: {
   accountKey: string;
   decisions: ConsentDecisions;
@@ -146,20 +102,9 @@ export async function submitConsent(input: {
   appVersion: string | null;
   remote: ConsentRemote;
   timeoutMs?: number;
-  now?: () => Date;
 }): Promise<ConsentDoc> {
   const request = buildSaveConsentRequest(input);
-
-  try {
-    const saved = await withTimeout(input.remote.save(request), input.timeoutMs ?? CONSENT_SUBMIT_TIMEOUT_MS);
-    await writeLocalConsent(input.accountKey, saved);
-    await clearPendingConsent(input.accountKey);
-    return saved;
-  } catch (error) {
-    console.warn('[consent] 서버 저장 실패 — 기기 사본으로 들어가고 다음 실행에 다시 보낸다', error);
-    const provisional = buildProvisionalConsentDoc(request, (input.now?.() ?? new Date()).toISOString());
-    await writePendingConsent(input.accountKey, request);
-    await writeLocalConsent(input.accountKey, provisional);
-    return provisional;
-  }
+  const saved = await withTimeout(input.remote.save(request), input.timeoutMs ?? CONSENT_SUBMIT_TIMEOUT_MS);
+  await writeLocalConsent(input.accountKey, saved);
+  return saved;
 }

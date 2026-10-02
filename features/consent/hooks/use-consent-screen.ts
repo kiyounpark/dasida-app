@@ -61,10 +61,13 @@ export function useConsentScreen() {
     setErrorMessage(null);
 
     try {
-      // 서버가 실패해도 submit은 기기 사본으로 넘어간다 — 오류 문구를 띄울 갈래가 없다
+      // 서버가 저장했다고 답해야 넘어간다(기기 사본은 서버 응답으로만 — 🔒 10.02 줄 0 리뷰)
       await submit(choice.decisions, choice.via);
       logEvent(CONSENT_GA_EVENTS.submit, { review: choice.decisions.review, via: choice.via });
       router.replace('/(tabs)/quiz');
+    } catch (error) {
+      console.warn('[consent] 저장 실패 — 화면에 머문다', error);
+      setErrorMessage(CONSENT_COPY.saveFailed);
     } finally {
       setBusyAction(null);
     }

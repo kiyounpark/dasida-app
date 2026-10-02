@@ -26,7 +26,7 @@ import { decideConsentGate, submitConsent } from './consent-sync';
  */
 export type ConsentGateValue = {
   status: ConsentGateStatus;
-  /** 동의 화면의 [다음]. 서버가 실패해도 기기 사본으로 넘어간다(던지지 않는다) */
+  /** 동의 화면의 [다음]. 서버가 저장해야 'ok'가 된다 — 실패·타임아웃이면 던진다(화면에 머문다) */
   submit(decisions: ConsentDecisions, via: ConsentVia): Promise<void>;
 };
 
