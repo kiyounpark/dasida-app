@@ -10,15 +10,22 @@ import { PhotoAnalysisOutputError } from '../src/openai-client';
 import {
   buildPhotoAnalysisRunDoc,
   classifyAnalyzeError,
+  collectReviewPhotoPathsForAccount,
   deletePhotoAnalysisRunsForAccount,
+  findFirstReviewCopy,
   PHOTO_ANALYSIS_RUNS_COLLECTION,
+  planRunConsent,
   readRunRequestContext,
   resolveRunAuth,
+  reviewPhotoWaitMs,
+  runConsentLabels,
   runLogWriteWaitMs,
+  storeReviewCopy,
   toKstDate,
   unresolvedRunAuth,
   withTimeout,
 } from '../src/photo-analysis-run-log';
+import type { ConsentDoc } from '../src/photo-store-contract';
 
 const IMAGE = 'data:image/jpeg;base64,AAAA';
 const USAGE = { input: 1200, cached: 800, output: 300, reasoning: 200, total: 1500 };
@@ -372,4 +379,169 @@ test('deletePhotoAnalysisRunsForAccount: 한 건이라도 못 지우면 실패�
   } as unknown as Firestore;
 
   await assert.rejects(deletePhotoAnalysisRunsForAccount(fakeFirestore, 'user:abc'), /delete failed/);
+});
+
+// ── 1.0.11 동의 칸·검토본 (약속 파일 §5) ──
+
+const ON = { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null };
+const NEVER = { version: 0, agreedAt: null, revokedAt: null };
+const VERIFIED = { accountKey: 'user:abc', authVerified: true, authKind: 'firebase' as const, authError: null };
+
+function consentDoc(review: typeof ON | typeof NEVER): ConsentDoc {
+  return {
+    schemaVersion: 1,
+    accountKey: 'user:abc',
+    analysis: ON,
+    store: ON,
+    review,
+    via: 'all',
+    updatedAt: '2026-10-10T00:00:00.000Z',
+    appVersion: '1.0.11',
+  };
+}
+
+test('buildPhotoAnalysisRunDoc: 동의 칸을 안 주면 unknown·skipped (1.0.10 이하·웹과 같은 값)', () => {
+  const doc = buildPhotoAnalysisRunDoc({ ...baseInput(), openAi: null, outcome: { ok: true, result: null } });
+
+  assert.equal(doc.schemaVersion, 2);
+  assert.equal(doc.analysisConsent, 'unknown');
+  assert.equal(doc.reviewConsent, 'unknown');
+  assert.deepEqual(doc.review, { status: 'skipped', photoPath: null, expiresAt: null });
+  assert.ok(Object.values(doc).every((value) => value !== undefined));
+});
+
+test('runConsentLabels: 문서가 없으면 unknown — 안 물어봄은 거부가 아니다', () => {
+  assert.deepEqual(runConsentLabels(null), { analysisConsent: 'unknown', reviewConsent: 'unknown' });
+  assert.deepEqual(runConsentLabels(consentDoc(ON)), { analysisConsent: 'agreed', reviewConsent: 'agreed' });
+  assert.deepEqual(runConsentLabels(consentDoc(NEVER)), { analysisConsent: 'agreed', reviewConsent: 'not-agreed' });
+});
+
+test('planRunConsent: 인증이 안 됐으면 동의 문서를 안 읽는다', async () => {
+  let read = false;
+  const plan = await planRunConsent({
+    auth: { accountKey: 'user:abc', authVerified: false, authKind: null, authError: 'x' },
+    submissionId: 'sub_12345678',
+    receivedAt: new Date('2026-10-10T15:30:00.000Z'),
+    readConsent: async () => {
+      read = true;
+      return consentDoc(ON);
+    },
+    findFirstReview: async () => null,
+  });
+
+  assert.equal(read, false);
+  assert.deepEqual(plan, { analysisConsent: 'unknown', reviewConsent: 'unknown', review: null });
+});
+
+test('planRunConsent: 경로 날짜는 받은 시각의 KST 날짜, 만료는 +30일', async () => {
+  const plan = await planRunConsent({
+    auth: VERIFIED,
+    submissionId: 'sub_12345678',
+    // UTC 15:30 = KST 다음 날 00:30
+    receivedAt: new Date('2026-10-10T15:30:00.000Z'),
+    readConsent: async () => consentDoc(ON),
+    findFirstReview: async () => null,
+  });
+
+  assert.deepEqual(plan.review, {
+    photoPath: 'review/2026-10-11/user:abc/sub_12345678.jpg',
+    expiresAt: '2026-11-09T15:30:00.000Z',
+  });
+});
+
+test('planRunConsent: 첫 검토본 찾기가 실패해도 오늘 경로로 간다', async () => {
+  const plan = await planRunConsent({
+    auth: VERIFIED,
+    submissionId: 'sub_12345678',
+    receivedAt: new Date('2026-10-10T03:00:00.000Z'),
+    readConsent: async () => consentDoc(ON),
+    findFirstReview: async () => {
+      throw new Error('query failed');
+    },
+  });
+
+  assert.equal(plan.review?.photoPath, 'review/2026-10-10/user:abc/sub_12345678.jpg');
+});
+
+test('storeReviewCopy: 상한 안에 안 끝나면 failed — 경로는 남긴다(늦게 도착해도 탈퇴가 지운다)', async () => {
+  const review = await storeReviewCopy({
+    plan: { analysisConsent: 'agreed', reviewConsent: 'agreed', review: { photoPath: 'review/p.jpg', expiresAt: 'e' } },
+    imageDataUrl: IMAGE,
+    save: () => new Promise(() => {}),
+    waitMs: 10,
+  });
+
+  assert.deepEqual(review, { status: 'failed', photoPath: 'review/p.jpg', expiresAt: 'e' });
+});
+
+test('storeReviewCopy: save가 바로 던져도 던지지 않는다', async () => {
+  const review = await storeReviewCopy({
+    plan: { analysisConsent: 'agreed', reviewConsent: 'agreed', review: { photoPath: 'review/p.jpg', expiresAt: 'e' } },
+    imageDataUrl: IMAGE,
+    save: () => {
+      throw new Error('sync throw');
+    },
+    waitMs: 1000,
+  });
+
+  assert.equal(review.status, 'failed');
+});
+
+test('reviewPhotoWaitMs: 원장 최소 몫(3초)을 남기고 5초 상한', () => {
+  const receivedAt = new Date('2026-10-10T00:00:00.000Z');
+  const at = (seconds: number) => receivedAt.getTime() + seconds * 1000;
+
+  assert.equal(reviewPhotoWaitMs(receivedAt, 177_000, at(30)), 5_000);
+  assert.equal(reviewPhotoWaitMs(receivedAt, 57_000, at(52)), 2_000);
+  assert.equal(reviewPhotoWaitMs(receivedAt, 57_000, at(56)), 0);
+});
+
+function fakeRunsFirestore(rows: Record<string, unknown>[], seen: { filters: [string, unknown][] }) {
+  const query = {
+    where: (field: string, _op: string, value: unknown) => {
+      seen.filters.push([field, value]);
+      return query;
+    },
+    limit: () => query,
+    get: async () => ({ docs: rows.map((row) => ({ data: () => row })) }),
+  };
+  return { collection: () => query } as unknown as Firestore;
+}
+
+test('collectReviewPhotoPathsForAccount: 이 계정 행의 검토본 경로만, 겹치면 한 번', async () => {
+  const seen = { filters: [] as [string, unknown][] };
+  const firestore = fakeRunsFirestore(
+    [
+      { review: { status: 'stored', photoPath: 'review/a.jpg', expiresAt: 'e' } },
+      { review: { status: 'failed', photoPath: 'review/b.jpg', expiresAt: 'e' } },
+      { review: { status: 'stored', photoPath: 'review/a.jpg', expiresAt: 'e' } },
+      { review: { status: 'skipped', photoPath: null, expiresAt: null } },
+      {}, // 1.0.10 이하 행 — review 칸 없음
+    ],
+    seen,
+  );
+
+  assert.deepEqual(await collectReviewPhotoPathsForAccount(firestore, 'user:abc'), ['review/a.jpg', 'review/b.jpg']);
+  assert.deepEqual(seen.filters, [['accountKey', 'user:abc']]);
+});
+
+test('findFirstReviewCopy: 같은 계정·submissionId 중 가장 이른 행의 경로', async () => {
+  const seen = { filters: [] as [string, unknown][] };
+  const firestore = fakeRunsFirestore(
+    [
+      { receivedAt: '2026-10-10T15:10:00.000Z', review: { photoPath: 'review/2026-10-11/x.jpg', expiresAt: 'late' } },
+      { receivedAt: '2026-10-10T14:50:00.000Z', review: { photoPath: 'review/2026-10-10/x.jpg', expiresAt: 'early' } },
+      { receivedAt: '2026-10-10T14:00:00.000Z', review: { photoPath: null, expiresAt: null } },
+    ],
+    seen,
+  );
+
+  assert.deepEqual(await findFirstReviewCopy(firestore, 'user:abc', 'sub_12345678'), {
+    photoPath: 'review/2026-10-10/x.jpg',
+    expiresAt: 'early',
+  });
+  assert.deepEqual(seen.filters, [
+    ['accountKey', 'user:abc'],
+    ['submissionId', 'sub_12345678'],
+  ]);
 });

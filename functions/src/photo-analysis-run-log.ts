@@ -11,6 +11,13 @@ import {
 } from './learning-history-auth';
 import { PHOTO_ANALYSIS_DEADLINE_MS, PhotoAnalysisOutputError, type PhotoAnalysisUsage } from './openai-client';
 import type { PhotoGateRecord } from './photo-gate';
+import {
+  isConsentOn,
+  reviewExpiresAt,
+  reviewPhotoPath,
+  type ConsentDoc,
+  type PhotoRunConsentFields,
+} from './photo-store-contract';
 
 // 사진 분석 사용량 원장. 설계: docs/superpowers/specs/2026-09-23-photo-usage-log-design.md
 // 사진 1장(호출 1번)당 문서 1개, 문서 id(자동)가 시도 id다. 보존은 영구 — Cloud Logging은 30일이면 사라져 판정을 못 센다.
@@ -20,6 +27,10 @@ import type { PhotoGateRecord } from './photo-gate';
 //   분석 성공 = ok && result !== null   — v1 행도, 게이트 판독이 실패(skipped_*)한 뒤 분석에 성공한 행도 들어간다
 //   게이트 걸림 = gate.decision이 'blocked'로 시작 (v2만)
 // "ok && gate.decision === 'pass'"로 세지 않는다 — v1 행과 skipped 뒤 성공이 빠진다.
+//
+// 1.0.11(같은 v2, 칸만 더함): analysisConsent · reviewConsent · review (약속 파일 PhotoRunConsentFields).
+// 이 칸이 없는 옛 행 = unknown·skipped로 읽는다. 동의 문서가 없는 계정(1.0.10 이하·아직 동의 화면 전)도 unknown —
+// "안 물어봄"은 "거부"가 아니다. 분석은 동의로 막지 않는다. 기록만 한다.
 export const PHOTO_ANALYSIS_RUNS_COLLECTION = 'photoAnalysisRuns';
 
 const PARTICIPANT_ID_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
@@ -87,7 +98,8 @@ export type AnalyzeErrorKind =
   | 'unknown';
 
 export type PhotoAnalysisRunDoc = RunRequestContext &
-  RunAuth & {
+  RunAuth &
+  PhotoRunConsentFields & {
     schemaVersion: 2;
     receivedAt: string;
     kstDate: string;
@@ -244,6 +256,8 @@ export function buildPhotoAnalysisRunDoc(input: {
   gate: PhotoGateRecord | null;
   // 게이트에 걸리면 ok:true · result null (본 호출 없음)
   outcome: { ok: true; result: RunResultSummary | null } | { ok: false; error: unknown };
+  // 1.0.11 — 없으면 unknown·skipped (동의를 안 읽은 자리)
+  consent?: PhotoRunConsentFields;
 }): PhotoAnalysisRunDoc {
   const { outcome } = input;
   // 출력이 깨진 실패는 OpenAI 응답 대신 에러가 model·usage·responseId를 들고 온다
@@ -258,6 +272,7 @@ export function buildPhotoAnalysisRunDoc(input: {
     schemaVersion: 2,
     ...input.context,
     ...input.auth,
+    ...(input.consent ?? unknownRunConsent()),
     receivedAt: input.receivedAt.toISOString(),
     kstDate: toKstDate(input.receivedAt),
     ok: outcome.ok,
@@ -291,6 +306,138 @@ export function runLogWriteWaitMs(receivedAt: Date, budgetMs: number, now: numbe
 // 웹(177초 예산): 게이트 5초면 165초 · 게이트가 20초를 다 쓰면 152초. 1.0.9(57초): 게이트 4~11초면 41~48초.
 export function photoAiDeadlineMs(budgetMs: number, elapsedMs: number): number {
   return Math.max(0, Math.min(PHOTO_ANALYSIS_DEADLINE_MS, budgetMs - elapsedMs - RUN_AUTH_WAIT_MS - RUN_LOG_WRITE_MIN_MS));
+}
+
+// ── 1.0.11 동의 칸·검토본 (약속 파일 §5) ──────────────────────────────────────
+
+/** 검토본 올리기 대기 상한. 동의한 학생만 이 시간을 쓴다 — 동의 문서가 없는 요청은 0ms */
+export const REVIEW_PHOTO_MAX_WAIT_MS = 5_000;
+
+export type RunConsentLabels = Pick<PhotoRunConsentFields, 'analysisConsent' | 'reviewConsent'>;
+type ReviewRecord = PhotoRunConsentFields['review'];
+
+/** 동의를 안 읽은 자리(인증 미확인·문서 없음·못 읽음·옛 행) */
+export function unknownRunConsent(): PhotoRunConsentFields {
+  return {
+    analysisConsent: 'unknown',
+    reviewConsent: 'unknown',
+    review: { status: 'skipped', photoPath: null, expiresAt: null },
+  };
+}
+
+/** 문서가 없으면 unknown — "안 물어봄"은 "거부"가 아니다 */
+export function runConsentLabels(doc: ConsentDoc | null): RunConsentLabels {
+  if (!doc) return { analysisConsent: 'unknown', reviewConsent: 'unknown' };
+  return {
+    analysisConsent: isConsentOn(doc.analysis, 'analysis') ? 'agreed' : 'not-agreed',
+    reviewConsent: isConsentOn(doc.review, 'review') ? 'agreed' : 'not-agreed',
+  };
+}
+
+/** 검토본을 남길지·어디에. review가 null이면 안 남긴다 */
+export type RunConsentPlan = RunConsentLabels & { review: { photoPath: string; expiresAt: string } | null };
+
+/**
+ * 검토본 조건 = authVerified ∧ 검토 동의 ∧ submissionId. 분석·인증과 같이 돌린다(학생 응답을 늦추지 않게).
+ * 같은 submissionId의 첫 검토본이 원장에 있으면 그 경로·만료를 다시 쓴다 — 자정을 넘긴 재시도도 첫 날짜, 만료는 안 늘린다.
+ * 던질 수 있다 — 부르는 쪽이 unknown으로 받는다.
+ */
+export async function planRunConsent(input: {
+  auth: RunAuth;
+  submissionId: string | null;
+  receivedAt: Date;
+  readConsent: (accountKey: string) => Promise<ConsentDoc | null>;
+  findFirstReview: (accountKey: string, submissionId: string) => Promise<{ photoPath: string; expiresAt: string } | null>;
+}): Promise<RunConsentPlan> {
+  const { auth, submissionId, receivedAt } = input;
+  if (!auth.authVerified || !auth.accountKey) {
+    return { analysisConsent: 'unknown', reviewConsent: 'unknown', review: null };
+  }
+
+  const labels = runConsentLabels(await input.readConsent(auth.accountKey));
+  if (labels.reviewConsent !== 'agreed' || !submissionId) return { ...labels, review: null };
+
+  const first = await input.findFirstReview(auth.accountKey, submissionId).catch(() => null);
+  return {
+    ...labels,
+    review: first ?? {
+      photoPath: reviewPhotoPath(toKstDate(receivedAt), auth.accountKey, submissionId),
+      expiresAt: reviewExpiresAt(receivedAt.toISOString()),
+    },
+  };
+}
+
+/** 검토본 올리기에 줄 시간 — 응답 예산에서 원장 최소 몫을 남기고, 5초 상한 */
+export function reviewPhotoWaitMs(receivedAt: Date, budgetMs: number, now: number = Date.now()): number {
+  return Math.max(
+    0,
+    Math.min(REVIEW_PHOTO_MAX_WAIT_MS, budgetMs - (now - receivedAt.getTime()) - RUN_LOG_WRITE_MIN_MS),
+  );
+}
+
+/**
+ * 받은 축소본을 검토본 경로에 남긴다(응답 전). 절대 던지지 않는다 — 검토본이 학생 응답을 막으면 안 된다.
+ * 실패·시간 초과여도 경로는 원장에 남긴다 — 늦게 도착한 객체도 탈퇴가 이 경로로 지운다.
+ */
+export async function storeReviewCopy(input: {
+  plan: RunConsentPlan;
+  imageDataUrl: string;
+  save: (photoPath: string, imageDataUrl: string) => Promise<unknown>;
+  waitMs: number;
+}): Promise<ReviewRecord> {
+  const { review } = input.plan;
+  if (!review) return { status: 'skipped', photoPath: null, expiresAt: null };
+
+  const upload = Promise.resolve()
+    .then(() => input.save(review.photoPath, input.imageDataUrl))
+    .then(
+      () => 'stored' as const,
+      (error) => {
+        logger.error('analyzePhoto review copy failed', { photoPath: review.photoPath, error });
+        return 'failed' as const;
+      },
+    );
+  const status = await withTimeout(upload, input.waitMs, () => 'failed' as const);
+  return { status, photoPath: review.photoPath, expiresAt: review.expiresAt };
+}
+
+/** 같은 계정·같은 submissionId의 가장 이른 검토본 경로 */
+export async function findFirstReviewCopy(
+  firestore: Firestore,
+  accountKey: string,
+  submissionId: string,
+): Promise<{ photoPath: string; expiresAt: string } | null> {
+  const snapshot = await firestore
+    .collection(PHOTO_ANALYSIS_RUNS_COLLECTION)
+    .where('accountKey', '==', accountKey)
+    .where('submissionId', '==', submissionId)
+    .limit(20)
+    .get();
+
+  let first: { receivedAt: string; photoPath: string; expiresAt: string } | null = null;
+  for (const doc of snapshot.docs) {
+    const data = doc.data() as Partial<PhotoAnalysisRunDoc>;
+    const photoPath = data.review?.photoPath;
+    const expiresAt = data.review?.expiresAt;
+    if (typeof photoPath !== 'string' || typeof expiresAt !== 'string' || typeof data.receivedAt !== 'string') continue;
+    if (!first || data.receivedAt < first.receivedAt) first = { receivedAt: data.receivedAt, photoPath, expiresAt };
+  }
+  return first && { photoPath: first.photoPath, expiresAt: first.expiresAt };
+}
+
+/** 탈퇴 ② — 원장을 지우기 전에 이 계정의 검토본 경로를 모은다(날짜 아래 흩어져 prefix로 못 지운다) */
+export async function collectReviewPhotoPathsForAccount(firestore: Firestore, accountKey: string): Promise<string[]> {
+  const snapshot = await firestore
+    .collection(PHOTO_ANALYSIS_RUNS_COLLECTION)
+    .where('accountKey', '==', accountKey)
+    .get();
+
+  const paths = new Set<string>();
+  for (const doc of snapshot.docs) {
+    const photoPath = (doc.data() as Partial<PhotoAnalysisRunDoc>).review?.photoPath;
+    if (typeof photoPath === 'string') paths.add(photoPath);
+  }
+  return [...paths];
 }
 
 // 원장 기록은 절대 던지지 않는다 — 기록 실패가 학생 응답을 막으면 안 된다 (diagnosis-method.ts와 같은 규약).

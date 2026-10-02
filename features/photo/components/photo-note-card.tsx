@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { MathText } from '@/components/math/MathText';
 import { FontFamilies } from '@/constants/typography';
+import type { CloudNoteState } from '@/functions/src/photo-store-contract';
 
+import { useCloudNoteState } from '../cloud/save-note-remote';
 import { NOTE_ASK_LINE, noteCardLines } from '../script/note-card-lines';
 import { PhotoTheme } from '../theme';
 import type { PhotoNote } from '../types';
@@ -22,21 +24,46 @@ function linesOf(note: PhotoNote) {
 }
 
 /**
+ * ☁ 줄(1.0.11) — 서버 응답으로만 바뀐다. 상태가 없거나 'local-only'(안 올라감)면 줄을 안 낸다.
+ * 로컬 저장 성공은 증거가 아니다(약속 파일 「저장 규칙」).
+ */
+function cloudLineOf(state: CloudNoteState | null): string | null {
+  if (!state) return null;
+  switch (state.kind) {
+    case 'saving':
+      return '☁ 저장 중';
+    case 'stored':
+      return state.hasPhoto ? '☁ 저장됨' : '☁ 저장됨 · 사진 없음';
+    case 'failed':
+      return '☁ 저장 못 함';
+    default:
+      return null;
+  }
+}
+
+/**
  * 오답노트 한 장 — 이 흐름의 결과물.
  * "진단 결과"가 아니라 학생이 아는 양식이 자기 손글씨 사진과 함께 채워져 나온다.
  * 정답 칸은 없다(갈라진 지점 노트). web-proto의 note-card와 같은 구성.
  *
  * 두 자리에서 쓴다 — 흐름 끝(방금 나온 한 장)과 지난 노트 목록.
  * 목록에선 제목이 날짜가 되고, 맨 아래 안내 줄은 뺀다(거기선 이미 "다시 보고 있는" 상태다).
+ *
+ * cloud: ☁ 줄의 입력. 안 주면 이번 실행에서 올린 상태(uploadPhotoNote)를 note.id로 읽는다 —
+ * 흐름 끝은 이 길로 「저장 중」→「저장됨」이 바뀐다. 목록·올리기(3·4)는 아는 값을 직접 넣는다.
  */
 export function PhotoNoteCard({
   note,
   variant = 'flow',
+  cloud,
 }: {
   note: PhotoNote;
   variant?: 'flow' | 'list';
+  cloud?: CloudNoteState | null;
 }) {
   const lines = linesOf(note);
+  const sessionCloud = useCloudNoteState(note.id);
+  const cloudLine = cloudLineOf(cloud !== undefined ? cloud : sessionCloud);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -85,6 +112,8 @@ export function PhotoNoteCard({
       {variant === 'flow' && (
         <Text style={styles.capture}>📸 여기 남겨뒀어 — 지난 오답노트에서 다시 볼 수 있어.</Text>
       )}
+
+      {cloudLine && <Text style={styles.cloud}>{cloudLine}</Text>}
     </View>
   );
 }
@@ -214,5 +243,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: PhotoTheme.muted,
     textAlign: 'center',
+  },
+  cloud: {
+    fontFamily: FontFamilies.bold,
+    marginTop: 6,
+    fontSize: 12,
+    color: PhotoTheme.muted,
+    textAlign: 'right',
   },
 });
