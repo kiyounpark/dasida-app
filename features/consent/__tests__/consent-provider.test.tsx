@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { ConsentProvider, useConsentGate } from '../consent-provider';
+import { readLocalConsent } from '../consent-store';
 import { decideConsentGate, submitConsent } from '../consent-sync';
 
 jest.mock('expo-constants', () => ({ expoConfig: { version: '1.0.11' } }));
@@ -9,6 +10,10 @@ jest.mock('expo-constants', () => ({ expoConfig: { version: '1.0.11' } }));
 const mockLearner = { current: {} as Record<string, unknown> };
 jest.mock('@/features/learner/provider', () => ({
   useCurrentLearner: () => mockLearner.current,
+}));
+
+jest.mock('../consent-store', () => ({
+  readLocalConsent: jest.fn(async () => null),
 }));
 
 jest.mock('../consent-sync', () => ({
@@ -118,4 +123,70 @@ it('[다음] 뒤엔 넘긴 문서로 상태를 바꾼다(필수 둘 켜짐 → o
     }),
   );
   expect(result.current.status).toBe('ok');
+});
+
+// ── 설정의 [선택] 스위치 (🔒 10.02 기윤) ──
+
+const AGREED = '2026-10-10T00:00:00.000Z';
+
+function consentDoc(review: { agreedAt: string | null; revokedAt: string | null }, via: 'all' | 'individual' = 'all') {
+  return {
+    schemaVersion: 1,
+    accountKey: 'user:abc',
+    analysis: { version: 1, agreedAt: AGREED, revokedAt: null },
+    store: { version: 1, agreedAt: AGREED, revokedAt: null },
+    review: { version: 1, ...review },
+    via,
+    updatedAt: AGREED,
+    appVersion: '1.0.11',
+  };
+}
+
+it('판정 뒤 기기 사본으로 검토 동의 상태를 알려 준다 — 사본이 없으면 null(스위치를 안 그린다)', async () => {
+  mockLearner.current = signedIn('user:abc');
+  (decideConsentGate as jest.Mock).mockResolvedValue('ok');
+  (readLocalConsent as jest.Mock).mockResolvedValueOnce(consentDoc({ agreedAt: AGREED, revokedAt: null }));
+  const { result } = renderHook(() => useConsentGate(), { wrapper });
+
+  await waitFor(() => expect(result.current.reviewOn).toBe(true));
+});
+
+it('setReview(false): 필수 둘은 지금 문서대로, 누른 방식(via)도 그대로 보내고 서버 응답으로 바뀐다', async () => {
+  mockLearner.current = signedIn('user:abc');
+  (decideConsentGate as jest.Mock).mockResolvedValue('ok');
+  (readLocalConsent as jest.Mock).mockResolvedValueOnce(consentDoc({ agreedAt: AGREED, revokedAt: null }, 'all'));
+  (submitConsent as jest.Mock).mockResolvedValue(
+    consentDoc({ agreedAt: AGREED, revokedAt: '2026-10-11T00:00:00.000Z' }, 'all'),
+  );
+  const { result } = renderHook(() => useConsentGate(), { wrapper });
+  await waitFor(() => expect(result.current.reviewOn).toBe(true));
+
+  await act(async () => {
+    await result.current.setReview(false);
+  });
+
+  expect(submitConsent).toHaveBeenCalledWith(
+    expect.objectContaining({
+      accountKey: 'user:abc',
+      decisions: { analysis: true, store: true, review: false },
+      via: 'all',
+    }),
+  );
+  expect(result.current.reviewOn).toBe(false);
+  expect(result.current.status).toBe('ok');
+});
+
+it('setReview가 서버에서 실패하면 던지고 스위치 상태는 그대로', async () => {
+  mockLearner.current = signedIn('user:abc');
+  (decideConsentGate as jest.Mock).mockResolvedValue('ok');
+  (readLocalConsent as jest.Mock).mockResolvedValueOnce(consentDoc({ agreedAt: AGREED, revokedAt: null }));
+  (submitConsent as jest.Mock).mockRejectedValue(new Error('Network request failed'));
+  const { result } = renderHook(() => useConsentGate(), { wrapper });
+  await waitFor(() => expect(result.current.reviewOn).toBe(true));
+
+  await act(async () => {
+    await expect(result.current.setReview(false)).rejects.toThrow('Network request failed');
+  });
+
+  expect(result.current.reviewOn).toBe(true);
 });

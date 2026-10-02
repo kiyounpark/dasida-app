@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
@@ -154,8 +155,10 @@ export function ProfileScreenView({
   onDeleteAccount,
   onImportLocalHistory,
   onSignOut,
+  onToggleReviewConsent,
   onUpdateGradeAndTrack,
   profile,
+  reviewConsent,
   session,
 }: UseProfileScreenResult) {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
@@ -282,6 +285,27 @@ export function ProfileScreenView({
                   }
                   disabled={busyAction !== null}
                   onPress={() => void onImportLocalHistory()}
+                />
+              </View>
+            ) : null}
+
+            {reviewConsent !== null ? (
+              // [선택] 검토 동의(🔒 10.02 기윤) — 동의 화면과 같은 이름. 끄면 서버가 보관하던 검토본을 바로 지운다
+              <View style={styles.consentRow}>
+                <View style={styles.consentText}>
+                  <Text selectable style={styles.consentTitle}>
+                    [선택] 내 사진으로 분석 정확도 높이기
+                  </Text>
+                  <Text selectable style={styles.consentBody}>
+                    켜 두면 분석한 사진을 30일 동안 보관했다가 지웁니다. 끄면 보관하던 사진을 바로 지웁니다.
+                  </Text>
+                </View>
+                <Switch
+                  accessibilityLabel="내 사진으로 분석 정확도 높이기"
+                  value={reviewConsent}
+                  disabled={busyAction !== null}
+                  onValueChange={(next) => void onToggleReviewConsent(next)}
+                  trackColor={{ true: BrandColors.primarySoft, false: BrandColors.disabled }}
                 />
               </View>
             ) : null}
@@ -558,6 +582,24 @@ const styles = StyleSheet.create({
     ...BrandTypography.meta,
     color: BrandColors.mutedText,
     flexShrink: 1,
+  },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: BrandSpacing.sm,
+    paddingVertical: BrandSpacing.xs,
+  },
+  consentText: {
+    flex: 1,
+    gap: 4,
+  },
+  consentTitle: {
+    ...BrandTypography.bodyStrong,
+    color: BrandColors.text,
+  },
+  consentBody: {
+    ...BrandTypography.meta,
+    color: BrandColors.mutedText,
   },
   deleteAccountSection: {
     marginTop: 4,

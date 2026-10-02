@@ -10,7 +10,7 @@ import {
   type ConsentDoc,
   type SaveConsentRequest,
 } from '../src/photo-store-contract';
-import { buildNextConsentDoc, nextConsentEntry, saveConsentDoc } from '../src/save-consent';
+import { buildNextConsentDoc, nextConsentEntry, purgeReviewPhotos, saveConsentDoc } from '../src/save-consent';
 
 // 1.0.11 1줄 — saveConsent·getConsent 본문. 전이 규칙(약속 파일 §1 주석)과 문서 자리를 잠근다.
 
@@ -161,4 +161,50 @@ test('readConsentDoc: 없으면 null(≠ 전부 동의), 있으면 그대로', a
   const doc = buildNextConsentDoc(null, makeRequest(), T1);
   const filled = makeFakeFirestore(doc);
   assert.deepEqual(await readConsentDoc(filled.firestore, 'user:abc'), doc);
+});
+
+// 🔒 10.02 기윤 — 설정에서 [선택] 검토 동의를 끄면 그 계정의 검토본을 바로 지운다
+test('purgeReviewPhotos: 원장에서 모은 검토본 경로를 전부 지우고 몇 개였는지 돌려준다', async () => {
+  const deleted: string[] = [];
+  const count = await purgeReviewPhotos(
+    {
+      collectReviewPhotoPaths: async (key) => {
+        assert.equal(key, 'user:abc');
+        return ['review/2026-10-10/user:abc/s1.jpg', 'review/2026-10-11/user:abc/s2.jpg'];
+      },
+      objects: { deleteIfExists: async (path) => void deleted.push(path) },
+    },
+    'user:abc',
+  );
+
+  assert.equal(count, 2);
+  assert.deepEqual(deleted.sort(), ['review/2026-10-10/user:abc/s1.jpg', 'review/2026-10-11/user:abc/s2.jpg']);
+});
+
+test('purgeReviewPhotos: 검토본이 없으면 아무것도 안 지우고 0', async () => {
+  const count = await purgeReviewPhotos(
+    { collectReviewPhotoPaths: async () => [], objects: { deleteIfExists: async () => assert.fail('지울 게 없다') } },
+    'user:abc',
+  );
+  assert.equal(count, 0);
+});
+
+test('purgeReviewPhotos: 하나라도 못 지우면 던진다 — 나머지는 다 시도한다(같은 선택 재전송이 마저 지운다)', async () => {
+  const tried: string[] = [];
+  await assert.rejects(
+    purgeReviewPhotos(
+      {
+        collectReviewPhotoPaths: async () => ['review/a.jpg', 'review/b.jpg'],
+        objects: {
+          deleteIfExists: async (path) => {
+            tried.push(path);
+            if (path === 'review/a.jpg') throw new Error('storage down');
+          },
+        },
+      },
+      'user:abc',
+    ),
+    /Review photo delete failed \(1\/2\)/,
+  );
+  assert.deepEqual(tried.sort(), ['review/a.jpg', 'review/b.jpg']);
 });

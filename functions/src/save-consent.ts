@@ -4,15 +4,18 @@ import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 import { consentDocRef, parseConsentDoc } from './get-consent';
+import { collectReviewPhotoPathsForAccount } from './photo-analysis-run-log';
 import {
   CONSENT_KINDS,
   CONSENT_VIA,
   emptyConsentEntry,
+  isConsentOn,
   type ConsentDoc,
   type ConsentEntry,
   type SaveConsentRequest,
   type SaveConsentResponse,
 } from './photo-store-contract';
+import { firebasePhotoObjectStore, type PhotoObjectStore } from './photo-storage';
 import { requireFirebaseAccount, sendApiError } from './photo-store-http';
 
 // 1줄 — 동의 문서 읽기 → 전이 규칙(약속 파일 §1 주석)대로 시각 찍기 → 쓰기.
@@ -116,6 +119,27 @@ export async function saveConsentDoc(
   });
 }
 
+export type ReviewPurgeDeps = {
+  collectReviewPhotoPaths(accountKey: string): Promise<string[]>;
+  objects: Pick<PhotoObjectStore, 'deleteIfExists'>;
+};
+
+/**
+ * 🔒 10.02 기윤 — [선택] 「분석 정확도 높이기」를 끄면 그 계정의 검토본을 바로 지운다(30일 만료를 기다리지 않는다).
+ * 검토가 꺼진 채로 저장될 때마다 돈다 — 지난번에 일부 못 지웠어도 같은 선택을 다시 보내면 마저 지운다.
+ * 이미 없는 파일은 성공으로 친다. 하나라도 못 지우면 던진다(동의 문서는 이미 「꺼짐」이라 새 검토본은 안 생긴다).
+ * 경로는 원장에서 모은다 — 검토본은 review/{날짜}/ 아래 흩어져 있어 prefix로 못 지운다(탈퇴와 같은 길).
+ */
+export async function purgeReviewPhotos(deps: ReviewPurgeDeps, accountKey: string): Promise<number> {
+  const paths = await deps.collectReviewPhotoPaths(accountKey);
+  const results = await Promise.allSettled(paths.map((path) => deps.objects.deleteIfExists(path)));
+  const failed = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected');
+  if (failed.length > 0) {
+    throw new Error(`Review photo delete failed (${failed.length}/${results.length})`, { cause: failed[0].reason });
+  }
+  return paths.length;
+}
+
 export const saveConsentHandler = onRequest(
   { region: 'asia-northeast3', timeoutSeconds: 30, cors: true, invoker: 'public' },
   async (request, response) => {
@@ -138,7 +162,17 @@ export const saveConsentHandler = onRequest(
       );
       if (!accountKey) return;
 
-      const consent = await saveConsentDoc(getFirestore(), { ...parsed.data, accountKey });
+      const firestore = getFirestore();
+      const consent = await saveConsentDoc(firestore, { ...parsed.data, accountKey });
+      if (!isConsentOn(consent.review, 'review')) {
+        await purgeReviewPhotos(
+          {
+            collectReviewPhotoPaths: (key) => collectReviewPhotoPathsForAccount(firestore, key),
+            objects: firebasePhotoObjectStore(),
+          },
+          accountKey,
+        );
+      }
       const body: SaveConsentResponse = { consent };
       response.status(200).json(body);
     } catch (error) {

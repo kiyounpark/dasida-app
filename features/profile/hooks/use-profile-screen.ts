@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { useConsentGate } from '@/features/consent/consent-provider';
 import { useCurrentLearner } from '@/features/learner/provider';
 
 type MigrationCandidate = {
@@ -36,6 +37,7 @@ export function useProfileScreen() {
     signOut,
     updateOnboardingProfile,
   } = useCurrentLearner();
+  const { reviewOn, setReview } = useConsentGate();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
@@ -146,6 +148,22 @@ export function useProfileScreen() {
     },
     onImportLocalHistory: handleManualImport,
     onSignOut: handleSignOut,
+    // [선택] 검토 동의 스위치(🔒 10.02 기윤) — 끄면 서버가 검토본을 바로 지운다. 서버가 저장해야 스위치가 바뀐다
+    reviewConsent: reviewOn,
+    onToggleReviewConsent: async (on: boolean) => {
+      setBusyAction('review-consent');
+      setErrorMessage(null);
+      setNoticeMessage(null);
+
+      try {
+        await setReview(on);
+        setNoticeMessage(on ? '분석 정확도 높이기를 켰습니다.' : '분석 정확도 높이기를 껐고, 보관하던 사진을 지웠습니다.');
+      } catch {
+        setErrorMessage('설정을 저장하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
+      } finally {
+        setBusyAction(null);
+      }
+    },
     onUpdateGradeAndTrack: async (
       grade: 'g1' | 'g2' | 'g3',
       track?: 'calc' | 'stats' | 'geom',
