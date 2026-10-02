@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 14:23
+- 해시: `4e055a9` (`4e055a91aca6e3de8877f5833c76ee0ee07c65ad`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4e055a91aca6e3de8877f5833c76ee0ee07c65ad
+- 작성자: 박기윤
+- 메시지: feat(1.0.11): 줄 0 — 사진 저장 약속 파일 + 빈 함수 5개 + 세 줄 지시문
+- 본문: - functions/src/photo-store-contract.ts: 동의 세 칸·via·필수 스위치, 노트 문서, / Storage 경로, 엔드포인트 요청·응답, 오류 코드, 저장 규칙·탈퇴 순서 (import 0) / - 빈 함수 5개(saveConsent·getConsent·savePhotoNote·listPhotoNotes·getPhotoNoteImage): / zod·인증까지, 본문 501 — 배포 안 함 / - 앱: consent-store, StorageKeys.consentPrefix, PhotoNote.submissionId?·cloudStoredAt?, / 파일명 규칙을 약속 파일로 / - 테스트: 앱 PhotoNote ↔ PhotoNoteWire 칸 고정(tsc), 서버 스키마·경로·동의 전이 / - docs/1.0.11-lanes.md: 줄마다 지시문·담당 파일 표·배포 규칙 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 14:12
 - 해시: `d32514c` (`d32514c6878332c18ef5b164e1aebaade73fb61e`)
 - 브랜치: main
