@@ -3,6 +3,12 @@
 > 지금 상태는 `docs/STATUS.md`. 이 파일은 **필요할 때만 연다** — 매 세션 읽지 않는다.
 > 2026-10-02에 `docs/STATUS.md`에서 한 줄도 안 지우고 그대로 옮겼다(원래 줄 번호는 각 절 제목에).
 > 새로 내릴 땐 이 머리말 바로 아래에 `## MM.DD에 내림` 제목을 달고 붙인다 — 최신이 위.
+## 10.02 16시에 내림 — 줄 0 두 줄 + 세 줄 시작 안내 (1.0.11 세 줄·4번이 main에 들어간 뒤, 원래 STATUS 「👉」 17~19줄)
+
+- **✅ 줄 0 리뷰 반영 (`0bb74bc`, 10.02 오후)** — astra·Fable 리뷰 → Fable 2차 "세 건 다 astra가 맞다": 익명 요청이 거절 전에 auth 문서를 쓰던 것 차단 · 사진 조건부 생성(글·사진 섞임 방지) · 탈퇴 = Storage 먼저. + `readApiErrorBody`·import 0 테스트. 1·2·3줄 재조정 없음. 앱 781·서버 181 통과. 바뀐 점은 `docs/1.0.11-lanes.md` 「줄 0 리뷰로 바뀐 것」. 토큰 astra 64,115 · Fable 255,385(1·2차).
+- **✅ 줄 0 main에 들어감 (10.02 오후)** — 약속 파일 `functions/src/photo-store-contract.ts`(import 0, 앱은 `@/functions/src/…`로 읽음 — iOS 번들에 들어간 것 확인) · 빈 함수 5개(saveConsent·getConsent·savePhotoNote·listPhotoNotes·getPhotoNoteImage, 501 · **배포 안 함**) · `photo-store-http.ts` · 앱 `features/consent/consent-store.ts`·`StorageKeys.consentPrefix`·`PhotoNote.submissionId?`·`cloudStoredAt?`·파일명 규칙 한 집. 테스트 앱 780(98 묶음)·서버 178 통과, tsc 둘 다 0. 설계 `~/dev/dasida-measure/2026-10-02-consent-at-login/fable-q3-r2.md`.
+- **👉 세 줄 시작 = `docs/1.0.11-lanes.md`** (공통 + 줄마다 절 · 담당 파일 표 · 🔒 배포 규칙: 전체 배포 금지, 자기 함수만 이름으로, `analyzePhoto`·`deleteAccount`는 2줄만·"동의 없을 때 지금과 같다" 테스트 뒤 · 보고는 `docs/drafts/1.0.11-lane<N>-report.md`, STATUS는 통합 Claude만).
+
 
 ## 10.02 오후에 내림 — A/B 판(🔒 A로 끝남) 원문 (원래 STATUS 「👉 다음 세션 첫 일」 11줄)
 
