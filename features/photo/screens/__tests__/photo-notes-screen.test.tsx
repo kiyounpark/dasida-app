@@ -1,10 +1,25 @@
 import { render, screen, waitFor } from '@testing-library/react-native';
 
-import { readPhotoNotes } from '../../note-store';
+import {
+  LearningHistoryApiError,
+  readLearningHistoryApiJson,
+} from '@/features/learning/firebase-learning-history-api';
+import { buildPhotoNoteDoc, type PhotoNoteDoc } from '@/functions/src/photo-store-contract';
+
+import { readPhotoNotes, savePhotoNote } from '../../note-store';
 import type { PhotoNote } from '../../types';
 import { PhotoNotesScreen } from '../photo-notes-screen';
 
-jest.mock('../../note-store', () => ({ readPhotoNotes: jest.fn(async () => []) }));
+jest.mock('../../note-store', () => ({
+  readPhotoNotes: jest.fn(async () => []),
+  savePhotoNote: jest.fn(async () => []),
+}));
+
+// 서버는 망 한 칸만 목으로 — 합치기(remote-note-store)는 진짜로 돈다
+jest.mock('@/features/learning/firebase-learning-history-api', () => {
+  const actual = jest.requireActual('@/features/learning/firebase-learning-history-api');
+  return { ...actual, readLearningHistoryApiJson: jest.fn() };
+});
 
 // photo-flow-screen.test.tsx와 같은 대체품 — ScrollView 내부가 NativeEventEmitter를 부른다
 jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
@@ -29,6 +44,45 @@ jest.mock('expo-image', () => {
 });
 
 const mockRead = readPhotoNotes as jest.Mock;
+const mockSaveLocal = savePhotoNote as jest.Mock;
+const mockServer = readLearningHistoryApiJson as jest.Mock;
+const getRemoteAuthHeaders = jest.fn(async (key: string) => ({
+  'x-dasida-account-key': key,
+  Authorization: 'Bearer token-1',
+}));
+
+/** 다른 기기에서 올린 노트 — 서버 문서 모양. 사진 없이 올린 것으로 둬 내려받기는 안 탄다 */
+function serverDoc(overrides: Partial<PhotoNoteDoc> = {}): PhotoNoteDoc {
+  return {
+    ...buildPhotoNoteDoc(
+      {
+        id: 'photo-2',
+        createdAt: '2026-09-20T01:00:00.000Z',
+        schemaVersion: 1,
+        dateLabel: '9/20',
+        quote: 'x² − 4 = 0',
+        why: '양변을 나누다 해 하나를 잃었어.',
+        fix: '인수분해로 두 해를 다 적자.',
+        methodLabel: '인수분해',
+        typeLabel: '계산 실수',
+        methodId: 'factoring',
+        mistakeType: 'calc_slip',
+        weaknessIds: [],
+        primaryWeaknessId: null,
+        checkPassed: true,
+        retryResult: 'pass',
+      },
+      {
+        accountKey: 'user:abc',
+        photoPath: null,
+        submissionId: null,
+        appVersion: '1.0.11',
+        storedAt: '2026-10-02T06:00:00.000Z',
+      },
+    ),
+    ...overrides,
+  };
+}
 
 function note(overrides: Partial<PhotoNote> = {}): PhotoNote {
   return {
@@ -92,9 +146,111 @@ describe('지난 오답노트 화면', () => {
   });
 
   it('계정 키가 없으면 읽지 않는다', async () => {
-    render(<PhotoNotesScreen />);
+    render(<PhotoNotesScreen getRemoteAuthHeaders={getRemoteAuthHeaders} />);
 
     await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
     expect(mockRead).not.toHaveBeenCalled();
+    expect(mockServer).not.toHaveBeenCalled();
+  });
+
+  it('헤더 함수가 없으면 서버를 안 부른다 — 기기 노트만', async () => {
+    mockRead.mockResolvedValue([note()]);
+
+    render(<PhotoNotesScreen accountKey="user:abc" />);
+
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+    expect(mockServer).not.toHaveBeenCalled();
+  });
+});
+
+describe('다른 기기 보기 (1.0.11)', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    (console.warn as jest.Mock).mockRestore();
+  });
+
+  it('서버에만 있는 노트를 더해 보여 주고, 이 기기에 남긴다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [serverDoc()], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('노트 2장')).toBeTruthy());
+    expect(screen.getByText('#인수분해 #계산 실수')).toBeTruthy();
+    expect(screen.getByText('#근의 공식 #계산 실수')).toBeTruthy();
+    expect(getRemoteAuthHeaders).toHaveBeenCalledWith('user:abc');
+    await waitFor(() =>
+      expect(mockSaveLocal).toHaveBeenCalledWith(
+        'user:abc',
+        expect.objectContaining({ id: 'photo-2', cloudStoredAt: '2026-10-02T06:00:00.000Z' }),
+      ),
+    );
+  });
+
+  it('같은 id면 기기 것이 이긴다 — 서버 것으로 덮지 않는다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockResolvedValueOnce({ notes: [serverDoc({ id: 'photo-1' })], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(mockServer).toHaveBeenCalled());
+    expect(screen.getByText('노트 1장')).toBeTruthy();
+    expect(screen.getByText('#근의 공식 #계산 실수')).toBeTruthy();
+    expect(screen.queryByText('#인수분해 #계산 실수')).toBeNull();
+    expect(mockSaveLocal).not.toHaveBeenCalled();
+  });
+
+  it('서버 실패·오프라인이면 기기 노트만 — 오류 띠는 없다', async () => {
+    mockRead.mockResolvedValue([note()]);
+    mockServer.mockRejectedValueOnce(
+      new LearningHistoryApiError('네트워크 연결을 확인한 뒤 다시 시도해 주세요.', 0, 'NETWORK_ERROR'),
+    );
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(mockServer).toHaveBeenCalled());
+    expect(screen.getByText('노트 1장')).toBeTruthy();
+    expect(screen.queryByText(/네트워크|오류|실패|못 불러/)).toBeNull();
+  });
+
+  it('지운 노트(deletedAt)는 그리지 않는다', async () => {
+    mockServer.mockResolvedValueOnce({
+      notes: [
+        serverDoc({ id: 'photo-3', createdAt: '2026-09-25T01:00:00.000Z', methodLabel: '판별식', deletedAt: '2026-10-01T00:00:00.000Z' }),
+        serverDoc(),
+      ],
+      nextBefore: null,
+    });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+    expect(screen.queryByText('#판별식 #계산 실수')).toBeNull();
+  });
+
+  it('새 기기(기기 노트 0장)에선 서버 답을 기다리는 동안 "아직 노트가 없어"를 안 띄운다', async () => {
+    let reply: (value: unknown) => void = () => {};
+    mockServer.mockReturnValueOnce(new Promise((resolve) => (reply = resolve)));
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByLabelText('노트 불러오는 중')).toBeTruthy());
+    expect(screen.queryByText('아직 노트가 없어')).toBeNull();
+
+    reply({ notes: [serverDoc()], nextBefore: null });
+
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+  });
+
+  it('서버에도 없으면 그때 비어 있다고 말한다', async () => {
+    mockServer.mockResolvedValueOnce({ notes: [], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
+    expect(screen.queryByLabelText('노트 불러오는 중')).toBeNull();
   });
 });
