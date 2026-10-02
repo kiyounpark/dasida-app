@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 14:36
+- 해시: `4edf6f1` (`4edf6f18af8637bec8bbcd758e54debf9838f03f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4edf6f18af8637bec8bbcd758e54debf9838f03f
+- 작성자: 박기윤
+- 메시지: docs: Storage 켬(서울·프로덕션 규칙) · 오늘 결정 시각 '밤'→'오후' 정정
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 14:23
 - 해시: `4e055a9` (`4e055a91aca6e3de8877f5833c76ee0ee07c65ad`)
 - 브랜치: main
