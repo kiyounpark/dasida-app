@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 17:56
+- 해시: `375b9aa` (`375b9aa886a258eb6239e0c76320b7bc5c3a05e0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/375b9aa886a258eb6239e0c76320b7bc5c3a05e0
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.11 시뮬레이터 확인(동의·4번·사진→☁ 저장됨) · 옛 앱 폴더 경로 버그 · 테스트 기록
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 16:00
 - 해시: `128ee75` (`128ee75d4e5cf15401e532ba07cab2818aa762ec`)
 - 브랜치: main
