@@ -1062,6 +1062,16 @@
 <!-- COMMIT_LOGS_START -->
 
 ### 커밋 2026.10.02 09:46
+- 해시: `2470edd` (`2470edda43a8dc628adb6021b51897bb566ed8ab`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2470edda43a8dc628adb6021b51897bb566ed8ab
+- 작성자: 박기윤
+- 메시지: docs: STATUS 갱신 규칙 — ✅ 줄 속 「남은 것」은 떼어 남기고 내린다
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.02 09:46
 - 해시: `c1abdba` (`c1abdba54030cf6a36959d99cda31c4b32a60022`)
 - 브랜치: main
 - 원격: origin
