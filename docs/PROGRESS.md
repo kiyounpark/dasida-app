@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 16:00
+- 해시: `128ee75` (`128ee75d4e5cf15401e532ba07cab2818aa762ec`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/128ee75d4e5cf15401e532ba07cab2818aa762ec
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.11 세 줄+4번 main · 배포 7개 · Storage 권한 확인 · 다음 기기 확인
+- 본문: 줄 0 두 줄과 세 줄 시작 안내는 archive 「10.02 16시에 내림」으로 그대로 옮김(diff 대조 0). / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 15:31
 - 해시: `837214b` (`837214b6a65098e4596719c755e2f05198dcf252`)
 - 브랜치: main
