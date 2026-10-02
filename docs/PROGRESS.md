@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 18:30
+- 해시: `905049a` (`905049a882cf050aa555eff946e743e79959a46d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/905049a882cf050aa555eff946e743e79959a46d
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 🔒 제출 전 확인 둘(검토 스위치·소프트 삭제 7일) 만듦 · 기기 확인 둘은 TestFlight 때 · 아이패드 가로 설계
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 18:15
 - 해시: `cd7db3b` (`cd7db3b2e163616346887cb5bfb58cea53659dc9`)
 - 브랜치: main
