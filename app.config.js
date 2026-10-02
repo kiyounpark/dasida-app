@@ -30,6 +30,7 @@ module.exports = {
           'UIInterfaceOrientationPortrait',
         ],
         'UISupportedInterfaceOrientations~ipad': [
+          'UIInterfaceOrientationPortrait',
           'UIInterfaceOrientationLandscapeLeft',
           'UIInterfaceOrientationLandscapeRight',
         ],
