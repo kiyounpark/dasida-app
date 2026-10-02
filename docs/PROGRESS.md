@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 13:28
+- 해시: `3332a7e` (`3332a7e49f3cf3c3416a9ee60639a1d470b6b694`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3332a7e49f3cf3c3416a9ee60639a1d470b6b694
+- 작성자: 박기윤
+- 메시지: docs: STATUS 낡은 줄 5곳 — E 끝(09.27)·다음 칸 G(1.0.11) 반영, 옛 문장은 archive 「10.02 오후에 내림」
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 10:49
 - 해시: `fde59fe` (`fde59fe29ff20ab19691c88826a8d5e955b54646`)
 - 브랜치: main
