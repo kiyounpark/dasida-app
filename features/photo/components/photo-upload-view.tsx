@@ -78,7 +78,8 @@ export function PhotoUploadView({
         </View>
       )}
 
-      <Text style={styles.foot}>사진은 AI 분석에만 쓰고 우리 서버에는 저장 안 함</Text>
+      {/* 1.0.11 — 노트가 계정에 저장되면서 "서버에 저장 안 함"은 거짓이 됐다. 동의 화면 둘째 줄과 같은 사실 */}
+      <Text style={styles.foot}>사진은 AI 분석에 쓰고, 노트와 함께 내 계정에 저장</Text>
     </View>
   );
 }

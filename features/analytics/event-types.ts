@@ -1,3 +1,5 @@
+import type { ConsentSubmitParams } from '@/functions/src/photo-store-contract';
+
 export type EventName =
   | 'diagnosis_started'
   | 'diagnosis_completed'
@@ -28,7 +30,10 @@ export type EventName =
   | 'photo_check_answer'
   | 'photo_survey_pick'
   | 'photo_weakness_card_shown'
-  | 'photo_note_shown';
+  | 'photo_note_shown'
+  // 1.0.11 사진 동의 화면 — 이름은 약속 파일 CONSENT_GA_EVENTS와 같다
+  | 'consent_view'
+  | 'consent_submit';
 
 export type ExamSource =
   | 'no_review_day_card'
@@ -195,6 +200,13 @@ export type EventParams = {
   photo_weakness_card_shown: { method: string; mistake: string };
   /** 오답노트까지 걸어간 수 — retry는 재도전 결과(unverified = 검산 통과 못 해 안 냄) (웹 note_shown) */
   photo_note_shown: { retry: string };
+  /** 동의 화면이 뜬 순간(1.0.11). 기존 가입자도 다음 실행에 한 번 뜬다 */
+  consent_view: Record<string, never>;
+  /**
+   * [다음]을 눌러 넘긴 순간. 필수 둘은 늘 true라 안 싣는다 — review(선택)와 누른 방식(via)만.
+   * via: 'all' = [전체 동의]로 넘김 · 'individual' = 하나씩 골라 넘김. 서버 동의 문서의 via와 같은 값
+   */
+  consent_submit: ConsentSubmitParams;
 };
 
 export type ScreenName =
