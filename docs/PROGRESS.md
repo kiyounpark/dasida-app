@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 10:49
+- 해시: `fde59fe` (`fde59fe29ff20ab19691c88826a8d5e955b54646`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/fde59fe29ff20ab19691c88826a8d5e955b54646
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 애플 1.0.10(빌드 21) 10:47 심사 제출 · 스토어 글 교체
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 09:54
 - 해시: `58d2ccb` (`58d2ccbc18f0abf5a36e3cb15e1540c27020e4c9`)
 - 브랜치: main
