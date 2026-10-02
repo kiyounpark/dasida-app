@@ -11,6 +11,7 @@ import {
   pickPhoto,
   requestAnalyze,
 } from '../flow/analyze-photo-request';
+import { uploadPhotoNote } from '../cloud/save-note-remote';
 import { askPhotoSource } from '../flow/ask-photo-source';
 import { requestDiagnoseMethod } from '../flow/diagnose-method-request';
 import { requestQuizVerify } from '../flow/verify-quiz-request';
@@ -68,7 +69,10 @@ export function usePhotoFlow({
 }: {
   accountKey?: string | null;
   reviewTaskStore?: ReviewTaskStore | null;
-  /** 사진 분석 요청에 싣는 계정 헤더(사용량 원장). 안 던진다 — remote-auth-headers.ts */
+  /**
+   * 사진 분석 요청(사용량 원장)과 노트 서버 저장(1.0.11)에 싣는 계정 헤더. 안 던진다 — remote-auth-headers.ts.
+   * 없으면 노트는 이 폰에만 남는다(☁ 줄 없음).
+   */
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
 } = {}): PhotoFlow {
   const thread = usePhotoThread();
@@ -80,6 +84,8 @@ export function usePhotoFlow({
   const busyRef = useRef(false);
   /** 지금 사진의 번호 — 사진을 고를 때마다 새로. 원장과 검산 로그가 이 값으로 잇는다 */
   const submissionIdRef = useRef<string | null>(null);
+  /** 분석에 보낸 축소본 — 노트가 뜨면 서버 저장에 그대로 싣는다(1.0.11). 사진을 새로 고르면 바뀐다 */
+  const imageDataUrlRef = useRef<string | null>(null);
   /** 거르기에 걸려 [다시 찍기]로 왔으면 직전 번호. 처음부터 다시(restart)는 안 잇는다 (web-proto와 같은 규칙) */
   const retakeOfRef = useRef<string | null>(null);
   const scriptRef = useRef<PhotoScript | null>(null);
@@ -111,12 +117,14 @@ export function usePhotoFlow({
       logEvent('photo_submit', { source });
       photoUriRef.current = photo.uri;
       submissionIdRef.current = newSubmissionId();
+      imageDataUrlRef.current = null;
       setImageUri(photo.uri);
       setStatus('analyzing');
 
       // 헤더는 사진 줄이는 동안 같이 받는다 — 토큰 갱신 시간이 축소 시간에 숨는다. getRemoteAuthHeaders는 안 던진다
       const headersPromise = accountKey && getRemoteAuthHeaders ? getRemoteAuthHeaders(accountKey) : Promise.resolve({});
       const imageDataUrl = await downscaleToDataUrl(photo);
+      imageDataUrlRef.current = imageDataUrl;
       // qa: 개발 빌드 사진은 서버 원장에서 빼고 센다. 스토어 빌드로 기윤이 돌린 건 집계 때 계정으로 뺀다
       const result = await requestAnalyze(imageDataUrl, {
         headers: await headersPromise,
@@ -174,6 +182,7 @@ export function usePhotoFlow({
     scriptRef.current = null;
     photoUriRef.current = null;
     submissionIdRef.current = null;
+    imageDataUrlRef.current = null;
     thread.clear();
     setImageUri(null);
     setError(null);
@@ -217,13 +226,25 @@ export function usePhotoFlow({
       checkSkipped: view.checkResult === 'skip',
       // 검산을 통과 못 해 안 낸 재도전은 저장 모양에 없다 — 1.0.10과 같이 'none'(카드엔 재도전 칸이 빈다)
       retryResult: view.retryResult === 'unverified' ? 'none' : view.retryResult,
+      // 이 노트를 만든 사진의 분석 번호(1.0.11) — 검토본·원장과 잇는다
+      submissionId: submissionIdRef.current,
     };
     thread.showNote(note);
 
     // 저장은 카드를 띄운 뒤에, 기다리지 않고 건다 — 실패해도 학생이 보는 장면은 그대로다.
     // 저장본에는 옮겨진 경로만 남긴다 — 캐시 경로를 저장해 두면 며칠 뒤 깨진 사진 칸을 본다.
     if (accountKey) {
-      void savePhotoNote(accountKey, { ...note, photoUri: storedPhotoUri });
+      const localSaved = savePhotoNote(accountKey, { ...note, photoUri: storedPhotoUri });
+      // 1.0.11 서버 저장 — 분석에 보낸 축소본을 같이. ☁ 줄은 서버 응답으로만 바뀐다(로컬 저장 성공은 증거가 아니다)
+      if (getRemoteAuthHeaders) {
+        void uploadPhotoNote({
+          accountKey,
+          note,
+          imageDataUrl: imageDataUrlRef.current,
+          getHeaders: getRemoteAuthHeaders,
+          localSaved,
+        });
+      }
     }
 
     // E칸 — 노트가 복습 과제가 된다. 약점이 하나로 정해진 노트만(후보 0개·"잘 모르겠어"는 과제 없음).

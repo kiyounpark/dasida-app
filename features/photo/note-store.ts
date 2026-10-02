@@ -41,24 +41,64 @@ export async function readPhotoNotes(accountKey: string): Promise<PhotoNote[]> {
 }
 
 /**
+ * 쓰기는 전부 읽고-전체-쓰기다. 두 쓰기가 겹치면 뒤의 것이 앞의 것을 덮는다 —
+ * 1.0.11부터 서버 응답 뒤에 cloudStoredAt을 적는 쓰기가 다음 노트 저장과 겹칠 수 있어 한 줄로 세운다.
+ */
+let writeQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = writeQueue.then(task, task);
+  writeQueue = run.catch(() => undefined);
+  return run;
+}
+
+/**
  * 한 장을 얹고 최신순으로 정렬해 돌려준다. 같은 id면 덮어쓴다.
  * 저장에 실패해도 던지지 않는다 — 노트 카드는 이미 화면에 떴고, 저장 실패로 그 장면을 깨뜨리지 않는다.
  */
 export async function savePhotoNote(accountKey: string, note: PhotoNote): Promise<PhotoNote[]> {
   if (!accountKey) return [];
 
-  const existing = await readPhotoNotes(accountKey);
-  const merged = [note, ...existing.filter((item) => item.id !== note.id)].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  );
+  return enqueueWrite(async () => {
+    const existing = await readPhotoNotes(accountKey);
+    const merged = [note, ...existing.filter((item) => item.id !== note.id)].sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    );
 
-  try {
-    await AsyncStorage.setItem(getPhotoNotesStorageKey(accountKey), JSON.stringify(merged));
-  } catch {
-    return existing;
-  }
+    try {
+      await AsyncStorage.setItem(getPhotoNotesStorageKey(accountKey), JSON.stringify(merged));
+    } catch {
+      return existing;
+    }
 
-  return merged;
+    return merged;
+  });
+}
+
+/**
+ * 서버에 저장됐다는 표시(savePhotoNote 응답의 storedAt)를 로컬 노트에 적는다 — 1.0.11.
+ * 「서버에 없는 노트 올리기」(4)가 이 칸으로 거른다. 노트가 이미 없으면(로그아웃·정리) 아무것도 안 쓴다.
+ * 던지지 않는다 — 적었으면 true.
+ */
+export async function setPhotoNoteCloudStoredAt(
+  accountKey: string,
+  noteId: string,
+  storedAt: string,
+): Promise<boolean> {
+  if (!accountKey) return false;
+
+  return enqueueWrite(async () => {
+    const existing = await readPhotoNotes(accountKey);
+    if (!existing.some((item) => item.id === noteId)) return false;
+
+    const next = existing.map((item) => (item.id === noteId ? { ...item, cloudStoredAt: storedAt } : item));
+    try {
+      await AsyncStorage.setItem(getPhotoNotesStorageKey(accountKey), JSON.stringify(next));
+      return true;
+    } catch {
+      return false;
+    }
+  });
 }
 
 /**

@@ -26,6 +26,7 @@ import {
   getPhotoNotesStorageKey,
   readPhotoNotes,
   savePhotoNote,
+  setPhotoNoteCloudStoredAt,
 } from './note-store';
 import type { PhotoNote } from './types';
 
@@ -133,5 +134,37 @@ describe('사진 오답노트 저장소', () => {
 
     expect(await readPhotoNotes(ACCOUNT)).toEqual([]);
     expect(await readPhotoNotes('user:other')).toHaveLength(1);
+  });
+});
+
+/** 1.0.11 — 서버 저장 표시(cloudStoredAt). 「서버에 없는 노트 올리기」가 이 칸으로 거른다 */
+describe('서버 저장 표시', () => {
+  it('서버가 준 storedAt을 그 노트에만 적는다', async () => {
+    await savePhotoNote(ACCOUNT, note({ id: 'a', createdAt: '2026-09-14T00:00:00.000Z' }));
+    await savePhotoNote(ACCOUNT, note({ id: 'b', createdAt: '2026-09-15T00:00:00.000Z' }));
+
+    expect(await setPhotoNoteCloudStoredAt(ACCOUNT, 'a', '2026-10-10T00:00:00.000Z')).toBe(true);
+
+    const stored = await readPhotoNotes(ACCOUNT);
+    expect(stored.find((n) => n.id === 'a')?.cloudStoredAt).toBe('2026-10-10T00:00:00.000Z');
+    expect(stored.find((n) => n.id === 'b')?.cloudStoredAt).toBeUndefined();
+  });
+
+  it('노트가 이미 없으면(로그아웃·정리 뒤) 아무것도 안 쓴다 — 지운 목록을 되살리지 않는다', async () => {
+    expect(await setPhotoNoteCloudStoredAt(ACCOUNT, 'gone', '2026-10-10T00:00:00.000Z')).toBe(false);
+    expect(await AsyncStorage.getItem(getPhotoNotesStorageKey(ACCOUNT))).toBeNull();
+  });
+
+  it('표시 쓰기와 다음 노트 저장이 겹쳐도 서로 덮지 않는다(읽고-전체-쓰기를 한 줄로)', async () => {
+    await savePhotoNote(ACCOUNT, note({ id: 'a', createdAt: '2026-09-14T00:00:00.000Z' }));
+
+    await Promise.all([
+      setPhotoNoteCloudStoredAt(ACCOUNT, 'a', '2026-10-10T00:00:00.000Z'),
+      savePhotoNote(ACCOUNT, note({ id: 'b', createdAt: '2026-09-15T00:00:00.000Z' })),
+    ]);
+
+    const stored = await readPhotoNotes(ACCOUNT);
+    expect(stored.map((n) => n.id)).toEqual(['b', 'a']);
+    expect(stored.find((n) => n.id === 'a')?.cloudStoredAt).toBe('2026-10-10T00:00:00.000Z');
   });
 });

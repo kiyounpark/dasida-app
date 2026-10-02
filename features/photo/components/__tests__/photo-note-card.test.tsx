@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 
+import { setCloudNoteState } from '../../cloud/save-note-remote';
 import type { PhotoNote } from '../../types';
 import { PhotoNoteCard } from '../photo-note-card';
 
@@ -121,5 +122,40 @@ describe('PhotoNoteCard — 오늘 확인 줄', () => {
     render(<PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, retryResult: 'none' }} />);
 
     expect(screen.getByText('오늘 확인: 쪽지시험 ✗')).toBeTruthy();
+  });
+});
+
+/** 1.0.11 — ☁ 줄. 서버 응답으로만 바뀐다(약속 파일 CloudNoteState) */
+describe('PhotoNoteCard — ☁ 줄', () => {
+  it.each([
+    [{ kind: 'saving' } as const, '☁ 저장 중'],
+    [{ kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: true } as const, '☁ 저장됨'],
+    [{ kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: false } as const, '☁ 저장됨 · 사진 없음'],
+    [{ kind: 'failed', retryable: true } as const, '☁ 저장 못 함'],
+  ])('%o → %s', (cloud, line) => {
+    render(<PhotoNoteCard cloud={cloud} note={noteWith([])} />);
+
+    expect(screen.getByText(line)).toBeTruthy();
+  });
+
+  it('상태가 없거나 안 올라간 노트면 줄을 안 낸다 — 1.0.10까지와 같은 카드', () => {
+    render(<PhotoNoteCard note={noteWith([])} />);
+    expect(screen.queryByText(/☁/)).toBeNull();
+
+    render(<PhotoNoteCard cloud={{ kind: 'local-only' }} note={noteWith([])} variant="list" />);
+    expect(screen.queryByText(/☁/)).toBeNull();
+  });
+
+  it('cloud를 안 주면 이번 실행에서 올린 상태를 note.id로 따라간다', () => {
+    const note = { ...noteWith([]), id: 'photo-card-session-test' };
+    render(<PhotoNoteCard note={note} />);
+    expect(screen.queryByText(/☁/)).toBeNull();
+
+    act(() => setCloudNoteState(note.id, { kind: 'saving' }));
+    expect(screen.getByText('☁ 저장 중')).toBeTruthy();
+
+    act(() => setCloudNoteState(note.id, { kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: true }));
+    expect(screen.getByText('☁ 저장됨')).toBeTruthy();
+    expect(screen.queryByText('☁ 저장 중')).toBeNull();
   });
 });
