@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 
 import {
   photoStoreUrl,
+  readApiErrorBody,
   RETRYABLE_CODES,
   SUBMISSION_ID_PATTERN,
   type ApiErrorCode,
@@ -87,15 +88,6 @@ function isSaveResponse(value: unknown): value is SavePhotoNoteResponse {
   );
 }
 
-function readErrorBody(value: unknown): { code: ApiErrorCode | null; retryable: boolean | null } {
-  if (typeof value !== 'object' || value === null) return { code: null, retryable: null };
-  const body = value as { code?: unknown; retryable?: unknown };
-  return {
-    code: typeof body.code === 'string' ? (body.code as ApiErrorCode) : null,
-    retryable: typeof body.retryable === 'boolean' ? body.retryable : null,
-  };
-}
-
 async function postOnce(
   accountKey: string,
   payload: string,
@@ -119,14 +111,12 @@ async function postOnce(
     const data: unknown = await response.json().catch(() => null);
     if (response.ok && isSaveResponse(data)) return { ok: true, response: data };
 
-    const error = readErrorBody(data);
-    const code = error.code ?? (response.ok || response.status >= 500 ? 'TEMPORARY_FAILURE' : 'INVALID_REQUEST');
-    return {
-      ok: false,
-      status: response.status,
-      code,
-      retryable: error.retryable ?? (RETRYABLE_CODES.has(code) || response.status === 429),
-    };
+    // 오류는 code로 가른다 — 403 CONSENT_REQUIRED는 인증 실패가 아니라서 토큰 갱신·재전송 길로 안 보낸다
+    const error = readApiErrorBody(data);
+    if (error) return { ok: false, status: response.status, code: error.code, retryable: error.retryable };
+    // code가 없는 응답(게이트웨이 5xx 등) — 서버가 말하지 않았으니 상태 코드로만 본다
+    const code = response.ok || response.status >= 500 ? 'TEMPORARY_FAILURE' : 'INVALID_REQUEST';
+    return { ok: false, status: response.status, code, retryable: RETRYABLE_CODES.has(code) || response.status === 429 };
   } catch {
     return { ok: false, status: null, code: controller.signal.aborted ? 'TIMEOUT' : 'NETWORK_ERROR', retryable: true };
   } finally {

@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { deleteAccountData, handleDeleteAccount, type DeleteAccountDeps } from '../src/delete-account';
 import { LearningHistoryAuthError } from '../src/learning-history-auth';
-import { firebasePhotoObjectStore } from '../src/photo-storage';
+import { firebasePhotoObjectStore, md5Base64 } from '../src/photo-storage';
 
 // 1.0.11 2줄 — 탈퇴 순서(약속 파일 §6)와 "Storage 일부 실패 = 탈퇴 실패".
 
@@ -40,7 +40,7 @@ function fakeDeps(
   };
 }
 
-test('순서: ① consent → ② 검토본 경로 모으기 → ③ Firestore·원장 → ④ Storage(노트 prefix + 모은 경로)', async () => {
+test('순서: ① consent → ② 검토본 경로 모으기 → ③ Storage(노트 prefix + 모은 경로) → ④ Firestore·원장', async () => {
   const review = ['review/2026-10-10/user:abc/sub_1.jpg', 'review/2026-10-11/user:abc/sub_2.jpg'];
   const { deps, log } = fakeDeps({ reviewPaths: review });
 
@@ -49,10 +49,10 @@ test('순서: ① consent → ② 검토본 경로 모으기 → ③ Firestore·
   assert.deepEqual(log, [
     'consent:user:abc',
     'collect',
-    'firestore',
     'prefix:photo-notes/user:abc/',
     `file:${review[0]}`,
     `file:${review[1]}`,
+    'firestore',
   ]);
 });
 
@@ -61,30 +61,59 @@ test('Storage에 아무것도 없는 기존 학생(1.0.10 이하) 탈퇴는 성�
 
   await deleteAccountData(deps, ACCOUNT);
 
-  assert.deepEqual(log, ['consent:user:abc', 'collect', 'firestore', 'prefix:photo-notes/user:abc/']);
+  assert.deepEqual(log, ['consent:user:abc', 'collect', 'prefix:photo-notes/user:abc/', 'firestore']);
 });
 
-test('Storage 일부 실패 = 탈퇴 실패 — 그래도 나머지는 지운다', async () => {
+test('Storage 일부 실패 = 탈퇴 실패 — 나머지 파일은 지우고, 원장·Firestore는 그대로 둔다', async () => {
   const review = ['review/2026-10-10/user:abc/sub_1.jpg', 'review/2026-10-11/user:abc/sub_2.jpg'];
   const { deps, log } = fakeDeps({ reviewPaths: review, failPath: review[0] });
 
   await assert.rejects(deleteAccountData(deps, ACCOUNT), /Storage delete failed \(1\/3\)/);
   assert.ok(log.includes(`file:${review[1]}`));
+  assert.ok(!log.includes('firestore'));
 });
 
-test('노트 사진 prefix 지우기가 실패해도 탈퇴 실패', async () => {
-  const { deps } = fakeDeps({ failPrefix: true });
+test('노트 사진 prefix 지우기가 실패해도 탈퇴 실패 — Firestore 안 건드림', async () => {
+  const { deps, log } = fakeDeps({ failPrefix: true });
   await assert.rejects(deleteAccountData(deps, ACCOUNT), /Storage delete failed/);
+  assert.ok(!log.includes('firestore'));
 });
 
-test('Firestore 단계가 실패하면 Storage까지 안 간다', async () => {
-  const { deps, log } = fakeDeps();
+test('Storage가 실패한 뒤 다시 탈퇴하면 원장이 남아 있어 검토본 경로를 다시 찾는다', async () => {
+  // 원장 행은 Firestore 단계(④)에서만 지워진다
+  let runs = ['review/2026-10-10/user:abc/sub_1.jpg'];
+  let storageDown = true;
+  const deleted: string[] = [];
+  const deps: DeleteAccountDeps = {
+    deleteConsent: async () => {},
+    collectReviewPhotoPaths: async () => [...runs],
+    deleteFirestoreData: async () => {
+      runs = [];
+    },
+    objects: {
+      deletePrefix: async () => {},
+      deleteIfExists: async (path) => {
+        if (storageDown) throw new Error('storage down');
+        deleted.push(path);
+      },
+    },
+  };
+
+  await assert.rejects(deleteAccountData(deps, ACCOUNT));
+  storageDown = false;
+  await deleteAccountData(deps, ACCOUNT);
+
+  assert.deepEqual(deleted, ['review/2026-10-10/user:abc/sub_1.jpg']);
+  assert.deepEqual(runs, []);
+});
+
+test('Firestore 단계가 실패해도 탈퇴 실패', async () => {
+  const { deps } = fakeDeps();
   deps.deleteFirestoreData = async () => {
     throw new Error('firestore down');
   };
 
   await assert.rejects(deleteAccountData(deps, ACCOUNT), /firestore down/);
-  assert.ok(!log.some((line) => line.startsWith('prefix:')));
 });
 
 // ── 핸들러 — 응답 모양은 지금(1.0.10 앱이 읽는 그대로) ──
@@ -148,7 +177,7 @@ test('핸들러: 인증 실패면 지우기 전에 그 상태 코드', async () 
 // ── 실물 Storage 어댑터 — 버킷 호출 모양 ──
 
 type FakeFile = {
-  getMetadata?: () => Promise<[{ metadata?: Record<string, unknown> }]>;
+  getMetadata?: () => Promise<[{ metadata?: Record<string, unknown>; md5Hash?: string }]>;
   save?: (bytes: Buffer, options: Record<string, unknown>) => Promise<void>;
   delete?: (options: Record<string, unknown>) => Promise<void>;
 };
@@ -190,11 +219,11 @@ test('어댑터: 개별 파일은 없으면 그냥 끝난다(ignoreNotFound)', a
   assert.deepEqual(options, { ignoreNotFound: true });
 });
 
-test('어댑터: 메타 읽기 — 없으면 null, 있으면 문자열로', async () => {
+test('어댑터: 객체 읽기 — 없으면 null, 있으면 메타(문자열)와 md5Hash', async () => {
   const notFound = Object.assign(new Error('No such object'), { code: 404 });
   const store = firebasePhotoObjectStore(
     fakeBucket({
-      'a.jpg': { getMetadata: async () => [{ metadata: { 'dasida-note-id': 'photo-1' } }] },
+      'a.jpg': { getMetadata: async () => [{ metadata: { 'dasida-note-id': 'photo-1' }, md5Hash: 'abc==' }] },
       'b.jpg': {
         getMetadata: async () => {
           throw notFound;
@@ -203,8 +232,13 @@ test('어댑터: 메타 읽기 — 없으면 null, 있으면 문자열로', asyn
     }),
   );
 
-  assert.deepEqual(await store.readCustomMetadata('a.jpg'), { 'dasida-note-id': 'photo-1' });
-  assert.equal(await store.readCustomMetadata('b.jpg'), null);
+  assert.deepEqual(await store.readObjectInfo('a.jpg'), { metadata: { 'dasida-note-id': 'photo-1' }, md5Hash: 'abc==' });
+  assert.equal(await store.readObjectInfo('b.jpg'), null);
+});
+
+test('md5Base64: GCS md5Hash와 같은 꼴(MD5 다이제스트의 base64)', () => {
+  // echo -n "hello" | openssl md5 -binary | base64
+  assert.equal(md5Base64(Buffer.from('hello')), 'XUFAKrxLKna5cZ2REBfFkg==');
 });
 
 test('어댑터: onlyIfAbsent면 ifGenerationMatch 0, 이미 있으면(412) exists — 덮지 않는다', async () => {

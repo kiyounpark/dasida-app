@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import type { Firestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
@@ -28,11 +30,11 @@ export async function readConsentDoc(firestore: Firestore, accountKey: string): 
 }
 
 export type PhotoObjectStore = {
-  /** 객체의 사용자 메타데이터. 객체가 없으면 null */
-  readCustomMetadata(path: string): Promise<Record<string, string> | null>;
+  /** 객체의 사용자 메타데이터와 md5(base64, GCS md5Hash). 객체가 없으면 null */
+  readObjectInfo(path: string): Promise<{ metadata: Record<string, string>; md5Hash: string | null } | null>;
   /**
-   * onlyIfAbsent면 이미 있을 때 덮지 않고 'exists' — 검토본 재시도가 버킷 수명(생성 후 30일)을 늘리지 않게.
-   * 아니면 덮어쓴다(같은 노트의 사진 재전송).
+   * onlyIfAbsent면 조건부 생성(ifGenerationMatch 0) — 이미 있으면 덮지 않고 'exists'(412).
+   * 노트 사진(덮어쓰기 금지)과 검토본(재시도가 버킷 수명을 늘리지 않게)이 둘 다 이 길로 간다.
    */
   save(
     path: string,
@@ -52,6 +54,16 @@ export function decodeImageDataUrl(dataUrl: string): { bytes: Buffer; contentTyp
   return { bytes: Buffer.from(dataUrl.slice(match[0].length), 'base64'), contentType: match[1] };
 }
 
+/** 비어 있지 않고 JPEG 머리(FF D8)로 시작하나 */
+export function looksLikeJpeg(bytes: Buffer): boolean {
+  return bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xd8;
+}
+
+/** GCS md5Hash와 같은 꼴(MD5 다이제스트의 base64) */
+export function md5Base64(bytes: Buffer): string {
+  return createHash('md5').update(bytes).digest('base64');
+}
+
 function errorCode(error: unknown): unknown {
   return typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
 }
@@ -60,11 +72,14 @@ type Bucket = ReturnType<ReturnType<typeof getStorage>['bucket']>;
 
 export function firebasePhotoObjectStore(bucket: Bucket = getStorage().bucket()): PhotoObjectStore {
   return {
-    async readCustomMetadata(path) {
+    async readObjectInfo(path) {
       try {
         const [metadata] = await bucket.file(path).getMetadata();
         const custom = metadata.metadata ?? {};
-        return Object.fromEntries(Object.entries(custom).map(([key, value]) => [key, String(value)]));
+        return {
+          metadata: Object.fromEntries(Object.entries(custom).map(([key, value]) => [key, String(value)])),
+          md5Hash: typeof metadata.md5Hash === 'string' ? metadata.md5Hash : null,
+        };
       } catch (error) {
         if (errorCode(error) === 404) return null;
         throw error;

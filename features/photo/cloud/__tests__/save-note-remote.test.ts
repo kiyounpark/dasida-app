@@ -176,6 +176,23 @@ describe('saveNoteRemote', () => {
     expect(outcome).toEqual({ ok: false, status, code, retryable: false });
   });
 
+  it('code 없는 응답(게이트웨이 502 등)은 상태 코드로만 — 재시도 가능', async () => {
+    fetchMock
+      .mockResolvedValueOnce(reply(502, null))
+      .mockResolvedValueOnce(reply(200, STORED));
+
+    const outcome = await saveNoteRemote({
+      accountKey: ACCOUNT,
+      note: note(),
+      imageDataUrl: IMAGE,
+      getHeaders: async () => AUTH,
+      retryDelaysMs: NO_RETRY_WAIT,
+    });
+
+    expect(outcome.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('토큰을 못 받으면(계정 키만) 사진을 안 보낸다 — 재시도 가능한 실패', async () => {
     const outcome = await saveNoteRemote({
       accountKey: ACCOUNT,

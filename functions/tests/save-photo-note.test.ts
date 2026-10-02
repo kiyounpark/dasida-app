@@ -17,13 +17,21 @@ import {
   type SavePhotoNoteDeps,
   type SavePhotoNoteOutcome,
 } from '../src/save-photo-note';
+import { md5Base64 } from '../src/photo-storage';
 
 // 1.0.11 2줄 — 약속 파일 「저장 규칙」 ①~④가 그대로 도는지.
 // ☁ 「저장됨」은 이 함수의 200 응답으로만 판정한다 — 로컬 저장은 증거가 아니다.
 
 const ACCOUNT = 'user:abc';
 const NOW = new Date('2026-10-10T03:00:00.000Z');
-const IMAGE = `data:image/jpeg;base64,${Buffer.from('jpeg-bytes').toString('base64')}`;
+/** JPEG 머리(FF D8)로 시작하는 가짜 사진 */
+function jpeg(tail: string): Buffer {
+  return Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.from(tail)]);
+}
+function dataUrl(bytes: Buffer): string {
+  return `data:image/jpeg;base64,${bytes.toString('base64')}`;
+}
+const IMAGE = dataUrl(jpeg('photo-A'));
 
 const NOTE: PhotoNoteWire = {
   id: 'photo-2026-10-10T02:59:00.000Z',
@@ -99,10 +107,15 @@ function fake(
       return 'created';
     },
     objects: {
-      readCustomMetadata: async (path) => objects.get(path)?.metadata ?? null,
-      save: async (path, bytes, { contentType, metadata }) => {
-        log.push('upload');
+      readObjectInfo: async (path) => {
+        log.push('readObject');
+        const object = objects.get(path);
+        return object ? { metadata: object.metadata, md5Hash: md5Base64(object.bytes) } : null;
+      },
+      save: async (path, bytes, { contentType, metadata, onlyIfAbsent }) => {
+        log.push(onlyIfAbsent ? 'upload-if-absent' : 'upload');
         if (options.uploadFails) throw new Error('storage down');
+        if (onlyIfAbsent && objects.has(path)) return 'exists'; // 412
         objects.set(path, { bytes, contentType, metadata });
         return 'saved';
       },
@@ -135,7 +148,7 @@ test('① 보관을 껐거나 판이 낮으면 403', async () => {
 
 // 처음 저장
 
-test('사진 먼저 올리고 문서를 만든다 — photo-notes/{계정}/{stem}.jpg, 메타에 noteId·submissionId', async () => {
+test('사진 먼저(조건부 생성) 올리고 문서를 만든다 — photo-notes/{계정}/{stem}.jpg, 메타에 noteId·submissionId', async () => {
   const f = fake();
   const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request());
 
@@ -146,11 +159,12 @@ test('사진 먼저 올리고 문서를 만든다 — photo-notes/{계정}/{stem
     storedAt: NOW.toISOString(),
     alreadyStored: false,
   });
-  assert.deepEqual(f.log, ['readNote', 'upload', 'createNote']);
+  // 검사 → 업로드가 아니라 조건부 생성 하나(덮어쓰기 금지). 객체를 미리 읽지 않는다
+  assert.deepEqual(f.log, ['readNote', 'upload-if-absent', 'createNote']);
 
   const object = f.objects.get(notePhotoPath(ACCOUNT, NOTE.id));
   assert.equal(object?.contentType, 'image/jpeg');
-  assert.equal(object?.bytes.toString(), 'jpeg-bytes');
+  assert.ok(object?.bytes.equals(jpeg('photo-A')));
   assert.deepEqual(object?.metadata, { [PHOTO_OBJECT_META_NOTE_ID]: NOTE.id, [PHOTO_OBJECT_META_SUBMISSION_ID]: 'sub_12345678' });
 
   const doc = f.notes.get(NOTE.id);
@@ -174,7 +188,19 @@ test('사진 없이 온 노트는 photoPath null로 문서만 — 「저장됨 �
   assert.equal(f.notes.get(NOTE.id)?.submissionId, null);
 });
 
-test('③ 사진 올리기가 실패하면 500 TEMPORARY_FAILURE(재시도) — 문서를 안 쓴다', async () => {
+test('③ JPEG 머리(FF D8)가 아니거나 비었으면 400 — 아무것도 안 쓴다', async () => {
+  for (const imageDataUrl of [dataUrl(Buffer.from('not-a-jpeg')), 'data:image/jpeg;base64,']) {
+    const f = fake();
+    const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request({ imageDataUrl }));
+
+    assert.equal(outcome.status, 400);
+    assert.equal(codeOf(outcome), 'INVALID_REQUEST');
+    assert.equal(f.objects.size, 0);
+    assert.equal(f.notes.size, 0);
+  }
+});
+
+test('③ 사진 올리기가 실패하면(412 말고) 500 TEMPORARY_FAILURE(재시도) — 문서를 안 쓴다', async () => {
   const f = fake({ uploadFails: true });
   const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request());
 
@@ -247,7 +273,7 @@ test('② 지운 노트(deletedAt 있음)면 410 NOTE_DELETED', async () => {
 
 // ③ 경로 충돌
 
-test('③ 같은 파일명에 다른 노트 사진이 있으면 409 PATH_CONFLICT — 남의 사진을 덮지 않는다', async () => {
+test('③ 412 + 메타 noteId가 다르면 409 PATH_CONFLICT — 남의 사진을 덮지 않는다', async () => {
   const f = fake();
   // 'photo-a:b'와 'photo-a-b'는 파일명이 같다(safeNoteFileStem)
   const other = { ...NOTE, id: 'photo-2026-10-10T02-59-00-000Z' };
@@ -262,18 +288,44 @@ test('③ 같은 파일명에 다른 노트 사진이 있으면 409 PATH_CONFLIC
   assert.equal(f.notes.has(NOTE.id), false);
 });
 
-test('③ 앞선 시도가 사진만 올리고 끊겼으면(같은 noteId 메타) 다시 올려 문서를 만든다', async () => {
+test('③ 412 + 같은 noteId·같은 사진(md5) = 앞선 시도가 사진만 올리고 끊김 → 업로드 생략하고 문서를 만든다', async () => {
   const f = fake();
-  f.objects.set(notePhotoPath(ACCOUNT, NOTE.id), {
-    bytes: Buffer.from('old'),
-    contentType: 'image/jpeg',
-    metadata: { [PHOTO_OBJECT_META_NOTE_ID]: NOTE.id },
-  });
+  const path = notePhotoPath(ACCOUNT, NOTE.id);
+  const earlier = { bytes: jpeg('photo-A'), contentType: 'image/jpeg', metadata: { [PHOTO_OBJECT_META_NOTE_ID]: NOTE.id } };
+  f.objects.set(path, earlier);
 
   const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request());
 
+  assert.equal(outcome.status, 200);
   assert.equal(outcome.status === 200 && outcome.body.alreadyStored, false);
-  assert.equal(f.notes.has(NOTE.id), true);
+  assert.deepEqual(f.log, ['readNote', 'upload-if-absent', 'readObject', 'createNote']);
+  assert.equal(f.objects.get(path), earlier);
+  assert.equal(f.notes.get(NOTE.id)?.photoPath, path);
+});
+
+test('③ 412 + 같은 noteId·다른 사진(md5) → 409 NOTE_CONFLICT — "A의 글 + B의 사진"을 안 남긴다', async () => {
+  const f = fake();
+  const path = notePhotoPath(ACCOUNT, NOTE.id);
+  const earlier = { bytes: jpeg('photo-B'), contentType: 'image/jpeg', metadata: { [PHOTO_OBJECT_META_NOTE_ID]: NOTE.id } };
+  f.objects.set(path, earlier);
+
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request());
+
+  assert.equal(outcome.status, 409);
+  assert.equal(codeOf(outcome), 'NOTE_CONFLICT');
+  assert.equal(f.objects.get(path), earlier);
+  assert.equal(f.notes.has(NOTE.id), false);
+});
+
+test('③ 412 뒤에 객체가 사라졌으면 500(재시도하면 새로 만든다)', async () => {
+  const f = fake();
+  f.deps.objects.save = async () => 'exists';
+  f.deps.objects.readObjectInfo = async () => null;
+
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request());
+
+  assert.equal(outcome.status, 500);
+  assert.equal(f.notes.has(NOTE.id), false);
 });
 
 // ④ 동시에 두 번

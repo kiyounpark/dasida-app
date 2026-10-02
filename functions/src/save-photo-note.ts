@@ -27,6 +27,8 @@ import { requireFirebaseAccount, sendApiError } from './photo-store-http';
 import {
   decodeImageDataUrl,
   firebasePhotoObjectStore,
+  looksLikeJpeg,
+  md5Base64,
   photoNoteDocRef,
   readConsentDoc,
   type PhotoObjectStore,
@@ -74,13 +76,13 @@ export type SavePhotoNoteDeps = {
   readNote(accountKey: string, noteId: string): Promise<PhotoNoteDoc | null>;
   /** 'exists' = 같은 id 문서가 먼저 생겼다(ALREADY_EXISTS) */
   createNote(accountKey: string, noteId: string, doc: PhotoNoteDoc): Promise<'created' | 'exists'>;
-  objects: Pick<PhotoObjectStore, 'readCustomMetadata' | 'save'>;
+  objects: Pick<PhotoObjectStore, 'readObjectInfo' | 'save'>;
   now(): Date;
 };
 
 export type SavePhotoNoteOutcome =
   | { status: 200; body: SavePhotoNoteResponse }
-  | { status: 403 | 409 | 410 | 500; code: ApiErrorCode; error: string };
+  | { status: 400 | 403 | 409 | 410 | 500; code: ApiErrorCode; error: string };
 
 /** 서버 문서에서 서버 전용 칸을 떼면 노트 본문만 남는다 — 같은 내용인지 이걸로 가린다 */
 function wireOf(doc: PhotoNoteDoc): PhotoNoteWire {
@@ -131,26 +133,42 @@ export async function savePhotoNoteCore(
   const existing = await deps.readNote(accountKey, note.id);
   if (existing) return judgeExisting(existing, note);
 
-  // ③ 사진 — 같은 파일명에 다른 노트 사진이 있으면 덮지 않는다
+  // ③ 사진 — 조건부 생성 하나로 올린다(덮어쓰기 금지). 검사 → 업로드 사이에 다른 요청이 끼어
+  //    "A의 글 + B의 사진"이 남는 경합을 막는다(10.02 줄 0 리뷰). 412일 때만 객체를 읽어 판정한다
   let photoPath: string | null = null;
   if (request.imageDataUrl) {
-    photoPath = notePhotoPath(accountKey, note.id);
-    const meta = await deps.objects.readCustomMetadata(photoPath);
-    if (meta && meta[PHOTO_OBJECT_META_NOTE_ID] !== note.id) {
-      return { status: 409, code: 'PATH_CONFLICT', error: 'Photo path belongs to another note' };
-    }
     const { bytes, contentType } = decodeImageDataUrl(request.imageDataUrl);
+    if (!looksLikeJpeg(bytes)) {
+      return { status: 400, code: 'INVALID_REQUEST', error: 'Image is not a JPEG' };
+    }
+    photoPath = notePhotoPath(accountKey, note.id);
+
+    let saved: 'saved' | 'exists';
     try {
-      await deps.objects.save(photoPath, bytes, {
+      saved = await deps.objects.save(photoPath, bytes, {
         contentType,
         metadata: {
           [PHOTO_OBJECT_META_NOTE_ID]: note.id,
           ...(request.submissionId ? { [PHOTO_OBJECT_META_SUBMISSION_ID]: request.submissionId } : {}),
         },
+        onlyIfAbsent: true,
       });
     } catch (error) {
       logger.error('savePhotoNote photo upload failed', { accountKey, noteId: note.id, error });
       return { status: 500, code: 'TEMPORARY_FAILURE', error: 'Failed to store photo' };
+    }
+
+    if (saved === 'exists') {
+      const existingPhoto = await deps.objects.readObjectInfo(photoPath);
+      // 412 뒤에 사라졌다 — 다시 보내면 새로 만든다
+      if (!existingPhoto) return { status: 500, code: 'TEMPORARY_FAILURE', error: 'Photo object changed' };
+      if (existingPhoto.metadata[PHOTO_OBJECT_META_NOTE_ID] !== note.id) {
+        return { status: 409, code: 'PATH_CONFLICT', error: 'Photo path belongs to another note' };
+      }
+      if (existingPhoto.md5Hash !== md5Base64(bytes)) {
+        return { status: 409, code: 'NOTE_CONFLICT', error: 'Different photo for the same note' };
+      }
+      // 같은 노트·같은 사진 — 앞선 시도가 사진만 올리고 끊겼다. 다시 안 올리고 문서로 간다
     }
   }
 

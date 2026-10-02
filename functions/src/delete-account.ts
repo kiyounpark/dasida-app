@@ -21,17 +21,17 @@ export type DeleteAccountDeps = {
 };
 
 /**
- * 탈퇴 순서 (약속 파일 §6):
- *  ① private/consent 삭제 — 늦게 온 savePhotoNote가 여기서 403으로 막힌다
- *  ② 원장에서 검토본 경로 모으기 — 원장을 지우기 전에 (날짜 아래 흩어져 prefix로 못 지운다)
- *  ③ Firestore recursiveDelete + 원장 삭제
- *  ④ Storage — 노트 사진 prefix 전부 + ②의 경로들. 하나라도 실패하면 던진다(= 탈퇴 실패, 500)
- * Storage에 파일이 0개인 학생(1.0.10 이하)은 ④가 그냥 지나간다.
+ * 탈퇴 순서 (약속 파일 §6, 10.02 줄 0 리뷰로 고친 순서):
+ *  ① private/consent 삭제 — 늦게 온 savePhotoNote·검토본이 여기서 막힌다
+ *  ② 원장에서 검토본 경로 모으기 (날짜 아래 흩어져 prefix로 못 지운다)
+ *  ③ Storage 먼저 — 노트 사진 prefix 전부 + ②의 경로들(이미 없는 파일은 성공).
+ *     하나라도 실패하면 던진다(= 탈퇴 실패, 500). 원장·Firestore는 그대로 둔다 → 재시도의 ②가 원장을 다시 읽는다
+ *  ④ ③이 다 끝난 뒤에만 Firestore recursiveDelete 둘 + 원장 삭제
+ * Storage에 파일이 0개인 학생(1.0.10 이하)은 ③이 그냥 지나간다.
  */
 export async function deleteAccountData(deps: DeleteAccountDeps, accountKey: string): Promise<void> {
   await deps.deleteConsent(accountKey);
   const reviewPhotoPaths = await deps.collectReviewPhotoPaths(accountKey);
-  await deps.deleteFirestoreData(accountKey);
 
   // 다 시도한 뒤에 실패를 알린다 — 지울 수 있는 건 지운다
   const results = await Promise.allSettled([
@@ -42,6 +42,8 @@ export async function deleteAccountData(deps: DeleteAccountDeps, accountKey: str
   if (failed.length > 0) {
     throw new Error(`Storage delete failed (${failed.length}/${results.length})`, { cause: failed[0].reason });
   }
+
+  await deps.deleteFirestoreData(accountKey);
 }
 
 function liveDeps(): DeleteAccountDeps {
