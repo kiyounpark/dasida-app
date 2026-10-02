@@ -157,7 +157,7 @@ export function useProfileScreen() {
 
       try {
         await setReview(on);
-        setNoticeMessage(on ? '분석 정확도 높이기를 켰습니다.' : '분석 정확도 높이기를 껐고, 보관하던 사진을 지웠습니다.');
+        setNoticeMessage(on ? '분석 정확도 높이기를 켰습니다.' : '분석 정확도 높이기를 껐고, 검토용 사진을 지웠습니다. 오답노트 사진은 그대로입니다.');
       } catch {
         setErrorMessage('설정을 저장하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
       } finally {

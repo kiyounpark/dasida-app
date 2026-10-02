@@ -140,7 +140,7 @@ it('서버가 거절하면 로컬 저장이 됐어도 ☁ 저장 못 함 — clo
 
   await walkToNote();
 
-  await waitFor(() => expect(screen.getByText('☁ 저장 못 함')).toBeTruthy());
+  await waitFor(() => expect(screen.getByText('☁ 저장 못 함 · 이 기기엔 남아 있어')).toBeTruthy());
   expect(mockSaveNote).toHaveBeenCalledTimes(1);
   expect(mockMarkStored).not.toHaveBeenCalled();
 });

@@ -130,8 +130,8 @@ describe('PhotoNoteCard — ☁ 줄', () => {
   it.each([
     [{ kind: 'saving' } as const, '☁ 저장 중'],
     [{ kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: true } as const, '☁ 저장됨'],
-    [{ kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: false } as const, '☁ 저장됨 · 사진 없음'],
-    [{ kind: 'failed', retryable: true } as const, '☁ 저장 못 함'],
+    [{ kind: 'stored', storedAt: '2026-10-10T00:00:00.000Z', hasPhoto: false } as const, '☁ 저장됨 · 사진은 계정에 못 올림'],
+    [{ kind: 'failed', retryable: true } as const, '☁ 저장 못 함 · 이 기기엔 남아 있어'],
   ])('%o → %s', (cloud, line) => {
     render(<PhotoNoteCard cloud={cloud} note={noteWith([])} />);
 

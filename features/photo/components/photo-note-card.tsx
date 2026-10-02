@@ -33,9 +33,9 @@ function cloudLineOf(state: CloudNoteState | null): string | null {
     case 'saving':
       return '☁ 저장 중';
     case 'stored':
-      return state.hasPhoto ? '☁ 저장됨' : '☁ 저장됨 · 사진 없음';
+      return state.hasPhoto ? '☁ 저장됨' : '☁ 저장됨 · 사진은 계정에 못 올림';
     case 'failed':
-      return '☁ 저장 못 함';
+      return '☁ 저장 못 함 · 이 기기엔 남아 있어';
     default:
       return null;
   }

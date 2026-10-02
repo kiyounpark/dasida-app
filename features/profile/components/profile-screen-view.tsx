@@ -297,7 +297,7 @@ export function ProfileScreenView({
                     [선택] 내 사진으로 분석 정확도 높이기
                   </Text>
                   <Text selectable style={styles.consentBody}>
-                    켜 두면 분석한 사진을 30일 동안 보관했다가 지웁니다. 끄면 보관하던 사진을 바로 지웁니다.
+                    켜 두면 분석에 보낸 사진을 검토용으로 30일 동안 따로 보관했다가 지웁니다. 끄면 검토용 사진만 바로 지우고, 오답노트 사진은 그대로 둡니다.
                   </Text>
                 </View>
                 <Switch

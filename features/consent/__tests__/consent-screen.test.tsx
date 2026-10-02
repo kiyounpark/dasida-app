@@ -168,11 +168,11 @@ describe('계정 관리 >', () => {
 
     fireEvent.press(screen.getByText('계정 관리 >'));
     pressAlertButton(0, '계정 삭제');
-    expect((Alert.alert as jest.Mock).mock.calls[1][0]).toBe('정말 탈퇴하시겠어요?');
+    expect((Alert.alert as jest.Mock).mock.calls[1][0]).toBe('정말 계정을 삭제할까?');
     expect(mockDeleteAccount).not.toHaveBeenCalled();
 
     await act(async () => {
-      pressAlertButton(1, '탈퇴');
+      pressAlertButton(1, '삭제');
     });
 
     expect(mockDeleteAccount).toHaveBeenCalledTimes(1);
@@ -186,7 +186,7 @@ describe('계정 관리 >', () => {
     fireEvent.press(screen.getByText('계정 관리 >'));
     pressAlertButton(0, '계정 삭제');
     await act(async () => {
-      pressAlertButton(1, '탈퇴');
+      pressAlertButton(1, '삭제');
     });
 
     expect(screen.getByText('탈퇴에 실패했습니다. 네트워크 오류')).toBeTruthy();

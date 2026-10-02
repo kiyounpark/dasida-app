@@ -299,7 +299,7 @@ describe('서버에 없는 노트 올리기 (1.0.11 4번)', () => {
 
     render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
 
-    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진 없음')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진은 계정에 못 올림')).toBeTruthy());
     expect(screen.queryByText(/계정에 저장하기/)).toBeNull();
   });
 
@@ -322,7 +322,7 @@ describe('서버에 없는 노트 올리기 (1.0.11 4번)', () => {
 
     fireEvent.press(screen.getByText(uploadMissingLabel(1)));
 
-    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진 없음')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('☁ 저장됨 · 사진은 계정에 못 올림')).toBeTruthy());
     expect(screen.queryByText(/계정에 저장하기/)).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0][0])).toContain('savePhotoNote');
@@ -346,7 +346,7 @@ describe('서버에 없는 노트 올리기 (1.0.11 4번)', () => {
 
     fireEvent.press(screen.getByText(uploadMissingLabel(1)));
 
-    await waitFor(() => expect(screen.getByText('☁ 저장 못 함')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('☁ 저장 못 함 · 이 기기엔 남아 있어')).toBeTruthy());
     await waitFor(() => expect(screen.getByText(uploadMissingLabel(1))).toBeTruthy());
     expect(fetchMock).toHaveBeenCalledTimes(1); // 403 CONSENT_REQUIRED는 재전송 안 함
     expect(setPhotoNoteCloudStoredAt).not.toHaveBeenCalled();
