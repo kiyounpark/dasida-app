@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 09:43
+- 해시: `7a19bca` (`7a19bcae6f66235015993ac45c30dba357a13fc1`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7a19bcae6f66235015993ac45c30dba357a13fc1
+- 작성자: 박기윤
+- 메시지: docs: STATUS를 「지금」과 이력으로 나눔 — 138KB → 36KB, 끝난 기록은 STATUS-archive.md
+- 본문: 매 세션 끝까지 읽는 STATUS가 720줄·138KB까지 자라 컨텍스트를 크게 먹었다. / ✅ 끝난 기록·옛 갱신 줄·C 인수인계 상세(511줄)를 STATUS-archive.md로 그대로 옮겼다(지운 줄 0). / 살아 있는 결정 셋은 「지금」에 뽑아 남겼다(사람 확인 반대는 원문대로 '안 잠금'). / 갱신 규칙·CLAUDE.md에 "끝난 줄은 내린다" 한 줄 추가. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.01 23:24
 - 해시: `60fb7e9` (`60fb7e921f91f559f96794db9d736fdd095f2fd2`)
 - 브랜치: main
