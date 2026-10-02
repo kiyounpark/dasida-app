@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 22:07
+- 해시: `dcf284d` (`dcf284d55a7d63f28284e84fd75d20541c5d9214`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/dcf284d55a7d63f28284e84fd75d20541c5d9214
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 🔒 1.0.11 출시 순서(astra·Fable: 애플 1.0.10 기다림·안드 폰 확인 뒤) · 권한 문구 고쳐 iOS 빌드 23 · 콘솔 상태
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 20:16
 - 해시: `34c0e55` (`34c0e553981a4c21f2eb454bb3a8475d6b011903`)
 - 브랜치: main
