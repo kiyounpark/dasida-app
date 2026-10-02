@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 15:02
+- 해시: `f2b2970` (`f2b2970e468b3fd3eb741811645977038f70eda7`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f2b2970e468b3fd3eb741811645977038f70eda7
+- 작성자: 박기윤
+- 메시지: docs: STATUS — review/ 30일 수명 규칙 넣음 · 소프트 삭제 7일 발견(제출 전 확인)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 14:36
 - 해시: `4edf6f1` (`4edf6f18af8637bec8bbcd758e54debf9838f03f`)
 - 브랜치: main
