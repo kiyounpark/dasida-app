@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 09:54
+- 해시: `58d2ccb` (`58d2ccbc18f0abf5a36e3cb15e1540c27020e4c9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/58d2ccbc18f0abf5a36e3cb15e1540c27020e4c9
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 나누며 끊긴 참조 6곳을 archive 위치로 고침
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 09:46
 - 해시: `2470edd` (`2470edda43a8dc628adb6021b51897bb566ed8ab`)
 - 브랜치: main
