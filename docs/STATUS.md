@@ -1,6 +1,6 @@
 # 지금 어디까지 왔나
 
-> **마지막 갱신** 2026-10-02 저녁 · main (코드 마지막 `246ba4c`) · **1.0.11 코드·서버 끝 · 제출 준비 1칸(새 문구) 10.02 밤 고침 — 다음은 2칸(방침 시행일·배포)** — 맨 위 👉 줄. 끝난 기록은 `docs/STATUS-archive.md`(필요할 때만 연다). 다음 첫 일은 바로 아래 「👉 다음 세션 첫 일」.
+> **마지막 갱신** 2026-10-02 밤 · main (코드 마지막 `a037cd0`) · **1.0.11 코드·서버 끝 · 제출 준비 1칸(새 문구) 10.02 밤 고침 — 다음은 2칸(방침 시행일·배포)** — 맨 위 👉 줄. 끝난 기록은 `docs/STATUS-archive.md`(필요할 때만 연다). 다음 첫 일은 바로 아래 「👉 다음 세션 첫 일」.
 > 09.20~21 판 기록은 노션 「수열 「a₁은 S₁로 따로 확인」 복습 콘텐츠 + 정의역 구절」에도 있다.
 > **C도 main에 들어갔다** (09.20에 `weakness-label`을 main에 합치고 밀었다 — `d707d04`).
 > 09.19 웹 확인 기록은 아래 「웹은 따로 돈다」.
@@ -9,7 +9,7 @@
 ## 👉 다음 세션 첫 일 (2026.09.28 고쳐 적음)
 
 **👉 다음 첫 일 (10.02 저녁 고쳐 적음): 1.0.11 제출 준비 — 코드·서버는 끝났다(main, 테스트 앱 913·서버 268·tsc 둘 다 0).** 시뮬레이터(아이폰)·아이패드 시뮬레이터에서 동의 → 서버 저장 → 사진 노트 ☁ 「저장됨」 → 다른 기기 지난 노트(사진 내려받기까지) → 4번 올리기 → 설정 스위치까지 돌려 봤다. 남은 순서(🔒 10.02 기윤 — 남은 기기 확인 둘은 TestFlight 때 새 계정으로):
-1. ✅ **새 문구 target-student — 10.02 밤 고침** (원문·결과는 archive 「10.02 밤에 내림」). 남은 것 셋: ⑴ 「☁ 저장됨 · 사진은 계정에 못 올림」은 2차 뒤 Claude가 바꾼 판이라 **아직 안 읽혔다** ⑵ 「저장 못 함 · 이 기기엔 남아 있어」를 본 학생은 안심하고 끝낸다 — 목록 위 저장 버튼으로 다시 가진 않는다(기록만, 버튼은 목록 열 때마다 뜬다) ⑶ 동의 화면에서 아직 합니다체인 두 줄 `deleteFailedPrefix`·`genericError`(`features/consent/consent-copy.ts`)와 동의 저장 실패 줄(폰에서 띄워 보고 정함)은 안 건드렸다.
+1. ✅ **새 문구 target-student — 10.02 밤 고침 `a037cd0`** (원문·결과는 archive 「10.02 밤에 내림」). 남은 것 셋: ⑴ 「☁ 저장됨 · 사진은 계정에 못 올림」은 2차 뒤 Claude가 바꾼 판이라 **아직 안 읽혔다** ⑵ 「저장 못 함 · 이 기기엔 남아 있어」를 본 학생은 안심하고 끝낸다 — 목록 위 저장 버튼으로 다시 가진 않는다(기록만, 버튼은 목록 열 때마다 뜬다) ⑶ 동의 화면에서 아직 합니다체인 두 줄 `deleteFailedPrefix`·`genericError`(`features/consent/consent-copy.ts`)와 동의 저장 실패 줄(폰에서 띄워 보고 정함)은 안 건드렸다.
 - ✅ **대기 화면 예시 카드 3장 + 점 세 개 — 앱에도 (`3a01a49`, 10.02 기윤 "1.0.11에 같이")**. 웹 `e9cbbf7`과 같은 카드·손글씨(Nanum Pen Script 3.1MB, `useFonts`라 prebuild 불필요). GA `photo_wait_card_next {card_index, wait_ms}`. 아이폰 시뮬레이터에서 카드·손글씨·적분 위아래끝·점 움직임 확인. 카드 내용은 `web-proto/app.js` WAIT_CARDS와 둘이라 고치면 둘 다. 🧪 18:51 시뮬레이터 qa 사진 1장(위 크레딧 0으로 실패).
 1. **새 문구 target-student 한 번** (Claude 혼자 가능, 기윤 손 0): 4번 버튼 두 줄(`features/photo/screens/photo-notes-screen.tsx` `uploadMissingLabel`·`uploadProgressLabel`) · ☁ 줄 넷(`features/photo/components/photo-note-card.tsx` `cloudLineOf`) · 설정 스위치 설명·알림 두 줄(`features/profile/components/profile-screen-view.tsx`·`hooks/use-profile-screen.ts`, 합니다체) · 계정 관리 Alert(`features/consent/components/account-manage-alert.ts`). 이미 읽힌 것: 동의 [선택] 줄(→ 「(30일 뒤 삭제)」로 고침) · 동의 저장 실패 줄(와이파이 멀쩡할 때 막다른 길 — 폰에서 띄워 보고 정함) · 업로드 문구(그대로).
 2. **방침 시행일 정하고 호스팅 배포** — `public/privacy/index.html:29` 아직 「2026년 8월 28일」(1.0.11 나가는 날로? 기윤) · 오늘 고친 방침(계정 보관·검토본·설정 스위치·소프트 삭제 최대 7일)은 **아직 웹에 안 올라감**.
