@@ -3,8 +3,9 @@
 > 지금 상태는 `docs/STATUS.md`. 이 파일은 **필요할 때만 연다** — 매 세션 읽지 않는다.
 > 2026-10-02에 `docs/STATUS.md`에서 한 줄도 안 지우고 그대로 옮겼다(원래 줄 번호는 각 절 제목에).
 > 새로 내릴 땐 이 머리말 바로 아래에 `## MM.DD에 내림` 제목을 달고 붙인다 — 최신이 위.
-## 10.02 밤에 내림 — 1.0.11 새 문구 target-student 두 번 → 고침 (원래 STATUS 「👉」 12줄)
+## 10.02 밤에 내림 — 1.0.11 새 문구 target-student 두 번 → 고침 · 방침 배포 확인 (원래 STATUS 「👉」 12·15줄)
 
+2. **방침 시행일 정하고 호스팅 배포** — `public/privacy/index.html:29` 아직 「2026년 8월 28일」(1.0.11 나가는 날로? 기윤) · 오늘 고친 방침(계정 보관·검토본·설정 스위치·소프트 삭제 최대 7일)은 **아직 웹에 안 올라감**.
 1. **새 문구 target-student 한 번** (Claude 혼자 가능, 기윤 손 0): 4번 버튼 두 줄(`features/photo/screens/photo-notes-screen.tsx` `uploadMissingLabel`·`uploadProgressLabel`) · ☁ 줄 넷(`features/photo/components/photo-note-card.tsx` `cloudLineOf`) · 설정 스위치 설명·알림 두 줄(`features/profile/components/profile-screen-view.tsx`·`hooks/use-profile-screen.ts`, 합니다체) · 계정 관리 Alert(`features/consent/components/account-manage-alert.ts`). 이미 읽힌 것: 동의 [선택] 줄(→ 「(30일 뒤 삭제)」로 고침) · 동의 저장 실패 줄(와이파이 멀쩡할 때 막다른 길 — 폰에서 띄워 보고 정함) · 업로드 문구(그대로).
 - ✅ 10.02 밤 결과: target-student 두 번(원문 없음 칸 — 판정 없이 읽힘만). 1차 걸린 자리 둘 — ① "사진"이 노트 사진/검토 사진 둘인데 다 노트 사진으로 읽힘(「사진 없음」·「보관하던 사진을 지웠습니다」 → "내 노트 날아갔나") · 「저장 못 함」 뒤 할 일 없음 ② 동의 화면(반말)에서 「계정 관리 >」 → 존댓말 창 + 빨간 계정 삭제 → "동의 안 하면 다 지워진다". 4번 버튼 두 줄은 그대로 읽힘. 고침: ☁ `저장됨 · 사진은 계정에 못 올림`(2차에서 「글만 저장됨」이 "사진 어디 갔지?"로 읽혀 Claude가 바꿈 — 이 판은 다시 안 읽힘) · `저장 못 함 · 이 기기엔 남아 있어` · 설정 스위치 설명·끈 알림에 「검토용」·「오답노트 사진은 그대로」 · 계정 관리 창 반말 + 본문 「동의 안 하고 나가려면 로그아웃을 눌러. 노트는 안 지워져.」(signOut이 노트 안 지움 코드 확인) · 삭제 확인 「정말 계정을 삭제할까?」/「노트랑 복습 기록이 전부 지워지고 되돌릴 수 없어.」/「삭제」. 방침 「바로 삭제」+7일 문단과 스위치 「바로」는 맞음(`public/privacy/index.html:53-54`). 테스트 915·tsc 0.
 
