@@ -72,7 +72,7 @@ describe('photo-store-contract', () => {
     );
   });
 
-  it('🔒 10.02 밤: 전송·보관 필수, 검토 선택', () => {
+  it('🔒 10.02 오후: 전송·보관 필수, 검토 선택', () => {
     expect(CONSENT_REQUIRED).toEqual({ analysis: true, store: true, review: false });
   });
 

@@ -26,7 +26,7 @@ export type ConsentVia = (typeof CONSENT_VIA)[number];
 export const CONSENT_COPY_VERSION: Record<ConsentKind, number> = { analysis: 1, store: 1, review: 1 };
 
 /**
- * 필수/선택. 🔒 10.02 밤 "합친다" → store도 필수.
+ * 필수/선택. 🔒 10.02 오후 "합친다" → store도 필수.
  * 되돌릴 땐 이 값 하나 + 문구만 바꾼다. 화면 꼬리표·[다음] 잠금·서버 403이 전부 이 값을 본다.
  */
 export const CONSENT_REQUIRED: Record<ConsentKind, boolean> = { analysis: true, store: true, review: false };
