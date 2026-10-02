@@ -271,6 +271,16 @@ test('사진: 지운 노트(deletedAt)는 410 NOTE_DELETED, 사진을 읽지도 
   assert.deepEqual(reads, []);
 });
 
+test('사진: deletedAt 칸이 아예 없는 문서도 안 지워진 것으로 보고 준다(isNoteStored와 같은 == null)', async () => {
+  const { source } = fakeSource({ photoPath: PHOTO_PATH } as Pick<PhotoNoteDoc, 'photoPath' | 'deletedAt'>, JPEG);
+  const { response, record } = fakeResponse();
+
+  await sendNotePhoto(source, ACCOUNT, NOTE_ID, response);
+
+  assert.equal(record.status, 200);
+  assert.equal(record.body, JPEG);
+});
+
 test('사진: photoPath가 이 계정 폴더 밖이면 주지 않는다(남의 사진이 나가는 길 0)', async () => {
   const { source, reads } = fakeSource(
     { photoPath: notePhotoPath('user:other', NOTE_ID), deletedAt: null },

@@ -322,6 +322,26 @@ describe('로컬 + 서버 합치기', () => {
     await expect(run([])).resolves.toEqual([]);
   });
 
+  it('401·403에서 토큰 갱신·재전송을 하지 않는다 — 헤더 한 번, 요청 한 번(403 CONSENT_REQUIRED가 그 길로 안 가게)', async () => {
+    const getHeaders = jest.fn(async () => HEADERS);
+    mockReadJson.mockRejectedValueOnce(new LearningHistoryApiError('Consent required', 403, 'UNAUTHORIZED'));
+
+    await loadRemotePhotoNotes(ACCOUNT, [], getHeaders, { isCancelled: () => false, onUpdate: () => {} });
+
+    expect(getHeaders).toHaveBeenCalledTimes(1);
+    expect(mockReadJson).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletedAt 칸이 아예 없는 문서(콘솔에서 손으로 넣은 것)는 안 지워진 것으로 본다', async () => {
+    const { deletedAt: _omit, ...withoutDeletedAt } = serverDoc(T2, { photoPath: null });
+    serverReplies({ notes: [withoutDeletedAt], nextBefore: null });
+
+    const updates = await run([]);
+
+    expect(updates.at(-1)?.map((note) => note.createdAt)).toEqual([T2]);
+    expect(mockSave).toHaveBeenCalledTimes(1);
+  });
+
   it('화면을 떠나면(로그아웃일 수 있다) 남기지 않고, 받아 둔 사진은 치운다', async () => {
     serverReplies({ notes: [serverDoc(T2)], nextBefore: null });
 

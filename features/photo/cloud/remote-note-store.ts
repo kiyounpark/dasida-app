@@ -55,7 +55,11 @@ function toPhotoNote(doc: PhotoNoteDoc, photoUri: string | null): PhotoNote {
   return toLocalNote(doc, photoUri) as PhotoNote;
 }
 
-/** 서버 노트 전부(지운 것 포함 — 거르는 건 부르는 쪽). 실패하면 던진다 */
+/**
+ * 서버 노트 전부(지운 것 포함 — 거르는 건 부르는 쪽). 실패하면 던진다.
+ * 401·403은 토큰 갱신·재전송 없이 바로 던진다(readLearningHistoryApiJson은 망·시간 초과·5xx만 한 번 더 보낸다) —
+ * 약속 파일 readApiErrorBody 주석의 "403 CONSENT_REQUIRED를 재전송 길로 보내지 말 것"과 같은 자리. 실패는 전부 "기기 노트만"이라 code로 가를 일이 없다.
+ */
 export async function listRemotePhotoNotes(
   accountKey: string,
   headers: Record<string, string>,
