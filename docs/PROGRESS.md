@@ -1061,6 +1061,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.02 15:31
+- 해시: `837214b` (`837214b6a65098e4596719c755e2f05198dcf252`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/837214b6a65098e4596719c755e2f05198dcf252
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 줄 0 리뷰 반영
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.02 15:30
+- 해시: `0bb74bc` (`0bb74bcf1a8b9297c3aba1cef9efd1b0d0fd1857`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/0bb74bcf1a8b9297c3aba1cef9efd1b0d0fd1857
+- 작성자: 박기윤
+- 메시지: fix(1.0.11): 줄 0 리뷰 반영 — 인증 전 익명 차단·조건부 사진 생성·탈퇴 순서
+- 본문: astra·Fable 리뷰(Fable 2차 최종: 세 건 다 astra가 맞음) / - photo-store-http: user: 아닌 키는 공용 인증 전에 403 (익명 auth 문서 쓰기 차단) / - 저장 규칙 ③: ifGenerationMatch:0 조건부 생성, 412면 noteId·md5로 판정 (글·사진 섞임 방지) / - 탈퇴 순서: Storage를 먼저 지우고 다 끝난 뒤 Firestore·원장 (재시도 때 검토본 경로 보존) / - readApiErrorBody 추가, isNoteStored == null, import 0 테스트 / - 1·2·3줄 재조정 없음 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 15:02
 - 해시: `f2b2970` (`f2b2970e468b3fd3eb741811645977038f70eda7`)
 - 브랜치: main
