@@ -31,6 +31,13 @@ export async function requireFirebaseAccount(
   accountKey: string,
   response: JsonResponse,
 ): Promise<string | null> {
+  // 공용 인증을 부르기 전에 막는다 — 공용 함수는 `user:`가 아닌 키 + 세션 비밀이면 거절 전에
+  // users/{키}/private/auth를 써 버린다(learning-history-auth.ts). `user:` 키는 그 안에서 Firestore를 안 건드린다.
+  if (!accountKey.startsWith('user:')) {
+    sendApiError(response, 403, 'UNAUTHORIZED', 'Authenticated users only');
+    return null;
+  }
+
   try {
     const auth = await authenticateLearningHistoryRequest(headers, accountKey);
     if (auth.kind !== 'firebase') {

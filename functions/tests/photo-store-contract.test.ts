@@ -6,11 +6,13 @@ import {
   buildPhotoNoteDoc,
   isConsentOn,
   isNoteStored,
+  readApiErrorBody,
   reviewExpiresAt,
   reviewPhotoPath,
   toLocalNote,
   type PhotoNoteWire,
 } from '../src/photo-store-contract';
+import { requireFirebaseAccount } from '../src/photo-store-http';
 import { SaveConsentRequestSchema } from '../src/save-consent';
 import { SavePhotoNoteRequestSchema } from '../src/save-photo-note';
 
@@ -78,6 +80,52 @@ test('노트 문서: 만들면 저장됨, 내려받으면 서버 칸이 빠지�
   assert.equal(local.cloudStoredAt, '2026-10-10T00:00:00.000Z');
   assert.equal('accountKey' in local, false);
   assert.equal('photoPath' in local, false);
+});
+
+test('저장됨: deletedAt 칸이 아예 없는 문서(콘솔에서 손으로 넣은 것)도 저장됨', () => {
+  const doc = buildPhotoNoteDoc(NOTE, {
+    accountKey: 'user:abc',
+    photoPath: null,
+    submissionId: null,
+    appVersion: null,
+    storedAt: '2026-10-10T00:00:00.000Z',
+  });
+  const { deletedAt: _d, ...withoutDeletedAt } = doc;
+  assert.equal(isNoteStored(withoutDeletedAt as typeof doc), true);
+});
+
+test('오류 응답 읽기: 아는 code만 받고, 403 동의 필요를 인증 실패와 가른다', () => {
+  assert.deepEqual(readApiErrorBody({ error: 'x', code: 'CONSENT_REQUIRED', retryable: false }), {
+    error: 'x',
+    code: 'CONSENT_REQUIRED',
+    retryable: false,
+  });
+  assert.equal(readApiErrorBody({ error: 'Authenticated users only' }), null);
+  assert.equal(readApiErrorBody({ error: 'x', code: 'SOMETHING_NEW' }), null);
+  assert.equal(readApiErrorBody(null), null);
+  assert.equal(readApiErrorBody({ code: 'TEMPORARY_FAILURE' })?.retryable, true);
+});
+
+test('인증 도우미: user: 아닌 키는 공용 인증(Firestore 쓰기)까지 가기 전에 403', async () => {
+  let status = 0;
+  let body: unknown = null;
+  const response = {
+    status(code: number) {
+      status = code;
+      return {
+        json(payload: unknown) {
+          body = payload;
+          return payload;
+        },
+      };
+    },
+  };
+  // 헤더·세션 비밀을 다 갖춰도 — 공용 함수였다면 users/probe-anon/private/auth를 썼을 요청
+  const headers = { 'x-dasida-account-key': 'probe-anon', 'x-dasida-session-secret': 'secret' };
+  const result = await requireFirebaseAccount(headers, 'probe-anon', response);
+  assert.equal(result, null);
+  assert.equal(status, 403);
+  assert.equal((body as { code?: string }).code, 'UNAUTHORIZED');
 });
 
 test('savePhotoNote 요청: 맞는 모양은 통과', () => {
