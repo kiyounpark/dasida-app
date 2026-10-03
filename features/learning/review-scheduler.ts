@@ -22,6 +22,19 @@ export function addDaysToToday(days: number): string {
 }
 
 /**
+ * 오늘부터 scheduledFor 날짜까지 며칠인지. 과제 날짜는 기기 날짜로 만들어지니(addDaysToToday)
+ * 오늘도 기기 날짜로 센다 — toISOString()(UTC)으로 세면 한국 00~09시에 하루가 더 나온다.
+ * 막지 않는다(오늘 0, 어제 -1) — 홈을 켜 둔 채 자정이 지나면 resting 과제가 오늘이 될 수 있고,
+ * 그때 1로 막으면 「내일」이 거짓이 된다. D-N 표시는 부르는 쪽이 Math.max(1, …).
+ */
+export function daysUntilScheduled(scheduledFor: string, now: Date = new Date()): number {
+  const [y, m, d] = scheduledFor.slice(0, 10).split('-').map(Number);
+  const target = Date.UTC(y, m - 1, d);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((target - today) / 86_400_000);
+}
+
+/**
  * "기억났어요!" — 현재 task를 완료 처리하고 다음 stage task를 생성한다.
  * day30 완료 시 다음 task 없이 완전 졸업.
  */

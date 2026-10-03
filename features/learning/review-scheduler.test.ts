@@ -1,4 +1,4 @@
-import { addDaysToToday, spawnMistakeReviewTasks } from './review-scheduler';
+import { addDaysToToday, daysUntilScheduled, spawnMistakeReviewTasks } from './review-scheduler';
 import type { ReviewTaskStore } from './review-task-store';
 import type { ReviewTask } from './types';
 
@@ -144,5 +144,23 @@ describe('spawnMistakeReviewTasks', () => {
     await spawnMistakeReviewTasks('acc', 'src1', [], store);
     expect(store.all()).toHaveLength(1);
     expect(store.all()[0].stage).toBe('day7');
+  });
+});
+
+describe('daysUntilScheduled — 기기 날짜로 센다', () => {
+  it('한국 아침 8시에 내일 과제면 1이다 (UTC로 세면 2가 나오던 자리)', () => {
+    const now = new Date(2026, 9, 3, 8, 0); // 기기 시각 10/3 08:00
+    expect(daysUntilScheduled('2026-10-04T00:00:00.000Z', now)).toBe(1);
+  });
+
+  it('사흘 뒤면 3이다', () => {
+    const now = new Date(2026, 9, 3, 23, 30);
+    expect(daysUntilScheduled('2026-10-06T00:00:00.000Z', now)).toBe(3);
+  });
+
+  it('오늘·지난 날짜는 0·음수 그대로 — 막으면 오늘 과제가 「내일」로 둔갑한다', () => {
+    const now = new Date(2026, 9, 3, 12, 0);
+    expect(daysUntilScheduled('2026-10-03T00:00:00.000Z', now)).toBe(0);
+    expect(daysUntilScheduled('2026-10-01T00:00:00.000Z', now)).toBe(-2);
   });
 });
