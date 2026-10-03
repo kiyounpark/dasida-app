@@ -215,11 +215,11 @@ describe('PhotoFlowScreen', () => {
     expect(mockSaveNote).not.toHaveBeenCalled();
   });
 
-  it('지난 노트가 없으면 첫 화면에 그 줄을 안 낸다 — 처음 온 학생 화면을 안 건드린다', async () => {
+  it('지난 노트가 기기에 0장이어도 입구를 낸다 — 새 기기에선 서버에만 노트가 있다(1.0.11)', async () => {
     render(<PhotoFlowScreen accountKey="user:abc" />);
 
     await waitFor(() => expect(mockReadNotes).toHaveBeenCalledWith('user:abc'));
-    expect(screen.queryByText(/지난 오답노트/)).toBeNull();
+    expect(screen.getByText('지난 오답노트 보기')).toBeTruthy();
   });
 
   it('지난 노트가 있으면 첫 화면에 몇 장인지 뜬다', async () => {

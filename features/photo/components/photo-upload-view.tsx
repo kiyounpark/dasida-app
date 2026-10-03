@@ -46,14 +46,16 @@ export function PhotoUploadView({
         <Text style={styles.dropSmall}>풀이 쓴 부분까지 한 장에 나오게</Text>
       </Pressable>
 
-      {/* 처음 온 학생한테는 안 보인다 — 0장일 때 빈 줄을 세우면 첫 화면만 복잡해진다.
-          웹 실측으로 사진 21장 중 노트까지 간 건 1장이고, 이 줄은 그 1장한테 걸리는 문이다. */}
-      {savedNoteCount > 0 && onOpenNotes && (
+      {/* 기기에 0장이어도 낸다 — 1.0.11부터 노트가 서버에도 있어서, 새 기기·재설치 학생은
+          여기서 목록에 들어가야 서버 노트를 내려받는다(remote-note-store loadRemotePhotoNotes). */}
+      {onOpenNotes && (
         <Pressable
           accessibilityRole="button"
           onPress={onOpenNotes}
           style={({ pressed }) => [styles.notesLink, pressed && styles.notesLinkPressed]}>
-          <Text style={styles.notesLinkText}>{`지난 오답노트 ${savedNoteCount}장 보기`}</Text>
+          <Text style={styles.notesLinkText}>
+            {savedNoteCount > 0 ? `지난 오답노트 ${savedNoteCount}장 보기` : '지난 오답노트 보기'}
+          </Text>
         </Pressable>
       )}
 
