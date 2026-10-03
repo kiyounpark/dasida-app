@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.03 14:50
+- 해시: `f0a9018` (`f0a90188b8f4573766fcd8ec29275a9c0b785b90`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f0a90188b8f4573766fcd8ec29275a9c0b785b90
+- 작성자: 박기윤
+- 메시지: docs: 레퍼런스 큰 틀 — 한눈에 (기윤 생각·반론 셋·왜 바로 안 바꿨나)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.03 14:44
 - 해시: `a166708` (`a166708efbd1e35f116693c2560ba2b9d488c962`)
 - 브랜치: main
