@@ -48,15 +48,16 @@ export function usePhotoNotesScreen({
     let cancelled = false;
 
     void (async () => {
-      setRemote(null);
-      setRemoteFailed(false);
-      const local = accountKey ? await readPhotoNotes(accountKey) : [];
-      if (cancelled) return;
-
       // 서버 노트는 로그인 계정(user:)만 — 게스트(anon:)는 서버가 403으로 막는다(photo-store-http).
       // 부르면 실패가 「노트를 못 불러왔어 · 인터넷을 확인」으로 둔갑한다
       const canUseRemote = !!accountKey?.startsWith('user:') && !!getRemoteAuthHeaders;
+      setRemote(null);
+      setRemoteFailed(false);
+      // 기기 읽기 전에 올린다 — 「다시 시도」 직후 한 렌더가 「아직 노트가 없어」로 비치지 않게(Fable 리뷰 10.03)
       setRemotePending(canUseRemote);
+      const local = accountKey ? await readPhotoNotes(accountKey) : [];
+      if (cancelled) return;
+
       setNotes(local);
       if (!accountKey || !getRemoteAuthHeaders || !canUseRemote) return;
 

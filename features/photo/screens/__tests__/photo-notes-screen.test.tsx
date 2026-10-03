@@ -244,6 +244,28 @@ describe('다른 기기 보기 (1.0.11)', () => {
     await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
   });
 
+  it('「다시 시도」 누른 순간 「아직 노트가 없어」가 한 번도 안 비친다 — 기기 읽기 동안엔 스피너 (Fable 리뷰 10.03)', async () => {
+    let release: (value: unknown) => void = () => {};
+    mockRead
+      .mockResolvedValueOnce([])
+      .mockReturnValueOnce(new Promise((resolve) => (release = resolve)));
+    mockServer
+      .mockRejectedValueOnce(
+        new LearningHistoryApiError('네트워크 연결을 확인한 뒤 다시 시도해 주세요.', 0, 'NETWORK_ERROR'),
+      )
+      .mockResolvedValueOnce({ notes: [], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+    await waitFor(() => expect(screen.getByText('노트를 못 불러왔어')).toBeTruthy());
+
+    fireEvent.press(screen.getByText('다시 시도'));
+    expect(screen.queryByText('아직 노트가 없어')).toBeNull();
+    expect(screen.getByLabelText('노트 불러오는 중')).toBeTruthy();
+
+    release([]);
+    await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
+  });
+
   it('지운 노트(deletedAt)는 그리지 않는다', async () => {
     mockServer.mockResolvedValueOnce({
       notes: [
