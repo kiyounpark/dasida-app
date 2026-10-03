@@ -34,6 +34,8 @@ export default function TabLayout() {
         tabBarStyle: defaultTabBarStyle,
         tabBarLabelStyle: {
           fontSize: 11,
+          // 줄 높이를 안 주면 SUIT 글꼴 받침이 잘린다(10.03 기윤 폰 「홈」 ㅁ·「설정」 아래). 시뮬레이터에선 안 잘림
+          lineHeight: 16,
           fontFamily: FontFamilies.medium,
         },
         headerShown: false,
