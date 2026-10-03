@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.03 14:44
+- 해시: `a166708` (`a166708efbd1e35f116693c2560ba2b9d488c962`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/a166708efbd1e35f116693c2560ba2b9d488c962
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 1칸 판정 10.10 · 레퍼런스 큰 틀(1칸 미달이면 11호부터) · 사다리 1.0.11
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.02 22:11
 - 해시: `659bc5a` (`659bc5a24f34ec6cb3a62039eee0095d01e0fedb`)
 - 브랜치: main
