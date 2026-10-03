@@ -12,10 +12,10 @@ describe('buildNotesHeading — 노트는 있는데 복습이 0일 때', () => {
     });
   });
 
-  it('이름이 붙었는데 과제가 없으면(저장 실패 등) 이유를 단정하지 않는다', () => {
+  it('이름이 붙었는데 과제가 없으면(저장 실패·30일 차까지 끝냄) 사실만 말한다 — 「아직」이면 남은 게 있는 것처럼 들린다', () => {
     expect(buildNotesHeading(note('discriminant_calculation'), 3)).toEqual({
       title: '오답노트 3장 있어요',
-      body: '복습 날짜가 아직 안 잡혔어요.',
+      body: '지금 잡힌 복습은 없어요.',
     });
   });
 });
