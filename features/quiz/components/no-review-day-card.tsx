@@ -2,15 +2,19 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
+import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
+import { daysUntilScheduled } from '@/features/learning/review-scheduler';
+import { formatReviewStageLabel } from '@/features/learning/review-stage';
 
-function getDaysUntil(scheduledFor: string): number {
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const today = new Date(todayStr);
-  const target = new Date(scheduledFor.slice(0, 10));
-  const diffMs = target.getTime() - today.getTime();
-  return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+/** '2026-10-04T…' → { md: '10/4', mdw: '10/4(일)' }. 날짜 글자만 읽는다(시간대 무관). */
+function formatScheduledDay(scheduledFor: string) {
+  const [y, m, d] = scheduledFor.slice(0, 10).split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  return { md: `${m}/${d}`, mdw: `${m}/${d}(${weekday})` };
 }
 
 type Props = {
@@ -20,24 +24,48 @@ type Props = {
 
 export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
   const isTablet = useIsTablet();
-  const daysUntil = getDaysUntil(nextTask.scheduledFor);
-  const pillText = `오늘은 복습 없는 날이에요 · 다음 복습 D-${daysUntil}`;
+  const daysUntil = daysUntilScheduled(nextTask.scheduledFor);
+  const pillText = `오늘은 복습 없는 날이에요 · 다음 복습 D-${Math.max(1, daysUntil)}`;
 
   return (
     <View style={[styles.wrap, isTablet && { maxWidth: undefined }]}>
       <View style={styles.pill}>
         <Text style={styles.pillText}>{pillText}</Text>
       </View>
-      <View style={styles.examCard}>
-        <Text style={styles.examTag}>오늘 복습 없음 · 실력 확인 추천</Text>
-        <Text style={styles.examTitle}>잠깐 실력 확인해볼까요?</Text>
-        <Text style={styles.examBody}>
-          복습 사이 여유 있을 때 풀어보면 성장 곡선이 보입니다.
-        </Text>
-        <Pressable style={styles.examBtn} onPress={onPressExam} accessibilityLabel="모의고사 시작하기">
-          <Text style={styles.examBtnText}>모의고사 시작하기</Text>
-        </Pressable>
-      </View>
+      {nextTask.source === 'photo' ? (
+        <NextReviewBody nextTask={nextTask} daysUntil={daysUntil} />
+      ) : (
+        <View style={styles.examCard}>
+          <Text style={styles.examTag}>오늘 복습 없음 · 실력 확인 추천</Text>
+          <Text style={styles.examTitle}>잠깐 실력 확인해볼까요?</Text>
+          <Text style={styles.examBody}>
+            복습 사이 여유 있을 때 풀어보면 성장 곡선이 보입니다.
+          </Text>
+          <Pressable style={styles.examBtn} onPress={onPressExam} accessibilityLabel="모의고사 시작하기">
+            <Text style={styles.examBtnText}>모의고사 시작하기</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}
+
+/**
+ * 사진에서 온 복습 — 내일 다시 열 이유를 날짜·약점 이름으로 말한다(기윤 10.03, Fable 최종 문구).
+ * 저장된 과제(today.nextTask)가 있을 때만 이 카드가 뜬다 — 과제 저장이 실패했으면 안 뜬다.
+ */
+function NextReviewBody({ nextTask, daysUntil }: { nextTask: ActiveReviewTaskSummary; daysUntil: number }) {
+  const { md, mdw } = formatScheduledDay(nextTask.scheduledFor);
+  const isTomorrow = daysUntil === 1;
+  // 「첫」은 안 쓴다 — 연체된 day3이 day1로 내려오면(review-scheduler applyOverduePenalties) 이미 복습한 학생이다
+  const title = `${resolveWeaknessLabel(nextTask.weaknessId)} · ${formatReviewStageLabel(nextTask.stage)}`;
+  const tag = isTomorrow ? `내일 · ${mdw}` : daysUntil > 1 ? `${mdw} · D-${daysUntil}` : mdw;
+
+  return (
+    <View testID="home-next-review" style={styles.examCard}>
+      <Text style={styles.examTag}>{tag}</Text>
+      <Text style={styles.examTitle}>{title}</Text>
+      <Text style={styles.examBody}>{`${isTomorrow ? '내일' : md} 홈에 떠요. 짧게 다시 보면 돼요.`}</Text>
     </View>
   );
 }
