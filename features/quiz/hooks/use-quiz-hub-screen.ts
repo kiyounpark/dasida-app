@@ -6,13 +6,15 @@ import { useWindowDimensions } from 'react-native';
 import { logEvent } from '@/features/analytics/log-event';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import type { HomeTodayState } from '@/features/learning/home-today-state';
-import { applyOverduePenalties } from '@/features/learning/review-scheduler';
+import { applyOverduePenalties, daysUntilScheduled } from '@/features/learning/review-scheduler';
 import {
   cancelAllReviewNotifications,
   rescheduleAllReviewNotifications,
 } from '@/features/quiz/notifications/review-notification-scheduler';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { readPhotoNotes } from '@/features/photo/note-store';
+import type { PhotoNote } from '@/features/photo/types';
+import { shouldShowWeaknessSection as decideWeaknessSection } from '@/features/quiz/home-weakness-visibility';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import {
   computeAnalysisInProgressState,
@@ -34,12 +36,18 @@ export type UseQuizHubScreenResult = {
   homeState: CurrentLearnerSnapshot['homeState'];
   isCompactLayout: boolean;
   isReady: CurrentLearnerSnapshot['isReady'];
+  /** 이 기기의 가장 최근 사진 노트 — 첫 사진 뒤 홈이 「방금 만든 것」을 보여준다(10.03). 없으면 null */
+  latestPhotoNote: PhotoNote | null;
   onDismissAuthNotice: () => void;
   onPressExam: () => void;
+  /** 지난 오답노트 목록으로 */
+  onPressNotes: () => void;
   onPressPhoto: () => void;
   onPressReviewTask: (taskId: string) => void;
   onRefresh: CurrentLearnerSnapshot['refresh'];
   onResumeAnalysis: (attemptId: string) => void;
+  /** 이 기기의 사진 노트 장수 */
+  photoNoteCount: number;
   profile: CurrentLearnerSnapshot['profile'];
   session: CurrentLearnerSnapshot['session'];
   showAnalysisResumeCard: boolean;
@@ -71,6 +79,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   // null = 아직 안 읽음. 0인지 아닌지를 알기 전에는 홈을 그리지 않는다 —
   // 모르는 채로 그리면 처음 온 학생이 "아직 복습할 게 없어요"를 한 번 깜빡이고 본다.
   const [photoNoteCount, setPhotoNoteCount] = useState<number | null>(null);
+  const [latestPhotoNote, setLatestPhotoNote] = useState<PhotoNote | null>(null);
 
   useEffect(() => {
     if (!authNoticeMessage) {
@@ -170,6 +179,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         const notes = accountKey ? await readPhotoNotes(accountKey) : [];
         if (!cancelled) {
           setPhotoNoteCount(notes.length);
+          // readPhotoNotes는 최신순 — 첫 장이 방금 만든 노트다
+          setLatestPhotoNote(notes[0] ?? null);
         }
       })();
       return () => {
@@ -195,6 +206,10 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   // 사진 오답노트. 탭 밖 루트 라우트라 탭바가 안 보이고, 헤더 뒤로가기로 홈에 돌아온다.
   const onPressPhoto = () => {
     router.push('/photo');
+  };
+
+  const onPressNotes = () => {
+    router.push('/photo-notes');
   };
 
   const onResumeAnalysis = useCallback(
@@ -257,15 +272,10 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
   const showNoReviewDayCard =
     today?.mode === 'resting' && !!today.nextTask && !isAnalysisInProgress;
 
-  const noReviewDaysUntil = (() => {
-    const scheduledFor = today?.nextTask?.scheduledFor;
-    if (!scheduledFor) return 1;
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const todayDate = new Date(todayStr);
-    const target = new Date(scheduledFor.slice(0, 10));
-    const diffMs = target.getTime() - todayDate.getTime();
-    return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-  })();
+  // GA 값이라 지금처럼 1 이상. 기기 날짜로 센다(카드와 같은 함수)
+  const noReviewDaysUntil = today?.nextTask?.scheduledFor
+    ? Math.max(1, daysUntilScheduled(today.nextTask.scheduledFor))
+    : 1;
 
   const { handlePressExam: onPressExamWithAnalytics } = useNoReviewDayCardAnalytics({
     visible: showNoReviewDayCard,
@@ -273,9 +283,11 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     onPressExam,
   });
 
-  // 졸업 게이트를 뺀 자리. 띄울 게 실제로 있을 때만 띄운다.
-  const showWeaknessSection =
-    (homeState?.weaknessProgressItems.length ?? 0) > 0 && !isAnalysisInProgress;
+  // 졸업 게이트를 뺀 자리. 복습을 한 번 끝내 그릴 막대가 생긴 뒤부터 띄운다(기윤 10.03).
+  const showWeaknessSection = decideWeaknessSection(
+    homeState?.weaknessProgressItems,
+    isAnalysisInProgress,
+  );
   const showAnalysisResumeCard = isAnalysisInProgress;
 
   // 아직 아무것도 안 해본 학생. 복습이 0건인 이유가 "다 했다"가 아니라 "시작을 안 했다"다.
@@ -290,14 +302,17 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     isCompactLayout: width < 390 || height < 780,
     // 사진 노트를 세기 전에는 아직 준비가 안 된 것으로 본다 — 위 photoNoteCount 주석 참고.
     isReady: isReady && photoNoteCount !== null,
+    latestPhotoNote,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },
     onPressExam: onPressExamWithAnalytics,
+    onPressNotes,
     onPressPhoto,
     onPressReviewTask,
     onRefresh: refresh,
     onResumeAnalysis,
+    photoNoteCount: photoNoteCount ?? 0,
     profile,
     session,
     showAnalysisResumeCard,

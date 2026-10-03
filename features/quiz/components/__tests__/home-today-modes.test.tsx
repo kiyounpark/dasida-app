@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 
@@ -62,12 +62,15 @@ const baseProps = {
   homeState: { weaknessProgressItems: [] },
   isCompactLayout: false,
   isReady: true,
+  latestPhotoNote: null,
   onDismissAuthNotice: jest.fn(),
+  onPressNotes: jest.fn(),
   onPressExam: jest.fn(),
   onPressPhoto: jest.fn(),
   onPressReviewTask: jest.fn(),
   onRefresh: jest.fn(),
   onResumeAnalysis: jest.fn(),
+  photoNoteCount: 0,
   profile: { id: 'p1' },
   session: { id: 's1' },
   showAnalysisResumeCard: false,
@@ -144,5 +147,95 @@ describe('홈 3갈래 (C안)', () => {
     expect(screen.queryByText('틀린 문제, 찍기만 하면 돼요')).toBeNull();
     // 리스트가 자기 제목을 들고 있다. 위에 또 붙이지 않는다.
     expect(screen.queryByTestId('home-today-heading')).toBeNull();
+  });
+});
+
+// 첫 사진 뒤 홈 (기윤 10.03 「허전하다」 → astra·Fable 최종 작은 노트 카드)
+describe('첫 사진 뒤 홈', () => {
+  const photoNote = {
+    id: 'n1',
+    dateLabel: '10/3',
+    photoUri: null,
+    fix: '음수 대입은 부호를 한 번 더 봐',
+    primaryWeaknessId: null,
+  };
+
+  it('노트는 있는데 복습이 0이면 정직한 제목 + 노트 카드 + 작은 사진 줄', () => {
+    render(<QuizHubScreenView {...baseProps} latestPhotoNote={photoNote as any} photoNoteCount={1} />);
+
+    expect(screen.getByText('오답노트 1장 있어요')).toBeTruthy();
+    expect(screen.getByText('복습 날짜는 안 잡혔어요 — 약점 이름이 안 붙은 노트라서요.')).toBeTruthy();
+    expect(screen.getByText('오답노트 · 10/3')).toBeTruthy();
+    expect(screen.getByText('음수 대입은 부호를 한 번 더 봐')).toBeTruthy();
+    expect(screen.getByText('+ 틀린 문제 하나 더 올리기')).toBeTruthy();
+    // 이미 올린 학생에게 「찍어서 올리면 쌓여요」·큰 사진 카드를 다시 내지 않는다
+    expect(screen.queryByText('아직 복습할 게 없어요')).toBeNull();
+    expect(screen.queryByText('틀린 문제, 찍기만 하면 돼요')).toBeNull();
+  });
+
+  it('노트 카드를 누르면 지난 오답노트로 간다', () => {
+    const onPressNotes = jest.fn();
+    render(
+      <QuizHubScreenView
+        {...baseProps}
+        latestPhotoNote={photoNote as any}
+        photoNoteCount={1}
+        onPressNotes={onPressNotes}
+      />,
+    );
+    fireEvent.press(screen.getByLabelText('노트 펼쳐 보기'));
+    expect(onPressNotes).toHaveBeenCalled();
+  });
+
+  // 이 계획이 만드는 바로 그 화면 — 사진 과제가 내일 + 노트 있음 (Fable 검토 10.03)
+  it('사진 복습이 내일이면 다음 복습 카드 + 노트 카드, 큰 사진 카드는 없다', () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 9, 3, 9, 0));
+    render(
+      <QuizHubScreenView
+        {...baseProps}
+        showNoReviewDayCard
+        latestPhotoNote={{ ...photoNote, primaryWeaknessId: 'discriminant_calculation' } as any}
+        photoNoteCount={1}
+        today={
+          {
+            mode: 'resting',
+            dueTasks: [],
+            nextTask: { ...makeTask('next'), source: 'photo', scheduledFor: '2026-10-04T00:00:00.000Z' },
+            title: '오늘은 복습 없는 날이에요',
+            body: '새로 틀린 문제를 찍어두면 다음 복습이 늘어나요.',
+          } as unknown as UseQuizHubScreenResult['today']
+        }
+      />,
+    );
+    jest.useRealTimers();
+
+    expect(screen.getByTestId('home-next-review')).toBeTruthy();
+    expect(screen.getByText('내일 · 10/4(일)')).toBeTruthy();
+    expect(screen.getByTestId('home-latest-note')).toBeTruthy();
+    expect(screen.queryByTestId('home-today-heading')).toBeNull();
+    expect(screen.queryByText('틀린 문제, 찍기만 하면 돼요')).toBeNull();
+    expect(screen.queryByText('모의고사 시작하기')).toBeNull();
+  });
+
+  it('오늘 복습이 있으면 노트가 있어도 리스트가 주인이다 — 노트 카드를 안 끼운다', () => {
+    render(
+      <QuizHubScreenView
+        {...baseProps}
+        latestPhotoNote={photoNote as any}
+        photoNoteCount={3}
+        today={
+          {
+            mode: 'review',
+            dueTasks: [makeTask('a')],
+            nextTask: makeTask('a'),
+            title: '오늘 복습할 게 1개 있어요',
+            body: '하나만 짧게 다시 보면 돼요.',
+          } as unknown as UseQuizHubScreenResult['today']
+        }
+      />,
+    );
+
+    expect(screen.getByTestId('home-review-list')).toBeTruthy();
+    expect(screen.queryByTestId('home-latest-note')).toBeNull();
   });
 });

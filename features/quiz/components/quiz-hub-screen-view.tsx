@@ -8,7 +8,9 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { HomeFirstRun } from '@/features/quiz/components/home-first-run';
+import { HomeLatestNote } from '@/features/quiz/components/home-latest-note';
 import { HomeReviewList } from '@/features/quiz/components/home-review-list';
+import { buildNotesHeading } from '@/features/quiz/home-notes-heading';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
 import { PhotoEntryCard } from './photo-entry-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
@@ -74,6 +76,25 @@ function AuthNotice({
   );
 }
 
+function TodayHeading({
+  heading,
+  isTablet,
+}: {
+  heading: { title: string; body: string };
+  isTablet: boolean;
+}) {
+  return (
+    <View testID="home-today-heading" style={[styles.todayHeading, isTablet && { maxWidth: undefined }]}>
+      <Text selectable style={styles.todayTitle}>
+        {heading.title}
+      </Text>
+      <Text selectable style={styles.todayBody}>
+        {heading.body}
+      </Text>
+    </View>
+  );
+}
+
 /**
  * 홈. "오늘 복습할 것"이 주인공이다 (🔒 2026.09.15 결정 B).
  *
@@ -92,12 +113,15 @@ export function QuizHubScreenView({
   homeState,
   isCompactLayout,
   isReady,
+  latestPhotoNote,
   onDismissAuthNotice,
   onPressExam,
+  onPressNotes,
   onPressPhoto,
   onPressReviewTask,
   onRefresh,
   onResumeAnalysis,
+  photoNoteCount,
   profile,
   session,
   showAnalysisResumeCard,
@@ -207,18 +231,26 @@ export function QuizHubScreenView({
               ) : (
                 // 사진 카드는 사진 얘기만 한다. 홈이 복습 앱의 홈이라는 걸
                 // 화면에서 말해주는 건 여기 한 줄뿐이다.
-                <View
-                  testID="home-today-heading"
-                  style={[styles.todayHeading, isTablet && { maxWidth: undefined }]}>
-                  <Text selectable style={styles.todayTitle}>
-                    {today.title}
-                  </Text>
-                  <Text selectable style={styles.todayBody}>
-                    {today.body}
-                  </Text>
-                </View>
+                <TodayHeading
+                  heading={
+                    // 노트가 있는데 복습이 0이면 「찍어서 올리면 쌓여요」 대신 있는 그대로 말한다(10.03)
+                    today.mode === 'empty' && latestPhotoNote
+                      ? buildNotesHeading(latestPhotoNote, photoNoteCount)
+                      : { title: today.title, body: today.body }
+                  }
+                  isTablet={isTablet}
+                />
               )}
-              <PhotoEntryCard onPress={onPressPhoto} />
+              {latestPhotoNote ? (
+                // 첫 사진 뒤: 방금 만든 노트가 남아 있다는 걸 보여주고, 사진 문은 작은 줄로
+                <HomeLatestNote
+                  note={latestPhotoNote}
+                  onPressNotes={onPressNotes}
+                  onPressPhoto={onPressPhoto}
+                />
+              ) : (
+                <PhotoEntryCard onPress={onPressPhoto} />
+              )}
             </>
           )}
           {showWeaknessSection ? <HomeWeaknessSection homeState={homeState} /> : null}
