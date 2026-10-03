@@ -53,9 +53,12 @@ export function usePhotoNotesScreen({
       const local = accountKey ? await readPhotoNotes(accountKey) : [];
       if (cancelled) return;
 
-      setRemotePending(!!accountKey && !!getRemoteAuthHeaders);
+      // 서버 노트는 로그인 계정(user:)만 — 게스트(anon:)는 서버가 403으로 막는다(photo-store-http).
+      // 부르면 실패가 「노트를 못 불러왔어 · 인터넷을 확인」으로 둔갑한다
+      const canUseRemote = !!accountKey?.startsWith('user:') && !!getRemoteAuthHeaders;
+      setRemotePending(canUseRemote);
       setNotes(local);
-      if (!accountKey || !getRemoteAuthHeaders) return;
+      if (!accountKey || !getRemoteAuthHeaders || !canUseRemote) return;
 
       await loadRemotePhotoNotes(accountKey, local, getRemoteAuthHeaders, {
         isCancelled: () => cancelled,

@@ -217,6 +217,16 @@ describe('다른 기기 보기 (1.0.11)', () => {
     expect(screen.queryByText(/네트워크|오류|실패|못 불러/)).toBeNull();
   });
 
+  it('게스트(anon:)는 서버를 안 부른다 — 서버가 403으로 막아서 「인터넷을 확인」이 거짓이 된다', async () => {
+    mockRead.mockResolvedValue([]);
+
+    render(<PhotoNotesScreen accountKey="anon:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
+    expect(mockServer).not.toHaveBeenCalled();
+    expect(screen.queryByText('노트를 못 불러왔어')).toBeNull();
+  });
+
   it('기기 0장 + 서버 실패면 「없어」 대신 다시 시도 — 새 기기에서 노트가 있는데 없다고 하지 않는다', async () => {
     mockRead.mockResolvedValue([]);
     mockServer
