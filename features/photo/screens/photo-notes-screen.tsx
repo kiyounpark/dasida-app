@@ -35,7 +35,7 @@ export function PhotoNotesScreen({
   accountKey?: string | null;
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
 } = {}) {
-  const { notes, remotePending, cloudOf, missingCount, upload, uploadMissing } = usePhotoNotesScreen({
+  const { notes, remotePending, remoteFailed, reload, cloudOf, missingCount, upload, uploadMissing } = usePhotoNotesScreen({
     accountKey,
     getRemoteAuthHeaders,
   });
@@ -51,6 +51,21 @@ export function PhotoNotesScreen({
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <View style={styles.empty}>
           <ActivityIndicator accessibilityLabel="노트 불러오는 중" color={PhotoTheme.muted} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // 새 기기에서 서버를 못 읽었다 — 노트가 서버에 있을 수 있으니 「없어」라고 하지 않는다
+  if (notes.length === 0 && remoteFailed) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <View style={styles.empty}>
+          <Text style={styles.emptyTitle}>노트를 못 불러왔어</Text>
+          <Text style={styles.emptyBody}>인터넷을 확인하고 다시 시도해 줘.</Text>
+          <Pressable accessibilityRole="button" onPress={reload} style={styles.upload}>
+            <Text style={styles.uploadLabel}>다시 시도</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );

@@ -28,6 +28,9 @@ export function usePhotoNotesScreen({
   const [remotePending, setRemotePending] = useState(false);
   /** null = 서버 목록을 아직(또는 끝내) 못 읽음 */
   const [remote, setRemote] = useState<Map<string, RemoteSummary> | null>(null);
+  /** 서버 목록 읽기가 실패했다 — 기기 0장이면 「없어」 대신 다시 시도를 낸다 */
+  const [remoteFailed, setRemoteFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [upload, setUpload] = useState<{ done: number; total: number } | null>(null);
   const uploadingRef = useRef(false);
   const accountRef = useRef(accountKey);
@@ -46,6 +49,7 @@ export function usePhotoNotesScreen({
 
     void (async () => {
       setRemote(null);
+      setRemoteFailed(false);
       const local = accountKey ? await readPhotoNotes(accountKey) : [];
       if (cancelled) return;
 
@@ -69,6 +73,9 @@ export function usePhotoNotesScreen({
             ),
           );
         },
+        onRemoteError: () => {
+          if (!cancelled) setRemoteFailed(true);
+        },
       });
       if (!cancelled) setRemotePending(false);
     })();
@@ -76,7 +83,9 @@ export function usePhotoNotesScreen({
     return () => {
       cancelled = true;
     };
-  }, [accountKey, getRemoteAuthHeaders]);
+  }, [accountKey, getRemoteAuthHeaders, reloadKey]);
+
+  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
 
   const missing = useMemo(
     () => (notes && remote ? findNotesMissingOnServer(notes, new Set(remote.keys())) : []),
@@ -133,6 +142,8 @@ export function usePhotoNotesScreen({
   return {
     notes,
     remotePending,
+    remoteFailed,
+    reload,
     cloudOf,
     missingCount: missing.length,
     upload,

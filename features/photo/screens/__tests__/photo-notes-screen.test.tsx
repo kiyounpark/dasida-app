@@ -217,6 +217,23 @@ describe('다른 기기 보기 (1.0.11)', () => {
     expect(screen.queryByText(/네트워크|오류|실패|못 불러/)).toBeNull();
   });
 
+  it('기기 0장 + 서버 실패면 「없어」 대신 다시 시도 — 새 기기에서 노트가 있는데 없다고 하지 않는다', async () => {
+    mockRead.mockResolvedValue([]);
+    mockServer
+      .mockRejectedValueOnce(
+        new LearningHistoryApiError('네트워크 연결을 확인한 뒤 다시 시도해 주세요.', 0, 'NETWORK_ERROR'),
+      )
+      .mockResolvedValueOnce({ notes: [serverDoc()], nextBefore: null });
+
+    render(<PhotoNotesScreen accountKey="user:abc" getRemoteAuthHeaders={getRemoteAuthHeaders} />);
+
+    await waitFor(() => expect(screen.getByText('노트를 못 불러왔어')).toBeTruthy());
+    expect(screen.queryByText('아직 노트가 없어')).toBeNull();
+
+    fireEvent.press(screen.getByText('다시 시도'));
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+  });
+
   it('지운 노트(deletedAt)는 그리지 않는다', async () => {
     mockServer.mockResolvedValueOnce({
       notes: [

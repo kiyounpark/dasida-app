@@ -146,9 +146,11 @@ export async function loadRemotePhotoNotes(
     onUpdate: (notes: PhotoNote[]) => void;
     /** 서버 목록을 읽었을 때 한 번(지운 것 포함) — 「서버에 없는 노트 올리기」(4)가 이걸로 고른다. 못 읽으면 안 부른다 */
     onRemoteDocs?: (docs: PhotoNoteDoc[]) => void;
+    /** 서버 목록을 못 읽었을 때 한 번 — 화면이 「없음」과 「못 읽음」을 가른다(새 기기 기기 0장) */
+    onRemoteError?: () => void;
   },
 ): Promise<void> {
-  const { isCancelled, onUpdate, onRemoteDocs } = options;
+  const { isCancelled, onUpdate, onRemoteDocs, onRemoteError } = options;
 
   try {
     const headers = await getRemoteAuthHeaders(accountKey);
@@ -193,5 +195,6 @@ export async function loadRemotePhotoNotes(
     if (!isCancelled()) onUpdate(mergePhotoNotes(local, restored));
   } catch (error) {
     console.warn('[remote-note-store] 서버 노트를 못 읽어 로컬만 보여 준다.', error);
+    if (!isCancelled()) onRemoteError?.();
   }
 }
