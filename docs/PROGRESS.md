@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.04 11:45
+- 해시: `024363ab` (`024363ab29fa5b1d6c41aa1c1ab8b0d951c3c70d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/024363ab29fa5b1d6c41aa1c1ab8b0d951c3c70d
+- 작성자: 박기윤
+- 메시지: docs: 손글씨 시험 사진 18장 측정 — 짚기 지시문 그대로 (시험용 관문 통과 · astra·Fable)
+- 본문: 연습 12장/시험 6장으로 나눠 같은 사진에 맞춰 고치는 일을 막았다. / 시험용 1C~6C × 10회: 맞게 푼 사진 오탐 0/10 · 적중 42/50 · 2C 7/10. / 두 번 읽기·signcheck 기각. 남은 것: 어려운 문제 손글씨 시험 사진. / 재료: ~/dev/dasida-measure/2026-10-03-handwriting/ / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.04 11:32
 - 해시: `8312b2ed` (`8312b2ede2fabd7e3ed9a4402145d1611fe29bac`)
 - 브랜치: main
