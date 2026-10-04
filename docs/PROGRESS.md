@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.04 12:52
+- 해시: `ae4c30e8` (`ae4c30e8ea458186f20d4d421981149ab89c00f9`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ae4c30e8ea458186f20d4d421981149ab89c00f9
+- 작성자: 박기윤
+- 메시지: docs: ③ 바닥 복습(B) 설계·견적 — 6~8세션 · 기윤이 정할 것 넷 (astra·Fable, ② Fable 2차)
+- 본문: - docs/research/2026-10-04-review-floor-design.md (코드 0) / ③ = 노트 다시 보기 화면 + 서버가 이름 없는 과제를 받게 — 08.02 🔒 복습 설계를 이름 없는 노트에 / 예약급은 ⑵ 쪽지·재도전·개념 설명 저장 · 서버 과제 모양 둘뿐, ⑶⑷는 재료가 남아 소급 / 추천: 이름 없는 노트만 · 서버 (가) weaknessId nullable (astra (다)와 갈려 Fable 2차 최종) / 덤: 놓친 day3+ 복습을 끝내면 다음 복습이 안 생기는 버그(review-scheduler.ts:102-108 → :66·:68) / - 리뷰 원문 docs/drafts/2026-10-04-review-floor-handoff/pm-*.md · astra 133,609 · Fable 371,776 / - STATUS ③ 줄 갱신, 오전 방향 줄은 archive 「10.04 오후에 내림」 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.04 12:01
 - 해시: `806fe4e8` (`806fe4e8cacd9a77efb19c766f74e1fdc99a45af`)
 - 브랜치: main
