@@ -278,3 +278,19 @@ describe('discoveredWeaknesses persistence (spec §4)', () => {
     expect(results[1].discoveredWeaknesses).toEqual(['expansion_sign_error']);
   });
 });
+
+describe('노트 과제 (weaknessId null · 1.0.12 서버 과제 모양 (가))', () => {
+  it('진단이 돌아도 노트 과제는 그대로 남는다 — 서버 buildReviewTasks와 같은 동작', () => {
+    const noteTask = makePendingTask({
+      id: 'photo-1__note__day1',
+      weaknessId: null,
+      source: 'photo',
+      sourceId: 'photo-1',
+    });
+
+    const result = buildReviewTasks(makeDiagnosticInput(), [noteTask]);
+
+    expect(result).toContainEqual(noteTask);
+    expect(result).toHaveLength(2);
+  });
+});

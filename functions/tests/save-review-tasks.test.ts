@@ -5,6 +5,7 @@ import {
   buildReviewTasks,
   computeReviewTaskWrite,
   FinalizedAttemptInputSchema,
+  ImportLocalLearningHistoryRequestSchema,
   SaveReviewTasksRequestSchema,
   type ReviewTask,
 } from '../src/learning-history';
@@ -221,4 +222,22 @@ test('(d) sorted는 scheduledFor 오름차순', () => {
     sorted.map((t) => t.scheduledFor),
     ['2026-05-20T00:00:00.000Z', '2026-05-25T00:00:00.000Z'],
   );
+});
+
+test('이관 스키마: 노트 과제(source photo + weaknessId null)도 받는다 — 같은 ReviewTaskSchema', () => {
+  const parsed = ImportLocalLearningHistoryRequestSchema.safeParse({
+    sourceAnonymousAccountKey: 'anon:device-1',
+    attempts: [],
+    resultsByAttemptId: {},
+    reviewTasks: [
+      makeTask({
+        id: 'photo-1__note__day1',
+        weaknessId: null,
+        source: 'photo',
+        sourceId: 'photo-1',
+      }),
+    ],
+    featuredExamState: { examId: 'featured-mock-1', status: 'not_started' },
+  });
+  assert.equal(parsed.success, true);
 });
