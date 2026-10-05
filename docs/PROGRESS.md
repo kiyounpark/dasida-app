@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.05 17:24
+- 해시: `e705ed70` (`e705ed7008fa4b02ee4f563899b8a605f5e6af87`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e705ed7008fa4b02ee4f563899b8a605f5e6af87
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 ⓪ 「< 홈」 코드(bc49da3) + 두 모델 원문
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.05 13:54
 - 해시: `72c3da84` (`72c3da84e6a2dc77b7a133692583f9192c9c6d24`)
 - 브랜치: main
