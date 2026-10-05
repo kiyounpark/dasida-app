@@ -57,7 +57,7 @@ export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
 function NextReviewBody({ nextTask, daysUntil }: { nextTask: ActiveReviewTaskSummary; daysUntil: number }) {
   const { md, mdw } = formatScheduledDay(nextTask.scheduledFor);
   const isTomorrow = daysUntil === 1;
-  // 「첫」은 안 쓴다 — 연체된 day3이 day1로 내려오면(review-scheduler applyOverduePenalties) 이미 복습한 학생이다
+  // 「첫」은 안 쓴다 — 복습 중에 또 틀리면 그 과제가 day1로 다시 만들어진다(spawnMistakeReviewTasks) — 이미 복습한 학생이다
   const title = `${resolveWeaknessLabel(nextTask.weaknessId)} · ${formatReviewStageLabel(nextTask.stage)}`;
   const tag = isTomorrow ? `내일 · ${mdw}` : daysUntil > 1 ? `${mdw} · D-${daysUntil}` : mdw;
 

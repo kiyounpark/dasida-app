@@ -32,7 +32,7 @@ describe('NoReviewDayCard', () => {
     expect(screen.getByText(`${label} · DAY 1`)).toBeTruthy();
     expect(screen.getByText('내일 홈에 떠요. 짧게 다시 보면 돼요.')).toBeTruthy();
     expect(screen.queryByText('모의고사 시작하기')).toBeNull();
-    // 연체로 day1에 내려온 학생도 같은 카드를 본다 — 「첫」은 거짓이 될 수 있어 안 쓴다
+    // 복습 중 또 틀려 day1로 다시 만들어진 학생도 같은 카드를 본다 — 「첫」은 거짓이 될 수 있어 안 쓴다
     expect(screen.queryByText(/첫 복습/)).toBeNull();
   });
 

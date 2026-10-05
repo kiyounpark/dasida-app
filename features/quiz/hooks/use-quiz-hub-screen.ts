@@ -6,7 +6,7 @@ import { useWindowDimensions } from 'react-native';
 import { logEvent } from '@/features/analytics/log-event';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import type { HomeTodayState } from '@/features/learning/home-today-state';
-import { applyOverduePenalties, daysUntilScheduled } from '@/features/learning/review-scheduler';
+import { daysUntilScheduled, repairDemotedReviewTasks } from '@/features/learning/review-scheduler';
 import {
   cancelAllReviewNotifications,
   rescheduleAllReviewNotifications,
@@ -96,7 +96,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return;
     }
     const isAuthenticated = session?.status === 'authenticated';
-    applyOverduePenalties(accountKey, hubReviewStore)
+    repairDemotedReviewTasks(accountKey, hubReviewStore)
       // 서버가 4xx로 거절하면 이제 throw된다 — 잡지 않으면 아래 refresh가 통째로 멈춘다.
       .catch(console.warn)
       .then(() => {

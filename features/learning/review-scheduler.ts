@@ -4,11 +4,6 @@ import type { ReviewTaskStore } from './review-task-store';
 import type { LearningSource, ReviewStage } from './history-types';
 import type { WeaknessId } from '@/data/diagnosisMap';
 
-function toDateString(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
 /**
  * days일 뒤를 서버 스키마(`z.string().datetime()`)가 받는 ISO datetime으로 만든다.
  * 날짜는 기기 시간대 기준이고, due 판정·푸시 예약은 모두 앞 10글자만 읽는다.
@@ -52,7 +47,9 @@ export async function completeReviewTask(
 
   const now = new Date().toISOString();
   const completedTask = { ...task, completed: true, completedAt: now };
-  const nextStage = getNextReviewStage(task.stage);
+  // 1.0.11까지 내려간 과제가 아직 안 고쳐졌어도(repairDemotedReviewTasks 저장 실패 등) id 단계로 센다 —
+  // stage로 세면 다음 id가 자기 자신과 겹쳐 다음 복습이 안 생긴다.
+  const nextStage = getNextReviewStage(stageFromTaskId(task.id) ?? task.stage);
 
   if (!nextStage) {
     // day30 완료 → 졸업
@@ -84,29 +81,36 @@ export async function completeReviewTask(
   await store.saveAll(accountKey, updatedTasks);
 }
 
+/** 과제 id 끝(`…__day3`)이 말하는 단계. id는 만들 때 단계로 박히고 바뀌지 않는다. */
+function stageFromTaskId(taskId: string): ReviewStage | null {
+  const tail = taskId.slice(taskId.lastIndexOf('__') + 2);
+  return (REVIEW_STAGE_ORDER as string[]).includes(tail) ? (tail as ReviewStage) : null;
+}
+
 /**
- * 앱 시작 시 기한 초과(overdue) task의 stage를 한 단계 하락시킨다.
- * day1 초과는 day1 유지.
+ * 놓친 복습은 단계·날짜를 그대로 둔다(🔒 10.04 ① astra·Fable · 기윤 10.05 「놓친 날 다음 날」).
+ * due 판정이 `<= today`라 다음에 앱을 연 날 홈 「오늘 복습할 것」에 그대로 뜬다.
+ *
+ * 1.0.11까지는 앱을 열 때 연체 과제를 한 단계 내리고 「오늘+간격」으로 다시 밀었다 — 돌아온 학생이
+ * 또 「내일」만 봤다. 그때 내려간 과제는 id(`…__day3`)와 stage(day1)가 어긋나 있어서, 끝내면 다음 id가
+ * 자기 자신과 겹쳐 다음 복습이 안 생겼다(앱 completeReviewTask·서버 같은 자리).
+ * 그래서 앱을 열 때 stage를 id의 단계로 되돌린다. 날짜는 손대지 않는다.
  */
-export async function applyOverduePenalties(
+export async function repairDemotedReviewTasks(
   accountKey: string,
   store: ReviewTaskStore,
 ): Promise<void> {
   const tasks = await store.load(accountKey);
-  const today = toDateString(new Date());
 
   const updated = tasks.map((task) => {
-    if (task.completed || task.scheduledFor.slice(0, 10) >= today) {
+    if (task.completed) {
       return task;
     }
-    const currentIndex = REVIEW_STAGE_ORDER.indexOf(task.stage);
-    const newStage: ReviewStage =
-      currentIndex > 0 ? REVIEW_STAGE_ORDER[currentIndex - 1] : 'day1';
-    return {
-      ...task,
-      stage: newStage,
-      scheduledFor: addDaysToToday(REVIEW_STAGE_OFFSETS[newStage]),
-    };
+    const idStage = stageFromTaskId(task.id);
+    if (!idStage || idStage === task.stage) {
+      return task;
+    }
+    return { ...task, stage: idStage };
   });
 
   await store.saveAll(accountKey, updated);
