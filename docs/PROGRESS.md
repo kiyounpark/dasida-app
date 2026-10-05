@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.05 17:43
+- 해시: `ebb516ac` (`ebb516ac813e8c7bf0e149187161365c987c955c`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ebb516ac813e8c7bf0e149187161365c987c955c
+- 작성자: 박기윤
+- 메시지: feat(review): 서버·타입이 weaknessId 없는 복습 과제를 받는다 — 1.0.12 서버 과제 모양 (가)
+- 본문: 이름 없는 노트 과제 = source 'photo' + weaknessId null. 만들기는 ⑴ 화면 뒤(이번엔 받기만). / - functions/src/review-task-contract.ts (import 0, 앱·서버 공용): reviewTaskKind · / isWeaknessReviewTask · buildReviewTaskId(`{노트id}__note__{단계}`) / - 서버: ReviewTaskSchema·요약 스키마 weaknessId nullable, null은 사진 과제에만(refine) · / 최근 활동 부제 null 처리(끝난 null 과제 + 다음 시도에서 parse 실패하던 자리) · 진단 재생성이 노트 과제를 건드리지 않게 / - 앱: ReviewTask·ActiveReviewTaskSummary nullable. 약점 3단계 훅은 약점 과제만 받고 / 노트 과제는 지금처럼 안내 화면(단계 0)에서 멈춤 · 약점 진행(홈·내 기록)은 노트 과제를 뺌 · / 손으로 붙이던 과제 id 두 곳을 공용 함수로(안 하면 `__null__`) / - 테스트: 서버 268 → 277 · 앱 944 → 952 / 설계 docs/research/2026-10-04-review-floor-design.md 「서버 과제 모양」 · 결정 2026-10-05-invite-before-review-floor-astra-fable.md / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.05 17:24
 - 해시: `e705ed70` (`e705ed7008fa4b02ee4f563899b8a605f5e6af87`)
 - 브랜치: main
