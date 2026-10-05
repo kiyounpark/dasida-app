@@ -42,7 +42,6 @@ export default function CaptureReportScreen() {
         state: 'dismissed', // 망각 곡선 알림 카드는 숨겨 리포트 자체에 집중
         weaknessLabels: [],
         onEnable: async () => {},
-        onDismiss: () => {},
       }}
     />
   );

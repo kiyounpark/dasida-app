@@ -1,16 +1,19 @@
 import { buildReviewReminderCopy } from './review-reminder-copy';
 
+// 1.0.12 — 옛 「오늘 안 하면 내일 처음부터예요」는 ① 뒤로 거짓(놓쳐도 단계·날짜 그대로)이라 바꿨다.
+const MORNING_BODY = '오늘 안 하면 내일도 홈에 그대로 남아요';
+
 describe('buildReviewReminderCopy (클라/서버 카피 동기)', () => {
   it('아침 + 라벨 있음', () => {
     expect(buildReviewReminderCopy('morning', '판별식 계산 실수')).toEqual({
       title: '벌써 잊혀지고 있어요. 판별식 계산 실수, 지금 3분이면 돼요',
-      body: '오늘 안 하면 내일 처음부터예요',
+      body: MORNING_BODY,
     });
   });
   it('아침 + 라벨 없음', () => {
     expect(buildReviewReminderCopy('morning', undefined)).toEqual({
       title: '벌써 잊혀지고 있어요. 지금 3분이면 돼요',
-      body: '오늘 안 하면 내일 처음부터예요',
+      body: MORNING_BODY,
     });
   });
   it('저녁 + 라벨 있음', () => {

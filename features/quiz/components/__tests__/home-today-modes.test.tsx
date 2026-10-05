@@ -63,6 +63,7 @@ const baseProps = {
   isCompactLayout: false,
   isReady: true,
   latestPhotoNote: null,
+  notificationOptIn: { state: 'dismissed', onEnable: jest.fn() },
   onDismissAuthNotice: jest.fn(),
   onPressNotes: jest.fn(),
   onPressExam: jest.fn(),
@@ -122,6 +123,50 @@ describe('홈 3갈래 (C안)', () => {
     // 복습없는날 카드가 이미 "오늘은 복습 없는 날이에요 · 다음 복습 D-N"을 말한다.
     // 같은 말을 두 번 하지 않는다.
     expect(screen.queryByTestId('home-today-heading')).toBeNull();
+  });
+
+  // 1.0.12 ② — 사진 「내일 복습」 카드 아래 알림 허락 카드. 버튼 하나 「다음」, 「나중에」 없음(애플 HIG)
+  describe('알림 허락 카드 (1.0.12 ②)', () => {
+    const photoResting = {
+      mode: 'resting',
+      dueTasks: [],
+      nextTask: { ...makeTask('next'), source: 'photo' },
+      title: '오늘은 복습 없는 날이에요',
+      body: '새로 틀린 문제를 찍어두면 다음 복습이 늘어나요.',
+    } as unknown as UseQuizHubScreenResult['today'];
+
+    it('아직 안 물은 학생(idle)이면 「내일 복습」 카드 아래에 뜨고, 「다음」이 허락 요청을 부른다', () => {
+      const onEnable = jest.fn();
+      render(
+        <QuizHubScreenView
+          {...baseProps}
+          showNoReviewDayCard
+          today={photoResting}
+          notificationOptIn={{ state: 'idle', onEnable }}
+        />,
+      );
+
+      expect(screen.getByTestId('home-next-review')).toBeTruthy();
+      expect(screen.getByText('다음')).toBeTruthy();
+      expect(screen.queryByText('나중에')).toBeNull();
+      expect(screen.queryByText('알림 켜기')).toBeNull();
+      fireEvent.press(screen.getByTestId('notification-opt-in-next'));
+      expect(onEnable).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['granted', 'denied', 'dismissed'] as const)('%s면 카드가 없다', (state) => {
+      render(
+        <QuizHubScreenView
+          {...baseProps}
+          showNoReviewDayCard
+          today={photoResting}
+          notificationOptIn={{ state, onEnable: jest.fn() }}
+        />,
+      );
+
+      expect(screen.getByTestId('home-next-review')).toBeTruthy();
+      expect(screen.queryByTestId('notification-opt-in-next')).toBeNull();
+    });
   });
 
   it('오늘 복습이 있으면 리스트가 뜨고 사진은 작은 줄로 남는다', () => {

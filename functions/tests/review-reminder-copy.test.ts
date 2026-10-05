@@ -5,16 +5,19 @@ import { buildReviewReminderCopy } from '../src/review-reminder-copy';
 
 // 스펙 고정 문자열. 클라 review-reminder-copy.test.ts와 동일 기대값 —
 // 한쪽 변경 시 양쪽 테스트가 깨져 드리프트 감지.
+// 1.0.12 — 옛 「오늘 안 하면 내일 처음부터예요」는 ① 뒤로 거짓(놓쳐도 단계·날짜 그대로)이라 바꿨다.
+const MORNING_BODY = '오늘 안 하면 내일도 홈에 그대로 남아요';
+
 test('아침 + 라벨 있음', () => {
   const c = buildReviewReminderCopy('morning', '판별식 계산 실수');
   assert.equal(c.title, '벌써 잊혀지고 있어요. 판별식 계산 실수, 지금 3분이면 돼요');
-  assert.equal(c.body, '오늘 안 하면 내일 처음부터예요');
+  assert.equal(c.body, MORNING_BODY);
 });
 
 test('아침 + 라벨 없음', () => {
   const c = buildReviewReminderCopy('morning', undefined);
   assert.equal(c.title, '벌써 잊혀지고 있어요. 지금 3분이면 돼요');
-  assert.equal(c.body, '오늘 안 하면 내일 처음부터예요');
+  assert.equal(c.body, MORNING_BODY);
 });
 
 test('저녁 + 라벨 있음', () => {

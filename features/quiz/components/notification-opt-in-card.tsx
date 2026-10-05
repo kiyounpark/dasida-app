@@ -22,8 +22,13 @@ type Props = {
   weaknessLabels: string[]; // 호환을 위해 유지. A1 카피에서는 사용 안 함.
   state: NotificationOptInCardState;
   onEnable: () => void;
-  onDismiss: () => void;
 };
+
+// 1.0.12 Q1'(astra·Fable → Fable 최종 10.05) — 애플 HIG 「Pre-alert screens, windows, or views」:
+// 버튼은 하나, 「허용」류 말 대신 「다음」, 시스템 창을 안 보고 떠나는 닫기·나중에는 두지 않는다.
+// 버튼이 시스템 창을 연다는 걸 카드가 말해야 한다(OPEN_ALERT_LINE).
+const NEXT_BUTTON_LABEL = '다음';
+const OPEN_ALERT_LINE = '복습하는 날 아침에 알려드릴게요. 「다음」을 누르면 알림 허용 창이 떠요.';
 
 const COLORS = {
   forestStart: '#4A6F4A',
@@ -34,13 +39,11 @@ const COLORS = {
   paper: '#FFFCF4',
   inkOnPaper: '#293B27',
   whiteFaint10: 'rgba(255,255,255,0.10)',
-  whiteFaint12: 'rgba(255,255,255,0.12)',
   whiteFaint18: 'rgba(255,255,255,0.18)',
   whiteFaint25: 'rgba(255,255,255,0.25)',
-  whiteFaint35: 'rgba(255,255,255,0.35)',
 } as const;
 
-export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
+export function NotificationOptInCard({ state, onEnable }: Props) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(12);
 
@@ -83,22 +86,17 @@ export function NotificationOptInCard({ state, onEnable, onDismiss }: Props) {
           <ForgettingGauge />
         </View>
         <ForgettingTimeline />
+        <Text style={styles.openAlertLine}>{OPEN_ALERT_LINE}</Text>
         <View style={styles.buttonRow}>
           <Pressable
+            testID="notification-opt-in-next"
             style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
             onPress={onEnable}
             disabled={isBusy}
             accessibilityRole="button"
-            accessibilityLabel="알림 켜기">
-            <Text style={styles.primaryButtonText}>알림 켜기</Text>
-          </Pressable>
-          <Pressable
-            style={styles.secondaryButton}
-            onPress={onDismiss}
-            disabled={isBusy}
-            accessibilityRole="button"
-            accessibilityLabel="나중에 결정">
-            <Text style={styles.secondaryButtonText}>나중에</Text>
+            accessibilityLabel={NEXT_BUTTON_LABEL}
+            accessibilityHint="알림 허용 창을 엽니다">
+            <Text style={styles.primaryButtonText}>{NEXT_BUTTON_LABEL}</Text>
           </Pressable>
         </View>
       </LinearGradient>
@@ -238,19 +236,13 @@ const styles = StyleSheet.create({
     color: COLORS.inkOnPaper,
     letterSpacing: -0.01 * 15,
   },
-  secondaryButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: COLORS.whiteFaint12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryButtonText: {
+  openAlertLine: {
     fontFamily: FontFamilies.medium,
     fontSize: 13,
-    color: COLORS.whiteFaint35,
+    lineHeight: 19,
+    color: COLORS.forest300,
+    paddingHorizontal: 20,
+    paddingTop: 14,
   },
   buttonDisabled: {
     opacity: 0.6,

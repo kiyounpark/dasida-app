@@ -22,15 +22,17 @@ type RegisterPushToken = (
 
 type Params = {
   accountKey: string | undefined;
-  hasWeaknesses: boolean;
+  /** 물을 자리인가 — 결과 화면은 약점이 잡혔을 때, 홈은 사진 「내일 복습」 카드가 뜰 때(1.0.12 ②) */
+  eligible: boolean;
   isAuthenticated: boolean;
   registerPushToken: RegisterPushToken;
 };
 
+// 「나중에」(onDismiss)는 없다 — 애플 HIG pre-alert: 버튼 하나, 닫기 없음(1.0.12 Q1', Fable 10.05).
+// 안 묻고 싶은 학생은 카드를 지나치거나 시스템 창에서 「허용 안 함」 → denied로 카드가 사라진다.
 type Result = {
   state: NotificationOptInCardState;
   onEnable: () => Promise<void>;
-  onDismiss: () => void;
 };
 
 async function activateForAuthenticated(
@@ -64,7 +66,7 @@ async function activateForGuest(accountKey: string): Promise<void> {
 
 export function useNotificationOptIn({
   accountKey,
-  hasWeaknesses,
+  eligible,
   isAuthenticated,
   registerPushToken,
 }: Params): Result {
@@ -88,12 +90,12 @@ export function useNotificationOptIn({
     [isAuthenticated, registerPushToken],
   );
 
-  // accountKey/hasWeaknesses 변동 시 재활성화될 수 있음(예: 세션 결과로
-  // hasWeaknesses 토글). 인증 사용자의 토큰 등록은 서버 upsert로 멱등,
+  // accountKey/eligible 변동 시 재활성화될 수 있음(예: 세션 결과로
+  // eligible 토글). 인증 사용자의 토큰 등록은 서버 upsert로 멱등,
   // cancel도 멱등이라 의도적으로 허용 — best-effort 설계.
   useEffect(() => {
     let cancelled = false;
-    if (!accountKey || !hasWeaknesses) {
+    if (!accountKey || !eligible) {
       setState('dismissed');
       return () => {
         cancelled = true;
@@ -123,7 +125,7 @@ export function useNotificationOptIn({
     return () => {
       cancelled = true;
     };
-  }, [accountKey, hasWeaknesses, activate]);
+  }, [accountKey, eligible, activate]);
 
   const onEnable = useCallback(async () => {
     if (!accountKey) return;
@@ -139,9 +141,5 @@ export function useNotificationOptIn({
     }
   }, [accountKey, activate]);
 
-  const onDismiss = useCallback(() => {
-    setState('dismissed');
-  }, []);
-
-  return { state, onEnable, onDismiss };
+  return { state, onEnable };
 }

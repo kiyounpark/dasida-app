@@ -27,7 +27,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
@@ -40,7 +40,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
@@ -54,7 +54,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
@@ -67,7 +67,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: false,
+        eligible: false,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
@@ -79,7 +79,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: undefined,
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
@@ -94,7 +94,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken,
       }),
@@ -114,7 +114,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken,
       }),
@@ -128,21 +128,36 @@ describe('useNotificationOptIn', () => {
     expect(mockSchedule).not.toHaveBeenCalled();
   });
 
-  it('onDismiss: state dismissed, OS 다이얼로그 호출 없음', async () => {
+  // 1.0.12 Q1'(Fable 10.05) — 애플 HIG 「pre-alert」: 버튼 하나, 닫기·나중에 없음. 그래서 onDismiss가 없다.
+  it('나중에(onDismiss)는 없다 — 결과는 state·onEnable 둘뿐', async () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'a1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),
     );
     await waitFor(() => expect(result.current.state).toBe('idle'));
+    expect(Object.keys(result.current).sort()).toEqual(['onEnable', 'state']);
+  });
 
-    act(() => {
-      result.current.onDismiss();
-    });
-    expect(result.current.state).toBe('dismissed');
+  it('eligible이 false→true로 바뀌면 그때 권한을 읽는다(홈 「내일 복습」 카드가 늦게 뜨는 경우)', async () => {
+    const { result, rerender } = renderHook(
+      ({ eligible }: { eligible: boolean }) =>
+        useNotificationOptIn({
+          accountKey: 'user:abc',
+          eligible,
+          isAuthenticated: true,
+          registerPushToken: jest.fn(),
+        }),
+      { initialProps: { eligible: false } },
+    );
+    await waitFor(() => expect(result.current.state).toBe('dismissed'));
+    expect(mockGetPermissions).not.toHaveBeenCalled();
+
+    rerender({ eligible: true });
+    await waitFor(() => expect(result.current.state).toBe('idle'));
     expect(mockRequestPermission).not.toHaveBeenCalled();
   });
 
@@ -159,7 +174,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'user:abc',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: true,
         registerPushToken,
       }),
@@ -184,7 +199,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'user:abc',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: true,
         registerPushToken,
       }),
@@ -209,7 +224,7 @@ describe('useNotificationOptIn', () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
         accountKey: 'anon:1',
-        hasWeaknesses: true,
+        eligible: true,
         isAuthenticated: false,
         registerPushToken: jest.fn(),
       }),

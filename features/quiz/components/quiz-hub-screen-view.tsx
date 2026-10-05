@@ -12,6 +12,7 @@ import { HomeLatestNote } from '@/features/quiz/components/home-latest-note';
 import { HomeReviewList } from '@/features/quiz/components/home-review-list';
 import { buildNotesHeading } from '@/features/quiz/home-notes-heading';
 import { NoReviewDayCard } from '@/features/quiz/components/no-review-day-card';
+import { NotificationOptInCard } from '@/features/quiz/components/notification-opt-in-card';
 import { PhotoEntryCard } from './photo-entry-card';
 import type { UseQuizHubScreenResult } from '@/features/quiz/hooks/use-quiz-hub-screen';
 import { HomeWeaknessSection } from '@/features/quiz/components/home-weakness-section';
@@ -114,6 +115,7 @@ export function QuizHubScreenView({
   isCompactLayout,
   isReady,
   latestPhotoNote,
+  notificationOptIn,
   onDismissAuthNotice,
   onPressExam,
   onPressNotes,
@@ -227,7 +229,17 @@ export function QuizHubScreenView({
               {showNoReviewDayCard && today.nextTask ? (
                 // 이 카드가 이미 "오늘은 복습 없는 날이에요 · 다음 복습 D-N"을 말한다.
                 // 같은 말을 위에 또 얹지 않는다.
-                <NoReviewDayCard nextTask={today.nextTask} onPressExam={onPressExam} />
+                <>
+                  <NoReviewDayCard nextTask={today.nextTask} onPressExam={onPressExam} />
+                  {/* 1.0.12 ② — 아직 안 물은 학생에게만(허락·거절이면 안 뜬다). 마운트할 때 페이드가 돈다 */}
+                  {notificationOptIn.state === 'idle' || notificationOptIn.state === 'requesting' ? (
+                    <NotificationOptInCard
+                      weaknessLabels={[]}
+                      state={notificationOptIn.state}
+                      onEnable={notificationOptIn.onEnable}
+                    />
+                  ) : null}
+                </>
               ) : (
                 // 사진 카드는 사진 얘기만 한다. 홈이 복습 앱의 홈이라는 걸
                 // 화면에서 말해주는 건 여기 한 줄뿐이다.

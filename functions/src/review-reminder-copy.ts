@@ -12,7 +12,7 @@ export function buildReviewReminderCopy(
       title: label
         ? `벌써 잊혀지고 있어요. ${label}, 지금 3분이면 돼요`
         : '벌써 잊혀지고 있어요. 지금 3분이면 돼요',
-      body: '오늘 안 하면 내일 처음부터예요',
+      body: '오늘 안 하면 내일도 홈에 그대로 남아요',
     };
   }
   return {

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import { logEvent } from '@/features/analytics/log-event';
+import type { NotificationOptInCardState } from '@/features/quiz/components/notification-opt-in-card';
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
+import { useNotificationOptIn } from '@/features/quiz/hooks/use-notification-opt-in';
 import type { HomeTodayState } from '@/features/learning/home-today-state';
 import { daysUntilScheduled, repairDemotedReviewTasks } from '@/features/learning/review-scheduler';
 import {
@@ -38,6 +40,11 @@ export type UseQuizHubScreenResult = {
   isReady: CurrentLearnerSnapshot['isReady'];
   /** 이 기기의 가장 최근 사진 노트 — 첫 사진 뒤 홈이 「방금 만든 것」을 보여준다(10.03). 없으면 null */
   latestPhotoNote: PhotoNote | null;
+  /** 1.0.12 ② — 사진 「내일 복습」 카드 아래 알림 허락 카드 */
+  notificationOptIn: {
+    state: NotificationOptInCardState;
+    onEnable: () => Promise<void>;
+  };
   onDismissAuthNotice: () => void;
   onPressExam: () => void;
   /** 지난 오답노트 목록으로 */
@@ -69,6 +76,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     refresh,
     session,
     reviewTaskStore: hubReviewStore,
+    registerPushToken,
   } = useCurrentLearner();
   const { hydrateResult } = useExamSession();
   const [localAuthNoticeMessage, setLocalAuthNoticeMessage] = useState<string | null>(null);
@@ -277,6 +285,17 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     ? Math.max(1, daysUntilScheduled(today.nextTask.scheduledFor))
     : 1;
 
+  // 1.0.12 ② — 사진만 올린 학생은 실모 결과 화면을 안 지나서 알림 허락을 받은 적이 없다.
+  // 사진 「내일 복습」 카드가 뜰 때 그 아래에서 묻는다(astra·Fable → Fable 최종 10.05):
+  // 그 카드는 과제가 저장된 뒤에만 뜬다 — 보낼 알림이 없는 학생(이름 없는 노트)에게
+  // 한 번뿐인 iOS 허락 창을 쓰지 않는다. 이미 허락한 학생은 여기서 토큰만 등록된다.
+  const notificationOptIn = useNotificationOptIn({
+    accountKey: session?.accountKey,
+    eligible: showNoReviewDayCard && today?.nextTask?.source === 'photo',
+    isAuthenticated: session?.status === 'authenticated',
+    registerPushToken,
+  });
+
   const { handlePressExam: onPressExamWithAnalytics } = useNoReviewDayCardAnalytics({
     visible: showNoReviewDayCard,
     daysUntil: noReviewDaysUntil,
@@ -303,6 +322,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     // 사진 노트를 세기 전에는 아직 준비가 안 된 것으로 본다 — 위 photoNoteCount 주석 참고.
     isReady: isReady && photoNoteCount !== null,
     latestPhotoNote,
+    notificationOptIn,
     onDismissAuthNotice: () => {
       setLocalAuthNoticeMessage(null);
     },

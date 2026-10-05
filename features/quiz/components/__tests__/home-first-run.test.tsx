@@ -41,6 +41,7 @@ const baseProps = {
   homeState: { weaknessProgressItems: [] },
   isCompactLayout: false,
   isReady: true,
+  notificationOptIn: { state: 'dismissed', onEnable: jest.fn() },
   onDismissAuthNotice: jest.fn(),
   onPressExam: jest.fn(),
   onPressPhoto: jest.fn(),

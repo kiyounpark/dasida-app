@@ -44,7 +44,6 @@ export type UseResultScreenResult = {
     state: NotificationOptInCardState;
     weaknessLabels: string[];
     onEnable: () => Promise<void>;
-    onDismiss: () => void;
   };
 };
 
@@ -101,7 +100,7 @@ export function useResultScreen({
 
   const optIn = useNotificationOptIn({
     accountKey: session?.accountKey,
-    hasWeaknesses: (liveSummary?.topWeaknesses?.length ?? 0) > 0,
+    eligible: (liveSummary?.topWeaknesses?.length ?? 0) > 0,
     isAuthenticated: session?.status === 'authenticated',
     registerPushToken,
   });
@@ -204,7 +203,6 @@ export function useResultScreen({
       state: optIn.state,
       weaknessLabels,
       onEnable: optIn.onEnable,
-      onDismiss: optIn.onDismiss,
     },
   };
 }

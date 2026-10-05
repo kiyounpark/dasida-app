@@ -10,6 +10,7 @@ import {
   dedupeAccountKeys,
   pickRepresentativeTaskIdByAccount,
   recordSlotSent,
+  reminderLookbackDays,
   removeInvalidTokens,
   shouldSendForSlot,
   type ExpoPushTicket,
@@ -47,7 +48,8 @@ export async function runReviewReminders(
   }
 
   const dateLabel = todayLabelKst(now);
-  const { gte, lt } = computeReminderDateBounds(dateLabel);
+  const { gte, lt } = computeReminderDateBounds(dateLabel, reminderLookbackDays(slot));
+  const { gte: todayGte } = computeReminderDateBounds(dateLabel);
 
   const snap = await getFirestore()
     .collectionGroup('reviewTasks')
@@ -60,12 +62,18 @@ export async function runReviewReminders(
     .map((d) => {
       const accountKey = d.ref.parent.parent?.id;
       const taskId = d.id;
-      return accountKey ? { accountKey, taskId } : null;
+      const scheduledFor = d.get('scheduledFor');
+      return accountKey
+        ? { accountKey, taskId, scheduledFor: typeof scheduledFor === 'string' ? scheduledFor : undefined }
+        : null;
     })
-    .filter((x): x is { accountKey: string; taskId: string } => x !== null);
+    .filter(
+      (x): x is { accountKey: string; taskId: string; scheduledFor: string | undefined } =>
+        x !== null,
+    );
 
   const accountKeys = dedupeAccountKeys(accountDocs.map((d) => d.accountKey));
-  const taskIdByAccount = pickRepresentativeTaskIdByAccount(accountDocs);
+  const taskIdByAccount = pickRepresentativeTaskIdByAccount(accountDocs, todayGte);
 
   for (const accountKey of accountKeys) {
     try {

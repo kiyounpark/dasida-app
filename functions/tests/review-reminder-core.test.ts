@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   computeReminderDateBounds,
   dedupeAccountKeys,
+  reminderLookbackDays,
 } from '../src/review-reminder-core';
 
 // scheduledFor는 UTC ...Z ISO (addDays = new Date().toISOString()).
@@ -26,6 +27,24 @@ test('경계 의미: UTC 15:00~23:59 완료 task가 누락되지 않음', () => 
   const { gte, lt } = computeReminderDateBounds('2026-05-19');
   const scheduledFor = '2026-05-19T16:00:00.000Z';
   assert.equal(scheduledFor >= gte && scheduledFor < lt, true);
+});
+
+// 1.0.12 Q2'(Fable 10.05) — 놓친 복습은 다음 날 아침 한 번 더. 아침만 하루 앞까지 본다.
+test('computeReminderDateBounds: lookbackDays=1이면 하루 앞부터 [D-1, Dnext)', () => {
+  const { gte, lt } = computeReminderDateBounds('2026-05-19', 1);
+  assert.equal(gte, '2026-05-18T00:00:00.000Z');
+  assert.equal(lt, '2026-05-20T00:00:00.000Z');
+});
+
+test('computeReminderDateBounds: lookback 월초 경계 롤백', () => {
+  const { gte, lt } = computeReminderDateBounds('2026-06-01', 1);
+  assert.equal(gte, '2026-05-31T00:00:00.000Z');
+  assert.equal(lt, '2026-06-02T00:00:00.000Z');
+});
+
+test('reminderLookbackDays: 아침만 어제까지, 저녁은 오늘만', () => {
+  assert.equal(reminderLookbackDays('morning'), 1);
+  assert.equal(reminderLookbackDays('evening'), 0);
 });
 
 test('dedupeAccountKeys: 중복 제거, 입력 순서 보존', () => {
@@ -221,6 +240,18 @@ test('pickRepresentativeTaskIdByAccount: 계정별로 첫 task id를 매핑', ()
   const map = pickRepresentativeTaskIdByAccount(docs);
   assert.equal(map.get('user:a'), 't1');
   assert.equal(map.get('user:b'), 't2');
+});
+
+// 아침은 어제 놓친 과제도 같이 읽는다 — 오늘 과제가 있으면 탭이 오늘 과제를 연다.
+test('pickRepresentativeTaskIdByAccount: preferFrom 이후 과제를 먼저 고른다', () => {
+  const docs = [
+    { accountKey: 'user:a', taskId: 'missed', scheduledFor: '2026-05-18T00:00:00.000Z' },
+    { accountKey: 'user:a', taskId: 'today', scheduledFor: '2026-05-19T00:00:00.000Z' },
+    { accountKey: 'user:b', taskId: 'only-missed', scheduledFor: '2026-05-18T00:00:00.000Z' },
+  ];
+  const map = pickRepresentativeTaskIdByAccount(docs, '2026-05-19T00:00:00.000Z');
+  assert.equal(map.get('user:a'), 'today');
+  assert.equal(map.get('user:b'), 'only-missed');
 });
 
 // 알림 탭 → 복습 세션 라우팅을 위해 클라가 data.taskId를 요구한다

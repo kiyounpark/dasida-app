@@ -2,14 +2,24 @@ import { z } from 'zod';
 
 export type ReminderSlot = 'morning' | 'evening';
 
-export function computeReminderDateBounds(todayLabel: string): {
+export function computeReminderDateBounds(
+  todayLabel: string,
+  lookbackDays = 0,
+): {
   gte: string;
   lt: string;
 } {
   const [y, m, d] = todayLabel.split('-').map(Number);
-  const start = new Date(Date.UTC(y, m - 1, d));
+  const start = new Date(Date.UTC(y, m - 1, d - lookbackDays));
   const next = new Date(Date.UTC(y, m - 1, d + 1));
   return { gte: start.toISOString(), lt: next.toISOString() };
+}
+
+// 1.0.12 Q2'(astra·Fable → Fable 최종 10.05) — 놓친 복습은 다음 날 아침에 한 번 더.
+// ① 뒤로 놓친 과제는 날짜가 안 밀려서, 오늘만 보면 하루 놓친 줄은 알림이 끊긴다.
+// 저녁 문구는 「오늘 복습 마감」이라 놓친 과제엔 안 맞다 — 아침만 어제까지 본다.
+export function reminderLookbackDays(slot: ReminderSlot): number {
+  return slot === 'morning' ? 1 : 0;
 }
 
 export function dedupeAccountKeys(keys: string[]): string[] {
@@ -127,9 +137,18 @@ export function buildPushMessages(
 }
 
 export function pickRepresentativeTaskIdByAccount(
-  docs: ReadonlyArray<{ accountKey: string; taskId: string }>,
+  docs: ReadonlyArray<{ accountKey: string; taskId: string; scheduledFor?: string }>,
+  preferFrom?: string,
 ): Map<string, string> {
   const map = new Map<string, string>();
+  // 오늘 과제가 있으면 탭이 그걸 연다 — 어제 놓친 과제는 오늘 과제가 없을 때만 대표가 된다.
+  if (preferFrom) {
+    for (const d of docs) {
+      if (!map.has(d.accountKey) && (d.scheduledFor ?? '') >= preferFrom) {
+        map.set(d.accountKey, d.taskId);
+      }
+    }
+  }
   for (const d of docs) {
     if (!map.has(d.accountKey)) map.set(d.accountKey, d.taskId);
   }

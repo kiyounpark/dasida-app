@@ -107,7 +107,6 @@ export function QuizResultReportView({
           weaknessLabels={optInCard.weaknessLabels}
           state={optInCard.state}
           onEnable={optInCard.onEnable}
-          onDismiss={optInCard.onDismiss}
         />
 
         <View style={styles.ctaWrap}>
