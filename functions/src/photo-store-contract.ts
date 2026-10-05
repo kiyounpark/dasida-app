@@ -116,6 +116,23 @@ export const MISTAKE_TYPE_IDS = [
 export const DOMAIN_ID_PATTERN = /^[a-z0-9_]{1,64}$/;
 
 /**
+ * 노트에 남기는 쪽지·재도전 한 문제 — 앱 PhotoQuiz(features/photo/flow/quiz-guard.ts)와 같은 모양(1.0.12 ⑵).
+ * 학생 화면에 나간 문제만 담긴다(검산을 통과해 보여준 것). 보기 순서는 그대로 — answerIndex가 그 순서를 가리킨다.
+ */
+export type PhotoNoteQuizWire = {
+  setup?: string;
+  prompt: string;
+  options: string[];
+  answerIndex: number;
+};
+
+/** 개념 설명 — 분석 응답의 concept 그대로(1.0.12 ⑵). 검산기를 안 거친 글이다 */
+export type PhotoNoteConceptWire = {
+  rule: string;
+  violation: string;
+};
+
+/**
  * 폰 PhotoNote(features/photo/types.ts)에서 폰 전용 칸 셋(photoUri · submissionId · cloudStoredAt)을 뺀 것.
  * id 칸들은 string. note-store의 isPhotoNoteLike는 export가 아니고 id·createdAt·weaknessIds 모양만 본다 —
  * 3줄은 toLocalNote 결과를 PhotoNote로 캐스트한다(서버 문서는 strict zod를 통과한 것뿐이라 데이터는 안 틀린다).
@@ -137,6 +154,10 @@ export type PhotoNoteWire = {
   checkPassed: boolean;
   checkSkipped?: boolean;
   retryResult: 'pass' | 'fail' | 'skip' | 'none';
+  /** 1.0.12~. 옛 노트엔 없다 — 본문 불변이라 나중에 못 붙인다 */
+  checkQuiz?: PhotoNoteQuizWire;
+  retryQuiz?: PhotoNoteQuizWire;
+  concept?: PhotoNoteConceptWire;
 };
 
 /** users/{accountKey}/photoNotes/{noteId} — 문서 id = note.id 원문(치환은 파일명만). 본문 불변, create 한 번 */
@@ -195,12 +216,25 @@ export function toLocalNote(
  * "같은 id·다른 내용"(409)을 가릴 때 쓰는 정규화. 칸 순서와 undefined 칸에 흔들리지 않는다
  * (Firestore엔 stripUndefined로 undefined 칸이 아예 없다). 서버 문서와 비교할 땐
  * 서버 전용 칸(accountKey·photoPath·submissionId·appVersion·storedAt·deletedAt)을 먼저 뗀다.
+ * 안쪽 객체(문제 칸)도 키를 정렬한다 — Firestore 왕복 뒤 키 순서가 바뀌어도 같은 노트가 409가 되지 않게(1.0.12).
+ * 배열 순서는 안 건드린다(보기 순서 = 정답 번호). 안쪽 객체가 없는 옛 노트는 결과 문자열이 전과 같다.
  */
 export function canonicalNoteJson(note: PhotoNoteWire): string {
   const keys = (Object.keys(note) as (keyof PhotoNoteWire)[])
     .filter((key) => note[key] !== undefined)
     .sort();
-  return JSON.stringify(keys.map((key) => [key, note[key]]));
+  return JSON.stringify(keys.map((key) => [key, sortObjectKeys(note[key])]));
+}
+
+function sortObjectKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortObjectKeys);
+  if (value === null || typeof value !== 'object') return value;
+  const record = value as Record<string, unknown>;
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(record).sort()) {
+    if (record[key] !== undefined) sorted[key] = sortObjectKeys(record[key]);
+  }
+  return sorted;
 }
 
 // ── 3. Storage ───────────────────────────────────────────────────────────────

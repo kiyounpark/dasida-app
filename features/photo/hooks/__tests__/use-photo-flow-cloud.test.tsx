@@ -116,6 +116,23 @@ it('노트가 뜨면 분석에 보낸 축소본과 노트(submissionId 포함)�
   expect('photoUri' in body.note).toBe(false);
   // 로컬 노트에도 submissionId가 들어간다
   expect(mockSaveNote.mock.calls[0][1].submissionId).toBe(SUBMISSION);
+  // 1.0.12 ⑵ — 화면에 나간 쪽지·재도전이 기기와 서버 둘 다에 남는다(본문 불변이라 여기서 빠지면 영영 없다)
+  const checkQuiz = {
+    setup: 'x^2 + 6x 를 완전제곱식으로 바꾼다고 하자.',
+    prompt: '뭘 더하고 빼야 할까?',
+    options: ['3을 더하고 뺀다', '9를 더하고 뺀다', '6을 더하고 뺀다'],
+    answerIndex: 1,
+  };
+  const retryQuiz = {
+    setup: '이번엔 x^2 + 10x 야.',
+    prompt: '뭘 더하고 빼야 할까?',
+    options: ['25를 더하고 뺀다', '10을 더하고 뺀다', '5를 더하고 뺀다'],
+    answerIndex: 0,
+  };
+  expect(body.note.checkQuiz).toEqual(checkQuiz);
+  expect(body.note.retryQuiz).toEqual(retryQuiz);
+  expect(mockSaveNote.mock.calls[0][1].checkQuiz).toEqual(checkQuiz);
+  expect(mockSaveNote.mock.calls[0][1].retryQuiz).toEqual(retryQuiz);
 
   // 로컬 저장은 끝났어도 서버가 답하기 전엔 「저장됨」이 아니다
   expect(screen.getByText('☁ 저장 중')).toBeTruthy();

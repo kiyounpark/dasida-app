@@ -8,11 +8,13 @@ import {
   SUBMISSION_ID_PATTERN,
   type ApiErrorCode,
   type CloudNoteState,
+  type PhotoNoteQuizWire,
   type PhotoNoteWire,
   type SavePhotoNoteRequest,
   type SavePhotoNoteResponse,
 } from '@/functions/src/photo-store-contract';
 
+import type { PhotoQuiz } from '../flow/quiz-guard';
 import { setPhotoNoteCloudStoredAt } from '../note-store';
 import type { PhotoNote } from '../types';
 
@@ -52,6 +54,25 @@ export function toPhotoNoteWire(note: PhotoNote): PhotoNoteWire {
     // 1.0.9까지 저장된 노트엔 없다 — 없는 칸은 없는 채로(서버 비교가 undefined 칸에 안 흔들린다)
     ...(typeof note.checkSkipped === 'boolean' ? { checkSkipped: note.checkSkipped } : {}),
     retryResult: note.retryResult,
+    // 1.0.12 ⑵ — 여기서 빠지면 서버엔 영영 없다(본문 불변). 1.0.11까지의 노트엔 없는 칸이라 없는 채로
+    ...(note.checkQuiz ? { checkQuiz: toQuizWire(note.checkQuiz) } : {}),
+    ...(note.retryQuiz ? { retryQuiz: toQuizWire(note.retryQuiz) } : {}),
+    ...(note.concept?.rule && note.concept.violation
+      ? { concept: { rule: note.concept.rule, violation: note.concept.violation } }
+      : {}),
+  };
+}
+
+/**
+ * 칸을 손으로 고른다 — 서버가 안쪽 객체도 .strict()라 모르는 칸이 섞이면 노트째 400이다.
+ * setup은 글자가 있을 때만(null이 오면 서버가 거절한다) — 앱이 서버보다 먼저 거른다
+ */
+function toQuizWire(quiz: PhotoQuiz): PhotoNoteQuizWire {
+  return {
+    ...(typeof quiz.setup === 'string' && quiz.setup.length > 0 ? { setup: quiz.setup } : {}),
+    prompt: quiz.prompt,
+    options: [...quiz.options],
+    answerIndex: quiz.answerIndex,
   };
 }
 

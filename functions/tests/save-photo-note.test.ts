@@ -375,3 +375,76 @@ test('요청: 문서 id로 못 쓰는 노트 id(/ · . · __x__)는 400', () => 
   }
   assert.equal(SavePhotoNoteRequestSchema.safeParse(request()).success, true);
 });
+
+// 1.0.12 ⑵ — 쪽지·재도전·개념 설명. 없어도 되고(1.0.11 앱), 있으면 풀 수 있는 모양만 받는다
+
+const CHECK_QUIZ = { setup: 'x²+6x를 완전제곱식으로', prompt: '무엇을 더하고 빼나?', options: ['3', '9', '36'], answerIndex: 1 };
+const RETRY_QUIZ = { setup: 'x²+10x', prompt: '무엇을 더하나?', options: ['5', '25', '100'], answerIndex: 1 };
+const CONCEPT = { rule: '완전제곱식은 일차항 계수 절반의 제곱을 더한다', violation: '6의 제곱을 더했다' };
+const NOTE_WITH_QUIZ: PhotoNoteWire = { ...NOTE, checkQuiz: CHECK_QUIZ, retryQuiz: RETRY_QUIZ, concept: CONCEPT };
+
+test('⑵ 문제·개념 설명 칸이 있는 노트를 받아 그대로 문서에 남긴다', async () => {
+  const f = fake();
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note: NOTE_WITH_QUIZ }));
+
+  assert.equal(outcome.status, 200);
+  assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note: NOTE_WITH_QUIZ })).success, true);
+  const doc = f.notes.get(NOTE.id)!;
+  assert.deepEqual(doc.checkQuiz, CHECK_QUIZ);
+  assert.deepEqual(doc.retryQuiz, RETRY_QUIZ);
+  assert.deepEqual(doc.concept, CONCEPT);
+});
+
+test('⑵ 문제 칸 없는 1.0.11 노트도 그대로 받는다', () => {
+  assert.equal(SavePhotoNoteRequestSchema.safeParse(request()).success, true);
+  const { checkSkipped: _s, ...legacy } = NOTE;
+  assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note: legacy })).success, true);
+});
+
+test('⑵ 풀 수 없는 문제는 400 — 정답 번호가 보기 밖 · 보기 1개 · 정수 아님 · 빈 질문', () => {
+  const bad = [
+    { ...CHECK_QUIZ, answerIndex: 3 },
+    { ...CHECK_QUIZ, answerIndex: -1 },
+    { ...CHECK_QUIZ, answerIndex: 0.5 },
+    { ...CHECK_QUIZ, options: ['9'], answerIndex: 0 },
+    { ...CHECK_QUIZ, prompt: '' },
+  ];
+  for (const checkQuiz of bad) {
+    const note = { ...NOTE, checkQuiz } as PhotoNoteWire;
+    assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note })).success, false, JSON.stringify(checkQuiz));
+    const retryNote = { ...NOTE, retryQuiz: checkQuiz } as PhotoNoteWire;
+    assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note: retryNote })).success, false, JSON.stringify(checkQuiz));
+  }
+});
+
+test('⑵ 문제·개념 칸 안에 모르는 칸이 섞이면 400(.strict)', () => {
+  const quizExtra = { ...NOTE, checkQuiz: { ...CHECK_QUIZ, picked: 0 } } as unknown as PhotoNoteWire;
+  const conceptExtra = { ...NOTE, concept: { ...CONCEPT, shown: true } } as unknown as PhotoNoteWire;
+  const conceptEmpty = { ...NOTE, concept: { rule: '', violation: 'v' } } as PhotoNoteWire;
+  for (const note of [quizExtra, conceptExtra, conceptEmpty]) {
+    assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note })).success, false);
+  }
+});
+
+test('⑵ 문제 칸 안의 키 순서가 바뀌어 다시 와도 alreadyStored — Firestore 왕복 뒤 409 방지', async () => {
+  const f = fake();
+  await savePhotoNoteCore(f.deps, ACCOUNT, request({ note: NOTE_WITH_QUIZ }));
+  const reverse = <T extends object>(value: T) => Object.fromEntries(Object.entries(value).reverse()) as T;
+  // 서버 문서 쪽 안쪽 객체 키 순서를 뒤집는다 — Firestore가 맵을 다른 순서로 돌려준 경우
+  const stored = f.notes.get(NOTE.id)!;
+  f.notes.set(NOTE.id, { ...stored, checkQuiz: reverse(stored.checkQuiz!), concept: reverse(stored.concept!) });
+
+  const again = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note: { ...NOTE_WITH_QUIZ, retryQuiz: reverse(RETRY_QUIZ) } }));
+
+  assert.equal(again.status === 200 && again.body.alreadyStored, true);
+});
+
+test('⑵ 보기 순서가 다르면 다른 노트(409) — 정답 번호가 그 순서를 가리킨다', async () => {
+  const f = fake();
+  await savePhotoNoteCore(f.deps, ACCOUNT, request({ note: NOTE_WITH_QUIZ }));
+
+  const swapped = { ...CHECK_QUIZ, options: ['9', '3', '36'] };
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note: { ...NOTE_WITH_QUIZ, checkQuiz: swapped } }));
+
+  assert.equal(codeOf(outcome), 'NOTE_CONFLICT');
+});

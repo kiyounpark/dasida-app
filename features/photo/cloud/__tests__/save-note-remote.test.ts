@@ -83,6 +83,30 @@ describe('toPhotoNoteWire', () => {
     expect(wire.primaryWeaknessId).toBeNull();
     expect('checkSkipped' in wire).toBe(false);
     expect('legacyField' in wire).toBe(false);
+    expect('checkQuiz' in wire).toBe(false);
+    expect('retryQuiz' in wire).toBe(false);
+    expect('concept' in wire).toBe(false);
+  });
+
+  it('1.0.12 ⑵: 쪽지·재도전·개념 설명을 싣는다 — 안쪽 모르는 칸은 버린다(서버가 안쪽도 .strict)', () => {
+    const checkQuiz = { setup: 's', prompt: 'p', options: ['a', 'b', 'c'], answerIndex: 2 };
+    const retryQuiz = { prompt: 'p2', options: ['x', 'y'], answerIndex: 0, extra: 1 } as never;
+    const concept = { rule: 'r', violation: 'v', extra: 1 } as never;
+
+    const wire = toPhotoNoteWire(note({ checkQuiz, retryQuiz, concept }));
+
+    expect(wire.checkQuiz).toEqual(checkQuiz);
+    expect(wire.retryQuiz).toEqual({ prompt: 'p2', options: ['x', 'y'], answerIndex: 0 });
+    expect('setup' in wire.retryQuiz!).toBe(false);
+    expect(wire.concept).toEqual({ rule: 'r', violation: 'v' });
+  });
+
+  it('1.0.12 ⑵: 서버가 거절할 모양은 앱이 먼저 거른다 — 빈·null setup은 칸 없이, 반쪽 개념 설명은 안 싣는다', () => {
+    const quiz = (setup: unknown) => ({ setup, prompt: 'p', options: ['a', 'b'], answerIndex: 0 }) as never;
+
+    expect('setup' in toPhotoNoteWire(note({ checkQuiz: quiz(null) })).checkQuiz!).toBe(false);
+    expect('setup' in toPhotoNoteWire(note({ retryQuiz: quiz('') })).retryQuiz!).toBe(false);
+    expect('concept' in toPhotoNoteWire(note({ concept: { rule: 'r', violation: '' } }))).toBe(false);
   });
 });
 

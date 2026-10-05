@@ -4,6 +4,7 @@ import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
 import type { DiagnoseMethodResult } from '../flow/diagnose-method-request';
+import type { PhotoQuiz } from '../flow/quiz-guard';
 import type { QuizVerdict, QuizVerifyBody } from '../flow/verify-quiz-request';
 import type { AnalyzePhotoResult, MistakeTypeId, PhotoAction, RetryResult } from '../types';
 import type { ScriptEvent } from './script-events';
@@ -31,6 +32,11 @@ export type NoteView = {
   retryResult: ScriptRetryResult;
   /** 📌 "수능장에서 이 풀이를 생각해 낼 수 있는가…" 접기 줄 — 웹·앱 둘 다 (🔒 10.01 갈림길 ①) */
   askLine: boolean;
+  /** 화면에 나간 쪽지·재도전 문제(1.0.12 ⑵). 앱만 노트에 저장한다 — 웹 카드는 안 읽는다 */
+  checkQuiz?: PhotoQuiz;
+  retryQuiz?: PhotoQuiz;
+  /** 오류 후보의 개념 설명(1.0.12 ⑵) */
+  concept?: { rule: string; violation: string };
 };
 
 /** 설문 결말 카드. 저장 안 함(🔒 10.01 갈림길 ③). 라벨은 웹 곡선이 쓴다 */

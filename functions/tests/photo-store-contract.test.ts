@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   accountNotePhotoPrefix,
   buildPhotoNoteDoc,
+  canonicalNoteJson,
   isConsentOn,
   isNoteStored,
   readApiErrorBody,
@@ -162,4 +163,15 @@ test('saveConsent 요청: 세 칸 전부와 누른 방식이 있어야 한다', 
     SaveConsentRequestSchema.safeParse({ ...ok, decisions: { analysis: true, store: true } }).success,
     false,
   );
+});
+
+test('canonicalNoteJson: 안쪽 객체가 없는 옛 노트는 1.0.11 판과 같은 문자열 — 이미 저장된 노트가 409로 바뀌지 않는다', () => {
+  // 1.0.11 판 정의 그대로(최상위만 정렬)
+  const legacyCanonical = (note: PhotoNoteWire) => {
+    const keys = (Object.keys(note) as (keyof PhotoNoteWire)[]).filter((key) => note[key] !== undefined).sort();
+    return JSON.stringify(keys.map((key) => [key, note[key]]));
+  };
+  assert.equal(canonicalNoteJson(NOTE), legacyCanonical(NOTE));
+  const withSkip: PhotoNoteWire = { ...NOTE, checkSkipped: true, weaknessIds: ['b_id', 'a_id'], primaryWeaknessId: null };
+  assert.equal(canonicalNoteJson(withSkip), legacyCanonical(withSkip));
 });

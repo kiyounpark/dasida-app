@@ -10,7 +10,7 @@ import type { SolveMethodId } from '@/data/diagnosisTree';
 
 import { ro } from '../flow/korean-particle';
 import { mistakeTypeFix, mistakeTypeLabel } from '../flow/mistake-types';
-import { readCheckQuiz, readRetryQuiz } from '../flow/quiz-guard';
+import { readCheckQuiz, readRetryQuiz, type PhotoQuiz } from '../flow/quiz-guard';
 import {
   canPointAtError,
   filterCandidates,
@@ -33,8 +33,17 @@ import type {
   WeaknessCardView,
 } from './script-io';
 
-/** 오답노트를 채우는 데 필요한, 대화가 진행되며 쌓인 것 */
-type NoteContext = { methodId: SolveMethodId; mistakeType: MistakeTypeId; checkResult: CheckResult };
+/**
+ * 오답노트를 채우는 데 필요한, 대화가 진행되며 쌓인 것.
+ * checkQuiz·retryQuiz는 학생 화면에 실제로 나간 문제만 — 검산을 통과 못 해 건너뛴 건 안 실린다(1.0.12 ⑵)
+ */
+type NoteContext = {
+  methodId: SolveMethodId;
+  mistakeType: MistakeTypeId;
+  checkResult: CheckResult;
+  checkQuiz?: PhotoQuiz;
+  retryQuiz?: PhotoQuiz;
+};
 
 /**
  * 사진 거르기에 걸린 사진 — 왜 막혔는지 말하고 그 자리에서 다시 고르게 한다.
@@ -409,17 +418,21 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
     if (!pocket || !cand) return;
     // 짚기는 방법이 주머니와 같을 때만 온다(confirmMethod) — 노트의 방법은 주머니 것
     const methodId = pocket.predictedMethodId;
-    const ctx = (checkResult: CheckResult): NoteContext => ({ methodId, mistakeType: cand.mistakeType, checkResult });
-
     const v = await runner.verdict('check');
     if (!alive) return;
     logQuizVerify('check', v, react);
     const quiz = readCheckQuiz(cand);
     if (!quiz || v.verdict !== 'match') {
-      // 건너뜀은 실패가 아니다 — 노트 ✗·"괜찮아" 톤·fail 결말 어디로도 안 간다
-      void startRetry(idx, ctx('skip'));
+      // 건너뜀은 실패가 아니다 — 노트 ✗·"괜찮아" 톤·fail 결말 어디로도 안 간다. 안 보여준 문제는 노트에도 안 남긴다
+      void startRetry(idx, { methodId, mistakeType: cand.mistakeType, checkResult: 'skip' });
       return;
     }
+    const ctx = (checkResult: CheckResult): NoteContext => ({
+      methodId,
+      mistakeType: cand.mistakeType,
+      checkResult,
+      checkQuiz: quiz,
+    });
     // "노트 완성" 예고. 상황 칸이 있으면 재료를 먼저 깔고 질문 — 카드 밖(사진) 지칭으로 못 푸는 문제 방지
     if (quiz.setup) {
       io.say(`그럼 진짜 아는지 보자 — 이거 통과하면 오늘 오답노트 완성이야. ${quiz.setup}`);
@@ -447,19 +460,21 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
   }
 
   // 즉석 재도전: 아까 무너진 자리 재밟기. 관문 아님 — 어느 선택이든 노트로
-  async function startRetry(idx: number, ctx: NoteContext) {
+  async function startRetry(idx: number, checkCtx: NoteContext) {
     const quiz = readRetryQuiz(pocket?.errorCandidates[idx]);
     if (!quiz) {
-      showWrongNote(idx, ctx, 'none'); // 모양이 깨져 왔으면 조용히 건너뛴다 — 노트는 그래도 나온다
+      showWrongNote(idx, checkCtx, 'none'); // 모양이 깨져 왔으면 조용히 건너뛴다 — 노트는 그래도 나온다
       return;
     }
     const v = await runner.verdict('retry');
     if (!alive) return;
     logQuizVerify('retry', v);
     if (v.verdict !== 'match') {
-      showWrongNote(idx, ctx, 'unverified'); // 검산 통과 못 함 — 노트는 나온다
+      showWrongNote(idx, checkCtx, 'unverified'); // 검산 통과 못 함 — 노트는 나온다
       return;
     }
+    // 여기서부터 화면에 나간다 — [지금은 넘어갈래]를 눌러도 본 문제라 노트에 남긴다
+    const ctx: NoteContext = { ...checkCtx, retryQuiz: quiz };
     // 쪽지를 틀린 학생에게만 한 템포. 맞힌 학생·건너뛴 학생은 빠르게 (귀찮음 축)
     io.say(
       ctx.checkResult === 'fail'
@@ -569,6 +584,14 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
       checkResult: ctx.checkResult,
       retryResult,
       askLine: true,
+      // 1.0.12 ⑵ — 없는 칸은 없는 채로(서버 비교가 undefined 칸에 안 흔들린다)
+      ...(ctx.checkQuiz ? { checkQuiz: ctx.checkQuiz } : {}),
+      ...(ctx.retryQuiz ? { retryQuiz: ctx.retryQuiz } : {}),
+      // 개념 설명은 [모르겠어]를 안 누른 학생 노트에도 담는다 — 검산이 없는 글이라 「봤다」가 품질을 거르지 않고,
+      // 안 담으면 그 노트엔 영영 없다(astra·Fable 10.05). 조건은 explainAgain과 같다(둘 다 비어 있지 않을 때)
+      ...(cand?.concept?.rule && cand.concept.violation
+        ? { concept: { rule: cand.concept.rule, violation: cand.concept.violation } }
+        : {}),
     };
     io.showNote(note);
     io.log({ name: 'note_shown', retry: retryResult }); // 깔때기 2 — 끝까지 걸어서 노트를 받은 수

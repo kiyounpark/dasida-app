@@ -40,6 +40,25 @@ import {
 // 문서 id로 그대로 쓴다 — '/'가 있으면 다른 경로가 되고, '.'·'..'·__x__는 Firestore가 안 받는다
 const NOTE_DOC_ID_PATTERN = /^(?!\.\.?$)(?!__.*__$)[^/]+$/;
 
+// 1.0.12 ⑵ 쪽지·재도전 — 폰 quiz-guard.ts의 isAnswerable과 같은 규칙(보기 2개 이상 · 정답 번호가 보기 안).
+// 상한은 다른 본문 칸(2,000자 · 배열 10개)에 맞춘다 — 분석 스키마보다 넉넉하게, 학생 노트가 400으로 통째 실패하지 않게
+const PhotoNoteQuizWireSchema = z
+  .object({
+    setup: z.string().max(2000).optional(),
+    prompt: z.string().min(1).max(2000),
+    options: z.array(z.string().max(2000)).min(2).max(10),
+    answerIndex: z.number().int().min(0),
+  })
+  .strict()
+  .refine((quiz) => quiz.answerIndex < quiz.options.length, { message: 'answerIndex out of range' });
+
+const PhotoNoteConceptWireSchema = z
+  .object({
+    rule: z.string().min(1).max(2000),
+    violation: z.string().min(1).max(2000),
+  })
+  .strict();
+
 export const PhotoNoteWireSchema = z
   .object({
     id: z.string().min(1).max(120).regex(NOTE_DOC_ID_PATTERN),
@@ -58,6 +77,10 @@ export const PhotoNoteWireSchema = z
     checkPassed: z.boolean(),
     checkSkipped: z.boolean().optional(),
     retryResult: z.enum(['pass', 'fail', 'skip', 'none']),
+    // 1.0.12~ — 없어도 된다(1.0.11 앱 노트)
+    checkQuiz: PhotoNoteQuizWireSchema.optional(),
+    retryQuiz: PhotoNoteQuizWireSchema.optional(),
+    concept: PhotoNoteConceptWireSchema.optional(),
   })
   .strict() satisfies z.ZodType<PhotoNoteWire>;
 

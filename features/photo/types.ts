@@ -1,6 +1,7 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { SolveMethodId } from '@/data/diagnosisTree';
 
+import type { PhotoQuiz } from './flow/quiz-guard';
 import type { WeaknessCardView } from './script/script-io';
 
 /** functions/src/analyze-photo-core.ts의 MISTAKE_TYPE_IDS와 같은 순서·같은 값 */
@@ -113,6 +114,14 @@ export type PhotoNote = {
    */
   checkSkipped?: boolean;
   retryResult: RetryResult;
+  /**
+   * 학생 화면에 나간 쪽지·재도전 문제 그대로(1.0.12~ ⑵). 「노트 다시 보기」 복습이 AI 없이 이 문제를 다시 꺼낸다(🔒 08.02).
+   * 검산을 통과 못 해 안 보여준 문제는 없다. 1.0.11까지 저장된 노트엔 없고, 서버 본문이 불변이라 나중에 못 붙인다.
+   */
+  checkQuiz?: PhotoQuiz;
+  retryQuiz?: PhotoQuiz;
+  /** 오류 후보의 개념 설명(1.0.12~ ⑵). 검산기를 안 거친 글 — 꺼낼 땐 그걸 알고 쓴다 */
+  concept?: { rule: string; violation: string };
   /**
    * 이 노트를 만든 사진의 분석 제출 번호(1.0.11~). 검토본·원장과 노트를 잇는다.
    * 1.0.10까지 저장된 노트엔 없다 — 지어내지 않는다.

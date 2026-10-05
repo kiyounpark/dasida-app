@@ -2410,15 +2410,20 @@ var DasidaFlow = (() => {
       const cand = pocket?.errorCandidates[idx];
       if (!pocket || !cand) return;
       const methodId = pocket.predictedMethodId;
-      const ctx = (checkResult) => ({ methodId, mistakeType: cand.mistakeType, checkResult });
       const v = await runner.verdict("check");
       if (!alive) return;
       logQuizVerify("check", v, react);
       const quiz = readCheckQuiz(cand);
       if (!quiz || v.verdict !== "match") {
-        void startRetry(idx, ctx("skip"));
+        void startRetry(idx, { methodId, mistakeType: cand.mistakeType, checkResult: "skip" });
         return;
       }
+      const ctx = (checkResult) => ({
+        methodId,
+        mistakeType: cand.mistakeType,
+        checkResult,
+        checkQuiz: quiz
+      });
       if (quiz.setup) {
         io.say(`\uADF8\uB7FC \uC9C4\uC9DC \uC544\uB294\uC9C0 \uBCF4\uC790 \u2014 \uC774\uAC70 \uD1B5\uACFC\uD558\uBA74 \uC624\uB298 \uC624\uB2F5\uB178\uD2B8 \uC644\uC131\uC774\uC57C. ${quiz.setup}`);
         io.say(quiz.prompt);
@@ -2442,19 +2447,20 @@ var DasidaFlow = (() => {
         }))
       );
     }
-    async function startRetry(idx, ctx) {
+    async function startRetry(idx, checkCtx) {
       const quiz = readRetryQuiz(pocket?.errorCandidates[idx]);
       if (!quiz) {
-        showWrongNote(idx, ctx, "none");
+        showWrongNote(idx, checkCtx, "none");
         return;
       }
       const v = await runner.verdict("retry");
       if (!alive) return;
       logQuizVerify("retry", v);
       if (v.verdict !== "match") {
-        showWrongNote(idx, ctx, "unverified");
+        showWrongNote(idx, checkCtx, "unverified");
         return;
       }
+      const ctx = { ...checkCtx, retryQuiz: quiz };
       io.say(
         ctx.checkResult === "fail" ? "\uAD1C\uCC2E\uC544, \uD5F7\uAC08\uB9AC\uB77C\uACE0 \uC788\uB294 \uC790\uB9AC\uC57C. \uB9C8\uC9C0\uB9C9\uC73C\uB85C \uB531 \uD55C \uBC88\uB9CC \u2014 \uC0C8 \uC22B\uC790\uB85C \uAC00\uBCF4\uC790." : "\uADF8\uB7FC \uC9C4\uC9DC \uB9C8\uC9C0\uB9C9 \u2014 \uC544\uAE4C \uADF8 \uC790\uB9AC, \uC0C8 \uC22B\uC790\uB85C \uD55C \uBC88\uB9CC \uB2E4\uC2DC \uBC1F\uC544\uBCF4\uC790."
       );
@@ -2547,7 +2553,13 @@ ${quiz.prompt}`);
         primaryWeaknessId,
         checkResult: ctx.checkResult,
         retryResult,
-        askLine: true
+        askLine: true,
+        // 1.0.12 ⑵ — 없는 칸은 없는 채로(서버 비교가 undefined 칸에 안 흔들린다)
+        ...ctx.checkQuiz ? { checkQuiz: ctx.checkQuiz } : {},
+        ...ctx.retryQuiz ? { retryQuiz: ctx.retryQuiz } : {},
+        // 개념 설명은 [모르겠어]를 안 누른 학생 노트에도 담는다 — 검산이 없는 글이라 「봤다」가 품질을 거르지 않고,
+        // 안 담으면 그 노트엔 영영 없다(astra·Fable 10.05). 조건은 explainAgain과 같다(둘 다 비어 있지 않을 때)
+        ...cand?.concept?.rule && cand.concept.violation ? { concept: { rule: cand.concept.rule, violation: cand.concept.violation } } : {}
       };
       io.showNote(note);
       io.log({ name: "note_shown", retry: retryResult });

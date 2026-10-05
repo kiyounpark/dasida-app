@@ -226,6 +226,10 @@ export function usePhotoFlow({
       checkSkipped: view.checkResult === 'skip',
       // 검산을 통과 못 해 안 낸 재도전은 저장 모양에 없다 — 1.0.10과 같이 'none'(카드엔 재도전 칸이 빈다)
       retryResult: view.retryResult === 'unverified' ? 'none' : view.retryResult,
+      // 1.0.12 ⑵ — 화면에 나간 문제·개념 설명. 「노트 다시 보기」가 AI 없이 다시 꺼낸다. 없으면 칸 자체가 없다
+      ...(view.checkQuiz ? { checkQuiz: view.checkQuiz } : {}),
+      ...(view.retryQuiz ? { retryQuiz: view.retryQuiz } : {}),
+      ...(view.concept ? { concept: view.concept } : {}),
       // 이 노트를 만든 사진의 분석 번호(1.0.11) — 검토본·원장과 잇는다
       submissionId: submissionIdRef.current,
     };
