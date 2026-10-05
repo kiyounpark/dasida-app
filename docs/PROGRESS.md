@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.05 19:57
+- 해시: `3b4fdca5` (`3b4fdca56c686c41dcaa10f5deb853ec550087ee`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3b4fdca56c686c41dcaa10f5deb853ec550087ee
+- 작성자: 박기윤
+- 메시지: docs: 🔒 손글씨 유료 측정 멈춤 — 운영 지시문 그대로, 재개 조건 기록
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.05 19:54
 - 해시: `4331ba80` (`4331ba80eb205f2b2f03ebc8af63c517f3d40735`)
 - 브랜치: main
