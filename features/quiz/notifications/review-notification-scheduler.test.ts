@@ -1,6 +1,42 @@
+import * as Notifications from 'expo-notifications';
+
 import type { ReviewTask } from '@/features/learning/types';
 
-import { pickTodayRepresentativeTask } from './review-notification-scheduler';
+import {
+  pickTodayRepresentativeTask,
+  requestNotificationPermission,
+} from './review-notification-scheduler';
+
+jest.mock('expo-notifications');
+
+// 1.0.12 ② — 안드 13+ 새 설치는 묻기 전에도 denied(canAskAgain true)를 준다(expo-notifications)
+describe('requestNotificationPermission', () => {
+  const mockGet = Notifications.getPermissionsAsync as jest.Mock;
+  const mockRequest = Notifications.requestPermissionsAsync as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRequest.mockResolvedValue({ status: 'granted' });
+  });
+
+  it('denied + canAskAgain true면 시스템 창을 띄운다(requestPermissionsAsync)', async () => {
+    mockGet.mockResolvedValue({ status: 'denied', canAskAgain: true });
+    await expect(requestNotificationPermission()).resolves.toBe(true);
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('denied + canAskAgain false면 창 없이 false', async () => {
+    mockGet.mockResolvedValue({ status: 'denied', canAskAgain: false });
+    await expect(requestNotificationPermission()).resolves.toBe(false);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it('이미 granted면 창 없이 true', async () => {
+    mockGet.mockResolvedValue({ status: 'granted', canAskAgain: true });
+    await expect(requestNotificationPermission()).resolves.toBe(true);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+});
 
 function makeTask(overrides: Partial<ReviewTask> & { id: string; scheduledFor: string }): ReviewTask {
   return {

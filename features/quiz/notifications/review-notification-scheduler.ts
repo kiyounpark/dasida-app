@@ -43,7 +43,10 @@ export function pickTodayRepresentativeTask(
 }
 
 /**
- * 알림 권한 요청. 이미 granted면 바로 true, denied면 false.
+ * 알림 권한 요청. 이미 granted면 바로 true, 다시 물을 수 없는 denied면 false.
+ * 안드 13+ 새 설치는 알림이 기본 꺼져 있어 expo-notifications가 묻기 전에도 denied를 준다
+ * (NotificationPermissionsModule.kt `!areEnabled -> DENIED`) — canAskAgain이 true면 아직 물을 수 있다.
+ * iOS는 거절 뒤 canAskAgain=false라 동작이 그대로다(1.0.12 ② astra·Fable 10.05).
  */
 export async function requestNotificationPermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
@@ -54,9 +57,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
     });
   }
 
-  const { status: existing } = await Notifications.getPermissionsAsync();
+  const { status: existing, canAskAgain } = await Notifications.getPermissionsAsync();
   if (existing === 'granted') return true;
-  if (existing === 'denied') return false;
+  if (existing === 'denied' && canAskAgain !== true) return false;
 
   const { status } = await Notifications.requestPermissionsAsync();
   return status === 'granted';

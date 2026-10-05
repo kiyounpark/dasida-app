@@ -103,7 +103,7 @@ export function useNotificationOptIn({
     }
 
     void Notifications.getPermissionsAsync()
-      .then(async ({ status }) => {
+      .then(async ({ status, canAskAgain }) => {
         if (cancelled) return;
         if (status === 'granted') {
           setState('granted');
@@ -111,7 +111,8 @@ export function useNotificationOptIn({
           await activate(accountKey);
           return;
         }
-        if (status === 'denied') {
+        // 안드 13+ 새 설치는 묻기 전에도 denied(canAskAgain true)다 — 그땐 아직 물을 수 있으니 카드를 띄운다.
+        if (status === 'denied' && canAskAgain !== true) {
           setState('denied');
           return;
         }

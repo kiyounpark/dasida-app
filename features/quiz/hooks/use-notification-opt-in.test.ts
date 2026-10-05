@@ -63,6 +63,34 @@ describe('useNotificationOptIn', () => {
     expect(mockSchedule).not.toHaveBeenCalled();
   });
 
+  // 1.0.12 ② — 안드 13+ 새 설치는 묻기 전에도 denied + canAskAgain true(expo-notifications)
+  it('denied지만 canAskAgain true(안드 13+ 새 설치)면 idle — 카드를 띄운다', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'denied', canAskAgain: true });
+    const { result } = renderHook(() =>
+      useNotificationOptIn({
+        accountKey: 'a1',
+        eligible: true,
+        isAuthenticated: true,
+        registerPushToken: jest.fn(),
+      }),
+    );
+    await waitFor(() => expect(result.current.state).toBe('idle'));
+    expect(mockSchedule).not.toHaveBeenCalled();
+  });
+
+  it('denied + canAskAgain false(iOS 거절·안드 두 번 거절)면 denied — 카드 없음', async () => {
+    mockGetPermissions.mockResolvedValue({ status: 'denied', canAskAgain: false });
+    const { result } = renderHook(() =>
+      useNotificationOptIn({
+        accountKey: 'a1',
+        eligible: true,
+        isAuthenticated: true,
+        registerPushToken: jest.fn(),
+      }),
+    );
+    await waitFor(() => expect(result.current.state).toBe('denied'));
+  });
+
   it('약점 0개면 카드 안 보이는 상태(dismissed)로 둠', async () => {
     const { result } = renderHook(() =>
       useNotificationOptIn({
