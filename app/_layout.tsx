@@ -261,17 +261,12 @@ export default function RootLayout() {
               <Stack.Screen name="consent" options={{ headerShown: false, gestureEnabled: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="quiz" options={{ headerShown: false, gestureEnabled: false }} />
-              {/* 헤더를 켜는 유일한 화면 — 뒤로가기가 없으면 학생이 사진 화면에 갇힌다.
-                  PhotoFlowScreen이 SafeAreaView edges={['bottom']}이라 위 여백은 헤더가 맡는다. */}
-              <Stack.Screen
-                name="photo"
-                options={{ title: '사진 오답노트', headerShown: true, headerBackTitle: '홈' }}
-              />
+              {/* 사진·지난 노트는 iOS 기본 헤더를 안 쓴다 — iOS 26에서 기본 뒤로 버튼이 사진첩·시트 뒤에 죽어
+                  학생이 갇혔다(1.0.12 ⓪). 맨 위 「< 홈」·「< 뒤로」 줄과 위 여백은 화면이 직접 그린다
+                  (features/photo/components/photo-back-bar.tsx). 가장자리 스와이프는 헤더와 별개라 그대로 된다 */}
+              <Stack.Screen name="photo" options={{ headerShown: false }} />
               {/* 지난 노트 목록 — 사진 화면 첫 칸에서 들어간다. 뒤로가기가 사진 화면으로 간다 */}
-              <Stack.Screen
-                name="photo-notes"
-                options={{ title: '지난 오답노트', headerShown: true, headerBackTitle: '뒤로' }}
-              />
+              <Stack.Screen name="photo-notes" options={{ headerShown: false }} />
               {__DEV__ ? <Stack.Screen name="dev" options={{ title: '개발자 도구' }} /> : null}
             </Stack>
           </ExamSessionProvider>

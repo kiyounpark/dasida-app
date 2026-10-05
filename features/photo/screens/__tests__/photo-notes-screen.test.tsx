@@ -146,6 +146,21 @@ describe('지난 오답노트 화면', () => {
     await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
   });
 
+  // 1.0.12 ⓪ — iOS 기본 헤더를 껐다. 맨 위 「< 뒤로」 줄이 빠진 상태가 하나라도 있으면 학생이 갇힌다
+  it('읽는 중·비어 있음·목록 모두 맨 위 「뒤로」 줄이 있다', async () => {
+    render(<PhotoNotesScreen accountKey="user:abc" />);
+    expect(screen.getByLabelText('뒤로')).toBeTruthy(); // 읽는 중(첫 프레임)
+
+    await waitFor(() => expect(screen.getByText('아직 노트가 없어')).toBeTruthy());
+    expect(screen.getByLabelText('뒤로')).toBeTruthy();
+    screen.unmount();
+
+    mockRead.mockResolvedValue([note()]);
+    render(<PhotoNotesScreen accountKey="user:abc" />);
+    await waitFor(() => expect(screen.getByText('노트 1장')).toBeTruthy());
+    expect(screen.getByLabelText('뒤로')).toBeTruthy();
+  });
+
   it('계정 키가 없으면 읽지 않는다', async () => {
     render(<PhotoNotesScreen getRemoteAuthHeaders={getRemoteAuthHeaders} />);
 

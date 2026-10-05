@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PhotoBackBar } from '../components/photo-back-bar';
 import { PhotoNoteCard } from '../components/photo-note-card';
 import { usePhotoNotesScreen } from '../hooks/use-photo-notes-screen';
 import { PhotoTheme } from '../theme';
@@ -40,15 +41,23 @@ export function PhotoNotesScreen({
     getRemoteAuthHeaders,
   });
 
+  // 맨 위 「< 뒤로」 줄은 모든 상태에 있어야 한다 — iOS 기본 헤더를 껐다(app/_layout.tsx, 1.0.12 ⓪)
+  const backBar = <PhotoBackBar label="뒤로" title="지난 오답노트" />;
+
   // 읽는 중엔 아무 말도 안 한다 — 기기에서 읽는 거라 한 프레임이고, "없어요"가 깜빡이면 더 나쁘다
   if (notes === null) {
-    return <SafeAreaView style={styles.safe} edges={['bottom']} />;
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        {backBar}
+      </SafeAreaView>
+    );
   }
 
   // 새 기기에선 기기 노트가 0장이다 — 서버 답을 기다리는 동안 "아직 노트가 없어"를 띄우면 거짓말이 된다
   if (notes.length === 0 && remotePending) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
+        {backBar}
         <View style={styles.empty}>
           <ActivityIndicator accessibilityLabel="노트 불러오는 중" color={PhotoTheme.muted} />
         </View>
@@ -60,6 +69,7 @@ export function PhotoNotesScreen({
   if (notes.length === 0 && remoteFailed) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
+        {backBar}
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>노트를 못 불러왔어</Text>
           <Text style={styles.emptyBody}>인터넷을 확인하고 다시 시도해 줘.</Text>
@@ -74,6 +84,7 @@ export function PhotoNotesScreen({
   if (notes.length === 0) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
+        {backBar}
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>아직 노트가 없어</Text>
           <Text style={styles.emptyBody}>
@@ -86,6 +97,7 @@ export function PhotoNotesScreen({
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
+      {backBar}
       <ScrollView contentContainerStyle={styles.list} contentInsetAdjustmentBehavior="automatic">
         <Text style={styles.count}>{`노트 ${notes.length}장`}</Text>
         {(missingCount > 0 || upload) && (

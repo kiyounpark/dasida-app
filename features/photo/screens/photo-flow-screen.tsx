@@ -8,6 +8,7 @@ import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 
 import { PhotoActionButtons } from '../components/photo-action-buttons';
 import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
+import { PhotoBackBar } from '../components/photo-back-bar';
 import { PhotoChatThread } from '../components/photo-chat-thread';
 import { PhotoTextInput } from '../components/photo-text-input';
 import { PhotoUploadView } from '../components/photo-upload-view';
@@ -51,6 +52,8 @@ export function PhotoFlowScreen({
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
+      {/* 위 여백은 이 줄이 맡는다(iOS 기본 헤더를 껐다 — app/_layout.tsx) */}
+      <PhotoBackBar label="홈" title="사진 오답노트" />
       {status === 'upload' && (
         <PhotoUploadView
           error={error}
