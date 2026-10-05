@@ -9,6 +9,7 @@ import {
   type HomeTodayState,
 } from '@/features/learning/home-today-state';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
+import { isWeaknessReviewTask } from '@/functions/src/review-task-contract';
 
 import { buildWeaknessAppearances } from './weakness-appearances';
 import { computeRecentAppearanceCount, computeSeverity } from './weakness-severity';
@@ -194,8 +195,11 @@ function buildWeaknessProgressItems(
   recentReviewAttempts: LearningAttempt[],
   recentExamAndDiagnosticAttempts: LearningAttempt[],
 ): WeaknessProgressItem[] {
+  // 약점 진행이라 노트 과제(weaknessId null)는 뺀다 — 안 빼면 null끼리 아래 중복 제거에서 한 줄로 뭉친다
+  const weaknessTasks = allReviewTasks.filter(isWeaknessReviewTask);
+
   // 활성 태스크 (미완료) 먼저, stage 높은 순
-  const activeTasks = allReviewTasks
+  const activeTasks = weaknessTasks
     .filter((t) => !t.completed)
     .sort((a, b) => {
       const stageOrder: Record<string, number> = { day30: 4, day7: 3, day3: 2, day1: 1 };
@@ -203,7 +207,7 @@ function buildWeaknessProgressItems(
     });
 
   // 완료된 day30 태스크, 최근 완료 순
-  const completedTasks = allReviewTasks
+  const completedTasks = weaknessTasks
     .filter((t) => t.completed && t.stage === 'day30')
     .sort((a, b) => {
       const aAt = a.completedAt ?? '';

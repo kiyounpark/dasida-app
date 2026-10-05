@@ -79,6 +79,46 @@ test("스키마: 사진 노트 과제(source 'photo') 통과 — 없으면 로�
   assert.equal(parsed.success, true);
 });
 
+test('스키마: 이름 없는 노트 과제(source photo + weaknessId null) 통과 — 1.0.12 서버 과제 모양 (가)', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [
+      makeTask({
+        id: 'photo-2026-10-05T01:02:03.000Z__note__day1',
+        weaknessId: null,
+        source: 'photo',
+        sourceId: 'photo-2026-10-05T01:02:03.000Z',
+      }),
+    ],
+  });
+  assert.equal(parsed.success, true);
+});
+
+test('스키마: weaknessId null은 사진 과제에만 — 다른 출처면 reject', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [makeTask({ id: 'src-1__note__day1', weaknessId: null, source: 'diagnostic' })],
+  });
+  assert.equal(parsed.success, false);
+});
+
+test('스키마: weaknessId 칸이 아예 없으면 reject — 비우는 건 null로만', () => {
+  const { weaknessId: _omit, ...withoutWeakness } = makeTask();
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [withoutWeakness],
+  });
+  assert.equal(parsed.success, false);
+});
+
+test('스키마: 모르는 weaknessId는 그대로 reject — null을 받는다고 enum이 풀린 게 아니다', () => {
+  const parsed = SaveReviewTasksRequestSchema.safeParse({
+    accountKey: ACCOUNT_KEY,
+    reviewTasks: [{ ...makeTask(), weaknessId: 'note' }],
+  });
+  assert.equal(parsed.success, false);
+});
+
 test('스키마: 모르는 source는 reject — enum이 실제로 거르고 있다', () => {
   const parsed = SaveReviewTasksRequestSchema.safeParse({
     accountKey: ACCOUNT_KEY,

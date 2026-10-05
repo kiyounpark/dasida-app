@@ -1,6 +1,7 @@
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
 import type { LearnerSummaryCurrent, LearningAttempt } from '@/features/learning/types';
 import type { ReviewStage } from '@/features/learning/history-types';
+import { isWeaknessReviewTask } from '@/functions/src/review-task-contract';
 import type { AnalysisInProgressState } from '@/features/quiz/exam/exam-analysis-in-progress';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
 
@@ -90,13 +91,16 @@ function formatNextLabel(scheduledFor: string, isDue: boolean): string {
 function buildWeaknessProgress(
   summary: LearnerSummaryCurrent,
 ): HistoryWeaknessProgressItem[] {
-  const dueReviewTasks = summary.dueReviewTasks ?? [];
+  // 약점 진행이라 노트 과제(weaknessId null)는 뺀다
+  const dueReviewTasks = (summary.dueReviewTasks ?? []).filter(isWeaknessReviewTask);
   const dueIds = new Set(dueReviewTasks.map((t) => t.weaknessId));
+  const nextReviewTask =
+    summary.nextReviewTask && isWeaknessReviewTask(summary.nextReviewTask)
+      ? summary.nextReviewTask
+      : undefined;
   const allTasks = [
     ...dueReviewTasks,
-    ...(summary.nextReviewTask && !dueIds.has(summary.nextReviewTask.weaknessId)
-      ? [summary.nextReviewTask]
-      : []),
+    ...(nextReviewTask && !dueIds.has(nextReviewTask.weaknessId) ? [nextReviewTask] : []),
   ];
 
   return allTasks.slice(0, 4).map((task) => {

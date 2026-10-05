@@ -3,6 +3,7 @@ import { REVIEW_STAGE_OFFSETS, REVIEW_STAGE_ORDER, getNextReviewStage } from './
 import type { ReviewTaskStore } from './review-task-store';
 import type { LearningSource, ReviewStage } from './history-types';
 import type { WeaknessId } from '@/data/diagnosisMap';
+import { buildReviewTaskId } from '@/functions/src/review-task-contract';
 
 /**
  * days일 뒤를 서버 스키마(`z.string().datetime()`)가 받는 ISO datetime으로 만든다.
@@ -60,7 +61,8 @@ export async function completeReviewTask(
     return;
   }
 
-  const nextTaskId = `${task.sourceId}__${task.weaknessId}__${nextStage}`;
+  // 노트 과제(weaknessId null)면 `{노트id}__note__{단계}` — 문자열로 붙이면 `__null__`이 된다
+  const nextTaskId = buildReviewTaskId(task.sourceId, task.weaknessId, nextStage);
   const alreadyExists = tasks.some((t) => t.id === nextTaskId);
 
   const updatedTasks = tasks.map((t) => (t.id === taskId ? completedTask : t));

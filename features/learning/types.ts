@@ -13,7 +13,8 @@ import type { LearningSource, ReviewStage } from './history-types';
 export type ReviewTask = {
   id: string;
   accountKey: string;
-  weaknessId: WeaknessId;
+  // null = 이름 없는 노트 과제(source 'photo'만) — 종류는 @/functions/src/review-task-contract
+  weaknessId: WeaknessId | null;
   source: LearningSource;
   sourceId: string;
   scheduledFor: string;
@@ -22,6 +23,9 @@ export type ReviewTask = {
   createdAt: string;
   completedAt?: string;
 };
+
+/** 약점 과제 — isWeaknessReviewTask로 좁힌 뒤. 약점 3단계 화면은 이것만 받는다 */
+export type WeaknessReviewTask = ReviewTask & { weaknessId: WeaknessId };
 
 export type LearningAttempt = {
   id: string;

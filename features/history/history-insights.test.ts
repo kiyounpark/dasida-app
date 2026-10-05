@@ -286,3 +286,36 @@ describe('buildHistoryInsights', () => {
     expect(Array.isArray(insights.weaknessProgress)).toBe(true);
   });
 });
+
+describe('약점 진행 — 노트 과제 (weaknessId null · 1.0.12 서버 과제 모양 (가))', () => {
+  const noteTask = {
+    id: 'photo-1__note__day1',
+    weaknessId: null,
+    stage: 'day1' as const,
+    scheduledFor: '2026-04-30T00:00:00.000Z',
+    source: 'photo' as const,
+    sourceId: 'photo-1',
+  };
+  const weaknessTask = {
+    ...noteTask,
+    id: 'src-1__formula_understanding__day1',
+    weaknessId: w('formula_understanding'),
+    source: 'diagnostic' as const,
+    sourceId: 'src-1',
+  };
+
+  it('노트 과제는 약점 진행에 안 들어간다 — 오늘 것도, 다음 것도', () => {
+    const insights = buildHistoryInsights({
+      summary: makeSummary({
+        totals: { diagnosticAttempts: 0, featuredExamAttempts: 1, reviewAttempts: 0 },
+        dueReviewTasks: [noteTask, weaknessTask],
+        nextReviewTask: noteTask,
+      }),
+      recentExamAttempts: [makeExamAttempt()],
+      latestAttemptId: 'att1',
+      analysisState: NOT_IN_PROGRESS,
+    });
+
+    expect(insights.weaknessProgress.map((item) => item.weaknessId)).toEqual(['formula_understanding']);
+  });
+});

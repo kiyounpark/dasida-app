@@ -12,7 +12,8 @@ import {
   type NextDueResolution,
 } from '@/features/learning/review-chain';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
-import type { ReviewTask } from '@/features/learning/types';
+import type { ReviewTask, WeaknessReviewTask } from '@/features/learning/types';
+import { isWeaknessReviewTask } from '@/functions/src/review-task-contract';
 import { useCurrentLearner } from '@/features/learner/provider';
 import { getSingleParam } from '@/utils/get-single-param';
 import { requestReviewFeedback, type ChatMessage } from '@/features/quiz/review-feedback';
@@ -106,7 +107,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     useCurrentLearner();
   const accountKey = session?.accountKey ?? '';
 
-  const [task, setTask] = useState<ReviewTask | null>(null);
+  const [task, setTask] = useState<WeaknessReviewTask | null>(null);
+  // 노트 과제(weaknessId null)는 이 훅이 다루지 않는다 — 단계 0개라 안내 화면(홈 버튼)에서 멈춘다.
+  // 노트 다시 보기 화면은 ⑴에서 이 훅 앞에서 가른다.
+  const [noteTask, setNoteTask] = useState<ReviewTask | null>(null);
   const [steps, setSteps] = useState<readonly ThinkingStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
@@ -164,7 +168,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
 
     // DEV: 스크린샷용 목업 태스크 (taskId='__mock__' 또는 '__mock_disc__'일 때만 활성화)
     if (taskId === '__mock__' || taskId === '__mock_disc__') {
-      const mockTask: ReviewTask = {
+      const mockTask: WeaknessReviewTask = {
         id: taskId,
         accountKey,
         weaknessId: taskId === '__mock_disc__' ? 'discriminant_calculation' : 'formula_understanding',
@@ -194,6 +198,10 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     store.load(accountKey).then((tasks) => {
       if (cancelled) return;
       const found = tasks.find((t) => t.id === taskId) ?? null;
+      if (found && !isWeaknessReviewTask(found)) {
+        setNoteTask(found);
+        return;
+      }
       setTask(found);
       if (found) {
         logEvent('review_started', { task_id: found.id });
@@ -653,8 +661,9 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
     if (isCancelled()) return;
 
-    const labelFor = (id: WeaknessId): string | null =>
-      diagnosisMap[id]?.labelKo ?? null;
+    // 다음 과제가 노트 과제면 이름이 없다(null) — 체인 화면은 null을 받는다
+    const labelFor = (id: WeaknessId | null): string | null =>
+      id === null ? null : diagnosisMap[id]?.labelKo ?? null;
     const total = resolvedChainTotal ?? chainDone + 1;
     const doneNow = chainDone + 1;
 
@@ -723,7 +732,7 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const onHome = () => router.back();
 
   return {
-    task,
+    task: task ?? noteTask,
     steps,
     currentStepIndex,
     sessionComplete,

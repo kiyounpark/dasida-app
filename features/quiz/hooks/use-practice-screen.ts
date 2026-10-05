@@ -138,7 +138,7 @@ export function usePracticeScreen({
     () =>
       pickActiveWeaknessId({
         activeMode,
-        activeReviewTaskWeaknessId: activeReviewTask?.weaknessId,
+        activeReviewTaskWeaknessId: activeReviewTask?.weaknessId ?? undefined,
         practiceQueue: state.practiceQueue,
         practiceIndex: state.practiceIndex,
         fallbackWeaknessId,

@@ -2358,10 +2358,12 @@ export const reviewContentMap: Partial<Record<WeaknessId, ReviewContent>> = {
   },
 };
 
-export function getReviewHeroPrompt(weaknessId: WeaknessId) {
+// null = 이름 없는 노트 과제 — 마지막 줄 문구로 간다
+export function getReviewHeroPrompt(weaknessId: WeaknessId | null) {
   return (
-    reviewContentMap[weaknessId]?.heroPrompt ??
-    diagnosisMap[weaknessId]?.tip ??
+    (weaknessId === null
+      ? undefined
+      : reviewContentMap[weaknessId]?.heroPrompt ?? diagnosisMap[weaknessId]?.tip) ??
     '지난번에 어디서 막혔는지 떠오르나요?'
   );
 }

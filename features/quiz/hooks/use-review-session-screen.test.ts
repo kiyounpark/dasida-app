@@ -11,6 +11,7 @@ import {
   spawnMistakeReviewTasks,
 } from '@/features/learning/review-scheduler';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
+import { logEvent } from '@/features/analytics/log-event';
 
 jest.mock('@/features/analytics/log-event', () => ({
   logEvent: jest.fn(),
@@ -1117,6 +1118,37 @@ describe('completionOutcome 분기 (스펙 §8)', () => {
     await waitFor(() => expect(result.current.completionOutcome).not.toBeNull());
     expect(result.current.completionOutcome?.kind).toBe('bridge');
     if (result.current.completionOutcome?.kind === 'bridge') {
+      expect(result.current.completionOutcome.nextLabel).toBeNull();
+    }
+  });
+
+  it('노트 과제(weaknessId null)를 열면 로딩에서 안 멈추고 단계 0개(안내 화면) — 약점 복습 시작 이벤트도 안 찍는다', async () => {
+    (logEvent as jest.Mock).mockClear();
+    const noteTask = { ...makeTask({ id: 'photo-1__note__day1' }), weaknessId: null, source: 'photo' as const };
+    mockStoreLoad.mockResolvedValue([noteTask]);
+    mockSearchParams.taskId = noteTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() => expect(result.current.task?.id).toBe(noteTask.id));
+    expect(result.current.steps).toHaveLength(0);
+    expect(logEvent as jest.Mock).not.toHaveBeenCalledWith('review_started', expect.anything());
+  });
+
+  it('다음 과제가 노트 과제면 bridge.nextLabel === null — 이름 없는 과제', async () => {
+    const currentTask = makeTask({ id: 'task-current', stage: 'day1' });
+    const nextNote = { ...makeTask({ id: 'photo-1__note__day1' }), weaknessId: null, source: 'photo' as const };
+    mockStoreLoad.mockResolvedValueOnce([currentTask, nextNote]);
+    mockStoreLoad.mockResolvedValue([{ ...currentTask, completed: true }, nextNote]);
+    mockSearchParams.taskId = currentTask.id;
+
+    const { result } = renderHook(() => useReviewSessionScreen());
+    await driveAllStepsCorrect(result);
+
+    await waitFor(() => expect(result.current.completionOutcome).not.toBeNull());
+    expect(result.current.completionOutcome?.kind).toBe('bridge');
+    if (result.current.completionOutcome?.kind === 'bridge') {
+      expect(result.current.completionOutcome.nextTaskId).toBe(nextNote.id);
       expect(result.current.completionOutcome.nextLabel).toBeNull();
     }
   });

@@ -26,7 +26,8 @@ export type DiagnosticSummarySnapshot = {
 
 export type ActiveReviewTaskSummary = {
   id: string;
-  weaknessId: WeaknessId;
+  // null = 이름 없는 노트 과제 — 종류는 @/functions/src/review-task-contract
+  weaknessId: WeaknessId | null;
   stage: ReviewStage;
   scheduledFor: string;
   source: LearningSource;

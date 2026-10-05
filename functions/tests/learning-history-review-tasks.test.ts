@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildReviewTasks,
+  buildSummary,
   FinalizedAttemptInputSchema,
   type FinalizedAttemptInput,
   type ReviewTask,
@@ -254,4 +255,53 @@ test('buildReviewTasks: existing diagnostic task is preserved when featured-exam
   assert.equal(featuredTask.sourceId, 'featured-mock-1');
 
   assert.equal(tasks.length, 2);
+});
+
+// 1.0.12 서버 과제 모양 (가) — 이름 없는 노트 과제(source photo + weaknessId null)가 섞여도 안 깨진다
+const NOTE_ID = 'photo-2026-09-01T01:02:03.000Z';
+
+function createNoteTask(overrides: Partial<ReviewTask> = {}): ReviewTask {
+  return {
+    id: `${NOTE_ID}__note__day1`,
+    accountKey: ACCOUNT_KEY,
+    weaknessId: null,
+    source: 'photo',
+    sourceId: NOTE_ID,
+    scheduledFor: '2026-09-02T00:00:00.000Z',
+    stage: 'day1',
+    completed: false,
+    createdAt: '2026-09-01T01:02:03.000Z',
+    ...overrides,
+  };
+}
+
+test('buildReviewTasks: 진단이 돌아도 노트 과제는 그대로 남는다', () => {
+  const noteTask = createNoteTask();
+
+  const tasks = buildReviewTasks(createDiagnosticInput(), [noteTask]);
+
+  assert.deepEqual(
+    tasks.find((t) => t.id === noteTask.id),
+    noteTask,
+  );
+  assert.equal(tasks.length, 3);
+});
+
+test('buildSummary: 끝난 노트 과제 + 다음 노트 과제 — 요약이 깨지지 않고 둘 다 실린다', () => {
+  const doneDay1 = createNoteTask({ completed: true, completedAt: '2026-09-02T03:00:00.000Z' });
+  const nextDay3 = createNoteTask({
+    id: `${NOTE_ID}__note__day3`,
+    stage: 'day3',
+    scheduledFor: '2026-09-05T00:00:00.000Z',
+    createdAt: '2026-09-02T03:00:00.000Z',
+  });
+
+  const summary = buildSummary(ACCOUNT_KEY, [], [], [doneDay1, nextDay3], null);
+
+  const activity = summary.recentActivity.find((item) => item.id === `review-${doneDay1.id}`);
+  assert.ok(activity, '끝난 노트 과제가 최근 활동에 있어야 한다');
+  assert.equal(activity.subtitle, '오답노트');
+  assert.equal(summary.nextReviewTask?.id, nextDay3.id);
+  assert.equal(summary.nextReviewTask?.weaknessId, null);
+  assert.ok(summary.dueReviewTasks.some((task) => task.id === nextDay3.id));
 });

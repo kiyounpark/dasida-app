@@ -227,3 +227,27 @@ describe('daysUntilScheduled — 기기 날짜로 센다', () => {
     expect(daysUntilScheduled('2026-10-01T00:00:00.000Z', now)).toBe(-2);
   });
 });
+
+describe('노트 과제 (weaknessId null · 1.0.12 서버 과제 모양 (가))', () => {
+  const note = () =>
+    task({ id: 'photo-1__note__day1', source: 'photo', sourceId: 'photo-1', weaknessId: null, stage: 'day1' });
+
+  it('completeReviewTask: 다음 단계 id가 {노트id}__note__{단계} — 문자열로 붙인 `__null__`이 아니다', async () => {
+    const store = memStore([note()]);
+    await completeReviewTask('acc', 'photo-1__note__day1', store);
+    const next = store.all().find((t) => !t.completed);
+    expect(next?.id).toBe('photo-1__note__day3');
+    expect(next?.weaknessId).toBeNull();
+    expect(next?.source).toBe('photo');
+  });
+
+  it('spawnMistakeReviewTasks: 같은 노트에서 약점 과제가 생겨도 노트 과제는 그대로 둔다', async () => {
+    const store = memStore([note()]);
+    await spawnMistakeReviewTasks('acc', 'photo-1', ['discriminant_calculation'] as any, store, 'photo');
+    expect(store.all().map((t) => t.id).sort()).toEqual([
+      'photo-1__discriminant_calculation__day1',
+      'photo-1__note__day1',
+    ]);
+    expect(store.all().find((t) => t.id === 'photo-1__note__day1')).toEqual(note());
+  });
+});

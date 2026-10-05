@@ -13,7 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FontFamilies } from '@/constants/typography';
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 import type { UseReviewSessionScreenResult } from '@/features/quiz/hooks/use-review-session-screen';
 import { useIsTablet } from '@/hooks/use-is-tablet';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -130,7 +130,7 @@ export function ReviewSessionScreenView({
     );
   }
 
-  const weaknessLabel = diagnosisMap[task.weaknessId]?.labelKo ?? task.weaknessId;
+  const weaknessLabel = resolveWeaknessLabel(task.weaknessId);
   const step = steps[currentStepIndex];
   const totalSteps = steps.length;
 

@@ -4,7 +4,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
-import { diagnosisMap } from '@/data/diagnosisMap';
+import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 
@@ -54,7 +54,7 @@ export function ReviewHomeCard({ task, onPress }: Props) {
     return () => loop.stop();
   }, [pulseAnim]);
 
-  const weaknessLabel = diagnosisMap[task.weaknessId]?.labelKo ?? task.weaknessId;
+  const weaknessLabel = resolveWeaknessLabel(task.weaknessId);
   const stageLabel = formatReviewStageLabel(task.stage);
   const retentionPct = MEMORY_RETENTION_PCT[task.stage] ?? 50;
   const timerDisplay = ready ? '✓' : String(timeLeft);

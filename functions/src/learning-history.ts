@@ -8,6 +8,7 @@ import {
   hashMigrationSourceAccountKey,
   type ImportWriteOperation,
 } from './learning-history-import-ops';
+import { buildReviewTaskId, isWeaknessReviewTask } from './review-task-contract';
 import {
   compareTimestampsAsc,
   compareTimestampsDesc,
@@ -205,7 +206,8 @@ const DiagnosticSummarySnapshotSchema = z.object({
 
 const ActiveReviewTaskSummarySchema = z.object({
   id: z.string().min(1).max(240),
-  weaknessId: WeaknessIdSchema,
+  // null = 이름 없는 노트 과제 — 종류는 review-task-contract.ts
+  weaknessId: WeaknessIdSchema.nullable(),
   stage: ReviewStageSchema,
   scheduledFor: z.string().datetime(),
   source: LearningSourceSchema,
@@ -249,18 +251,24 @@ const LearnerSummaryCurrentSchema = z.object({
   ),
 });
 
-const ReviewTaskSchema = z.object({
-  id: z.string().min(1).max(240),
-  accountKey: z.string().min(1).max(200),
-  weaknessId: WeaknessIdSchema,
-  source: LearningSourceSchema,
-  sourceId: z.string().min(1).max(120),
-  scheduledFor: z.string().datetime(),
-  stage: ReviewStageSchema,
-  completed: z.boolean(),
-  createdAt: z.string().datetime(),
-  completedAt: z.string().datetime().optional(),
-});
+const ReviewTaskSchema = z
+  .object({
+    id: z.string().min(1).max(240),
+    accountKey: z.string().min(1).max(200),
+    // null = 이름 없는 노트 과제(1.0.12 서버 과제 모양 (가)) — 종류는 review-task-contract.ts
+    weaknessId: WeaknessIdSchema.nullable(),
+    source: LearningSourceSchema,
+    sourceId: z.string().min(1).max(120),
+    scheduledFor: z.string().datetime(),
+    stage: ReviewStageSchema,
+    completed: z.boolean(),
+    createdAt: z.string().datetime(),
+    completedAt: z.string().datetime().optional(),
+  })
+  .refine((task) => task.weaknessId !== null || task.source === 'photo', {
+    message: 'weaknessId may be null only for photo tasks',
+    path: ['weaknessId'],
+  });
 
 const LearningAttemptSchema = z.object({
   id: z.string().min(1).max(120),
@@ -510,8 +518,8 @@ export function createEmptyLearnerSummary(accountKey: string): LearnerSummaryCur
   });
 }
 
-function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
-  return `${sourceId}__${weaknessId}__${stage}`;
+function createTaskId(stage: ReviewStage, weaknessId: WeaknessId | null, sourceId: string) {
+  return buildReviewTaskId(sourceId, weaknessId, stage);
 }
 
 function sortAttempts(attempts: LearningAttempt[]) {
@@ -569,7 +577,7 @@ function getNextReviewStage(stage: ReviewStage) {
 
 function createReviewTask(params: {
   accountKey: string;
-  weaknessId: WeaknessId;
+  weaknessId: WeaknessId | null;
   source: FinalizedAttemptInput['source'];
   sourceId: string;
   scheduledFor: string;
@@ -749,7 +757,7 @@ function buildRecentActivity(
         id: `review-${task.id}`,
         kind: 'review' as const,
         title: '복습 완료',
-        subtitle: weaknessLabels[task.weaknessId],
+        subtitle: isWeaknessReviewTask(task) ? weaknessLabels[task.weaknessId] : '오답노트',
         occurredAt: task.completedAt!,
       })),
   ];
@@ -889,6 +897,7 @@ export function buildReviewTasks(
     (task) =>
       task.completed
       || task.source !== input.source
+      || !isWeaknessReviewTask(task)
       || !reviewWeaknesses.includes(task.weaknessId),
   );
 

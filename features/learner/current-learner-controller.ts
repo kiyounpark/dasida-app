@@ -34,6 +34,7 @@ import type {
 } from './types';
 import { buildProfileForPendingResume } from './learner-profile-builders';
 import { filterLegacyPerProblemAttempts } from './filter-legacy-per-problem-attempts';
+import { buildReviewTaskId } from '@/functions/src/review-task-contract';
 
 const AUTH_REQUIRED_ERROR_MESSAGE = 'Authentication is required before accessing learner data.';
 const DEV_GUEST_REQUIRED_ERROR_MESSAGE =
@@ -791,7 +792,7 @@ export function createCurrentLearnerController({
 
         const remappedTasks = reviewTasks.map((task) => ({
           ...task,
-          id: `${task.sourceId}__${task.weaknessId}__${targetStage}`,
+          id: buildReviewTaskId(task.sourceId, task.weaknessId, targetStage),
           stage: targetStage,
           scheduledFor: today,
         }));

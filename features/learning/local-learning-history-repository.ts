@@ -32,14 +32,15 @@ import {
   readLearningHistoryJson,
   writeLearningHistoryJson,
 } from './local-learning-history-storage';
+import { buildReviewTaskId, isWeaknessReviewTask } from '@/functions/src/review-task-contract';
 
 function toLocalDateString(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function createTaskId(stage: ReviewStage, weaknessId: WeaknessId, sourceId: string) {
-  return `${sourceId}__${weaknessId}__${stage}`;
+function createTaskId(stage: ReviewStage, weaknessId: WeaknessId | null, sourceId: string) {
+  return buildReviewTaskId(sourceId, weaknessId, stage);
 }
 
 // 서버 스키마(`z.string().datetime()`)가 받는 ISO datetime으로 만든다.
@@ -99,7 +100,7 @@ function applyReviewTaskState(
 
 function createReviewTask(params: {
   accountKey: string;
-  weaknessId: WeaknessId;
+  weaknessId: WeaknessId | null;
   source: LearningSource;
   sourceId: string;
   scheduledFor: string;
@@ -445,6 +446,7 @@ export function buildReviewTasks(
     (task) =>
       task.completed
       || task.source !== input.source
+      || !isWeaknessReviewTask(task)
       || !reviewWeaknesses.includes(task.weaknessId),
   );
 
