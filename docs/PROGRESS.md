@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.06 11:56
+- 해시: `e917a643` (`e917a643171987a24c8e161fb0fd382e98869663`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/e917a643171987a24c8e161fb0fd382e98869663
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 10호 예약 · 8·9호 1칸 숫자 표 · 10호 웹 qa 테스트 기록
+- 본문: - 10호 26수능 9번(6번 줄 2³→6) 10.07 21:00 유튜브 예약 zARI5_gshTY / - 6호 계획 문서에 「1칸 숫자 — 8·9·10호」 표: 8호 계속 시청함 15.4%(48시간 값 아님) · 9호 조회 192 · GA yt_short8/9 0 · 웹 비QA 사진 0 / - STATUS 🧪 10.05에 Claude 웹 qa 3건(집계 제외) / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.06 11:40
 - 해시: `e93743b2` (`e93743b294251bdc95eff856a2bc49368499aed6`)
 - 브랜치: main
