@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 08:42
+- 해시: `ff611cc9` (`ff611cc9fe1d69ffc51d9b13ed3042d77cd414b0`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ff611cc9fe1d69ffc51d9b13ed3042d77cd414b0
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 EAS 빌드 출발(iOS 25·안드 13, 자동 제출 예약) · 10.12에 볼 숫자와 기록 자리
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.06 20:22
 - 해시: `f5531abe` (`f5531abebdd859dddba64b7812c27ae92b80e413`)
 - 브랜치: main
