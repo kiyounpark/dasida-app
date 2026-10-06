@@ -51,4 +51,6 @@ Fable 최종(astra와 갈려 2차, `fable-stepdown-2.md`):
 - 홈 복습 카드 「오늘 안 하면 리셋」은 스토어 1.0.11에도 있다.
 - worktree 함정: jest는 경로를 맨 앞에 + `--testPathIgnorePatterns` 덮어쓰기(`/node_modules/` `/tests/` `/functions/` `/.expo/`), `rtk proxy`로. Metro는 `./node_modules/.bin/expo start --dev-client`를 timeout 2시간으로 따로.
 
+- **3월 말 아티팩트는 10.05~06 세션에서 안 고쳤다** — M1 「쇼츠의 문」 줄이 아직 「②·⑵는 기윤 10.05 대기」다. ② 합칠 때 같이 고치고 `docs/research/2026-10-05-notification-optin/` 경로를 단다(CLAUDE.md 「문서·재료는 가리키게」).
+
 시작 전에 판정부터 말하고 "진행"을 기다려라(무거움급 짐작 — 앱 6~7 + 서버 2).
