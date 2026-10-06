@@ -227,31 +227,64 @@ test('buildPushMessages: slot이 data에 그대로 전달 (evening)', () => {
   assert.equal(m.data?.slot, 'evening');
 });
 
-import { pickRepresentativeTaskIdByAccount } from '../src/review-reminder-core';
+import {
+  pickRepresentativeTaskByAccount,
+  reminderTaskFor,
+} from '../src/review-reminder-core';
 
 // 서버는 collectionGroup으로 모든 계정의 오늘 task를 한 번에 가져오므로,
-// 계정별 대표 taskId(첫 번째 미완료 task)를 뽑아 푸시 페이로드에 실어야 한다.
-test('pickRepresentativeTaskIdByAccount: 계정별로 첫 task id를 매핑', () => {
+// 계정별 대표 task(첫 번째 미완료 task)를 뽑아 푸시 페이로드에 실어야 한다.
+test('pickRepresentativeTaskByAccount: 계정별로 첫 task를 매핑', () => {
   const docs = [
     { accountKey: 'user:a', taskId: 't1' },
     { accountKey: 'user:b', taskId: 't2' },
     { accountKey: 'user:a', taskId: 't3' },
   ];
-  const map = pickRepresentativeTaskIdByAccount(docs);
-  assert.equal(map.get('user:a'), 't1');
-  assert.equal(map.get('user:b'), 't2');
+  const map = pickRepresentativeTaskByAccount(docs);
+  assert.equal(map.get('user:a')?.taskId, 't1');
+  assert.equal(map.get('user:b')?.taskId, 't2');
 });
 
 // 아침은 어제 놓친 과제도 같이 읽는다 — 오늘 과제가 있으면 탭이 오늘 과제를 연다.
-test('pickRepresentativeTaskIdByAccount: preferFrom 이후 과제를 먼저 고른다', () => {
+test('pickRepresentativeTaskByAccount: preferFrom 이후 과제를 먼저 고른다', () => {
   const docs = [
     { accountKey: 'user:a', taskId: 'missed', scheduledFor: '2026-05-18T00:00:00.000Z' },
     { accountKey: 'user:a', taskId: 'today', scheduledFor: '2026-05-19T00:00:00.000Z' },
     { accountKey: 'user:b', taskId: 'only-missed', scheduledFor: '2026-05-18T00:00:00.000Z' },
   ];
-  const map = pickRepresentativeTaskIdByAccount(docs, '2026-05-19T00:00:00.000Z');
-  assert.equal(map.get('user:a'), 'today');
-  assert.equal(map.get('user:b'), 'only-missed');
+  const map = pickRepresentativeTaskByAccount(docs, '2026-05-19T00:00:00.000Z');
+  assert.equal(map.get('user:a')?.taskId, 'today');
+  assert.equal(map.get('user:b')?.taskId, 'only-missed');
+});
+
+test('pickRepresentativeTaskByAccount: scheduledFor 없는 doc은 preferFrom 뒤로 밀리지만 남는다', () => {
+  const map = pickRepresentativeTaskByAccount(
+    [{ accountKey: 'user:a', taskId: 'no-date' }],
+    '2026-05-19T00:00:00.000Z',
+  );
+  assert.equal(map.get('user:a')?.taskId, 'no-date');
+});
+
+// 1.0.12 — 아침 본문이 과제 단계로 갈린다(기윤 10.06). 오늘 과제면 단계, 어제 과제면 missed.
+test('reminderTaskFor: 오늘 과제는 due + 단계', () => {
+  assert.deepEqual(
+    reminderTaskFor({ scheduledFor: '2026-05-19T00:00:00.000Z', stage: 'day7' }, '2026-05-19T00:00:00.000Z'),
+    { kind: 'due', stage: 'day7' },
+  );
+});
+
+test('reminderTaskFor: 어제 과제(놓침)는 missed — 단계와 무관', () => {
+  assert.deepEqual(
+    reminderTaskFor({ scheduledFor: '2026-05-18T00:00:00.000Z', stage: 'day7' }, '2026-05-19T00:00:00.000Z'),
+    { kind: 'missed' },
+  );
+});
+
+test('reminderTaskFor: 모르는 단계는 day1로 — 「돌아가요」 거짓 문구를 안 내보낸다', () => {
+  assert.deepEqual(
+    reminderTaskFor({ scheduledFor: '2026-05-19T00:00:00.000Z', stage: 'day99' }, '2026-05-19T00:00:00.000Z'),
+    { kind: 'due', stage: 'day1' },
+  );
 });
 
 // 알림 탭 → 복습 세션 라우팅을 위해 클라가 data.taskId를 요구한다

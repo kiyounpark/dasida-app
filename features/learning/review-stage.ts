@@ -22,6 +22,12 @@ export function formatReviewStageLabel(stage: ReviewStage) {
   }
 }
 
+/** 한 칸 아래 단계 — 놓친 복습이 내려가는 곳(🔒 10.06). day1은 내려갈 데가 없어 null. */
+export function getPreviousReviewStage(stage: ReviewStage): ReviewStage | null {
+  const index = REVIEW_STAGE_ORDER.indexOf(stage);
+  return index > 0 ? REVIEW_STAGE_ORDER[index - 1] : null;
+}
+
 export function getNextReviewStage(stage: ReviewStage): ReviewStage | null {
   const stageIndex = REVIEW_STAGE_ORDER.indexOf(stage);
   if (stageIndex === -1 || stageIndex >= REVIEW_STAGE_ORDER.length - 1) {

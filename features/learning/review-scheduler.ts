@@ -1,5 +1,10 @@
 // features/learning/review-scheduler.ts
-import { REVIEW_STAGE_OFFSETS, REVIEW_STAGE_ORDER, getNextReviewStage } from './review-stage';
+import {
+  REVIEW_STAGE_OFFSETS,
+  REVIEW_STAGE_ORDER,
+  getNextReviewStage,
+  getPreviousReviewStage,
+} from './review-stage';
 import type { ReviewTaskStore } from './review-task-store';
 import type { LearningSource, ReviewStage } from './history-types';
 import type { ReviewTask } from './types';
@@ -97,12 +102,6 @@ function stageFromTaskId(taskId: string): ReviewStage | null {
   return (REVIEW_STAGE_ORDER as string[]).includes(tail) ? (tail as ReviewStage) : null;
 }
 
-/** 한 칸 아래 단계. day1은 내려갈 데가 없어 null. */
-function previousReviewStage(stage: ReviewStage): ReviewStage | null {
-  const index = REVIEW_STAGE_ORDER.indexOf(stage);
-  return index > 0 ? REVIEW_STAGE_ORDER[index - 1] : null;
-}
-
 /**
  * 놓친 복습은 앱을 열 때 한 칸 내린다(🔒 10.06 기윤 「7일차에서 못하면 3일차로… 하나씩」 · Fable 최종
  * `docs/research/2026-10-05-notification-optin/fable-stepdown-2.md`). 10.04 ① 「그대로 둔다」를 바꿨다.
@@ -140,7 +139,7 @@ export async function stepDownMissedReviewTasks(
     if (idStage && idStage !== stage) {
       id = buildReviewTaskId(task.sourceId, task.weaknessId, stage);
     }
-    const lower = scheduledFor.slice(0, 10) < todayKey ? previousReviewStage(stage) : null;
+    const lower = scheduledFor.slice(0, 10) < todayKey ? getPreviousReviewStage(stage) : null;
     if (lower) {
       stage = lower;
       scheduledFor = today;

@@ -6,7 +6,11 @@ import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
 import { FontFamilies } from '@/constants/typography';
 import { resolveWeaknessLabel } from '@/data/diagnosisMap';
 import type { ReviewStage } from '@/features/learning/history-types';
-import { formatReviewStageLabel } from '@/features/learning/review-stage';
+import {
+  REVIEW_STAGE_OFFSETS,
+  formatReviewStageLabel,
+  getPreviousReviewStage,
+} from '@/features/learning/review-stage';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 
 const MEMORY_RETENTION_PCT: Record<string, number> = {
@@ -19,10 +23,11 @@ const MEMORY_RETENTION_PCT: Record<string, number> = {
 /**
  * 오늘 안 하면 어떻게 되는지 — 놓친 복습은 다음에 열 때 한 칸 내려간다(stepDownMissedReviewTasks).
  * day1은 내려갈 칸이 없어 다음 날 그대로 다시 뜬다. 옛 「오늘 안 하면 리셋」은 한 칸 내림 뒤 거짓이라 바꿨다.
- * 초안 — 기윤 검수 전 (문자열 둘 다 인수인계 2026-10-06 「학생 문구 세 줄」 2번의 초안. 확정은 문구 커밋에서)
+ * 「한 칸」 대신 내려갈 날을 숫자로 말한다 — 학생은 「3일차」를 바로 그린다(기윤 10.06 확정).
  */
 export function reviewDeadlineBadge(stage: ReviewStage): string {
-  return stage === 'day1' ? '오늘 안 하면 내일 또 떠요' : '오늘 안 하면 한 칸 내려가요';
+  const lower = getPreviousReviewStage(stage);
+  return lower ? `오늘 놓치면 ${REVIEW_STAGE_OFFSETS[lower]}일차로` : '오늘 안 하면 더 흐려져요';
 }
 
 const TIMER_SECONDS = 10;

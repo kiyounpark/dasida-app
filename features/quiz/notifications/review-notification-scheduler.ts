@@ -85,8 +85,10 @@ export async function scheduleReviewNotifications(
     ? diagnosisMap[representativeTask.weaknessId]?.labelKo
     : undefined;
 
-  const morning = buildReviewReminderCopy('morning', label);
-  const evening = buildReviewReminderCopy('evening', label);
+  // 로컬은 오늘 과제만 고른다(pickTodayRepresentativeTask) — 놓친 과제는 열 때 한 칸 내려가 날짜가 오늘이 된다
+  const reminderTask = { kind: 'due', stage: representativeTask.stage } as const;
+  const morning = buildReviewReminderCopy('morning', label, reminderTask);
+  const evening = buildReviewReminderCopy('evening', label, reminderTask);
   const morningTitle = morning.title;
   const morningBody = morning.body;
   const eveningTitle = evening.title;

@@ -28,7 +28,8 @@ type Props = {
 // 버튼은 하나, 「허용」류 말 대신 「다음」, 시스템 창을 안 보고 떠나는 닫기·나중에는 두지 않는다.
 // 버튼이 시스템 창을 연다는 걸 카드가 말해야 한다(OPEN_ALERT_LINE).
 const NEXT_BUTTON_LABEL = '다음';
-const OPEN_ALERT_LINE = '복습하는 날 아침에 알려드릴게요. 「다음」을 누르면 알림 허용 창이 떠요.';
+// 실제 알림은 복습 날 아침 7:30·저녁 8시 두 번(send-review-reminders.ts) — 「아침에」만 쓰면 반쪽이라 둘 다(기윤 10.06)
+const OPEN_ALERT_LINE = '복습하는 날 아침·저녁에 알려드릴게요. 「다음」을 누르면 알림 허용 창이 떠요.';
 
 const COLORS = {
   forestStart: '#4A6F4A',

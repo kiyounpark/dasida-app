@@ -8,9 +8,10 @@ import {
   collectInvalidTokensFromTickets,
   computeReminderDateBounds,
   dedupeAccountKeys,
-  pickRepresentativeTaskIdByAccount,
+  pickRepresentativeTaskByAccount,
   recordSlotSent,
   reminderLookbackDays,
+  reminderTaskFor,
   removeInvalidTokens,
   shouldSendForSlot,
   type ExpoPushTicket,
@@ -64,16 +65,27 @@ export async function runReviewReminders(
       const taskId = d.id;
       const scheduledFor = d.get('scheduledFor');
       return accountKey
-        ? { accountKey, taskId, scheduledFor: typeof scheduledFor === 'string' ? scheduledFor : undefined }
+        ? {
+            accountKey,
+            taskId,
+            scheduledFor: typeof scheduledFor === 'string' ? scheduledFor : undefined,
+            stage: d.get('stage') as unknown,
+          }
         : null;
     })
     .filter(
-      (x): x is { accountKey: string; taskId: string; scheduledFor: string | undefined } =>
-        x !== null,
+      (
+        x,
+      ): x is {
+        accountKey: string;
+        taskId: string;
+        scheduledFor: string | undefined;
+        stage: unknown;
+      } => x !== null,
     );
 
   const accountKeys = dedupeAccountKeys(accountDocs.map((d) => d.accountKey));
-  const taskIdByAccount = pickRepresentativeTaskIdByAccount(accountDocs, todayGte);
+  const taskByAccount = pickRepresentativeTaskByAccount(accountDocs, todayGte);
 
   for (const accountKey of accountKeys) {
     try {
@@ -81,12 +93,13 @@ export async function runReviewReminders(
       if (pushTokens.length === 0) continue;
       if (!shouldSendForSlot(reminderSentLog, dateLabel, slot)) continue;
 
-      const taskId = taskIdByAccount.get(accountKey);
-      if (!taskId) continue;
+      const task = taskByAccount.get(accountKey);
+      if (!task) continue;
 
-      const copy = buildReviewReminderCopy(slot, undefined);
+      // 아침 본문은 대표 과제의 단계로 갈린다(기윤 10.06) — 오늘 과제면 단계, 어제 놓친 과제면 missed
+      const copy = buildReviewReminderCopy(slot, undefined, reminderTaskFor(task, todayGte));
       const sentTokens = pushTokens.map((t) => t.token);
-      const messages = buildPushMessages(sentTokens, copy, slot, taskId);
+      const messages = buildPushMessages(sentTokens, copy, slot, task.taskId);
 
       // MAX_PUSH_TOKENS=10 < 100이라 계정당 항상 단일 청크 → 전송 throw 시
       // 아무것도 전달되지 않고 sent-log 미기록 → 다음 슬롯에서 안전 재시도

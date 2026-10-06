@@ -136,23 +136,45 @@ export function buildPushMessages(
   }));
 }
 
-export function pickRepresentativeTaskIdByAccount(
-  docs: ReadonlyArray<{ accountKey: string; taskId: string; scheduledFor?: string }>,
-  preferFrom?: string,
-): Map<string, string> {
-  const map = new Map<string, string>();
+export function pickRepresentativeTaskByAccount<
+  T extends { accountKey: string; taskId: string; scheduledFor?: string },
+>(docs: ReadonlyArray<T>, preferFrom?: string): Map<string, T> {
+  const map = new Map<string, T>();
   // 오늘 과제가 있으면 탭이 그걸 연다 — 어제 놓친 과제는 오늘 과제가 없을 때만 대표가 된다.
   if (preferFrom) {
     for (const d of docs) {
       if (!map.has(d.accountKey) && (d.scheduledFor ?? '') >= preferFrom) {
-        map.set(d.accountKey, d.taskId);
+        map.set(d.accountKey, d);
       }
     }
   }
   for (const d of docs) {
-    if (!map.has(d.accountKey)) map.set(d.accountKey, d.taskId);
+    if (!map.has(d.accountKey)) map.set(d.accountKey, d);
   }
   return map;
+}
+
+const REMINDER_STAGES = ['day1', 'day3', 'day7', 'day30'] as const;
+
+/**
+ * 알림이 가리키는 과제 — 아침 본문이 단계로 갈린다(기윤 10.06).
+ * due = 오늘 복습 날 · missed = 어제 놓친 과제(오늘 과제는 없음). 놓친 과제는 다음에 열 때 이미
+ * 한 칸 내려가니(🔒 10.06) 「오늘 놓치면」을 쓰면 거짓이다. 클라 review-reminder-copy.ts와 같은 모양.
+ */
+export type ReminderTask =
+  | { kind: 'due'; stage: (typeof REMINDER_STAGES)[number] }
+  | { kind: 'missed' };
+
+export function reminderTaskFor(
+  doc: { scheduledFor?: string; stage?: unknown },
+  todayGte: string,
+): ReminderTask {
+  if ((doc.scheduledFor ?? '') < todayGte) {
+    return { kind: 'missed' };
+  }
+  // 모르는 단계면 day1 — 「N일차로 돌아가요」를 잘못 내보내지 않는 쪽
+  const stage = REMINDER_STAGES.find((s) => s === doc.stage) ?? 'day1';
+  return { kind: 'due', stage };
 }
 
 export function chunkExpoMessages<T>(items: T[], size: number): T[][] {
