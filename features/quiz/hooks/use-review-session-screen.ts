@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getReviewThinkingSteps, type ThinkingStep } from '@/data/review-content-map';
 import { diagnosisMap, type WeaknessId } from '@/data/diagnosisMap';
-import { completeReviewTask, spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
+import {
+  completeReviewTask,
+  spawnMistakeReviewTasks,
+  stepDownMissedReviewTasks,
+} from '@/features/learning/review-scheduler';
+import { REVIEW_STAGE_ORDER } from '@/features/learning/review-stage';
 import {
   resolveNextDueReview,
   countDueReviews,
@@ -94,6 +99,22 @@ export type UseReviewSessionScreenResult = {
   /** @internal - exported for unit tests */
   __test_discoveredForStep?: (stepIndex: number) => WeaknessId[];
 };
+
+/**
+ * 들어온 id로 이번에 풀 과제를 고른다(1.0.12). 정확한 미완료 → 같은 계열(id 끝 `__단계`만 다른 —
+ * `buildReviewTaskId` 꼴 `{출처}__{약점|note}__{단계}`)의 미완료 → 없으면 null.
+ * 한 칸 내림이 id를 바꾸고, 알림은 옛 id를 들고 오기 때문이다. 이미 끝난 같은 id는 다시 풀지 않는다.
+ */
+function findReviewTaskForEntry(tasks: ReviewTask[], taskId: string): ReviewTask | null {
+  const exact = tasks.find((t) => t.id === taskId && !t.completed);
+  if (exact) return exact;
+  const cut = taskId.lastIndexOf('__');
+  if (cut < 0 || !(REVIEW_STAGE_ORDER as string[]).includes(taskId.slice(cut + 2))) {
+    return null;
+  }
+  const seriesPrefix = taskId.slice(0, cut + 2);
+  return tasks.find((t) => !t.completed && t.id.startsWith(seriesPrefix)) ?? null;
+}
 
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {
   const params = useLocalSearchParams();
@@ -195,15 +216,25 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
     }
 
     let cancelled = false;
-    store.load(accountKey).then((tasks) => {
-      if (cancelled) return;
-      const found = tasks.find((t) => t.id === taskId) ?? null;
-      if (found && !isWeaknessReviewTask(found)) {
-        setNoteTask(found);
-        return;
-      }
-      setTask(found);
-      if (found) {
+    // 1.0.12 — 알림은 옛 과제 id를 들고 온다(놓친 다음 날 아침 알림 · 알림센터에 남은 알림). 한 칸 내림(🔒 10.06)이
+    // id를 새 단계로 바꾸니, 찾기 전에 내림을 먼저 끝낸다 — 알림으로 콜드 스타트하면 홈의 내림과 경주해
+    // 옛 단계로 복습이 시작되고 끝내도 기록이 안 남았다(astra 찾음 · Fable 2차). 홈과 같은 함수라 두 번 돌아도 같다.
+    stepDownMissedReviewTasks(accountKey, store)
+      .catch((error) => console.warn('Failed to step down missed review tasks', error))
+      .then(() => store.load(accountKey))
+      .then((tasks) => {
+        if (cancelled) return;
+        const found = findReviewTaskForEntry(tasks, taskId);
+        if (!found) {
+          // 끝낸 과제·지워진 과제의 알림 — 로딩에 갇히지 않게 홈으로
+          router.replace('/(tabs)/quiz');
+          return;
+        }
+        if (!isWeaknessReviewTask(found)) {
+          setNoteTask(found);
+          return;
+        }
+        setTask(found);
         logEvent('review_started', { task_id: found.id });
         setSteps(getReviewThinkingSteps(found.weaknessId));
         const foundStepCount = getReviewThinkingSteps(found.weaknessId).length;
@@ -216,12 +247,12 @@ export function useReviewSessionScreen(): UseReviewSessionScreenResult {
         if (!hasChainParams) {
           setResolvedChainTotal(countDueReviews(tasks));
         }
-      }
-    }).catch((error) => {
-      // 라우티드 store는 원격이라 인증 만료 등으로 throw 가능(로컬은 throw 안 했음).
-      // 미처리 거부 방지 — quiz-hub 효과의 .catch와 동일 정책.
-      if (!cancelled) console.warn('Failed to load review task', error);
-    });
+      })
+      .catch((error) => {
+        // 라우티드 store는 원격이라 인증 만료 등으로 throw 가능(로컬은 throw 안 했음).
+        // 미처리 거부 방지 — quiz-hub 효과의 .catch와 동일 정책.
+        if (!cancelled) console.warn('Failed to load review task', error);
+      });
     return () => {
       cancelled = true;
     };

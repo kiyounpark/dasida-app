@@ -9,7 +9,9 @@ import { remedialFlows } from '@/data/review-remedial-flows';
 import {
   completeReviewTask,
   spawnMistakeReviewTasks,
+  stepDownMissedReviewTasks,
 } from '@/features/learning/review-scheduler';
+import { router } from 'expo-router';
 import { rescheduleAllReviewNotifications } from '@/features/quiz/notifications/review-notification-scheduler';
 import { logEvent } from '@/features/analytics/log-event';
 
@@ -46,6 +48,7 @@ jest.mock('@/features/learner/provider', () => ({
 jest.mock('@/features/learning/review-scheduler', () => ({
   completeReviewTask: jest.fn().mockResolvedValue(undefined),
   spawnMistakeReviewTasks: jest.fn().mockResolvedValue(undefined),
+  stepDownMissedReviewTasks: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@/features/quiz/notifications/review-notification-scheduler', () => ({
@@ -1185,5 +1188,101 @@ describe('completionOutcome 분기 (스펙 §8)', () => {
       // graduation이면 chainTotal 없음 — 이 시나리오에서는 발생하면 안 됨
       throw new Error(`예상치 못한 kind: ${result.current.completionOutcome?.kind}`);
     }
+  });
+});
+
+// 1.0.12 — 알림은 옛 과제 id를 들고 온다(놓친 다음 날 아침 알림 · 알림센터에 남은 알림).
+// 한 칸 내림(🔒 10.06)이 id를 새 단계로 바꾸니, 복습 화면은 찾기 전에 내림을 먼저 끝내고
+// 정확한 미완료가 없으면 같은 계열(끝 `__단계`만 다른)의 미완료로 잇고, 그것도 없으면 홈으로 간다.
+// astra 찾음 · Fable 2차 「빌드 전 반드시」(docs/research/2026-10-06-build-1012-go-nogo/).
+describe('알림의 옛 id로 들어올 때 (한 칸 내림 뒤)', () => {
+  const TODAY = new Date().toISOString().slice(0, 10);
+  const SERIES = 'photo-2026-10-05T00:00:00.000Z__formula_understanding__';
+
+  function makeTask(stage: 'day1' | 'day3' | 'day7', overrides: Partial<{ completed: boolean; scheduledFor: string }> = {}) {
+    return {
+      id: `${SERIES}${stage}`,
+      accountKey: 'acc-1',
+      weaknessId: 'formula_understanding',
+      source: 'photo' as const,
+      sourceId: 'photo-2026-10-05T00:00:00.000Z',
+      scheduledFor: (overrides.scheduledFor ?? TODAY) + 'T00:00:00.000Z',
+      stage,
+      completed: overrides.completed ?? false,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  beforeEach(() => {
+    (logEvent as jest.Mock).mockClear();
+    (router.replace as jest.Mock).mockClear();
+    (stepDownMissedReviewTasks as jest.Mock).mockReset().mockResolvedValue(undefined);
+  });
+
+  it('내림을 먼저 끝내고 찾는다 — 옛 __day7로 열어도 내려간 __day3으로 시작', async () => {
+    const day3 = makeTask('day3');
+    // 저장소엔 어제 놓친 day7이 있었는데, 내림이 돌고 나면 day3(오늘)이 된다
+    (stepDownMissedReviewTasks as jest.Mock).mockImplementation(async () => {
+      mockStoreLoad.mockResolvedValue([day3]);
+    });
+    mockStoreLoad.mockResolvedValue([makeTask('day7', { scheduledFor: '2026-10-04' })]);
+    mockSearchParams.taskId = `${SERIES}day7`;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() =>
+      expect(logEvent as jest.Mock).toHaveBeenCalledWith('review_started', { task_id: day3.id }),
+    );
+    expect(stepDownMissedReviewTasks as jest.Mock).toHaveBeenCalledWith('acc-1', expect.anything());
+    // 내림이 찾기보다 먼저
+    expect((stepDownMissedReviewTasks as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
+      mockStoreLoad.mock.invocationCallOrder[0],
+    );
+    expect(router.replace as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it('홈이 먼저 내려 둔 경우(옛 id 없음) — 같은 계열의 미완료로 잇는다', async () => {
+    const day3 = makeTask('day3');
+    mockStoreLoad.mockResolvedValue([day3]);
+    mockSearchParams.taskId = `${SERIES}day7`;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() =>
+      expect(logEvent as jest.Mock).toHaveBeenCalledWith('review_started', { task_id: day3.id }),
+    );
+    expect(router.replace as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it('같은 id가 이미 끝났고 계열에 미완료가 없으면 — 로딩에 갇히지 않고 홈으로', async () => {
+    mockStoreLoad.mockResolvedValue([makeTask('day7', { completed: true })]);
+    mockSearchParams.taskId = `${SERIES}day7`;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() => expect(router.replace as jest.Mock).toHaveBeenCalledWith('/(tabs)/quiz'));
+    expect(logEvent as jest.Mock).not.toHaveBeenCalledWith('review_started', expect.anything());
+  });
+
+  it('계열을 못 읽는 id(단계 꼬리 없음)는 이어 붙이지 않는다 — 없으면 홈으로', async () => {
+    mockStoreLoad.mockResolvedValue([makeTask('day3')]);
+    mockSearchParams.taskId = 'task-without-stage';
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() => expect(router.replace as jest.Mock).toHaveBeenCalledWith('/(tabs)/quiz'));
+  });
+
+  it('내림이 실패해도(네트워크) 찾기는 이어 간다', async () => {
+    const day1 = makeTask('day1');
+    (stepDownMissedReviewTasks as jest.Mock).mockRejectedValue(new Error('offline'));
+    mockStoreLoad.mockResolvedValue([day1]);
+    mockSearchParams.taskId = day1.id;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() =>
+      expect(logEvent as jest.Mock).toHaveBeenCalledWith('review_started', { task_id: day1.id }),
+    );
   });
 });
