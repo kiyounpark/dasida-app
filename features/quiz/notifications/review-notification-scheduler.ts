@@ -180,7 +180,7 @@ export async function cancelAllReviewNotifications(): Promise<void> {
 
 /**
  * 전체 review 알림을 취소하고 현재 task 목록 기준으로 재예약.
- * 내려간 과제 복구(repairDemotedReviewTasks) 후 또는 앱 마운트 시 호출.
+ * 놓친 복습 한 칸 내림(stepDownMissedReviewTasks) 후 또는 앱 마운트 시 호출.
  */
 export async function rescheduleAllReviewNotifications(
   accountKey: string,

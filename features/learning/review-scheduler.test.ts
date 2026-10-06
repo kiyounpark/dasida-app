@@ -2,8 +2,8 @@ import {
   addDaysToToday,
   completeReviewTask,
   daysUntilScheduled,
-  repairDemotedReviewTasks,
   spawnMistakeReviewTasks,
+  stepDownMissedReviewTasks,
 } from './review-scheduler';
 import type { ReviewTaskStore } from './review-task-store';
 import type { ReviewTask } from './types';
@@ -153,38 +153,150 @@ describe('spawnMistakeReviewTasks', () => {
   });
 });
 
-describe('repairDemotedReviewTasks — 놓친 복습은 그대로 둔다 (1.0.12 ①)', () => {
-  it('놓친 day3 과제는 단계·날짜 그대로 — 다음에 연 날 홈에 뜬다', async () => {
+describe('stepDownMissedReviewTasks — 놓친 복습은 열 때 한 칸 내린다 (🔒 10.06)', () => {
+  // 기기 시각 10/6 09:00 — 과제 날짜는 기기 날짜로 센다(addDaysToToday·daysUntilScheduled와 같은 기준)
+  const NOW = new Date(2026, 9, 6, 9, 0);
+  const TODAY = '2026-10-06T00:00:00.000Z';
+  const ID = (stage: string) => `src1__discriminant_calculation__${stage}`;
+
+  it('하루 놓친 day7은 day3으로 한 칸 — id도 새 단계로, 날짜는 오늘', async () => {
     const store = memStore([
-      task({ id: 'src1__discriminant_calculation__day3', stage: 'day3', scheduledFor: '2026-05-01T00:00:00.000Z' }),
+      task({ id: ID('day7'), stage: 'day7', scheduledFor: '2026-10-05T00:00:00.000Z' }),
     ]);
-    await repairDemotedReviewTasks('acc', store);
-    const [t] = store.all();
-    expect(t.id).toBe('src1__discriminant_calculation__day3');
-    expect(t.stage).toBe('day3');
-    expect(t.scheduledFor).toBe('2026-05-01T00:00:00.000Z');
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const all = store.all();
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe(ID('day3'));
+    expect(all[0].stage).toBe('day3');
+    expect(all[0].scheduledFor).toBe(TODAY);
+    expect(all[0].completed).toBe(false);
   });
 
-  it('1.0.11이 내려 둔 과제(id day3 · stage day1)는 stage를 id 단계로 되돌린다 — 날짜는 그대로', async () => {
+  it('같은 날 두 번 열어도 한 칸 — 날짜가 오늘이 돼 두 번째엔 안 내려간다', async () => {
     const store = memStore([
-      task({
-        id: 'src1__discriminant_calculation__day3',
-        stage: 'day1',
-        scheduledFor: '2026-10-06T00:00:00.000Z',
-      }),
+      task({ id: ID('day7'), stage: 'day7', scheduledFor: '2026-10-05T00:00:00.000Z' }),
     ]);
-    await repairDemotedReviewTasks('acc', store);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    await stepDownMissedReviewTasks('acc', store, new Date(2026, 9, 6, 22, 0));
     const [t] = store.all();
+    expect(t.id).toBe(ID('day3'));
     expect(t.stage).toBe('day3');
-    expect(t.scheduledFor).toBe('2026-10-06T00:00:00.000Z');
+    expect(t.scheduledFor).toBe(TODAY);
   });
 
-  it('완료된 과제는 안 건드린다', async () => {
+  it('일주일 안 열다 열어도 한 칸 — day30은 day7까지만', async () => {
     const store = memStore([
-      task({ id: 'src1__discriminant_calculation__day7', stage: 'day3', completed: true }),
+      task({ id: ID('day30'), stage: 'day30', scheduledFor: '2026-09-29T00:00:00.000Z' }),
     ]);
-    await repairDemotedReviewTasks('acc', store);
-    expect(store.all()[0].stage).toBe('day3');
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const [t] = store.all();
+    expect(t.id).toBe(ID('day7'));
+    expect(t.stage).toBe('day7');
+    expect(t.scheduledFor).toBe(TODAY);
+  });
+
+  it('매일 열고 안 하면 매일 한 칸 — day30이 사흘 뒤 day1, 그 뒤로는 day1에 머문다', async () => {
+    const store = memStore([
+      task({ id: ID('day30'), stage: 'day30', scheduledFor: '2026-10-05T00:00:00.000Z' }),
+    ]);
+    const stages: string[] = [];
+    for (const date of [6, 7, 8, 9]) {
+      await stepDownMissedReviewTasks('acc', store, new Date(2026, 9, date, 9, 0));
+      stages.push(store.all()[0].stage);
+    }
+    expect(stages).toEqual(['day7', 'day3', 'day1', 'day1']);
+    expect(store.all()).toHaveLength(1);
+    expect(store.all()[0].id).toBe(ID('day1'));
+  });
+
+  it('day1은 그대로 — 내려갈 칸이 없어 단계·id·날짜 모두 안 바뀌고 저장도 안 한다', async () => {
+    const store = memStore([
+      task({ id: ID('day1'), stage: 'day1', scheduledFor: '2026-10-01T00:00:00.000Z' }),
+    ]);
+    const saveAll = jest.spyOn(store, 'saveAll');
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const [t] = store.all();
+    expect(t.id).toBe(ID('day1'));
+    expect(t.stage).toBe('day1');
+    expect(t.scheduledFor).toBe('2026-10-01T00:00:00.000Z');
+    expect(saveAll).not.toHaveBeenCalled();
+  });
+
+  it('오늘·미래 과제와 완료된 과제는 안 건드린다 — 바뀐 게 없으면 저장하지 않는다', async () => {
+    const store = memStore([
+      task({ id: ID('day3'), stage: 'day3', scheduledFor: TODAY }),
+      task({ sourceId: 'src2', id: 'src2__discriminant_calculation__day7', stage: 'day7', scheduledFor: '2026-10-09T00:00:00.000Z' }),
+      task({ sourceId: 'src3', id: 'src3__discriminant_calculation__day7', stage: 'day7', scheduledFor: '2026-09-01T00:00:00.000Z', completed: true }),
+    ]);
+    const before = store.all();
+    const saveAll = jest.spyOn(store, 'saveAll');
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    expect(store.all()).toEqual(before);
+    expect(saveAll).not.toHaveBeenCalled();
+  });
+
+  it('완료된 같은 id는 제자리 교체 — 같은 id가 둘 남지 않는다(둘이면 find가 완료본을 잡는다)', async () => {
+    const store = memStore([
+      task({ id: ID('day1'), stage: 'day1', scheduledFor: '2026-09-20T00:00:00.000Z', completed: true }),
+      task({ id: ID('day3'), stage: 'day3', scheduledFor: '2026-09-23T00:00:00.000Z', completed: true }),
+      task({ id: ID('day7'), stage: 'day7', scheduledFor: '2026-10-05T00:00:00.000Z' }),
+    ]);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const all = store.all();
+    expect(all.map((t) => t.id)).toEqual([ID('day1'), ID('day3')]);
+    const day3 = all.find((t) => t.id === ID('day3'))!;
+    expect(day3.completed).toBe(false);
+    expect(day3.stage).toBe('day3');
+    expect(day3.scheduledFor).toBe(TODAY);
+    expect(all.find((t) => t.id === ID('day1'))!.completed).toBe(true);
+  });
+
+  it('1.0.11이 내려 둔 과제(id day3 · stage day1)는 id를 stage로 다시 만든다 — 날짜가 안 지났으면 날짜 그대로', async () => {
+    const store = memStore([
+      task({ id: ID('day3'), stage: 'day1', scheduledFor: '2026-10-07T00:00:00.000Z' }),
+    ]);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const [t] = store.all();
+    expect(t.id).toBe(ID('day1'));
+    expect(t.stage).toBe('day1');
+    expect(t.scheduledFor).toBe('2026-10-07T00:00:00.000Z');
+  });
+
+  it('1.0.11이 내려 둔 과제(id day3 · stage day1)가 날짜도 지났으면 — day1이라 더 안 내려가고 날짜 그대로, 완료된 day1은 제자리 교체', async () => {
+    const store = memStore([
+      task({ id: ID('day1'), stage: 'day1', scheduledFor: '2026-09-20T00:00:00.000Z', completed: true }),
+      task({ id: ID('day3'), stage: 'day1', scheduledFor: '2026-10-02T00:00:00.000Z' }),
+    ]);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const all = store.all();
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe(ID('day1'));
+    expect(all[0].stage).toBe('day1');
+    expect(all[0].completed).toBe(false);
+    expect(all[0].scheduledFor).toBe('2026-10-02T00:00:00.000Z');
+  });
+
+  it('1.0.11이 내려 둔 과제(id day7 · stage day3)가 날짜도 지났으면 — stage로 맞춘 뒤 그날 또 한 칸(day1, 오늘)', async () => {
+    const store = memStore([
+      task({ id: ID('day7'), stage: 'day3', scheduledFor: '2026-10-04T00:00:00.000Z' }),
+    ]);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const [t] = store.all();
+    expect(t.id).toBe(ID('day1'));
+    expect(t.stage).toBe('day1');
+    expect(t.scheduledFor).toBe(TODAY);
+  });
+
+  it('노트 과제(weaknessId null)도 같은 규칙 — id는 {노트id}__note__{단계}', async () => {
+    const store = memStore([
+      task({ id: 'photo-1__note__day3', source: 'photo', sourceId: 'photo-1', weaknessId: null, stage: 'day3', scheduledFor: '2026-10-05T00:00:00.000Z' }),
+    ]);
+    await stepDownMissedReviewTasks('acc', store, NOW);
+    const [t] = store.all();
+    expect(t.id).toBe('photo-1__note__day1');
+    expect(t.stage).toBe('day1');
+    expect(t.weaknessId).toBeNull();
+    expect(t.scheduledFor).toBe(TODAY);
   });
 });
 
@@ -207,6 +319,32 @@ describe('completeReviewTask — 다음 복습이 생긴다', () => {
     const next = all.find((t) => !t.completed);
     expect(next?.id).toBe('src1__discriminant_calculation__day7');
     expect(next?.stage).toBe('day7');
+  });
+
+  it('다음 단계 id의 완료본이 있어도 다음 복습이 생긴다 — 완료본 자리를 제자리 교체(리셋 뒤 다시 올라갈 때)', async () => {
+    const store = memStore([
+      task({ id: 'src1__discriminant_calculation__day3', stage: 'day3', completed: true }),
+      task({ id: 'src1__discriminant_calculation__day1', stage: 'day1' }),
+    ]);
+    await completeReviewTask('acc', 'src1__discriminant_calculation__day1', store);
+    const all = store.all();
+    expect(all).toHaveLength(2);
+    const day3s = all.filter((t) => t.id === 'src1__discriminant_calculation__day3');
+    expect(day3s).toHaveLength(1);
+    expect(day3s[0].completed).toBe(false);
+    expect(day3s[0].stage).toBe('day3');
+    expect(all.find((t) => t.id === 'src1__discriminant_calculation__day1')?.completed).toBe(true);
+  });
+
+  it('다음 단계 미완료 과제가 이미 있으면 새로 안 만든다', async () => {
+    const store = memStore([
+      task({ id: 'src1__discriminant_calculation__day1', stage: 'day1' }),
+      task({ id: 'src1__discriminant_calculation__day3', stage: 'day3', scheduledFor: '2026-10-09T00:00:00.000Z' }),
+    ]);
+    await completeReviewTask('acc', 'src1__discriminant_calculation__day1', store);
+    const day3s = store.all().filter((t) => t.id === 'src1__discriminant_calculation__day3');
+    expect(day3s).toHaveLength(1);
+    expect(day3s[0].scheduledFor).toBe('2026-10-09T00:00:00.000Z');
   });
 });
 

@@ -2,6 +2,7 @@
 import { REVIEW_STAGE_OFFSETS, REVIEW_STAGE_ORDER, getNextReviewStage } from './review-stage';
 import type { ReviewTaskStore } from './review-task-store';
 import type { LearningSource, ReviewStage } from './history-types';
+import type { ReviewTask } from './types';
 import type { WeaknessId } from '@/data/diagnosisMap';
 import { buildReviewTaskId } from '@/functions/src/review-task-contract';
 
@@ -10,10 +11,9 @@ import { buildReviewTaskId } from '@/functions/src/review-task-contract';
  * 날짜는 기기 시간대 기준이고, due 판정·푸시 예약은 모두 앞 10글자만 읽는다.
  * 뒤의 T00:00:00.000Z는 검사 통과용 고정값이며 시각으로 쓰이지 않는다.
  */
-export function addDaysToToday(days: number): string {
-  const d = new Date();
+export function addDaysToToday(days: number, now: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  const result = new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+  const result = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days);
   return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}T00:00:00.000Z`;
 }
 
@@ -63,11 +63,12 @@ export async function completeReviewTask(
 
   // 노트 과제(weaknessId null)면 `{노트id}__note__{단계}` — 문자열로 붙이면 `__null__`이 된다
   const nextTaskId = buildReviewTaskId(task.sourceId, task.weaknessId, nextStage);
-  const alreadyExists = tasks.some((t) => t.id === nextTaskId);
+  // 미완료만 본다 — 완료본까지 보면 틀려서 day1로 리셋된 뒤 다시 올라갈 때 다음 복습이 안 생긴다.
+  const alreadyExists = tasks.some((t) => t.id === nextTaskId && !t.completed);
 
   const updatedTasks = tasks.map((t) => (t.id === taskId ? completedTask : t));
   if (!alreadyExists) {
-    updatedTasks.push({
+    const nextTask: ReviewTask = {
       id: nextTaskId,
       accountKey,
       weaknessId: task.weaknessId,
@@ -77,7 +78,14 @@ export async function completeReviewTask(
       stage: nextStage,
       completed: false,
       createdAt: now,
-    });
+    };
+    // 같은 id의 완료본이 있으면 그 자리를 덮는다 — 같은 id가 둘이면 find가 완료본을 잡는다.
+    const completedSlot = updatedTasks.findIndex((t) => t.id === nextTaskId);
+    if (completedSlot === -1) {
+      updatedTasks.push(nextTask);
+    } else {
+      updatedTasks[completedSlot] = nextTask;
+    }
   }
 
   await store.saveAll(accountKey, updatedTasks);
@@ -89,33 +97,71 @@ function stageFromTaskId(taskId: string): ReviewStage | null {
   return (REVIEW_STAGE_ORDER as string[]).includes(tail) ? (tail as ReviewStage) : null;
 }
 
+/** 한 칸 아래 단계. day1은 내려갈 데가 없어 null. */
+function previousReviewStage(stage: ReviewStage): ReviewStage | null {
+  const index = REVIEW_STAGE_ORDER.indexOf(stage);
+  return index > 0 ? REVIEW_STAGE_ORDER[index - 1] : null;
+}
+
 /**
- * 놓친 복습은 단계·날짜를 그대로 둔다(🔒 10.04 ① astra·Fable · 기윤 10.05 「놓친 날 다음 날」).
- * due 판정이 `<= today`라 다음에 앱을 연 날 홈 「오늘 복습할 것」에 그대로 뜬다.
+ * 놓친 복습은 앱을 열 때 한 칸 내린다(🔒 10.06 기윤 「7일차에서 못하면 3일차로… 하나씩」 · Fable 최종
+ * `docs/research/2026-10-05-notification-optin/fable-stepdown-2.md`). 10.04 ① 「그대로 둔다」를 바꿨다.
  *
- * 1.0.11까지는 앱을 열 때 연체 과제를 한 단계 내리고 「오늘+간격」으로 다시 밀었다 — 돌아온 학생이
- * 또 「내일」만 봤다. 그때 내려간 과제는 id(`…__day3`)와 stage(day1)가 어긋나 있어서, 끝내면 다음 id가
- * 자기 자신과 겹쳐 다음 복습이 안 생겼다(앱 completeReviewTask·서버 같은 자리).
- * 그래서 앱을 열 때 stage를 id의 단계로 되돌린다. 날짜는 손대지 않는다.
+ * - 날짜(앞 10글자)가 오늘보다 앞인 미완료 과제를 한 칸 내린다(day30→7→3→1). day1은 내려갈 데가 없어 그대로.
+ * - 날짜는 오늘로 옮긴다 — 그날 바로 할 수 있고, `< 오늘`이 거짓이 돼 같은 날 또 안 내려간다.
+ *   표식 필드를 안 쓰는 이유: 서버 ReviewTaskSchema(z.object)가 모르는 필드를 버린다.
+ * - 며칠을 안 열었어도 한 번 열 때 한 칸. 매일 열고 안 하면 매일 한 칸이라 day30이 사흘에 day1이 된다.
+ * - id는 새 단계로 다시 만든다 — 앱·서버가 id로 다음 과제를 셈한다. 지난번에 끝낸 그 단계의 완료본이
+ *   같은 id로 남아 있으면 그 줄은 빼고 내린 과제가 그 id를 가진다(서버엔 같은 문서를 덮는 것).
+ *   같은 id가 둘이면 find가 완료본을 잡는다.
+ * - 1.0.11이 내려 둔 과제(id day3 · stage day1)는 이미 내려간 것으로 보고 id를 stage로 다시 만든다.
+ *   날짜는 그대로 — 지났으면 그날 또 한 칸.
+ *
+ * 바뀐 게 없으면 저장하지 않는다 — 홈에 올 때마다 도는데, 불러오기가 네트워크로 실패하면 폰 사본이 오고
+ * (`remote-review-task-store.ts`) 그걸 그대로 저장하면 서버를 옛 사본으로 덮는다(10.05 리뷰 권고 ⑵).
  */
-export async function repairDemotedReviewTasks(
+export async function stepDownMissedReviewTasks(
   accountKey: string,
   store: ReviewTaskStore,
+  now: Date = new Date(),
 ): Promise<void> {
   const tasks = await store.load(accountKey);
+  const today = addDaysToToday(0, now);
+  const todayKey = today.slice(0, 10);
 
-  const updated = tasks.map((task) => {
+  const movedIndexes = new Set<number>();
+  const stepped = tasks.map((task, index) => {
     if (task.completed) {
       return task;
     }
-    const idStage = stageFromTaskId(task.id);
-    if (!idStage || idStage === task.stage) {
+
+    let { id, stage, scheduledFor } = task;
+    const idStage = stageFromTaskId(id);
+    if (idStage && idStage !== stage) {
+      id = buildReviewTaskId(task.sourceId, task.weaknessId, stage);
+    }
+    const lower = scheduledFor.slice(0, 10) < todayKey ? previousReviewStage(stage) : null;
+    if (lower) {
+      stage = lower;
+      scheduledFor = today;
+      id = buildReviewTaskId(task.sourceId, task.weaknessId, lower);
+    }
+
+    if (id === task.id && stage === task.stage && scheduledFor === task.scheduledFor) {
       return task;
     }
-    return { ...task, stage: idStage };
+    movedIndexes.add(index);
+    return { ...task, id, stage, scheduledFor };
   });
 
-  await store.saveAll(accountKey, updated);
+  if (movedIndexes.size === 0) {
+    return;
+  }
+
+  const movedIds = new Set(stepped.filter((_, index) => movedIndexes.has(index)).map((t) => t.id));
+  const next = stepped.filter((task, index) => movedIndexes.has(index) || !movedIds.has(task.id));
+
+  await store.saveAll(accountKey, next);
 }
 
 /**

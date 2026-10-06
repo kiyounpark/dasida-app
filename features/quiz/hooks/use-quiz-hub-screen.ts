@@ -8,7 +8,7 @@ import type { NotificationOptInCardState } from '@/features/quiz/components/noti
 import { useNoReviewDayCardAnalytics } from '@/features/quiz/hooks/use-no-review-day-card-analytics';
 import { useNotificationOptIn } from '@/features/quiz/hooks/use-notification-opt-in';
 import type { HomeTodayState } from '@/features/learning/home-today-state';
-import { daysUntilScheduled, repairDemotedReviewTasks } from '@/features/learning/review-scheduler';
+import { daysUntilScheduled, stepDownMissedReviewTasks } from '@/features/learning/review-scheduler';
 import {
   cancelAllReviewNotifications,
   rescheduleAllReviewNotifications,
@@ -104,7 +104,7 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
       return;
     }
     const isAuthenticated = session?.status === 'authenticated';
-    repairDemotedReviewTasks(accountKey, hubReviewStore)
+    stepDownMissedReviewTasks(accountKey, hubReviewStore)
       // 서버가 4xx로 거절하면 이제 throw된다 — 잡지 않으면 아래 refresh가 통째로 멈춘다.
       .catch(console.warn)
       .then(() => {
@@ -134,7 +134,14 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
         return;
       }
       lastFocusRefreshAtRef.current = now;
-      void refresh();
+      const accountKey = session?.accountKey;
+      void (async () => {
+        // 다른 화면·탭에서 돌아올 때도 놓친 복습을 한 칸 내린다 — 위 효과는 계정이 바뀔 때만 다시 돈다.
+        if (accountKey) {
+          await stepDownMissedReviewTasks(accountKey, hubReviewStore).catch(console.warn);
+        }
+        await refresh();
+      })();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountKey]),
   );
