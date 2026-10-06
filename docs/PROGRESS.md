@@ -1071,6 +1071,46 @@
 - 메시지: docs: STATUS — 1.0.12 빌드 전 점검 끝(버전·알림 옛 id 수정) · 스토어 새로운 기능 ✅ · 다음 EAS 빌드
 - 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
+### 커밋 2026.10.06 20:09
+- 해시: `11c08a99` (`11c08a99b8e620d49407be44e092d00a93b1667f`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/11c08a99b8e620d49407be44e092d00a93b1667f
+- 작성자: 박기윤
+- 메시지: chore: 1.0.12 버전
+- 본문: runtimeVersion 정책이 appVersion이라 새 빌드는 1.0.12 런타임 · buildNumber·versionCode는 EAS remote autoIncrement / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 20:09
+- 해시: `44d3892f` (`44d3892f2391d69d7dcc7a0919ee9bc8e65d25f2`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/44d3892f2391d69d7dcc7a0919ee9bc8e65d25f2
+- 작성자: 박기윤
+- 메시지: fix: 알림의 옛 과제 id로 복습에 들어올 때 — 한 칸 내림 먼저 · 같은 계열로 잇기 · 없으면 홈
+- 본문: 한 칸 내림(🔒 10.06)이 과제 id를 새 단계로 바꾸는데, 알림은 옛 id를 들고 온다 / (놓친 다음 날 아침 알림 · 알림센터에 남은 알림). 복습 화면은 정확한 id만 찾아서 / - 홈이 먼저 내린 뒤 옛 알림을 누르면 못 찾고 로딩만 남았다 / - 알림으로 콜드 스타트하면 홈의 내림과 경주해 옛 단계로 복습이 시작되고, 끝내도 / recordAttempt·completeReviewTask가 옛 id라 기록이 안 남고 같은 복습이 또 떴다 / 복습 화면이 찾기 전에 stepDownMissedReviewTasks를 먼저 끝내고(홈과 같은 함수 — 두 번 돌아도 같음), / 정확한 미완료 → 같은 계열(id 끝 __단계만 다른) 미완료 → 없으면 홈(router.replace)으로. / 이미 끝난 같은 id는 다시 풀지 않는다. 완료 처리는 전부 task.id라 이어 준 과제의 새 id로 끝난다. / astra 찾음(1.0.12 go/no-go) · Fable 2차 「빌드 전 반드시」, 모양도 Fable 최종(파일 1 + 테스트 1). / 테스트 5개 추가 · quiz·learning 464/464 · tsc 0. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 20:06
+- 해시: `db32e05d` (`db32e05d63d795ba647cb6d77f72897f780db5f5`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/db32e05d63d795ba647cb6d77f72897f780db5f5
+- 작성자: 박기윤
+- 메시지: docs: 1.0.12 스토어 「새로운 기능」 기윤 확정 (두 벌 그대로)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 20:03
+- 해시: `c464e067` (`c464e0675f62fb8979a59b28e94187490229fc8d`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c464e0675f62fb8979a59b28e94187490229fc8d
+- 작성자: 박기윤
+- 메시지: docs: 1.0.12 스토어 「새로운 기능」 초안 — 애플·구글 두 벌 · target-student 읽힘 반영 (기윤 검수 전)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.06 19:58
 - 해시: `30ac3996` (`30ac3996618f14f353e10ba8460b668a16185113`)
 - 브랜치: main
@@ -1090,6 +1130,46 @@
 - 작성자: 박기윤
 - 메시지: docs: STATUS — ② · 한 칸 내림 · 학생 문구 main 합침(18b07cfd) · 남은 것 배포(기윤에게)·1.0.12 빌드
 - 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 13:08
+- 해시: `1a6246cc` (`1a6246ccdee20bc45b8b6e4e55cc3acd7562b19e`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1a6246ccdee20bc45b8b6e4e55cc3acd7562b19e
+- 작성자: 박기윤
+- 메시지: feat: 1.0.12 학생 문구 확정 — 아침 알림 단계별 세 갈래 · 홈 배지 숫자로 · 허락 카드 아침·저녁 (기윤 10.06)
+- 본문: - 아침 알림 본문(앱·서버 같은 문자열): 과제 단계로 갈림 / · day1 「틀린 거, 하루 만에 벌써 절반 넘게 잊었어요」(앱 망각 곡선 카드의 58%와 같은 숫자) / · day3 이상 「오늘 놓치면 N일차로 돌아가요」(내려갈 날을 숫자로 — day3→1·day7→3·day30→7) / · 어제 놓친 과제(오늘 과제 없음) 「어제 못 한 복습, 지금 이어서 해요」 — 열면 이미 내려가니 「오늘 놓치면」은 거짓 / - 서버: 대표 과제의 stage·scheduledFor로 갈래를 정함(reminderTaskFor) · pickRepresentativeTaskIdByAccount → pickRepresentativeTaskByAccount(문서째) / · 모르는 단계는 day1 문구(「돌아가요」 거짓을 안 내보냄) · 저녁 문구는 그대로 / - 홈 복습 카드 배지: day1 「오늘 안 하면 더 흐려져요」 · 그 위 「오늘 놓치면 N일차로」 / - 허락 카드 안내: 「복습하는 날 아침·저녁에 알려드릴게요. …」(실제 7:30·20:00 두 번) / - getPreviousReviewStage를 review-stage.ts로 꺼냄(스케줄러의 private 사본을 대신 — 알림·배지·한 칸 내림이 한 규칙) / 문구: target-student 두 번 읽힘 → 기윤 한 줄씩(10.06). 테스트 앱 관련 197 · functions 295/295 · tsc 0(앱·functions) · 웹 번들에 고친 모듈 0. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 13:08
+- 해시: `04d90099` (`04d90099a79f5b67112a6649e64c320bdb26dac3`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/04d90099a79f5b67112a6649e64c320bdb26dac3
+- 작성자: Claude
+- 메시지: feat: 1.0.12 놓친 복습 한 칸 내림 — 열 때 한 칸 · 날짜 오늘 · id 새 단계 (🔒 10.06)
+- 본문: - repairDemotedReviewTasks → stepDownMissedReviewTasks: 날짜(앞 10글자)가 오늘보다 앞인 미완료 과제를 / 한 칸(day30→7→3→1) · 날짜는 오늘 · id는 새 단계로. day1은 그대로. 며칠 지났어도 한 번 열 때 한 칸, / 같은 날 두 번 열어도 한 칸(날짜가 오늘이 돼 `< 오늘`이 거짓). 바뀐 게 없으면 저장 안 함(10.05 권고 ⑵) / - 같은 id의 완료본이 있으면 그 줄을 빼고 내린 과제가 그 id를 가진다(제자리 교체) / - 1.0.11이 내려 둔 과제(id day3 · stage day1)는 id를 stage로 다시 만든다 — 날짜 그대로, 지났으면 그날 또 한 칸 / - completeReviewTask: alreadyExists는 미완료만 본다 + 다음 단계 id의 완료본은 제자리 교체 / (리셋 뒤 다시 올라갈 때 다음 복습이 안 생기던 구멍) / - 홈 훅: 포커스 효과에서도 한 칸 내림 → refresh / - 홈 복습 카드 배지 「오늘 안 하면 리셋」(한 칸 내림 뒤 거짓) → day1 / 그 위로 가름 — 문자열은 초안, 기윤 검수 전 / - 서버 로직·알림 문구·허락 카드 문구는 안 건드림 / 설계: Fable 최종 docs/research/2026-10-05-notification-optin/fable-stepdown-2.md / 테스트: 앱 jest 974 → 988 · functions 289 · tsc 0(앱·functions) · 웹 번들 입력에 고친 파일 0 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com> / Claude-Session: https://claude.ai/code/session_01HbHNRqu6Y1f3qBYZBpVAyE
+
+### 커밋 2026.10.06 13:08
+- 해시: `5b639a5b` (`5b639a5b0f1068b05a0ffdc0a08586ef12f4fd61`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5b639a5b0f1068b05a0ffdc0a08586ef12f4fd61
+- 작성자: 박기윤
+- 메시지: fix: 안드 13+ 새 설치에서 알림 허락 창이 안 뜨던 것
+- 본문: expo-notifications 0.32.16은 안드 13+ 새 설치(알림 기본 꺼짐)에서 묻기 전에도 / status 'denied'(canAskAgain true)를 준다(NotificationPermissionsModule.kt !areEnabled -> DENIED). / 훅은 카드를 숨기고 요청 함수는 창 없이 false — 결과 화면 카드도 처음부터 안드 13+엔 못 물었다. / denied여도 canAskAgain이 true면 아직 물을 수 있는 것으로 본다. iOS는 거절 뒤 canAskAgain=false라 그대로. / astra 「반드시 고칠 것」 → Fable 2차 「astra가 맞다」, 모양도 Fable 최종(파일 4개). / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.06 13:08
+- 해시: `3902081c` (`3902081c5e1a4c472cfdf99236b27c5bd158094e`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3902081c5e1a4c472cfdf99236b27c5bd158094e
+- 작성자: 박기윤
+- 메시지: feat: 1.0.12 ② 사진 학생에게 알림 허락 묻기 · 놓친 복습 다음 날 아침 1회 · 거짓 알림 문구 교체
+- 본문: - 홈: 사진 「내일 복습」 카드가 뜰 때 그 아래에 알림 허락 카드(과제가 저장된 뒤에만 뜨는 자리) / - 허락 카드: 애플 HIG pre-alert대로 버튼 하나 「다음」, 「나중에」 없음, 시스템 창을 연다는 한 줄 — 결과 화면 카드도 같이 / - useNotificationOptIn: hasWeaknesses → eligible, onDismiss 제거 / - 서버 아침 알림: 어제 놓친 과제까지 한 번 더(reminderLookbackDays), 대표 과제는 오늘 과제 먼저 / - 아침 알림 본문 「오늘 안 하면 내일 처음부터예요」는 ① 뒤로 거짓 — 초안 문구로 교체(기윤 검수 전) / 결정: astra·Fable → Fable 최종(Q0 순서 · Q1' 자리·모양 · Q2' 1회 · Q3' 문구). / 리뷰: astra(119,675) 반드시 고칠 것 1(안드 13+ — 다음 커밋) · Fable(186,648) 없음. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ### 커밋 2026.10.06 11:56
 - 해시: `e917a643` (`e917a643171987a24c8e161fb0fd382e98869663`)
