@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 18:53
+- 해시: `46fbfd97` (`46fbfd97e12982762cc1e1393c702644afef4a73`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/46fbfd97e12982762cc1e1393c702644afef4a73
+- 작성자: 박기윤
+- 메시지: docs: STATUS — OTA 그림 한도 2,000 · 지금 1,232 · 아티팩트 M1 줄에 OTA 원문 경로
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 18:51
 - 해시: `32981695` (`32981695503e8fd8238b821a5dc8261a951bf192`)
 - 브랜치: main
