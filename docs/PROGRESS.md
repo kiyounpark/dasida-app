@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 23:21
+- 해시: `768058df` (`768058dfa67409054782ec3d8f3d925b57fbe7ea`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/768058dfa67409054782ec3d8f3d925b57fbe7ea
+- 작성자: 박기윤
+- 메시지: docs: 레퍼런스 장부 — 10.10 질문에 11호 순서(앱 문구·레퍼런스 틀 겹침) 추가
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 23:15
 - 해시: `759a9ace` (`759a9ace341b2de1b22248e1e220ee156570f90e`)
 - 브랜치: main
