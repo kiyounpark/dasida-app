@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 11:00
+- 해시: `6c630357` (`6c6303577e9e432a4c622fdb5798e0e43d494d49`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/6c6303577e9e432a4c622fdb5798e0e43d494d49
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 안드 기기 뒤로·카메라 취소 → 홈 확인(에뮬레이터) · 폰 확인 끝, 다음 두 스토어 제출
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 10:55
 - 해시: `c6607a7e` (`c6607a7ec162b465492d42a4ddbcef5a88ecb00a`)
 - 브랜치: main
