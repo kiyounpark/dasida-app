@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:32
+- 해시: `86776c6c` (`86776c6c5e478476e4f02a8a16880d4778068f7b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/86776c6c5e478476e4f02a8a16880d4778068f7b
+- 작성자: 박기윤
+- 메시지: docs: OTA 그림 한도 — EAS 2,000개 · 지금 1,232개 · assetPatternsToBeBundled []는 효과 없음(그림 전부 감)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 17:24
 - 해시: `8c6f86ab` (`8c6f86ab1bd417dbe063b8d0c36000d169a41e16`)
 - 브랜치: main
