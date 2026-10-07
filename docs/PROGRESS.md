@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 10:55
+- 해시: `c6607a7e` (`c6607a7ec162b465492d42a4ddbcef5a88ecb00a`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c6607a7ec162b465492d42a4ddbcef5a88ecb00a
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 안드 13 에뮬레이터에서 허락 창 확인(새 설치 → 기출 결과 「다음」 → 허용) · 스크린샷
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 10:42
 - 해시: `c4fd1453` (`c4fd1453ab059619d781440fa466325eb4338a53`)
 - 브랜치: main
