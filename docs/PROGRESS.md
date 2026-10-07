@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 11:11
+- 해시: `1c83809f` (`1c83809fc0f9e5233ed3c6b426dfd096b2339b5c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1c83809fc0f9e5233ed3c6b426dfd096b2339b5c
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 두 스토어 통과 즉시 자동 출시 설정 확인
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 11:03
 - 해시: `877c89f7` (`877c89f734513a266dd9378cebf80e2c86e8c648`)
 - 브랜치: main
