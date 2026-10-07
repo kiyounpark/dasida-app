@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 19:03
+- 해시: `075f2528` (`075f252857dfcd29130f0a5d5fa6141b9b55958f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/075f252857dfcd29130f0a5d5fa6141b9b55958f
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 노트 카드 「왜」 마지막 줄 잘림 원인·고침 PR #58(main 아님 · 같은 OTA 전 합침은 기윤 OK)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 18:53
 - 해시: `46fbfd97` (`46fbfd97e12982762cc1e1393c702644afef4a73`)
 - 브랜치: main
