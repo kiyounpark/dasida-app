@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:07
+- 해시: `2c5224ac` (`2c5224ac089c42dd59b19176eb6920b49bb882ac`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2c5224ac089c42dd59b19176eb6920b49bb882ac
+- 작성자: 박기윤
+- 메시지: docs: STATUS — ⑵ 줄 10.05 노트 설명 정정(짐작 → 그때 기록 「재도전 안 나감 · 후보에 개념 없음」)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 17:02
 - 해시: `c359eebe` (`c359eebe4b64c3c66a4502d5f1b5577cd6f01c86`)
 - 브랜치: main
