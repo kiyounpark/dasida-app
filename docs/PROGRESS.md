@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:02
+- 해시: `c359eebe` (`c359eebe4b64c3c66a4502d5f1b5577cd6f01c86`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c359eebe4b64c3c66a4502d5f1b5577cd6f01c86
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 사다리 — 레퍼런스 후보 3편 정함(10.07 기윤 · 9모 15번 셋)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 16:59
 - 해시: `ac86045b` (`ac86045bc59f36061cb68823f2cd1cfd17fd38e4`)
 - 브랜치: main
