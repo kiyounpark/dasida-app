@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 10:42
+- 해시: `c4fd1453` (`c4fd1453ab059619d781440fa466325eb4338a53`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c4fd1453ab059619d781440fa466325eb4338a53
+- 작성자: 박기윤
+- 메시지: docs: STATUS — iOS 1.0.12(25) 애플 심사 제출 · 새로운 기능 「< 홈」→「홈」(ASC가 < 거절)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 09:49
 - 해시: `72bc5feb` (`72bc5feb9f9ccc7d91fadcd8c50d48f9bcfe2c76`)
 - 브랜치: main
