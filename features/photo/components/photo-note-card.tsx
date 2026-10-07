@@ -134,6 +134,15 @@ function NoteRow({ label, text }: { label: string; text: string }) {
   );
 }
 
+/**
+ * 행 줄 높이 — 22가 아니라 22.01이다. 22로 「정리」하지 말 것 (10.07 시뮬레이터 실측).
+ * 22면 n줄 높이가 화소 칸(1/3pt)에 딱 맞아 잰 높이에 여유가 0이다. 긴 흐름 화면 아래쪽에선 레이아웃
+ * 소수점 오차로 칸이 87.9998pt처럼 아주 조금 작게 잡히고, iOS는 칸에 다 안 들어가는 마지막 줄을
+ * 아예 안 그린다 — 흐름 끝 「왜」 칸 넷째 줄이 빈 자리로 남았다. 0.01을 얹으면 잰 높이가 올림되며
+ * 0.2~0.3pt 여유가 생긴다. 눈으로 보이는 차이는 없다.
+ */
+const ROW_LINE_HEIGHT = 22.01;
+
 const styles = StyleSheet.create({
   card: {
     width: '100%',
@@ -181,14 +190,14 @@ const styles = StyleSheet.create({
     width: 96,
     fontFamily: FontFamilies.extrabold,
     fontSize: 13,
-    lineHeight: 22,
+    lineHeight: ROW_LINE_HEIGHT,
     color: PhotoTheme.greenSoft,
   },
   rowText: {
     flex: 1,
     fontFamily: FontFamilies.regular,
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: ROW_LINE_HEIGHT,
     color: PhotoTheme.ink,
   },
   rowMath: {
