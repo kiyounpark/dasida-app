@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 16:51
+- 해시: `9dca738e` (`9dca738eb19bf55d53208c057106f8ef22ea8c7d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9dca738eb19bf55d53208c057106f8ef22ea8c7d
+- 작성자: 박기윤
+- 메시지: docs: STATUS — OTA 묶음 환경값 확인(읽기만) · 그냥 누르면 13개 다름 · --environment production만이면 PostHog 2개 빠짐 → PostHog 두 키 앞에 붙인 명령으로 28개 같음
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 15:54
 - 해시: `94639c0d` (`94639c0d42b98fcb5a07d49f4459253aa370c8ad`)
 - 브랜치: main
