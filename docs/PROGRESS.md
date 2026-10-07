@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:19
+- 해시: `601023ab` (`601023ab42e34eb08663a3b3653e04fa731a2392`)
+- 브랜치: HEAD
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/601023ab42e34eb08663a3b3653e04fa731a2392
+- 작성자: 박기윤
+- 메시지: Merge pull request #57 from kiyounpark/fix/1013-review-stepdown
+- 본문: fix(review): 1.0.13 — 한 칸 내림 계정마다 하나씩 · 알림 진입은 오늘까지인 과제만
+
 ### 커밋 2026.10.07 17:07
 - 해시: `2c5224ac` (`2c5224ac089c42dd59b19176eb6920b49bb882ac`)
 - 브랜치: main

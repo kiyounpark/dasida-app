@@ -25,6 +25,7 @@
   - 새 빌드: 위 `prebuild --clean`이 필요한 변경(네이티브 코드가 든 패키지 추가·업그레이드 · Expo SDK 업그레이드) · `app.config.js`의 권한·아이콘·스플래시·plugins·번들 ID·`version` 변경
   - OTA 가능: JS/TS 코드 · 데이터 JSON · 이미지 등 에셋 · 네이티브 코드 없는 순수 JS 패키지
   - 누르기 전: `runtimeVersion`이 `appVersion` 정책이라 OTA는 `app.config.js`의 `version`과 숫자가 같은 설치본에만 간다. 그 숫자가 지금 스토어에 떠 있는 버전(STATUS 맨 위)과 같은지 본다. `app.json`의 `version`은 옛 값이라 보지 않는다(`app.config.js`가 쓰인다).
+  - 누르는 명령은 `npm run ota:production -- --message "..."` 하나 (10.07 astra·Fable → Fable 최종). 날것 `eas update`는 로컬 `.env.local`·`.env`로 묶여 스토어판과 값이 13개 다르다(안드 구글 로그인 ID · GA4 키 · 서버 주소). 스크립트는 셸의 `EXPO_PUBLIC_*`를 벗기고 `--environment production`(EAS 서버 값만 · `.env` 끔)으로 누른다. 누를 때 찍히는 「loaded from the "production" environment on EAS: …」 줄에 `EXPO_PUBLIC_POSTHOG_API_KEY`가 있는지 본다. PostHog 두 값은 `eas.json` production `env`와 EAS 서버 production 두 곳에 있다 — 바꿀 땐 둘 다(빌드는 `eas.json` 쪽, OTA는 서버 쪽을 쓴다). 근거 `docs/research/2026-10-07-ota-env-astra-fable.md`.
   - 새로 깐 학생은 첫 실행을 내장 코드로 돌고 OTA는 다음 실행부터 적용된다. OTA는 아직 한 번도 안 눌렀다(파이프라인 미검증) — 처음 누를 땐 기윤에게 묻는다(학생에게 가는 게 바뀌는 갈림길).
 
 4. Claude 구현 및 검증 범위

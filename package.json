@@ -24,6 +24,7 @@
     "build:proto": "esbuild web-proto/flow-entry.ts --bundle --format=iife --global-name=DasidaFlow --tsconfig=tsconfig.json --platform=browser --outfile=web-proto/flow-bundle.js",
     "verify:proto": "node scripts/verify-web-proto-gate.mjs && node scripts/verify-web-proto-storage.mjs && jest features/photo/script components/math",
     "deploy:proto": "npm run build:proto && npm run verify:proto && netlify deploy --dir=web-proto --prod --no-build --site ee644b12-b30c-44c3-91a6-efaa0f1afe9f",
+    "ota:production": "env $(env | sed -nE 's/^(EXPO_PUBLIC_[A-Z0-9_]*)=.*/-u \\1/p') eas update --channel production --environment production",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "functions:install": "npm install --prefix functions",
