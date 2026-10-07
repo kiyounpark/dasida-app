@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 18:51
+- 해시: `32981695` (`32981695503e8fd8238b821a5dc8261a951bf192`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/32981695503e8fd8238b821a5dc8261a951bf192
+- 작성자: 박기윤
+- 메시지: docs: CLAUDE.md OTA 규칙 — 판정 줄에 옛 버전에도 보낼지 같이 말한다(기본은 최신만)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 17:32
 - 해시: `86776c6c` (`86776c6c5e478476e4f02a8a16880d4778068f7b`)
 - 브랜치: main
