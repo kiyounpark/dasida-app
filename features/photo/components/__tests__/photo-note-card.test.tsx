@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { setCloudNoteState } from '../../cloud/save-note-remote';
 import type { PhotoNote } from '../../types';
@@ -122,6 +123,29 @@ describe('PhotoNoteCard — 오늘 확인 줄', () => {
     render(<PhotoNoteCard note={{ ...noteWith([]), checkPassed: false, retryResult: 'none' }} />);
 
     expect(screen.getByText('오늘 확인: 쪽지시험 ✗')).toBeTruthy();
+  });
+});
+
+/**
+ * 10.07 — 흐름 끝 카드 「왜」 칸 넷째 줄이 안 그려졌다(시뮬레이터 실측 높이 87.9998779296875).
+ * 줄 높이 22면 n줄 높이가 화소 칸에 딱 맞아 잰 높이에 여유가 0이고, 레이아웃 소수점 오차로 칸이 그보다
+ * 조금만 작아져도 iOS가 마지막 줄을 안 그린다. 여기선 그 여유가 남는지만 본다 — 그리기는 jest가 못 본다.
+ */
+describe('PhotoNoteCard — 행 줄 높이 여유', () => {
+  // 앱(RN)은 글 높이를 잴 때 화소 칸으로 올림한다 — 그 올림이 남기는 여유.
+  // 오차는 화면 좌표 8192pt 아래에서 0.0005pt 미만이라 0.001이면 넉넉하다.
+  const slack = (lineHeight: number, lines: number, scale: number) =>
+    Math.ceil(lineHeight * lines * scale - 1e-9) / scale - lineHeight * lines;
+
+  it.each(['왜', '부호를 옮기면서 −가 하나 사라졌어.'])('「%s」는 1~12줄 어디서도 여유가 남는다', (text) => {
+    render(<PhotoNoteCard note={noteWith([])} />);
+    const { lineHeight } = StyleSheet.flatten(screen.getByText(text).props.style);
+
+    for (const scale of [2, 3]) {
+      for (let lines = 1; lines <= 12; lines += 1) {
+        expect(slack(lineHeight, lines, scale)).toBeGreaterThan(0.001);
+      }
+    }
   });
 });
 
