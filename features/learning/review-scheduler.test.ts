@@ -298,6 +298,84 @@ describe('stepDownMissedReviewTasks — 놓친 복습은 열 때 한 칸 내린�
     expect(t.weaknessId).toBeNull();
     expect(t.scheduledFor).toBe(TODAY);
   });
+
+  // 1.0.13 — 홈과 복습 화면(알림 콜드 스타트)이 같은 순간에 부르면 둘 다 옛 목록을 읽고 둘 다 저장했다.
+  // 진행 중이면 같은 작업을 기다리게 한다(Fable 10.06 권고 B · docs/research/2026-10-06-build-1012-go-nogo/).
+  describe('계정마다 한 번에 하나', () => {
+    function slowStore(initial: ReviewTask[]) {
+      const base = memStore(initial);
+      let releaseLoad: () => void = () => {};
+      const gate = new Promise<void>((resolve) => {
+        releaseLoad = resolve;
+      });
+      const load = jest.fn(async (key: string) => {
+        await gate;
+        return base.load(key);
+      });
+      const saveAll = jest.fn(base.saveAll);
+      return { ...base, load, saveAll, releaseLoad: () => releaseLoad() };
+    }
+
+    it('진행 중에 또 부르면 같은 작업을 기다린다 — load·saveAll 각 1번', async () => {
+      const store = slowStore([
+        task({ id: ID('day7'), stage: 'day7', scheduledFor: '2026-10-05T00:00:00.000Z' }),
+      ]);
+      const first = stepDownMissedReviewTasks('acc', store, NOW);
+      const second = stepDownMissedReviewTasks('acc', store, NOW);
+      store.releaseLoad();
+      await Promise.all([first, second]);
+
+      expect(store.load).toHaveBeenCalledTimes(1);
+      expect(store.saveAll).toHaveBeenCalledTimes(1);
+      expect(store.all()[0].id).toBe(ID('day3'));
+    });
+
+    it('뒤에 부른 쪽은 앞 작업의 저장이 끝난 뒤에 풀린다', async () => {
+      const store = slowStore([
+        task({ id: ID('day7'), stage: 'day7', scheduledFor: '2026-10-05T00:00:00.000Z' }),
+      ]);
+      const first = stepDownMissedReviewTasks('acc', store, NOW);
+      let secondDone = false;
+      const second = stepDownMissedReviewTasks('acc', store, NOW).then(() => {
+        secondDone = true;
+      });
+      await Promise.resolve();
+      expect(secondDone).toBe(false);
+      store.releaseLoad();
+      await Promise.all([first, second]);
+      expect(secondDone).toBe(true);
+      expect(store.saveAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('다른 계정은 서로 안 기다린다', async () => {
+      const store = slowStore([]);
+      const a = stepDownMissedReviewTasks('acc-a', store, NOW);
+      const b = stepDownMissedReviewTasks('acc-b', store, NOW);
+      store.releaseLoad();
+      await Promise.all([a, b]);
+      expect(store.load).toHaveBeenCalledTimes(2);
+    });
+
+    it('끝나면 다음 호출은 새로 돈다', async () => {
+      const store = slowStore([]);
+      store.releaseLoad();
+      await stepDownMissedReviewTasks('acc', store, NOW);
+      await stepDownMissedReviewTasks('acc', store, NOW);
+      expect(store.load).toHaveBeenCalledTimes(2);
+    });
+
+    it('실패해도 다음 호출은 새로 돈다 — 실패가 남아 막지 않는다', async () => {
+      const store = memStore([]);
+      const load = jest
+        .fn<Promise<ReviewTask[]>, [string]>()
+        .mockRejectedValueOnce(new Error('offline'))
+        .mockResolvedValueOnce([]);
+      const failing = { ...store, load };
+      await expect(stepDownMissedReviewTasks('acc', failing, NOW)).rejects.toThrow('offline');
+      await expect(stepDownMissedReviewTasks('acc', failing, NOW)).resolves.toBeUndefined();
+      expect(load).toHaveBeenCalledTimes(2);
+    });
+  });
 });
 
 describe('completeReviewTask — 다음 복습이 생긴다', () => {

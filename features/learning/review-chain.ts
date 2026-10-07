@@ -10,6 +10,11 @@ function todayStr(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** 오늘(기기 날짜)까지인 과제인가 — 홈 카드·체인·복습 화면 진입이 같은 규칙을 쓴다. */
+export function isScheduledByToday(scheduledFor: string): boolean {
+  return scheduledFor.slice(0, 10) <= todayStr();
+}
+
 export interface NextDueResolution {
   nextDue: ReviewTask | null;
   dueRemaining: number;

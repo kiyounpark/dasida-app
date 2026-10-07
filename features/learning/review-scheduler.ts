@@ -118,11 +118,34 @@ function stageFromTaskId(taskId: string): ReviewStage | null {
  *
  * 바뀐 게 없으면 저장하지 않는다 — 홈에 올 때마다 도는데, 불러오기가 네트워크로 실패하면 폰 사본이 오고
  * (`remote-review-task-store.ts`) 그걸 그대로 저장하면 서버를 옛 사본으로 덮는다(10.05 리뷰 권고 ⑵).
+ *
+ * 계정마다 한 번에 하나만 돈다(1.0.13) — 홈과 복습 화면(알림 콜드 스타트)이 같은 순간에 부르면 둘 다 옛 목록을
+ * 읽고 둘 다 저장했다. 진행 중이면 그 작업을 기다리게 해서, 복습 화면은 홈의 내림 저장이 끝난 뒤에 과제를 찾는다
+ * (Fable 10.06 권고 B). 클라이언트가 끊은 요청을 서버가 늦게 처리하는 경우와 다른 저장 경로는 못 막는다 —
+ * 그건 서버 버전 검사 몫이다.
  */
-export async function stepDownMissedReviewTasks(
+const stepDownsInFlight = new Map<string, Promise<void>>();
+
+export function stepDownMissedReviewTasks(
   accountKey: string,
   store: ReviewTaskStore,
   now: Date = new Date(),
+): Promise<void> {
+  const running = stepDownsInFlight.get(accountKey);
+  if (running) {
+    return running;
+  }
+  const job = runStepDown(accountKey, store, now).finally(() => {
+    stepDownsInFlight.delete(accountKey);
+  });
+  stepDownsInFlight.set(accountKey, job);
+  return job;
+}
+
+async function runStepDown(
+  accountKey: string,
+  store: ReviewTaskStore,
+  now: Date,
 ): Promise<void> {
   const tasks = await store.load(accountKey);
   const today = addDaysToToday(0, now);

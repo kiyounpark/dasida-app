@@ -1273,6 +1273,51 @@ describe('알림의 옛 id로 들어올 때 (한 칸 내림 뒤)', () => {
     await waitFor(() => expect(router.replace as jest.Mock).toHaveBeenCalledWith('/(tabs)/quiz'));
   });
 
+  // 1.0.13 — 찾을 때 날짜도 본다(Fable 10.06 권고 1). 앱은 받은 알림을 안 지워서, 밤에 알림센터의 아침 알림을
+  // 누르면 낮에 끝낸 과제 다음 단계(며칠 뒤)를 오늘 당겨 풀었다. 홈 카드·체인과 같은 규칙: 기기 날짜로 오늘까지.
+  function localDate(daysFromToday: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromToday);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  it('낮에 끝낸 과제의 알림을 밤에 눌러도 — 며칠 뒤 다음 단계를 당겨 풀지 않고 홈으로', async () => {
+    mockStoreLoad.mockResolvedValue([
+      makeTask('day3', { completed: true, scheduledFor: localDate(0) }),
+      makeTask('day7', { scheduledFor: localDate(4) }),
+    ]);
+    mockSearchParams.taskId = `${SERIES}day3`;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() => expect(router.replace as jest.Mock).toHaveBeenCalledWith('/(tabs)/quiz'));
+    expect(logEvent as jest.Mock).not.toHaveBeenCalledWith('review_started', expect.anything());
+  });
+
+  it('같은 id라도 내일로 옮겨진 과제면 오늘 풀지 않는다 — 홈으로', async () => {
+    mockStoreLoad.mockResolvedValue([makeTask('day1', { scheduledFor: localDate(1) })]);
+    mockSearchParams.taskId = `${SERIES}day1`;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() => expect(router.replace as jest.Mock).toHaveBeenCalledWith('/(tabs)/quiz'));
+    expect(logEvent as jest.Mock).not.toHaveBeenCalledWith('review_started', expect.anything());
+  });
+
+  it('어제 날짜로 남은 미완료는 오늘 푼다 — 날짜 조건은 미래만 막는다', async () => {
+    const day1 = makeTask('day1', { scheduledFor: localDate(-1) });
+    mockStoreLoad.mockResolvedValue([day1]);
+    mockSearchParams.taskId = day1.id;
+
+    renderHook(() => useReviewSessionScreen());
+
+    await waitFor(() =>
+      expect(logEvent as jest.Mock).toHaveBeenCalledWith('review_started', { task_id: day1.id }),
+    );
+    expect(router.replace as jest.Mock).not.toHaveBeenCalled();
+  });
+
   it('내림이 실패해도(네트워크) 찾기는 이어 간다', async () => {
     const day1 = makeTask('day1');
     (stepDownMissedReviewTasks as jest.Mock).mockRejectedValue(new Error('offline'));
