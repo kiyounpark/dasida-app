@@ -13,6 +13,7 @@ import { REVIEW_STAGE_ORDER } from '@/features/learning/review-stage';
 import {
   resolveNextDueReview,
   countDueReviews,
+  isScheduledByToday,
   nextStageOffsetDays,
   type NextDueResolution,
 } from '@/features/learning/review-chain';
@@ -104,16 +105,19 @@ export type UseReviewSessionScreenResult = {
  * 들어온 id로 이번에 풀 과제를 고른다(1.0.12). 정확한 미완료 → 같은 계열(id 끝 `__단계`만 다른 —
  * `buildReviewTaskId` 꼴 `{출처}__{약점|note}__{단계}`)의 미완료 → 없으면 null.
  * 한 칸 내림이 id를 바꾸고, 알림은 옛 id를 들고 오기 때문이다. 이미 끝난 같은 id는 다시 풀지 않는다.
+ * 오늘까지인 과제만 고른다(1.0.13) — 앱은 받은 알림을 안 지워서, 밤에 알림센터의 아침 알림을 누르면
+ * 낮에 끝낸 과제의 다음 단계(며칠 뒤)를 오늘 당겨 풀었다(Fable 10.06 권고 1).
  */
 function findReviewTaskForEntry(tasks: ReviewTask[], taskId: string): ReviewTask | null {
-  const exact = tasks.find((t) => t.id === taskId && !t.completed);
+  const open = tasks.filter((t) => !t.completed && isScheduledByToday(t.scheduledFor));
+  const exact = open.find((t) => t.id === taskId);
   if (exact) return exact;
   const cut = taskId.lastIndexOf('__');
   if (cut < 0 || !(REVIEW_STAGE_ORDER as string[]).includes(taskId.slice(cut + 2))) {
     return null;
   }
   const seriesPrefix = taskId.slice(0, cut + 2);
-  return tasks.find((t) => !t.completed && t.id.startsWith(seriesPrefix)) ?? null;
+  return open.find((t) => t.id.startsWith(seriesPrefix)) ?? null;
 }
 
 export function useReviewSessionScreen(): UseReviewSessionScreenResult {

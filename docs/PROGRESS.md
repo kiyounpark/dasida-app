@@ -1211,6 +1211,16 @@
 - 메시지: docs: STATUS — 1.0.12 EAS 빌드 출발(iOS 25·안드 13, 자동 제출 예약) · 10.12에 볼 숫자와 기록 자리
 - 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
+### 커밋 2026.10.07 03:10
+- 해시: `3d9ffba` (`3d9ffba6d4e5c4a5542e9ce7154a5d2c01f3fed1`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app
+- 링크: https://github.com/kiyounpark/dasida-app/commit/3d9ffba6d4e5c4a5542e9ce7154a5d2c01f3fed1
+- 작성자: Claude
+- 메시지: fix(review): 한 칸 내림은 계정마다 하나씩 · 알림 진입은 오늘까지인 과제만
+- 본문: - stepDownMissedReviewTasks: 진행 중이면 같은 작업을 기다린다(계정별 Map). / 홈과 복습 화면(알림 콜드 스타트)이 동시에 불러 둘 다 옛 목록을 읽고 저장하던 것 — Fable 10.06 권고 B / - findReviewTaskForEntry: 오늘(기기 날짜)까지인 미완료만 고른다. 밤에 아침 알림을 누르면 / 낮에 끝낸 과제의 다음 단계를 당겨 풀던 것 — Fable 10.06 권고 1 / - 테스트: 동시 호출 load·saveAll 1회, 미래 과제는 홈으로(각각 고치기 전 실패 확인) / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com> / Claude-Session: https://claude.ai/code/session_01J1ELz69FLwhC463TkCD7LJ
+
 ### 커밋 2026.10.06 20:22
 - 해시: `f5531abe` (`f5531abebdd859dddba64b7812c27ae92b80e413`)
 - 브랜치: main
