@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:24
+- 해시: `8c6f86ab` (`8c6f86ab1bd417dbe063b8d0c36000d169a41e16`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/8c6f86ab1bd417dbe063b8d0c36000d169a41e16
+- 작성자: 박기윤
+- 메시지: chore: 첫 OTA를 스토어 1.0.12와 같은 값으로 — npm run ota:production · CLAUDE.md 3번 · STATUS
+- 본문: - package.json ota:production: 셸의 EXPO_PUBLIC_*를 벗기고 eas update --channel production --environment production / - EAS 서버 production에 PostHog 두 값 추가(eas env:create, 저장소 밖) — eas.json에만 있어 --environment production 묶음에서 빠졌다 / - 같은 조건 expo export로 코드가 쓰는 28개 전부 스토어와 같음 확인 / - astra·Fable → Fable 2차 최종, 원문 docs/research/2026-10-07-ota-env-astra-fable.md / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 17:19
 - 해시: `601023ab` (`601023ab42e34eb08663a3b3653e04fa731a2392`)
 - 브랜치: HEAD
