@@ -170,3 +170,9 @@ B 할 때 주의 둘: visibility는 **plain text**(sensitive도 됨) — secret�
 - 더러운 셸 시험: `EXPO_PUBLIC_*` 가짜 3개를 깐 셸에서 스크립트의 `eas update` 자리만 `env`로 바꿔 돌림 → 남은 `EXPO_PUBLIC_*` 0개(안 벗기면 1개).
 - 서버에 넣은 뒤 스크립트와 같은 조건(셸 `EXPO_PUBLIC_*` 벗김 + 서버 24개 + `EXPO_NO_DOTENV=1` · Metro 캐시는 스크래치패드 새 폴더)으로 `expo export` → 코드가 쓰는 키 중 서버에 있는 23개 값이 iOS·안드 `.hbc` 둘 다에 있음 · 로컬에만 있는 값 0 · GA4 0. 서버 24개 해시 = 스토어 해시(다름 0).
 - 첫 묶음(dist-prod)과 파일 이름(JS 내용 해시)은 같았지만 `.hbc` 바이트는 달랐다 — 같은 JS라도 바이트코드 바이트는 달라질 수 있어 값 대조로 확인했다.
+
+## 덧붙임 — OTA 그림(에셋) 한도 (10.07 저녁 Claude)
+
+- `app.config.js`의 `updates.assetPatternsToBeBundled: []`(05.02 `d255753e` — 「OTA 에셋 0개」 의도)는 **효과가 없다.** expo CLI가 길이 0이면 「설정 없음」으로 보고 그림을 전부 넣는다(`node_modules/expo/node_modules/@expo/cli/build/src/export/exportAssets.js:97-108`). 위 export 묶음에도 그림이 들어 있었다(서로 다른 파일 1,232개 — 시험 그림 1,184).
+- EAS 서버가 알려준 한도는 **업데이트 하나에 2,000개**(GraphQL `assetLimitPerUpdateGroup`, 읽기만으로 조회). 지금 1,232개라 걸리지 않고, 75%(1,500)부터 경고가 뜬다(`eas-cli/build/project/publish.js:401-404`).
+- 그래서 지금은 그림을 바꾼 변경도 OTA로 간다(CLAUDE.md 3번 「이미지 등 에셋 = OTA 가능」 그대로 맞다). 시험 그림이 늘어 2,000을 넘으면 그때 OTA가 막힌다 — 그 전에 `assetPatternsToBeBundled`를 실제로 고를 패턴으로 바꿔야 한다(그 그림은 새 빌드에 들어 있어야 함).
