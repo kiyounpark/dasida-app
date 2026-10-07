@@ -13,6 +13,7 @@ import {
 
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import * as Updates from 'expo-updates';
 
 import { BrandHeader } from '@/components/brand/BrandHeader';
 import { PageContainer } from '@/components/layout/page-container';
@@ -21,6 +22,10 @@ import { LEGAL_URLS } from '@/constants/legal-urls';
 import { BrandTypography } from '@/constants/typography';
 import type { LearnerTrack } from '@/features/learner/types';
 import type { UseProfileScreenResult } from '@/features/profile/hooks/use-profile-screen';
+import { updateLabelOf } from '@/features/profile/update-label';
+
+// 실행 한 번 동안 안 바뀌는 값이라 한 번만 센다
+const updateLabel = updateLabelOf(Updates);
 
 function maskAccountKey(accountKey: string) {
   if (accountKey.length <= 18) {
@@ -421,6 +426,7 @@ export function ProfileScreenView({
           </Text>
           <Text selectable style={styles.body}>
             버전 {Constants.expoConfig?.version ?? '—'}
+            {updateLabel ? ` · ${updateLabel}` : ''}
           </Text>
           <ActionButton
             label="개인정보처리방침"
