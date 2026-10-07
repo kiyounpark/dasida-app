@@ -1061,6 +1061,66 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.07 17:07
+- 해시: `2c5224ac` (`2c5224ac089c42dd59b19176eb6920b49bb882ac`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2c5224ac089c42dd59b19176eb6920b49bb882ac
+- 작성자: 박기윤
+- 메시지: docs: STATUS — ⑵ 줄 10.05 노트 설명 정정(짐작 → 그때 기록 「재도전 안 나감 · 후보에 개념 없음」)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.07 17:02
+- 해시: `c359eebe` (`c359eebe4b64c3c66a4502d5f1b5577cd6f01c86`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c359eebe4b64c3c66a4502d5f1b5577cd6f01c86
+- 작성자: 박기윤
+- 메시지: docs: 쇼츠 사다리 — 레퍼런스 후보 3편 정함(10.07 기윤 · 9모 15번 셋)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.07 16:59
+- 해시: `ac86045b` (`ac86045bc59f36061cb68823f2cd1cfd17fd38e4`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/ac86045bc59f36061cb68823f2cd1cfd17fd38e4
+- 작성자: 박기윤
+- 메시지: docs: STATUS — ⑵ 쪽지·재도전·개념 세 칸 서버 확인(시뮬레이터 3C 1장 · 기윤 폰 노트는 쪽지만 = 설계대로) · 노트 카드 「왜」 마지막 줄 잘림 기록
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.07 16:51
+- 해시: `9dca738e` (`9dca738eb19bf55d53208c057106f8ef22ea8c7d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9dca738eb19bf55d53208c057106f8ef22ea8c7d
+- 작성자: 박기윤
+- 메시지: docs: STATUS — OTA 묶음 환경값 확인(읽기만) · 그냥 누르면 13개 다름 · --environment production만이면 PostHog 2개 빠짐 → PostHog 두 키 앞에 붙인 명령으로 28개 같음
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.07 15:54
+- 해시: `94639c0d` (`94639c0d42b98fcb5a07d49f4459253aa370c8ad`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/94639c0d42b98fcb5a07d49f4459253aa370c8ad
+- 작성자: 박기윤
+- 메시지: docs: STATUS — PR #57은 1.0.12 뜨는 날 OTA로(지금 할 일 없음 · 누르기 전 묶음 환경값 확인)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.07 14:09
+- 해시: `eccf4d1d` (`eccf4d1da618e270b8f62a69252fe6e9a21c7cef`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/eccf4d1da618e270b8f62a69252fe6e9a21c7cef
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.13 PR #57 리뷰 끝(Fable 최종 「반드시 고칠 것 없음」) · T0trG 계정은 기윤으로 봄 · 시간대 한계 한 줄
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 11:11
 - 해시: `1c83809f` (`1c83809fc0f9e5233ed3c6b426dfd096b2339b5c`)
 - 브랜치: main
