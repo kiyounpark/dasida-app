@@ -22,6 +22,7 @@
 - 순서: 패키지 설치 → `npx expo prebuild --clean` → `npx expo run:ios`
 - 이 규칙을 어기면 검정화면(JS 번들 로드 실패) 발생
 - **OTA(`eas update`)냐 새 빌드냐 — Claude가 판정한다 (10.07 🔒 기윤)**: 앱 코드를 바꾼 작업이 끝나면 마지막에 한 줄로 말한다 — 「이번 변경: OTA 가능 / 새 빌드 필요 — 이유」. 기윤은 판정하지 않는다.
+  - 판정 줄에 옛 버전에도 보내야 하는지 같이 말한다 — 기본은 최신 버전에만. 옛 버전에만 있는 큰 버그일 때만 그 버전 코드로 따로 보낸다 (10.07 기윤 OK)
   - 새 빌드: 위 `prebuild --clean`이 필요한 변경(네이티브 코드가 든 패키지 추가·업그레이드 · Expo SDK 업그레이드) · `app.config.js`의 권한·아이콘·스플래시·plugins·번들 ID·`version` 변경
   - OTA 가능: JS/TS 코드 · 데이터 JSON · 이미지 등 에셋 · 네이티브 코드 없는 순수 JS 패키지
   - 누르기 전: `runtimeVersion`이 `appVersion` 정책이라 OTA는 `app.config.js`의 `version`과 숫자가 같은 설치본에만 간다. 그 숫자가 지금 스토어에 떠 있는 버전(STATUS 맨 위)과 같은지 본다. `app.json`의 `version`은 옛 값이라 보지 않는다(`app.config.js`가 쓰인다).
