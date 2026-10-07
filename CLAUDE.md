@@ -21,6 +21,11 @@
 - **시뮬레이터 실행은**: `npx expo run:ios` (Xcode 직접 Run 금지)
 - 순서: 패키지 설치 → `npx expo prebuild --clean` → `npx expo run:ios`
 - 이 규칙을 어기면 검정화면(JS 번들 로드 실패) 발생
+- **OTA(`eas update`)냐 새 빌드냐 — Claude가 판정한다 (10.07 🔒 기윤)**: 앱 코드를 바꾼 작업이 끝나면 마지막에 한 줄로 말한다 — 「이번 변경: OTA 가능 / 새 빌드 필요 — 이유」. 기윤은 판정하지 않는다.
+  - 새 빌드: 위 `prebuild --clean`이 필요한 변경(네이티브 코드가 든 패키지 추가·업그레이드 · Expo SDK 업그레이드) · `app.config.js`의 권한·아이콘·스플래시·plugins·번들 ID·`version` 변경
+  - OTA 가능: JS/TS 코드 · 데이터 JSON · 이미지 등 에셋 · 네이티브 코드 없는 순수 JS 패키지
+  - 누르기 전: `runtimeVersion`이 `appVersion` 정책이라 OTA는 `app.config.js`의 `version`과 숫자가 같은 설치본에만 간다. 그 숫자가 지금 스토어에 떠 있는 버전(STATUS 맨 위)과 같은지 본다. `app.json`의 `version`은 옛 값이라 보지 않는다(`app.config.js`가 쓰인다).
+  - 새로 깐 학생은 첫 실행을 내장 코드로 돌고 OTA는 다음 실행부터 적용된다. OTA는 아직 한 번도 안 눌렀다(파이프라인 미검증) — 처음 누를 땐 기윤에게 묻는다(학생에게 가는 게 바뀌는 갈림길).
 
 4. Claude 구현 및 검증 범위
 - 코드 구조 리팩터링, Thin Screen 전환, custom hook 분리
