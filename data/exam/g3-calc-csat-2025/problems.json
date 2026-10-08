@@ -464,7 +464,7 @@
     {
       "number": 28,
       "page": 11,
-      "type": "short_answer",
+      "type": "multiple_choice",
       "score": 4,
       "answer": 5,
       "topic": "적분",
