@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 10:07
+- 해시: `907a2346` (`907a2346c3238f0a31563f5158f47740fc642996`)
+- 브랜치: fix/ota-asset-patterns
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/907a2346c3238f0a31563f5158f47740fc642996
+- 작성자: 박기윤
+- 메시지: docs: OTA 그림 한도 A안 — 실행·확인 결과와 astra·Fable 리뷰(둘 다 반드시 고칠 것 없음)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 09:50
 - 해시: `21ab5b7c` (`21ab5b7c8e9b0aa461a894f56c8359ba43fc464c`)
 - 브랜치: fix/ota-asset-patterns
