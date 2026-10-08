@@ -12,7 +12,17 @@ module.exports = {
     newArchEnabled: true,
     updates: {
       url: 'https://u.expo.dev/e398244b-6a71-42d3-bad0-1f69e0fe2148',
-      assetPatternsToBeBundled: [],
+      // OTA엔 시험 그림(assets/exam)을 안 싣는다 — 업데이트당 파일 1,000개 한도(10.07 첫 OTA 거절). 앱 본체에 든 그림을 쓴다. 빈 배열 = 전부, `!` 빼기 패턴은 안 먹어서 넣을 것만 적는다
+      assetPatternsToBeBundled: [
+        'assets/auth/**',
+        'assets/fonts/**',
+        'assets/images/**',
+        'assets/journey/**',
+        'assets/quiz/**',
+        'assets/review/**',
+        'features/**',
+        'node_modules/**',
+      ],
     },
     runtimeVersion: {
       policy: 'appVersion',
