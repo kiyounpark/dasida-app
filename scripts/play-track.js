@@ -15,7 +15,9 @@ async function main() {
     for (const t of tracks.tracks) if (['production','internal'].includes(t.track)) console.log(t.track, JSON.stringify(t.releases));
     if (mode === 'promote') {
       const text = require('fs').readFileSync(process.argv[3], 'utf8').trim();
-      const body = { track: 'production', releases: [{ name: '1.0.12', versionCodes: ['13'], status: 'completed', releaseNotes: [{ language: details.defaultLanguage, text }] }] };
+      const [name, code] = [process.argv[4], process.argv[5]]; // 예: promote notes.txt 1.0.13 14
+      if (!name || !code) throw new Error('usage: promote <notes> <versionName> <versionCode>');
+      const body = { track: 'production', releases: [{ name, versionCodes: [code], status: 'completed', releaseNotes: [{ language: details.defaultLanguage, text }] }] };
       const put = await req('PUT', `/edits/${id}/tracks/production`, body);
       console.log('put', JSON.stringify(put));
       const c = await req('POST', `/edits/${id}:commit`);
