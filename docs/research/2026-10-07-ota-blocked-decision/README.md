@@ -2,6 +2,7 @@
 
 ## 결론 먼저
 
+- **10.08 10:16 발행됨(기윤 「OK, 눌러」)** — 그룹 `b1594395-8e8b-4bdb-8538-14a147276e09` · iOS `01a11915-9ed6-7fcc-…` · 안드 `01a11915-9ed6-7f83-…` · 환경값 줄에 PostHog 키 있음 · 남은 것: 기윤 TestFlight 25 확인(설정 「업데이트 01a11915」·기출 그림·노트 카드). 정본 STATUS PR #57 줄.
 - **10.08 실행 끝 — OTA 발행은 아직(첫 OTA라 기윤 OK 대기).** 커밋 `4f713b3c`(브랜치 `fix/ota-asset-patterns`에서 만들어 10.08 main 합침 · 리뷰는 rebase 전 같은 내용 `024f9287`에 걸었다) `app.config.js` `assetPatternsToBeBundled` = `assets/{auth,fonts,images,journey,quiz,review}/**` · `features/**` · `node_modules/**`. 묶음 파일 수 **iOS 41 · 안드 42**(빠진 건 `assets/exam` 1,184뿐) · `assets:verify` 빌드 25 커밋 `11c08a99`로 만든 app.manifest와 iOS·안드 둘 다 통과(플랫폼별로 따로 내보내야 깨끗 — 한 번에 내보내면 반대 플랫폼 파일 10·9건이 거짓으로 걸림) · 다음 네이티브 빌드는 패턴을 안 읽는다(`export:embed` 실제 실행 — 시험 그림 1,800개 그대로). 리뷰 astra(34,726토큰)·Fable(157,139토큰) 둘 다 「반드시 고칠 것: 없음」 → `q-review.md` · `astra-review-1.md` · `fable-review-1.md`. 증거 파일(질문지의 스크래치패드 경로는 지워짐) `~/dev/dasida-measure/2026-10-08-ota-asset-patterns/`.
 - ⚠️ **10.08 바뀐 사정**: 1.0.12가 두 스토어에 떴다(안드 10.07 11:21 · 애플 10.08 새벽). 아래 Fable 셋째 이유 「사고 범위가 가장 작은 때가 지금」은 더는 안 맞는다 — OTA는 스토어 1.0.12 학생에게도 같이 간다. 결정(A)은 그대로.
 - 앞으로: 시험 그림이 바뀌거나 늘면 = 새 빌드. 새 하위 폴더를 `assets/`에 만들면 패턴에 넣어야 OTA에 실린다(안 넣으면 그 그림은 앱 본체에만 있어야 뜬다).
