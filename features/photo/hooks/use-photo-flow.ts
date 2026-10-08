@@ -151,7 +151,8 @@ export function usePhotoFlow({
         qa: __DEV__,
         photoUri: photoUriRef.current,
         // 약점 후보가 둘 이상이면 노트 전에 묻는다 — 앱만(🔒 08.11·09.20, 웹엔 고른 값을 둘 곳이 없다)
-        profile: { picksWeakness: true, textInput: true },
+        // 짚기 0도 노트로 끝낸다 — 앱만(🔒 10.08 C). 웹은 저장할 데가 없어 약점 카드 그대로
+        profile: { picksWeakness: true, textInput: true, noteWithoutPointing: true },
       });
       scriptRef.current.start(result);
     } catch (caught) {

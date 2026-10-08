@@ -84,7 +84,8 @@ export function PhotoNoteCard({
       )}
 
       <NoteRow label="✂️ 갈라진 지점" text={lines.quote} />
-      <NoteRow label="왜" text={note.why} />
+      {/* 짚은 줄 없이 온 노트(설문 결말 · 10.08)는 왜가 비어 있다 — 갈라진 지점과 같이 (없음) */}
+      <NoteRow label="왜" text={note.why || '(없음)'} />
       <NoteRow label="다음엔" text={note.fix} />
 
       <View style={styles.foot}>

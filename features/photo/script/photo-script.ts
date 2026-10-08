@@ -509,8 +509,12 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
 
   // 노트로 가는 갈림길. 통역표로 약점을 찾고, 앱은 둘 이상이면 노트 전에 학생한테 묻는다(08.11 🔒).
   // 웹은 안 묻고 "A 또는 B"로 — 고른 값을 둘 곳(저장·복습)이 없다
-  function showWrongNote(idx: number, ctx: NoteContext, retryResult: ScriptRetryResult) {
-    const weaknessIds = weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
+  // idx null = 짚은 후보 없이 온 노트(설문 결말)
+  function showWrongNote(idx: number | null, ctx: NoteContext, retryResult: ScriptRetryResult) {
+    // 방법을 끝까지 못 고른 설문 노트('unknown')는 이름을 안 단다 — 통역표의 unknown 칸은 옛 이차함수 진단용이라
+    // (예: × 답 옮겨 적기 → 「최솟값 읽기 혼동」) 다른 단원 사진에 엉뚱한 복습 과제가 생긴다
+    const weaknessIds =
+      idx === null && ctx.methodId === 'unknown' ? [] : weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
     // 빈손(0개)도 반드시 남긴다 — 분모. 질문 앞에 있어야 말풍선에서 나간 학생이 분모에 남는다
     io.log({
       name: 'weakness_labeled',
@@ -559,15 +563,19 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
 
   // 오답노트 한 장 — 학생이 아는 양식(내 풀이/갈라진 지점/왜/다음엔)이 한 글자도 안 썼는데 채워져 나온다
   function finishNote(
-    idx: number,
+    idx: number | null,
     ctx: NoteContext,
     retryResult: ScriptRetryResult,
     weaknessIds: WeaknessId[],
     primaryWeaknessId: WeaknessId | null,
   ) {
-    const cand = pocket?.errorCandidates[idx];
+    const cand = idx === null ? undefined : pocket?.errorCandidates[idx];
     const today = now();
-    io.say('자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.');
+    io.say(
+      idx === null
+        ? '이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게.'
+        : '자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.',
+    );
     const note = {
       dateLabel: `${today.getMonth() + 1}/${today.getDate()}`,
       photoUri: deps.photoUri,
@@ -577,7 +585,8 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
       fix: cand?.fix || mistakeTypeFix(ctx.mistakeType),
       methodId: ctx.methodId,
       mistakeType: ctx.mistakeType,
-      methodLabel: methodLabel(ctx.methodId),
+      // 'unknown'은 카탈로그 라벨이 「잘 모르겠어」(버튼 글)라 태그엔 약점 카드와 같은 「방법 미상」으로
+      methodLabel: methodLabel(ctx.methodId === 'unknown' ? undefined : ctx.methodId),
       typeLabel: mistakeTypeLabel(ctx.mistakeType),
       weaknessIds,
       primaryWeaknessId,
@@ -598,6 +607,13 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
     // 쪽지 ✗를 재도전으로 만회 못 했으면 성공 톤 금지. 쪽지를 건너뛴 건(skip) 실패가 아니다
     const failed = retryResult === 'fail' || (ctx.checkResult === 'fail' && retryResult !== 'pass');
     io.end({ kind: 'note', variant: failed ? 'fail' : 'success', note });
+  }
+
+  // 설문 결말 노트(앱 · 🔒 10.08 C) — 짚은 줄 없이 사진·방법·고른 실수 종류만. 갈라진 지점·왜는 비운다
+  // (후보가 있어도 학생이 방법을 뒤집었거나 확신이 낮아 안 짚은 것 — 그 후보 글은 노트에 안 싣는다).
+  // 이름이 하나로 잡히면 지금 코드 그대로 복습 과제까지, 둘 이상이면 먼저 묻는다(showWrongNote · 🔒 08.11)
+  function surveyNote(methodId: SolveMethodId | null, mistakeType: MistakeTypeId) {
+    showWrongNote(null, { methodId: methodId ?? 'unknown', mistakeType, checkResult: 'skip' }, 'none');
   }
 
   // 설문 결말 카드 — 사진 인용·쪽지 기록이 없어 노트를 채울 재료가 부족한 경로
@@ -634,6 +650,10 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
         onPress: () => {
           io.mySay(option.text);
           io.log({ name: 'survey_pick', mistake: option.type });
+          if (deps.profile.noteWithoutPointing) {
+            surveyNote(methodId, option.type);
+            return;
+          }
           showWeaknessCard(methodId, option.type);
         },
       })),

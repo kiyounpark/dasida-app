@@ -377,7 +377,7 @@ describe('PhotoFlowScreen', () => {
   });
 
   it('오늘은 여기까지·노트·약점 카드 뒤엔 [처음부터 다시]', async () => {
-    // 방법은 맞는데 오류 후보가 없다 → 설문 → 약점 카드 (1.0.9는 여기서 노트 없이 끝났다)
+    // 방법은 맞는데 오류 후보가 없다 → 설문 → 약점 카드 (앱은 10.08부터 설문 [잘 모르겠어]만 카드)
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -385,9 +385,9 @@ describe('PhotoFlowScreen', () => {
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
     fireEvent.press(screen.getByText('맞아, 시작하자'));
     await waitFor(() => expect(screen.getByText('마지막에 답 쓸 때 실수한 것 같아')).toBeTruthy());
-    fireEvent.press(screen.getByText('마지막에 답 쓸 때 실수한 것 같아'));
+    fireEvent.press(screen.getByText('잘 모르겠어'));
 
-    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 마무리 해석')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 개념 구멍')).toBeTruthy());
     expect(screen.getByText('처음부터 다시')).toBeTruthy();
     fireEvent.press(screen.getByText('처음부터 다시'));
     await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
@@ -800,14 +800,14 @@ describe('사진 flow 계측', () => {
   });
 
   /**
-   * 노트 없이 끝나던 세 갈래(1.0.9 photo_dead_end)는 1.0.10(B)부터 웹처럼 설문 → 약점 카드로 간다.
+   * 노트 없이 끝나던 세 갈래(1.0.9 photo_dead_end)는 1.0.10(B)부터 웹처럼 설문 → 약점 카드로 갔고,
+   * 앱은 10.08부터 설문에서 실수 종류를 고르면 짚은 줄 없는 노트로 끝난다(🔒 10.08 C — 10.01 ③을 다시 염).
    * 짚기 사다리(pointing_rejected)는 없어졌고 그 자리는 [나 여기 이렇게 안 썼는데]다.
-   * 카드로 끝난 수 : 노트로 끝난 수 — 카드 쪽이 많아지면 카드 저장을 붙인다(🔒 10.01).
    */
-  it('방법은 맞는데 틀린 데를 못 찾으면 설문 → 약점 카드 — photo_weakness_card_shown', async () => {
-    // 후보 0개 — 짚기로 못 가고 예측 방법은 맞은 갈래
+  it('방법은 맞는데 틀린 데를 못 찾으면 설문 → 짚은 줄 없는 노트 — photo_weakness_labeled·photo_note_shown', async () => {
+    // 후보 0개 — 짚기로 못 가고 예측 방법은 맞은 갈래 (10.08 첫 모르는 학생이 끝난 자리)
     mockAnalyze.mockResolvedValue(makeResult());
-    render(<PhotoFlowScreen />);
+    render(<PhotoFlowScreen accountKey="user:abc" />);
 
     fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
     await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
@@ -816,14 +816,28 @@ describe('사진 flow 계측', () => {
     await waitFor(() => expect(screen.getByText(/그런데 좀 신기해/)).toBeTruthy());
     fireEvent.press(screen.getByText('마지막에 답 쓸 때 실수한 것 같아'));
 
-    await waitFor(() => expect(eventNamed('photo_weakness_card_shown')).toBeTruthy());
+    await waitFor(() => expect(eventNamed('photo_note_shown')).toBeTruthy());
+    expect(screen.getByText('이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게.')).toBeTruthy();
     expect(eventNamed('photo_method_confirm')![1]).toEqual({ answer: 'yes', mode: 'assert' });
     expect(eventNamed('photo_survey_pick')![1]).toEqual({ mistake: 'answer_read' });
-    expect(eventNamed('photo_weakness_card_shown')![1]).toEqual({ method: 'cps', mistake: 'answer_read' });
+    // 짚기 0도 「이름표 붙었나」 분모에 들어간다 — 10.08 전엔 이 갈래가 분모에서 빠졌다
+    expect(eventNamed('photo_weakness_labeled')![1]).toMatchObject({
+      method_id: 'cps',
+      mistake_type: 'answer_read',
+      labeled: true,
+    });
+    expect(eventNamed('photo_weakness_card_shown')).toBeUndefined();
     expect(eventNamed('photo_dead_end')).toBeUndefined();
+
+    // 갈라진 지점·왜는 비운다 — 후보 글이 없다. 다음엔 = 고른 유형의 처방
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note).toMatchObject({ quote: '', why: '', methodId: 'cps', mistakeType: 'answer_read', checkSkipped: true });
+    expect(note.fix).not.toBe('');
+    expect(screen.getAllByText('(없음)')).toHaveLength(2);
   });
 
-  it('학생이 방법을 직접 쓰면 그 방법으로 설문 → 약점 카드 (AI가 못 알아들어 키워드로 좁힘)', async () => {
+  it('학생이 방법을 직접 쓰면 그 방법으로 설문 → 노트 (AI가 못 알아들어 키워드로 좁힘)', async () => {
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -843,9 +857,36 @@ describe('사진 flow 계측', () => {
     await waitFor(() => expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy());
     fireEvent.press(screen.getByText('식은 세웠는데 계산에서 미끄러졌어'));
 
-    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 미분 × 계산 손실수')).toBeTruthy());
-    expect(eventNamed('photo_weakness_card_shown')![1]).toEqual({ method: 'diff', mistake: 'calc_slip' });
+    await waitFor(() => expect(screen.getByText('#미분 #계산 손실수')).toBeTruthy());
+    expect(eventNamed('photo_note_shown')).toBeTruthy();
+    expect(eventNamed('photo_weakness_card_shown')).toBeUndefined();
     expect(eventNamed('photo_dead_end')).toBeUndefined();
+  });
+
+  it('전체 목록에서 방법을 [잘 모르겠어]로 끝내도 노트는 남는다 — 방법 미상, 이름표 없음', async () => {
+    // 통역표의 unknown 칸은 옛 이차함수 진단용이라 이름을 안 단다(photo-script showWrongNote)
+    mockAnalyze.mockResolvedValue(makeResult());
+    mockDiagnose.mockResolvedValue(null);
+    render(<PhotoFlowScreen accountKey="user:abc" />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('아니야, 다른 방법으로 풀었어')).toBeTruthy());
+    fireEvent.press(screen.getByText('아니야, 다른 방법으로 풀었어'));
+    await waitFor(() => expect(screen.getByText('여기에도 없어, 직접 쓸게')).toBeTruthy());
+    fireEvent.press(screen.getByText('여기에도 없어, 직접 쓸게'));
+    for (const text of ['ㅁㄴㅇㄹ', '그냥 했어']) {
+      await waitFor(() => expect(screen.getByPlaceholderText(INPUT_PLACEHOLDER)).toBeTruthy());
+      fireEvent.changeText(screen.getByPlaceholderText(INPUT_PLACEHOLDER), text);
+      fireEvent.press(screen.getByText('보내기'));
+    }
+    await waitFor(() => expect(screen.getByText('그럼 전체 목록에서 직접 골라볼래?')).toBeTruthy());
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+    await waitFor(() => expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy());
+    fireEvent.press(screen.getByText('식은 세웠는데 계산에서 미끄러졌어'));
+
+    await waitFor(() => expect(mockSaveNote).toHaveBeenCalledTimes(1));
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note).toMatchObject({ methodId: 'unknown', methodLabel: '방법 미상', primaryWeaknessId: null, weaknessIds: [] });
   });
 
   it('오답노트까지 가면 photo_dead_end를 안 남긴다 — 분자와 분모가 겹치면 안 된다', async () => {
@@ -1028,6 +1069,24 @@ describe('PhotoFlowScreen — 복습 과제 (E칸)', () => {
       scheduledFor: addDaysToToday(1),
     });
     expect(task.id).toBe(`${note.id}__${note.primaryWeaknessId}__day1`);
+  });
+
+  it('짚은 줄이 0이어도 설문으로 약점이 하나로 잡히면 과제가 된다 (🔒 10.08 C)', async () => {
+    // 후보 0개 → [맞아] → 설문 cps × concept_gap — 후보 1개 칸
+    mockAnalyze.mockResolvedValue(makeResult());
+    const store = memStore();
+    render(<PhotoFlowScreen accountKey="user:abc" reviewTaskStore={store} />);
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('(x−a)² 꼴로 만드는 원리가 헷갈렸어')).toBeTruthy());
+    fireEvent.press(screen.getByText('(x−a)² 꼴로 만드는 원리가 헷갈렸어'));
+
+    await waitFor(() => expect(store.all()).toHaveLength(1));
+    const [, note] = mockSaveNote.mock.calls[0];
+    expect(note.quote).toBe('');
+    expect(store.all()[0]).toMatchObject({ source: 'photo', sourceId: note.id, weaknessId: note.primaryWeaknessId });
   });
 
   it('후보 중 학생이 고른 약점 하나만 과제가 된다', async () => {

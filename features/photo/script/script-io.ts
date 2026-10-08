@@ -39,7 +39,10 @@ export type NoteView = {
   concept?: { rule: string; violation: string };
 };
 
-/** 설문 결말 카드. 저장 안 함(🔒 10.01 갈림길 ③). 라벨은 웹 곡선이 쓴다 */
+/**
+ * 설문 결말 카드. 저장 안 함(🔒 10.01 갈림길 ③). 라벨은 웹 곡선이 쓴다.
+ * 앱은 10.08부터 설문 [잘 모르겠어]만 여기로 온다 — 나머지는 노트(profile.noteWithoutPointing)
+ */
 export type WeaknessCardView = {
   /** 전체 목록의 [잘 모르겠어]로 왔으면 null */
   methodId: SolveMethodId | null;
@@ -97,6 +100,11 @@ export type ScriptDeps = {
     picksWeakness: boolean;
     /** false면 입력칸 대신 전체 목록 버튼으로 간다(앱 ④를 자를 때만) */
     textInput: boolean;
+    /**
+     * 설문에서 실수 종류를 고르면 약점 카드 대신 노트로 끝낸다(짚은 줄 없이) — 앱만(🔒 10.08 C, 10.01 ③을 다시 염).
+     * 짚기 0 학생도 노트·복습 과제가 남아야 앱이 다시 부를 수 있다. 웹은 저장할 데가 없어 안 켠다
+     */
+    noteWithoutPointing?: boolean;
   };
 };
 

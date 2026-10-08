@@ -1,0 +1,140 @@
+{
+  "result": {
+    "hasSolvingWork": true,
+    "userAnswer": null,
+    "transcription": "x^{2}+4x+4=5. (x+2)^2=5",
+    "predictedMethodId": "cps",
+    "confidence": 0.9,
+    "candidateMethodIds": [
+      "cps",
+      "vertex"
+    ],
+    "reason": "",
+    "needsManualSelection": false,
+    "errorCandidates": [],
+    "errorConfidence": 0
+  },
+  "verdicts": {},
+  "diagnose": [],
+  "steps": [
+    "맞아, 시작하자",
+    "마지막에 답 쓸 때 실수한 것 같아"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "풀이 읽었어. x²+4x+4=5 — 완전제곱식으로 접근했네.",
+        "그럼 여기서부터 같이 보자."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "맞아, 시작하자",
+          "primary"
+        ],
+        [
+          "아니야, 다른 방법으로 풀었어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "맞아, 시작하자"
+    },
+    {
+      "me": "맞아"
+    },
+    {
+      "coach": [
+        "그런데 좀 신기해 — 풀이 과정에서는 틀린 데를 못 찾았어. 과정은 맞게 간 것 같거든.",
+        "이러면 보통 마지막에 답을 옮겨 적을 때나 검산에서 새는 경우가 많아.",
+        "풀면서 느낌상 뭐가 걸렸어?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "method_confirm",
+        "answer": "yes",
+        "mode": "assert"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "(x−a)² 꼴로 만드는 원리가 헷갈렸어",
+          null
+        ],
+        [
+          "식 변형하다가 계산에서 미끄러졌어",
+          null
+        ],
+        [
+          "(x−a)²=k까지 갔는데 그다음 뭘 할지 몰랐어",
+          null
+        ],
+        [
+          "마지막에 답 쓸 때 실수한 것 같아",
+          null
+        ],
+        [
+          "잘 모르겠어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "마지막에 답 쓸 때 실수한 것 같아"
+    },
+    {
+      "me": "마지막에 답 쓸 때 실수한 것 같아"
+    },
+    {
+      "coach": [
+        "이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "(없음)",
+        "why": "",
+        "fix": "답 쓰기 전에 \"문제가 뭘 물었지?\"를 한 번 다시 읽자. 다 풀고 넘어지는 게 제일 아깝잖아.",
+        "checks": "",
+        "tags": "#완전제곱식 #마무리 해석",
+        "weakness": [
+          "최솟값 읽기 혼동"
+        ],
+        "askLine": true
+      }
+    },
+    {
+      "event": {
+        "name": "survey_pick",
+        "mistake": "answer_read"
+      }
+    },
+    {
+      "event": {
+        "name": "weakness_labeled",
+        "method_id": "cps",
+        "mistake_type": "answer_read",
+        "weakness_count": 1,
+        "labeled": true
+      }
+    },
+    {
+      "event": {
+        "name": "note_shown",
+        "retry": "none"
+      }
+    },
+    {
+      "ending": "note:success"
+    }
+  ]
+}

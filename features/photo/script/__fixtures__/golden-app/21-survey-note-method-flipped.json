@@ -1,0 +1,185 @@
+{
+  "result": {
+    "hasSolvingWork": true,
+    "userAnswer": null,
+    "transcription": "x^{2}+4x+4=5. 꼭짓점 구하려고 -b/2a 썼다",
+    "predictedMethodId": "cps",
+    "confidence": 0.9,
+    "candidateMethodIds": [
+      "cps",
+      "vertex"
+    ],
+    "reason": "",
+    "needsManualSelection": false,
+    "errorCandidates": [
+      {
+        "quote": "x^{2}+4x+4=5",
+        "why": "왼쪽에 4를 더했으면 오른쪽에도 4를 더해야 해. x^2+4x=1에서 시작하면 (x+2)^2=5야.",
+        "mistakeType": "calc_slip",
+        "fix": "양변에 같은 수를 더했는지 한 줄씩 짝 맞춰 보기",
+        "checkSetup": "x^2 + 6x = 2 를 완전제곱식으로 바꾼다고 하자.",
+        "checkPrompt": "양변에 뭘 더해야 할까?",
+        "checkOptions": [
+          "3을 더한다",
+          "9를 더한다",
+          "6을 더한다"
+        ],
+        "checkAnswerIndex": 1,
+        "retrySetup": "이번엔 x^2 + 10x = 1 이야.",
+        "retryPrompt": "양변에 뭘 더해야 할까?",
+        "retryOptions": [
+          "25를 더한다",
+          "10을 더한다",
+          "5를 더한다"
+        ],
+        "retryAnswerIndex": 0
+      }
+    ],
+    "errorConfidence": 0.8
+  },
+  "verdicts": {
+    "check": "match",
+    "retry": "match"
+  },
+  "diagnose": [],
+  "steps": [
+    "아니야, 다른 방법으로 풀었어",
+    "꼭짓점 공식",
+    "-b⁄2a 공식이 가물가물했어"
+  ],
+  "transcript": [
+    {
+      "coach": [
+        "풀이 읽었어. x²+4x+4=5 — 완전제곱식으로 접근했네.",
+        "그럼 여기서부터 같이 보자."
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "맞아, 시작하자",
+          "primary"
+        ],
+        [
+          "아니야, 다른 방법으로 풀었어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "아니야, 다른 방법으로 풀었어"
+    },
+    {
+      "me": "아니야"
+    },
+    {
+      "coach": [
+        "네가 푼 방식이랑 비슷해 보이는 방법들이야. 이 중에 있어?"
+      ],
+      "ask": true
+    },
+    {
+      "event": {
+        "name": "method_confirm",
+        "answer": "no",
+        "mode": "assert"
+      }
+    },
+    {
+      "buttons": [
+        [
+          "꼭짓점 공식",
+          null
+        ],
+        [
+          "여기에도 없어, 직접 쓸게",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "꼭짓점 공식"
+    },
+    {
+      "me": "꼭짓점 공식"
+    },
+    {
+      "coach": [
+        "그럼 — 풀면서 느낌상 뭐가 제일 걸렸어?"
+      ],
+      "ask": true
+    },
+    {
+      "buttons": [
+        [
+          "-b⁄2a 공식이 가물가물했어",
+          null
+        ],
+        [
+          "x 구하고 대입하다가 계산이 엉켰어",
+          null
+        ],
+        [
+          "구한 값에서 뭘 답으로 쓸지 헷갈렸어",
+          null
+        ],
+        [
+          "잘 모르겠어",
+          "ghost"
+        ]
+      ]
+    },
+    {
+      "press": "-b⁄2a 공식이 가물가물했어"
+    },
+    {
+      "me": "-b⁄2a 공식이 가물가물했어"
+    },
+    {
+      "coach": [
+        "이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "(없음)",
+        "why": "",
+        "fix": "시작 전에 공식을 손으로 세 번 써보자. 외운 게 아니라 손에 붙어야 실전에서 안 흔들려.",
+        "checks": "",
+        "tags": "#꼭짓점 공식 #공식 기억",
+        "weakness": [
+          "공식 암기 부족"
+        ],
+        "askLine": true
+      }
+    },
+    {
+      "event": {
+        "name": "survey_pick",
+        "mistake": "formula_recall"
+      }
+    },
+    {
+      "event": {
+        "name": "weakness_labeled",
+        "method_id": "vertex",
+        "mistake_type": "formula_recall",
+        "weakness_count": 1,
+        "labeled": true
+      }
+    },
+    {
+      "event": {
+        "name": "note_shown",
+        "retry": "none"
+      }
+    },
+    {
+      "ending": "note:success"
+    }
+  ]
+}

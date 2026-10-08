@@ -85,9 +85,10 @@ describe('대본 모듈 = 웹 골든 (약점 고르기 끔 — 웹과 같은 대
   });
 });
 
-describe('앱 골든 (약점 고르기 켬 — 앱만의 갈래)', () => {
+// 앱 profile 그대로(use-photo-flow.ts) — 약점 고르기 + 짚기 0도 노트(🔒 10.08 C). 20~25는 웹 설문 결말 골든을 앱으로 다시 녹음
+describe('앱 골든 (약점 고르기·설문 노트 켬 — 앱만의 갈래)', () => {
   it.each(loadGoldens(APP_GOLDEN_DIR))('%s', async (id, doc) => {
-    const transcript = await runScript(doc, { picksWeakness: true, textInput: true });
+    const transcript = await runScript(doc, { picksWeakness: true, textInput: true, noteWithoutPointing: true });
     if (RECORD) {
       saveGolden(id, { ...doc, transcript }, APP_GOLDEN_DIR);
     } else {
