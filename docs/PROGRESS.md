@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 09:50
+- 해시: `21ab5b7c` (`21ab5b7c8e9b0aa461a894f56c8359ba43fc464c`)
+- 브랜치: fix/ota-asset-patterns
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/21ab5b7c8e9b0aa461a894f56c8359ba43fc464c
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 1.0.12 두 스토어 출시 확인(안드 10.07 11:21 먼저) · 알림 함수 두 개 배포 E 0줄
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.07 23:48
 - 해시: `2830ec7c` (`2830ec7cb8b226649ae170a35d7ce3cf15b5f564`)
 - 브랜치: main
