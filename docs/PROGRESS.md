@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 10:17
+- 해시: `d5a5eb88` (`d5a5eb88c221ff3c5d5ee85457c7d91403a833fc`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d5a5eb88c221ff3c5d5ee85457c7d91403a833fc
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 10.08 초대 조건 다 참(스토어판 사진 1장) · 레퍼런스 장부 — 1칸 미달 확정, 11호부터 레퍼런스 틀
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 10:10
 - 해시: `69152309` (`691523092ca3634e84f999b0b5fa05e639c99b9a`)
 - 브랜치: main
