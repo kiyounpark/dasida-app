@@ -22,7 +22,6 @@ export function WeaknessDetailScreenView({
   notFound,
   item,
   appearances,
-  onPracticeNow,
   onBack,
 }: UseWeaknessDetailScreenResult) {
   return (
@@ -76,18 +75,6 @@ export function WeaknessDetailScreenView({
 
             <WeaknessDetailAppearances appearances={appearances} />
           </ScrollView>
-
-          <View style={styles.ctaWrap}>
-            <Pressable
-              onPress={onPracticeNow}
-              style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-              accessibilityRole="button"
-            >
-              <Text style={styles.ctaText}>
-                {item.completed ? '다시 연습하기' : '지금 바로 연습하기'}
-              </Text>
-            </Pressable>
-          </View>
         </>
       )}
     </SafeAreaView>
@@ -147,22 +134,5 @@ const styles = StyleSheet.create({
     color: 'rgba(72, 67, 58, 0.55)',
     paddingVertical: 24,
     textAlign: 'center',
-  },
-  ctaWrap: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  cta: {
-    backgroundColor: '#1C2C19',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  ctaPressed: { opacity: 0.85 },
-  ctaText: {
-    fontFamily: FontFamilies.bold,
-    fontSize: 15,
-    color: '#F6F2E7',
   },
 });

@@ -42,7 +42,6 @@ export default function CaptureWeaknessScreen() {
         appearances: APPEARANCES,
       }}
       appearances={APPEARANCES}
-      onPracticeNow={() => {}}
       onBack={() => router.replace('/dev')}
     />
   );

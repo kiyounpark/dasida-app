@@ -19,7 +19,6 @@ export type UseWeaknessDetailScreenResult = {
   notFound: boolean;
   item: WeaknessProgressItem | null;
   appearances: WeaknessAppearance[];
-  onPracticeNow: () => void;
   onBack: () => void;
 };
 
@@ -70,14 +69,6 @@ export function useWeaknessDetailScreen(
     }, [weaknessId, loadRecentAttempts]),
   );
 
-  const onPracticeNow = useCallback(() => {
-    if (weaknessId == null) return;
-    router.push({
-      pathname: '/quiz/practice',
-      params: { weaknessId },
-    });
-  }, [weaknessId]);
-
   const onBack = useCallback(() => {
     if (router.canGoBack()) router.back();
     else router.replace('/(tabs)/quiz');
@@ -88,7 +79,6 @@ export function useWeaknessDetailScreen(
     notFound,
     item,
     appearances,
-    onPracticeNow,
     onBack,
   };
 }
