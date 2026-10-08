@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 11:32
+- 해시: `7161da77` (`7161da7719e4d89382599a7bef7d7d2cef9b808f`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/7161da7719e4d89382599a7bef7d7d2cef9b808f
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 영상 끝 문구는 질문 ③ 결론대로 11~13호부터 앱 문구 · 11호 소재 26수능 11번
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 10:57
 - 해시: `92b417ef` (`92b417effca835f8b9feb2c563d4195c65fe1f7b`)
 - 브랜치: main
