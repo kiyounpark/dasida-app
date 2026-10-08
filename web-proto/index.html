@@ -103,6 +103,8 @@
     overflow-x: auto; white-space: nowrap;
   }
   .bubble.coach.ask .p.math-line { background: #fff; }
+  /* 내 말풍선: 크림 바탕이면 흰 수식이 사라진다 — 초록 위에 옅은 흰 막만 깐다 (.m.q와 같은 값) */
+  .bubble.me .p.math-line { background: rgba(255,255,255,0.16); border-left-color: rgba(255,255,255,0.6); }
   .bubble .p.math-line .m { font-size: 1em; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
   .card .card-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
