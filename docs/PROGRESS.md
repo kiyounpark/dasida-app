@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 13:38
+- 해시: `5578ce58` (`5578ce580a927c2fd72ec12b27fabcf5df06bb88`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5578ce580a927c2fd72ec12b27fabcf5df06bb88
+- 작성자: 박기윤
+- 메시지: docs: STATUS 정리 — 짚은 줄 0 노트 ✅ 줄은 archive 「10.08 오후에 내림」으로 · 남은 것(10.12 볼 것·기록만)만 남김 · 모르는 것 uOyco 줄 갱신
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 11:32
 - 해시: `7161da77` (`7161da7719e4d89382599a7bef7d7d2cef9b808f`)
 - 브랜치: main
