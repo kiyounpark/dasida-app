@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 10:19
+- 해시: `2681ea55` (`2681ea556b0f5ff33a28db75110510197fd3ad3d`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/2681ea556b0f5ff33a28db75110510197fd3ad3d
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 첫 OTA 발행(10.08 10:16 · b1594395) · 남은 것 TestFlight 25 확인
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 10:17
 - 해시: `d5a5eb88` (`d5a5eb88c221ff3c5d5ee85457c7d91403a833fc`)
 - 브랜치: main
