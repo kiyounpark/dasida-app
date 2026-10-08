@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 17:40
+- 해시: `1179f887` (`1179f887b5a95d77e4c03b26c73464642a2b3c54`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1179f887b5a95d77e4c03b26c73464642a2b3c54
+- 작성자: 박기윤
+- 메시지: fix(data): 26수능 28번을 객관식으로 — 주관식 입력칸으로 떠서 보기를 못 고르던 것 (정답 ⑤ 그대로)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 17:16
 - 해시: `5943ea6b` (`5943ea6b3a9485c09e637bc6fae6138beb961b9e`)
 - 브랜치: main
