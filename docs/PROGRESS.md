@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.08 21:34
+- 해시: `143cf3d3` (`143cf3d3fded015f3c9232baeb0b8a2daf5929af`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/143cf3d3fded015f3c9232baeb0b8a2daf5929af
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 🔒 10.08 밤 기출은 화면에서만 내림 · q-5 질문지(토요일 astra·Fable)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.08 21:24
 - 해시: `b4eab972` (`b4eab972daa953cb17710c63f11c45e3a07361e9`)
 - 브랜치: main
