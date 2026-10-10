@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.10 19:39
+- 해시: `672b236b` (`672b236ba6875e77b87b893a9f7c2e55a2f4dc90`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/672b236ba6875e77b87b893a9f7c2e55a2f4dc90
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 기출 문 네 곳 숨김 main 04d06a08 (astra·Fable 반드시 고칠 것 0 · OTA 기윤 OK 대기)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.10 19:07
 - 해시: `7e74b853` (`7e74b853b89e3ad653d8076b0e41b76408bfd184`)
 - 브랜치: main
