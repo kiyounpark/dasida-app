@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.10 18:56
+- 해시: `d1831a93` (`d1831a939d9cfff223fbb67ee6c546fc0be547ea`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/d1831a939d9cfff223fbb67ee6c546fc0be547ea
+- 작성자: 박기윤
+- 메시지: docs: STATUS — Codex 두 브랜치 main 합침(07cb9fc0·5993e738 · astra·Fable 반드시 고칠 것 0) · 버튼 빼기 OTA는 기윤 OK 대기
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.10 18:54
 - 해시: `5993e738` (`5993e738ab8977419ecfeafd656e6e38686adf00`)
 - 브랜치: main
