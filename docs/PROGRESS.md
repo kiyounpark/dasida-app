@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.10 19:48
+- 해시: `936222af` (`936222aff74dc0845453dadffed986e0a6e9e6ec`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/936222aff74dc0845453dadffed986e0a6e9e6ec
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 기출 숨김 OTA 기윤 폰 「업데이트 01a1256c」 확인
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.10 19:47
 - 해시: `07634e6f` (`07634e6f1cd61caeb27110af343365fb2bb961c3`)
 - 브랜치: main
