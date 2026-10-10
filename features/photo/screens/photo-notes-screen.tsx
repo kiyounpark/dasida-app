@@ -32,9 +32,12 @@ export function uploadProgressLabel(done: number, total: number) {
 export function PhotoNotesScreen({
   accountKey,
   getRemoteAuthHeaders,
+  inTab = false,
 }: {
   accountKey?: string | null;
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
+  /** 「내 기록」 탭 안 — 돌아갈 곳이 없어 뒤로 버튼을 빼고, 아래 여백은 탭바가 맡는다 (q-5) */
+  inTab?: boolean;
 } = {}) {
   const { notes, remotePending, remoteFailed, reload, cloudOf, missingCount, upload, uploadMissing } = usePhotoNotesScreen({
     accountKey,
@@ -42,12 +45,13 @@ export function PhotoNotesScreen({
   });
 
   // 맨 위 「< 뒤로」 줄은 모든 상태에 있어야 한다 — iOS 기본 헤더를 껐다(app/_layout.tsx, 1.0.12 ⓪)
-  const backBar = <PhotoBackBar label="뒤로" title="지난 오답노트" />;
+  const backBar = <PhotoBackBar label={inTab ? undefined : '뒤로'} title="지난 오답노트" />;
+  const edges = inTab ? ([] as const) : (['bottom'] as const);
 
   // 읽는 중엔 아무 말도 안 한다 — 기기에서 읽는 거라 한 프레임이고, "없어요"가 깜빡이면 더 나쁘다
   if (notes === null) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={styles.safe} edges={edges}>
         {backBar}
       </SafeAreaView>
     );
@@ -56,7 +60,7 @@ export function PhotoNotesScreen({
   // 새 기기에선 기기 노트가 0장이다 — 서버 답을 기다리는 동안 "아직 노트가 없어"를 띄우면 거짓말이 된다
   if (notes.length === 0 && remotePending) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={styles.safe} edges={edges}>
         {backBar}
         <View style={styles.empty}>
           <ActivityIndicator accessibilityLabel="노트 불러오는 중" color={PhotoTheme.muted} />
@@ -68,7 +72,7 @@ export function PhotoNotesScreen({
   // 새 기기에서 서버를 못 읽었다 — 노트가 서버에 있을 수 있으니 「없어」라고 하지 않는다
   if (notes.length === 0 && remoteFailed) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={styles.safe} edges={edges}>
         {backBar}
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>노트를 못 불러왔어</Text>
@@ -83,7 +87,7 @@ export function PhotoNotesScreen({
 
   if (notes.length === 0) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={styles.safe} edges={edges}>
         {backBar}
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>아직 노트가 없어</Text>
@@ -96,7 +100,7 @@ export function PhotoNotesScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <SafeAreaView style={styles.safe} edges={edges}>
       {backBar}
       <ScrollView contentContainerStyle={styles.list} contentInsetAdjustmentBehavior="automatic">
         <Text style={styles.count}>{`노트 ${notes.length}장`}</Text>

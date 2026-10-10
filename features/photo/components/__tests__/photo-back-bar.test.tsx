@@ -31,6 +31,13 @@ describe('사진 화면 맨 위 뒤로 줄', () => {
     expect(router.back).not.toHaveBeenCalled();
   });
 
+  it('글자를 안 주면 뒤로 버튼 없이 제목만 — 「내 기록」 탭 안 오답노트(q-5)', () => {
+    render(<PhotoBackBar title="지난 오답노트" />);
+
+    expect(screen.getByText('지난 오답노트')).toBeTruthy();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
   it('제목과 버튼 글자를 그린다', () => {
     render(<PhotoBackBar label="홈" title="사진 오답노트" />);
 

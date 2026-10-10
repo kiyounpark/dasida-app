@@ -6,6 +6,14 @@ import { NoReviewDayCard } from '../no-review-day-card';
 
 jest.mock('@/hooks/use-is-tablet', () => ({ useIsTablet: () => false }));
 
+// 기출 문 스위치(exam-doors.ts). 기본은 지금 값(내림) — 마지막 테스트만 다시 꺼낸 날을 흉내 낸다
+let mockExamDoorsVisible = false;
+jest.mock('@/features/quiz/exam/exam-doors', () => ({
+  get EXAM_DOORS_VISIBLE() {
+    return mockExamDoorsVisible;
+  },
+}));
+
 const task = (over: Record<string, unknown>) =>
   ({
     id: 't1',
@@ -21,7 +29,10 @@ describe('NoReviewDayCard', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date(2026, 9, 3, 8, 0)); // 기기 10/3 08:00
   });
-  afterEach(() => jest.useRealTimers());
+  afterEach(() => {
+    jest.useRealTimers();
+    mockExamDoorsVisible = false;
+  });
 
   it('사진 과제가 내일이면 「내일」 카드를 그리고 모의고사는 안 권한다', () => {
     render(<NoReviewDayCard nextTask={task({})} onPressExam={jest.fn()} />);
@@ -61,7 +72,21 @@ describe('NoReviewDayCard', () => {
     expect(screen.queryByText(/내일/)).toBeNull();
   });
 
-  it('사진이 아닌 과제는 지금처럼 모의고사 카드를 낸다', () => {
+  it('기출을 내린 동안엔 기출·옛 진단 과제도 「다음 복습」 카드 — 모의고사를 안 권한다 (q-5)', () => {
+    for (const source of ['featured-exam', 'diagnostic', 'weakness-practice']) {
+      const { unmount } = render(<NoReviewDayCard nextTask={task({ source })} onPressExam={jest.fn()} />);
+      const label = resolveWeaknessLabel('discriminant_calculation');
+
+      expect(screen.getByText(`${label} · DAY 1`)).toBeTruthy();
+      expect(screen.getByText('내일 홈에 떠요. 짧게 다시 보면 돼요.')).toBeTruthy();
+      expect(screen.queryByText('모의고사 시작하기')).toBeNull();
+      expect(screen.queryByText('잠깐 실력 확인해볼까요?')).toBeNull();
+      unmount();
+    }
+  });
+
+  it('기출을 다시 꺼내면 사진이 아닌 과제는 예전처럼 모의고사 카드를 낸다', () => {
+    mockExamDoorsVisible = true;
     render(<NoReviewDayCard nextTask={task({ source: 'weakness-practice' })} onPressExam={jest.fn()} />);
 
     expect(screen.getByText('모의고사 시작하기')).toBeTruthy();

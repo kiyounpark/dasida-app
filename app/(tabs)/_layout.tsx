@@ -6,6 +6,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { FontFamilies } from '@/constants/typography';
 import { Colors } from '@/constants/theme';
+import { EXAM_DOORS_VISIBLE } from '@/features/quiz/exam/exam-doors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
@@ -62,6 +63,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="exam"
         options={{
+          // 기출은 화면에서만 내렸다 — href: null이면 탭바에서 빠지고 화면 파일은 남는다(exam-doors.ts)
+          href: EXAM_DOORS_VISIBLE ? undefined : null,
           title: '기출',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="pencil.and.list.clipboard" color={color} />

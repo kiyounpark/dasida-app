@@ -7,6 +7,7 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 import type { ActiveReviewTaskSummary } from '@/features/learner/types';
 import { daysUntilScheduled } from '@/features/learning/review-scheduler';
 import { formatReviewStageLabel } from '@/features/learning/review-stage';
+import { EXAM_DOORS_VISIBLE } from '@/features/quiz/exam/exam-doors';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -32,7 +33,8 @@ export function NoReviewDayCard({ nextTask, onPressExam }: Props) {
       <View style={styles.pill}>
         <Text style={styles.pillText}>{pillText}</Text>
       </View>
-      {nextTask.source === 'photo' ? (
+      {/* 기출을 내린 동안(exam-doors.ts)은 기출·옛 진단 과제도 「다음 복습」으로 — 모의고사를 권하지 않는다 */}
+      {nextTask.source === 'photo' || !EXAM_DOORS_VISIBLE ? (
         <NextReviewBody nextTask={nextTask} daysUntil={daysUntil} />
       ) : (
         <View style={styles.examCard}>

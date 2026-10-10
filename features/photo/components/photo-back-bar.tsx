@@ -25,23 +25,27 @@ export function PhotoBackBar({
   title,
   onBack = goBackOrHome,
 }: {
-  /** 뒤로 버튼 옆 글자 — 옛 iOS 헤더의 headerBackTitle 자리(「홈」·「뒤로」) */
-  label: string;
+  /** 뒤로 버튼 옆 글자 — 옛 iOS 헤더의 headerBackTitle 자리(「홈」·「뒤로」). 없으면 버튼 없이 제목만(탭 안 화면) */
+  label?: string;
   title: string;
   onBack?: () => void;
 }) {
   return (
     <SafeAreaView edges={['top']} style={styles.bar}>
       <View style={styles.inner}>
-        <Pressable
-          accessibilityLabel={label}
-          accessibilityRole="button"
-          hitSlop={8}
-          onPress={onBack}
-          style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
-          <IconSymbol color={PhotoTheme.ink} name="chevron.left" size={22} />
-          <Text style={styles.backLabel}>{label}</Text>
-        </Pressable>
+        {label === undefined ? (
+          <View style={styles.spacer} />
+        ) : (
+          <Pressable
+            accessibilityLabel={label}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onBack}
+            style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
+            <IconSymbol color={PhotoTheme.ink} name="chevron.left" size={22} />
+            <Text style={styles.backLabel}>{label}</Text>
+          </Pressable>
+        )}
         <Text numberOfLines={1} style={styles.title}>
           {title}
         </Text>

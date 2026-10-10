@@ -25,6 +25,7 @@ import {
 } from '@/features/quiz/exam/exam-analysis-in-progress';
 import { buildResumeAnalysisQueue } from '@/features/quiz/exam/build-resume-analysis-queue';
 import { getDiagnosisProgress } from '@/features/quiz/exam/exam-diagnosis-progress';
+import { EXAM_DOORS_VISIBLE } from '@/features/quiz/exam/exam-doors';
 import { getLatestExamAttempts } from '@/features/quiz/exam/latest-exam-attempt-store';
 import { useExamSession } from '@/features/quiz/exam/exam-session';
 import { EXAM_CATALOG_BY_ID } from '@/features/quiz/data/exam-catalog';
@@ -281,7 +282,8 @@ export function useQuizHubScreen(): UseQuizHubScreenResult {
     })();
   }, [isGraduated, session?.accountKey]);
 
-  const isAnalysisInProgress = analysisState.isInProgress;
+  // 기출을 내린 동안(exam-doors.ts)은 「분석 이어하기」도 안 띄운다 — 홈은 분석 중이 아닌 학생과 같게 그린다
+  const isAnalysisInProgress = EXAM_DOORS_VISIBLE && analysisState.isInProgress;
 
   // 재료는 있는데 오늘 차례가 아닌 날에만 뜬다.
   const showNoReviewDayCard =
