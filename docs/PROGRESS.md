@@ -1061,6 +1061,15 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.10 18:54
+- 해시: `5993e738` (`5993e738ab8977419ecfeafd656e6e38686adf00`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5993e738ab8977419ecfeafd656e6e38686adf00
+- 작성자: 박기윤
+- 메시지: fix: remove practice CTA from weakness detail
+
 ### 커밋 2026.10.10 18:45
 - 해시: `a61b5120` (`a61b51208a9a4f150602cc693f3c8465a6a60c12`)
 - 브랜치: main
