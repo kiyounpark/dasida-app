@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.10 19:05
+- 해시: `1f423529` (`1f423529695052f73031ba5846457d4ebe779787`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1f423529695052f73031ba5846457d4ebe779787
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 약점 상세 버튼 빼기 OTA 19:04 (그룹 84c05ff7 · 업데이트 01a12545)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.10 18:56
 - 해시: `d1831a93` (`d1831a939d9cfff223fbb67ee6c546fc0be547ea`)
 - 브랜치: main
