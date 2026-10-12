@@ -2,6 +2,7 @@
 // 검산·diagnose는 실제 요청 함수(requestQuizVerify·requestDiagnoseMethod)를 쓰고 fetch만 바꿔 끼운다 — 웹 녹음기와 같은 자리.
 import { requestDiagnoseMethod } from '../../flow/diagnose-method-request';
 import { readCheckQuiz, readRetryQuiz } from '../../flow/quiz-guard';
+import * as weaknessMap from '../../flow/weakness-mistake-type-map';
 import { requestQuizVerify } from '../../flow/verify-quiz-request';
 import { createPhotoScript } from '../photo-script';
 import type { NoteView, ScriptDeps } from '../script-io';
@@ -99,9 +100,15 @@ describe('앱 골든 (약점 고르기·설문 노트 켬 — 앱만의 갈래)'
 
 // 1.0.12 ⑵ — 노트에 실리는 것. 골든 시나리오를 돌려 대본이 showNote에 넘긴 NoteView를 그대로 본다
 const goldenById = new Map(loadGoldens());
+const appGoldenById = new Map(loadGoldens(APP_GOLDEN_DIR));
+const APP_PROFILE: ScriptDeps['profile'] = { picksWeakness: true, textInput: true, noteWithoutPointing: true };
 
-async function noteViewOf(id: string, steps?: GoldenDoc['steps']): Promise<{ view: NoteView | null; doc: GoldenDoc }> {
-  const doc = goldenById.get(id);
+async function noteViewOf(
+  id: string,
+  steps?: GoldenDoc['steps'],
+  profile: ScriptDeps['profile'] = { picksWeakness: false, textInput: true },
+): Promise<{ view: NoteView | null; doc: GoldenDoc }> {
+  const doc = (profile.noteWithoutPointing ? appGoldenById : goldenById).get(id);
   if (!doc) throw new Error(`골든 없음: ${id}`);
   const recorder = createTranscriptRecorder();
   let view: NoteView | null = null;
@@ -120,7 +127,7 @@ async function noteViewOf(id: string, steps?: GoldenDoc['steps']): Promise<{ vie
       submissionId: '00000000-0000-4000-8000-000000000000',
       qa: true,
       photoUri: null,
-      profile: { picksWeakness: false, textInput: true },
+      profile,
     },
   );
   script.start(doc.result);
@@ -137,6 +144,38 @@ async function noteViewOf(id: string, steps?: GoldenDoc['steps']): Promise<{ vie
 
 // 쪽지·재도전은 학생 화면에 나간 것만 — 검산을 통과 못 해 건너뛴 문제는 안 실린다(🔒 09.30 확인 문제 정답)
 describe('노트에 남기는 문제 (⑵)', () => {
+  it('앱 골든 23 — 잘 모르겠어는 unclassified 노트, 약점·문제·개념 없이 남는다', async () => {
+    const { view } = await noteViewOf('23-survey-dont-know-note', undefined, APP_PROFILE);
+    expect(view).toMatchObject({
+      mistakeType: 'unclassified',
+      weaknessIds: [],
+      primaryWeaknessId: null,
+      quote: '',
+      why: '',
+      fix: '나중에 이 사진을 보면서 풀이를 한 줄씩 다시 써봐. 막히는 줄이 있으면 거기에 표시해 둬.',
+      checkResult: 'skip',
+      retryResult: 'none',
+    });
+    expect(view).not.toHaveProperty('checkQuiz');
+    expect(view).not.toHaveProperty('retryQuiz');
+    expect(view).not.toHaveProperty('concept');
+  });
+
+  it('방법이 알려져도 unclassified는 통역표를 부르지 않고 다시 묻지 않는다', async () => {
+    const candidates = jest.spyOn(weaknessMap, 'weaknessCandidatesFor');
+    try {
+      const { view } = await noteViewOf(
+        '24-survey-note-no-error-found',
+        ['맞아, 시작하자', '잘 모르겠어'],
+        APP_PROFILE,
+      );
+      expect(view).toMatchObject({ methodId: 'cps', mistakeType: 'unclassified', weaknessIds: [], primaryWeaknessId: null });
+      expect(candidates).not.toHaveBeenCalled();
+    } finally {
+      candidates.mockRestore();
+    }
+  });
+
   it.each(['04-assert-got-it-pass-pass', '05-check-fail-retry-fail', '16-soft-yes-retry-skip'])(
     '%s — 쪽지·재도전 둘 다 화면에 나갔으니 둘 다 남는다(넘어갈래 포함)',
     async (id) => {

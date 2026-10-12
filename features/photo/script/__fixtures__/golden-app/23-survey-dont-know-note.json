@@ -279,9 +279,22 @@
       "me": "잘 모르겠어"
     },
     {
-      "card": {
-        "title": "오늘 찾은 약점 — 방법 미상 × 개념 구멍",
-        "body": "(네가 직접 짚어준 것)\n문제 더 풀기 전에 이 방법이 왜 되는지 설명을 한 번만 다시 보자. 원리가 잡히면 나머지는 따라와."
+      "coach": [
+        "어디서 걸렸는지는 아직 모르겠어. 사진은 노트로 남겨둘게."
+      ],
+      "ask": false
+    },
+    {
+      "note": {
+        "date": "10/1",
+        "photo": true,
+        "quote": "(없음)",
+        "why": "",
+        "fix": "나중에 이 사진을 보면서 풀이를 한 줄씩 다시 써봐. 막히는 줄이 있으면 거기에 표시해 둬.",
+        "checks": "",
+        "tags": "#방법 미상 #아직 모름",
+        "weakness": [],
+        "askLine": true
       }
     },
     {
@@ -292,13 +305,21 @@
     },
     {
       "event": {
-        "name": "weakness_card_shown",
-        "method": "unknown",
-        "mistake": "concept_gap"
+        "name": "weakness_labeled",
+        "method_id": "unknown",
+        "mistake_type": "unclassified",
+        "weakness_count": 0,
+        "labeled": false
       }
     },
     {
-      "ending": "weakness"
+      "event": {
+        "name": "note_shown",
+        "retry": "none"
+      }
+    },
+    {
+      "ending": "note:success"
     }
   ]
 }

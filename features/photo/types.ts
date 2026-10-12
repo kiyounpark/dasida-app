@@ -14,7 +14,9 @@ export const MISTAKE_TYPE_IDS = [
   'answer_read',
 ] as const;
 
+/** AI 후보·통역표용 6개. 노트 저장 값은 NoteMistakeTypeId */
 export type MistakeTypeId = (typeof MISTAKE_TYPE_IDS)[number];
+export type NoteMistakeTypeId = MistakeTypeId | 'unclassified';
 
 /** AI가 짚은 오류 후보 하나. 원본은 functions/src/analyze-photo-core.ts의 ErrorCandidate. */
 export type ErrorCandidate = {
@@ -94,7 +96,7 @@ export type PhotoNote = {
    * 쌓인 노트를 (풀이법 × 실수 유형)으로 세는 건 이름이 아니라 이 두 값으로 한다.
    */
   methodId: SolveMethodId;
-  mistakeType: MistakeTypeId;
+  mistakeType: NoteMistakeTypeId;
   /**
    * 통역표가 (풀이법, 실수 유형)으로 찾아준 약점들. 빈 배열이면 못 찾은 것 — 카드에 줄 자체가 안 뜬다.
    * 하나로 안 좁혀지는 5개 조합은 여럿이 그대로 담긴다 (고르는 건 저장 경로 붙일 때 학생한테 물어본다, 08.11 🔒).
@@ -143,7 +145,7 @@ export type PhotoBubble =
   | { id: number; kind: 'coach'; paras: string[]; ask: boolean }
   | { id: number; kind: 'me'; paras: string[] }
   | { id: number; kind: 'note'; note: PhotoNote }
-  /** 설문 결말 카드 — 사진 인용·쪽지 기록이 없는 길의 결과물. 저장 안 함(🔒 10.01) */
+  /** 설문 결말 카드 — 웹만. 앱은 10.12부터 안 온다 */
   | { id: number; kind: 'weakness'; card: WeaknessCardView };
 
 /** 하단 버튼. 하나를 누르면 통째로 갈아끼운다. */

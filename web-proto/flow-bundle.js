@@ -1906,6 +1906,10 @@ var DasidaFlow = (() => {
     answer_read: {
       label: "\uB9C8\uBB34\uB9AC \uD574\uC11D",
       fix: '\uB2F5 \uC4F0\uAE30 \uC804\uC5D0 "\uBB38\uC81C\uAC00 \uBB58 \uBB3C\uC5C8\uC9C0?"\uB97C \uD55C \uBC88 \uB2E4\uC2DC \uC77D\uC790. \uB2E4 \uD480\uACE0 \uB118\uC5B4\uC9C0\uB294 \uAC8C \uC81C\uC77C \uC544\uAE5D\uC796\uC544.'
+    },
+    unclassified: {
+      label: "\uC544\uC9C1 \uBAA8\uB984",
+      fix: "\uB098\uC911\uC5D0 \uC774 \uC0AC\uC9C4\uC744 \uBCF4\uBA74\uC11C \uD480\uC774\uB97C \uD55C \uC904\uC529 \uB2E4\uC2DC \uC368\uBD10. \uB9C9\uD788\uB294 \uC904\uC774 \uC788\uC73C\uBA74 \uAC70\uAE30\uC5D0 \uD45C\uC2DC\uD574 \uB46C."
     }
   };
   function mistakeTypeLabel(id) {
@@ -2491,7 +2495,7 @@ ${quiz.prompt}`);
       ]);
     }
     function showWrongNote(idx, ctx, retryResult) {
-      const weaknessIds = weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
+      const weaknessIds = ctx.mistakeType === "unclassified" || idx === null && ctx.methodId === "unknown" ? [] : weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
       io.log({
         name: "weakness_labeled",
         method_id: ctx.methodId,
@@ -2535,9 +2539,11 @@ ${quiz.prompt}`);
       ]);
     }
     function finishNote(idx, ctx, retryResult, weaknessIds, primaryWeaknessId) {
-      const cand = pocket?.errorCandidates[idx];
+      const cand = idx === null ? void 0 : pocket?.errorCandidates[idx];
       const today = now();
-      io.say("\uC790, \uC774\uAC8C \uC624\uB298 \uB124 \uC624\uB2F5\uB178\uD2B8\uC57C \u2014 \uB124 \uC190\uC73C\uB85C \uC801\uC740 \uAC74 \uD55C \uC904\uB3C4 \uC5C6\uC9C0.");
+      io.say(
+        idx !== null ? "\uC790, \uC774\uAC8C \uC624\uB298 \uB124 \uC624\uB2F5\uB178\uD2B8\uC57C \u2014 \uB124 \uC190\uC73C\uB85C \uC801\uC740 \uAC74 \uD55C \uC904\uB3C4 \uC5C6\uC9C0." : ctx.mistakeType === "unclassified" ? "\uC5B4\uB514\uC11C \uAC78\uB838\uB294\uC9C0\uB294 \uC544\uC9C1 \uBAA8\uB974\uACA0\uC5B4. \uC0AC\uC9C4\uC740 \uB178\uD2B8\uB85C \uB0A8\uACA8\uB458\uAC8C." : "\uC774\uBC88\uC5D0\uB294 \uC9DA\uC744 \uC904\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC5B4. \uC0AC\uC9C4\uC740 \uB0A8\uACA8\uB458\uAC8C."
+      );
       const note = {
         dateLabel: `${today.getMonth() + 1}/${today.getDate()}`,
         photoUri: deps.photoUri,
@@ -2547,7 +2553,8 @@ ${quiz.prompt}`);
         fix: cand?.fix || mistakeTypeFix(ctx.mistakeType),
         methodId: ctx.methodId,
         mistakeType: ctx.mistakeType,
-        methodLabel: methodLabel(ctx.methodId),
+        // 'unknown'은 카탈로그 라벨이 「잘 모르겠어」(버튼 글)라 태그엔 약점 카드와 같은 「방법 미상」으로
+        methodLabel: methodLabel(ctx.methodId === "unknown" ? void 0 : ctx.methodId),
         typeLabel: mistakeTypeLabel(ctx.mistakeType),
         weaknessIds,
         primaryWeaknessId,
@@ -2565,6 +2572,9 @@ ${quiz.prompt}`);
       io.log({ name: "note_shown", retry: retryResult });
       const failed = retryResult === "fail" || ctx.checkResult === "fail" && retryResult !== "pass";
       io.end({ kind: "note", variant: failed ? "fail" : "success", note });
+    }
+    function surveyNote(methodId, mistakeType) {
+      showWrongNote(null, { methodId: methodId ?? "unknown", mistakeType, checkResult: "skip" }, "none");
     }
     function showWeaknessCard(methodId, mistakeType) {
       const label = methodLabel(methodId ?? void 0);
@@ -2595,6 +2605,10 @@ ${quiz.prompt}`);
           onPress: () => {
             io.mySay(option.text);
             io.log({ name: "survey_pick", mistake: option.type });
+            if (deps.profile.noteWithoutPointing) {
+              surveyNote(methodId, option.type);
+              return;
+            }
             showWeaknessCard(methodId, option.type);
           }
         })),
@@ -2604,6 +2618,10 @@ ${quiz.prompt}`);
           onPress: () => {
             io.mySay("\uC798 \uBAA8\uB974\uACA0\uC5B4");
             io.log({ name: "survey_pick", mistake: "dont_know" });
+            if (deps.profile.noteWithoutPointing) {
+              surveyNote(methodId, "unclassified");
+              return;
+            }
             showWeaknessCard(methodId, "concept_gap");
           }
         }

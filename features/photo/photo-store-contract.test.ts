@@ -3,6 +3,8 @@ import { join } from 'path';
 
 import {
   CONSENT_REQUIRED,
+  MISTAKE_TYPE_IDS,
+  NOTE_MISTAKE_TYPE_IDS,
   canonicalNoteJson,
   isConsentOn,
   needsConsentScreen,
@@ -47,6 +49,13 @@ const NOTE: LocalWireShape = {
   retryResult: 'none',
 };
 
+const UNCLASSIFIED: LocalWireShape = {
+  ...NOTE,
+  mistakeType: 'unclassified',
+  weaknessIds: [],
+  primaryWeaknessId: null,
+};
+
 function consentDoc(overrides: Partial<ConsentDoc> = {}): ConsentDoc {
   const on = { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null };
   return {
@@ -72,6 +81,12 @@ describe('photo-store-contract', () => {
   it('앱 노트와 서버 노트의 칸이 같다', () => {
     expect(sameKeys).toBe(true);
     expect(toWire(NOTE).id).toBe(NOTE.id);
+  });
+
+  it('unclassified 노트는 그대로 서버로 가고, AI 유형은 6개 그대로다', () => {
+    expect(toWire(UNCLASSIFIED).mistakeType).toBe('unclassified');
+    expect(MISTAKE_TYPE_IDS).toHaveLength(6);
+    expect([...NOTE_MISTAKE_TYPE_IDS]).toEqual([...MISTAKE_TYPE_IDS, 'unclassified']);
   });
 
   it('파일명 규칙은 폰 문서 폴더와 서버 경로가 같다', () => {

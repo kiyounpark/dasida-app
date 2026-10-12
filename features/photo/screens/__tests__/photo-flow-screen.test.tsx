@@ -384,8 +384,8 @@ describe('PhotoFlowScreen', () => {
     expect(screen.getByText('더하기만 하고 안 뺐어.')).toBeTruthy();
   });
 
-  it('오늘은 여기까지·노트·약점 카드 뒤엔 [처음부터 다시]', async () => {
-    // 방법은 맞는데 오류 후보가 없다 → 설문 → 약점 카드 (앱은 10.08부터 설문 [잘 모르겠어]만 카드)
+  it('오늘은 여기까지·노트 뒤엔 [처음부터 다시]', async () => {
+    // 방법은 맞는데 오류 후보가 없다 → 설문 [잘 모르겠어] → unclassified 노트
     mockAnalyze.mockResolvedValue(makeResult());
     render(<PhotoFlowScreen />);
 
@@ -395,13 +395,13 @@ describe('PhotoFlowScreen', () => {
     await waitFor(() => expect(screen.getByText('마지막에 답 쓸 때 실수한 것 같아')).toBeTruthy());
     fireEvent.press(screen.getByText('잘 모르겠어'));
 
-    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 개념 구멍')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
     expect(screen.getByText('처음부터 다시')).toBeTruthy();
     fireEvent.press(screen.getByText('처음부터 다시'));
     await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
   });
 
-  it('짚기 0 → 설문 「잘 모르겠어」는 약점 카드로 끝나고 저장·업로드·복습 과제가 없다', async () => {
+  it('짚기 0 → 설문 「잘 모르겠어」는 unclassified 노트 — 저장·업로드 1번, 약점 0, 과제 0', async () => {
     mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [], errorConfidence: 0 }));
     const getRemoteAuthHeaders = jest.fn(async () => ({ Authorization: 'Bearer test-token' }));
     const store = memStore();
@@ -422,19 +422,49 @@ describe('PhotoFlowScreen', () => {
     await waitFor(() => expect(screen.getByText('마지막에 답 쓸 때 실수한 것 같아')).toBeTruthy());
     fireEvent.press(screen.getByText('잘 모르겠어'));
 
-    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 개념 구멍')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
     expect(screen.getByText('처음부터 다시')).toBeTruthy();
-    // 결말이 뜬 뒤 비동기 저장·과제 생성이 이어질 한 틱까지 보낸 뒤 부정 단정한다.
+    // 결말 뒤 비동기 저장·업로드가 이어질 한 틱까지 보낸다.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(mockSaveNote).not.toHaveBeenCalled();
-    expect(mockUploadNote).not.toHaveBeenCalled();
+    expect(screen.getByText('어디서 걸렸는지는 아직 모르겠어. 사진은 노트로 남겨둘게.')).toBeTruthy();
+    expect(screen.getAllByText('(없음)')).toHaveLength(2);
+    expect(screen.queryByText('어디서 실수한 것 같아? 잘 모르겠으면 넘어가도 돼.')).toBeNull();
+    expect(mockSaveNote).toHaveBeenCalledTimes(1);
+    const [accountKey, note] = mockSaveNote.mock.calls[0];
+    expect(accountKey).toBe('user:abc');
+    expect(note).toMatchObject({
+      methodId: 'cps',
+      mistakeType: 'unclassified',
+      typeLabel: '아직 모름',
+      quote: '',
+      why: '',
+      fix: '나중에 이 사진을 보면서 풀이를 한 줄씩 다시 써봐. 막히는 줄이 있으면 거기에 표시해 둬.',
+      weaknessIds: [],
+      primaryWeaknessId: null,
+      checkSkipped: true,
+      retryResult: 'none',
+    });
+    expect(mockUploadNote).toHaveBeenCalledTimes(1);
+    expect(mockUploadNote).toHaveBeenCalledWith({
+      accountKey: 'user:abc',
+      note: expect.objectContaining({ ...note, photoUri: expect.anything() }),
+      imageDataUrl: 'data:image/jpeg;base64,AAAA',
+      getHeaders: getRemoteAuthHeaders,
+      localSaved: mockSaveNote.mock.results[0].value,
+    });
+    expect(eventNamed('photo_weakness_card_shown')).toBeUndefined();
+    expect(eventNamed('photo_survey_pick')![1]).toEqual({ mistake: 'dont_know' });
+    expect(eventNamed('photo_weakness_labeled')![1]).toEqual({
+      method_id: 'cps', mistake_type: 'unclassified', weakness_count: 0, labeled: false,
+    });
+    expect(eventNamed('photo_note_shown')![1]).toEqual({ retry: 'none' });
     expect(load).not.toHaveBeenCalled();
     expect(saveAll).not.toHaveBeenCalled();
     expect(store.all()).toEqual([]);
-    expect(screen.queryByText(/오늘의 오답노트/)).toBeNull();
+    expect(screen.queryByText(/오늘 찾은 약점/)).toBeNull();
   });
 
   it('짚기 0 → 약점 고르기 「잘 모르겠어」는 후보 전부인 노트를 저장·업로드하고 복습 과제는 없다', async () => {
@@ -762,7 +792,7 @@ describe('1.0.10 — 웹과 같게', () => {
     expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy(); // 미분 설문
   });
 
-  it('두 번 못 알아들으면 전체 목록 — [잘 모르겠어]면 방법 없이 약점 카드', async () => {
+  it('두 번 못 알아들으면 전체 목록 — [잘 모르겠어]면 방법 미상의 unclassified 노트', async () => {
     mockAnalyze.mockResolvedValue(makeResult({ hasSolvingWork: false }));
     render(<PhotoFlowScreen />);
 
@@ -781,7 +811,8 @@ describe('1.0.10 — 웹과 같게', () => {
     // 방금 내 말풍선에도 '잘 모르겠어'가 있어서 버튼으로 집는다
     fireEvent.press(screen.getByRole('button', { name: '잘 모르겠어' }));
 
-    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 방법 미상 × 개념 구멍')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
+    expect(screen.getByText('#방법 미상 #아직 모름')).toBeTruthy();
   });
 
   it('후보가 둘이어도 검산은 0번만 — 2번 후보로 넘어가는 사다리는 없다(웹과 같게)', async () => {

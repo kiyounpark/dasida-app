@@ -6,7 +6,7 @@ import type { SolveMethodId } from '@/data/diagnosisTree';
 import type { DiagnoseMethodResult } from '../flow/diagnose-method-request';
 import type { PhotoQuiz } from '../flow/quiz-guard';
 import type { QuizVerdict, QuizVerifyBody } from '../flow/verify-quiz-request';
-import type { AnalyzePhotoResult, MistakeTypeId, PhotoAction, RetryResult } from '../types';
+import type { AnalyzePhotoResult, MistakeTypeId, NoteMistakeTypeId, PhotoAction, RetryResult } from '../types';
 import type { ScriptEvent } from './script-events';
 
 /** 웹 retryResult 'unverified'(검산 통과 못 한 재도전)는 앱 RetryResult에 없다 — 저장 땐 앱 어댑터가 'none'으로 */
@@ -23,7 +23,7 @@ export type NoteView = {
   why: string;
   fix: string;
   methodId: SolveMethodId;
-  mistakeType: MistakeTypeId;
+  mistakeType: NoteMistakeTypeId;
   methodLabel: string;
   typeLabel: string;
   weaknessIds: WeaknessId[];
@@ -41,7 +41,7 @@ export type NoteView = {
 
 /**
  * 설문 결말 카드. 저장 안 함(🔒 10.01 갈림길 ③). 라벨은 웹 곡선이 쓴다.
- * 앱은 10.08부터 설문 [잘 모르겠어]만 여기로 온다 — 나머지는 노트(profile.noteWithoutPointing)
+ * 앱은 10.12부터 여기로 안 온다 — 웹만(설문 [잘 모르겠어]는 앱에선 unclassified 노트)
  */
 export type WeaknessCardView = {
   /** 전체 목록의 [잘 모르겠어]로 왔으면 null */

@@ -147,6 +147,7 @@ export type EventParams = {
   /**
    * 오답노트가 나온 순간의 (풀이법 × 실수유형) 칸과 그 칸에서 약점 이름이 붙었는지.
    * weakness_count === 0 이 통역표 186칸 중 131칸(70%)인 빈손 자리다.
+   * mistake_type 'unclassified'(설문 [잘 모르겠어]) 행은 labeled false로 들어온다 — 통역표 빈손을 셀 땐 뺀다.
    * 붙은 것만 세면 "몇 %"의 분모가 사라지므로 빈손도 반드시 남긴다.
    */
   photo_weakness_labeled: {
@@ -203,6 +204,7 @@ export type EventParams = {
   /** 오류를 못 짚은 날 학생이 고른 느낌 — dont_know는 「잘 모르겠어」 (웹 survey_pick) */
   photo_survey_pick: { mistake: string };
   /**
+   * 앱은 10.12부터 안 찍힌다 — 웹만.
    * 설문 결말 카드에 닿은 수(저장 안 함). photo_note_shown과 합치면 결말 도달 전체.
    * 🔒 10.01 — 카드로 끝난 수가 노트로 끝난 수보다 많아지면 카드 저장을 붙인다.
    */

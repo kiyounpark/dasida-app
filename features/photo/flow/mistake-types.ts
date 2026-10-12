@@ -1,11 +1,11 @@
-import type { MistakeTypeId } from '../types';
+import type { NoteMistakeTypeId } from '../types';
 
 /**
- * 실수 유형 6종의 라벨과 통조림 처방.
+ * AI 실수 유형 6종 + 노트 전용 unclassified의 라벨과 통조림 처방.
  * web-proto/survey-data.js의 TYPES와 같은 문구 — 원칙은 "특정 문제의 숫자·식 금지"(어떤 문제가 와도 성립).
  * 짚기가 성공한 경로에서는 AI가 보낸 fix를 쓰고, 여기 fix는 그게 비었을 때의 폴백이다.
  */
-const MISTAKE_TYPES: Record<MistakeTypeId, { label: string; fix: string }> = {
+const MISTAKE_TYPES: Record<NoteMistakeTypeId, { label: string; fix: string }> = {
   concept_gap: {
     label: '개념 구멍',
     fix: '문제 더 풀기 전에 이 방법이 왜 되는지 설명을 한 번만 다시 보자. 원리가 잡히면 나머지는 따라와.',
@@ -30,13 +30,17 @@ const MISTAKE_TYPES: Record<MistakeTypeId, { label: string; fix: string }> = {
     label: '마무리 해석',
     fix: '답 쓰기 전에 "문제가 뭘 물었지?"를 한 번 다시 읽자. 다 풀고 넘어지는 게 제일 아깝잖아.',
   },
+  unclassified: {
+    label: '아직 모름',
+    fix: '나중에 이 사진을 보면서 풀이를 한 줄씩 다시 써봐. 막히는 줄이 있으면 거기에 표시해 둬.',
+  },
 };
 
 /** 서버가 모르는 유형을 보내도 노트가 죽지 않게 — 마지막 화면이 비는 게 제일 나쁘다 */
-export function mistakeTypeLabel(id: MistakeTypeId | undefined): string {
+export function mistakeTypeLabel(id: NoteMistakeTypeId | undefined): string {
   return (id && MISTAKE_TYPES[id]?.label) || '유형 미상';
 }
 
-export function mistakeTypeFix(id: MistakeTypeId | undefined): string {
+export function mistakeTypeFix(id: NoteMistakeTypeId | undefined): string {
   return (id && MISTAKE_TYPES[id]?.fix) || '';
 }

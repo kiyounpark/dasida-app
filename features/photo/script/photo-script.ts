@@ -22,7 +22,7 @@ import {
 } from '../flow/route-from-analysis';
 import { ANSWER_READ_HINT, surveyOptionsFor } from '../flow/survey-options';
 import { weaknessCandidatesFor, weaknessChoiceText } from '../flow/weakness-mistake-type-map';
-import type { AnalyzePhotoResult, MistakeTypeId, PhotoAction } from '../types';
+import type { AnalyzePhotoResult, MistakeTypeId, NoteMistakeTypeId, PhotoAction } from '../types';
 import { createQuizVerifyRunner, type RunnerVerdict, type VerifyKind } from './quiz-verify-runner';
 import type {
   CheckResult,
@@ -39,7 +39,7 @@ import type {
  */
 type NoteContext = {
   methodId: SolveMethodId;
-  mistakeType: MistakeTypeId;
+  mistakeType: NoteMistakeTypeId;
   checkResult: CheckResult;
   checkQuiz?: PhotoQuiz;
   retryQuiz?: PhotoQuiz;
@@ -513,8 +513,11 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
   function showWrongNote(idx: number | null, ctx: NoteContext, retryResult: ScriptRetryResult) {
     // 방법을 끝까지 못 고른 설문 노트('unknown')는 이름을 안 단다 — 통역표의 unknown 칸은 옛 이차함수 진단용이라
     // (예: × 답 옮겨 적기 → 「최솟값 읽기 혼동」) 다른 단원 사진에 엉뚱한 복습 과제가 생긴다
+    // unclassified = 학생이 모른다고 함 — 방법만으로 후보를 뽑으면 아래 「어디서 실수한 것 같아?」가 또 뜬다
     const weaknessIds =
-      idx === null && ctx.methodId === 'unknown' ? [] : weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
+      ctx.mistakeType === 'unclassified' || (idx === null && ctx.methodId === 'unknown')
+        ? []
+        : weaknessCandidatesFor(ctx.methodId, ctx.mistakeType);
     // 빈손(0개)도 반드시 남긴다 — 분모. 질문 앞에 있어야 말풍선에서 나간 학생이 분모에 남는다
     io.log({
       name: 'weakness_labeled',
@@ -572,9 +575,11 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
     const cand = idx === null ? undefined : pocket?.errorCandidates[idx];
     const today = now();
     io.say(
-      idx === null
-        ? '이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게.'
-        : '자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.',
+      idx !== null
+        ? '자, 이게 오늘 네 오답노트야 — 네 손으로 적은 건 한 줄도 없지.'
+        : ctx.mistakeType === 'unclassified'
+          ? '어디서 걸렸는지는 아직 모르겠어. 사진은 노트로 남겨둘게.'
+          : '이번에는 짚을 줄을 찾지 못했어. 사진은 남겨둘게.',
     );
     const note = {
       dateLabel: `${today.getMonth() + 1}/${today.getDate()}`,
@@ -612,7 +617,8 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
   // 설문 결말 노트(앱 · 🔒 10.08 C) — 짚은 줄 없이 사진·방법·고른 실수 종류만. 갈라진 지점·왜는 비운다
   // (후보가 있어도 학생이 방법을 뒤집었거나 확신이 낮아 안 짚은 것 — 그 후보 글은 노트에 안 싣는다).
   // 이름이 하나로 잡히면 지금 코드 그대로 복습 과제까지, 둘 이상이면 먼저 묻는다(showWrongNote · 🔒 08.11)
-  function surveyNote(methodId: SolveMethodId | null, mistakeType: MistakeTypeId) {
+  // [잘 모르겠어]는 unclassified — 후보 0·과제 0·다시 안 묻는다(10.12)
+  function surveyNote(methodId: SolveMethodId | null, mistakeType: NoteMistakeTypeId) {
     showWrongNote(null, { methodId: methodId ?? 'unknown', mistakeType, checkResult: 'skip' }, 'none');
   }
 
@@ -663,6 +669,10 @@ export function createPhotoScript(rawIO: ScriptIO, deps: ScriptDeps): PhotoScrip
         onPress: () => {
           io.mySay('잘 모르겠어');
           io.log({ name: 'survey_pick', mistake: 'dont_know' });
+          if (deps.profile.noteWithoutPointing) {
+            surveyNote(methodId, 'unclassified');
+            return;
+          }
           showWeaknessCard(methodId, 'concept_gap');
         },
       },
