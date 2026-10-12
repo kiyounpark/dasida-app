@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.12 17:14
+- 해시: `f94f6dde` (`f94f6dde867870b71c5b2599c417a6775d687311`)
+- 브랜치: claude/loving-galileo-f09375
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/f94f6dde867870b71c5b2599c417a6775d687311
+- 작성자: 박기윤
+- 메시지: test(photo): 짚기 0 「잘 모르겠어」 두 갈래의 지금 동작을 못 박는다
+- 본문: - 설문 「잘 모르겠어」 → 약점 카드 + [처음부터 다시]. 계정 키·헤더 함수·과제 저장소를 / 다 줘도 노트 저장·서버 업로드·복습 과제가 안 불린다(🔒 10.08 C · 9023b8f4가 일부러 남긴 갈래) / - 짚기 0 + 후보 둘 이상(radical × calc_slip = 3) → 고르기 「잘 모르겠어」 → 노트 저장·업로드 / 1번씩 · weaknessIds 후보 전부 · primaryWeaknessId null · 복습 과제 0 / - uploadPhotoNote만 목으로 센다(나머지 모듈은 실물) / 만든 쪽 Codex gpt-6.1-sol·high. 되돌리면 실패: 카드 갈래에서 저장/업로드/과제를 하나씩 / 몰래 부르면 각각 432/433/434줄에서, null → weaknessIds[0]이면 primaryWeaknessId에서 운다. / features/photo jest 348 → 350 · tsc 0. 앱 코드 변경 0. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.12 11:49
 - 해시: `9572b96f` (`9572b96f52dc813abc409e4caf927a2d5235a179`)
 - 브랜치: main
