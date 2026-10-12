@@ -99,7 +99,7 @@ export type ConsentSubmitParams = { review: boolean; via: ConsentVia };
 
 // ── 2. 노트 ──────────────────────────────────────────────────────────────────
 
-/** features/photo/types.ts·analyze-photo-core.ts와 같은 6개. 고정값이라 서버도 enum으로 막는다 */
+/** AI 후보·통역표는 6개(MISTAKE_TYPE_IDS), 노트 저장은 6+unclassified(설문 [잘 모르겠어] — 유형을 정하지 못한 노트). unclassified면 weaknessIds []·primaryWeaknessId null만 받는다(save-photo-note.ts) */
 export const MISTAKE_TYPE_IDS = [
   'concept_gap',
   'formula_recall',
@@ -108,6 +108,9 @@ export const MISTAKE_TYPE_IDS = [
   'procedure_miss',
   'answer_read',
 ] as const;
+
+export const NOTE_MISTAKE_TYPE_IDS = [...MISTAKE_TYPE_IDS, 'unclassified'] as const;
+export type NoteMistakeTypeId = (typeof NOTE_MISTAKE_TYPE_IDS)[number];
 
 /**
  * methodId·weaknessIds가 지킬 글자. enum으로는 안 막는다 — 서버는 노트를 읽지 않고,
@@ -148,7 +151,7 @@ export type PhotoNoteWire = {
   methodLabel: string;
   typeLabel: string;
   methodId: string;
-  mistakeType: (typeof MISTAKE_TYPE_IDS)[number];
+  mistakeType: NoteMistakeTypeId;
   weaknessIds: string[];
   primaryWeaknessId: string | null;
   checkPassed: boolean;

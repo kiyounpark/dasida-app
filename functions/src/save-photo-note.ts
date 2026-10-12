@@ -11,7 +11,7 @@ import {
   IMAGE_DATA_URL_PATTERN,
   isConsentOn,
   MAX_IMAGE_DATA_URL_LENGTH,
-  MISTAKE_TYPE_IDS,
+  NOTE_MISTAKE_TYPE_IDS,
   notePhotoPath,
   PHOTO_OBJECT_META_NOTE_ID,
   PHOTO_OBJECT_META_SUBMISSION_ID,
@@ -71,7 +71,7 @@ export const PhotoNoteWireSchema = z
     methodLabel: z.string().max(80),
     typeLabel: z.string().max(80),
     methodId: z.string().regex(DOMAIN_ID_PATTERN),
-    mistakeType: z.enum(MISTAKE_TYPE_IDS),
+    mistakeType: z.enum(NOTE_MISTAKE_TYPE_IDS),
     weaknessIds: z.array(z.string().regex(DOMAIN_ID_PATTERN)).max(10),
     primaryWeaknessId: z.string().regex(DOMAIN_ID_PATTERN).nullable(),
     checkPassed: z.boolean(),
@@ -82,7 +82,11 @@ export const PhotoNoteWireSchema = z
     retryQuiz: PhotoNoteQuizWireSchema.optional(),
     concept: PhotoNoteConceptWireSchema.optional(),
   })
-  .strict() satisfies z.ZodType<PhotoNoteWire>;
+  .strict()
+  .refine(
+    (note) => note.mistakeType !== 'unclassified' || (note.weaknessIds.length === 0 && note.primaryWeaknessId === null),
+    { message: 'unclassified notes must have no weaknesses' },
+  ) satisfies z.ZodType<PhotoNoteWire>;
 
 export const SavePhotoNoteRequestSchema = z
   .object({

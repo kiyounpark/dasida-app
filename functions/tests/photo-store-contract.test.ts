@@ -7,6 +7,8 @@ import {
   canonicalNoteJson,
   isConsentOn,
   isNoteStored,
+  MISTAKE_TYPE_IDS,
+  NOTE_MISTAKE_TYPE_IDS,
   readApiErrorBody,
   reviewExpiresAt,
   reviewPhotoPath,
@@ -142,11 +144,51 @@ test('savePhotoNote 요청: 폰 전용 칸(photoUri)이 섞이면 거절', () =>
   assert.equal(SavePhotoNoteRequestSchema.safeParse(withPhotoUri).success, false);
 });
 
-test('savePhotoNote 요청: 실수 유형은 6개 밖이면 거절, png는 거절', () => {
+test('savePhotoNote 요청: 노트 유형 목록 밖과 null은 거절, png는 거절', () => {
   const badType = { ...SAVE_REQUEST, note: { ...NOTE, mistakeType: 'typo' } };
   assert.equal(SavePhotoNoteRequestSchema.safeParse(badType).success, false);
+  assert.equal(
+    SavePhotoNoteRequestSchema.safeParse({ ...SAVE_REQUEST, note: { ...NOTE, mistakeType: null } }).success,
+    false,
+  );
   const png = { ...SAVE_REQUEST, imageDataUrl: 'data:image/png;base64,AAAA' };
   assert.equal(SavePhotoNoteRequestSchema.safeParse(png).success, false);
+});
+
+test('노트 유형 목록: AI 6개는 유지하고 unclassified만 더한다', () => {
+  assert.equal(MISTAKE_TYPE_IDS.length, 6);
+  assert.deepEqual([...NOTE_MISTAKE_TYPE_IDS], [...MISTAKE_TYPE_IDS, 'unclassified']);
+});
+
+const UNCLASSIFIED: PhotoNoteWire = {
+  ...NOTE,
+  mistakeType: 'unclassified',
+  weaknessIds: [],
+  primaryWeaknessId: null,
+};
+
+test('savePhotoNote 요청: unclassified + 약점 0·primary null은 통과', () => {
+  assert.equal(SavePhotoNoteRequestSchema.safeParse({ ...SAVE_REQUEST, note: UNCLASSIFIED }).success, true);
+});
+
+test('savePhotoNote 요청: unclassified + weaknessIds가 있으면 거절', () => {
+  assert.equal(
+    SavePhotoNoteRequestSchema.safeParse({
+      ...SAVE_REQUEST,
+      note: { ...UNCLASSIFIED, weaknessIds: ['radical_simplification_error'] },
+    }).success,
+    false,
+  );
+});
+
+test('savePhotoNote 요청: unclassified + primaryWeaknessId가 있으면 거절', () => {
+  assert.equal(
+    SavePhotoNoteRequestSchema.safeParse({
+      ...SAVE_REQUEST,
+      note: { ...UNCLASSIFIED, primaryWeaknessId: 'x' },
+    }).success,
+    false,
+  );
 });
 
 test('saveConsent 요청: 세 칸 전부와 누른 방식이 있어야 한다', () => {
