@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.12 11:21
+- 해시: `766b2758` (`766b2758ac4a0eff45eee63babc7f925c6f4559e`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/766b2758ac4a0eff45eee63babc7f925c6f4559e
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 📊 10.12 숫자 셈(10.08 뒤 새 앱 학생 사진 0 · 두 번째 1/3 그대로 · 신호 6/39) · 1.0.14 두 스토어 확인 · 🔒 10.11 개발 멈춤
+- 본문: - 운영 원장·Firestore 읽기만: ⑴~⑻ 결과 · 🔒 10.05 판정은 「후보」로만(10.17 18:00 뒤) / - 1.0.14 애플 10.11 08:23 KST · 구글 공개 페이지 1.0.14 → 「뜨면 닫힘」 칸 닫음 / - 옛 맨 위 갱신 줄 · 1.0.14 🚧 · 28번 ✅ · 1.0.12 빌드 🚧 → archive 「10.12 아침에 내림」(빠진 줄 0 — awk·cmp 대조) / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.10 22:17
 - 해시: `34eaa533` (`34eaa53382d5b6cf5726ea38920accf5b8dab378`)
 - 브랜치: main
