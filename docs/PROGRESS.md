@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.12 11:49
+- 해시: `9572b96f` (`9572b96f52dc813abc409e4caf927a2d5235a179`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/9572b96f52dc813abc409e4caf927a2d5235a179
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 🔒 10.12 ⑺ 「모르는 학생 연속 2장 0」 소급 안 함(기윤 OK · 관제탑)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.12 11:21
 - 해시: `766b2758` (`766b2758ac4a0eff45eee63babc7f925c6f4559e`)
 - 브랜치: main
