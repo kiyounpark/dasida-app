@@ -1061,6 +1061,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.12 18:06
+- 해시: `973540fa` (`973540faef21078bde08afa4b9d2db6c955db94a`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/973540faef21078bde08afa4b9d2db6c955db94a
+- 작성자: 박기윤
+- 메시지: feat(photo): 짚기 0 + 설문 「잘 모르겠어」도 노트로 — unclassified · 약점 0 · 과제 0 (앱만)
+- 본문: - 앱(noteWithoutPointing)에서 설문 [잘 모르겠어] → 카드 대신 unclassified 노트. 저장·업로드는 다른 노트와 같은 길 / - 약점 후보 0 · primaryWeaknessId null · 복습 과제 0 · 「어디서 실수한 것 같아?」 다시 안 묻는다 / - 학생 문구(10.12 기윤 OK): 말풍선 「어디서 걸렸는지는 아직 모르겠어. 사진은 노트로 남겨둘게.」 · 태그 「아직 모름」 · 다음엔 통조림 한 줄 / - 웹은 그대로(카드) — 번들 다시 만들고 웹 골든 19 그대로 통과 / - 골든 23 → 23-survey-dont-know-note · photo-flow-screen 테스트 ①(f94f6dde) 뒤집음 · ②는 그대로 / Co-Authored-By: Codex (gpt-6.1-sol) <noreply@openai.com> / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.10.12 18:06
+- 해시: `470e5edd` (`470e5edd37e041ba3e339e0fccd48f413edf40f6`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/470e5edd37e041ba3e339e0fccd48f413edf40f6
+- 작성자: 박기윤
+- 메시지: feat(functions): 노트 유형에 unclassified — 설문 「잘 모르겠어」 노트를 받는다(서버 먼저)
+- 본문: - NOTE_MISTAKE_TYPE_IDS = AI 6개 + 'unclassified'(노트 저장 전용). AI 후보·통역표는 6개 그대로 / - savePhotoNote zod가 노트 목록으로 받고, unclassified면 weaknessIds [] · primaryWeaknessId null만 통과 / - 앱 OTA보다 먼저 배포해야 한다 — 옛 서버는 unclassified 노트를 400으로 거절 / 결정: astra(gpt-6-astra) + Fable → Fable 최종 · 만들기 Codex(gpt-6.1-sol · high) / 근거 ~/dev/dasida-measure/2026-10-12-dont-know-note/ / Co-Authored-By: Codex (gpt-6.1-sol) <noreply@openai.com> / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.12 17:14
 - 해시: `f94f6dde` (`f94f6dde867870b71c5b2599c417a6775d687311`)
 - 브랜치: claude/loving-galileo-f09375
