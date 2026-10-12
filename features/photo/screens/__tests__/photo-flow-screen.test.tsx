@@ -15,6 +15,7 @@ import { logEvent } from '@/features/analytics/log-event';
 import { addDaysToToday } from '@/features/learning/review-scheduler';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
 import type { ReviewTask } from '@/features/learning/types';
+import { uploadPhotoNote } from '../../cloud/save-note-remote';
 import { readPhotoNotes, savePhotoNote } from '../../note-store';
 import { PhotoFlowScreen } from '../photo-flow-screen';
 
@@ -48,6 +49,12 @@ jest.mock('../../note-store', () => ({
   ...jest.requireActual('../../note-store'),
   savePhotoNote: jest.fn(async () => []),
   readPhotoNotes: jest.fn(async () => []),
+}));
+
+// 카드의 상태 구독 등은 실물을 유지하고, 업로드 호출만 센다.
+jest.mock('../../cloud/save-note-remote', () => ({
+  ...jest.requireActual('../../cloud/save-note-remote'),
+  uploadPhotoNote: jest.fn(async () => ({ kind: 'failed', retryable: true })),
 }));
 
 // expo-image는 네이티브 뷰라 테스트에서 못 뜬다 — 사진 미리보기와 코치 아바타 둘 다 이걸 쓴다.
@@ -95,6 +102,7 @@ const mockDownscale = downscaleToDataUrl as jest.Mock;
 const mockAnalyze = requestAnalyze as jest.Mock;
 const mockLog = logEvent as jest.Mock;
 const mockSaveNote = savePhotoNote as jest.Mock;
+const mockUploadNote = uploadPhotoNote as jest.Mock;
 const mockReadNotes = readPhotoNotes as jest.Mock;
 const mockNewSubmissionId = newSubmissionId as jest.Mock;
 const mockVerify = requestQuizVerify as jest.Mock;
@@ -391,6 +399,102 @@ describe('PhotoFlowScreen', () => {
     expect(screen.getByText('처음부터 다시')).toBeTruthy();
     fireEvent.press(screen.getByText('처음부터 다시'));
     await waitFor(() => expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy());
+  });
+
+  it('짚기 0 → 설문 「잘 모르겠어」는 약점 카드로 끝나고 저장·업로드·복습 과제가 없다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [], errorConfidence: 0 }));
+    const getRemoteAuthHeaders = jest.fn(async () => ({ Authorization: 'Bearer test-token' }));
+    const store = memStore();
+    const load = jest.spyOn(store, 'load');
+    const saveAll = jest.spyOn(store, 'saveAll');
+    render(
+      <PhotoFlowScreen
+        accountKey="user:abc"
+        getRemoteAuthHeaders={getRemoteAuthHeaders}
+        reviewTaskStore={store}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    expect(getRemoteAuthHeaders).toHaveBeenCalledWith('user:abc');
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('마지막에 답 쓸 때 실수한 것 같아')).toBeTruthy());
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+
+    await waitFor(() => expect(screen.getByText('오늘 찾은 약점 — 완전제곱식 × 개념 구멍')).toBeTruthy());
+    expect(screen.getByText('처음부터 다시')).toBeTruthy();
+    // 결말이 뜬 뒤 비동기 저장·과제 생성이 이어질 한 틱까지 보낸 뒤 부정 단정한다.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockSaveNote).not.toHaveBeenCalled();
+    expect(mockUploadNote).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
+    expect(saveAll).not.toHaveBeenCalled();
+    expect(store.all()).toEqual([]);
+    expect(screen.queryByText(/오늘의 오답노트/)).toBeNull();
+  });
+
+  it('짚기 0 → 약점 고르기 「잘 모르겠어」는 후보 전부인 노트를 저장·업로드하고 복습 과제는 없다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({
+      predictedMethodId: 'radical',
+      candidateMethodIds: ['radical'],
+      errorCandidates: [],
+      errorConfidence: 0,
+    }));
+    const getRemoteAuthHeaders = jest.fn(async () => ({ Authorization: 'Bearer test-token' }));
+    const store = memStore();
+    const load = jest.spyOn(store, 'load');
+    const saveAll = jest.spyOn(store, 'saveAll');
+    render(
+      <PhotoFlowScreen
+        accountKey="user:abc"
+        getRemoteAuthHeaders={getRemoteAuthHeaders}
+        reviewTaskStore={store}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('틀린 문제 사진 올리기'));
+    await waitFor(() => expect(screen.getByText('맞아, 시작하자')).toBeTruthy());
+    fireEvent.press(screen.getByText('맞아, 시작하자'));
+    await waitFor(() => expect(screen.getByText('식은 세웠는데 계산에서 미끄러졌어')).toBeTruthy());
+    fireEvent.press(screen.getByText('식은 세웠는데 계산에서 미끄러졌어'));
+    // 같은 글자의 설문 버튼과 구별한다 — 약점 고르기 질문이 뜬 다음에만 누른다.
+    await waitFor(() => expect(screen.getByText('어디서 실수한 것 같아? 잘 모르겠으면 넘어가도 돼.')).toBeTruthy());
+    expect(screen.getByText('√를 간소화하거나 묶는 단계가 헷갈렸어요.')).toBeTruthy();
+    expect(screen.getByText('분모 유리화 과정에서 실수했어요.')).toBeTruthy();
+    expect(screen.getByText('켤레식으로 유리화하는 계산에서 실수했어요.')).toBeTruthy();
+    fireEvent.press(screen.getByText('잘 모르겠어'));
+
+    await waitFor(() => expect(screen.getByText('오늘의 오답노트 · 1장')).toBeTruthy());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockSaveNote).toHaveBeenCalledTimes(1);
+    const [accountKey, note] = mockSaveNote.mock.calls[0];
+    expect(accountKey).toBe('user:abc');
+    expect(note).toMatchObject({
+      methodId: 'radical',
+      mistakeType: 'calc_slip',
+      quote: '',
+      why: '',
+      weaknessIds: ['radical_simplification_error', 'rationalization_error', 'g2_radical_rationalize'],
+      primaryWeaknessId: null,
+    });
+    expect(mockUploadNote).toHaveBeenCalledTimes(1);
+    expect(mockUploadNote).toHaveBeenCalledWith({
+      accountKey: 'user:abc',
+      note: expect.objectContaining({ ...note, photoUri: expect.anything() }),
+      imageDataUrl: 'data:image/jpeg;base64,AAAA',
+      getHeaders: getRemoteAuthHeaders,
+      localSaved: mockSaveNote.mock.results[0].value,
+    });
+    expect(load).not.toHaveBeenCalled();
+    expect(saveAll).not.toHaveBeenCalled();
+    expect(store.all()).toEqual([]);
   });
 
   it('오답노트 카드에 📌 접는 기준이 뜬다 — 웹 카드와 같은 문장 (🔒 10.01)', async () => {
