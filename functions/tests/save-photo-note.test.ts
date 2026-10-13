@@ -448,3 +448,72 @@ test('⑵ 보기 순서가 다르면 다른 노트(409) — 정답 번호가 그
 
   assert.equal(codeOf(outcome), 'NOTE_CONFLICT');
 });
+
+// 짚기 0 — 갈라진 지점·왜 빈칸
+
+test('짚기 0 노트(갈라진 지점·왜 빈칸)도 받아 그대로 저장한다 — 10.08 설문 노트', async () => {
+  const note: PhotoNoteWire = {
+    ...NOTE,
+    quote: '',
+    why: '',
+    fix: '부호부터 정하자',
+    methodId: 'factoring',
+    methodLabel: '인수분해',
+    mistakeType: 'calc_slip',
+    typeLabel: '계산 실수',
+    weaknessIds: ['complex_factoring_difficulty'],
+    primaryWeaknessId: 'complex_factoring_difficulty',
+    checkPassed: false,
+    checkSkipped: true,
+    retryResult: 'none',
+  };
+  assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note })).success, true);
+
+  const f = fake();
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note }));
+  assert.equal(outcome.status, 200);
+  assert.equal(outcome.status === 200 && outcome.body.alreadyStored, false);
+
+  const doc = f.notes.get(note.id);
+  assert.equal(doc?.quote, '');
+  assert.equal(doc?.why, '');
+
+  const again = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note }));
+  assert.equal(again.status, 200);
+  assert.equal(again.status === 200 && again.body.alreadyStored, true);
+});
+
+test('짚기 0 잘 모르겠어 노트도 빈칸과 약점 없음 그대로 저장한다 — 10.12 unclassified 노트', async () => {
+  const note: PhotoNoteWire = {
+    ...NOTE,
+    quote: '',
+    why: '',
+    fix: '나중에 이 사진을 보면서 풀이를 한 줄씩 다시 써봐. 막히는 줄이 있으면 거기에 표시해 둬.',
+    methodId: 'unknown',
+    methodLabel: '방법 미상',
+    mistakeType: 'unclassified',
+    typeLabel: '아직 모름',
+    weaknessIds: [],
+    primaryWeaknessId: null,
+    checkPassed: false,
+    checkSkipped: true,
+    retryResult: 'none',
+  };
+  assert.equal(SavePhotoNoteRequestSchema.safeParse(request({ note })).success, true);
+
+  const f = fake();
+  const outcome = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note }));
+  assert.equal(outcome.status, 200);
+  assert.equal(outcome.status === 200 && outcome.body.alreadyStored, false);
+
+  const doc = f.notes.get(note.id);
+  assert.equal(doc?.quote, '');
+  assert.equal(doc?.why, '');
+  assert.equal(doc?.mistakeType, 'unclassified');
+  assert.deepEqual(doc?.weaknessIds, []);
+  assert.equal(doc?.primaryWeaknessId, null);
+
+  const again = await savePhotoNoteCore(f.deps, ACCOUNT, request({ note }));
+  assert.equal(again.status, 200);
+  assert.equal(again.status === 200 && again.body.alreadyStored, true);
+});
