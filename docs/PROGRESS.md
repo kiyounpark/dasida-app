@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.13 13:14
+- 해시: `b1a0319e` (`b1a0319ef72de614fcba42e4c75dbcde072a1a8c`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b1a0319ef72de614fcba42e4c75dbcde072a1a8c
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 애플 스크린샷 PPO 시험판 길 한 줄(10.13 관제탑 · 1.0.14 줄 ⑵)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.13 12:56
 - 해시: `b9b55c3b` (`b9b55c3b80564bec8399e03d54768282fa4ab2f1`)
 - 브랜치: main
