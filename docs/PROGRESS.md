@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.13 21:41
+- 해시: `b767fe85` (`b767fe8536265c70dc50140ff5048cb952aebd0b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/b767fe8536265c70dc50140ff5048cb952aebd0b
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 플레이 공개 페이지 새 스크린샷 확인(10.13 21:37 · 1.0.14 줄 ⑵)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.13 18:06
 - 해시: `10edf962` (`10edf9625d205feadb5e11a8a5495cdfb4e18727`)
 - 브랜치: main
