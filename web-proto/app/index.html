@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>다시다</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 32px 24px;
+      background: #FBF7EF;
+      color: #26221B;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+    main { width: 100%; max-width: 420px; min-width: 0; text-align: center; }
+    h1 { margin: 0 0 16px; font-size: 28px; line-height: 1.35; }
+    p { margin: 0 0 32px; color: #7A7263; font-size: 16px; line-height: 1.65; word-break: keep-all; overflow-wrap: anywhere; }
+    .stores { display: flex; flex-direction: column; gap: 12px; }
+    .store-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #1F3B30;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.5;
+      text-decoration: none;
+    }
+    .secondary-link { order: 2; padding: 12px; color: #7A7263; font-size: 14px; line-height: 1.5; text-underline-offset: 3px; }
+    a:focus-visible { outline: 3px solid #26221B; outline-offset: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="heading">다시다 앱 받기</h1>
+    <p id="sub" aria-live="polite">아이폰은 앱스토어, 안드로이드는 플레이스토어에서 받아요.</p>
+    <div class="stores">
+      <a id="app-store" class="store-button" href="https://apps.apple.com/kr/app/id6761792023">App Store에서 받기</a>
+      <a id="play-store" class="store-button" href="https://play.google.com/store/apps/details?id=com.dasida.app">Google Play에서 받기</a>
+    </div>
+  </main>
+  <script>
+    (function () {
+      const APP_STORE_BASE = 'https://apps.apple.com/kr/app/id6761792023';
+      const APP_STORE_CAMPAIGN_BASE = 'https://apps.apple.com/app/apple-store/id6761792023';
+      const PLAY_BASE = 'https://play.google.com/store/apps/details?id=com.dasida.app';
+      const APPLE_PROVIDER_TOKEN = '128473134';
+      const PLAY_CAMPAIGN = 'profile_link';
+      const SOURCE_PATTERN = /^[A-Za-z0-9_-]{1,30}$/;
+      const TEXT = {
+        heading: '다시다 앱 받기',
+        sub: '아이폰은 앱스토어, 안드로이드는 플레이스토어에서 받아요.',
+        moving: '스토어로 넘어가는 중이에요. 안 넘어가면 아래 버튼을 눌러 주세요.',
+        appStore: 'App Store에서 받기',
+        play: 'Google Play에서 받기',
+      };
+
+      function decide({ search, userAgent, platform, maxTouchPoints }) {
+        const value = new URLSearchParams(search).get('utm_source');
+        const source = value !== null && SOURCE_PATTERN.test(value) ? value : null;
+        const isIos = /iPhone|iPad|iPod/.test(userAgent) || (platform === 'MacIntel' && maxTouchPoints > 1);
+        const os = /Android/i.test(userAgent) ? 'android' : isIos ? 'ios' : 'other';
+        const appStoreUrl = source && APPLE_PROVIDER_TOKEN
+          ? APP_STORE_CAMPAIGN_BASE + '?pt=' + encodeURIComponent(APPLE_PROVIDER_TOKEN) + '&ct=' + encodeURIComponent(source) + '&mt=8'
+          : APP_STORE_BASE;
+        const playUrl = source
+          ? PLAY_BASE + '&referrer=' + encodeURIComponent('utm_source=' + source + '&utm_campaign=' + PLAY_CAMPAIGN)
+          : PLAY_BASE;
+        const redirectTo = os === 'ios' ? appStoreUrl : os === 'android' ? playUrl : null;
+        return { os, appStoreUrl, playUrl, redirectTo };
+      }
+
+      window.__dasidaStoreLink = { decide };
+      const decision = decide({
+        search: location.search,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        maxTouchPoints: navigator.maxTouchPoints,
+      });
+      const heading = document.getElementById('heading');
+      const sub = document.getElementById('sub');
+      const appStore = document.getElementById('app-store');
+      const play = document.getElementById('play-store');
+      heading.textContent = TEXT.heading;
+      sub.textContent = TEXT.sub;
+      appStore.textContent = TEXT.appStore;
+      play.textContent = TEXT.play;
+      appStore.href = decision.appStoreUrl;
+      play.href = decision.playUrl;
+      if (decision.redirectTo) {
+        sub.textContent = TEXT.moving;
+        const otherStore = decision.os === 'ios' ? play : appStore;
+        otherStore.className = 'secondary-link';
+        location.replace(decision.redirectTo);
+      }
+    })();
+  </script>
+</body>
+</html>
