@@ -1072,11 +1072,11 @@
 - 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ### 커밋 2026.10.18 16:10
-- 해시: `039848c3` (`039848c31f9ef9c354967c656baed2a9243a525b`)
+- 해시: `5363ab40` (`5363ab409efe2e6f35699bfcb1ee83a35fc51faa`)
 - 브랜치: claude/measure-model-compare-3bd65d
 - 원격: origin
 - 원격 URL: https://github.com/kiyounpark/dasida-app.git
-- 링크: https://github.com/kiyounpark/dasida-app/commit/039848c31f9ef9c354967c656baed2a9243a525b
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5363ab409efe2e6f35699bfcb1ee83a35fc51faa
 - 작성자: 박기윤
 - 메시지: docs: STATUS — 짚기 모델 비교(🔒 10.05 다시 엶 · OpenRouter 측정 끝 · Sonnet 5.5 최종선 통과 · 운영 그대로)
 - 본문: 옛 맨 위 갱신 줄은 archive 「10.18 오후에 내림」. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
