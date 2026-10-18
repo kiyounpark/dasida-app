@@ -188,7 +188,8 @@ async function callTask({ task, prod, photo, fetchImpl, key, seq, inflightAtStar
   const billed = [usage.prompt_tokens, usage.completion_tokens, usage.total_tokens,
     usage.completion_tokens_details?.reasoning_tokens, usage.prompt_tokens_details?.cached_tokens, usage.cost]
     .some((value) => typeof value === 'number' && value > 0);
-  row.retryable = Boolean(error && !billed && (error.kind === 'network' ||
+  // 402: 잔액이 줄면 OpenRouter가 진행 중 요청의 최대 비용까지 쳐서 거절한다(10.18 대조 10회 · 청구 0) — 큐 뒤로 한 번 더.
+  row.retryable = Boolean(error && !billed && (error.kind === 'network' || retryStatus === 402 ||
     retryStatus === 429 || retryStatus === 408 || (retryStatus >= 500 && retryStatus <= 599)));
   return JSON.parse(redact(JSON.stringify(row), key));
 }

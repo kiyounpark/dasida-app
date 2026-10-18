@@ -92,6 +92,17 @@ test('503 무청구는 한 번만 큐 뒤로 재시도한다', async (t) => {
   assert.equal(rows[1].error, null);
 });
 
+test('402 무청구(진행 중 요청 때문에 잔액 부족)도 한 번 재시도한다', async (t) => {
+  const args = fixture(t);
+  let calls = 0;
+  await runTasks({ ...args, tasks: twoTasks().slice(0, 1), fetchImpl: async () => ++calls === 1
+    ? { status: 402, ok: false, json: async () => ({ error: { message: 'would exceed your available credits' } }) } : response() });
+  const rows = readRows(args.out);
+  assert.equal(calls, 2);
+  assert.equal(rows[0].retryable, true);
+  assert.equal(rows[1].error, null);
+});
+
 test('예산 0.05, 회당 예약 0.03이면 두 번째 전송 전에 멈춘다', async (t) => {
   const args = fixture(t);
   const original = MODELS.mini.projectCallUsd;
