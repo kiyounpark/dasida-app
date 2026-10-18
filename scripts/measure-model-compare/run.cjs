@@ -18,6 +18,14 @@ const MODELS = {
     provider: { only: ['google-vertex'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
   gemini: { id: 'google/gemini-3.8-flash',      price: { in: 0.75, out: 3.75 }, projectCallUsd: 0.15, reasoning: { effort: 'medium' },
     provider: { only: ['google-vertex'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
+  // 10.18 저녁 기윤 「중국 모델도 재 보고 싶다」 — 싼 셋 · 학생 사진은 미국 ZDR 제공자로만(중국 회사 자체 서버는 ZDR ✗ · chinese-models.md)
+  // GLM도 effort: medium이면 생각이 32000토큰 상한까지 가서 답 0자(10.18 08 1회 · excluded-glm-effort.jsonl) → Sonnet처럼 예산을 숫자로
+  glm:      { id: 'z-ai/glm-5.3-flash',               price: { in: 0.15,  out: 0.5 },   projectCallUsd: 0.03, reasoning: { max_tokens: 16000 },
+    provider: { only: ['together'],      allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
+  deepseek: { id: 'deepseek/deepseek-v4.1-flash-1017', price: { in: 0.098, out: 0.294 }, projectCallUsd: 0.03, reasoning: { effort: 'medium' },
+    provider: { only: ['deepinfra'],     allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
+  ling:     { id: 'inclusionai/ling-3.0-flash-vl',    price: { in: 0.06,  out: 0.18 },  projectCallUsd: 0.03, reasoning: { effort: 'medium' },
+    provider: { only: ['deepinfra'],     allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
 };
 
 function buildBody(modelKey, prod, dataUrl) {
@@ -195,7 +203,7 @@ async function callTask({ task, prod, photo, fetchImpl, key, seq, inflightAtStar
 }
 
 async function runTasks({ cases, prod, tasks, out, budgetUsd = 4.5, maxCalls = Infinity,
-  concurrency = 3, fetchImpl = globalThis.fetch, key, remaining = Infinity }) {
+  concurrency = 3, fetchImpl = globalThis.fetch, key, remaining = Infinity, floorUsd = 0.25 }) {
   if (!nonnegative(budgetUsd) || !(Number.isFinite(remaining) || remaining === Infinity) ||
       !Number.isInteger(concurrency) || concurrency < 1 || !(maxCalls === Infinity || Number.isInteger(maxCalls) && maxCalls >= 0)) {
     throw new Error('예산·credits·동시성·호출 상한 값 오류');
@@ -210,7 +218,7 @@ async function runTasks({ cases, prod, tasks, out, budgetUsd = 4.5, maxCalls = I
   }
   fs.mkdirSync(out, { recursive: true });
   const spent = rows.reduce((sum, r) => sum + (r.usage.cost || 0), 0);
-  const limit = Math.min(budgetUsd - spent, remaining - 0.25);
+  const limit = Math.min(budgetUsd - spent, remaining - floorUsd);
   let calls = 0, spentThisRun = 0, inflight = 0, reserved = 0;
   let seq = Math.max(0, ...rows.map((r) => r.seq || 0));
   let stopReason = null;
@@ -270,16 +278,18 @@ function parseArgs(argv, { values, flags = [] }) {
 }
 
 async function main(argv = process.argv.slice(2)) {
-  const options = parseArgs(argv, { values: ['cases', 'out', 'models', 'case-ids', 'reps', 'concurrency', 'seed', 'budget-usd', 'max-calls'], flags: ['dry-run', 'plan'] });
+  const options = parseArgs(argv, { values: ['cases', 'out', 'models', 'case-ids', 'reps', 'concurrency', 'seed', 'budget-usd', 'max-calls', 'floor-usd'], flags: ['dry-run', 'plan'] });
   if (!options.cases || !options.out) throw new Error('--cases와 --out이 필요합니다');
   if (options.plan && options['dry-run']) throw new Error('--plan과 --dry-run은 각각 실행하세요');
   const models = (options.models || 'mini,sonnet,gemini').split(',');
   if (new Set(models).size !== models.length || models.some((k) => !Object.hasOwn(MODELS, k))) throw new Error('models 값 오류');
   const reps = Number(options.reps ?? 3), concurrency = Number(options.concurrency ?? 3);
   const seed = Number(options.seed ?? Date.now()), budgetUsd = Number(options['budget-usd'] ?? 4.5);
+  // 잔액 바닥에서 몇 달러를 남기고 멈추나(기본 0.25 · 10.18 저녁 기윤 A안에서 0.05로 낮춤)
+  const floorUsd = Number(options['floor-usd'] ?? 0.25);
   const maxCalls = Number(options['max-calls'] ?? Infinity);
   if (!Number.isSafeInteger(seed) || !Number.isInteger(reps) || reps < 1 || !Number.isInteger(concurrency) || concurrency < 1 ||
-      !nonnegative(budgetUsd) || !(maxCalls === Infinity || Number.isInteger(maxCalls) && maxCalls >= 0)) throw new Error('숫자 옵션 범위 오류');
+      !nonnegative(budgetUsd) || !nonnegative(floorUsd) || !(maxCalls === Infinity || Number.isInteger(maxCalls) && maxCalls >= 0)) throw new Error('숫자 옵션 범위 오류');
   const allCases = prepareCases(loadCases(path.resolve(options.cases)));
   const ids = options['case-ids']?.split(',');
   if (ids?.some((id) => !allCases.some((c) => c.id === id))) throw new Error('알 수 없는 case-ids');
@@ -310,7 +320,8 @@ async function main(argv = process.argv.slice(2)) {
     } catch (err) { throw new Error(redact(err.message, key)); }
   }
   plan.remaining = Number.isFinite(remaining) ? remaining : null;
-  plan.limit = Math.min(budgetUsd - spent, remaining - 0.25);
+  plan.floorUsd = floorUsd;
+  plan.limit = Math.min(budgetUsd - spent, remaining - floorUsd);
   fs.mkdirSync(out, { recursive: true });
   const planFile = path.join(out, `plan-${plan.createdAt.replace(/:/g, '-')}.json`);
   fs.writeFileSync(planFile, JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
@@ -335,7 +346,7 @@ async function main(argv = process.argv.slice(2)) {
     console.log(`dry-run 요청 ${pending.length}개 저장`);
     return plan;
   }
-  return runTasks({ cases, prod, tasks, out, budgetUsd, maxCalls, concurrency, fetchImpl: globalThis.fetch, key, remaining });
+  return runTasks({ cases, prod, tasks, out, budgetUsd, maxCalls, concurrency, fetchImpl: globalThis.fetch, key, remaining, floorUsd });
 }
 
 module.exports = { MODELS, buildBody, shuffle, prepareCases, loadCases, makeTasks, withCost,

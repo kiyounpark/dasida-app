@@ -36,18 +36,17 @@ test('세 모델 요청은 운영 prompt/schema와 지정 provider만 쓴다', (
     assert.equal(body.messages[0].content, prod.prompt);
     assert.equal(body.messages[1].content[0].text, prod.methodContext);
     assert.equal(body.messages[1].content[1].image_url.detail, 'high');
-    // Sonnet만 생각 예산을 숫자로(effort로는 생각 0이었다)
-    assert.deepEqual(body.reasoning, modelKey === 'sonnet' ? { max_tokens: 16000 } : { effort: 'medium' });
+    // Sonnet(effort면 생각 0)·GLM(effort면 생각이 상한까지)만 생각 예산을 숫자로
+    assert.deepEqual(body.reasoning, ['sonnet', 'glm'].includes(modelKey) ? { max_tokens: 16000 } : { effort: 'medium' });
     assert.equal(body.max_tokens, 32000);
     assert.equal(body.provider.allow_fallbacks, false);
     assert.equal(body.provider.data_collection, 'deny');
-    if (modelKey === 'mini') {
-      assert.deepEqual(body.provider.only, ['openai']);
-      assert.equal(Object.hasOwn(body.provider, 'zdr'), false);
-    } else {
-      assert.deepEqual(body.provider.only, ['google-vertex']);
-      assert.equal(body.provider.zdr, true);
-    }
+    // mini만 운영과 같은 OpenAI(ZDR 아님) · 나머지는 학생 사진이라 ZDR 제공자로만
+    const only = { mini: ['openai'], sonnet: ['google-vertex'], gemini: ['google-vertex'],
+      glm: ['together'], deepseek: ['deepinfra'], ling: ['deepinfra'] }[modelKey];
+    assert.deepEqual(body.provider.only, only);
+    if (modelKey === 'mini') assert.equal(Object.hasOwn(body.provider, 'zdr'), false);
+    else assert.equal(body.provider.zdr, true);
   }
 });
 
@@ -90,6 +89,18 @@ test('503 무청구는 한 번만 큐 뒤로 재시도한다', async (t) => {
   assert.equal(rows[0].error.kind, 'http');
   assert.equal(rows[1].attempt, 2);
   assert.equal(rows[1].error, null);
+});
+
+test('잔액 바닥 여유는 floorUsd로 바꾼다(기본 0.25)', async (t) => {
+  const run = async (extra) => {
+    const args = fixture(t);
+    let calls = 0;
+    await runTasks({ ...args, remaining: 0.3, tasks: twoTasks(), ...extra, fetchImpl: async () => { calls++; return response(0.03); } });
+    return calls;
+  };
+  // 첫 예약 = mini projectCallUsd 0.15 · 그다음은 실측 최대 0.03
+  assert.equal(await run({}), 0); // limit 0.3 − 0.25 = 0.05 < 0.15 → 한 번도 안 보냄
+  assert.equal(await run({ floorUsd: 0.05 }), 2); // limit 0.25 → 0.15 예약 통과 · 둘째 0.03+0.03 통과
 });
 
 test('402 무청구(진행 중 요청 때문에 잔액 부족)도 한 번 재시도한다', async (t) => {
