@@ -26,7 +26,7 @@ export type ConsentVia = (typeof CONSENT_VIA)[number];
 /**
  * 문구 판 — "다시 물어야 할 만큼" 바뀐 칸만 올린다. 올리면 그 칸이 필수인 사람 전원이 화면을 다시 본다.
  * analysis 2 (10.19 astra·Fable → 기윤 (a)): 이전받는 자가 OpenAI 하나 → OpenAI·OpenRouter·Google로 늘었다(개인정보 보호법
- * 제28조의8 ③ 「변경하는 경우 알리고 동의」). 서버는 판 2 동의 학생만 새 길로 보낸다(photo-analysis-routing.ts).
+ * 제28조의8 ③ 「변경하는 경우 알리고 동의」). 길 고르기는 이 판을 안 본다 — 기윤 b안(전원 Sonnet · photo-analysis-routing.ts). 판은 원장 라벨·동의 화면만.
  */
 export const CONSENT_COPY_VERSION: Record<ConsentKind, number> = { analysis: 2, store: 1, review: 1 };
 

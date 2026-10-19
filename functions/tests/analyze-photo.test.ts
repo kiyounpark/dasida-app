@@ -6,7 +6,7 @@ import { handleAnalyzePhoto, type AnalyzePhotoDeps } from '../src/analyze-photo'
 import { buildPhotoAnalysisRunDoc, type PhotoAnalysisRunDoc, type RunAuth } from '../src/photo-analysis-run-log';
 import { buildGateBlockedResult, photoGateView, type PhotoGateRecord } from '../src/photo-gate';
 import { OpenRouterPhotoError } from '../src/openrouter-client';
-import type { PhotoRoutingConfig } from '../src/photo-analysis-routing';
+import { parsePhotoRoutingConfig, type PhotoRoutingConfig } from '../src/photo-analysis-routing';
 import { CONSENT_COPY_VERSION, type ConsentDoc } from '../src/photo-store-contract';
 
 // 1.0.11 2줄 — analyzePhoto에 동의 기록·검토본을 더했다.
@@ -420,7 +420,7 @@ test('새 길 아님: 스위치 문서 없음 · provider openai · 문서 못 �
   }
 });
 
-test('새 길 아님: 판 1 동의(OpenAI까지만 허락) · 동의 문서 없음 · 인증 안 됨 · 웹 → mini', async () => {
+test('b안 전원: 스위치 켬 + onlyAccounts 없음 → 판 1 동의 · 동의 문서 없음 · 인증 안 됨 · 웹도 새 길', async () => {
   const unverified: RunAuth = { accountKey: 'user:abc', authVerified: false, authKind: null, authError: 'x' };
   const setups: { auth: RunAuth; consent: ConsentDoc | null; web?: boolean }[] = [
     { auth: VERIFIED, consent: consentDoc(false, 1) },
@@ -436,28 +436,41 @@ test('새 길 아님: 판 1 동의(OpenAI까지만 허락) · 동의 문서 없�
       : appRequest({}, APP_HEADERS);
     await handleAnalyzePhoto(request, response, deps);
     assert.deepEqual(sent.body, SUCCESS_BODY);
-    assert.equal(calls.openRouter.length, 0, JSON.stringify({ auth, consent: consent?.analysis }));
-    assert.equal(calls.runs[0].provider, 'openai');
+    assert.equal(calls.openRouter.length, 1, JSON.stringify({ auth, consent: consent?.analysis }));
+    assert.equal(calls.mini.length, 0);
+    assert.equal(calls.runs[0].provider, 'openrouter');
   }
-  // 판 1은 원장에서도 지금 판 동의가 아니다
+  // 판 1은 원장에서 지금 판 동의가 아니다 — 새 길로 갔어도 라벨은 사실대로
   const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false, 1), readRouting: async () => ROUTE_ON });
   await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
   assert.equal(calls.runs[0].analysisConsent, 'not-agreed');
 });
 
-test('onlyAccounts: 목록 안 계정만 새 길(기윤 폰 먼저)', async () => {
-  for (const [onlyAccounts, expected] of [
-    [['user:other'], 'openai'],
-    [['user:abc'], 'openrouter'],
+test('onlyAccounts: 인증된 목록 안 계정만 새 길(기윤 폰 먼저) · 인증 안 되면 mini', async () => {
+  const unverified: RunAuth = { accountKey: 'user:abc', authVerified: false, authKind: null, authError: 'x' };
+  for (const [onlyAccounts, auth, expected] of [
+    [['user:other'], VERIFIED, 'openai'],
+    [['user:abc'], VERIFIED, 'openrouter'],
+    [['user:abc'], unverified, 'openai'],
   ] as const) {
     const { deps, calls } = makeDeps({
-      auth: VERIFIED,
+      auth,
       consent: consentDoc(false),
       readRouting: async () => ({ provider: 'openrouter', onlyAccounts: [...onlyAccounts] }),
     });
     await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
     assert.equal(calls.runs[0].provider, expected);
   }
+});
+
+test('스위치 문서에 onlyAccounts 칸이 빠져도 = 전원 (조용히 mini가 되지 않게)', () => {
+  assert.deepEqual(parsePhotoRoutingConfig({ provider: 'openrouter' }), { provider: 'openrouter', onlyAccounts: null });
+  assert.deepEqual(parsePhotoRoutingConfig({ provider: 'openrouter', onlyAccounts: null, updatedAt: 'x' }), {
+    provider: 'openrouter',
+    onlyAccounts: null,
+  });
+  assert.equal(parsePhotoRoutingConfig({ provider: 'sonnet' }), null);
+  assert.equal(parsePhotoRoutingConfig(undefined), null);
 });
 
 test('폴백: 새 길이 빠르게 실패(잔액·5xx 등)하면 같은 요청 안에서 mini 한 번 · 남은 마감으로 · 원장 fallbackFrom', async () => {

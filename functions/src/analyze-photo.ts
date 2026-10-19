@@ -15,12 +15,17 @@ import {
   requestPhotoRotationFromOpenAI,
   type PhotoAnalysisUsage,
 } from './openai-client';
-import { OPENROUTER_PHOTO_REASONING_LABEL, requestPhotoAnalysisFromOpenRouter } from './openrouter-client';
+import {
+  OPENROUTER_PHOTO_REASONING_LABEL,
+  OpenRouterPhotoError,
+  requestPhotoAnalysisFromOpenRouter,
+} from './openrouter-client';
 import {
   choosePhotoProvider,
   parsePhotoRoutingConfig,
   PHOTO_ROUTING_DOC_PATH,
   PHOTO_ROUTING_WAIT_MS,
+  routingNeedsAuth,
   shouldFallbackToMini,
   type PhotoAnalysisProvider,
   type PhotoRoutingConfig,
@@ -103,7 +108,7 @@ export type AnalyzePhotoDeps = {
     imageDataUrl: string;
     deadlineMs: number;
   }): Promise<{ result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null }>;
-  // 10.19 새 길 — 스위치·인증·판 2 동의가 다 맞을 때만 부른다
+  // 10.19 새 길 — 스위치(config/photoAnalysis)가 켜져 있을 때만 부른다(onlyAccounts면 그 계정만)
   openRouterModelRequested: string;
   analyzeOpenRouter(input: {
     imageDataUrl: string;
@@ -197,19 +202,14 @@ export async function handleAnalyzePhoto(
   };
   // 10.19 본 분석 길 스위치(config/photoAnalysis) — 게이트와 같이 돌린다. 못 읽으면 null = mini
   const routingPromise: Promise<PhotoRoutingConfig | null> = deps.readRouting().catch(() => null);
-  // 어느 길로 갈지 — 스위치·인증·동의를 합쳐 2초 안에 못 정하면 mini (photo-analysis-routing.ts)
+  // 어느 길로 갈지 — 스위치(+ onlyAccounts면 인증)를 2초 안에 못 정하면 mini (photo-analysis-routing.ts)
   const resolveProvider = async (): Promise<PhotoAnalysisProvider> => {
     const deadline = Date.now() + PHOTO_ROUTING_WAIT_MS;
     const config = await withTimeout(routingPromise, PHOTO_ROUTING_WAIT_MS, () => null);
-    if (config?.provider !== 'openrouter') return 'openai';
-    const settled = await withTimeout(
-      Promise.all([authPromise, consentPromise]),
-      Math.max(0, deadline - Date.now()),
-      () => null,
-    );
-    if (!settled) return 'openai';
-    const [auth, plan] = settled;
-    return choosePhotoProvider({ config, auth, analysisConsent: plan.analysisConsent });
+    const auth = routingNeedsAuth(config)
+      ? await withTimeout<RunAuth | null>(authPromise, Math.max(0, deadline - Date.now()), () => null)
+      : null;
+    return choosePhotoProvider({ config, auth });
   };
   let openAi: { model: string; responseId: string; usage: PhotoAnalysisUsage | null } | null = null;
   let gate: PhotoGateRecord | null = null;
@@ -276,7 +276,9 @@ export async function handleAnalyzePhoto(
         const remainingMs = deadlineMs - (Date.now() - startedAt);
         if (!shouldFallbackToMini(kind, remainingMs)) throw error;
         const message = error instanceof Error ? error.message : String(error);
-        logger.warn('analyzePhoto openrouter failed — falling back to mini', { kind, remainingMs, message });
+        // 돈 든 실패(모양 깨짐·거절 등)의 Sonnet 청구는 원장 usage에 안 남는다(mini 것만) — 로그에 남겨 지출을 센다
+        const usage = error instanceof OpenRouterPhotoError ? error.usage : null;
+        logger.warn('analyzePhoto openrouter failed — falling back to mini', { kind, remainingMs, message, usage });
         route = {
           provider: 'openai',
           fallbackFrom: 'openrouter',
@@ -380,14 +382,18 @@ function liveDeps(): AnalyzePhotoDeps {
         deadlineMs,
       }),
     openRouterModelRequested: openRouterPhotoModel.value(),
-    analyzeOpenRouter: ({ imageDataUrl, deadlineMs }) =>
-      requestPhotoAnalysisFromOpenRouter({
-        apiKey: openRouterApiKey.value(),
+    analyzeOpenRouter: async ({ imageDataUrl, deadlineMs }) => {
+      // 키가 비면 OpenAI SDK가 env의 OPENAI_API_KEY로 채워 OpenAI 키를 OpenRouter로 보낸다(Fable 리뷰 기록만 2) — 먼저 막는다
+      const apiKey = openRouterApiKey.value();
+      if (!apiKey) throw new Error('OPENROUTER_API_KEY missing');
+      return requestPhotoAnalysisFromOpenRouter({
+        apiKey,
         model: openRouterPhotoModel.value(),
         imageDataUrl,
         methodContextText: METHOD_CONTEXT_TEXT,
         deadlineMs,
-      }),
+      });
+    },
     readRouting: async () => parsePhotoRoutingConfig((await firestore.doc(PHOTO_ROUTING_DOC_PATH).get()).data()),
     resolveAuth: (headers) => resolveRunAuth(headers),
     readConsent: (accountKey) => readConsentDoc(firestore, accountKey),
