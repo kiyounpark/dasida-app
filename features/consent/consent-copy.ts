@@ -17,8 +17,8 @@ export const CONSENT_COPY = {
   kinds: {
     // 10.19 — 이전받는 자가 OpenAI 하나 → 셋(사진 돌리기 판독 OpenAI · 본 분석 OpenRouter→Google Vertex 미국).
     // 오늘(1.0.14 OTA)은 문구만 바꾼다 — 판은 1 그대로라 이미 동의한 학생은 다시 안 본다(기윤 b안).
-    // 다시 묻는 판 2는 1.0.15(브랜치 claude/consent-v2-1015). 초안 — 기윤 OK 전
-    analysis: '사진을 분석하려고 다시다 서버·OpenAI·OpenRouter·Google(미국)로 보내',
+    // 다시 묻는 판 2는 1.0.15(브랜치 claude/consent-v2-1015). 문구 기윤 OK 10.19(target-student: 「(미국)」이 끝에만 붙으면 앞 두 곳 나라가 안 읽힘)
+    analysis: '사진을 분석하려고 다시다 서버와 미국의 OpenAI·OpenRouter·Google로 보내',
     store: '내 노트, 계정에 저장 — 다른 폰·아이패드에서도 보여',
     review: `내 사진으로 분석 정확도 높이기 (${REVIEW_PHOTO_RETENTION_DAYS}일 뒤 삭제)`,
   } satisfies Record<ConsentKind, string>,
