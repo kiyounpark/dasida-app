@@ -1,10 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
+import { CONSENT_COPY_VERSION } from '@/functions/src/photo-store-contract';
+
 import { ConsentProvider, useConsentGate } from '../consent-provider';
 import { readLocalConsent } from '../consent-store';
 import { decideConsentGate, submitConsent } from '../consent-sync';
-
 jest.mock('expo-constants', () => ({ expoConfig: { version: '1.0.11' } }));
 
 const mockLearner = { current: {} as Record<string, unknown> };
@@ -100,7 +101,7 @@ it('[다음] 뒤엔 넘긴 문서로 상태를 바꾼다(필수 둘 켜짐 → o
   (submitConsent as jest.Mock).mockResolvedValue({
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null },
+    analysis: { version: CONSENT_COPY_VERSION.analysis, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null },
     store: { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null },
     review: { version: 1, agreedAt: null, revokedAt: null },
     via: 'individual',
@@ -133,7 +134,7 @@ function consentDoc(review: { agreedAt: string | null; revokedAt: string | null 
   return {
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: { version: 1, agreedAt: AGREED, revokedAt: null },
+    analysis: { version: CONSENT_COPY_VERSION.analysis, agreedAt: AGREED, revokedAt: null },
     store: { version: 1, agreedAt: AGREED, revokedAt: null },
     review: { version: 1, ...review },
     via,

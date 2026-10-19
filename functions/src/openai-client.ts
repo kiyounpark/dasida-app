@@ -443,7 +443,8 @@ export const PHOTO_ANALYSIS_SCHEMA = {
   ],
 } as const;
 
-const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
+// export — OpenRouter 연결부(openrouter-client.ts)가 같은 글자를 보낸다. 측정 도구(load-prod.cjs)도 이 이름으로 읽는다
+export const PHOTO_ANALYSIS_SYSTEM_PROMPT = [
   '당신은 한국 수능 수학 오답 사진 분석기입니다.',
   '사진에는 학생이 틀린 문제 하나와 학생의 손글씨 풀이가 담겨 있습니다.',
   '할 일: ① 학생이 적은 최종 답 읽기 ② 손글씨 풀이를 짧게 전사 ③ 어떤 풀이 방법을 시도했는지 분류 ④ 풀이에서 틀린 지점 찾기.',
@@ -561,6 +562,8 @@ export type PhotoAnalysisUsage = {
   output: number;
   reasoning: number;
   total: number;
+  // 실제 청구액(달러) — OpenRouter만 응답에 준다(usage.cost). OpenAI 길·옛 행엔 칸이 없다 (10.19)
+  costUsd?: number | null;
 };
 
 type RawResponseUsage = {

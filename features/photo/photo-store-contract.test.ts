@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import {
+  CONSENT_COPY_VERSION,
   CONSENT_REQUIRED,
   MISTAKE_TYPE_IDS,
   NOTE_MISTAKE_TYPE_IDS,
@@ -61,7 +62,8 @@ function consentDoc(overrides: Partial<ConsentDoc> = {}): ConsentDoc {
   return {
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: on,
+    // 분석 칸은 지금 판(10.19부터 2)
+    analysis: { ...on, version: CONSENT_COPY_VERSION.analysis },
     store: on,
     review: { version: 1, agreedAt: null, revokedAt: null },
     via: 'all',
@@ -106,6 +108,13 @@ describe('photo-store-contract', () => {
     expect(
       needsConsentScreen(consentDoc({ store: { version: 1, agreedAt: null, revokedAt: null } })),
     ).toBe(true);
+  });
+
+  it('판 2(10.19): 판 1에 분석 동의한 학생도 동의 화면을 다시 본다 — 이전받는 자가 늘었다', () => {
+    expect(CONSENT_COPY_VERSION).toEqual({ analysis: 2, store: 1, review: 1 });
+    const v1 = consentDoc({ analysis: { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null } });
+    expect(isConsentOn(v1.analysis, 'analysis')).toBe(false);
+    expect(needsConsentScreen(v1)).toBe(true);
   });
 
   it('끈 시각이 켠 시각보다 뒤면 꺼진 것', () => {

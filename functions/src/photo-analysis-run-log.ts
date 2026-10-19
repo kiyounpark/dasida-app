@@ -10,6 +10,8 @@ import {
   getLearningHistoryRequestAccountKey,
 } from './learning-history-auth';
 import { PHOTO_ANALYSIS_DEADLINE_MS, PhotoAnalysisOutputError, type PhotoAnalysisUsage } from './openai-client';
+import { OpenRouterPhotoError } from './openrouter-client';
+import type { PhotoAnalysisProvider } from './photo-analysis-routing';
 import type { PhotoGateRecord } from './photo-gate';
 import {
   isConsentOn,
@@ -31,6 +33,12 @@ import {
 // 1.0.11(같은 v2, 칸만 더함): analysisConsent · reviewConsent · review (약속 파일 PhotoRunConsentFields).
 // 이 칸이 없는 옛 행 = unknown·skipped로 읽는다. 동의 문서가 없는 계정(1.0.10 이하·아직 동의 화면 전)도 unknown —
 // "안 물어봄"은 "거부"가 아니다. 분석은 동의로 막지 않는다. 기록만 한다.
+//
+// 10.19(같은 v2, 칸만 더함 · 이름은 예약급): provider · fallbackFrom · fallbackReason · finishReason · usage.costUsd.
+//   provider = 결과를 낸(실패면 마지막으로 부른) 본 분석 길. 게이트에 걸려 본 호출이 없으면 null. 이 칸이 없는 옛 행 = openai.
+//   fallbackFrom = 'openrouter'면 새 길이 실패해 같은 요청 안에서 mini가 받은 행 — 새 길 실패율에 넣어 센다.
+//   새 길 시도 행 = provider === 'openrouter' || fallbackFrom === 'openrouter'.
+//   errorKind는 옛 이름을 그대로 두고 새 길용 provider_timeout · provider_error · refusal을 더했다(옛 행과 이어 센다).
 export const PHOTO_ANALYSIS_RUNS_COLLECTION = 'photoAnalysisRuns';
 
 const PARTICIPANT_ID_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
@@ -92,14 +100,31 @@ export type RunResultSummary = {
 export type AnalyzeErrorKind =
   | 'openai_timeout'
   | 'openai_error'
+  // 10.19 새 길(OpenRouter) — 셀 땐 timeout = openai_timeout ∪ provider_timeout 처럼 묶는다
+  | 'provider_timeout'
+  | 'provider_error'
+  | 'refusal'
   | 'empty_output'
   | 'parse_failed'
   | 'schema_failed'
   | 'unknown';
 
+/** 본 분석이 어느 길로 갔나 (10.19) — 없으면 옛 길 하나뿐이던 때와 같은 값 */
+export type RunRoute = {
+  provider: PhotoAnalysisProvider | null;
+  fallbackFrom: 'openrouter' | null;
+  fallbackReason: string | null;
+  finishReason: string | null;
+};
+
+export function defaultRunRoute(): RunRoute {
+  return { provider: 'openai', fallbackFrom: null, fallbackReason: null, finishReason: null };
+}
+
 export type PhotoAnalysisRunDoc = RunRequestContext &
   RunAuth &
-  PhotoRunConsentFields & {
+  PhotoRunConsentFields &
+  RunRoute & {
     schemaVersion: 2;
     receivedAt: string;
     kstDate: string;
@@ -233,14 +258,19 @@ export function withTimeout<T>(
   });
 }
 
-export function classifyAnalyzeError(error: unknown): AnalyzeErrorKind {
+// provider = 그 에러를 낸 길. OpenRouter도 같은 OpenAI SDK로 부르므로 SDK 에러 클래스는 같고, 이름만 길에 따라 가른다
+export function classifyAnalyzeError(error: unknown, provider: PhotoAnalysisProvider = 'openai'): AnalyzeErrorKind {
+  if (error instanceof OpenRouterPhotoError) return error.kind;
   if (error instanceof PhotoAnalysisOutputError) return error.kind;
   if (error instanceof ZodError) return 'schema_failed';
   // 타임아웃이 APIError의 자식이라 먼저 본다. 55초 마감(PHOTO_ANALYSIS_DEADLINE_MS)에 끊긴 것도 타임아웃 —
   // 요청 중이면 APIUserAbortError, 본문을 받는 중이면 AbortError로 온다
-  if (error instanceof APIConnectionTimeoutError || error instanceof APIUserAbortError) return 'openai_timeout';
-  if (error instanceof Error && error.name === 'AbortError') return 'openai_timeout';
-  if (error instanceof APIError) return 'openai_error';
+  const openRouter = provider === 'openrouter';
+  if (error instanceof APIConnectionTimeoutError || error instanceof APIUserAbortError) {
+    return openRouter ? 'provider_timeout' : 'openai_timeout';
+  }
+  if (error instanceof Error && error.name === 'AbortError') return openRouter ? 'provider_timeout' : 'openai_timeout';
+  if (error instanceof APIError) return openRouter ? 'provider_error' : 'openai_error';
   return 'unknown';
 }
 
@@ -258,26 +288,38 @@ export function buildPhotoAnalysisRunDoc(input: {
   outcome: { ok: true; result: RunResultSummary | null } | { ok: false; error: unknown };
   // 1.0.11 — 없으면 unknown·skipped (동의를 안 읽은 자리)
   consent?: PhotoRunConsentFields;
+  // 10.19 — 없으면 옛 길(openai) 하나
+  route?: RunRoute;
 }): PhotoAnalysisRunDoc {
   const { outcome } = input;
-  // 출력이 깨진 실패는 OpenAI 응답 대신 에러가 model·usage·responseId를 들고 온다
-  const outputError = !outcome.ok && outcome.error instanceof PhotoAnalysisOutputError ? outcome.error : null;
+  const route = input.route ?? defaultRunRoute();
+  // 출력이 깨진 실패는 OpenAI 응답 대신 에러가 model·usage·responseId를 들고 온다(OpenRouter 길도 같다)
+  const outputError =
+    !outcome.ok && (outcome.error instanceof PhotoAnalysisOutputError || outcome.error instanceof OpenRouterPhotoError)
+      ? outcome.error
+      : null;
   const openAi = input.openAi ?? {
     model: outputError?.model ?? null,
     responseId: outputError?.responseId ?? null,
     usage: outputError?.usage ?? null,
   };
+  const finishReason =
+    route.finishReason ?? (outputError instanceof OpenRouterPhotoError ? outputError.finishReason : null);
 
   return {
     schemaVersion: 2,
     ...input.context,
     ...input.auth,
     ...(input.consent ?? unknownRunConsent()),
+    provider: route.provider,
+    fallbackFrom: route.fallbackFrom,
+    fallbackReason: route.fallbackReason,
+    finishReason,
     receivedAt: input.receivedAt.toISOString(),
     kstDate: toKstDate(input.receivedAt),
     ok: outcome.ok,
     httpStatus: outcome.ok ? 200 : 500,
-    errorKind: outcome.ok ? null : classifyAnalyzeError(outcome.error),
+    errorKind: outcome.ok ? null : classifyAnalyzeError(outcome.error, route.provider ?? 'openai'),
     errorMessage: outcome.ok
       ? null
       : (outcome.error instanceof Error ? outcome.error.message : String(outcome.error)).slice(0, ERROR_MESSAGE_MAX_LENGTH),

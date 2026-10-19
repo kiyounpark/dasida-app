@@ -65,7 +65,7 @@ test('처음 넘김: 켠 칸은 agreedAt=지금, 끈 칸은 둘 다 null, 세 �
   assert.deepEqual(doc, {
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: { version: 1, agreedAt: T1, revokedAt: null },
+    analysis: { version: CONSENT_COPY_VERSION.analysis, agreedAt: T1, revokedAt: null },
     store: { version: 1, agreedAt: T1, revokedAt: null },
     review: { version: 1, agreedAt: null, revokedAt: null },
     via: 'individual',

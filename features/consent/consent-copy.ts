@@ -15,12 +15,16 @@ export const CONSENT_COPY = {
   requiredTag: '[필수]',
   optionalTag: '[선택]',
   kinds: {
-    analysis: '사진을 분석하려고 다시다 서버·OpenAI(미국)로 보내',
+    // 판 2(10.19) — 이전받는 자가 OpenAI 하나 → 셋(사진 돌리기 판독 OpenAI · 본 분석 OpenRouter→Google Vertex 미국).
+    // 문구를 바꾸면 CONSENT_COPY_VERSION.analysis도 같이 본다(다시 물을 만큼 바뀌었나). 초안 — target-student·기윤 OK 전
+    analysis: '사진을 분석하려고 다시다 서버·OpenAI·OpenRouter·Google(미국)로 보내',
     store: '내 노트, 계정에 저장 — 다른 폰·아이패드에서도 보여',
     review: `내 사진으로 분석 정확도 높이기 (${REVIEW_PHOTO_RETENTION_DAYS}일 뒤 삭제)`,
   } satisfies Record<ConsentKind, string>,
   next: '다음',
   accountManage: '계정 관리 >',
+  // 10.19 — 보내는 곳의 이름·나라·보관 기간은 방침에 있다(제28조의8 ② 고지 사항). 로그인·프로필 화면과 같은 글자
+  privacyPolicy: '개인정보처리방침',
   // 초안에 없던 줄(10.02 줄 0 리뷰로 생김) — 서버 저장이 실패하면 넘어가지 않고 이 줄을 띄운다. target-student 검토 전
   saveFailed: '저장 못 했어. 인터넷 연결 확인하고 다시 눌러줘',
 

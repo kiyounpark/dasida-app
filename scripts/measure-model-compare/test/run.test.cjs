@@ -37,12 +37,12 @@ test('세 모델 요청은 운영 prompt/schema와 지정 provider만 쓴다', (
     assert.equal(body.messages[1].content[0].text, prod.methodContext);
     assert.equal(body.messages[1].content[1].image_url.detail, 'high');
     // Sonnet(effort면 생각 0)·GLM(effort면 생각이 상한까지)만 생각 예산을 숫자로
-    assert.deepEqual(body.reasoning, ['sonnet', 'glm'].includes(modelKey) ? { max_tokens: 16000 } : { effort: 'medium' });
+    assert.deepEqual(body.reasoning, ['sonnet', 'sonnet_us', 'glm'].includes(modelKey) ? { max_tokens: 16000 } : { effort: 'medium' });
     assert.equal(body.max_tokens, 32000);
     assert.equal(body.provider.allow_fallbacks, false);
     assert.equal(body.provider.data_collection, 'deny');
     // mini만 운영과 같은 OpenAI(ZDR 아님) · 나머지는 학생 사진이라 ZDR 제공자로만
-    const only = { mini: ['openai'], sonnet: ['google-vertex'], gemini: ['google-vertex'],
+    const only = { mini: ['openai'], sonnet: ['google-vertex'], sonnet_us: ['google-vertex/us'], gemini: ['google-vertex'],
       glm: ['together'], deepseek: ['deepinfra'], ling: ['deepinfra'] }[modelKey];
     assert.deepEqual(body.provider.only, only);
     if (modelKey === 'mini') assert.equal(Object.hasOwn(body.provider, 'zdr'), false);

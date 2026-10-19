@@ -15,7 +15,19 @@ import {
   requestPhotoRotationFromOpenAI,
   type PhotoAnalysisUsage,
 } from './openai-client';
+import { OPENROUTER_PHOTO_REASONING_LABEL, requestPhotoAnalysisFromOpenRouter } from './openrouter-client';
 import {
+  choosePhotoProvider,
+  parsePhotoRoutingConfig,
+  PHOTO_ROUTING_DOC_PATH,
+  PHOTO_ROUTING_WAIT_MS,
+  shouldFallbackToMini,
+  type PhotoAnalysisProvider,
+  type PhotoRoutingConfig,
+} from './photo-analysis-routing';
+import {
+  classifyAnalyzeError,
+  defaultRunRoute,
   findFirstReviewCopy,
   photoAiDeadlineMs,
   planRunConsent,
@@ -31,6 +43,7 @@ import {
   type RunAuth,
   type RunConsentPlan,
   type RunResultSummary,
+  type RunRoute,
 } from './photo-analysis-run-log';
 import { buildGateBlockedResult, photoGateView, runPhotoGate, type PhotoGateRecord } from './photo-gate';
 import { PHOTO_OBJECT_META_SUBMISSION_ID, type ConsentDoc, type PhotoRunConsentFields } from './photo-store-contract';
@@ -46,6 +59,10 @@ const openAiVisionModel = defineString('OPENAI_VISION_MODEL', { default: 'gpt-5.
 const openAiVisionReasoningEffort = defineString('OPENAI_VISION_REASONING_EFFORT', { default: 'medium' });
 // 사진 거르기 회전 판독 모델 — 10.01 실측(회전 11/11·29/29)과 같은 모델. effort는 low 고정(openai-client.ts)
 const openAiRotationModel = defineString('OPENAI_ROTATION_MODEL', { default: 'gpt-5.4-mini' });
+// 10.19 새 길(OpenRouter → Vertex 미국 Sonnet 5.5). 켜고 끄는 건 env가 아니라 Firestore 스위치 문서(photo-analysis-routing.ts).
+// 키는 측정 키와 따로 — OpenRouter 키 한도가 곧 운영 지출 상한이다
+const openRouterApiKey = defineSecret('OPENROUTER_API_KEY');
+const openRouterPhotoModel = defineString('OPENROUTER_PHOTO_MODEL', { default: 'anthropic/claude-sonnet-5.5' });
 
 // base64 +33% 감안 원본 약 6MB 상한 — 요청 크기·비용 가드 (웹은 픽셀 총량 1176×1568로 축소해 보냄)
 const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
@@ -86,6 +103,19 @@ export type AnalyzePhotoDeps = {
     imageDataUrl: string;
     deadlineMs: number;
   }): Promise<{ result: unknown; responseId: string; model: string; usage: PhotoAnalysisUsage | null }>;
+  // 10.19 새 길 — 스위치·인증·판 2 동의가 다 맞을 때만 부른다
+  openRouterModelRequested: string;
+  analyzeOpenRouter(input: {
+    imageDataUrl: string;
+    deadlineMs: number;
+  }): Promise<{
+    result: unknown;
+    responseId: string;
+    model: string;
+    usage: PhotoAnalysisUsage | null;
+    finishReason: string | null;
+  }>;
+  readRouting(): Promise<PhotoRoutingConfig | null>;
   resolveAuth(headers: Headers): Promise<RunAuth>;
   readConsent(accountKey: string): Promise<ConsentDoc | null>;
   findFirstReview(accountKey: string, submissionId: string): Promise<{ photoPath: string; expiresAt: string } | null>;
@@ -165,17 +195,61 @@ export async function handleAnalyzePhoto(
       consent: { analysisConsent: plan.analysisConsent, reviewConsent: plan.reviewConsent, review },
     };
   };
+  // 10.19 본 분석 길 스위치(config/photoAnalysis) — 게이트와 같이 돌린다. 못 읽으면 null = mini
+  const routingPromise: Promise<PhotoRoutingConfig | null> = deps.readRouting().catch(() => null);
+  // 어느 길로 갈지 — 스위치·인증·동의를 합쳐 2초 안에 못 정하면 mini (photo-analysis-routing.ts)
+  const resolveProvider = async (): Promise<PhotoAnalysisProvider> => {
+    const deadline = Date.now() + PHOTO_ROUTING_WAIT_MS;
+    const config = await withTimeout(routingPromise, PHOTO_ROUTING_WAIT_MS, () => null);
+    if (config?.provider !== 'openrouter') return 'openai';
+    const settled = await withTimeout(
+      Promise.all([authPromise, consentPromise]),
+      Math.max(0, deadline - Date.now()),
+      () => null,
+    );
+    if (!settled) return 'openai';
+    const [auth, plan] = settled;
+    return choosePhotoProvider({ config, auth, analysisConsent: plan.analysisConsent });
+  };
   let openAi: { model: string; responseId: string; usage: PhotoAnalysisUsage | null } | null = null;
   let gate: PhotoGateRecord | null = null;
+  let route: RunRoute = defaultRunRoute();
   let startedAt = Date.now();
+  // 원장에 남길 요청 모델·생각 설정 — 결과를 낸(실패면 마지막으로 부른) 길 기준
+  const requested = () =>
+    route.provider === 'openrouter'
+      ? { modelRequested: deps.openRouterModelRequested, reasoningEffort: OPENROUTER_PHOTO_REASONING_LABEL }
+      : { modelRequested, reasoningEffort: reasoningEffort || null };
+  // 한 길로 부르고 모양까지 확인한다 — 모양이 깨진 것도 그 길의 실패라 폴백 판단에 같이 든다.
+  // openAi는 응답이 오자마자 채운다(모양이 깨져도 원장에 모델·토큰이 남게)
+  const analyzeVia = async (provider: PhotoAnalysisProvider, deadlineMs: number) => {
+    const call = provider === 'openrouter' ? deps.analyzeOpenRouter : deps.analyze;
+    const analyzed: Awaited<ReturnType<AnalyzePhotoDeps['analyze']>> & { finishReason?: string | null } = await call({
+      imageDataUrl,
+      deadlineMs,
+    });
+    openAi = { model: analyzed.model, responseId: analyzed.responseId, usage: analyzed.usage };
+    const raw = VisionRawResultSchema.parse(analyzed.result);
+    return { analyzed, raw };
+  };
 
   try {
     // 사진 거르기 — 헤더 크기 → (크기 통과면) 회전 판독 → 판정. 판독이 실패해도 던지지 않고 열어 둔다
     gate = await deps.runGate(imageDataUrl);
     if (gate.decision !== 'pass') {
       const { auth, consent } = await settleRun();
-      // 본 호출이 안 돌았다 — durationMs 0, 게이트 시간은 gate.gateMs
-      await deps.writeRun({ ...runBase, auth, consent, durationMs: 0, openAi: null, gate, outcome: { ok: true, result: null } });
+      // 본 호출이 안 돌았다 — durationMs 0, 게이트 시간은 gate.gateMs · provider null
+      route = { ...defaultRunRoute(), provider: null };
+      await deps.writeRun({
+        ...runBase,
+        auth,
+        consent,
+        route,
+        durationMs: 0,
+        openAi: null,
+        gate,
+        outcome: { ok: true, result: null },
+      });
       logger.info('analyzePhoto gated', {
         gate,
         channel: context.channel,
@@ -188,18 +262,38 @@ export async function handleAnalyzePhoto(
       return;
     }
 
+    route = { ...defaultRunRoute(), provider: await resolveProvider() };
     startedAt = Date.now();
-    const openAiResponse = await deps.analyze({
-      imageDataUrl,
-      deadlineMs: photoAiDeadlineMs(runBase.budgetMs, startedAt - receivedAt.getTime()),
-    });
-    openAi = {
-      model: openAiResponse.model,
-      responseId: openAiResponse.responseId,
-      usage: openAiResponse.usage,
-    };
+    const deadlineMs = photoAiDeadlineMs(runBase.budgetMs, startedAt - receivedAt.getTime());
+    let attempt: Awaited<ReturnType<typeof analyzeVia>>;
+    if (route.provider === 'openrouter') {
+      try {
+        attempt = await analyzeVia('openrouter', deadlineMs);
+      } catch (error) {
+        // 빠른 실패(잔액 402·429·5xx·거절·모양 깨짐)면 같은 요청 안에서 mini 한 번 — 학생은 결과를 받는다.
+        // 타임아웃 뒤엔 시간이 없다. 이 행은 새 길 실패로 센다(fallbackFrom)
+        const kind = classifyAnalyzeError(error, 'openrouter');
+        const remainingMs = deadlineMs - (Date.now() - startedAt);
+        if (!shouldFallbackToMini(kind, remainingMs)) throw error;
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn('analyzePhoto openrouter failed — falling back to mini', { kind, remainingMs, message });
+        route = {
+          provider: 'openai',
+          fallbackFrom: 'openrouter',
+          fallbackReason: `${kind}: ${message}`.slice(0, 200),
+          finishReason: null,
+        };
+        openAi = null;
+        attempt = await analyzeVia('openai', remainingMs);
+      }
+    } else {
+      attempt = await analyzeVia('openai', deadlineMs);
+    }
+    const { analyzed: openAiResponse, raw } = attempt;
+    if (route.provider === 'openrouter') {
+      route = { ...route, finishReason: openAiResponse.finishReason ?? null };
+    }
 
-    const raw = VisionRawResultSchema.parse(openAiResponse.result);
     const result = buildPhotoRouterResult(raw);
     const durationMs = Date.now() - startedAt;
     const summary: RunResultSummary = {
@@ -213,9 +307,21 @@ export async function handleAnalyzePhoto(
 
     // 응답 전에 await — v2는 응답 뒤 작업이 잘릴 수 있다. writePhotoAnalysisRun·검토본은 안 던져서 응답을 막지 않는다
     const { auth, consent } = await settleRun();
-    await deps.writeRun({ ...runBase, auth, consent, durationMs, openAi, gate, outcome: { ok: true, result: summary } });
+    await deps.writeRun({
+      ...runBase,
+      ...requested(),
+      auth,
+      consent,
+      route,
+      durationMs,
+      openAi,
+      gate,
+      outcome: { ok: true, result: summary },
+    });
     logger.info('analyzePhoto done', {
       ...summary,
+      provider: route.provider,
+      fallbackFrom: route.fallbackFrom,
       model: openAiResponse.model,
       responseId: openAiResponse.responseId,
       usage: openAiResponse.usage,
@@ -239,8 +345,10 @@ export async function handleAnalyzePhoto(
     const { auth, consent } = await settleRun();
     await deps.writeRun({
       ...runBase,
+      ...requested(),
       auth,
       consent,
+      route,
       durationMs,
       openAi,
       gate,
@@ -271,6 +379,16 @@ function liveDeps(): AnalyzePhotoDeps {
         methodContextText: METHOD_CONTEXT_TEXT,
         deadlineMs,
       }),
+    openRouterModelRequested: openRouterPhotoModel.value(),
+    analyzeOpenRouter: ({ imageDataUrl, deadlineMs }) =>
+      requestPhotoAnalysisFromOpenRouter({
+        apiKey: openRouterApiKey.value(),
+        model: openRouterPhotoModel.value(),
+        imageDataUrl,
+        methodContextText: METHOD_CONTEXT_TEXT,
+        deadlineMs,
+      }),
+    readRouting: async () => parsePhotoRoutingConfig((await firestore.doc(PHOTO_ROUTING_DOC_PATH).get()).data()),
     resolveAuth: (headers) => resolveRunAuth(headers),
     readConsent: (accountKey) => readConsentDoc(firestore, accountKey),
     findFirstReview: (accountKey, submissionId) => findFirstReviewCopy(firestore, accountKey, submissionId),
@@ -293,7 +411,7 @@ export const analyzePhoto = onRequest(
     timeoutSeconds: ANALYZE_PHOTO_TIMEOUT_SECONDS,
     cors: true,
     invoker: 'public',
-    secrets: [openAiApiKey],
+    secrets: [openAiApiKey, openRouterApiKey],
     // 비용 가드: 공개 엔드포인트라 병렬 vision 호출 상한을 걸어둔다 (3인스턴스 × 5동시 = 최대 15)
     maxInstances: 3,
     concurrency: 5,

@@ -1,7 +1,8 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors, BrandRadius, BrandSpacing } from '@/constants/brand';
+import { LEGAL_URLS } from '@/constants/legal-urls';
 import { FontFamilies } from '@/constants/typography';
 
 import { CONSENT_COPY } from '../consent-copy';
@@ -120,6 +121,14 @@ export function ConsentScreenView({
           style={styles.manageLink}>
           <Text style={styles.manageLinkText}>{CONSENT_COPY.accountManage}</Text>
         </Pressable>
+
+        <Pressable
+          onPress={() => void Linking.openURL(LEGAL_URLS.privacyPolicy).catch(() => {})}
+          accessibilityRole="link"
+          accessibilityLabel={CONSENT_COPY.privacyPolicy}
+          style={styles.manageLink}>
+          <Text style={[styles.manageLinkText, styles.privacyLinkText]}>{CONSENT_COPY.privacyPolicy}</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -237,5 +246,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontSize: 13,
     color: BrandColors.mutedText,
+  },
+  privacyLinkText: {
+    textDecorationLine: 'underline',
   },
 });

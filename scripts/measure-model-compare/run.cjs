@@ -16,6 +16,10 @@ const MODELS = {
     provider: { only: ['openai'],        allow_fallbacks: false, require_parameters: true, data_collection: 'deny' } },
   sonnet: { id: 'anthropic/claude-sonnet-5.5',  price: { in: 2,    out: 10 },   projectCallUsd: 0.35, reasoning: { max_tokens: 16000 },
     provider: { only: ['google-vertex'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
+  // 10.19 운영 전환 확인(astra·Fable → 기윤 (a)): 운영과 같은 미국 엔드포인트 — 위 sonnet(=global로 청구됨)과 값만 +10%.
+  // 예약 0.12 = 10.18 Sonnet 최대 $0.103 × 1.1 — 기윤 상한 $1 안에서 12회가 다 들어가게
+  sonnet_us: { id: 'anthropic/claude-sonnet-5.5', price: { in: 2.2,  out: 11 },   projectCallUsd: 0.12, reasoning: { max_tokens: 16000 },
+    provider: { only: ['google-vertex/us'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
   gemini: { id: 'google/gemini-3.8-flash',      price: { in: 0.75, out: 3.75 }, projectCallUsd: 0.15, reasoning: { effort: 'medium' },
     provider: { only: ['google-vertex'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true } },
   // 10.18 저녁 기윤 「중국 모델도 재 보고 싶다」 — 싼 셋 · 학생 사진은 미국 ZDR 제공자로만(중국 회사 자체 서버는 ZDR ✗ · chinese-models.md)

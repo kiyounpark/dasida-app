@@ -5,7 +5,9 @@ import { buildPhotoRouterResult, type VisionRawResult } from '../src/analyze-pho
 import { handleAnalyzePhoto, type AnalyzePhotoDeps } from '../src/analyze-photo';
 import { buildPhotoAnalysisRunDoc, type PhotoAnalysisRunDoc, type RunAuth } from '../src/photo-analysis-run-log';
 import { buildGateBlockedResult, photoGateView, type PhotoGateRecord } from '../src/photo-gate';
-import type { ConsentDoc } from '../src/photo-store-contract';
+import { OpenRouterPhotoError } from '../src/openrouter-client';
+import type { PhotoRoutingConfig } from '../src/photo-analysis-routing';
+import { CONSENT_COPY_VERSION, type ConsentDoc } from '../src/photo-store-contract';
 
 // 1.0.11 2줄 — analyzePhoto에 동의 기록·검토본을 더했다.
 // 묶는 것: 동의 문서가 없는 요청(1.0.9·1.0.10·웹)은 지금과 같은 응답 · 검토본을 안 만든다 · 분석을 동의로 막지 않는다.
@@ -43,11 +45,12 @@ function gateOf(decision: PhotoGateRecord['decision']): PhotoGateRecord {
 const ON = { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null };
 const OFF = { version: 0, agreedAt: null, revokedAt: null };
 
-function consentDoc(review: boolean): ConsentDoc {
+// analysis 판 기본 = 지금 판(10.19부터 2). 판 1 동의는 새 길 테스트에서 따로 본다
+function consentDoc(review: boolean, analysisVersion: number = CONSENT_COPY_VERSION.analysis): ConsentDoc {
   return {
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: ON,
+    analysis: { ...ON, version: analysisVersion },
     store: ON,
     review: review ? ON : OFF,
     via: 'individual',
@@ -63,18 +66,31 @@ type Calls = {
   runs: PhotoAnalysisRunDoc[];
   consentReads: string[];
   reviewSaves: { photoPath: string; submissionId: string }[];
+  // 길마다 받은 마감(ms) — 부른 횟수 = 길이
+  mini: number[];
+  openRouter: number[];
 };
 
 function makeDeps(
   overrides: Partial<AnalyzePhotoDeps> & { auth?: RunAuth; consent?: ConsentDoc | null } = {},
 ): { deps: AnalyzePhotoDeps; calls: Calls } {
-  const calls: Calls = { runs: [], consentReads: [], reviewSaves: [] };
+  const calls: Calls = { runs: [], consentReads: [], reviewSaves: [], mini: [], openRouter: [] };
   const { auth = NO_ACCOUNT, consent = null, ...rest } = overrides;
   const deps: AnalyzePhotoDeps = {
     modelRequested: 'gpt-5.4-mini',
     reasoningEffort: 'medium',
     runGate: async () => gateOf('pass'),
-    analyze: async () => ({ result: RAW, responseId: 'resp_main', model: 'gpt-5.4-mini-2026-03-17', usage: null }),
+    analyze: async ({ deadlineMs }) => {
+      calls.mini.push(deadlineMs);
+      return { result: RAW, responseId: 'resp_main', model: 'gpt-5.4-mini-2026-03-17', usage: null };
+    },
+    openRouterModelRequested: 'anthropic/claude-sonnet-5.5',
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      return { result: RAW, responseId: 'gen-1', model: 'anthropic/claude-sonnet-5.5', usage: null, finishReason: 'end_turn' };
+    },
+    // 스위치 문서 없음 = 지금까지와 같다(mini)
+    readRouting: async () => null,
     resolveAuth: async () => auth,
     readConsent: async (accountKey) => {
       calls.consentReads.push(accountKey);
@@ -356,4 +372,198 @@ test('같은 submissionId의 첫 검토본이 원장에 있으면 그 경로·�
   assert.equal(calls.reviewSaves[0].photoPath, first.photoPath);
   assert.equal(calls.runs[0].review.photoPath, first.photoPath);
   assert.equal(calls.runs[0].review.expiresAt, first.expiresAt);
+});
+
+// ── 10.19 새 길(OpenRouter → Vertex 미국 Sonnet) — 스위치 ∧ 인증 ∧ 판 2 동의일 때만 · 아니면 mini ──
+
+const ROUTE_ON: PhotoRoutingConfig = { provider: 'openrouter', onlyAccounts: null };
+
+test('새 길: 스위치 켬 + 인증 + 판 2 동의 → OpenRouter만 부르고 원장에 provider·모델·생각 예산·finish', async () => {
+  const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false), readRouting: async () => ROUTE_ON });
+  const { sent, response } = fakeResponse();
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+
+  // 학생이 받는 모양은 길과 무관하게 같다
+  assert.equal(sent.status, 200);
+  assert.deepEqual(sent.body, SUCCESS_BODY);
+  assert.equal(calls.openRouter.length, 1);
+  assert.equal(calls.mini.length, 0);
+  const run = calls.runs[0];
+  assert.equal(run.provider, 'openrouter');
+  assert.equal(run.modelRequested, 'anthropic/claude-sonnet-5.5');
+  assert.equal(run.model, 'anthropic/claude-sonnet-5.5');
+  assert.equal(run.reasoningEffort, 'max_tokens:16000');
+  assert.equal(run.finishReason, 'end_turn');
+  assert.equal(run.fallbackFrom, null);
+  assert.equal(run.analysisConsent, 'agreed');
+});
+
+test('새 길 아님: 스위치 문서 없음 · provider openai · 문서 못 읽음 → 판 2 동의여도 mini', async () => {
+  const cases: AnalyzePhotoDeps['readRouting'][] = [
+    async () => null,
+    async () => ({ provider: 'openai', onlyAccounts: null }),
+    async () => {
+      throw new Error('firestore down');
+    },
+  ];
+  for (const readRouting of cases) {
+    const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false), readRouting });
+    const { sent, response } = fakeResponse();
+    await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+    assert.deepEqual(sent.body, SUCCESS_BODY);
+    assert.equal(calls.openRouter.length, 0);
+    assert.equal(calls.mini.length, 1);
+    assert.equal(calls.runs[0].provider, 'openai');
+    assert.equal(calls.runs[0].modelRequested, 'gpt-5.4-mini');
+    assert.equal(calls.runs[0].reasoningEffort, 'medium');
+  }
+});
+
+test('새 길 아님: 판 1 동의(OpenAI까지만 허락) · 동의 문서 없음 · 인증 안 됨 · 웹 → mini', async () => {
+  const unverified: RunAuth = { accountKey: 'user:abc', authVerified: false, authKind: null, authError: 'x' };
+  const setups: { auth: RunAuth; consent: ConsentDoc | null; web?: boolean }[] = [
+    { auth: VERIFIED, consent: consentDoc(false, 1) },
+    { auth: VERIFIED, consent: null },
+    { auth: unverified, consent: consentDoc(false) },
+    { auth: NO_ACCOUNT, consent: null, web: true },
+  ];
+  for (const { auth, consent, web } of setups) {
+    const { deps, calls } = makeDeps({ auth, consent, readRouting: async () => ROUTE_ON });
+    const { sent, response } = fakeResponse();
+    const request = web
+      ? { method: 'POST', headers: {}, body: { imageDataUrl: IMAGE, channel: 'web', submissionId: SUBMISSION } }
+      : appRequest({}, APP_HEADERS);
+    await handleAnalyzePhoto(request, response, deps);
+    assert.deepEqual(sent.body, SUCCESS_BODY);
+    assert.equal(calls.openRouter.length, 0, JSON.stringify({ auth, consent: consent?.analysis }));
+    assert.equal(calls.runs[0].provider, 'openai');
+  }
+  // 판 1은 원장에서도 지금 판 동의가 아니다
+  const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false, 1), readRouting: async () => ROUTE_ON });
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
+  assert.equal(calls.runs[0].analysisConsent, 'not-agreed');
+});
+
+test('onlyAccounts: 목록 안 계정만 새 길(기윤 폰 먼저)', async () => {
+  for (const [onlyAccounts, expected] of [
+    [['user:other'], 'openai'],
+    [['user:abc'], 'openrouter'],
+  ] as const) {
+    const { deps, calls } = makeDeps({
+      auth: VERIFIED,
+      consent: consentDoc(false),
+      readRouting: async () => ({ provider: 'openrouter', onlyAccounts: [...onlyAccounts] }),
+    });
+    await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
+    assert.equal(calls.runs[0].provider, expected);
+  }
+});
+
+test('폴백: 새 길이 빠르게 실패(잔액·5xx 등)하면 같은 요청 안에서 mini 한 번 · 남은 마감으로 · 원장 fallbackFrom', async () => {
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    consent: consentDoc(false),
+    readRouting: async () => ROUTE_ON,
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      throw new OpenRouterPhotoError('provider_error', 'gen-x', null, null, null, '402 Insufficient credits');
+    },
+  });
+  const { sent, response } = fakeResponse();
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+
+  assert.equal(sent.status, 200);
+  assert.deepEqual(sent.body, SUCCESS_BODY);
+  assert.equal(calls.openRouter.length, 1);
+  assert.equal(calls.mini.length, 1);
+  assert.ok(calls.mini[0] >= 90_000 && calls.mini[0] <= calls.openRouter[0], `${calls.mini[0]} / ${calls.openRouter[0]}`);
+  const run = calls.runs[0];
+  assert.equal(run.ok, true);
+  assert.equal(run.provider, 'openai');
+  assert.equal(run.fallbackFrom, 'openrouter');
+  assert.match(run.fallbackReason ?? '', /^provider_error: /);
+  assert.equal(run.modelRequested, 'gpt-5.4-mini');
+});
+
+test('폴백: 새 길 출력 모양이 깨져도(zod) mini로 받는다', async () => {
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    consent: consentDoc(false),
+    readRouting: async () => ROUTE_ON,
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      return { result: { nope: true }, responseId: 'gen-1', model: 'anthropic/claude-sonnet-5.5', usage: null, finishReason: 'end_turn' };
+    },
+  });
+  const { sent, response } = fakeResponse();
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+
+  assert.deepEqual(sent.body, SUCCESS_BODY);
+  assert.equal(calls.mini.length, 1);
+  assert.match(calls.runs[0].fallbackReason ?? '', /^schema_failed: /);
+  // 원장 모델·토큰은 결과를 낸 mini 것
+  assert.equal(calls.runs[0].model, 'gpt-5.4-mini-2026-03-17');
+});
+
+test('폴백 안 함: 새 길 타임아웃 → 500 · mini 0회 · provider_timeout', async () => {
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    consent: consentDoc(false),
+    readRouting: async () => ROUTE_ON,
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      const error = new Error('This operation was aborted');
+      error.name = 'AbortError';
+      throw error;
+    },
+  });
+  const { sent, response } = fakeResponse();
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+
+  assert.equal(sent.status, 500);
+  assert.equal(calls.mini.length, 0);
+  assert.equal(calls.runs[0].provider, 'openrouter');
+  assert.equal(calls.runs[0].errorKind, 'provider_timeout');
+  assert.equal(calls.runs[0].fallbackFrom, null);
+});
+
+test('폴백 안 함: 남은 마감이 90초 미만(옛 앱 57초 예산) → 500 · mini 0회 · provider_error', async () => {
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    consent: consentDoc(false),
+    readRouting: async () => ROUTE_ON,
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      throw new OpenRouterPhotoError('provider_error', null, null, null, null, '502');
+    },
+  });
+  const { sent, response } = fakeResponse();
+
+  // clientDeadlineMs 없음 = 57초 예산
+  await handleAnalyzePhoto(appRequest({ clientDeadlineMs: undefined }, APP_HEADERS), response, deps);
+
+  assert.equal(sent.status, 500);
+  assert.ok(calls.openRouter[0] < 90_000);
+  assert.equal(calls.mini.length, 0);
+  assert.equal(calls.runs[0].errorKind, 'provider_error');
+  assert.equal(calls.runs[0].provider, 'openrouter');
+});
+
+test('거르기에 걸린 행은 본 호출이 없다 — provider null · 두 길 다 0회', async () => {
+  const gate = gateOf('blocked_rotation');
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    consent: consentDoc(false),
+    readRouting: async () => ROUTE_ON,
+    runGate: async () => gate,
+  });
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
+
+  assert.equal(calls.runs[0].provider, null);
+  assert.equal(calls.openRouter.length + calls.mini.length, 0);
 });

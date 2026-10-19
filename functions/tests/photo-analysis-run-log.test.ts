@@ -25,7 +25,7 @@ import {
   unresolvedRunAuth,
   withTimeout,
 } from '../src/photo-analysis-run-log';
-import type { ConsentDoc } from '../src/photo-store-contract';
+import { CONSENT_COPY_VERSION, type ConsentDoc } from '../src/photo-store-contract';
 
 const IMAGE = 'data:image/jpeg;base64,AAAA';
 const USAGE = { input: 1200, cached: 800, output: 300, reasoning: 200, total: 1500 };
@@ -391,7 +391,8 @@ function consentDoc(review: typeof ON | typeof NEVER): ConsentDoc {
   return {
     schemaVersion: 1,
     accountKey: 'user:abc',
-    analysis: ON,
+    // 분석 칸은 지금 판(10.19부터 2) — 판 1은 「지금 판 동의」가 아니다
+    analysis: { ...ON, version: CONSENT_COPY_VERSION.analysis },
     store: ON,
     review,
     via: 'all',
