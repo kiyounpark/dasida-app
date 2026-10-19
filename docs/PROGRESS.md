@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.19 14:13
+- 해시: `bb0e6b8d` (`bb0e6b8d89886a43efec46d68d7451f883aeca95`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/bb0e6b8d89886a43efec46d68d7451f883aeca95
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 「어디서 알게 됐어요?」 한 줄 두 모델 결정(넣는다 · 노트 뒤 · OTA) + 전환 세는 법 판 2
+- 본문: - 👉 🚧 10.19 줄: astra·Fable 결론(기록용 · 사진 노트 뒤 계정당 한 번 · profile/data.heardFrom merge + PostHog 거울 · OTA 하나 · 서버 배포 0 · 새 빌드 안 당김 · 온보딩 안 함) · 막는 것(Codex 만들기 → 두 모델 리뷰 → 기윤 OTA) · 기윤 갈림길(학생 문구 · 칸 이름) · 1.0.15 때 본체 포함 · 판 2 「새 방법 없음 → 전환 표를 학생 계정 줄로」 / - 옛 맨 위 갱신 줄은 archive 「10.19 오후에 내림」으로 그대로 옮김 / - 정본 ~/dev/dasida-measure/2026-10-19-ask-source/README.md · 앱·서버·OTA 0 / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.18 17:06
 - 해시: `9a799cb9` (`9a799cb9dbe73f989af00eaeaef64684587b300b`)
 - 브랜치: main
