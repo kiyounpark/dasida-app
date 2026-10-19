@@ -45,7 +45,7 @@ function gateOf(decision: PhotoGateRecord['decision']): PhotoGateRecord {
 const ON = { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null };
 const OFF = { version: 0, agreedAt: null, revokedAt: null };
 
-// analysis 판 기본 = 지금 판(10.19부터 2). 판 1 동의는 새 길 테스트에서 따로 본다
+// analysis 판 기본 = 지금 판(CONSENT_COPY_VERSION). 옛 판(지금 − 1) 동의는 새 길 테스트에서 따로 본다
 function consentDoc(review: boolean, analysisVersion: number = CONSENT_COPY_VERSION.analysis): ConsentDoc {
   return {
     schemaVersion: 1,
@@ -420,10 +420,10 @@ test('새 길 아님: 스위치 문서 없음 · provider openai · 문서 못 �
   }
 });
 
-test('b안 전원: 스위치 켬 + onlyAccounts 없음 → 판 1 동의 · 동의 문서 없음 · 인증 안 됨 · 웹도 새 길', async () => {
+test('b안 전원: 스위치 켬 + onlyAccounts 없음 → 옛 판 동의 · 동의 문서 없음 · 인증 안 됨 · 웹도 새 길', async () => {
   const unverified: RunAuth = { accountKey: 'user:abc', authVerified: false, authKind: null, authError: 'x' };
   const setups: { auth: RunAuth; consent: ConsentDoc | null; web?: boolean }[] = [
-    { auth: VERIFIED, consent: consentDoc(false, 1) },
+    { auth: VERIFIED, consent: consentDoc(false, CONSENT_COPY_VERSION.analysis - 1) },
     { auth: VERIFIED, consent: null },
     { auth: unverified, consent: consentDoc(false) },
     { auth: NO_ACCOUNT, consent: null, web: true },
@@ -440,8 +440,8 @@ test('b안 전원: 스위치 켬 + onlyAccounts 없음 → 판 1 동의 · 동�
     assert.equal(calls.mini.length, 0);
     assert.equal(calls.runs[0].provider, 'openrouter');
   }
-  // 판 1은 원장에서 지금 판 동의가 아니다 — 새 길로 갔어도 라벨은 사실대로
-  const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false, 1), readRouting: async () => ROUTE_ON });
+  // 옛 판은 원장에서 지금 판 동의가 아니다 — 새 길로 갔어도 라벨은 사실대로
+  const { deps, calls } = makeDeps({ auth: VERIFIED, consent: consentDoc(false, CONSENT_COPY_VERSION.analysis - 1), readRouting: async () => ROUTE_ON });
   await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
   assert.equal(calls.runs[0].analysisConsent, 'not-agreed');
 });

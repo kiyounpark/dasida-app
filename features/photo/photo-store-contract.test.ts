@@ -110,11 +110,12 @@ describe('photo-store-contract', () => {
     ).toBe(true);
   });
 
-  it('판 2(10.19): 판 1에 분석 동의한 학생도 동의 화면을 다시 본다 — 이전받는 자가 늘었다', () => {
-    expect(CONSENT_COPY_VERSION).toEqual({ analysis: 2, store: 1, review: 1 });
-    const v1 = consentDoc({ analysis: { version: 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null } });
-    expect(isConsentOn(v1.analysis, 'analysis')).toBe(false);
-    expect(needsConsentScreen(v1)).toBe(true);
+  it('판이 오르면 옛 판에 분석 동의한 학생도 동의 화면을 다시 본다', () => {
+    const old = consentDoc({
+      analysis: { version: CONSENT_COPY_VERSION.analysis - 1, agreedAt: '2026-10-10T00:00:00.000Z', revokedAt: null },
+    });
+    expect(isConsentOn(old.analysis, 'analysis')).toBe(false);
+    expect(needsConsentScreen(old)).toBe(true);
   });
 
   it('끈 시각이 켠 시각보다 뒤면 꺼진 것', () => {

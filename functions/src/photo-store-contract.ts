@@ -25,10 +25,11 @@ export type ConsentVia = (typeof CONSENT_VIA)[number];
 
 /**
  * 문구 판 — "다시 물어야 할 만큼" 바뀐 칸만 올린다. 올리면 그 칸이 필수인 사람 전원이 화면을 다시 본다.
- * analysis 2 (10.19 astra·Fable → 기윤 (a)): 이전받는 자가 OpenAI 하나 → OpenAI·OpenRouter·Google로 늘었다(개인정보 보호법
- * 제28조의8 ③ 「변경하는 경우 알리고 동의」). 길 고르기는 이 판을 안 본다 — 기윤 b안(전원 Sonnet · photo-analysis-routing.ts). 판은 원장 라벨·동의 화면만.
+ * 10.19: 이전받는 자가 OpenAI 하나 → OpenAI·OpenRouter·Google로 늘었다. 오늘(1.0.14 OTA)은 문구만 — analysis 1 그대로(기윤 b안).
+ * 판 2(다시 묻기)는 1.0.15 브랜치 claude/consent-v2-1015 — 아무 OTA에나 섞여 나가 전원에게 동의 화면이 다시 뜨지 않게 main에 안 둔다.
+ * 길 고르기는 이 판을 안 본다(photo-analysis-routing.ts). 판은 원장 라벨·동의 화면만.
  */
-export const CONSENT_COPY_VERSION: Record<ConsentKind, number> = { analysis: 2, store: 1, review: 1 };
+export const CONSENT_COPY_VERSION: Record<ConsentKind, number> = { analysis: 1, store: 1, review: 1 };
 
 /**
  * 필수/선택. 🔒 10.02 오후 "합친다" → store도 필수.
