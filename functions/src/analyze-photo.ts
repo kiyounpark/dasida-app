@@ -384,8 +384,9 @@ function liveDeps(): AnalyzePhotoDeps {
     openRouterModelRequested: openRouterPhotoModel.value(),
     analyzeOpenRouter: async ({ imageDataUrl, deadlineMs }) => {
       // 키가 비면 OpenAI SDK가 env의 OPENAI_API_KEY로 채워 OpenAI 키를 OpenRouter로 보낸다(Fable 리뷰 기록만 2) — 먼저 막는다
+      // provider_error로 던져 되돌림 선 「한 종류 ≥5%」에 이름으로 잡히게(Fable 리뷰 2)
       const apiKey = openRouterApiKey.value();
-      if (!apiKey) throw new Error('OPENROUTER_API_KEY missing');
+      if (!apiKey) throw new OpenRouterPhotoError('provider_error', null, null, null, null, 'OPENROUTER_API_KEY missing');
       return requestPhotoAnalysisFromOpenRouter({
         apiKey,
         model: openRouterPhotoModel.value(),

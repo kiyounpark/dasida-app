@@ -580,3 +580,35 @@ test('거르기에 걸린 행은 본 호출이 없다 — provider null · 두 �
   assert.equal(calls.runs[0].provider, null);
   assert.equal(calls.openRouter.length + calls.mini.length, 0);
 });
+
+test('폴백: 새 길이 이름 없는 에러(plain Error)로 실패해도 남은 마감이 있으면 mini — fallbackReason unknown', async () => {
+  const { deps, calls } = makeDeps({
+    auth: VERIFIED,
+    readRouting: async () => ROUTE_ON,
+    analyzeOpenRouter: async ({ deadlineMs }) => {
+      calls.openRouter.push(deadlineMs);
+      throw new Error('socket hang up');
+    },
+  });
+  const { sent, response } = fakeResponse();
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), response, deps);
+
+  assert.equal(sent.status, 200);
+  assert.equal(calls.mini.length, 1);
+  assert.equal(calls.runs[0].fallbackFrom, 'openrouter');
+  assert.match(calls.runs[0].fallbackReason ?? '', /^unknown: socket hang up/);
+});
+
+test('onlyAccounts: 인증이 2초 안에 안 끝나면 mini (라우팅 대기 상한)', async () => {
+  const { deps, calls } = makeDeps({
+    readRouting: async () => ({ provider: 'openrouter', onlyAccounts: ['user:abc'] }),
+    resolveAuth: () => new Promise<RunAuth>(() => {}),
+  });
+
+  await handleAnalyzePhoto(appRequest({}, APP_HEADERS), fakeResponse().response, deps);
+
+  assert.equal(calls.openRouter.length, 0);
+  assert.equal(calls.mini.length, 1);
+  assert.equal(calls.runs[0].provider, 'openai');
+});
