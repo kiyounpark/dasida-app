@@ -27,6 +27,7 @@ import type { LearnerSummaryCurrent, LearningAttempt, LearningAttemptResult, Rev
 import type { LearnerProfileStore } from './profile-store';
 import type {
   FeaturedExamState,
+  HeardFromAnswer,
   LearnerProfile,
   LearnerTrack,
   PendingDiagnosisResumeState,
@@ -74,6 +75,7 @@ export type CurrentLearnerController = {
     migrationStatus: HistoryMigrationStatus;
   }>;
   updateGrade(grade: LearnerProfile['grade']): Promise<CurrentLearnerSnapshot>;
+  saveHeardFrom(accountKey: string, answer: HeardFromAnswer): Promise<CurrentLearnerSnapshot>;
   updateOnboardingProfile(
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
@@ -524,6 +526,22 @@ export function createCurrentLearnerController({
         }),
         migrationStatus,
       };
+    },
+    saveHeardFrom: async (accountKey, answer) => {
+      const snapshot = await readAccessibleSnapshot();
+      const { session, profile } = snapshot;
+      if (
+        session.status !== 'authenticated' ||
+        !accountKey.startsWith('user:') || accountKey.length <= 5 ||
+        session.accountKey !== accountKey || profile.accountKey !== accountKey
+      ) {
+        throw new Error(AUTH_REQUIRED_ERROR_MESSAGE);
+      }
+      if ('heardFrom' in profile) return snapshot;
+
+      await profileStore.saveHeardFrom(accountKey, answer);
+      // 서버 Timestamp를 포함한 프로필을 다시 읽어 프로바이더 상태에도 반영한다.
+      return readCurrentSnapshot();
     },
     updateGrade: async (grade) => {
       const { session, profile, summary } = await readAccessibleSnapshot();

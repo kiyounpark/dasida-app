@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { getApp } from 'firebase/app';
 import {
   deleteDoc,
@@ -9,7 +10,7 @@ import {
 } from 'firebase/firestore';
 
 import type { LearnerProfileStore } from './profile-store';
-import type { LearnerProfile } from './types';
+import type { HeardFromAnswer, LearnerProfile } from './types';
 
 function createRandomId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -57,6 +58,18 @@ export class FirestoreLearnerProfileStore implements LearnerProfileStore {
     // setDoc(full replace): undefined 필드는 filter로 제거되어 Firestore에서 삭제됨.
     // merge 모드나 updateDoc 전환 시 undefined 대신 deleteField() sentinel 필요.
     await setDoc(this.profileRef(profile.accountKey), data);
+  }
+
+  async saveHeardFrom(accountKey: string, answer: HeardFromAnswer): Promise<void> {
+    // 다른 프로필 칸은 보내지 않고 이 칸만 추가한다.
+    await setDoc(this.profileRef(accountKey), {
+      heardFrom: {
+        schemaVersion: 1,
+        ...answer,
+        recordedAt: serverTimestamp(),
+        appVersion: Constants.expoConfig?.version ?? null,
+      },
+    }, { merge: true });
   }
 
   async reset(accountKey: string): Promise<void> {

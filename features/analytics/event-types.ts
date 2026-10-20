@@ -1,6 +1,8 @@
 import type { ConsentSubmitParams } from '@/functions/src/photo-store-contract';
+import type { HeardFromSource } from '@/features/learner/types';
 
 export type EventName =
+  | 'heard_from_answered'
   | 'diagnosis_started'
   | 'diagnosis_completed'
   | 'graduation_reached'
@@ -48,6 +50,9 @@ export type DiagnosisSource = 'exam' | 'unit';
 export type NotificationType = 'review_reminder' | 'unknown';
 
 export type EventParams = {
+  heard_from_answered:
+    | { status: 'answered'; source: HeardFromSource }
+    | { status: 'skipped'; source: 'none' };
   diagnosis_started: { source: DiagnosisSource };
   diagnosis_completed: {
     source: DiagnosisSource;

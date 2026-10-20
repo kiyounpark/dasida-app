@@ -1,6 +1,27 @@
 import type { WeaknessId } from '@/data/diagnosisMap';
 import type { LearningSource, ReviewStage } from '@/features/learning/history-types';
 import type { QuizAnswer } from '@/features/quiz/types';
+import type { Timestamp } from 'firebase/firestore';
+
+export type HeardFromSource =
+  | 'youtube_shorts'
+  | 'youtube_long'
+  | 'instagram'
+  | 'orbi'
+  | 'store_chance'
+  | 'friend_teacher'
+  | 'other'
+  | 'dont_remember';
+
+export type HeardFromAnswer =
+  | { status: 'answered'; source: HeardFromSource }
+  | { status: 'skipped'; source: null };
+
+export type HeardFrom = HeardFromAnswer & {
+  schemaVersion: 1;
+  recordedAt: Timestamp;
+  appVersion: string | null;
+};
 
 export type PreviewSeedState =
   | 'fresh'
@@ -53,6 +74,7 @@ export type PendingDiagnosisResumeState = {
 };
 
 export type LearnerProfile = {
+  heardFrom?: HeardFrom;
   accountKey: string;
   learnerId: string;
   nickname: string;

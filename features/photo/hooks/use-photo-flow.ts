@@ -4,6 +4,7 @@ import type { EventName } from '@/features/analytics/event-types';
 import { logEvent } from '@/features/analytics/log-event';
 import { spawnMistakeReviewTasks } from '@/features/learning/review-scheduler';
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
+import type { HeardFromAnswer, HeardFromSource } from '@/features/learner/types';
 
 import {
   downscaleToDataUrl,
@@ -19,7 +20,7 @@ import { savePhotoNote } from '../note-store';
 import { persistNotePhoto } from '../photo-file-store';
 import { createPhotoScript } from '../script/photo-script';
 import type { ScriptEvent } from '../script/script-events';
-import type { NoteView, PhotoScript, ScriptIO } from '../script/script-io';
+import type { NoteView, PhotoScript, ScriptEnding, ScriptIO } from '../script/script-io';
 import type { PhotoNote } from '../types';
 import { usePhotoThread, type PhotoThread } from './use-photo-thread';
 
@@ -42,6 +43,19 @@ function logScriptEvent({ name, ...params }: ScriptEvent) {
 }
 
 export type PhotoFlowStatus = 'upload' | 'analyzing' | 'chat';
+
+// 화면 재진입·저장 실패와 무관하게 이번 앱 실행에서는 계정마다 한 번만 묻는다.
+const heardFromAskedAccounts = new Set<string>();
+const HEARD_FROM_CHOICES: readonly { label: string; source: HeardFromSource }[] = [
+  { label: '유튜브 쇼츠', source: 'youtube_shorts' },
+  { label: '유튜브 긴 영상', source: 'youtube_long' },
+  { label: '인스타그램', source: 'instagram' },
+  { label: '오르비', source: 'orbi' },
+  { label: '스토어에서 우연히 봤어요', source: 'store_chance' },
+  { label: '친구·선생님 추천', source: 'friend_teacher' },
+  { label: '그 밖의 곳', source: 'other' },
+  { label: '기억이 안 나요', source: 'dont_remember' },
+];
 
 export type PhotoFlow = {
   status: PhotoFlowStatus;
@@ -66,6 +80,8 @@ export function usePhotoFlow({
   accountKey,
   reviewTaskStore,
   getRemoteAuthHeaders,
+  canAskHeardFrom,
+  saveHeardFrom,
 }: {
   accountKey?: string | null;
   reviewTaskStore?: ReviewTaskStore | null;
@@ -74,6 +90,8 @@ export function usePhotoFlow({
    * 없으면 노트는 이 폰에만 남는다(☁ 줄 없음).
    */
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
+  canAskHeardFrom?: boolean;
+  saveHeardFrom?: (accountKey: string, answer: HeardFromAnswer) => Promise<void>;
 } = {}): PhotoFlow {
   const thread = usePhotoThread();
   const [status, setStatus] = useState<PhotoFlowStatus>('upload');
@@ -89,6 +107,9 @@ export function usePhotoFlow({
   /** 거르기에 걸려 [다시 찍기]로 왔으면 직전 번호. 처음부터 다시(restart)는 안 잇는다 (web-proto와 같은 규칙) */
   const retakeOfRef = useRef<string | null>(null);
   const scriptRef = useRef<PhotoScript | null>(null);
+  // 대화 도중 읽힌 프로필도 반영한다. 대본이 잡은 오래된 렌더의 값으로 판정하지 않는다.
+  const heardFromRef = useRef({ accountKey, canAskHeardFrom, saveHeardFrom });
+  heardFromRef.current = { accountKey, canAskHeardFrom, saveHeardFrom };
 
   // 헤더 뒤로가기(app/_layout.tsx)로 떠나면 언마운트된다 — 깨어난 검산 대기가 노트를 저장하고
   // 복습 과제를 만들지 않게 대본을 끊는다 (astra 4 — 1.0.10까지 있던 구멍)
@@ -190,9 +211,44 @@ export function usePhotoFlow({
     setStatus('upload');
   }
 
-  /** 화면이 끝나는 자리의 공통 마무리 — 노트·약점 카드·"오늘은 여기까지" 모두 */
-  function endHere() {
-    thread.ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
+  /** 공용 대본은 바꾸지 않고, 앱의 노트 결말 뒤에만 유입 경로를 묻는다. */
+  function endHere(ending: ScriptEnding) {
+    const finish = () => thread.ask([{ label: '처음부터 다시', kind: 'ghost', onPress: restart }]);
+    const current = heardFromRef.current;
+    const key = current.accountKey;
+    const save = current.saveHeardFrom;
+    if (
+      ending.kind !== 'note' || !current.canAskHeardFrom || !save ||
+      !key?.startsWith('user:') || key.length <= 5 || key !== accountKey ||
+      heardFromAskedAccounts.has(key)
+    ) {
+      finish();
+      return;
+    }
+
+    heardFromAskedAccounts.add(key);
+    let answered = false;
+    const answer = (label: string, value: HeardFromAnswer) => {
+      if (answered) return;
+      answered = true;
+      thread.mySay(label);
+      thread.say('고마워요!');
+      finish();
+      logEvent('heard_from_answered', value.status === 'skipped'
+        ? { status: 'skipped', source: 'none' }
+        : value);
+      // 저장을 기다리거나 실패 화면을 띄우지 않는다.
+      void save(key, value).catch(() => {});
+    };
+    thread.say('하나만 물어볼게요. 다시다를 처음 어디서 알게 됐어요?');
+    thread.ask([
+      ...HEARD_FROM_CHOICES.map(({ label, source }) => ({
+        label,
+        kind: 'primary' as const,
+        onPress: () => answer(label, { status: 'answered', source }),
+      })),
+      { label: '건너뛰기', kind: 'ghost', onPress: () => answer('건너뛰기', { status: 'skipped', source: null }) },
+    ]);
   }
 
   /**

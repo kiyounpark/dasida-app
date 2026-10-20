@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { Timestamp } from 'firebase/firestore';
 
 import { StorageKeys } from '@/constants/storage-keys';
 
 import type { LearnerProfileStore } from './profile-store';
-import type { LearnerProfile } from './types';
+import type { HeardFromAnswer, LearnerProfile } from './types';
 
 function createRandomId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -49,6 +51,20 @@ export class LocalLearnerProfileStore implements LearnerProfileStore {
       getLearnerProfileStorageKey(profile.accountKey),
       JSON.stringify(profile),
     );
+  }
+
+  async saveHeardFrom(accountKey: string, answer: HeardFromAnswer): Promise<void> {
+    const profile = await this.load(accountKey);
+    if (!profile) return;
+    await this.save({
+      ...profile,
+      heardFrom: {
+        schemaVersion: 1,
+        ...answer,
+        recordedAt: Timestamp.now(),
+        appVersion: Constants.expoConfig?.version ?? null,
+      },
+    });
   }
 
   async reset(accountKey: string): Promise<void> {

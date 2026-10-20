@@ -1289,3 +1289,31 @@ describe('PhotoFlowScreen — 복습 과제 (E칸)', () => {
     warn.mockRestore();
   });
 });
+
+
+describe('사진 노트 뒤 유입 경로 질문 — 실제 공용 대본과 화면 연결', () => {
+  it('노트 직후 질문이 뜨고 칩을 누르면 저장을 기다리지 않고 감사와 처음부터 다시가 뜬다', async () => {
+    mockAnalyze.mockResolvedValue(makeResult({ errorCandidates: [makeCandidate()], errorConfidence: 0.9 }));
+    const saveHeardFrom = jest.fn(() => new Promise<void>(() => {}));
+    render(<PhotoFlowScreen accountKey="user:heard-from-screen" canAskHeardFrom saveHeardFrom={saveHeardFrom} />);
+    await walkToNote();
+    expect(screen.getByText('하나만 물어볼게요. 다시다를 처음 어디서 알게 됐어요?')).toBeTruthy();
+    for (const label of ['유튜브 쇼츠', '유튜브 긴 영상', '인스타그램', '오르비', '스토어에서 우연히 봤어요', '친구·선생님 추천', '그 밖의 곳', '기억이 안 나요', '건너뛰기']) {
+      expect(screen.getByRole('button', { name: label })).toBeTruthy();
+    }
+    expect(screen.queryByPlaceholderText(INPUT_PLACEHOLDER)).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: '오르비' }));
+    expect(saveHeardFrom).toHaveBeenCalledTimes(1);
+    expect(saveHeardFrom).toHaveBeenCalledWith('user:heard-from-screen', { status: 'answered', source: 'orbi' });
+    expect(screen.getByText('오르비')).toBeTruthy();
+    expect(screen.getByText('고마워요!')).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: '처음부터 다시' }));
+    expect(screen.getByText('틀린 문제 사진 올리기')).toBeTruthy();
+    await walkToNote();
+    expect(screen.queryByText('하나만 물어볼게요. 다시다를 처음 어디서 알게 됐어요?')).toBeNull();
+    expect(screen.getByRole('button', { name: '처음부터 다시' })).toBeTruthy();
+    expect(mockLog.mock.calls.filter(([name]) => name === 'heard_from_answered')).toEqual([
+      ['heard_from_answered', { status: 'answered', source: 'orbi' }],
+    ]);
+  });
+});

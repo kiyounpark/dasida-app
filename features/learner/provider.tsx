@@ -34,6 +34,7 @@ import type {
 import type { LearningSource } from '@/features/learning/history-types';
 import type {
   FeaturedExamState,
+  HeardFromAnswer,
   LearnerProfile,
   LearnerTrack,
   PendingDiagnosisResumeState,
@@ -116,6 +117,7 @@ export type CurrentLearnerContextValue = {
   getHistoryMigrationStatus(sourceAnonymousAccountKey?: string): Promise<HistoryMigrationStatus>;
   importAnonymousHistory(sourceAnonymousAccountKey: string): Promise<HistoryMigrationStatus>;
   updateGrade(grade: LearnerProfile['grade']): Promise<void>;
+  saveHeardFrom(accountKey: string, answer: HeardFromAnswer): Promise<void>;
   updateOnboardingProfile(
     nickname: string,
     grade: Exclude<LearnerProfile['grade'], 'unknown'>,
@@ -303,6 +305,10 @@ export function CurrentLearnerProvider({ children }: { children: ReactNode }) {
         const result = await learnerController.importAnonymousHistory(sourceAnonymousAccountKey);
         setState(toLearnerState(result.snapshot));
         return result.migrationStatus;
+      },
+      saveHeardFrom: async (accountKey, answer) => {
+        const snapshot = await learnerController.saveHeardFrom(accountKey, answer);
+        setState(toLearnerState(snapshot));
       },
       updateGrade: async (grade) => {
         const snapshot = await learnerController.updateGrade(grade);

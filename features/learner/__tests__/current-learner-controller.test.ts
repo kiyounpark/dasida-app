@@ -237,3 +237,61 @@ describe('createCurrentLearnerController — loadRecentAttempts (featured-exam)'
     expect(weaknessCalls.map(([, o]) => o?.limit)).toEqual(expect.arrayContaining([20, 10]));
   });
 });
+
+describe('heardFrom 프로필 저장', () => {
+  const heardFrom = {
+    schemaVersion: 1, status: 'answered', source: 'orbi',
+    recordedAt: { seconds: 123, nanoseconds: 0 }, appVersion: '1.0.15',
+  };
+  function setup() {
+    const deps = {
+      ...makeMockDeps(jest.fn().mockResolvedValue([])),
+      profileStore: {
+        load: jest.fn().mockResolvedValue({ ...MOCK_PROFILE, accountKey: 'user:uid-123', heardFrom }),
+        createInitial: jest.fn(), save: jest.fn().mockResolvedValue(undefined),
+        saveHeardFrom: jest.fn().mockResolvedValue(undefined),
+      },
+    };
+    deps.authClient.loadSession.mockResolvedValue({ ...MOCK_SESSION, accountKey: 'user:uid-123' });
+    return { deps, controller: createCurrentLearnerController(deps as any) };
+  }
+
+  it('updateGrade는 저장 직전에 다시 불러온 heardFrom을 통째 save에도 그대로 싣는다', async () => {
+    const { deps, controller } = setup();
+    deps.profileStore.load.mockResolvedValueOnce({ ...MOCK_PROFILE, accountKey: 'user:uid-123' });
+    await controller.bootstrap(); // 앱 상태에선 아직 heardFrom이 없던 시점
+    const snapshot = await controller.updateGrade('g2');
+    expect(deps.profileStore.load).toHaveBeenCalledTimes(2);
+    expect(deps.profileStore.save).toHaveBeenCalledWith(expect.objectContaining({ grade: 'g2', heardFrom }));
+    expect(deps.profileStore.save.mock.calls[0][0].heardFrom).toBe(heardFrom);
+    expect(snapshot.profile?.heardFrom).toBe(heardFrom);
+  });
+
+  it('saveHeardFrom은 부분 저장 후 프로필을 다시 읽어 새 스냅샷에 반영한다', async () => {
+    const { deps, controller } = setup();
+    deps.profileStore.load.mockResolvedValueOnce({ ...MOCK_PROFILE, accountKey: 'user:uid-123' });
+    const answer = { status: 'answered', source: 'orbi' } as const;
+    const snapshot = await controller.saveHeardFrom('user:uid-123', answer);
+    expect(deps.profileStore.saveHeardFrom).toHaveBeenCalledTimes(1);
+    expect(deps.profileStore.saveHeardFrom).toHaveBeenCalledWith('user:uid-123', answer);
+    expect(deps.profileStore.save).not.toHaveBeenCalled();
+    expect(snapshot.profile?.heardFrom).toBe(heardFrom);
+  });
+
+  it('heardFrom이 이미 있으면 부분 저장하지 않는다', async () => {
+    const { deps, controller } = setup();
+    await controller.saveHeardFrom('user:uid-123', { status: 'skipped', source: null });
+    expect(deps.profileStore.saveHeardFrom).not.toHaveBeenCalled();
+  });
+
+  it.each(['anonymous', 'other-account'] as const)('%s 세션은 부분 저장하지 않는다', async (scenario) => {
+    const { deps, controller } = setup();
+    deps.authClient.loadSession.mockResolvedValue({
+      ...MOCK_SESSION,
+      accountKey: scenario === 'other-account' ? 'user:other' : 'anonymous:test',
+      status: scenario === 'anonymous' ? 'anonymous' : 'authenticated',
+    });
+    await expect(controller.saveHeardFrom('user:uid-123', { status: 'skipped', source: null })).rejects.toThrow();
+    expect(deps.profileStore.saveHeardFrom).not.toHaveBeenCalled();
+  });
+});

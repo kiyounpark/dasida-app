@@ -43,7 +43,7 @@ describe('학생용 사진 주소', () => {
 
     render(<PhotoRoute />);
 
-    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc' });
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', canAskHeardFrom: false });
   });
 
   it('복습 과제 저장소도 내려준다 — 없으면 사진 노트가 복습 과제가 못 된다 (E칸)', () => {
@@ -52,7 +52,7 @@ describe('학생용 사진 주소', () => {
 
     render(<PhotoRoute />);
 
-    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', reviewTaskStore });
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', reviewTaskStore, canAskHeardFrom: false });
   });
 
   it('계정 헤더 만드는 함수도 내려준다 — 없으면 사진 분석 사용량을 계정별로 못 센다', () => {
@@ -61,7 +61,7 @@ describe('학생용 사진 주소', () => {
 
     render(<PhotoRoute />);
 
-    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', getRemoteAuthHeaders });
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: 'user:abc', getRemoteAuthHeaders, canAskHeardFrom: false });
   });
 
   it('세션이 아직 없으면 키 없이 그린다 — 노트만 안 남고 흐름은 돈다', () => {
@@ -69,6 +69,35 @@ describe('학생용 사진 주소', () => {
 
     render(<PhotoRoute />);
 
-    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: null });
+    expect(mockScreen.mock.calls[0][0]).toEqual({ accountKey: null, canAskHeardFrom: false });
+  });
+});
+
+describe('사진 주소의 유입 질문 조건', () => {
+  const base = {
+    isReady: true,
+    session: { status: 'authenticated', accountKey: 'user:route-test' },
+    profile: { accountKey: 'user:route-test' },
+    saveHeardFrom: jest.fn(),
+  };
+
+  beforeEach(() => jest.clearAllMocks());
+  it.each([
+    ['로그인 계정과 읽은 프로필', {}, true],
+    ['answered 있음', { profile: { ...base.profile, heardFrom: { status: 'answered' } } }, false],
+    ['skipped 있음', { profile: { ...base.profile, heardFrom: { status: 'skipped' } } }, false],
+    ['프로필 읽기 전 또는 실패', { profile: null }, false],
+    ['준비 전', { isReady: false }, false],
+    ['세션 없음', { session: null }, false],
+    ['익명 개발 게스트', { session: { status: 'anonymous', accountKey: 'user:route-test' } }, false],
+    ['accountKey 없음', { session: { status: 'authenticated' } }, false],
+    ['user 접두어 없음', { session: { status: 'authenticated', accountKey: 'guest:test' } }, false],
+    ['다른 계정 프로필', { profile: { accountKey: 'user:other' } }, false],
+  ])('%s: 질문 허용 여부', (_name, overrides, expected) => {
+    (useCurrentLearner as jest.Mock).mockReturnValue({ ...base, ...overrides });
+    render(<PhotoRoute />);
+    const props = (PhotoFlowScreen as jest.Mock).mock.calls[0][0];
+    expect(props.canAskHeardFrom).toBe(expected);
+    expect(props.saveHeardFrom).toBe(base.saveHeardFrom);
   });
 });

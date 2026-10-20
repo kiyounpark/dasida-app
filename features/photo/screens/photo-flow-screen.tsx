@@ -5,6 +5,7 @@ import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { ReviewTaskStore } from '@/features/learning/review-task-store';
+import type { HeardFromAnswer } from '@/features/learner/types';
 
 import { PhotoActionButtons } from '../components/photo-action-buttons';
 import { PhotoAnalyzingView } from '../components/photo-analyzing-view';
@@ -26,15 +27,21 @@ export function PhotoFlowScreen({
   accountKey,
   reviewTaskStore,
   getRemoteAuthHeaders,
+  canAskHeardFrom,
+  saveHeardFrom,
 }: {
   accountKey?: string | null;
   reviewTaskStore?: ReviewTaskStore | null;
   getRemoteAuthHeaders?: ((accountKey: string) => Promise<Record<string, string>>) | null;
+  canAskHeardFrom?: boolean;
+  saveHeardFrom?: (accountKey: string, answer: HeardFromAnswer) => Promise<void>;
 } = {}) {
   const { status, imageUri, error, thread, start } = usePhotoFlow({
     accountKey,
     reviewTaskStore,
     getRemoteAuthHeaders,
+    canAskHeardFrom,
+    saveHeardFrom,
   });
   const scrollRef = useRef<ScrollView>(null);
   const { bubbles, actions, press, textPrompt, submitText } = thread;

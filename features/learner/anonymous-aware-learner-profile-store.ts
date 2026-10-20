@@ -1,6 +1,6 @@
 import type { AuthSession } from '@/features/auth/types';
 import type { LearnerProfileStore } from './profile-store';
-import type { LearnerProfile } from './types';
+import type { HeardFromAnswer, LearnerProfile } from './types';
 
 export class AnonymousAwareLearnerProfileStore implements LearnerProfileStore {
   constructor(
@@ -30,6 +30,10 @@ export class AnonymousAwareLearnerProfileStore implements LearnerProfileStore {
 
   async save(profile: LearnerProfile): Promise<void> {
     return (await this.selectStore()).save(profile);
+  }
+
+  async saveHeardFrom(accountKey: string, answer: HeardFromAnswer): Promise<void> {
+    return (await this.selectStore()).saveHeardFrom(accountKey, answer);
   }
 
   async reset(accountKey: string): Promise<void> {
