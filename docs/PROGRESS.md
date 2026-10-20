@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.20 14:16
+- 해시: `49cbe520` (`49cbe5206f1a2dde82bdd4147e1ccb19e01c8af0`)
+- 브랜치: claude/ask-source-1015-df2268
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/49cbe5206f1a2dde82bdd4147e1ccb19e01c8af0
+- 작성자: 박기윤
+- 메시지: docs: STATUS 13줄 — ⑫ 고침 cf61b69f(안드 configChanges 기본값 지키기 · Fable 리뷰가 찾음)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.20 13:08
 - 해시: `5bebb16a` (`5bebb16a6eec082f164acd4ae220d80098964db1`)
 - 브랜치: main
