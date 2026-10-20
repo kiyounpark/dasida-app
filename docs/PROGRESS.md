@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.20 13:08
+- 해시: `5bebb16a` (`5bebb16a6eec082f164acd4ae220d80098964db1`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/5bebb16a6eec082f164acd4ae220d80098964db1
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 애플 공개 앱스토어 웹 페이지 새 스크린샷 5장 확인(10.20 13:0x) · 옛 갱신 줄 archive 「10.20 낮에 내림」
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.19 22:49
 - 해시: `3c717173` (`3c7171731ca16e3fd0154847a7eaa2e52a34e4dc`)
 - 브랜치: main
