@@ -242,9 +242,9 @@ export function usePhotoFlow({
     };
     thread.say('하나만 물어볼게요. 다시다를 처음 어디서 알게 됐어요?');
     thread.ask([
+      // 칩은 대본의 고르기 목록(methodButton)과 같은 기본 모양 — 꽉 찬 버튼 8개가 쌓이지 않게
       ...HEARD_FROM_CHOICES.map(({ label, source }) => ({
         label,
-        kind: 'primary' as const,
         onPress: () => answer(label, { status: 'answered', source }),
       })),
       { label: '건너뛰기', kind: 'ghost', onPress: () => answer('건너뛰기', { status: 'skipped', source: null }) },

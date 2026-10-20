@@ -75,7 +75,7 @@ it.each(['success', 'fail'] as const)('노트 끝 %s: 카드 바로 뒤 정확�
     expect.objectContaining({ kind: 'coach', paras: [QUESTION], ask: true }),
   ]);
   expect(result.current.thread.actions.map(({ label, kind }) => ({ label, kind }))).toEqual([
-    ...CHOICES.map(([label]) => ({ label, kind: 'primary' })),
+    ...CHOICES.map(([label]) => ({ label, kind: undefined })),
     { label: '건너뛰기', kind: 'ghost' },
   ]);
   expect(result.current.thread.textPrompt).toBeNull();
