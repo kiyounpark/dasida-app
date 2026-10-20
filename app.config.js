@@ -36,6 +36,8 @@ module.exports = {
       requireFullScreen: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        // 1.0.15 ⑫ — App Store 「언어」가 「영어」로만 뜬다(10.04). 앱은 한국어뿐 (10.20 astra·Fable → Fable 최종)
+        CFBundleDevelopmentRegion: 'ko',
         UISupportedInterfaceOrientations: [
           'UIInterfaceOrientationPortrait',
         ],
@@ -87,7 +89,8 @@ module.exports = {
       ],
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
-      'expo-localization',
+      // ⑫ supportedLocales.ios → Info.plist CFBundleLocalizations (withExpoLocalization.ts:49-50)
+      ['expo-localization', { supportedLocales: { ios: ['ko'] } }],
       [
         'expo-image-picker',
         {
