@@ -90,7 +90,8 @@ module.exports = {
       'expo-secure-store',
       '@react-native-google-signin/google-signin',
       // ⑫ supportedLocales.ios → Info.plist CFBundleLocalizations (withExpoLocalization.ts:49-50)
-      ['expo-localization', { supportedLocales: { ios: ['ko'] } }],
+      // 옵션 객체를 넘기면 플러그인 기본값이 빠진다(withExpoLocalization.ts:153-155) — 안드 configChanges의 locale|layoutDirection을 지키려고 그대로 적는다
+      ['expo-localization', { allowDynamicLocaleChangesAndroid: true, supportedLocales: { ios: ['ko'] } }],
       [
         'expo-image-picker',
         {
