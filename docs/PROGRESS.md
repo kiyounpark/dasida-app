@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.21 11:55
+- 해시: `01d03d5e` (`01d03d5e4632d4409666144888cde532db0b182b`)
+- 브랜치: claude/ask-source-1015-df2268
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/01d03d5e4632d4409666144888cde532db0b182b
+- 작성자: 박기윤
+- 메시지: docs: STATUS — ✅ 1.0.15 두 스토어 공개(애플 10.21 07:02 · 언어 KO ⑫ 닫힘 · 안드 1.0.15) · 13줄 남은 것만 · 49줄 ⑴ 닫힘 · 옛 3·13줄 archive 「10.21 낮에 내림」
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.20 16:42
 - 해시: `a69e9ce7` (`a69e9ce7db0e867d8ac04facd1a207a851f5ffc1`)
 - 브랜치: claude/ask-source-1015-df2268
