@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.10.22 13:23
+- 해시: `1324f4a3` (`1324f4a3d040004d9f1afb9d98fcfad0d4a46e10`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/1324f4a3d040004d9f1afb9d98fcfad0d4a46e10
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 10.22 지금/이력 줄이기(끝난 줄·절 16덩어리를 archive 「10.22에 내림」으로 원문 그대로 · 122,128B → 102,171B) · 43줄 ⑥ 다시 볼 날 10.24(토)
+- 본문: - 내린 것: 옛 맨 위 갱신 줄 · 15·17·18·22·23·25·41·42·63줄 · 「한 줄」 절 · 칸 표 D·E·F 행 · 「지금 열린 방」 표 · 「배포 전 반드시」 절 (23줄은 「남은 것」 한 줄만 남김) / - 옛 STATUS 비어 있지 않은 줄 209 = 그대로 173 + archive 36 + 빠진 줄 0 (rtk 안 거친 줄 단위 대조) / - 43줄 ⑥ 「10.21 기윤 캡처 보고」가 안 됨 → 다시 볼 날 10.24(토) 확인 묶음 때 (기윤 10.22 13시대) / Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.10.22 12:58
 - 해시: `b722e5bb` (`b722e5bb2d1bc7c84ad7a27163062da4ec354214`)
 - 브랜치: claude/adoring-tu-57d59f
