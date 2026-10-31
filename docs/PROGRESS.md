@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.11.01 07:14
+- 해시: `c3d40802` (`c3d408021d38373af74f9436b9c45131aa64de36`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c3d408021d38373af74f9436b9c45131aa64de36
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 쇼츠 두 줄 뺌(79줄 「마케팅·일정은 이 파일엔 안 적는다」 · 장부·아티팩트에 있음)
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.11.01 07:11
 - 해시: `342465a6` (`342465a63f22ca061521b91b924d7c423d161d45`)
 - 브랜치: main
