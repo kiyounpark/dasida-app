@@ -1061,6 +1061,16 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.11.01 21:11
+- 해시: `c4ee0d79` (`c4ee0d79dc06b5e68535b7552703d06b936f380b`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/c4ee0d79dc06b5e68535b7552703d06b936f380b
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 11.01 안드 스토어판 구글 로그인 막힘($identify 0/76) → 플레이 앱 서명 SHA-1 추가로 고침 · 모르는 것 10.28 삼성 3대
+- 본문: 코드·OTA·빌드 0. 설치 숫자·두 모델 판·인스타는 79줄 규칙대로 실험 장부에만. / 옛 맨 위 갱신 줄은 archive 「11.01 밤에 내림」. / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.11.01 07:14
 - 해시: `c3d40802` (`c3d408021d38373af74f9436b9c45131aa64de36`)
 - 브랜치: main
