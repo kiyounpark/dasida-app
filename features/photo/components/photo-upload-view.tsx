@@ -30,7 +30,7 @@ export function PhotoUploadView({
       <Text style={styles.brand}>다시다</Text>
 
       <Text selectable style={styles.title}>
-        틀린 문제만 찍어서 올려줘{'\n'}
+        틀린 문제,{'\n'}풀이까지 찍어서 올려줘{'\n'}
         <Text style={styles.titleHighlight}>왜 틀렸는지</Text> 알려줄게
       </Text>
       <Text selectable style={styles.sub}>

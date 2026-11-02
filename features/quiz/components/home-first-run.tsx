@@ -30,8 +30,10 @@ export function HomeFirstRun({ onPressPhoto }: Props) {
 
   return (
     <View testID="home-first-run" style={[styles.wrap, isTablet && { maxWidth: undefined }]}>
+      {/* 11.02 「틀린 문제만」 → 「풀이까지」: 풀이 없는 사진을 올린 새 학생 둘이 짚을 줄 0으로 떠났다.
+          줄은 직접 나눈다 — 사진 화면(26pt)은 한 줄이면 폰 폭에서 「올려줘」만 떨어져서, 세 입구를 같은 모양으로 */}
       <Text selectable style={styles.title}>
-        틀린 문제만 찍어서 올려줘
+        틀린 문제,{'\n'}풀이까지 찍어서 올려줘
       </Text>
       <Text selectable style={styles.title}>
         <Text style={styles.titleHighlight}>왜 틀렸는지</Text> 알려줄게

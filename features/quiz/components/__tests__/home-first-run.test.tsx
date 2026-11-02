@@ -70,7 +70,10 @@ describe('처음 온 학생의 홈', () => {
   it('웹 프로토의 약속을 그대로 말한다', () => {
     render(<QuizHubScreenView {...baseProps} />);
 
-    expect(screen.getByText('틀린 문제만 찍어서 올려줘')).toBeTruthy();
+    // 줄바꿈은 기본 정규화가 띄어쓰기 하나로 접는다 — 문장 그대로 비교
+    expect(screen.getByText('틀린 문제, 풀이까지 찍어서 올려줘')).toBeTruthy();
+    // 「문제만」은 풀이 없는 사진을 부른다(11.02) — 돌아오면 실패
+    expect(screen.queryByText(/틀린 문제만/)).toBeNull();
     expect(screen.getByText(/왜 틀렸는지/)).toBeTruthy();
     expect(
       screen.getByText('채점은 이미 했잖아. 틀린 문제 하나, 풀이 흔적까지 나오게 찍으면 돼.'),
@@ -115,7 +118,7 @@ describe('처음 온 학생의 홈', () => {
   it('사진을 한 장이라도 찍었으면 이 화면은 안 나온다', () => {
     render(<QuizHubScreenView {...baseProps} showFirstRun={false} />);
 
-    expect(screen.queryByText('틀린 문제만 찍어서 올려줘')).toBeNull();
+    expect(screen.queryByText('틀린 문제, 풀이까지 찍어서 올려줘')).toBeNull();
     expect(screen.getByText('아직 복습할 게 없어요')).toBeTruthy();
     expect(screen.getByText('틀린 문제, 찍기만 하면 돼요')).toBeTruthy();
   });
