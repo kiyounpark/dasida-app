@@ -1061,6 +1061,26 @@
 
 <!-- COMMIT_LOGS_START -->
 
+### 커밋 2026.11.02 15:57
+- 해시: `4c4707e6` (`4c4707e6cbf0cc37af963f2663b7821ea7f51691`)
+- 브랜치: main
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/4c4707e6cbf0cc37af963f2663b7821ea7f51691
+- 작성자: 박기윤
+- 메시지: docs: STATUS — 11.02 입구 제목 「풀이까지」 OTA 01a19b09·웹 배포 · 모르는 것: 풀이 없음 판정 사진 3장의 진짜 내용
+- 본문: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### 커밋 2026.11.02 15:43
+- 해시: `df0103e2` (`df0103e2fc5b86150079819c301e141ad892d98e`)
+- 브랜치: (브랜치 정보 없음)
+- 원격: origin
+- 원격 URL: https://github.com/kiyounpark/dasida-app.git
+- 링크: https://github.com/kiyounpark/dasida-app/commit/df0103e2fc5b86150079819c301e141ad892d98e
+- 작성자: 박기윤
+- 메시지: fix(photo): 입구 제목 「틀린 문제만」 → 「틀린 문제, 풀이까지 찍어서 올려줘」
+- 본문: 10.13 뒤 로그인한 새 학생 둘(아이패드)이 풀이 없는 사진을 올려 짚을 줄 0을 받고 떠났다. / 찍기 전 화면의 「풀이까지」 안내는 전부 회색 작은 글씨였고, 큰 제목만 「문제만」이라고 말했다. / 제목 한 줄만 바꾼다 — 처음 홈 · 사진 화면 · 웹 첫 화면 셋. 대본·말풍선·노트는 그대로. / 한 줄이면 폰 폭(331px)에서 341px이라 「올려줘」가 떨어져서 줄을 직접 나눴다. / 테스트: 새 제목 + 「틀린 문제만」이 돌아오면 실패. / 판: Fable(astra 한도로 답 없음) · 기윤 「제목 바꿔요」 · 근거 ~/dev/dasida-measure/2026-11-02-no-solving-path/README.md / Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ### 커밋 2026.11.01 21:11
 - 해시: `c4ee0d79` (`c4ee0d79dc06b5e68535b7552703d06b936f380b`)
 - 브랜치: main
